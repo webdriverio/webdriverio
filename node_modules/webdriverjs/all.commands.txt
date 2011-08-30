@@ -1,0 +1,68 @@
+GET		/status	
+POST	/session	 									Create a new session.
+GET		/session/:sessionId	 							Retrieve the capabilities of the specified session.
+DELETE	/session/:sessionId	 							Delete the session.
+POST	/session/:sessionId/timeouts/async_script	 	Set the amount of time, in milliseconds, that asynchronous scripts executed by /session/:sessionId/execute_async are permitted to run before they are aborted and a |Timeout| error is returned to the client.
+POST	/session/:sessionId/timeouts/implicit_wait	 	Set the amount of time the driver should wait when searching for elements.
+GET		/session/:sessionId/window_handle	 			Retrieve the current window handle.
+GET		/session/:sessionId/window_handles	 			Retrieve the list of all window handles available to the session.
+GET		/session/:sessionId/url	 						Retrieve the URL of the current page.
+POST	/session/:sessionId/url	 						Navigate to a new URL.
+POST	/session/:sessionId/forward	 					Navigate forwards in the browser history, if possible.
+POST	/session/:sessionId/back	 					Navigate backwards in the browser history, if possible.
+POST	/session/:sessionId/refresh	 					Refresh the current page.
+POST	/session/:sessionId/execute	 					Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+POST	/session/:sessionId/execute_async	 			Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+GET		/session/:sessionId/screenshot	 				Take a screenshot of the current page.
+GET		/session/:sessionId/ime/available_engines	 List all available engines on the machine.
+GET		/session/:sessionId/ime/active_engine	 Get the name of the active IME engine.
+GET		/session/:sessionId/ime/activated	 Indicates whether IME input is active at the moment (not if it's available.
+POST	/session/:sessionId/ime/deactivate	 De-activates the currently-active IME engine.
+POST	/session/:sessionId/ime/activate	 Make an engines that is available (appears on the listreturned by getAvailableEngines) active.
+POST	/session/:sessionId/frame	 Change focus to another frame on the page.
+POST	/session/:sessionId/window	 Change focus to another window.
+DELETE	/session/:sessionId/window	 Close the current window.
+GET		/session/:sessionId/cookie	 Retrieve all cookies visible to the current page.
+POST	/session/:sessionId/cookie	 Set a cookie.
+DELETE	/session/:sessionId/cookie	 Delete all cookies visible to the current page.
+DELETE	/session/:sessionId/cookie/:name	 Delete the cookie with the given name.
+GET		/session/:sessionId/source	 Get the current page source.
+GET		/session/:sessionId/title	 Get the current page title.
+POST	/session/:sessionId/element	 Search for an element on the page, starting from the document root.
+POST	/session/:sessionId/elements	 Search for multiple elements on the page, starting from the document root.
+POST	/session/:sessionId/element/active	 Get the element on the page that currently has focus.
+GET		/session/:sessionId/element/:id	 Describe the identified element.
+POST	/session/:sessionId/element/:id/element	 Search for an element on the page, starting from the identified element.
+POST	/session/:sessionId/element/:id/elements	 Search for multiple elements on the page, starting from the identified element.
+POST	/session/:sessionId/element/:id/click	 Click on an element.
+POST	/session/:sessionId/element/:id/submit	 Submit a FORM element.
+GET		/session/:sessionId/element/:id/text	 Returns the visible text for the element.
+GET		/session/:sessionId/element/:id/value	 Query for the value of an element, as determined by its value attribute.
+POST	/session/:sessionId/element/:id/value	 Send a sequence of key strokes to an element.
+POST	/session/:sessionId/modifier	 Send an event to the active element to depress or release a modifier key.
+GET		/session/:sessionId/element/:id/name	 Query for an element's tag name.
+POST	/session/:sessionId/element/:id/clear	 Clear a TEXTAREA or text INPUT element's value.
+GET		/session/:sessionId/element/:id/selected	 Determine if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected.
+POST	/session/:sessionId/element/:id/selected	 Select an OPTION element, or an INPUT element of type checkbox or radiobutton.
+POST	/session/:sessionId/element/:id/toggle	 Toggle whether an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected.
+GET		/session/:sessionId/element/:id/enabled	 Determine if an element is currently enabled.
+GET		/session/:sessionId/element/:id/attribute/:name	 Get the value of an element's attribute.
+GET		/session/:sessionId/element/:id/equals/:other	 Test if two element IDs refer to the same DOM element.
+GET		/session/:sessionId/element/:id/displayed	 Determine if an element is currently displayed.
+GET		/session/:sessionId/element/:id/location	 Determine an element's location on the page.
+GET		/session/:sessionId/element/:id/location_in_view	 Determine an element's location on the screen once it has been scrolled into view.
+GET		/session/:sessionId/element/:id/size	 Determine an element's size in pixels.
+GET		/session/:sessionId/element/:id/css/:propertyName	 Query the value of an element's computed CSS property.
+POST	/session/:sessionId/element/:id/hover	 Move the mouse over an element.
+POST	/session/:sessionId/element/:id/drag	 Drag and drop an element.
+GET		/session/:sessionId/orientation	 Get the current browser orientation.
+POST	/session/:sessionId/orientation	 Set the browser orientation.
+GET		/session/:sessionId/alert_text	 Gets the text of the currently displayed JavaScript alert(), confirm(), or prompt() dialog.
+POST	/session/:sessionId/alert_text	 Sends keystrokes to a JavaScript prompt() dialog.
+POST	/session/:sessionId/accept_alert	 Accepts the currently displayed alert dialog.
+POST	/session/:sessionId/dismiss_alert	 Dismisses the currently displayed alert dialog.
+POST	/session/:sessionId/moveto	 Move the mouse by an offset of the specificed element.
+POST	/session/:sessionId/click	 Click any mouse button (at the coordinates set by the last moveto command).
+POST	/session/:sessionId/buttondown	 Click and hold the left mouse button (at the coordinates set by the last moveto command).
+POST	/session/:sessionId/buttonup	 Releases the mouse button previously held (where the mouse is currently at).
+POST	/session/:sessionId/doubleclick	 Double-clicks at the current mouse coordinates (set by moveto).
