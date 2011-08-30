@@ -45,14 +45,14 @@ Then run this with nodjs:
 		.end();	
 
 
-### FAQ
+# FAQ
 
-#Which protocol parts are done?
+###Which protocol parts are done?
 Well, not all of them but a couple and more to come.
 
-#Are there more things than "just the protocol"?
+###Are there more things than "just the protocol"?
 Yes, the implementation is done so that more complicated sets of protocol elements can be chained. I will explain more about this soon
 
-### More on selenium and its protocol
+# More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
