@@ -1,0 +1,5 @@
+.hg
+.hgignore
+/*.png
+*.tmproj
+old
