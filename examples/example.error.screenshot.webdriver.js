@@ -6,6 +6,6 @@ var fs = require('fs');
 
 client
 	.init()
-	.url("http://ozzo.local/webdriver/www/popupopener.html")
+	.url("http://www.onezerozeroone.com/projects/webdriverjs/testsite/popupopener.html")
 	.getSize("#fkjfj")
 	.end();	

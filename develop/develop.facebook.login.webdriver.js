@@ -1,4 +1,4 @@
-// example of webdriver with queued commands
+// this example isnt finished yet
 
 var webdriverjs = require("webdriverjs");
 var client = webdriverjs.remote();

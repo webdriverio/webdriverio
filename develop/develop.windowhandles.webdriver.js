@@ -5,6 +5,6 @@ var client = webdriverjs.remote();
 
 client
 	.init()
-	.url("http://ozzo.local/webdriver/www/popupopener.html")
+	.url("www.onezerozeroone.com/projects/webdriverjs/testsite/popupopener.html")
 	.click("#submit")
 	.end();	
