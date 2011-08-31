@@ -1,7 +1,7 @@
 Webdriver/selenium 2.0 javascript bindings for nodejs
 ===
 
-### Example of webdriver with queued commands localy:
+### Example of webdriver with queued commands locally:
 
 Run selenium server first:  
 	
@@ -22,7 +22,7 @@ Then run this with nodjs:
 		.end();	
 
 
-### Example of using webdriverjs for testing localy
+### Example of using webdriverjs for testing locally
 
 Run selenium server first:  
 	
@@ -44,6 +44,7 @@ Then run this with nodjs:
 		.tests.visible(".pagehead", true, ".pagehead is visible after click")
 		.end();	
 
+More examples in the examples folder
 
 # FAQ
 
