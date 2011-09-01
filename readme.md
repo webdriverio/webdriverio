@@ -46,7 +46,7 @@ Then run this with nodjs:
 		.testMode()
 		.init()
 		.url("https://github.com")
-		.tests.cssPropertyEquals(".login a", "color", "#4183c4", "Color of #tjena is #4183c4")
+		.tests.cssPropertyEquals(".login a", "color", "#4183c4", "Color of .login a is #4183c4")
 		.tests.titleEquals("Secure source code hosting and collaborative development - GitHub", "Title of the page is 'Secure source code hosting and collaborative development - GitHub'")
 		.click(".pricing a")
 		.tests.titleEquals("Plans & Pricing - GitHub", "Title of the page is 'Plans & Pricing - GitHub'")
