@@ -57,17 +57,18 @@ More examples in the examples folder
 
 ### Other options
 To make webdriverjs be silent (omit all logs):
-var client = require("webdriverjs").remote(silent: true); // if you use it as part of other app and the logs arent interesting
 
-client
-	.init()
-	.url("https://github.com/")
-	.getTitle(
-		function(result)
-		{
-			console.log(result)
-		}
-	);
+	var client = require("webdriverjs").remote(silent: true); // if you use it as part of other app and the logs arent interesting
+
+	client
+		.init()
+		.url("https://github.com/")
+		.getTitle(
+			function(result)
+			{
+				console.log(result)
+			}
+		);
 
 # FAQ
 
