@@ -20,7 +20,7 @@ Then run this with nodjs:
 
 	var webdriverjs = require("webdriverjs");
 	var client = webdriverjs.remote();
-	//var client = webdriverjs.remote("xx.xx.xx.xx"); // to run it on a remote selenium server
+	//var client = webdriverjs.remote({host: "xx.xx.xx.xx"}); // to run it on a remote webdriver/selenium server
 
 	client
 		.init()
@@ -55,9 +55,23 @@ Then run this with nodjs:
 
 More examples in the examples folder
 
+### Other options
+To make webdriverjs be silent (omit all logs):
+var client = require("webdriverjs").remote(silent: true); // if you use it as part of other app and the logs arent interesting
+
+client
+	.init()
+	.url("https://github.com/")
+	.getTitle(
+		function(result)
+		{
+			console.log(result)
+		}
+	);
+
 # FAQ
 
-###Which protocol parts are done?
+### Which protocol parts are done?
 Well, not all of them but a couple and more to come.
 
 ###Are there more things than "just the protocol"?
@@ -66,3 +80,28 @@ Yes, the implementation is done so that more complicated sets of protocol elemen
 # More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
+
+## License 
+
+(The MIT License)
+
+Copyright (c) 2011 Camilo Tapia &lt;camilo.tapia@gmail.com&gt;
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
