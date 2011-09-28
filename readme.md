@@ -53,6 +53,21 @@ Then run this with nodjs:
 		.tests.visible(".pagehead", true, ".pagehead is visible after click")
 		.end();	
 
+### Submitting a form
+
+To submit a form, pick any elemtn inside the form (or the form itself) and call .submitForm
+
+    var client = require("webdriverjs").remote();
+
+    client
+         .init()
+        .url("http://www.google.com")
+        .setValue("#lst-ib", "webdriver")
+        .submitForm("#tsf")
+        .end();
+
+
+
 More examples in the examples folder
 
 ### Other options
