@@ -10,6 +10,12 @@ The two main reasons for this projects are:
 
 2) Easy to extend - Adding helper functions, or more complicated sets and combinations of existing commands, should also be very easy.
 
+### How to install it
+
+Either download it from github or use npm:
+    
+    npm install webdriverjs
+
 ### Example of webdriver with queued commands locally:
 
 Run selenium server first:  
