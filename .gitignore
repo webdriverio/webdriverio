@@ -22,3 +22,6 @@ examples/takescreenshots.js
 examples/takescreenshots.js
 
 .DS_Store
+*.log
+*.lck
+*.png

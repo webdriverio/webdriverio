@@ -8,7 +8,7 @@ client
 	.init()
 	.url("https://github.com")
 	.tests.cssPropertyEquals(".login a", "color", "#4183c4", "Color of #tjena is #4183c4")
-	.tests.titleEquals("Secure source code hosting and collaborative development - GitHub", "Title of the page is 'Secure source code hosting and collaborative development - GitHub'")
+	.tests.titleEquals("GitHub - Social Coding", "Title of the page is 'GitHub - Social Coding'")
 	.click(".pricing a")
 	.tests.titleEquals("Plans & Pricing - GitHub", "Title of the page is 'Plans & Pricing - GitHub'")
 	.tests.visible(".pagehead", true, ".pagehead is visible after click")
