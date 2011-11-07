@@ -1,4 +1,4 @@
-var client = require("webdriverjs").remote();
+var client = require("webdriverjs").remote({desiredCapabilities: {browserName:"chrome"}});
 
 client
    .init()
