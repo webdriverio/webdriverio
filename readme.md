@@ -1,7 +1,8 @@
 Webdriver/selenium 2.0 javascript bindings for nodejs
 ===
 
-A set of protocol bindings for webdriver trough nodejs.
+A WebDriver module for nodejs. Either use the super easy help commands or use the base Webdriver wire protocol commands.
+
 It is written so its easy to add new protocol implementations and add helper commands so make testing easier. each command resides as one file inside the node module folder which makes it easy to extend.
 
 The two main reasons for this projects are: 
@@ -20,13 +21,14 @@ Either download it from github or use npm:
 
 Run selenium server first:  
 	
-	java -jar selenium-server-standalone-2.5.0.jar
+	java -jar selenium-server-standalone-2.11.0.jar
 	
 Then run this with nodjs:
 
 	var webdriverjs = require("webdriverjs");
 	var client = webdriverjs.remote();
 	//var client = webdriverjs.remote({host: "xx.xx.xx.xx"}); // to run it on a remote webdriver/selenium server
+	//var client = webdriverjs.remote({desiredCapabilities:{browserName:"chrome"}); // to run call chrome
 
 	client
 		.init()
@@ -102,6 +104,10 @@ Yes, the implementation is done so that more complicated sets of protocol elemen
 # More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
+
+# Change log
+2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2
+2011-11-05: Added suport for desiredCapabilities when calling the remote() method (only available in the init() method before)
 
 ## License 
 
