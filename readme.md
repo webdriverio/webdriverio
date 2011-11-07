@@ -93,6 +93,52 @@ To make webdriverjs be silent (omit all logs):
 			}
 		);
 
+# List of current helper methods
+These are the current implemented helper methods. All methods take from 0 to a couple of parameters. Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
+
+click(css selector, [callback]) - Clicks on an element based on a css selector
+end([callback]) - Ends a sessions (closes the browser)
+getAttribute(css selector, attribute name, [callback]) - Get an attribute from an dom obj based on the css selector and attribute name
+getCssProperty(css selector, css property name, [callback]) - Gets a css property from a dom object selected with a css selector
+getElementCssProperty(find by, finder, css property name, [callback]) - Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
+getElementSize(css selector, [callback]) - Get the elements size. The element is found with a css selector
+getLocation(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector
+getSize(css selector, [callback]) - Gets the width and height for an object based on the css selector
+getText(css selector, [callback]) - Gets the text content from a dom obj found by the css selector
+getTitle([callback]) - Gets the title of the page
+getValue(css selector, [callback]) - Gets the value of a dom obj found by css selector
+isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
+pause(milliseconds, [callback]) - Pauses the commands by the provided milliseconds
+saveScreenshot(path to file, [callback]) - Saves a screenshot as a png from the current state of the browser
+setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector
+submitForm(css selector, [callback]) - Submits a form found by the css selector
+waitFor(css selector, milliseconds, [callback]) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
+
+# List of current implemented wire protocol bindings
+Here are the implemented bindings (and links to the official json protocol binding)
+
+- [element](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element)
+- [elementIdAttribute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/attribute/:name)
+- [elementIdClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/click)
+- [elementIdCssProperty](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/css/:propertyName)
+- [elementIdDisplayed](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/displayed)
+- [elementIdLocation](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/location)
+- [elementIdSize](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/size)
+- [elementIdText](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/text)
+- [elementIdValue](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/value)
+- [elements](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/elements)
+- [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
+- [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
+- [init](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/)
+- [screenshot](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/screenshot)
+- [session](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId)
+- [status](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/status)
+- [submit](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/submit)
+- [title](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/title)
+- [url](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url)
+- [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
+- [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
+
 # FAQ
 
 ### Which protocol parts are done?
