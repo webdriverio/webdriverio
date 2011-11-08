@@ -158,8 +158,9 @@ Yes, the implementation is done so that more complicated sets of protocol elemen
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
 
 # Change log
-- 2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2
-- 2011-11-05: Added suport for desiredCapabilities when calling the remote() method (only available in the init() method before)
+- 2011-11-08: Bindings added: moveTo, elementIdLocationInView, elementIdName. Helper methods added: getTagName, getLocationInView, moveToObject. Also added some tests.
+- 2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2.
+- 2011-11-05: Added suport for desiredCapabilities when calling the remote() method (only available in the init() method before).
 
 ## License 
 
