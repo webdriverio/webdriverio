@@ -12,3 +12,21 @@
 	margin: 50px;
 	background-color: lime;
 }
+
+#extra
+{
+	position: absolute;
+	left: 300px;
+	top: 50px;
+	padding: 10px;
+	background-color: lime;
+	width: 100px;
+	height: 100px;
+}
+
+p
+{
+	width: 300px;
+	height: 800px;
+	background-color: orange;
+}

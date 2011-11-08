@@ -103,11 +103,14 @@ These are the current implemented helper methods. All methods take from 0 to a c
 - getElementCssProperty(find by, finder, css property name, [callback]) - Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
 - getElementSize(css selector, [callback]) - Get the elements size. The element is found with a css selector
 - getLocation(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector
+- getLocationInView(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector in the view
 - getSize(css selector, [callback]) - Gets the width and height for an object based on the css selector
 - getText(css selector, [callback]) - Gets the text content from a dom obj found by the css selector
+- getTagName(css selector, [callback]) - Gets the tag name of a dom obj found by the css selector
 - getTitle([callback]) - Gets the title of the page
 - getValue(css selector, [callback]) - Gets the value of a dom obj found by css selector
 - isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
+- moveToObject(css selector, [callback]) - Moves the page to the selected dom object
 - pause(milliseconds, [callback]) - Pauses the commands by the provided milliseconds
 - saveScreenshot(path to file, [callback]) - Saves a screenshot as a png from the current state of the browser
 - setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector
@@ -123,6 +126,8 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [elementIdCssProperty](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/css/:propertyName)
 - [elementIdDisplayed](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/displayed)
 - [elementIdLocation](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/location)
+- [elementIdLocationInView](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/location_in_view)
+- [elementIdName](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/name)
 - [elementIdSize](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/size)
 - [elementIdText](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/text)
 - [elementIdValue](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/value)
@@ -130,6 +135,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
 - [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
 - [init](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/)
+- [moveTo](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto)
 - [screenshot](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/screenshot)
 - [session](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId)
 - [status](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/status)
@@ -152,8 +158,8 @@ Yes, the implementation is done so that more complicated sets of protocol elemen
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
 
 # Change log
-2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2
-2011-11-05: Added suport for desiredCapabilities when calling the remote() method (only available in the init() method before)
+- 2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2
+- 2011-11-05: Added suport for desiredCapabilities when calling the remote() method (only available in the init() method before)
 
 ## License 
 
