@@ -28,7 +28,7 @@ Then run this with nodjs:
 	var webdriverjs = require("webdriverjs");
 	var client = webdriverjs.remote();
 	//var client = webdriverjs.remote({host: "xx.xx.xx.xx"}); // to run it on a remote webdriver/selenium server
-	//var client = webdriverjs.remote({desiredCapabilities:{browserName:"chrome"}); // to run call chrome
+	//var client = webdriverjs.remote({desiredCapabilities:{browserName:"chrome"}); // to run in chrome
 
 	client
 		.init()
