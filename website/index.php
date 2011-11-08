@@ -58,6 +58,25 @@
 					
 					<p>here are the current existing functions</p>
 					
+					<?php
+
+						if ($handle = opendir('commands')) 
+						{
+						    echo "Directory handle: $handle\n";
+						    echo "Files:\n";
+
+						    while (false !== ($file = readdir($handle))) 
+							{
+						        echo "$file\n";
+						    }
+
+						    closedir($handle);
+						}
+						
+					?>
+					
+					
+					
 					<div class="command">
 						<pre><code>	click(<span class="attributes">css selector</span>)</code></pre>
 						<p>Clicks on an object selected by a css selector.</p>
