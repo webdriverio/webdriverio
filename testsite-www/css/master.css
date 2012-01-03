@@ -30,3 +30,45 @@ p
 	height: 800px;
 	background-color: orange;
 }
+
+#dragContainer
+{
+    width: 300px;
+    height: 90px;
+    border: 2px solid black;
+    position: absolute;
+	left: 500px;
+	top: 100px;
+	background-color: #aaa;
+	padding: 5px;
+	z-index: 100;
+}
+   
+.dragItem
+{
+    width: 88px;
+    height: 88px;
+    background-color: lime;
+    float: left;
+    line-height: 88px;
+    text-align: center;
+    border: 1px green solid;
+    margin-right: 5px;
+}
+
+#dropContainer
+{
+    width: 300px;
+    height: 90px;
+    border: 2px solid black;
+    position: absolute;
+	left: 500px;
+	top: 220px;
+	background-color: #aaa;
+	padding: 5px;
+}
+
+#dropContainer.ui-state-active
+{
+   	background-color: yellow; 
+}
