@@ -154,8 +154,8 @@ These are the current implemented helper methods. All methods take from 0 to a c
 # List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
 
-- [buttondown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/buttondown)
-- [buttonup](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/buttonup)
+- [buttondown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttondown)
+- [buttonup](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttonup)
 - [element](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element)
 - [elementIdAttribute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/attribute/:name)
 - [elementIdClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/click)
