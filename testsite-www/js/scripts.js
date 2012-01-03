@@ -17,6 +17,20 @@ $(document.body).ready(
 			}
 		);
 		
+		$(".dragItem").draggable({
+		    revert: "invalid"
+		});
+        $("#dropContainer").droppable({
+			hoverClass: "ui-state-active",
+			accept: ".dragItem",
+			drop: function( event, ui ) {
+			    var draggable = $(ui.draggable);
+			    draggable.css({"top": "", "position": ""})
+			    var droppable = $(this);
+			    droppable.append(draggable);
+            }
+		});
+		
 		
 		
 	}
