@@ -76,15 +76,15 @@ If you want to extend with your own set of commands there is a method called add
 
 	var client = require("webdriverjs").remote();
 
-	// test if it works to add new commands
-	client.addCommand("myCommand", function(callback) {
+	// create a command the returns the current url and title as one result (just to show an example)
+	client.addCommand("getUrlAndTitle", function(callback) {
 		this.url(
-			function(result1)
+			function(urlResult)
 			{
 				this.getTitle(
-					function(result2)
+					function(titleResult)
 					{
-						var specialResult = {url: result1.value, title: result2};
+						var specialResult = {url: urlResult.value, title: titleResult};
 						if (typeof callback == "function")
 						{
 							callback(specialResult);
@@ -98,7 +98,7 @@ If you want to extend with your own set of commands there is a method called add
 	client
 	   	.init()
 	   	.url("http://www.google.com")
-	   	.myCommand(function(result)
+	   	.getUrlAndTitle(function(result)
 		{
 			console.log(result);
 		})
@@ -154,6 +154,8 @@ These are the current implemented helper methods. All methods take from 0 to a c
 # List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
 
+- [buttondown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/buttondown)
+- [buttonup](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/buttonup)
 - [element](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element)
 - [elementIdAttribute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/attribute/:name)
 - [elementIdClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/click)
@@ -169,7 +171,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
 - [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
 - [init](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/)
-- [moveTo](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto)
+- [moveto](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto)
 - [screenshot](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/screenshot)
 - [session](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId)
 - [status](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/status)
