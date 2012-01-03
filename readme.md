@@ -129,7 +129,7 @@ Then run this with nodjs:
 # List of current helper methods
 These are the current implemented helper methods. All methods take from 0 to a couple of parameters. Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
 
-- drag(sourceCssSelector, destinationCssSelector, [callback]) - Drags an item to a destination
+- dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]) - Drags an item to a destination
 - click(css selector, [callback]) - Clicks on an element based on a css selector
 - end([callback]) - Ends a sessions (closes the browser)
 - getAttribute(css selector, attribute name, [callback]) - Get an attribute from an dom obj based on the css selector and attribute name
@@ -194,7 +194,7 @@ Yes, the implementation is done so that more complicated sets of protocol elemen
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
 
 # Change log
-- 2012-01-03: Added .drag(sourceCssSelector, destinationCssSelector, [callback]);
+- 2012-01-03: Added .dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]);
 - 2011-11-09: Added client.addCommand(commandName, function) to extend webdriverjs. Also merged with arcaniusx to fix conflict with colors module and waitFor response
 - 2011-11-08: Bindings added: moveTo, elementIdLocationInView, elementIdName. Helper methods added: getTagName, getLocationInView, moveToObject. Also added some tests.
 - 2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2.
