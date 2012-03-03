@@ -131,6 +131,7 @@ These are the current implemented helper methods. All methods take from 0 to a c
 
 - dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]) - Drags an item to a destination
 - click(css selector, [callback]) - Clicks on an element based on a css selector
+- doubleClick(css selector, [callback]) - Clicks on an element based on a css selector
 - end([callback]) - Ends a sessions (closes the browser)
 - getAttribute(css selector, attribute name, [callback]) - Get an attribute from an dom obj based on the css selector and attribute name
 - getCssProperty(css selector, css property name, [callback]) - Gets a css property from a dom object selected with a css selector
@@ -159,6 +160,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [element](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element)
 - [elementIdAttribute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/attribute/:name)
 - [elementIdClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/click)
+- [elementDoubleClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/doubleclick)
 - [elementIdCssProperty](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/css/:propertyName)
 - [elementIdDisplayed](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/displayed)
 - [elementIdLocation](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/location)
@@ -194,6 +196,7 @@ Yes, the implementation is done so that more complicated sets of protocol elemen
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
 
 # Change log
+- 2012-03-03: Added .doubleClick(cssSelector, [callback]);
 - 2012-01-03: Added .dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]);
 - 2011-11-09: Added client.addCommand(commandName, function) to extend webdriverjs. Also merged with arcaniusx to fix conflict with colors module and waitFor response
 - 2011-11-08: Bindings added: moveTo, elementIdLocationInView, elementIdName. Helper methods added: getTagName, getLocationInView, moveToObject. Also added some tests.

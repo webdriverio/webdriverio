@@ -17,9 +17,19 @@ $(document.body).ready(
 			}
 		);
 		
+		$("#extra").click(function(){
+		    $(this).html("SINGLE CLICK!");
+		});
+		
+		$("#extra").dblclick(function(){
+		    $(this).html("DBL CLICK!");
+		});
+		
 		$(".dragItem").draggable({
 		    revert: "invalid"
 		});
+		
+		
         $("#dropContainer").droppable({
 			hoverClass: "ui-state-active",
 			accept: ".dragItem",
