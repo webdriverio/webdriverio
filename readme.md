@@ -143,6 +143,7 @@ These are the current implemented helper methods. All methods take from 0 to a c
 - getText(css selector, [callback]) - Gets the text content from a dom obj found by the css selector
 - getTagName(css selector, [callback]) - Gets the tag name of a dom obj found by the css selector
 - getTitle([callback]) - Gets the title of the page
+- getSource([callback]) - Gets source code of the page
 - getValue(css selector, [callback]) - Gets the value of a dom obj found by css selector
 - isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
 - isSelected(css selector, [callback]) - Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
@@ -182,6 +183,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [submit](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/submit)
 - [title](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/title)
 - [url](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url)
+- [source](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/source)
 - [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
 - [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
 - [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
