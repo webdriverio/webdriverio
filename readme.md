@@ -151,6 +151,11 @@ These are the current implemented helper methods. All methods take from 0 to a c
 - setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector
 - submitForm(css selector, [callback]) - Submits a form found by the css selector
 - waitFor(css selector, milliseconds, [callback]) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
+- getCookie([name], [callback]) - Gets the cookie for current page.
+- setCookie(cookie, [callback]) - Sets a
+  [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current
+  page.
+- delCookie([name], [callback]) - Delete a cookie for current page.
 
 # List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
@@ -182,6 +187,8 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [url](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url)
 - [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
 - [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
+- [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie)
+- [cookieName](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie/:name)
 
 # FAQ
 
