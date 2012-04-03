@@ -145,6 +145,7 @@ These are the current implemented helper methods. All methods take from 0 to a c
 - getTitle([callback]) - Gets the title of the page
 - getValue(css selector, [callback]) - Gets the value of a dom obj found by css selector
 - isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
+- isSelected(css selector, [callback]) - Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
 - moveToObject(css selector, [callback]) - Moves the page to the selected dom object
 - pause(milliseconds, [callback]) - Pauses the commands by the provided milliseconds
 - saveScreenshot(path to file, [callback]) - Saves a screenshot as a png from the current state of the browser
@@ -169,6 +170,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [elementIdSize](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/size)
 - [elementIdText](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/text)
 - [elementIdValue](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/value)
+- [elementIdSelected](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/selected)
 - [elements](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/elements)
 - [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
 - [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
@@ -182,6 +184,9 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [url](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url)
 - [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
 - [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
+- [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
+- [back](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/back)
+- [refresh](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/refresh)
 
 # FAQ
 
