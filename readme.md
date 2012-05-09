@@ -153,6 +153,8 @@ These are the current implemented helper methods. All methods take from 0 to a c
 - setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector
 - submitForm(css selector, [callback]) - Submits a form found by the css selector
 - waitFor(css selector, milliseconds, [callback]) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
+- buttonClick(css selector, [callback]) - click on a button using a css selector
+- clearElement(css selector, [callback]) - clear an element of text
 
 # List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
