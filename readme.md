@@ -212,6 +212,13 @@ Yes, the implementation is done so that more complicated sets of protocol elemen
 - 2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2.
 - 2011-11-05: Added suport for desiredCapabilities when calling the remote() method (only available in the init() method before).
 
+## NPM Maintainers
+
+The npm module for this library is maintained by:
+
+* [Camilo Tapia](http://github.com/Camme)
+* [Dan Jenkins](http://github.com/danjenkins)
+
 ## License 
 
 (The MIT License)
