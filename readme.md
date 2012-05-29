@@ -200,6 +200,21 @@ Well, not all of them but a couple and more to come.
 ###Are there more things than "just the protocol"?
 Yes, the implementation is done so that more complicated sets of protocol elements can be chained. I will explain more about this soon
 
+###How can i send via Chrome webdriver switches to start chrome
+
+Download chrome webdriver (last version: chromedriver_mac_20.0.1133.0.zip)
+Start selenium with: 
+java -jar ./selenium-server-standalone-2.21.0.jar -Dwebdriver.chrome.bin="/Applications/Google Chrome.app/Contents/MacOs/Google Chrome" -Dwebdriver.chrome.driver="/FULL_PATH_TO/chromedriver"
+
+
+Send desired capabilities: 
+  desiredCapabilities:{
+    browserName: 'chrome',
+    seleniumProtocol: 'WebDriver',
+    'chrome.switches': ['--window-size=1366,768','--proxy-server=http://127.0.0.1:9091']
+  }
+
+
 # More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
