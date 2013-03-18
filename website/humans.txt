@@ -1,6 +1,0 @@
-Webdriverjs - nodejs bindings for webdriver/selenium 2.0
-
-  author: camilo tapia
-  Site: http://www.onezerozeroone.com/
-  Twitter: camilotapia
-  Location: Malmö, Sweden
