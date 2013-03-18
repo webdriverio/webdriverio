@@ -1,5 +1,5 @@
 Webdriver/selenium 2.0 javascript bindings for nodejs
-===
+=====================================================
 
 A WebDriver module for nodejs. Either use the super easy help commands or use the base Webdriver wire protocol commands.
 
@@ -15,116 +15,130 @@ The two main reasons for this projects are:
 
 Either download it from github or use npm:
     
-    npm install webdriverjs
+```shell
+npm install webdriverjs
+```
 
 ### Example of webdriver with queued commands locally:
 
 Run selenium server first:  
-	
-	java -jar selenium-server-standalone-2.11.0.jar
-	
+
+```shell
+java -jar selenium-server-standalone-2.11.0.jar
+```
+
 Then run this with nodejs:
 
-	var webdriverjs = require("webdriverjs");
-	var client = webdriverjs.remote();
-	//var client = webdriverjs.remote({host: "xx.xx.xx.xx"}); // to run it on a remote webdriver/selenium server
-	//var client = webdriverjs.remote({desiredCapabilities:{browserName:"chrome"}}); // to run in chrome
+```js
+var webdriverjs = require("webdriverjs");
+var client = webdriverjs.remote();
+//var client = webdriverjs.remote({host: "xx.xx.xx.xx"}); // to run it on a remote webdriver/selenium server
+//var client = webdriverjs.remote({desiredCapabilities:{browserName:"chrome"}}); // to run in chrome
 
-	client
-		.init()
-		.url("https://github.com/")
-		.getElementSize("id", "header", function(result){ console.log(result);  })
-		.getTitle(function(title) { console.log(title) })
-		.getElementCssProperty("id", "header", "color", function(result){ console.log(result);  })
-		.end();	
+client
+	.init()
+	.url("https://github.com/")
+	.getElementSize("id", "header", function(result){ console.log(result);  })
+	.getTitle(function(title) { console.log(title) })
+	.getElementCssProperty("id", "header", "color", function(result){ console.log(result);  })
+	.end();
+```
 
 ### Submitting a form
 
 To submit a form, pick any elemtn inside the form (or the form itself) and call .submitForm
 
-    var client = require("webdriverjs").remote();
+```js
+var client = require("webdriverjs").remote();
 
-    client
-        .init()
-        .url("http://www.google.com")
-        .setValue("#lst-ib", "webdriver")
-        .submitForm("#tsf")
-        .end();
+client
+    .init()
+    .url("http://www.google.com")
+    .setValue("#lst-ib", "webdriver")
+    .submitForm("#tsf")
+    .end();
+```
 
-
-
-More examples in the examples folder
+More examples in the examples folder.
 
 ### Other options
 To make webdriverjs be silent (omit all logs):
 
-	var client = require("webdriverjs").remote({logLevel: 'silent'}); // if you use it as part of other app and the logs arent interesting
+```js
+var client = require("webdriverjs").remote({logLevel: 'silent'}); // if you use it as part of other app and the logs arent interesting
 
-	client
-		.init()
-		.url("https://github.com/")
-		.getTitle(
-			function(result)
-			{
-				console.log(result)
-			}
-		)
-	    .end();
+client
+	.init()
+	.url("https://github.com/")
+	.getTitle(
+		function(result)
+		{
+			console.log(result)
+		}
+	)
+    .end();
+```
 
 ### Extending
 If you want to extend with your own set of commands there is a method called addCommand:
 
-	var client = require("webdriverjs").remote();
+```js
+var client = require("webdriverjs").remote();
 
-	// create a command the returns the current url and title as one result (just to show an example)
-	client.addCommand("getUrlAndTitle", function(callback) {
-		this.url(
-			function(urlResult)
-			{
-				this.getTitle(
-					function(titleResult)
-					{
-						var specialResult = {url: urlResult.value, title: titleResult};
-						if (typeof callback == "function")
-						{
-							callback(specialResult);
-						}
-					}
-				)
-			}
-		);
-	});
-
-	client
-	   	.init()
-	   	.url("http://www.google.com")
-	   	.getUrlAndTitle(function(result)
+// create a command the returns the current url and title as one result (just to show an example)
+client.addCommand("getUrlAndTitle", function(callback) {
+	this.url(
+		function(urlResult)
 		{
-			console.log(result);
-		})
-	   	.end();
+			this.getTitle(
+				function(titleResult)
+				{
+					var specialResult = {url: urlResult.value, title: titleResult};
+					if (typeof callback == "function")
+					{
+						callback(specialResult);
+					}
+				}
+			)
+		}
+	);
+});
+
+client
+   	.init()
+   	.url("http://www.google.com")
+   	.getUrlAndTitle(function(result)
+	{
+		console.log(result);
+	})
+   	.end();
+```
 
 ### Example of using webdriverjs for testing locally
 
 Run selenium server first:  
 
-	java -jar selenium-server-standalone-2.5.0.jar
+```shell
+java -jar selenium-server-standalone-2.5.0.jar
+```
 
-Then run this with nodjs:
+Then run this with nodejs:
 
-	var webdriverjs = require("webdriverjs");
-	var client = webdriverjs.remote();
+```js
+var webdriverjs = require("webdriverjs");
+var client = webdriverjs.remote();
 
-	client
-		.testMode()
-		.init()
-		.url("https://github.com")
-		.tests.cssPropertyEquals(".login a", "color", "#4183c4", "Color of .login a is #4183c4")
-		.tests.titleEquals("Secure source code hosting and collaborative development - GitHub", "Title of the page is 'Secure source code hosting and collaborative development - GitHub'")
-		.click(".pricing a")
-		.tests.titleEquals("Plans & Pricing - GitHub", "Title of the page is 'Plans & Pricing - GitHub'")
-		.tests.visible(".pagehead", true, ".pagehead is visible after click")
-		.end();
+client
+	.testMode()
+	.init()
+	.url("https://github.com")
+	.tests.cssPropertyEquals(".login a", "color", "#4183c4", "Color of .login a is #4183c4")
+	.tests.titleEquals("Secure source code hosting and collaborative development - GitHub", "Title of the page is 'Secure source code hosting and collaborative development - GitHub'")
+	.click(".pricing a")
+	.tests.titleEquals("Plans & Pricing - GitHub", "Title of the page is 'Plans & Pricing - GitHub'")
+	.tests.visible(".pagehead", true, ".pagehead is visible after click")
+	.end();
+```
 
 # List of current helper methods
 These are the current implemented helper methods. All methods take from 0 to a couple of parameters. Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
@@ -233,28 +247,4 @@ The npm module for this library is maintained by:
 
 * [Camilo Tapia](http://github.com/Camme)
 * [Dan Jenkins](http://github.com/danjenkins)
-
-## License 
-
-(The MIT License)
-
-Copyright (c) 2011 Camilo Tapia &lt;camilo.tapia@gmail.com&gt;
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+* [Christian Bromann](https://github.com/christian-bromann)
