@@ -23,7 +23,7 @@ exports.remote = function(options) {
 
     // make sure we have a default options if none are provided
     options = options || {};
-    console.log(WebdriverJS);
+
     if (options.singleton) {
         if (!singletonInstance) {
             singletonInstance = new WebdriverJS(options);
