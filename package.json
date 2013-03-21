@@ -29,7 +29,9 @@
     "test": "mocha"
   },
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "1.x"
+  },
   "optionalDependencies": {},
   "tags": [
     "web",
