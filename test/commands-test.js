@@ -1,7 +1,10 @@
-var assert = require("assert"),
-    webdriverjs = require("../index"),
-    githubTitle = 'GitHub · Build software better, together.',
-    githubRepoTitle = 'Camme/webdriverjs · GitHub';
+var assert         = require('chai').assert,
+    fs             = require('fs'),
+    webdriverjs    = require('../index'),
+    testpageURL    = 'http://webdriverjs.christian-bromann.com/',
+    githubTitle    = 'GitHub · Build software better, together.',
+    testpageTitle  = 'WebdriverJS Testpage',
+    testpageSource = "";
 
 describe('test webdriverjs API', function(){
 
@@ -12,65 +15,103 @@ describe('test webdriverjs API', function(){
     before(function(){
         // init client
         var capabilities =  {
-            'browserName': 'safari',
-            // 'safari.binary': '/Applications/Safari.app/Contents/MacOS/Safari'
+            'browserName': 'phantomjs'
         };
         client = webdriverjs.remote({desiredCapabilities:capabilities});
-    });
-
-    beforeEach(function(){
         client
             .init()
-            .url('https://github.com/Camme/webdriverjs');
+            .url(testpageURL);
+
+        // load source of testpage for getSource() test
+        fs.readFile('./test/index.html', function (err, html) {
+            if (err) {
+                throw err;
+            }
+            testpageSource = html.toString();
+        });
     });
 
     describe('test commands', function(){
         it('get commands should return the evaluated value', function(done){
             client
-                .getElementCssProperty('id', 'footer', 'color', function(result) {
-                    assert('rgba(119,119,119,1)' === result.replace(/\s+/g, ''));
+                .getAttribute('.nested', 'style', function(result) {
+                    assert.strictEqual(result,'text-transform: uppercase; ');
                 })
-                .getCssProperty('#footer', 'color', function(result) {
-                    assert('rgba(119,119,119,1)' === result.replace(/\s+/g, ''));
+                .getElementCssProperty('css selector', '.red', 'background-color', function(result) {
+                    assert.strictEqual('rgba(255, 0, 0, 1)',result);
                 })
-                .getElementCssProperty('class name', 'repo-label', 'text-transform', function(result) {
-                    assert('uppercase' === result);
+                .getCssProperty('.green', 'float', function(result) {
+                    assert.strictEqual('left',result);
                 })
-                .getCssProperty('.repo-label', 'text-transform', function(result) {
-                    assert('uppercase' === result);
+                .getElementCssProperty('class name', 'yellow', 'width', function(result) {
+                    assert.strictEqual('100px',result);
                 })
-                .getElementCssProperty('id', 'js-repo-pjax-container', 'width', function(result) {
-                    assert('920px' === result);
+                .getCssProperty('.black', 'background-color', function(result) {
+                    assert.strictEqual('rgba(0, 0, 0, 1)',result);
                 })
-                .getCssProperty('.container', 'width', function(result) {
-                    assert('920px' === result);
+                .getElementCssProperty('id', 'purplebox', 'margin-right', function(result) {
+                    assert.strictEqual('10px',result);
                 })
-                .end(done);
+                .getCssProperty('.purple', 'margin-right', function(result) {
+                    assert.strictEqual('10px',result);
+                })
+                .getElementSize('.red', function(result) {
+                    assert.strictEqual(result.width,102);
+                    assert.strictEqual(result.height,102);
+                })
+                .getLocation('.green', function(result) {
+                    assert.strictEqual(result.x,120);
+                    assert.strictEqual(result.y,89);
+                })
+                .getLocationInView('.green', function(result) {
+                    assert.strictEqual(result.x,120);
+                    assert.strictEqual(result.y,89);
+                })
+                .getSource(function(result) {
+                    assert.strictEqual(result,testpageSource);
+                })
+                .getTagName('.black', function(result) {
+                    assert.strictEqual(result,'div');
+                })
+                .getTagName('#githubRepo', function(result) {
+                    assert.strictEqual(result,'a');
+                })
+                .getText('#githubRepo', function(result) {
+                    assert.strictEqual(result,'GitHub Repo');
+                })
+                .getTitle(function(title) {
+                    assert.strictEqual(title,testpageTitle);
+                    done();
+                });
         });
 
-        it.only('back button should return to the previous page', function(done) {
+        it('back/foward should return to the previous/next page', function(done) {
             client
                 .getTitle(function(title) {
-                    assert(title === githubRepoTitle);
+                    assert.strictEqual(title,testpageTitle);
                 })
-                .click('.header-logo-wordmark')
+                .click('#githubRepo')
                 // waitFor fix, to get safari a little bit more time to load
                 .waitFor('.teaser-illustration',5000)
                 .getTitle(function(title) {
-                    assert(title === githubTitle);
+                    assert.strictEqual(title,githubTitle);
                 })
                 .back()
                 // waitFor fix, to get safari a little bit more time to load
                 .waitFor('.public',5000)
                 .getTitle(function(title) {
-                    assert(title === githubRepoTitle);
+                    assert.strictEqual(title,testpageTitle);
                 })
                 .forward()
                 .waitFor('.teaser-illustration',5000)
                 .getTitle(function(title) {
-                    assert(title === githubTitle);
+                    assert.strictEqual(title,githubTitle);
                 })
                 .end(done);
         });
+    });
+
+    after(function() {
+        client.end();
     });
 });
