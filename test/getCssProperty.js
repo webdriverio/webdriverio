@@ -10,8 +10,7 @@ describe('Test command getCssProperty(cssSelector, cssProperty, callback)', func
     before(function(){
         // init client
         var capabilities =  {
-            'browserName': 'chrome',
-            'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
+            'browserName': 'phantomjs'
         };
         client = webdriverjs.remote({desiredCapabilities:capabilities});
     });
@@ -23,11 +22,36 @@ describe('Test command getCssProperty(cssSelector, cssProperty, callback)', func
     });
 
     describe('check CSS property of several tags', function(){
-        it('should return #777777 as font-color', function(done){
+        it('should return rgba(119,119,119,1) as font-color', function(done){
             client
                 .getElementCssProperty('id', 'footer', 'color', function(result) {
-                    console.log('result: rgba(119,119,119,1) === ' + result);
-                    assert('rgba(119,119,119,1)' === result);
+                    assert('rgba(119,119,119,1)' === result.replace(/\s+/g, ''));
+                })
+                .getCssProperty('#footer', 'color', function(result) {
+                    assert('rgba(119,119,119,1)' === result.replace(/\s+/g, ''));
+                })
+                .end(done);
+        });
+
+        it('should return \'uppercase\' as text-transform style', function(done) {
+            client
+                .getElementCssProperty('class name', 'repo-label', 'text-transform', function(result) {
+                    console.log(result);
+                    assert('uppercase' === result);
+                })
+                .getCssProperty('.repo-label', 'text-transform', function(result) {
+                    assert('uppercase' === result);
+                })
+                .end(done);
+        });
+
+        it('should return a width of 920px', function(done) {
+            client
+                .getElementCssProperty('id', 'js-repo-pjax-container', 'width', function(result) {
+                    assert('920px' === result);
+                })
+                .getCssProperty('.container', 'width', function(result) {
+                    assert('920px' === result);
                 })
                 .end(done);
         });
