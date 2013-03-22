@@ -34,8 +34,7 @@ module.exports = function (callback, done, grunt) {
             });
 
         } else {
-            console.log('[ERROR] couldn\'t start selenium server');
-            process.exit(1);
+            callback();
         }
     });
 };
