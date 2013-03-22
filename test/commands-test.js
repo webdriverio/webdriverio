@@ -92,6 +92,20 @@ describe('test webdriverjs API', function(){
                 });
         });
 
+        it('should set, get and delete cookies',function(done) {
+            client
+                .setCookie({name: 'test',value: 'cookie saved!'})
+                .getCookie('test', function(result) {
+                    assert.strictEqual(result.name,'test');
+                    assert.strictEqual(result.value,'cookie saved!');
+                })
+                .deleteCookie('test')
+                .getCookie('test', function(result) {
+                    assert.strictEqual(result,null);
+                    done();
+                });
+        });
+
         it('back/foward should return to the previous/next page', function(done) {
             client
                 .getTitle(function(title) {
@@ -113,8 +127,8 @@ describe('test webdriverjs API', function(){
                 .waitFor('.teaser-illustration',5000)
                 .getTitle(function(title) {
                     assert.strictEqual(title,githubTitle);
-                })
-                .end(done);
+                    done();
+                });
         });
     });
 
