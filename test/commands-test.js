@@ -1,6 +1,7 @@
 var assert         = require('chai').assert,
     fs             = require('fs'),
     webdriverjs    = require('../index'),
+    startSelenium  = require('./startSelenium'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
     githubTitle    = 'GitHub · Build software better, together.',
     testpageTitle  = 'WebdriverJS Testpage',
@@ -12,22 +13,28 @@ describe('test webdriverjs API', function(){
 
     var client = {};
 
-    before(function(){
-        // init client
-        var capabilities =  {
-            'browserName': 'phantomjs'
-        };
-        client = webdriverjs.remote({desiredCapabilities:capabilities});
-        client
-            .init()
-            .url(testpageURL);
+    before(function(done){
+        // start selenium server if not running
+        startSelenium(function() {
 
-        // load source of testpage for getSource() test
-        fs.readFile('./test/index.html', function (err, html) {
-            if (err) {
-                throw err;
-            }
-            testpageSource = html.toString();
+            // init client
+            var capabilities =  {
+                'browserName': 'phantomjs'
+            };
+            client = webdriverjs.remote({desiredCapabilities:capabilities});
+            client
+                .init()
+                .url(testpageURL);
+
+            // load source of testpage for getSource() test
+            fs.readFile('./test/index.html', function (err, html) {
+                if (err) {
+                    throw err;
+                }
+                testpageSource = html.toString();
+            });
+
+            done();
         });
     });
 
