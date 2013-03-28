@@ -19,12 +19,14 @@ describe('test webdriverjs API', function(){
 
             // init client
             var capabilities =  {
-                'browserName': 'phantomjs'
+                'browserName': 'phantomjs',
+                // 'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
+                // 'firefox_binary': '/Applications/Browser/Firefox.app/Contents/MacOS/firefox'
             };
             client = webdriverjs.remote({desiredCapabilities:capabilities});
             client
-                .init()
-                .url(testpageURL);
+                .init();
+                // .url(testpageURL);
 
             // load source of testpage for getSource() test
             fs.readFile('./test/index.html', function (err, html) {
@@ -130,6 +132,70 @@ describe('test webdriverjs API', function(){
                     done();
                 });
         });
+
+        it.skip('click command test',function(done) {
+            client
+                .isVisible('.btn1',function(result) {
+                    if(result) {
+                        client.click('.btn1',function(result) {
+                            console.log(result);
+                        });
+                    }
+                })
+                .isVisible('.btn1_clicked',function(result){
+                    assert(result, '.btn1 was clicked');
+                })
+                .isVisible('.btn2',function(result) {
+                    if(result) {
+                        client.click('.btn2',function(result) {
+                            console.log(result);
+                        });
+                    }
+                })
+                .isVisible('.btn2_clicked',function(result){
+                    assert(!result, '.btn2 wasn\'t clicked');
+                })
+                .isVisible('.btn3',function(result) {
+                    if(result) {
+                        client.click('.btn3',function(result) {
+                            console.log(result);
+                        });
+                    }
+                })
+                .isVisible('.btn3_clicked',function(result){
+                    assert(!result, '.btn3 wasn\'t clicked');
+                })
+                .isVisible('.btn4',function(result) {
+                    if(result) {
+                        client.click('.btn4',function(result) {
+                            console.log(result);
+                        });
+                    }
+                })
+                .isVisible('.btn4_clicked',function(result){
+                    assert(!result, '.btn4 wasn\'t clicked');
+                })
+                .end(done);
+        });
+
+        it.only('should perform a google search request and assert its title', function(done) {
+            client
+                .url('http://google.com')
+                .setValue('#gbqfq','webdriverjs')
+                .click('#gbqfb', function() {
+                    client
+                        .waitFor('#center_col',5000)
+                        .getTitle(function(title) {
+                            assert.strictEqual(title,'webdriverjs - Google-Suche');
+                        });
+                })
+                .end(done);
+        });
+
+        it('should do nothing', function(done) {
+            client.end(done);
+        });
+
     });
 
     after(function() {
