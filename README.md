@@ -1,4 +1,4 @@
-Webdriver/selenium 2.0 javascript bindings for nodejs
+Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/christian-bromann/webdriverjs.png)](https://travis-ci.org/christian-bromann/webdriverjs)
 =====================================================
 
 A WebDriver module for nodejs. Either use the super easy help commands or use the base Webdriver wire protocol commands.
