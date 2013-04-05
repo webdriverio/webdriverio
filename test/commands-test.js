@@ -19,14 +19,13 @@ describe('test webdriverjs API', function(){
 
             // init client
             var capabilities =  {
-                'browserName': 'phantomjs',
+                'browserName': 'phantomjs'
                 // 'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
                 // 'firefox_binary': '/Applications/Browser/Firefox.app/Contents/MacOS/firefox'
             };
+
             client = webdriverjs.remote({desiredCapabilities:capabilities});
-            client
-                .init();
-                // .url(testpageURL);
+            client.init();
 
             // load source of testpage for getSource() test
             fs.readFile('./test/index.html', function (err, html) {
@@ -43,6 +42,7 @@ describe('test webdriverjs API', function(){
     describe('test commands', function(){
         it('get commands should return the evaluated value', function(done){
             client
+                .url(testpageURL)
                 .getAttribute('.nested', 'style', function(result) {
                     assert.strictEqual(result,'text-transform: uppercase; ');
                 })
@@ -68,14 +68,14 @@ describe('test webdriverjs API', function(){
                     assert.strictEqual(result.width,102);
                     assert.strictEqual(result.height,102);
                 })
-                // .getLocation('.green', function(result) {
-                //     assert.strictEqual(result.x,120);
-                //     assert.strictEqual(result.y,94);
-                // })
-                // .getLocationInView('.green', function(result) {
-                //     assert.strictEqual(result.x,120);
-                //     assert.strictEqual(result.y,94);
-                // })
+                .getLocation('.green', function(result) {
+                    assert.strictEqual(result.x,120);
+                    assert.strictEqual(result.y,89);
+                })
+                .getLocationInView('.green', function(result) {
+                    assert.strictEqual(result.x,120);
+                    assert.strictEqual(result.y,89);
+                })
                 .getSource(function(result) {
                     assert.strictEqual(result,testpageSource);
                 })
@@ -90,12 +90,13 @@ describe('test webdriverjs API', function(){
                 })
                 .getTitle(function(title) {
                     assert.strictEqual(title,testpageTitle);
-                    done();
-                });
+                })
+                .call(done);
         });
 
         it('should set, get and delete cookies',function(done) {
             client
+                .url(testpageURL)
                 .setCookie({name: 'test',value: 'cookie saved!'})
                 .getCookie('test', function(result) {
                     assert.strictEqual(result.name,'test');
@@ -104,12 +105,13 @@ describe('test webdriverjs API', function(){
                 .deleteCookie('test')
                 .getCookie('test', function(result) {
                     assert.strictEqual(result,null);
-                    done();
-                });
+                })
+                .call(done);
         });
 
         it('back/foward should return to the previous/next page', function(done) {
             client
+                .url(testpageURL)
                 .getTitle(function(title) {
                     assert.strictEqual(title,testpageTitle);
                 })
@@ -129,12 +131,13 @@ describe('test webdriverjs API', function(){
                 .waitFor('.teaser-illustration',5000)
                 .getTitle(function(title) {
                     assert.strictEqual(title,githubTitle);
-                    done();
-                });
+                })
+                .call(done);
         });
 
         it.skip('click command test',function(done) {
             client
+                .url(testpageURL)
                 .isVisible('.btn1',function(result) {
                     if(result) {
                         client.click('.btn1',function(result) {
@@ -175,25 +178,7 @@ describe('test webdriverjs API', function(){
                 .isVisible('.btn4_clicked',function(result){
                     assert(!result, '.btn4 wasn\'t clicked');
                 })
-                .end(done);
-        });
-
-        it.only('should perform a google search request and assert its title', function(done) {
-            client
-                .url('http://google.com')
-                .setValue('#gbqfq','webdriverjs')
-                .click('#gbqfb', function() {
-                    client
-                        .waitFor('#center_col',5000)
-                        .getTitle(function(title) {
-                            assert.strictEqual(title,'webdriverjs - Google-Suche');
-                        });
-                })
-                .end(done);
-        });
-
-        it('should do nothing', function(done) {
-            client.end(done);
+                .call(done);
         });
 
     });

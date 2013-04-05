@@ -1,15 +1,18 @@
 Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/christian-bromann/webdriverjs.png)](https://travis-ci.org/christian-bromann/webdriverjs)
 =====================================================
 
-A WebDriver module for nodejs. Either use the super easy help commands or use the base Webdriver wire protocol commands.
+A WebDriver module for nodejs. Either use the super easy help commands or use the base Webdriver wire protocol
+commands.
 
-It is written so its easy to add new protocol implementations and add helper commands so make testing easier. each command resides as one file inside the node module folder which makes it easy to extend.
+It is written so its easy to add new protocol implementations and add helper commands so make testing easier.
+Each command resides as one file inside the node module folder which makes it easy to extend.
 
 The two main reasons for this projects are: 
 
 1) Ease of use - Writing tests with webdriver should be very easy
 
-2) Easy to extend - Adding helper functions, or more complicated sets and combinations of existing commands, should also be very easy.
+2) Easy to extend - Adding helper functions, or more complicated sets and combinations of existing commands,
+should also be very easy.
 
 ### How to install it
 
@@ -141,37 +144,39 @@ client
 ```
 
 # List of current helper methods
-These are the current implemented helper methods. All methods take from 0 to a couple of parameters. Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
+These are the current implemented helper methods. All methods take from 0 to a couple of parameters.
+Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
 
-- dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]) - Drags an item to a destination
+- buttonClick(css selector, [callback]) - click on a button using a css selector
+- call(callback) - call given function in async order of current command queue
+- clearElement(css selector, [callback]) - clear an element of text
 - click(css selector, [callback]) - Clicks on an element based on a css selector
+- deleteCookie(name, [callback]) - Delete a cookie for current page.
 - doubleClick(css selector, [callback]) - Clicks on an element based on a css selector
-- end([callback]) - Ends a sessions (closes the browser)
+- dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]) - Drags an item to a destination
 - getAttribute(css selector, attribute name, [callback]) - Get an attribute from an dom obj based on the css selector and attribute name
+- getCookie(name, [callback]) - Gets the cookie for current page.
 - getCssProperty(css selector, css property name, [callback]) - Gets a css property from a dom object selected with a css selector
 - getElementCssProperty(find by, finder, css property name, [callback]) - Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
 - getElementSize(css selector, [callback]) - Get the elements size. The element is found with a css selector
 - getLocation(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector
 - getLocationInView(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector in the view
 - getSize(css selector, [callback]) - Gets the width and height for an object based on the css selector
+- getSource([callback]) - Gets source code of the page
 - getText(css selector, [callback]) - Gets the text content from a dom obj found by the css selector
 - getTagName(css selector, [callback]) - Gets the tag name of a dom obj found by the css selector
 - getTitle([callback]) - Gets the title of the page
-- getSource([callback]) - Gets source code of the page
 - getValue(css selector, [callback]) - Gets the value of a dom obj found by css selector
+- end([callback]) - Ends a sessions (closes the browser)
 - isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
 - isSelected(css selector, [callback]) - Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
 - moveToObject(css selector, [callback]) - Moves the page to the selected dom object
 - pause(milliseconds, [callback]) - Pauses the commands by the provided milliseconds
 - saveScreenshot(path to file, [callback]) - Saves a screenshot as a png from the current state of the browser
+- setCookie(cookie) - Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
 - setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector
 - submitForm(css selector, [callback]) - Submits a form found by the css selector
 - waitFor(css selector, milliseconds, [callback]) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
-- buttonClick(css selector, [callback]) - click on a button using a css selector
-- clearElement(css selector, [callback]) - clear an element of text
-- getCookie(name, [callback]) - Gets the cookie for current page.
-- setCookie(cookie) - Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
-- deleteCookie(name, [callback]) - Delete a cookie for current page.
 
 # List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
@@ -216,10 +221,11 @@ Here are the implemented bindings (and links to the official json protocol bindi
 ### Which protocol parts are done?
 Well, not all of them but a couple and more to come.
 
-###Are there more things than "just the protocol"?
-Yes, the implementation is done so that more complicated sets of protocol elements can be chained. I will explain more about this soon
+### Are there more things than "just the protocol"?
+Yes, the implementation is done so that more complicated sets of protocol elements can be chained. I will
+explain more about this soon
 
-###How can i send via Chrome webdriver switches to start chrome
+### How can i send via Chrome webdriver switches to start chrome
 
 Download chrome webdriver (last version: chromedriver_mac_20.0.1133.0.zip)
 Start selenium with: 
