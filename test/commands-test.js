@@ -70,11 +70,11 @@ describe('test webdriverjs API', function(){
                 })
                 .getLocation('.green', function(result) {
                     assert.strictEqual(result.x,120);
-                    assert.strictEqual(result.y,89);
+                    assert(result.y === 89 || result.y === 94);
                 })
                 .getLocationInView('.green', function(result) {
                     assert.strictEqual(result.x,120);
-                    assert.strictEqual(result.y,89);
+                    assert(result.y === 89 || result.y === 94);
                 })
                 .getSource(function(result) {
                     assert.strictEqual(result,testpageSource);
