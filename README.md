@@ -22,65 +22,52 @@ Either download it from github or use npm:
 npm install webdriverjs
 ```
 
-### Example of webdriver with queued commands locally:
+### Example of webdriverjs
 
 Run selenium server first:  
 
 ```shell
-java -jar selenium-server-standalone-2.11.0.jar
+java -jar node_modules/webdriverjs/bin/selenium-server-standalone-2.31.0.jar
 ```
 
-Then run this with nodejs:
+You can use any nodejs test framework as well as any BDD/TDD assertion library.
+
+**example using [Mocha](http://visionmedia.github.com/mocha/)** 
 
 ```js
-var webdriverjs = require("webdriverjs");
-var client = webdriverjs.remote();
-//var client = webdriverjs.remote({host: "xx.xx.xx.xx"}); // to run it on a remote webdriver/selenium server
-//var client = webdriverjs.remote({desiredCapabilities:{browserName:"chrome"}}); // to run in chrome
+describe('my webdriverjs tests', function(){
 
-client
-	.init()
-	.url("https://github.com/")
-	.getElementSize("id", "header", function(result){ console.log(result);  })
-	.getTitle(function(title) { console.log(title) })
-	.getElementCssProperty("id", "header", "color", function(result){ console.log(result);  })
-	.end();
+    this.timeout(99999999);
+    var client = {};
+
+    before(function(){
+            client = webdriverjs.remote(options);
+            client.init();
+    });
+
+    it('Github test',function(done) {
+        client
+            .url('https://github.com/')
+            .getElementSize('.header-logo-wordmark', function(result) {
+                assert.strictEqual(result.height , 30);
+                assert.strictEqual(result.width, 68);
+            })
+            .getTitle(function(title) {
+                assert.strictEqual(title,'GitHub · Build software better, together.');
+            })
+            .getElementCssProperty('class name','subheading', 'color', function(result){
+                assert.strictEqual(result, 'rgba(136, 136, 136, 1)');
+            })
+            .call(done);
+    });
+
+    after(function(done) {
+        client.end(done);
+    })
+});
 ```
 
-### Submitting a form
-
-To submit a form, pick any elemtn inside the form (or the form itself) and call .submitForm
-
-```js
-var client = require("webdriverjs").remote();
-
-client
-    .init()
-    .url("http://www.google.com")
-    .setValue("#lst-ib", "webdriver")
-    .submitForm("#tsf")
-    .end();
-```
-
-More examples in the examples folder.
-
-### Other options
-To make webdriverjs be silent (omit all logs):
-
-```js
-var client = require("webdriverjs").remote({logLevel: 'silent'}); // if you use it as part of other app and the logs arent interesting
-
-client
-	.init()
-	.url("https://github.com/")
-	.getTitle(
-		function(result)
-		{
-			console.log(result)
-		}
-	)
-    .end();
-```
+See more examples with other libraries in the [here](https://github.com/Camme/webdriverjs/tree/master/examples).
 
 ### Extending
 If you want to extend with your own set of commands there is a method called addCommand:
@@ -88,60 +75,35 @@ If you want to extend with your own set of commands there is a method called add
 ```js
 var client = require("webdriverjs").remote();
 
-// create a command the returns the current url and title as one result (just to show an example)
+// create a command the returns the current url and title as one result
+// just to show an example
 client.addCommand("getUrlAndTitle", function(callback) {
-	this.url(
-		function(urlResult)
-		{
-			this.getTitle(
-				function(titleResult)
-				{
-					var specialResult = {url: urlResult.value, title: titleResult};
-					if (typeof callback == "function")
-					{
-						callback(specialResult);
-					}
-				}
-			)
-		}
-	);
+    this.url(function(urlResult) {
+        this.getTitle(function(titleResult) {
+            var specialResult = {url: urlResult.value, title: titleResult};
+            if (typeof callback == "function") {
+                callback(specialResult);
+            }
+        })
+    });
 });
 
 client
-   	.init()
-   	.url("http://www.google.com")
-   	.getUrlAndTitle(function(result)
-	{
-		console.log(result);
-	})
-   	.end();
+    .init()
+    .url('http://www.github.com')
+    .getUrlAndTitle(function(result){
+        assert.strictEqual(result.url,'https://github.com/');
+        assert.strictEqual(result.title,'GitHub · Build software better, together.');
+    })
+    .end();
 ```
 
-### Example of using webdriverjs for testing locally
+### Options
 
-Run selenium server first:  
-
-```shell
-java -jar selenium-server-standalone-2.5.0.jar
-```
-
-Then run this with nodejs:
-
-```js
-var webdriverjs = require("webdriverjs");
-var client = webdriverjs.remote();
-
-client
-	.testMode()
-	.init()
-	.url("https://github.com")
-	.tests.cssPropertyEquals(".login a", "color", "#4183c4", "Color of .login a is #4183c4")
-	.tests.titleEquals("Secure source code hosting and collaborative development - GitHub", "Title of the page is 'Secure source code hosting and collaborative development - GitHub'")
-	.click(".pricing a")
-	.tests.titleEquals("Plans & Pricing - GitHub", "Title of the page is 'Plans & Pricing - GitHub'")
-	.tests.visible(".pagehead", true, ".pagehead is visible after click")
-	.end();
-```
+#### logLevel
+Type: `String`<br>
+Default: *verbose*<br>
+Options: *verbose* | *silent* | *command* | *data* | *result*
 
 # List of current helper methods
 These are the current implemented helper methods. All methods take from 0 to a couple of parameters.
@@ -154,6 +116,7 @@ Also all methods accept a callback so that we can assert values or have more log
 - deleteCookie(name, [callback]) - Delete a cookie for current page.
 - doubleClick(css selector, [callback]) - Clicks on an element based on a css selector
 - dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]) - Drags an item to a destination
+- end([callback]) - Ends a sessions (closes the browser)
 - getAttribute(css selector, attribute name, [callback]) - Get an attribute from an dom obj based on the css selector and attribute name
 - getCookie(name, [callback]) - Gets the cookie for current page.
 - getCssProperty(css selector, css property name, [callback]) - Gets a css property from a dom object selected with a css selector
@@ -163,13 +126,12 @@ Also all methods accept a callback so that we can assert values or have more log
 - getLocationInView(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector in the view
 - getSize(css selector, [callback]) - Gets the width and height for an object based on the css selector
 - getSource([callback]) - Gets source code of the page
-- getText(css selector, [callback]) - Gets the text content from a dom obj found by the css selector
 - getTagName(css selector, [callback]) - Gets the tag name of a dom obj found by the css selector
+- getText(css selector, [callback]) - Gets the text content from a dom obj found by the css selector
 - getTitle([callback]) - Gets the title of the page
 - getValue(css selector, [callback]) - Gets the value of a dom obj found by css selector
-- end([callback]) - Ends a sessions (closes the browser)
-- isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
 - isSelected(css selector, [callback]) - Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
+- isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
 - moveToObject(css selector, [callback]) - Moves the page to the selected dom object
 - pause(milliseconds, [callback]) - Pauses the commands by the provided milliseconds
 - saveScreenshot(path to file, [callback]) - Saves a screenshot as a png from the current state of the browser
