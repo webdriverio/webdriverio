@@ -24,7 +24,7 @@ describe('test webdriverjs API', function(){
                 // 'firefox_binary': '/Applications/Browser/Firefox.app/Contents/MacOS/firefox'
             };
 
-            client = webdriverjs.remote({desiredCapabilities:capabilities});
+            client = webdriverjs.remote({logLevel:'verbose',desiredCapabilities:capabilities});
             client.init();
 
             // load source of testpage for getSource() test
@@ -177,6 +177,26 @@ describe('test webdriverjs API', function(){
                 })
                 .isVisible('.btn4_clicked',function(result){
                     assert(!result, '.btn4 wasn\'t clicked');
+                })
+                .call(done);
+        });
+
+        it('test addCommand feature',function(done) {
+            client
+                .addCommand("getUrlAndTitle", function(callback) {
+                    this.url(function(urlResult) {
+                        this.getTitle(function(titleResult) {
+                            var specialResult = {url: urlResult.value, title: titleResult};
+                            if (typeof callback == "function") {
+                                callback(specialResult);
+                            }
+                        });
+                    });
+                })
+                .url('http://www.github.com')
+                .getUrlAndTitle(function(result){
+                    assert.strictEqual(result.url,'https://github.com/');
+                    assert.strictEqual(result.title,'GitHub · Build software better, together.');
                 })
                 .call(done);
         });
