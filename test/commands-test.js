@@ -1,5 +1,10 @@
-var assert         = require('chai').assert,
-    should         = require('chai').should(),
+/* jshint -W024 */
+/* jshint expr:true */
+
+var chai           = require('chai'),
+    assert         = chai.assert,
+    should         = chai.should(),
+    expect         = chai.expect;
     fs             = require('fs'),
     webdriverjs    = require('../index'),
     startSelenium  = require('./startSelenium'),
@@ -21,8 +26,8 @@ describe('test webdriverjs API', function(){
 
             // init client
             capabilities =  {
-                'browserName': 'chrome',
-                'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
+                'browserName': 'phantomjs',
+                // 'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
                 // 'firefox_binary': '/Applications/Browser/Firefox.app/Contents/MacOS/firefox'
             };
 
@@ -45,52 +50,67 @@ describe('test webdriverjs API', function(){
         it('get commands should return the evaluated value', function(done){
             client
                 .url(testpageURL)
-                .getAttribute('.nested', 'style', function(result) {
+                .getAttribute('.nested', 'style', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result,'text-transform: uppercase; ');
                 })
-                .getElementCssProperty('css selector', '.red', 'background-color', function(result) {
+                .getElementCssProperty('css selector', '.red', 'background-color', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual('rgba(255, 0, 0, 1)',result);
                 })
-                .getCssProperty('.green', 'float', function(result) {
+                .getCssProperty('.green', 'float', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual('left',result);
                 })
-                .getElementCssProperty('class name', 'yellow', 'width', function(result) {
+                .getElementCssProperty('class name', 'yellow', 'width', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual('100px',result);
                 })
-                .getCssProperty('.black', 'background-color', function(result) {
+                .getCssProperty('.black', 'background-color', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual('rgba(0, 0, 0, 1)',result);
                 })
-                .getElementCssProperty('id', 'purplebox', 'margin-right', function(result) {
+                .getElementCssProperty('id', 'purplebox', 'margin-right', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual('10px',result);
                 })
-                .getCssProperty('.purple', 'margin-right', function(result) {
+                .getCssProperty('.purple', 'margin-right', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual('10px',result);
                 })
-                .getElementSize('.red', function(result) {
+                .getElementSize('.red', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result.width,102);
                     assert.strictEqual(result.height,102);
                 })
-                .getLocation('.green', function(result) {
+                .getLocation('.green', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result.x,120);
                     assert(result.y === 89 || result.y === 94);
                 })
-                .getLocationInView('.green', function(result) {
+                .getLocationInView('.green', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result.x,120);
                     assert(result.y === 89 || result.y === 94);
                 })
-                .getSource(function(result) {
+                .getSource(function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result,testpageSource);
                 })
-                .getTagName('.black', function(result) {
+                .getTagName('.black', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result,'div');
                 })
-                .getTagName('#githubRepo', function(result) {
+                .getTagName('#githubRepo', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result,'a');
                 })
-                .getText('#githubRepo', function(result) {
+                .getText('#githubRepo', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result,'GitHub Repo');
                 })
-                .getTitle(function(title) {
+                .getTitle(function(err,title) {
+                    expect(err).to.be.null;
                     assert.strictEqual(title,testpageTitle);
                 })
                 .call(done);
@@ -100,12 +120,14 @@ describe('test webdriverjs API', function(){
             client
                 .url(testpageURL)
                 .setCookie({name: 'test',value: 'cookie saved!'})
-                .getCookie('test', function(result) {
+                .getCookie('test', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result.name,'test');
                     assert.strictEqual(result.value,'cookie saved!');
                 })
                 .deleteCookie('test')
-                .getCookie('test', function(result) {
+                .getCookie('test', function(err,result) {
+                    expect(err).to.be.null;
                     assert.strictEqual(result,null);
                 })
                 .call(done);
@@ -114,55 +136,67 @@ describe('test webdriverjs API', function(){
         it('back/foward should return to the previous/next page', function(done) {
             client
                 .url(testpageURL)
-                .getTitle(function(title) {
+                .getTitle(function(err,title) {
+                    expect(err).to.be.null;
                     assert.strictEqual(title,testpageTitle);
                 })
                 .click('#githubRepo')
                 // waitFor fix, to get safari a little bit more time to load
                 .waitFor('.teaser-illustration',5000)
-                .getTitle(function(title) {
+                .getTitle(function(err,title) {
+                    expect(err).to.be.null;
                     assert.strictEqual(title,githubTitle);
                 })
                 .back()
                 // waitFor fix, to get safari a little bit more time to load
                 .waitFor('.public',5000)
-                .getTitle(function(title) {
+                .getTitle(function(err,title) {
+                    expect(err).to.be.null;
                     assert.strictEqual(title,testpageTitle);
                 })
                 .forward()
                 .waitFor('.teaser-illustration',5000)
-                .getTitle(function(title) {
+                .getTitle(function(err,title) {
+                    expect(err).to.be.null;
                     assert.strictEqual(title,githubTitle);
                 })
                 .call(done);
         });
 
-        it.only('click command test',function(done) {
+        it('click command test',function(done) {
             client
                 .url(testpageURL)
-                .isVisible('.btn1',function(result) {
+                .isVisible('.btn1',function(err,result) {
+                    expect(err).to.be.null;
                     if(result) {
-                        client.click('.btn1',function(result) {
+                        client.click('.btn1',function(err,result) {
+                            expect(err).to.be.null;
                             result.status.should.equal(0);
                         });
                     }
                 })
-                .isVisible('.btn1_clicked',function(result){
+                .isVisible('.btn1_clicked',function(err,result){
+                    expect(err).to.be.null;
                     assert(result, '.btn1 was clicked');
                 })
-                .isVisible('.btn2',function(result) {
+                .isVisible('.btn2',function(err,result) {
+                    expect(err).to.be.null;
                     if(result) {
-                        client.click('.btn2',function(result) {
+                        client.click('.btn2',function(err,result) {
+                            expect(err).to.be.null;
                             result.status.should.equal(0);
                         });
                     }
                 })
-                .isVisible('.btn2_clicked',function(result){
+                .isVisible('.btn2_clicked',function(err,result){
+                    expect(err).to.be.null;
                     assert(!result, '.btn2 wasn\'t clicked');
                 })
-                .isVisible('.btn3',function(result) {
+                .isVisible('.btn3',function(err,result) {
+                    expect(err).to.be.null;
                     if(result) {
-                        client.click('.btn3',function(result) {
+                        client.click('.btn3',function(err,result) {
+                            expect(err).to.be.null;
                             // phantomjs is able to click on a not clickable button
                             if(capabilities.browserName === 'phantomjs') {
                                 result.status.should.equal(0);
@@ -173,7 +207,9 @@ describe('test webdriverjs API', function(){
                     }
                 })
                 .saveScreenshot('test.png')
-                .isVisible('.btn3_clicked',function(result){
+                .isVisible('.btn3_clicked',function(err,result){
+                    expect(err).to.be.null;
+
                     // phantomjs is able to click on a not clickable button
                     if(capabilities.browserName === 'phantomjs') {
                         assert(result, '.btn3 wasn\'t clicked');
@@ -181,14 +217,18 @@ describe('test webdriverjs API', function(){
                         assert(!result, '.btn3 was clicked');
                     }
                 })
-                .isVisible('.btn4',function(result) {
+                .isVisible('.btn4',function(err,result) {
+                    expect(err).to.be.null;
                     if(result) {
-                        client.click('.btn4',function(result) {
+                        client.click('.btn4',function(err,result) {
+                            expect(err).to.be.null;
                             result.status.should.equal(0);
                         });
                     }
                 })
-                .isVisible('.btn4_clicked',function(result){
+                .isVisible('.btn4_clicked',function(err,result){
+                    expect(err).to.be.null;
+
                     // it is possible to click on a button with width/height = 0
                     assert(result, '.btn3 was clicked');
                 })
@@ -198,17 +238,18 @@ describe('test webdriverjs API', function(){
         it('test addCommand feature',function(done) {
             client
                 .addCommand("getUrlAndTitle", function(callback) {
-                    this.url(function(urlResult) {
-                        this.getTitle(function(titleResult) {
+                    this.url(function(err,urlResult) {
+                        this.getTitle(function(err,titleResult) {
                             var specialResult = {url: urlResult.value, title: titleResult};
                             if (typeof callback == "function") {
-                                callback(specialResult);
+                                callback(err,specialResult);
                             }
                         });
                     });
                 })
                 .url('http://www.github.com')
-                .getUrlAndTitle(function(result){
+                .getUrlAndTitle(function(err,result){
+                    expect(err).to.be.null;
                     assert.strictEqual(result.url,'https://github.com/');
                     assert.strictEqual(result.title,'GitHub · Build software better, together.');
                 })
