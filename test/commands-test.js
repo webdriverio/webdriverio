@@ -1,11 +1,13 @@
 var assert         = require('chai').assert,
+    should         = require('chai').should(),
     fs             = require('fs'),
     webdriverjs    = require('../index'),
     startSelenium  = require('./startSelenium'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
     githubTitle    = 'GitHub · Build software better, together.',
     testpageTitle  = 'WebdriverJS Testpage',
-    testpageSource = "";
+    testpageSource = "",
+    capabilities   = {};
 
 describe('test webdriverjs API', function(){
 
@@ -18,9 +20,9 @@ describe('test webdriverjs API', function(){
         startSelenium(function() {
 
             // init client
-            var capabilities =  {
-                'browserName': 'phantomjs'
-                // 'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
+            capabilities =  {
+                'browserName': 'chrome',
+                'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
                 // 'firefox_binary': '/Applications/Browser/Firefox.app/Contents/MacOS/firefox'
             };
 
@@ -135,13 +137,13 @@ describe('test webdriverjs API', function(){
                 .call(done);
         });
 
-        it.skip('click command test',function(done) {
+        it.only('click command test',function(done) {
             client
                 .url(testpageURL)
                 .isVisible('.btn1',function(result) {
                     if(result) {
                         client.click('.btn1',function(result) {
-                            console.log(result);
+                            result.status.should.equal(0);
                         });
                     }
                 })
@@ -151,7 +153,7 @@ describe('test webdriverjs API', function(){
                 .isVisible('.btn2',function(result) {
                     if(result) {
                         client.click('.btn2',function(result) {
-                            console.log(result);
+                            result.status.should.equal(0);
                         });
                     }
                 })
@@ -161,22 +163,34 @@ describe('test webdriverjs API', function(){
                 .isVisible('.btn3',function(result) {
                     if(result) {
                         client.click('.btn3',function(result) {
-                            console.log(result);
+                            // phantomjs is able to click on a not clickable button
+                            if(capabilities.browserName === 'phantomjs') {
+                                result.status.should.equal(0);
+                            } else {
+                                result.status.should.equal(13);
+                            }
                         });
                     }
                 })
+                .saveScreenshot('test.png')
                 .isVisible('.btn3_clicked',function(result){
-                    assert(!result, '.btn3 wasn\'t clicked');
+                    // phantomjs is able to click on a not clickable button
+                    if(capabilities.browserName === 'phantomjs') {
+                        assert(result, '.btn3 wasn\'t clicked');
+                    } else {
+                        assert(!result, '.btn3 was clicked');
+                    }
                 })
                 .isVisible('.btn4',function(result) {
                     if(result) {
                         client.click('.btn4',function(result) {
-                            console.log(result);
+                            result.status.should.equal(0);
                         });
                     }
                 })
                 .isVisible('.btn4_clicked',function(result){
-                    assert(!result, '.btn4 wasn\'t clicked');
+                    // it is possible to click on a button with width/height = 0
+                    assert(result, '.btn3 was clicked');
                 })
                 .call(done);
         });
