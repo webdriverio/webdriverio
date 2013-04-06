@@ -48,14 +48,17 @@ describe('my webdriverjs tests', function(){
     it('Github test',function(done) {
         client
             .url('https://github.com/')
-            .getElementSize('.header-logo-wordmark', function(result) {
+            .getElementSize('.header-logo-wordmark', function(err, result) {
+                expect(err).to.be.null;
                 assert.strictEqual(result.height , 30);
                 assert.strictEqual(result.width, 68);
             })
-            .getTitle(function(title) {
+            .getTitle(function(err, title) {
+                expect(err).to.be.null;
                 assert.strictEqual(title,'GitHub · Build software better, together.');
             })
-            .getElementCssProperty('class name','subheading', 'color', function(result){
+            .getElementCssProperty('class name','subheading', 'color', function(err, result){
+                expect(err).to.be.null;
                 assert.strictEqual(result, 'rgba(136, 136, 136, 1)');
             })
             .call(done);
@@ -78,11 +81,11 @@ var client = require("webdriverjs").remote();
 // create a command the returns the current url and title as one result
 // just to show an example
 client.addCommand("getUrlAndTitle", function(callback) {
-    this.url(function(urlResult) {
-        this.getTitle(function(titleResult) {
+    this.url(function(err,urlResult) {
+        this.getTitle(function(err,titleResult) {
             var specialResult = {url: urlResult.value, title: titleResult};
             if (typeof callback == "function") {
-                callback(specialResult);
+                callback(err,specialResult);
             }
         })
     });
@@ -91,7 +94,8 @@ client.addCommand("getUrlAndTitle", function(callback) {
 client
     .init()
     .url('http://www.github.com')
-    .getUrlAndTitle(function(result){
+    .getUrlAndTitle(function(err,result){
+        expect(err).to.be.null;
         assert.strictEqual(result.url,'https://github.com/');
         assert.strictEqual(result.title,'GitHub · Build software better, together.');
     })
