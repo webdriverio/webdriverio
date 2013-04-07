@@ -113,6 +113,7 @@ Options: *verbose* | *silent* | *command* | *data* | *result*
 These are the current implemented helper methods. All methods take from 0 to a couple of parameters.
 Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
 
+- addValue(css selector, value, [callback]) - adds a value to an object found by a css selector
 - buttonClick(css selector, [callback]) - click on a button using a css selector
 - call(callback) - call given function in async order of current command queue
 - clearElement(css selector, [callback]) - clear an element of text
@@ -140,7 +141,7 @@ Also all methods accept a callback so that we can assert values or have more log
 - pause(milliseconds, [callback]) - Pauses the commands by the provided milliseconds
 - saveScreenshot(path to file, [callback]) - Saves a screenshot as a png from the current state of the browser
 - setCookie(cookie) - Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
-- setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector
+- setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector (clears value before)
 - submitForm(css selector, [callback]) - Submits a form found by the css selector
 - waitFor(css selector, milliseconds, [callback]) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 

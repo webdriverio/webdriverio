@@ -256,6 +256,66 @@ describe('test webdriverjs API', function(){
                 .call(done);
         });
 
+        it('test setting values in input elements',function(done) {
+            client.url(testpageURL);
+
+            var checkError = function(err) {
+                expect(err).to.be.null;
+            };
+            var chechValue = function(err,result) {
+                expect(err).to.be.null;
+                assert.strictEqual(result,'9');
+            };
+
+            for(var i = 0; i < 10; ++i) {
+                client
+                    .setValue('input.searchinput','0', checkError)
+                    .setValue('input.searchinput','1', checkError)
+                    .setValue('input.searchinput','2', checkError)
+                    .setValue('input.searchinput','3', checkError)
+                    .setValue('input.searchinput','4', checkError)
+                    .setValue('input.searchinput','5', checkError)
+                    .setValue('input.searchinput','6', checkError)
+                    .setValue('input.searchinput','7', checkError)
+                    .setValue('input.searchinput','8', checkError)
+                    .setValue('input.searchinput','9', checkError)
+                    .getValue('input.searchinput',     chechValue)
+                    .clearElement('input.searchinput', checkError);
+            }
+
+            client.call(done);
+        });
+
+        it('test adding value in input elements',function(done) {
+            client.url(testpageURL);
+
+            var checkError = function(err) {
+                expect(err).to.be.null;
+            };
+            var chechValue = function(err,result) {
+                expect(err).to.be.null;
+                assert.strictEqual(result,'0123456789');
+            };
+
+            for(var i = 0; i < 10; ++i) {
+                client
+                    .addValue('input.searchinput','0', checkError)
+                    .addValue('input.searchinput','1', checkError)
+                    .addValue('input.searchinput','2', checkError)
+                    .addValue('input.searchinput','3', checkError)
+                    .addValue('input.searchinput','4', checkError)
+                    .addValue('input.searchinput','5', checkError)
+                    .addValue('input.searchinput','6', checkError)
+                    .addValue('input.searchinput','7', checkError)
+                    .addValue('input.searchinput','8', checkError)
+                    .addValue('input.searchinput','9', checkError)
+                    .getValue('input.searchinput',     chechValue)
+                    .clearElement('input.searchinput', checkError);
+            }
+
+            client.call(done);
+        });
+
     });
 
     after(function() {
