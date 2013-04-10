@@ -117,7 +117,7 @@ describe('test webdriverjs API', function(){
                 .call(done);
         });
 
-        it('should set, get and delete cookies',function(done) {
+        it.only('should set, get and delete cookies',function(done) {
             client
                 .url(testpageURL)
                 .setCookie({name: 'test',value: 'cookie saved!'})
@@ -126,8 +126,24 @@ describe('test webdriverjs API', function(){
                     assert.strictEqual(result.name,'test');
                     assert.strictEqual(result.value,'cookie saved!');
                 })
+                .setCookie({name: 'test2',value: 'cookie2 saved!'})
                 .deleteCookie('test')
                 .getCookie('test', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,null);
+                })
+                .getCookie('test2', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result.name,'test2');
+                    assert.strictEqual(result.value,'cookie2 saved!');
+                })
+                .setCookie({name: 'test',value: 'cookie saved!'})
+                .deleteCookie()
+                .getCookie('test', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,null);
+                })
+                .getCookie('test2', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual(result,null);
                 })
@@ -207,7 +223,6 @@ describe('test webdriverjs API', function(){
                         });
                     }
                 })
-                .saveScreenshot('test.png')
                 .isVisible('.btn3_clicked',function(err,result){
                     expect(err).to.be.null;
 
@@ -351,7 +366,6 @@ describe('test webdriverjs API', function(){
                 .isVisible('.gotDataC', elementShouldBeVisible)
                 .call(done);
         });
-
     });
 
     after(function() {
