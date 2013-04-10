@@ -104,6 +104,44 @@ client
 
 ### Options
 
+#### desiredCapabilities
+Type: `Object`<br>
+Default capabilities:
+
+```js
+browserName: 'firefox',  // options: firefox, chrome, opera, safari
+version: '',
+javascriptEnabled: true,
+platform: 'ANY'
+```
+
+If selenium can't find the browser binary, add the path as attribute in your desiredCapabilities
+object.
+
+**for Firefox:**
+
+```
+'firefox_binary': <path to binary>
+//e.g. '/Applications/Firefox.app/Contents/MacOS/firefox'
+```
+
+**for Chrome:**
+
+```
+'chrome.binary': <path to binary>
+```
+
+**for Opera:**
+
+```
+'opera.binary': <path to binary>
+```
+
+**for Safari:**
+
+```
+'safari.binary': <path to binary>
+```
 #### logLevel
 Type: `String`<br>
 Default: *verbose*<br>
