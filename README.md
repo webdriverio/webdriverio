@@ -178,6 +178,7 @@ Also all methods accept a callback so that we can assert values or have more log
 - isVisible(`String` css selector, `Function` callback)<br>Return true or false if the selected dom obj is visible (found by css selector)
 - moveToObject(`String` css selector, `Function` callback)<br>Moves the page to the selected dom object
 - pause(`Integer` milliseconds, `Function` callback)<br>Pauses the commands by the provided milliseconds
+- refresh(`Function` callback)<br>Refresh the current page
 - saveScreenshot(`String` path to file, `Function` callback)<br>Saves a screenshot as a png from the current state of the browser
 - setCookie(`Object` cookie, `Function` callback)<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
 - setValue(`String` css selector, `String` value, `Function` callback)<br>Sets a value to an object found by a css selector (clears value before)
