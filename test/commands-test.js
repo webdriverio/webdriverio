@@ -36,7 +36,7 @@ describe('test webdriverjs API', function(){
             client.init();
 
             // load source of testpage for getSource() test
-            fs.readFile('./test/indexWithoutPHP.html', function (err, html) {
+            fs.readFile('./test/index.php', function (err, html) {
                 if (err) {
                     throw err;
                 }
@@ -96,6 +96,10 @@ describe('test webdriverjs API', function(){
                 })
                 .getSource(function(err,result) {
                     expect(err).to.be.null;
+
+                    // remove not visible php code
+                    testpageSource = testpageSource.replace(/<\?php[^?]*\?>\n/g,'');
+
                     assert.strictEqual(result,testpageSource);
                 })
                 .getTagName('.black', function(err,result) {
@@ -117,7 +121,7 @@ describe('test webdriverjs API', function(){
                 .call(done);
         });
 
-        it.only('should set, get and delete cookies',function(done) {
+        it('should set, get and delete cookies',function(done) {
             client
                 .url(testpageURL)
                 .setCookie({name: 'test',value: 'cookie saved!'})
