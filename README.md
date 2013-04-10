@@ -113,37 +113,38 @@ Options: *verbose* | *silent* | *command* | *data* | *result*
 These are the current implemented helper methods. All methods take from 0 to a couple of parameters.
 Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
 
-- addValue(css selector, value, [callback]) - adds a value to an object found by a css selector
-- buttonClick(css selector, [callback]) - click on a button using a css selector
+- addValue(`String` css selector, `String` value, `Function` callback) - adds a value to an object found by a css selector
+- buttonClick(`String` css selector, `Function` callback) - click on a button using a css selector
 - call(callback) - call given function in async order of current command queue
-- clearElement(css selector, [callback]) - clear an element of text
-- click(css selector, [callback]) - Clicks on an element based on a css selector
-- deleteCookie(name, [callback]) - Delete a cookie for current page.
-- doubleClick(css selector, [callback]) - Clicks on an element based on a css selector
-- dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]) - Drags an item to a destination
-- end([callback]) - Ends a sessions (closes the browser)
-- getAttribute(css selector, attribute name, [callback]) - Get an attribute from an dom obj based on the css selector and attribute name
-- getCookie(name, [callback]) - Gets the cookie for current page.
-- getCssProperty(css selector, css property name, [callback]) - Gets a css property from a dom object selected with a css selector
-- getElementCssProperty(find by, finder, css property name, [callback]) - Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
-- getElementSize(css selector, [callback]) - Get the elements size. The element is found with a css selector
-- getLocation(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector
-- getLocationInView(css selector, [callback]) - Gets the x and y coordinate for an object based on the css selector in the view
-- getSize(css selector, [callback]) - Gets the width and height for an object based on the css selector
-- getSource([callback]) - Gets source code of the page
-- getTagName(css selector, [callback]) - Gets the tag name of a dom obj found by the css selector
-- getText(css selector, [callback]) - Gets the text content from a dom obj found by the css selector
-- getTitle([callback]) - Gets the title of the page
-- getValue(css selector, [callback]) - Gets the value of a dom obj found by css selector
-- isSelected(css selector, [callback]) - Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
-- isVisible(css selector, [callback]) - Return true or false if the selected dom obj is visible (found by css selector)
-- moveToObject(css selector, [callback]) - Moves the page to the selected dom object
-- pause(milliseconds, [callback]) - Pauses the commands by the provided milliseconds
-- saveScreenshot(path to file, [callback]) - Saves a screenshot as a png from the current state of the browser
-- setCookie(cookie) - Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
-- setValue(css selector, value, [callback]) - Sets a value to an object found by a css selector (clears value before)
-- submitForm(css selector, [callback]) - Submits a form found by the css selector
-- waitFor(css selector, milliseconds, [callback]) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
+- clearElement(`String` css selector, `Function` callback) - clear an element of text
+- click(`String` css selector, `Function` callback) - Clicks on an element based on a css selector
+- deleteCookie(`String` name, `Function` callback) - Delete a cookie for current page.
+- doubleClick(`String` css selector, `Function` callback) - Clicks on an element based on a css selector
+- dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback) - Drags an item to a destination
+- end(`Function` callback) - Ends a sessions (closes the browser)
+- execute(`String` script, `Array` arguments, `Function` callback) - Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+- getAttribute(`String` css selector, `String` attribute name, `Function` callback) - Get an attribute from an dom obj based on the css selector and attribute name
+- getCookie(name, `Function` callback) - Gets the cookie for current page.
+- getCssProperty(`String` css selector, `String` css property name, `Function` callback) - Gets a css property from a dom object selected with a css selector
+- getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback) - Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
+- getElementSize(`String` css selector, `Function` callback) - Get the elements size. The element is found with a css selector
+- getLocation(`String` css selector, `Function` callback) - Gets the x and y coordinate for an object based on the css selector
+- getLocationInView(`String` css selector, `Function` callback) - Gets the x and y coordinate for an object based on the css selector in the view
+- getSize(`String` css selector, `Function` callback) - Gets the width and height for an object based on the css selector
+- getSource(`Function` callback) - Gets source code of the page
+- getTagName(`String` css selector, `Function` callback) - Gets the tag name of a dom obj found by the css selector
+- getText(`String` css selector, `Function` callback) - Gets the text content from a dom obj found by the css selector
+- getTitle(`Function` callback) - Gets the title of the page
+- getValue(`String` css selector, `Function` callback) - Gets the value of a dom obj found by css selector
+- isSelected(`String` css selector, `Function` callback) - Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
+- isVisible(`String` css selector, `Function` callback) - Return true or false if the selected dom obj is visible (found by css selector)
+- moveToObject(`String` css selector, `Function` callback) - Moves the page to the selected dom object
+- pause(`Integer` milliseconds, `Function` callback) - Pauses the commands by the provided milliseconds
+- saveScreenshot(`String` path to file, `Function` callback) - Saves a screenshot as a png from the current state of the browser
+- setCookie(`Object` cookie, `Function` callback) - Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
+- setValue(`String` css selector, `String` value, `Function` callback) - Sets a value to an object found by a css selector (clears value before)
+- submitForm(`String` css selector, `Function` callback) - Submits a form found by the css selector
+- waitFor(`String` css selector, `Integer` milliseconds, `Function` callback) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
 # List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
