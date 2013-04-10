@@ -27,6 +27,7 @@ describe('test webdriverjs API', function(){
             // init client
             capabilities =  {
                 'browserName': 'phantomjs',
+                // 'firefox_switches': ['-height=200','-width=200'],
                 // 'chrome.binary': '/Applications/Browser/Google Chrome.app/Contents/MacOS/Google Chrome'
                 // 'firefox_binary': '/Applications/Browser/Firefox.app/Contents/MacOS/firefox'
             };
@@ -35,7 +36,7 @@ describe('test webdriverjs API', function(){
             client.init();
 
             // load source of testpage for getSource() test
-            fs.readFile('./test/index.html', function (err, html) {
+            fs.readFile('./test/indexWithoutPHP.html', function (err, html) {
                 if (err) {
                     throw err;
                 }
@@ -314,6 +315,68 @@ describe('test webdriverjs API', function(){
             }
 
             client.call(done);
+        });
+
+        it('click on submit button should work as well as submitForm command', function(done) {
+
+            var checkError = function(err) {
+                expect(err).to.be.null;
+            };
+
+            client
+                .url(testpageURL)
+                .isVisible('.gotDataA', function(err,result) {
+                    err.should.not.equal.null;
+                    assert.strictEqual(result.status,13);
+                })
+                .isVisible('.gotDataB', function(err,result) {
+                    err.should.not.equal.null;
+                    assert.strictEqual(result.status,13);
+                })
+                .isVisible('.gotDataC', function(err,result) {
+                    err.should.not.equal.null;
+                    assert.strictEqual(result.status,13);
+                })
+                .click('.send',checkError)
+                .isVisible('.gotDataA', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,true);
+                })
+                .isVisible('.gotDataB', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,true);
+                })
+                .isVisible('.gotDataC', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,true);
+                })
+                .url(testpageURL)
+                .isVisible('.gotDataA', function(err,result) {
+                    err.should.not.equal.null;
+                    assert.strictEqual(result.status,13);
+                })
+                .isVisible('.gotDataB', function(err,result) {
+                    err.should.not.equal.null;
+                    assert.strictEqual(result.status,13);
+                })
+                .isVisible('.gotDataC', function(err,result) {
+                    err.should.not.equal.null;
+                    assert.strictEqual(result.status,13);
+                })
+                .submitForm('.send',checkError)
+                .isVisible('.gotDataA', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,true);
+                })
+                .isVisible('.gotDataB', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,true);
+                })
+                .isVisible('.gotDataC', function(err,result) {
+                    expect(err).to.be.null;
+                    assert.strictEqual(result,true);
+                })
+                .call(done);
         });
 
     });
