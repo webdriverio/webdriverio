@@ -113,38 +113,38 @@ Options: *verbose* | *silent* | *command* | *data* | *result*
 These are the current implemented helper methods. All methods take from 0 to a couple of parameters.
 Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
 
-- addValue(`String` css selector, `String` value, `Function` callback) - adds a value to an object found by a css selector
-- buttonClick(`String` css selector, `Function` callback) - click on a button using a css selector
-- call(callback) - call given function in async order of current command queue
-- clearElement(`String` css selector, `Function` callback) - clear an element of text
-- click(`String` css selector, `Function` callback) - Clicks on an element based on a css selector
-- deleteCookie(`String` name, `Function` callback) - Delete a cookie for current page.
-- doubleClick(`String` css selector, `Function` callback) - Clicks on an element based on a css selector
-- dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback) - Drags an item to a destination
-- end(`Function` callback) - Ends a sessions (closes the browser)
-- execute(`String` script, `Array` arguments, `Function` callback) - Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
-- getAttribute(`String` css selector, `String` attribute name, `Function` callback) - Get an attribute from an dom obj based on the css selector and attribute name
-- getCookie(name, `Function` callback) - Gets the cookie for current page.
-- getCssProperty(`String` css selector, `String` css property name, `Function` callback) - Gets a css property from a dom object selected with a css selector
-- getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback) - Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
-- getElementSize(`String` css selector, `Function` callback) - Get the elements size. The element is found with a css selector
-- getLocation(`String` css selector, `Function` callback) - Gets the x and y coordinate for an object based on the css selector
-- getLocationInView(`String` css selector, `Function` callback) - Gets the x and y coordinate for an object based on the css selector in the view
-- getSize(`String` css selector, `Function` callback) - Gets the width and height for an object based on the css selector
-- getSource(`Function` callback) - Gets source code of the page
-- getTagName(`String` css selector, `Function` callback) - Gets the tag name of a dom obj found by the css selector
-- getText(`String` css selector, `Function` callback) - Gets the text content from a dom obj found by the css selector
-- getTitle(`Function` callback) - Gets the title of the page
-- getValue(`String` css selector, `Function` callback) - Gets the value of a dom obj found by css selector
-- isSelected(`String` css selector, `Function` callback) - Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
-- isVisible(`String` css selector, `Function` callback) - Return true or false if the selected dom obj is visible (found by css selector)
-- moveToObject(`String` css selector, `Function` callback) - Moves the page to the selected dom object
-- pause(`Integer` milliseconds, `Function` callback) - Pauses the commands by the provided milliseconds
-- saveScreenshot(`String` path to file, `Function` callback) - Saves a screenshot as a png from the current state of the browser
-- setCookie(`Object` cookie, `Function` callback) - Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
-- setValue(`String` css selector, `String` value, `Function` callback) - Sets a value to an object found by a css selector (clears value before)
-- submitForm(`String` css selector, `Function` callback) - Submits a form found by the css selector
-- waitFor(`String` css selector, `Integer` milliseconds, `Function` callback) - Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
+- addValue(`String` css selector, `String` value, `Function` callback)<br>adds a value to an object found by a css selector
+- buttonClick(`String` css selector, `Function` callback)<br>click on a button using a css selector
+- call(callback)<br>call given function in async order of current command queue
+- clearElement(`String` css selector, `Function` callback)<br>clear an element of text
+- click(`String` css selector, `Function` callback)<br>Clicks on an element based on a css selector
+- deleteCookie(`String` name, `Function` callback)<br>Delete a cookie for current page.
+- doubleClick(`String` css selector, `Function` callback)<br>Clicks on an element based on a css selector
+- dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback)<br>Drags an item to a destination
+- end(`Function` callback)<br>Ends a sessions (closes the browser)
+- execute(`String` script, `Array` arguments, `Function` callback)<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+- getAttribute(`String` css selector, `String` attribute name, `Function` callback)<br>Get an attribute from an dom obj based on the css selector and attribute name
+- getCookie(name, `Function` callback)<br>Gets the cookie for current page.
+- getCssProperty(`String` css selector, `String` css property name, `Function` callback)<br>Gets a css property from a dom object selected with a css selector
+- getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback)<br>Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
+- getElementSize(`String` css selector, `Function` callback)<br>Get the elements size. The element is found with a css selector
+- getLocation(`String` css selector, `Function` callback)<br>Gets the x and y coordinate for an object based on the css selector
+- getLocationInView(`String` css selector, `Function` callback)<br>Gets the x and y coordinate for an object based on the css selector in the view
+- getSize(`String` css selector, `Function` callback)<br>Gets the width and height for an object based on the css selector
+- getSource(`Function` callback)<br>Gets source code of the page
+- getTagName(`String` css selector, `Function` callback)<br>Gets the tag name of a dom obj found by the css selector
+- getText(`String` css selector, `Function` callback)<br>Gets the text content from a dom obj found by the css selector
+- getTitle(`Function` callback)<br>Gets the title of the page
+- getValue(`String` css selector, `Function` callback)<br>Gets the value of a dom obj found by css selector
+- isSelected(`String` css selector, `Function` callback)<br>Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
+- isVisible(`String` css selector, `Function` callback)<br>Return true or false if the selected dom obj is visible (found by css selector)
+- moveToObject(`String` css selector, `Function` callback)<br>Moves the page to the selected dom object
+- pause(`Integer` milliseconds, `Function` callback)<br>Pauses the commands by the provided milliseconds
+- saveScreenshot(`String` path to file, `Function` callback)<br>Saves a screenshot as a png from the current state of the browser
+- setCookie(`Object` cookie, `Function` callback)<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
+- setValue(`String` css selector, `String` value, `Function` callback)<br>Sets a value to an object found by a css selector (clears value before)
+- submitForm(`String` css selector, `Function` callback)<br>Submits a form found by the css selector
+- waitFor(`String` css selector, `Integer` milliseconds, `Function` callback)<br>Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
 # List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
