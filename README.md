@@ -32,7 +32,7 @@ java -jar node_modules/webdriverjs/bin/selenium-server-standalone-2.31.0.jar
 
 You can use any nodejs test framework as well as any BDD/TDD assertion library.
 
-**example using [Mocha](http://visionmedia.github.com/mocha/)** 
+**example using [Mocha](http://visionmedia.github.com/mocha/) and [Chai](http://chaijs.com/)**
 
 ```js
 describe('my webdriverjs tests', function(){
@@ -223,41 +223,9 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie)
 - [cookieName](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie/:name)
 
-# FAQ
-
-### Which protocol parts are done?
-Well, not all of them but a couple and more to come.
-
-### Are there more things than "just the protocol"?
-Yes, the implementation is done so that more complicated sets of protocol elements can be chained. I will
-explain more about this soon
-
-### How can i send via Chrome webdriver switches to start chrome
-
-Download chrome webdriver (last version: chromedriver_mac_20.0.1133.0.zip)
-Start selenium with: 
-java -jar ./selenium-server-standalone-2.21.0.jar -Dwebdriver.chrome.bin="/Applications/Google Chrome.app/Contents/MacOs/Google Chrome" -Dwebdriver.chrome.driver="/FULL_PATH_TO/chromedriver"
-
-
-Send desired capabilities: 
-  desiredCapabilities:{
-    browserName: 'chrome',
-    seleniumProtocol: 'WebDriver',
-    'chrome.switches': ['--window-size=1366,768','--proxy-server=http://127.0.0.1:9091']
-  }
-
-
 # More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
-
-# Change log
-- 2012-03-03: Added .doubleClick(cssSelector, [callback]);
-- 2012-01-03: Added .dragAndDrop(sourceCssSelector, destinationCssSelector, [callback]);
-- 2011-11-09: Added client.addCommand(commandName, function) to extend webdriverjs. Also merged with arcaniusx to fix conflict with colors module and waitFor response
-- 2011-11-08: Bindings added: moveTo, elementIdLocationInView, elementIdName. Helper methods added: getTagName, getLocationInView, moveToObject. Also added some tests.
-- 2011-11-07: Found bug that caused the incompatibility with Selenium Grid 2.
-- 2011-11-05: Added suport for desiredCapabilities when calling the remote() method (only available in the init() method before).
 
 ## NPM Maintainers
 
