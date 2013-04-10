@@ -319,63 +319,36 @@ describe('test webdriverjs API', function(){
 
         it('click on submit button should work as well as submitForm command', function(done) {
 
-            var checkError = function(err) {
+            var elementShouldBeNotFound = function(err,result) {
+                err.should.not.equal.null;
+                assert.strictEqual(result.status,13);
+            };
+            var elementShouldBeVisible = function(err,result) {
+                expect(err).to.be.null;
+                assert.strictEqual(result,true);
+            };
+            var shouldCauseNoError = function(err) {
                 expect(err).to.be.null;
             };
 
             client
                 .url(testpageURL)
-                .isVisible('.gotDataA', function(err,result) {
-                    err.should.not.equal.null;
-                    assert.strictEqual(result.status,13);
-                })
-                .isVisible('.gotDataB', function(err,result) {
-                    err.should.not.equal.null;
-                    assert.strictEqual(result.status,13);
-                })
-                .isVisible('.gotDataC', function(err,result) {
-                    err.should.not.equal.null;
-                    assert.strictEqual(result.status,13);
-                })
-                .click('.send',checkError)
-                .isVisible('.gotDataA', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,true);
-                })
-                .isVisible('.gotDataB', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,true);
-                })
-                .isVisible('.gotDataC', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,true);
-                })
+                .isVisible('.gotDataA', elementShouldBeNotFound)
+                .isVisible('.gotDataB', elementShouldBeNotFound)
+                .isVisible('.gotDataC', elementShouldBeNotFound)
+                .click('.send',         shouldCauseNoError)
+                .isVisible('.gotDataA', elementShouldBeVisible)
+                .isVisible('.gotDataB', elementShouldBeVisible)
+                .isVisible('.gotDataC', elementShouldBeVisible)
+
                 .url(testpageURL)
-                .isVisible('.gotDataA', function(err,result) {
-                    err.should.not.equal.null;
-                    assert.strictEqual(result.status,13);
-                })
-                .isVisible('.gotDataB', function(err,result) {
-                    err.should.not.equal.null;
-                    assert.strictEqual(result.status,13);
-                })
-                .isVisible('.gotDataC', function(err,result) {
-                    err.should.not.equal.null;
-                    assert.strictEqual(result.status,13);
-                })
-                .submitForm('.send',checkError)
-                .isVisible('.gotDataA', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,true);
-                })
-                .isVisible('.gotDataB', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,true);
-                })
-                .isVisible('.gotDataC', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,true);
-                })
+                .isVisible('.gotDataA', elementShouldBeNotFound)
+                .isVisible('.gotDataB', elementShouldBeNotFound)
+                .isVisible('.gotDataC', elementShouldBeNotFound)
+                .submitForm('.send',    shouldCauseNoError)
+                .isVisible('.gotDataA', elementShouldBeVisible)
+                .isVisible('.gotDataB', elementShouldBeVisible)
+                .isVisible('.gotDataC', elementShouldBeVisible)
                 .call(done);
         });
 
