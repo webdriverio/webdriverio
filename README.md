@@ -70,7 +70,7 @@ describe('my webdriverjs tests', function(){
 });
 ```
 
-See more examples with other libraries in the [here](https://github.com/Camme/webdriverjs/tree/master/examples).
+See more examples with other libraries in the [example directory](https://github.com/Camme/webdriverjs/tree/master/examples).
 
 ### Extending
 If you want to extend with your own set of commands there is a method called addCommand:
