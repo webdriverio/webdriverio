@@ -66,7 +66,7 @@ describe('my webdriverjs tests', function(){
 
     after(function(done) {
         client.end(done);
-    })
+    });
 });
 ```
 
