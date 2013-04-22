@@ -1,7 +1,7 @@
 {
   "name": "webdriverjs",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
-  "version": "0.6.9",
+  "version": "0.7",
   "homepage": "https://github.com/Camme/webdriverjs",
   "author": "camilo tapia <camilo.tapia@gmail.com>",
   "contributors": [
