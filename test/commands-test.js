@@ -7,8 +7,9 @@ var chai           = require('chai'),
     expect         = chai.expect;
     fs             = require('fs'),
     webdriverjs    = require('../index'),
-    startSelenium  = require('./startSelenium'),
+    //startSelenium  = require('./startSelenium'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
+    testpageURL    = 'http://wdjs.local/',
     githubTitle    = 'GitHub · Build software better, together.',
     testpageTitle  = 'WebdriverJS Testpage',
     testpageSource = "",
@@ -32,7 +33,7 @@ describe('test webdriverjs API', function(){
                 // 'firefox_binary': '/Applications/Browser/Firefox.app/Contents/MacOS/firefox'
             };
 
-            client = webdriverjs.remote({logLevel:'verbose',desiredCapabilities:capabilities});
+            client = webdriverjs.remote({logLevel:'silent',desiredCapabilities:capabilities});
             client.init();
 
             // load source of testpage for getSource() test
@@ -370,6 +371,25 @@ describe('test webdriverjs API', function(){
                 .isVisible('.gotDataC', elementShouldBeVisible)
                 .call(done);
         });
+
+
+        it('waitfor works when chained and wait the specified amount of time if the elemtn doesnt exist', function(done) {
+
+            var startTime = 10000000000000;
+            client
+                .url(testpageURL)
+                .call(function() {
+                    startTime = Date.now();
+                })
+                .waitFor('#new-element', 3000) // this element doesnt exist
+                .call(function() {
+                    var delta = Date.now() - startTime;
+                    delta.should.be.within(2999,5000);
+                    done();
+                });
+
+        });
+ 
     });
 
     after(function() {

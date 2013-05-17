@@ -1,8 +1,8 @@
 {
   "name": "webdriverjs",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
-  "version": "0.7.3",
-  "homepage": "https://github.com/Camme/webdriverjs",
+  "version": "0.7.4",
+  "homepage": "https://github.com/camme/webdriverjs",
   "author": "camilo tapia <camilo.tapia@gmail.com>",
   "contributors": [
     "Dan Jenkins <dan.jenkins@holidayextras.com>",
@@ -10,15 +10,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/Camme/webdriverjs.git"
+    "url": "git://github.com/camme/webdriverjs.git"
   },
   "bugs": {
-    "url": "https://github.com/Camme/webdriverjs/issues"
+    "url": "https://github.com/camme/webdriverjs/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/Camme/webdriverjs/blob/master/LICENSE-MIT"
+      "url": "https://github.com/camme/webdriverjs/blob/master/LICENSE-MIT"
     }
   ],
   "main": "./index",
