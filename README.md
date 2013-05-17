@@ -217,6 +217,8 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [source](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/source)
 - [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
 - [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
+- [windowHandlePosition](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/position)
+- [windowHandleSize](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/size)
 - [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
 - [back](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/back)
 - [refresh](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/refresh)
