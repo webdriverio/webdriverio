@@ -17,6 +17,8 @@
 var singletonInstance = null,
     WebdriverJS       = require('./lib/webdriverjs');
 
+var oneInstance = null;
+
 // expose the man function
 // if we need a singleton, we provide the option here
 exports.remote = function(options) {
@@ -27,9 +29,33 @@ exports.remote = function(options) {
     if (options.singleton) {
         if (!singletonInstance) {
             singletonInstance = new WebdriverJS(options);
+            oneInstance = singletonInstance;
         }
         return singletonInstance;
     } else {
-        return new WebdriverJS(options);
+        var newInstance = new WebdriverJS(options);
+        oneInstance = newInstance;
+        return newInstance;
     }
 };
+
+exports.endAll = function(callback) {
+    var client = new WebdriverJS({logLevel:'silent'});
+    client.endAll(callback);
+}
+
+exports.sessions = function(callback) {
+    var client = new WebdriverJS({logLevel:'silent'});
+    var sessions = null;
+    var error = null
+    client.sessions(function(err, result) {
+        if (!err) {
+            sessions = result.value;
+        }
+        else {
+            error = err;
+        }
+    }).end(function() {
+        callback(error, sessions)
+    });
+}

@@ -7,7 +7,7 @@ var chai           = require('chai'),
     expect         = chai.expect;
     fs             = require('fs'),
     webdriverjs    = require('../index'),
-    //startSelenium  = require('./startSelenium'),
+    startSelenium  = require('./startSelenium'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
     testpageURL    = 'http://wdjs.local/',
     githubTitle    = 'GitHub · Build software better, together.',
@@ -389,10 +389,36 @@ describe('test webdriverjs API', function(){
                 });
 
         });
- 
+
+        it('closeAll ends all sessions', function(done) {
+
+            var client1 = webdriverjs.remote({logLevel:'silent',desiredCapabilities:capabilities}).init();
+            var client2 = webdriverjs.remote({logLevel:'silent',desiredCapabilities:capabilities}).init();
+
+            client1.url(testpageURL).call(function() {
+                client2.url(testpageURL).call(function() {
+                    webdriverjs.endAll(function(err) {
+                        webdriverjs.sessions(function(err, sessions) {
+                            should.not.exist(err);
+                            sessions.should.have.lengthOf(0);
+                            require("child_process").exec("ps aux | grep 'phantomjs'", function(err, result) {
+                                result = result.replace(/grep 'phantomjs'/g, '');
+                                result = result.replace(/grep phantomjs/g, '');
+                                result.should.not.include('phantomjs');
+                                done();
+                            });
+                        });
+                    });
+                });
+            });
+        });
+
+
     });
 
     after(function() {
         client.end();
+        //});
     });
+
 });
