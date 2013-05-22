@@ -16,7 +16,7 @@ describe('my webdriverjs tests', function() {
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 expect(err).toBe(null);
                 expect(result.height).toBe(30);
-                expect(result.width).toBe(68);
+                expect(result.width).toBe(94);
             })
             .getTitle(function(err, title) {
                 expect(err).toBe(null);
