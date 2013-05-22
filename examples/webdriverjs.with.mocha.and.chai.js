@@ -3,7 +3,6 @@
 
 var chai        = require('chai'),
     assert      = chai.assert,
-    should      = chai.should(),
     expect      = chai.expect,
     webdriverjs = require('../index');
 
@@ -23,7 +22,7 @@ describe('my webdriverjs tests', function(){
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 expect(err).to.be.null;
                 assert.strictEqual(result.height , 30);
-                assert.strictEqual(result.width, 68);
+                assert.strictEqual(result.width, 94);
             })
             .getTitle(function(err, title) {
                 expect(err).to.be.null;

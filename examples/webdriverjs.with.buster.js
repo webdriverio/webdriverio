@@ -16,7 +16,7 @@ buster.testCase("my webdriverjs tests", {
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 assert(err === null);
                 assert(result.height === 30);
-                assert(result.width  === 68);
+                assert(result.width  === 94);
             })
             .getTitle(function(err, title) {
                 assert(err === null);
