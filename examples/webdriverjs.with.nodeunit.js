@@ -18,7 +18,7 @@ module.exports = {
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 test.ok(err === null, 'getElementSize() should cause no error');
                 test.ok(result.height === 30, 'logo height should be 30px');
-                test.ok(result.width  === 68, 'logo width should be 68px');
+                test.ok(result.width  === 94, 'logo width should be 94px');
             })
             .getTitle(function(err, title) {
                 test.ok(err === null, 'getTitle() should cause no error');
