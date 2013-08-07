@@ -14,7 +14,7 @@ The two main reasons for this projects are:
 2) Easy to extend - Adding helper functions, or more complicated sets and combinations of existing commands,
 should also be very easy.
 
-### How to install it
+## How to install it
 
 Either download it from github or use npm:
     
@@ -22,7 +22,7 @@ Either download it from github or use npm:
 npm install webdriverjs
 ```
 
-### Example of webdriverjs
+## Example of webdriverjs
 
 Run selenium server first:  
 
@@ -30,7 +30,7 @@ Run selenium server first:
 java -jar node_modules/webdriverjs/bin/selenium-server-standalone-2.31.0.jar
 ```
 
-You can use any nodejs test framework as well as any BDD/TDD assertion library.
+Webdriverjs has just a few methods. Most of the methods you will use regurarly are the methods available from the client. To begin using Webdriverjs you just need to create a client. For testing you can use any nodejs test framework as well as any BDD/TDD assertion library.
 
 **example using [Mocha](http://visionmedia.github.com/mocha/) and [Chai](http://chaijs.com/)**
 
@@ -72,80 +72,55 @@ describe('my webdriverjs tests', function(){
 
 See more examples with other libraries in the [example directory](https://github.com/Camme/webdriverjs/tree/master/examples).
 
-## webdriverjs howto
-Webdriverjs has just a few methods. Most of the methods you will use regurarly are the methods available from the client. To begin using Webdriverjs you just need to create a client. And to create a client, just do the following:
+## Options
 
-    var webdriverjs = require("webdriverjs"); // You load the module as usual
-    var client = webdriverjs.remote({}); // To create a client you just call the remote method
-
-The remote method takes an object with the options needed to create the client. The available options are which capabilities the client should have. Here is an example:
-
-    var client = WebdriverJS.remote({
-        desiredCapabilities: {}, // read more below
-        singelton: false, // boolean, default true
-        logLevel: 'silent' // string, default is 'verbose' but it can also be 'silent' (read more below)
-    });
-
-### Options
-
-#### desiredCapabilities
+### desiredCapabilities
 Type: `Object`<br>
-Default capabilities:
+
+**Example:**
 
 ```js
 browserName: 'firefox',  // options: firefox, chrome, opera, safari
-version: '',
-javascriptEnabled: true,
-platform: 'ANY'
+version: '27.0',         // browser version
+platform: 'XP',          // OS platform
+tags: ['tag1','tag2'],   // specify some tags (e.g. if you use SauceLabs)
+name: 'my test'          // set name for test (e.g. if you use SauceLabs)
 ```
 
-If selenium can't find the browser binary, add the path as attribute in your desiredCapabilities
-object.
-
-**for Firefox:**
-
-```
-'firefox_binary': <path to binary>
-//e.g. '/Applications/Firefox.app/Contents/MacOS/firefox'
-```
-
-**for Chrome:**
-
-```
-'chrome.binary': <path to binary>
-```
-
-**for Opera:**
-
-```
-'opera.binary': <path to binary>
-```
-
-**for Safari:**
-
-```
-'safari.binary': <path to binary>
-```
-#### logLevel
+### logLevel
 Type: `String`<br>
 Default: *verbose*<br>
 Options: *verbose* | *silent* | *command* | *data* | *result*
 
-### webdriverjs.endAll
+### singelton
+Create client as singleton instance for use in different files<br>
+Type: `Boolean`<br>
+Default: *true*
+
+## [SauceLabs](https://saucelabs.com/) support
+To run your tests via SauceLabs, add the following attributes to your option object.
+
+```js
+host: 'ondemand.saucelabs.com',               // SauceLabs remote host
+user: 'webdriverjs',                          // your username
+key:  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'  // your account key
+```
+
+## webdriverjs.endAll
 If you wish to end all sessions, you can call the endAll method:
 
     require("webdriverjs").endAll(callback);
     
 Where callback is an optional parameter. This method can be used if you run lots of tests, and you want to make sure that all sessions on your selenium server are closed when you are done. Usually its enough to close each client with its end() method, but if you, for some reason, want to make sure that no sessions are open, use endAll(). (note: this method is also available from the client returned from .remote() as well, but its the same as webdriverjs.endAll())
 
-### webdriverjs.sessions
+## webdriverjs.sessions
 To get a list of all open sessions, you can call:
 
     require("webdriverjs").sessions(callback);
 
 which wil return an array with all sessions from selenium (note: this method is also available from the client returned from .remote() as well, but its the same as webdriverjs.sessions()).
 
-### Extending
+## Extending
 If you which to extend with your own set of commands there is a method called addCommand available from the client object:
 
 ```js
