@@ -98,7 +98,7 @@ Type: `Boolean`<br>
 Default: *true*
 
 ## [SauceLabs](https://saucelabs.com/) support
-To run your tests via SauceLabs, add the following attributes to your option object.
+To run your tests via SauceLabs, add the following attributes to your option object. If you have a public repository, never publish your SauceLab key! Export these informations as enviroment variables.
 
 ```js
 host: 'ondemand.saucelabs.com',               // SauceLabs remote host
