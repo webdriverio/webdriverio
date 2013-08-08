@@ -7,7 +7,6 @@ var chai           = require('chai'),
     expect         = chai.expect;
     fs             = require('fs'),
     webdriverjs    = require('../index'),
-    startSelenium  = require('./startSelenium'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
     githubTitle    = 'GitHub · Build software better, together.',
     testpageTitle  = 'WebdriverJS Testpage',
@@ -15,11 +14,11 @@ var chai           = require('chai'),
 
 // test capabilities
 var capabilities   = {
-    browserName: 'chrome',
-    version: '27',
-    platform: 'XP',
-    tags: ['webdriverjs','api','test'],
-    name: 'webdriverjs API test'
+    browserName: 'phantomjs',
+    // version: '27',
+    // platform: 'XP',
+    // tags: ['webdriverjs','api','test'],
+    // name: 'webdriverjs API test'
 };
 
 describe('webdriverjs API test', function(){
@@ -34,9 +33,9 @@ describe('webdriverjs API test', function(){
         client = webdriverjs.remote({
             desiredCapabilities:capabilities,
             logLevel: 'silent',
-            host: 'ondemand.saucelabs.com',
-            user: process.env.WEBDRIVERJS_SAUCE_USERNAME,
-            key: process.env.WEBDRIVERJS_SAUCE_KEY
+            // host: 'ondemand.saucelabs.com',
+            // user: process.env.SAUCE_USERNAME,
+            // key: process.env.SAUCE_ACCESS_KEY
         });
         client.init();
 
@@ -48,208 +47,310 @@ describe('webdriverjs API test', function(){
             testpageSource = html.toString();
         });
 
+        done();
+
     });
 
     describe('test commands', function(){
-        it('get commands should return the evaluated value', function(done){
-            client
-                .url(testpageURL)
-                .getAttribute('.nested', 'style', function(err,result) {
+        describe('get commands should return the evaluated value', function() {
+
+            before(function(done) {
+                client.url(testpageURL).call(done);
+            });
+
+            it('getAttribute: style of elem .nested should be "text-transform:uppercase;"', function(done){
+                client.getAttribute('.nested', 'style', function(err,result) {
                     expect(err).to.be.null;
-                    assert.strictEqual(result,'text-transform: uppercase; ');
-                })
-                .getElementCssProperty('css selector', '.red', 'background-color', function(err,result) {
+                    assert.strictEqual(result,'text-transform:uppercase;');
+                }).call(done);
+            });
+
+            it('getElementCssProperty: css selector of elem .red should be "rgba(255,0,0,1)"', function(done){
+                client.getElementCssProperty('css selector', '.red', 'background-color', function(err,result) {
                     expect(err).to.be.null;
-                    assert.strictEqual('rgba(255, 0, 0, 1)',result);
-                })
-                .getCssProperty('.green', 'float', function(err,result) {
+                    assert.strictEqual('rgba(255,0,0,1)',result);
+                }).call(done);
+            });
+
+            it('getCssProperty: float css attribute of .green should be "left"', function(done){
+                client.getCssProperty('.green', 'float', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual('left',result);
-                })
-                .getElementCssProperty('class name', 'yellow', 'width', function(err,result) {
+                }).call(done);
+            });
+
+            it('getElementCssProperty: width of elem with class name yellow should be "100px"', function(done){
+                client.getElementCssProperty('class name', 'yellow', 'width', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual('100px',result);
-                })
-                .getCssProperty('.black', 'background-color', function(err,result) {
+                }).call(done);
+            });
+
+            it('getCssProperty: background-color of elem .black should be "rgba(0,0,0,1)"', function(done){
+                client.getCssProperty('.black', 'background-color', function(err,result) {
                     expect(err).to.be.null;
-                    assert.strictEqual('rgba(0, 0, 0, 1)',result);
-                })
-                .getElementCssProperty('id', 'purplebox', 'margin-right', function(err,result) {
+                    assert.strictEqual('rgba(0,0,0,1)',result);
+                }).call(done);
+            });
+
+            it('getElementCssProperty: leftmargin of elem with ID purplebox should be "10px"', function(done){
+                client.getElementCssProperty('id', 'purplebox', 'margin-right', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual('10px',result);
-                })
-                .getCssProperty('.purple', 'margin-right', function(err,result) {
+                }).call(done);
+            });
+
+            it('getCssProperty: rightmargin of elem .purple should be "10px"', function(done){
+                client.getCssProperty('.purple', 'margin-right', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual('10px',result);
-                })
-                .getElementSize('.red', function(err,result) {
+                }).call(done);
+            });
+
+            it('getElementSize: size of elem .red should be 102x102px', function(done){
+                client.getElementSize('.red', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual(result.width,102);
                     assert.strictEqual(result.height,102);
-                })
-                .getLocation('.green', function(err,result) {
+                }).call(done);
+            });
+
+            it('getLocation: location of elem .green should be x=120 , y=89', function(done){
+                client.getLocation('.green', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual(result.x,120);
                     assert(result.y === 89 || result.y === 94);
-                })
-                .getLocationInView('.green', function(err,result) {
+                }).call(done);
+            });
+
+            it('getLocationInView: location of elem .green should be x=120 , y=89', function(done){
+                client.getLocationInView('.green', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual(result.x,120);
                     assert(result.y === 89 || result.y === 94);
-                })
-                .getSource(function(err,result) {
+                }).call(done);
+            });
+
+            it('getSource: source code of testpage should be the same as the code, which was fetched before test', function(done){
+                client.getSource(function(err,result) {
                     expect(err).to.be.null;
 
                     // remove not visible php code
                     testpageSource = testpageSource.replace(/<\?php[^?]*\?>\n/g,'');
 
                     assert.strictEqual(result,testpageSource);
-                })
-                .getTagName('.black', function(err,result) {
+                }).call(done);
+            });
+
+            it('getTagName: tag name of elem .black should be "div"', function(done){
+                client.getTagName('.black', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual(result,'div');
-                })
-                .getTagName('#githubRepo', function(err,result) {
+                }).call(done);
+            });
+
+            it('getTagName: tag name of elem #githubRepo should be "a"', function(done){
+                client.getTagName('#githubRepo', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual(result,'a');
-                })
-                .getText('#githubRepo', function(err,result) {
+                }).call(done);
+            });
+
+            it('getText: content of elem #githubRepo should be "GitHub Repo"', function(done){
+                client.getText('#githubRepo', function(err,result) {
                     expect(err).to.be.null;
                     assert.strictEqual(result,'GitHub Repo');
-                })
-                .getTitle(function(err,title) {
+                }).call(done);
+            });
+
+            it('getTitle: title of testpage should be "'+testpageTitle+'"', function(done){
+                client.getTitle(function(err,title) {
                     expect(err).to.be.null;
                     assert.strictEqual(title,testpageTitle);
-                })
-                .call(done);
+                }).call(done);
+            });
+
         });
 
-        it('should set, get and delete cookies',function(done) {
-            client
-                .url(testpageURL)
-                .setCookie({name: 'test',value: 'cookie saved!'})
-                .getCookie('test', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result.name,'test');
-                    assert.strictEqual(result.value,'cookie saved!');
-                })
-                .setCookie({name: 'test2',value: 'cookie2 saved!'})
-                .deleteCookie('test')
-                .getCookie('test', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,null);
-                })
-                .getCookie('test2', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result.name,'test2');
-                    assert.strictEqual(result.value,'cookie2 saved!');
-                })
-                .setCookie({name: 'test',value: 'cookie saved!'})
-                .deleteCookie()
-                .getCookie('test', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,null);
-                })
-                .getCookie('test2', function(err,result) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(result,null);
-                })
-                .call(done);
+        describe('test cookie functionality',function() {
+
+            before(function(done) {
+                client.url(testpageURL).call(done);
+            });
+
+            it('should set a cookie and read its content afterwards', function(done){
+                client
+                    .setCookie({name: 'test',value: 'cookie saved!'})
+                    .getCookie('test', function(err,result) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(result.name,'test');
+                        assert.strictEqual(result.value,'cookie saved!');
+                    })
+                    .call(done);
+            });
+
+            it('should delete created cookie and is not able to read its content', function(done){
+                client
+                    .deleteCookie('test')
+                    .getCookie('test', function(err,result) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(result,null);
+                    })
+                    .call(done);
+            });
+
+            it('should create two cookies and delete all at once', function(done){
+                client
+                    .setCookie({name: 'test',value: 'cookie saved!'})
+                    .setCookie({name: 'test2',value: 'cookie2 saved!'})
+                    .deleteCookie()
+                    .getCookie('test', function(err,result) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(result,null);
+                    })
+                    .getCookie('test2', function(err,result) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(result,null);
+                    })
+                    .call(done);
+            });
         });
 
-        it('back/foward should return to the previous/next page', function(done) {
-            client
-                .url(testpageURL)
-                .getTitle(function(err,title) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(title,testpageTitle);
-                })
-                .click('#githubRepo')
-                // waitFor fix, to get safari a little bit more time to load
-                .waitFor('.teaser-illustration',5000)
-                .getTitle(function(err,title) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(title,githubTitle);
-                })
-                .back()
-                // waitFor fix, to get safari a little bit more time to load
-                .waitFor('.public',5000)
-                .getTitle(function(err,title) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(title,testpageTitle);
-                })
-                .forward()
-                .waitFor('.teaser-illustration',5000)
-                .getTitle(function(err,title) {
-                    expect(err).to.be.null;
-                    assert.strictEqual(title,githubTitle);
-                })
-                .call(done);
+        describe('test ability to go back and forward in browser history', function() {
+
+            before(function(done) {
+                client.url(testpageURL).call(done);
+            });
+
+            it('should be able to go backward in history', function(done){
+                client
+                    .getTitle(function(err,title) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(title,testpageTitle);
+                    })
+                    .click('#githubRepo')
+                    .getTitle(function(err,title) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(title,githubTitle);
+                    })
+                    .back()
+                    .getTitle(function(err,title) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(title,testpageTitle);
+                    })
+                    .call(done);
+            });
+
+            it('should be able to go forward in history', function(done){
+                client
+                    .forward()
+                    .waitFor('.teaser-illustration',5000)
+                    .getTitle(function(err,title) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(title,githubTitle);
+                    })
+                    .call(done);
+            });
+
         });
 
-        it('click command test',function(done) {
-            client
-                .url(testpageURL)
-                .isVisible('.btn1',function(err,result) {
-                    expect(err).to.be.null;
-                    if(result) {
-                        client.click('.btn1',function(err,result) {
-                            expect(err).to.be.null;
-                            result.status.should.equal(0);
-                        });
-                    }
-                })
-                .isVisible('.btn1_clicked',function(err,result){
-                    expect(err).to.be.null;
-                    assert(result, '.btn1 was clicked');
-                })
-                .isVisible('.btn2',function(err,result) {
-                    expect(err).to.be.null;
-                    if(result) {
-                        client.click('.btn2',function(err,result) {
-                            expect(err).to.be.null;
-                            result.status.should.equal(0);
-                        });
-                    }
-                })
-                .isVisible('.btn2_clicked',function(err,result){
-                    expect(err).to.be.null;
-                    assert(!result, '.btn2 wasn\'t clicked');
-                })
-                .isVisible('.btn3',function(err,result) {
-                    expect(err).to.be.null;
-                    if(result) {
-                        client.click('.btn3',function(err,result) {
-                            expect(err).to.be.null;
-                            result.status.should.equal(0);
-                        });
-                    }
-                })
-                .isVisible('.btn3_clicked',function(err,result){
-                    expect(err).to.be.null;
-                    // phantomjs is able to click on a not clickable button
-                    if(capabilities.browserName === 'phantomjs') {
-                        assert(result, '.btn3 wasn\'t clicked');
-                    } else {
-                        assert(!result, '.btn3 was clicked');
-                    }
-                })
-                .isVisible('.btn4',function(err,result) {
-                    expect(err).to.be.null;
-                    if(result) {
-                        client.click('.btn4',function(err,result) {
-                            expect(err).to.be.null;
-                            result.status.should.equal(0);
-                        });
-                    }
-                })
-                .isVisible('.btn4_clicked',function(err,result){
-                    expect(err).to.be.null;
+        describe('click command test',function(done) {
 
-                    // it is possible to click on a button with width/height = 0
-                    assert(result, '.btn3 was clicked');
-                })
-                .call(done);
+            // TODO call URL in before function doesn't work, why?
+
+            it('text should be visible after clicking on .btn1', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn1',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.click('.btn1',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn1_clicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(result, '.btn1 was clicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should NOT be visible after click on .btn2 because button is disabled', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn2',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.click('.btn2',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn2_clicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(!result, '.btn2 wasn\'t clicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should NOT be visible after click on .btn3 because button is behind overlay', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn3',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.click('.btn3',function(err,result) {
+                                // phantomjs is able to click on a not clickable button
+                                if(capabilities.browserName === 'phantomjs') {
+                                    expect(err).to.be.null; 
+                                    result.status.should.equal(0);
+                                } else {
+                                    expect(err).not.to.be.null; 
+                                    result.status.should.equal(13);
+                                }
+                            });
+                        }
+                    })
+                    .isVisible('.btn3_clicked',function(err,result){
+                        expect(err).to.be.null;
+
+                        // phantomjs is able to click on a not clickable button
+                        if(capabilities.browserName === 'phantomjs') {
+                            assert(result, '.btn3 wasn\'t clicked');
+                        } else {
+                            assert(!result, '.btn3 was clicked');
+                        }
+                    })
+                    .call(done);
+            });
+
+
+            it('text should be visible after clicking ion .btn4 with a width/height of 0', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn4',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.click('.btn4',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn4_clicked',function(err,result){
+                        expect(err).to.be.null;
+
+                        // it is possible to click on a button with width/height = 0
+                        assert(result, '.btn4 was clicked');
+                    })
+                    .call(done);
+            });
+
         });
 
         it('test addCommand feature',function(done) {
@@ -274,7 +375,7 @@ describe('webdriverjs API test', function(){
         });
 
         it('test setting values in input elements',function(done) {
-            client.url(testpageURL);
+            client.url(testpageURL).pause(1000);
 
             var checkError = function(err) {
                 expect(err).to.be.null;
@@ -333,11 +434,12 @@ describe('webdriverjs API test', function(){
             client.call(done);
         });
 
-        it('click on submit button should work as well as submitForm command', function(done) {
+        describe('test submit button with click and submitForm', function(done) {
 
             var elementShouldBeNotFound = function(err,result) {
                 err.should.not.equal.null;
-                assert.strictEqual(result.status,13);
+                // for phantomjs it is an UnknownError instead of NoSuchElement in Browser
+                assert.strictEqual(result.status, capabilities.browserName === 'phantomjs' ? 13 : 7);
             };
             var elementShouldBeVisible = function(err,result) {
                 expect(err).to.be.null;
@@ -347,25 +449,31 @@ describe('webdriverjs API test', function(){
                 expect(err).to.be.null;
             };
 
-            client
-                .url(testpageURL)
-                .isVisible('.gotDataA', elementShouldBeNotFound)
-                .isVisible('.gotDataB', elementShouldBeNotFound)
-                .isVisible('.gotDataC', elementShouldBeNotFound)
-                .click('.send',         shouldCauseNoError)
-                .isVisible('.gotDataA', elementShouldBeVisible)
-                .isVisible('.gotDataB', elementShouldBeVisible)
-                .isVisible('.gotDataC', elementShouldBeVisible)
+            it('click on submit button should send data from form', function(done) {
+                client
+                    .url(testpageURL)
+                    .isVisible('.gotDataA', elementShouldBeNotFound)
+                    .isVisible('.gotDataB', elementShouldBeNotFound)
+                    .isVisible('.gotDataC', elementShouldBeNotFound)
+                    .click('.send',         shouldCauseNoError)
+                    .isVisible('.gotDataA', elementShouldBeVisible)
+                    .isVisible('.gotDataB', elementShouldBeVisible)
+                    .isVisible('.gotDataC', elementShouldBeVisible)
+                    .call(done);
+            });
 
-                .url(testpageURL)
-                .isVisible('.gotDataA', elementShouldBeNotFound)
-                .isVisible('.gotDataB', elementShouldBeNotFound)
-                .isVisible('.gotDataC', elementShouldBeNotFound)
-                .submitForm('.send',    shouldCauseNoError)
-                .isVisible('.gotDataA', elementShouldBeVisible)
-                .isVisible('.gotDataB', elementShouldBeVisible)
-                .isVisible('.gotDataC', elementShouldBeVisible)
-                .call(done);
+            it('submit form via provided command should send data from form', function(done) {
+                client
+                    .url(testpageURL)
+                    .isVisible('.gotDataA', elementShouldBeNotFound)
+                    .isVisible('.gotDataB', elementShouldBeNotFound)
+                    .isVisible('.gotDataC', elementShouldBeNotFound)
+                    .submitForm('.send',    shouldCauseNoError)
+                    .isVisible('.gotDataA', elementShouldBeVisible)
+                    .isVisible('.gotDataB', elementShouldBeVisible)
+                    .isVisible('.gotDataC', elementShouldBeVisible)
+                    .call(done);
+            });
         });
 
 
