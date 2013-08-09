@@ -42,7 +42,18 @@
   ],
   "keywords": [
     "webdriverjs",
+    "webdriver"
     "selenium",
-    "saucelabs"
+    "saucelabs",
+    "sauce",
+    "labs"
+    "mocha",
+    "nodeUnit",
+    "buster",
+    "phantomjs",
+    "chai",
+    "vows",
+    "jasmine",
+    "assert"
   ]
 }
