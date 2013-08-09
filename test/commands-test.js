@@ -7,6 +7,7 @@ var chai           = require('chai'),
     expect         = chai.expect;
     fs             = require('fs'),
     webdriverjs    = require('../index'),
+    startSelenium  = require('./startSelenium'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
     githubTitle    = 'GitHub · Build software better, together.',
     testpageTitle  = 'WebdriverJS Testpage',
@@ -28,26 +29,30 @@ describe('webdriverjs API test', function(){
     var client = {};
 
     before(function(done){
+        // start selenium server if not running
+        startSelenium(function() {
 
-        // init client
-        client = webdriverjs.remote({
-            desiredCapabilities:capabilities,
-            logLevel: 'silent',
-            // host: 'ondemand.saucelabs.com',
-            // user: process.env.SAUCE_USERNAME,
-            // key: process.env.SAUCE_ACCESS_KEY
+            // init client
+            client = webdriverjs.remote({
+                desiredCapabilities:capabilities,
+                logLevel: 'silent',
+                // host: 'ondemand.saucelabs.com',
+                // user: process.env.SAUCE_USERNAME,
+                // key: process.env.SAUCE_ACCESS_KEY
+            });
+            client.init();
+
+            // load source of testpage for getSource() test
+            fs.readFile('./test/index.php', function (err, html) {
+                if (err) {
+                    throw err;
+                }
+                testpageSource = html.toString();
+            });
+
+            done();
+
         });
-        client.init();
-
-        // load source of testpage for getSource() test
-        fs.readFile('./test/index.php', function (err, html) {
-            if (err) {
-                throw err;
-            }
-            testpageSource = html.toString();
-        });
-
-        done();
 
     });
 
