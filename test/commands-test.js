@@ -521,6 +521,54 @@ describe('webdriverjs API test', function(){
             });
         });
 
+        describe('test unicode characters', function() {
+
+            var checkError = function(err) {
+                expect(err).to.be.null;
+            };
+
+            it('input should have an empty value after using delete command', function(done) {
+                client
+                    .url(testpageURL)
+                    .addValue('input.searchinput','012', checkError)
+                    .addValue('input.searchinput','Left arrow', checkError)
+                    .addValue('input.searchinput','Left arrow', checkError)
+                    .addValue('input.searchinput','Left arrow', checkError)
+                    .addValue('input.searchinput','Delete', checkError)
+                    .addValue('input.searchinput','Delete', checkError)
+                    .addValue('input.searchinput','Delete', checkError)
+                    .getValue('input.searchinput', function(err,value) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(value,'');
+                    })
+                    .call(done);
+            });
+
+            it('input should have an empty value after using Back space command', function(done) {
+                client
+                    .url(testpageURL)
+                    .addValue('input.searchinput','012', checkError)
+                    .addValue('input.searchinput','Back space', checkError)
+                    .addValue('input.searchinput','Back space', checkError)
+                    .addValue('input.searchinput','Back space', checkError)
+                    .getValue('input.searchinput', function(err,value) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(value,'');
+                    })
+                    .call(done);
+            });
+
+            it('input should have one space as input', function(done) {
+                client
+                    .url(testpageURL)
+                    .addValue('input.searchinput','Space', checkError)
+                    .getValue('input.searchinput', function(err,value) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(value,' ');
+                    })
+                    .call(done);
+            });
+        });
 
     });
 

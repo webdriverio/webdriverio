@@ -154,7 +154,7 @@ client
 These are the current implemented helper methods. All methods take from 0 to a couple of parameters.
 Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
 
-- **addValue(`String` css selector, `String` value, `Function` callback)**<br>adds a value to an object found by a css selector
+- **addValue(`String` css selector, `String` value, `Function` callback)**<br>adds a value to an object found by a css selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **buttonClick(`String` css selector, `Function` callback)**<br>click on a button using a css selector
 - **call(callback)**<br>call given function in async order of current command queue
 - **clearElement(`String` css selector, `Function` callback)**<br>clear an element of text
@@ -185,7 +185,7 @@ Also all methods accept a callback so that we can assert values or have more log
 - **refresh(`Function` callback)**<br>Refresh the current page
 - **saveScreenshot(`String` path to file, `Function` callback)**<br>Saves a screenshot as a png from the current state of the browser
 - **setCookie(`Object` cookie, `Function` callback)**<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
-- **setValue(`String` css selector, `String` value, `Function` callback)**<br>Sets a value to an object found by a css selector (clears value before)
+- **setValue(`String` css selector, `String` value, `Function` callback)**<br>Sets a value to an object found by a css selector (clears value before). You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **submitForm(`String` css selector, `Function` callback)**<br>Submits a form found by the css selector
 - **waitFor(`String` css selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
