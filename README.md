@@ -83,8 +83,8 @@ Type: `Object`<br>
 browserName: 'chrome',  // options: firefox, chrome, opera, safari
 version: '27.0',         // browser version
 platform: 'XP',          // OS platform
-tags: ['tag1','tag2'],   // specify some tags (e.g. if you use SauceLabs)
-name: 'my test'          // set name for test (e.g. if you use SauceLabs)
+tags: ['tag1','tag2'],   // specify some tags (e.g. if you use Sauce Labs)
+name: 'my test'          // set name for test (e.g. if you use Sauce Labs)
 ```
 
 ### logLevel
@@ -97,11 +97,11 @@ Create client as singleton instance for use in different files<br>
 Type: `Boolean`<br>
 Default: *true*
 
-## [SauceLabs](https://saucelabs.com/) support
-To run your tests via SauceLabs, add the following attributes to your option object. If you have a public repository, never publish your SauceLab key! Export these informations as enviroment variables.
+## [Sauce Labs](https://saucelabs.com/) support
+To run your tests via Sauce Labs, add the following attributes to your option object. If you have a public repository, never publish your Sauce Labs key! Export these informations as enviroment variables.
 
 ```js
-host: 'ondemand.saucelabs.com',               // SauceLabs remote host
+host: 'ondemand.saucelabs.com',               // Sauce Labs remote host
 user: 'webdriverjs',                          // your username
 key:  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'  // your account key
 ```
