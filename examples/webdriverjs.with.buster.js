@@ -15,16 +15,16 @@ buster.testCase("my webdriverjs tests", {
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 assert(err === null);
-                assert(result.height === 30);
-                assert(result.width  === 94);
+                assert(result.height === 32);
+                assert(result.width  === 89);
             })
             .getTitle(function(err, title) {
                 assert(err === null);
                 assert(title === 'GitHub · Build software better, together.');
             })
-            .getElementCssProperty('class name','subheading', 'color', function(err, result){
+            .getElementCssProperty('css selector','a[href="/plans"]', 'color', function(err, result){
                 assert(err === null);
-                assert(result === 'rgba(136, 136, 136, 1)');
+                assert(result === 'rgba(65,131,196,1)');
             })
             .call(done);
     },
