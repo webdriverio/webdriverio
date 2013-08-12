@@ -34,11 +34,11 @@ vows.describe('my github tests').addBatch({
                 },
 
                 'height is 30px': function(err,result) {
-                    assert(result.height === 30);
+                    assert(result.height === 32);
                 },
 
                 'width is 94px': function(err,result) {
-                    assert(result.width === 94);
+                    assert(result.width === 89);
                 }
 
             },
@@ -62,15 +62,15 @@ vows.describe('my github tests').addBatch({
             'check color of subheading': {
 
                 topic: function() {
-                    client.getElementCssProperty('class name','subheading', 'color', this.callback);
+                    client.getElementCssProperty('css selector','a[href="/plans"]', 'color', this.callback);
                 },
 
                 'getElementCssProperty() should cause no error': function(err,result) {
                     assert(err === null);
                 },
 
-                'color should be rgba(136, 136, 136, 1)': function(err,result) {
-                    assert(result === 'rgba(136, 136, 136, 1)');
+                'color should be rgba(65,131,196,1)': function(err,result) {
+                    assert(result === 'rgba(65,131,196,1)');
                 }
 
             }

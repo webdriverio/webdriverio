@@ -15,16 +15,16 @@ describe('my webdriverjs tests', function() {
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 expect(err).toBe(null);
-                expect(result.height).toBe(30);
-                expect(result.width).toBe(94);
+                expect(result.height).toBe(32);
+                expect(result.width).toBe(89);
             })
             .getTitle(function(err, title) {
                 expect(err).toBe(null);
                 expect(title).toBe('GitHub · Build software better, together.');
             })
-            .getElementCssProperty('class name','subheading', 'color', function(err, result){
+            .getElementCssProperty('css selector','a[href="/plans"]', 'color', function(err, result){
                 expect(err).toBe(null);
-                expect(result).toBe('rgba(136, 136, 136, 1)');
+                expect(result).toBe('rgba(65,131,196,1)');
             })
             .call(done);
     });
