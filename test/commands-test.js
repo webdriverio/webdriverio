@@ -303,33 +303,21 @@ describe('webdriverjs API test', function(){
             });
 
 
-            it('text should NOT be visible after click on .btn3 because button is behind overlay', function(done){
+            it('text should be visible after click on .btn3 although button is behind overlay', function(done){
                 client
                     .url(testpageURL)
                     .isVisible('.btn3',function(err,result) {
                         expect(err).to.be.null;
                         if(result) {
                             client.click('.btn3',function(err,result) {
-                                // phantomjs is able to click on a not clickable button
-                                if(capabilities.browserName === 'phantomjs') {
-                                    expect(err).to.be.null; 
-                                    result.status.should.equal(0);
-                                } else {
-                                    expect(err).not.to.be.null; 
-                                    result.status.should.equal(13);
-                                }
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
                             });
                         }
                     })
                     .isVisible('.btn3_clicked',function(err,result){
                         expect(err).to.be.null;
-
-                        // phantomjs is able to click on a not clickable button
-                        if(capabilities.browserName === 'phantomjs') {
-                            assert(result, '.btn3 wasn\'t clicked');
-                        } else {
-                            assert(!result, '.btn3 was clicked');
-                        }
+                        assert(result, '.btn3 wasn\'t clicked');
                     })
                     .call(done);
             });
@@ -577,8 +565,8 @@ describe('webdriverjs API test', function(){
 
     });
 
-    after(function() {
-        client.end();
+    after(function(done) {
+        client.end(done);
     });
 
 });
