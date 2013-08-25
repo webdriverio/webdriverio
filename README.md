@@ -92,7 +92,7 @@ Type: `String`<br>
 Default: *verbose*<br>
 Options: *verbose* | *silent* | *command* | *data* | *result*
 
-### singelton
+### singleton
 Create client as singleton instance for use in different files<br>
 Type: `Boolean`<br>
 Default: *true*
