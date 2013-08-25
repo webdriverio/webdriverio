@@ -169,10 +169,9 @@ Also all methods accept a callback so that we can assert values or have more log
 - **getCookie(name, `Function` callback)**<br>Gets the cookie for current page.
 - **getCssProperty(`String` css selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a css selector
 - **getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
-- **getElementSize(`String` css selector, `Function` callback)**<br>Get the elements size. The element is found with a css selector
+- **getElementSize(`String` css selector, `Function` callback)**<br>Gets the width and height for an object based on the css selector
 - **getLocation(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector
 - **getLocationInView(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector in the view
-- **getSize(`String` css selector, `Function` callback)**<br>Gets the width and height for an object based on the css selector
 - **getSource(`Function` callback)**<br>Gets source code of the page
 - **getTagName(`String` css selector, `Function` callback)**<br>Gets the tag name of a dom obj found by the css selector
 - **getText(`String` css selector, `Function` callback)**<br>Gets the text content from a dom obj found by the css selector
