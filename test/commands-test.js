@@ -344,6 +344,93 @@ describe('webdriverjs API test', function(){
 
         });
 
+        describe.only('buttonClick command test',function(done) {
+
+            // TODO call URL in before function doesn't work, why?
+
+            it('text should be visible after click on .btn1', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn1',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.buttonClick('.btn1',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn1_clicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(result, '.btn1 was clicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should NOT be visible after click on .btn2 because button is disabled', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn2',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.buttonClick('.btn2',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn2_clicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(!result, '.btn2 wasn\'t clicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should not be visible after click on .btn3 because button is behind overlay', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn3',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.buttonClick('.btn3',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn3_clicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(!result, '.btn3 was clicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should be visible after clicking ion .btn4 with a width/height of 0', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn4',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.buttonClick('.btn4',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn4_clicked',function(err,result){
+                        expect(err).to.be.null;
+
+                        // it is possible to click on a button with width/height = 0
+                        assert(result, '.btn4 was clicked');
+                    })
+                    .call(done);
+            });
+
+        });
+
         it('test addCommand feature',function(done) {
             client
                 .addCommand("getUrlAndTitle", function(callback) {
@@ -373,21 +460,15 @@ describe('webdriverjs API test', function(){
             };
             var chechValue = function(err,result) {
                 expect(err).to.be.null;
-                assert.strictEqual(result,'9');
+                assert.strictEqual(result,'3');
             };
 
-            for(var i = 0; i < 10; ++i) {
+            for(var i = 0; i < 3; ++i) {
                 client
                     .setValue('input.searchinput','0', checkError)
                     .setValue('input.searchinput','1', checkError)
                     .setValue('input.searchinput','2', checkError)
                     .setValue('input.searchinput','3', checkError)
-                    .setValue('input.searchinput','4', checkError)
-                    .setValue('input.searchinput','5', checkError)
-                    .setValue('input.searchinput','6', checkError)
-                    .setValue('input.searchinput','7', checkError)
-                    .setValue('input.searchinput','8', checkError)
-                    .setValue('input.searchinput','9', checkError)
                     .getValue('input.searchinput',     chechValue)
                     .clearElement('input.searchinput', checkError);
             }
@@ -403,21 +484,15 @@ describe('webdriverjs API test', function(){
             };
             var chechValue = function(err,result) {
                 expect(err).to.be.null;
-                assert.strictEqual(result,'0123456789');
+                assert.strictEqual(result,'0123');
             };
 
-            for(var i = 0; i < 10; ++i) {
+            for(var i = 0; i < 3; ++i) {
                 client
                     .addValue('input.searchinput','0', checkError)
                     .addValue('input.searchinput','1', checkError)
                     .addValue('input.searchinput','2', checkError)
                     .addValue('input.searchinput','3', checkError)
-                    .addValue('input.searchinput','4', checkError)
-                    .addValue('input.searchinput','5', checkError)
-                    .addValue('input.searchinput','6', checkError)
-                    .addValue('input.searchinput','7', checkError)
-                    .addValue('input.searchinput','8', checkError)
-                    .addValue('input.searchinput','9', checkError)
                     .getValue('input.searchinput',     chechValue)
                     .clearElement('input.searchinput', checkError);
             }
