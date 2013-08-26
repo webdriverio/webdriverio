@@ -344,7 +344,7 @@ describe('webdriverjs API test', function(){
 
         });
 
-        describe.only('buttonClick command test',function(done) {
+        describe('buttonClick command test',function(done) {
 
             // TODO call URL in before function doesn't work, why?
 
@@ -425,6 +425,125 @@ describe('webdriverjs API test', function(){
 
                         // it is possible to click on a button with width/height = 0
                         assert(result, '.btn4 was clicked');
+                    })
+                    .call(done);
+            });
+
+        });
+
+        describe('doubleClick command test',function(done) {
+
+            // TODO call URL in before function doesn't work, why?
+
+            it('text should be visible after doubleClick on .btn1', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn1',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.doubleClick('.btn1',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn1_dblclicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(result, '.btn1 was doubleClicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should NOT be visible after doubleClick on .btn2 because button is disabled', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn2',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.doubleClick('.btn2',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn2_dblclicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(!result, '.btn2 wasn\'t doubleClicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should not be visible after doubleClick on .btn3 because button is behind overlay', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn3',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.doubleClick('.btn3',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn3_dblclicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(!result, '.btn3 was doubleClicked');
+                    })
+                    .call(done);
+            });
+
+
+            it('text should be visible after doubleClicking ion .btn4 with a width/height of 0', function(done){
+                client
+                    .url(testpageURL)
+                    .isVisible('.btn4',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.doubleClick('.btn4',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn4_dblclicked',function(err,result){
+                        expect(err).to.be.null;
+
+                        // it is possible to click on a button with width/height = 0
+                        assert(result, '.btn4 was doubleClicked');
+                    })
+                    .call(done);
+            });
+
+        });
+
+        describe('drag&drop command test', function() {
+
+            it('should drag and drop the overlay without an error', function(done) {
+                client
+                    .url(testpageURL)
+                    .dragAndDrop('#overlay','.red',function(err,result) {
+                        expect(err).to.be.null;
+                        result.status.should.equal(0);
+                    })
+                    .call(done);
+            });
+
+            it('should be able to click on .btn3 because the overlay is gone now', function(done) {
+                client
+                    .isVisible('.btn3',function(err,result) {
+                        expect(err).to.be.null;
+                        if(result) {
+                            client.buttonClick('.btn3',function(err,result) {
+                                expect(err).to.be.null;
+                                result.status.should.equal(0);
+                            });
+                        }
+                    })
+                    .isVisible('.btn3_dblclicked',function(err,result){
+                        expect(err).to.be.null;
+                        assert(result, '.btn3 was not clicked');
                     })
                     .call(done);
             });
