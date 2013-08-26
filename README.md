@@ -27,7 +27,7 @@ npm install webdriverjs
 Run selenium server first:  
 
 ```shell
-java -jar node_modules/webdriverjs/bin/selenium-server-standalone-2.31.0.jar
+java -jar node_modules/.bin/selenium-server-standalone-2.35.0.jar
 ```
 
 Webdriverjs has just a few methods. Most of the methods you will use regurarly are the methods available from the client. To begin using Webdriverjs you just need to create a client. For testing you can use any nodejs test framework as well as any BDD/TDD assertion library.
