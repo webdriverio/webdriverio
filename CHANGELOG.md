@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.7.10 (2013-08-27)
+* added support for selenium-server-standalonver > v2.31.0
+* improved command executions for click, waitFor and getLocation
+* removed duplicate command setSize()
+* added more tests
+* removed selenium-server-standalonver jar from repository
+* implemented install script for downloading this jar into .bin folder
+
 ## v0.7.9 (2013-08-09)
 * Sauce Labs support
 * support for unicode character (https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value)
