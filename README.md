@@ -1,18 +1,19 @@
 Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/christian-bromann/webdriverjs.png)](https://travis-ci.org/christian-bromann/webdriverjs)
 =====================================================
 
-A WebDriver module for nodejs. Either use the super easy help commands or use the base Webdriver wire protocol
-commands.
+A WebDriver module for nodejs. Either use the super easy help commands or use
+the base Webdriver wire protocol commands.
 
-It is written so its easy to add new protocol implementations and add helper commands so make testing easier.
-Each command resides as one file inside the node module folder which makes it easy to extend.
+It is written so its easy to add new protocol implementations and add helper
+commands so make testing easier. Each command resides as one file inside the
+node module folder which makes it easy to extend.
 
 The two main reasons for this projects are: 
 
 1) Ease of use - Writing tests with webdriver should be very easy
 
-2) Easy to extend - Adding helper functions, or more complicated sets and combinations of existing commands,
-should also be very easy.
+2) Easy to extend - Adding helper functions, or more complicated sets and
+combinations of existing commands, should also be very easy.
 
 ## How to install it
 
@@ -30,7 +31,10 @@ Run selenium server first:
 java -jar node_modules/.bin/selenium-server-standalone-2.35.0.jar
 ```
 
-Webdriverjs has just a few methods. Most of the methods you will use regurarly are the methods available from the client. To begin using Webdriverjs you just need to create a client. For testing you can use any nodejs test framework as well as any BDD/TDD assertion library.
+Webdriverjs has just a few methods. Most of the methods you will use regurarly
+are the methods available from the client. To begin using Webdriverjs you just
+need to create a client. For testing you can use any nodejs test framework as
+well as any BDD/TDD assertion library.
 
 **example using [Mocha](http://visionmedia.github.com/mocha/) and [Chai](http://chaijs.com/)**
 
@@ -98,7 +102,9 @@ Type: `Boolean`<br>
 Default: *true*
 
 ## [Sauce Labs](https://saucelabs.com/) support
-To run your tests via Sauce Labs, add the following attributes to your option object. If you have a public repository, never publish your Sauce Labs key! Export these informations as enviroment variables.
+To run your tests via Sauce Labs, add the following attributes to your option
+object. If you have a public repository, never publish your Sauce Labs key!
+Export these informations as enviroment variables.
 
 ```js
 host: 'ondemand.saucelabs.com',               // Sauce Labs remote host
@@ -106,22 +112,50 @@ user: 'webdriverjs',                          // your username
 key:  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'  // your account key
 ```
 
+Find a Gist example [here](https://gist.github.com/christian-bromann/6358232)!
+
+## [BrowserStack](http://www.browserstack.com/) support
+You can also run your tests with BrowserStack on a remote machine. To do that,
+put your username and BrowserStack key in your `desiredCapabilities` attribute
+and define BrowserStack as remote host.
+
+```js
+desiredCapabilities: {
+    'browser': 'firefox',
+    ...
+    'browserstack.user' : '<username>',
+    'browserstack.key': '<key>'
+},
+host: 'hub.browserstack.com'
+```
+
+Find a Gist example [here](https://gist.github.com/christian-bromann/6357801)!
+
 ## webdriverjs.endAll
 If you wish to end all sessions, you can call the endAll method:
 
     require("webdriverjs").endAll(callback);
     
-Where callback is an optional parameter. This method can be used if you run lots of tests, and you want to make sure that all sessions on your selenium server are closed when you are done. Usually its enough to close each client with its end() method, but if you, for some reason, want to make sure that no sessions are open, use endAll(). (note: this method is also available from the client returned from .remote() as well, but its the same as webdriverjs.endAll())
+Where callback is an optional parameter. This method can be used if you run
+lots of tests, and you want to make sure that all sessions on your selenium
+server are closed when you are done. Usually its enough to close each client
+with its end() method, but if you, for some reason, want to make sure that
+no sessions are open, use endAll(). (note: this method is also available
+from the client returned from .remote() as well, but its the same as
+webdriverjs.endAll())
 
 ## webdriverjs.sessions
 To get a list of all open sessions, you can call:
 
     require("webdriverjs").sessions(callback);
 
-which wil return an array with all sessions from selenium (note: this method is also available from the client returned from .remote() as well, but its the same as webdriverjs.sessions()).
+which wil return an array with all sessions from selenium (note: this method
+is also available from the client returned from .remote() as well, but its
+the same as webdriverjs.sessions()).
 
 ## Extending
-If you which to extend with your own set of commands there is a method called addCommand available from the client object:
+If you which to extend with your own set of commands there is a method
+called addCommand available from the client object:
 
 ```js
 var client = require("webdriverjs").remote();
@@ -151,8 +185,9 @@ client
 ```
 
 # List of current helper methods
-These are the current implemented helper methods. All methods take from 0 to a couple of parameters.
-Also all methods accept a callback so that we can assert values or have more logic when the callback is called.
+These are the current implemented helper methods. All methods take from 0
+to a couple of parameters. Also all methods accept a callback so that we
+can assert values or have more logic when the callback is called.
 
 - **addValue(`String` css selector, `String` value, `Function` callback)**<br>adds a value to an object found by a css selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **buttonClick(`String` css selector, `Function` callback)**<br>click on a button using a css selector
