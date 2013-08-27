@@ -23,7 +23,7 @@ module.exports = function (callback, done, grunt) {
             console.log('\nCouldn\'t find any selenium server process');
             console.log('\nStarting selenium server...');
 
-            var seleniumServer = spawn('java', ['-jar', __dirname+'/../bin/selenium-server-standalone-2.31.0.jar']);
+            var seleniumServer = spawn('java', ['-jar', __dirname+'/../../.bin/selenium-server-standalone-2.35.0.jar']);
 
             seleniumServer.stdout.on('data', function (data) {
                 if(data.toString().indexOf('Started SocketListener') !== -1) {
