@@ -15,4 +15,4 @@ cd ../.bin
 echo "Download selenium-server-standalone-2.35.0.jar into node_modules/.bin ....\n"
 
 # download selenium server standalone
-curl -O https://selenium.googlecode.com/files/selenium-server-standalone-2.35.0.jar
+curl -O http://selenium.googlecode.com/files/selenium-server-standalone-2.35.0.jar
