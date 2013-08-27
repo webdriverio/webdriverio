@@ -7,6 +7,7 @@
 * added more tests
 * removed selenium-server-standalonver jar from repository
 * implemented install script for downloading this jar into .bin folder
+* cleaned up git repository (got rid of big jar files in git history) - requires to re-checkout this repository
 
 ## v0.7.9 (2013-08-09)
 * Sauce Labs support
