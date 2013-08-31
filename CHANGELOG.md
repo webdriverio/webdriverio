@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.11 (2013-08-31)
+* includes PR #82 - Fixed a wrong name on a local variable reference
+* added CONTRIBUTING.md
+* rewrote some parts in README.md
+
 ## v0.7.10 (2013-08-27)
 * added support for selenium-server-standalonver > v2.31.0
 * improved command executions for click, waitFor and getLocation
