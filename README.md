@@ -1,19 +1,10 @@
 Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/christian-bromann/webdriverjs.png)](https://travis-ci.org/christian-bromann/webdriverjs)
 =====================================================
 
-A WebDriver module for nodejs. Either use the super easy help commands or use
-the base Webdriver wire protocol commands.
-
-It is written so its easy to add new protocol implementations and add helper
-commands so make testing easier. Each command resides as one file inside the
-node module folder which makes it easy to extend.
-
-The two main reasons for this projects are: 
-
-1) Ease of use - Writing tests with webdriver should be very easy
-
-2) Easy to extend - Adding helper functions, or more complicated sets and
-combinations of existing commands, should also be very easy.
+This library is a webdriver module for nodejs. It makes it possible to write
+super easy selenium tests in your favorite BDD or TDD test framework. Even
+Cucumber tests are supported. Take a look into the [example](https://github.com/camme/webdriverjs/tree/master/examples)
+directory for test samples.
 
 ## How to install it
 
@@ -23,27 +14,32 @@ Either download it from github or use npm:
 npm install webdriverjs
 ```
 
+To run tests on your local machine, you have to download a selenium standalone
+server which executes the selenium commands. You find the latest version
+[here](https://code.google.com/p/selenium/downloads/detail?name=selenium-server-standalone-2.35.0.jar).
+It is also possible to run the tests in the could (e.g. on BrowserStack
+or Sauce Labs). For more informations, see below.
+
 ## Example of webdriverjs
 
 Run selenium server first:  
 
 ```shell
-java -jar node_modules/.bin/selenium-server-standalone-2.35.0.jar
+java -jar path/to/your/selenium-server-standalone-2.35.0.jar
 ```
 
 Webdriverjs has just a few methods. Most of the methods you will use regurarly
 are the methods available from the client. To begin using Webdriverjs you just
-need to create a client. For testing you can use any nodejs test framework as
-well as any BDD/TDD assertion library.
+need to create a client.
 
 **example using [Mocha](http://visionmedia.github.com/mocha/) and [Chai](http://chaijs.com/)**
 
 ```js
+var webdriverjs = require('webdriverjs'),
+    client = {};
+
 describe('my webdriverjs tests', function(){
-
     this.timeout(99999999);
-    var client = {};
-
     before(function(){
             client = webdriverjs.remote(options);
             client.init();
@@ -103,16 +99,17 @@ Default: *true*
 
 ## [Sauce Labs](https://saucelabs.com/) support
 To run your tests via Sauce Labs, add the following attributes to your option
-object. If you have a public repository, never publish your Sauce Labs key!
-Export these informations as enviroment variables.
+object. If you are using Webdriverjs in a public repository, never publish your
+Sauce Labs key! Export these informations as enviroment variables.
 
 ```js
 host: 'ondemand.saucelabs.com',               // Sauce Labs remote host
 user: 'webdriverjs',                          // your username
 key:  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'  // your account key
+port: 80
 ```
 
-Find a Gist example [here](https://gist.github.com/christian-bromann/6358232)!
+Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.saucelabs.example.js)!
 
 ## [BrowserStack](http://www.browserstack.com/) support
 You can also run your tests with BrowserStack on a remote machine. To do that,
@@ -126,10 +123,11 @@ desiredCapabilities: {
     'browserstack.user' : '<username>',
     'browserstack.key': '<key>'
 },
-host: 'hub.browserstack.com'
+host: 'hub.browserstack.com',
+port: 80
 ```
 
-Find a Gist example [here](https://gist.github.com/christian-bromann/6357801)!
+Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.browserstack.example.js)!
 
 ## webdriverjs.endAll
 If you wish to end all sessions, you can call the endAll method:
