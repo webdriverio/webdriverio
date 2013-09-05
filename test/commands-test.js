@@ -7,6 +7,7 @@ var packageJson    = require('../package.json'),
     should         = chai.should(),
     expect         = chai.expect;
     fs             = require('fs'),
+    request        = require('request'),
     webdriverjs    = require('../index'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
     githubTitle    = 'GitHub · Build software better, together.',
@@ -20,7 +21,11 @@ var capabilities   = {
     platform: 'XP',
     tags: ['webdriverjs','api','test'],
     name: 'webdriverjs API test',
-    build: 'build-'+packageJson.version
+    build: 'build' + process.env.TRAVIS_BUILD_NUMBER,
+    username: process.env.SAUCE_USERNAME,
+    accessKey: process.env.SAUCE_ACCESS_KEY,
+    'record-video': false,
+    'record-screenshots': false
 };
 
 describe('webdriverjs API test', function(){
@@ -34,9 +39,7 @@ describe('webdriverjs API test', function(){
             desiredCapabilities:capabilities,
             logLevel: 'silent',
             host: 'ondemand.saucelabs.com',
-            port: 80,
-            user: process.env.SAUCE_USERNAME,
-            key: process.env.SAUCE_ACCESS_KEY
+            port: 80
         });
         client.init();
 
@@ -867,7 +870,29 @@ describe('webdriverjs API test', function(){
     });
 
     after(function(done) {
-        client.end(done);
+
+        // mark travis job as passed
+        var options = {
+            headers: { 'Content-Type': 'text/json' },
+            url: 'http://' + process.env.SAUCE_USERNAME + ':' + process.env.SAUCE_ACCESS_KEY + '@saucelabs.com/rest/v1/' + process.env.SAUCE_USERNAME + '/jobs/' + client.sessionId,
+            method: 'PUT',
+            body: JSON.stringify({
+                passed: true,
+                public: true
+            })
+        };
+
+        request(options, function(err) {
+            
+            if(err) {
+                console.log(err);
+                return;
+            }
+
+            client.end(done);
+
+        });
+
     });
 
 });

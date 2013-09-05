@@ -31,7 +31,8 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "chai": "1.x"
+    "chai": "1.x",
+    "request": "~2.27.0"
   },
   "optionalDependencies": {},
   "tags": [
