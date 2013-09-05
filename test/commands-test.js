@@ -1,13 +1,13 @@
 /* jshint -W024 */
 /* jshint expr:true */
 
-var chai           = require('chai'),
+var packageJson    = require('../package.json'),
+    chai           = require('chai'),
     assert         = chai.assert,
     should         = chai.should(),
     expect         = chai.expect;
     fs             = require('fs'),
     webdriverjs    = require('../index'),
-    startSelenium  = require('./startSelenium'),
     testpageURL    = 'http://webdriverjs.christian-bromann.com/',
     githubTitle    = 'GitHub · Build software better, together.',
     testpageTitle  = 'WebdriverJS Testpage',
@@ -15,11 +15,12 @@ var chai           = require('chai'),
 
 // test capabilities
 var capabilities   = {
-    browserName: 'phantomjs',
-    // version: '27',
-    // platform: 'XP',
-    // tags: ['webdriverjs','api','test'],
-    // name: 'webdriverjs API test'
+    browserName: 'chrome',
+    version: '27',
+    platform: 'XP',
+    tags: ['webdriverjs','api','test'],
+    name: 'webdriverjs API test',
+    build: 'build-'+packageJson.version
 };
 
 describe('webdriverjs API test', function(){
@@ -27,30 +28,27 @@ describe('webdriverjs API test', function(){
     var client = {};
 
     before(function(done){
-        // start selenium server if not running
-        startSelenium(function() {
 
-            // init client
-            client = webdriverjs.remote({
-                desiredCapabilities:capabilities,
-                logLevel: 'silent',
-                // host: 'ondemand.saucelabs.com',
-                // user: process.env.SAUCE_USERNAME,
-                // key: process.env.SAUCE_ACCESS_KEY
-            });
-            client.init();
-
-            // load source of testpage for getSource() test
-            fs.readFile('./test/index.php', function (err, html) {
-                if (err) {
-                    throw err;
-                }
-                testpageSource = html.toString();
-            });
-
-            done();
-
+        // init client
+        client = webdriverjs.remote({
+            desiredCapabilities:capabilities,
+            logLevel: 'silent',
+            host: 'ondemand.saucelabs.com',
+            port: 80,
+            user: process.env.SAUCE_USERNAME,
+            key: process.env.SAUCE_ACCESS_KEY
         });
+        client.init();
+
+        // load source of testpage for getSource() test
+        fs.readFile('./test/index.php', function (err, html) {
+            if (err) {
+                throw err;
+            }
+            testpageSource = html.toString();
+        });
+
+        done();
 
     });
 
