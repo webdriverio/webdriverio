@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.7.12 (2013-09-06)
+* improved `setValue` and `addValue` command
+* enables proper use of modifier keys
+* added tests using modifier keys
+* execute travis tests with Sauce Labs, added badge README.md 
+
 ## v0.7.11 (2013-08-31)
 * includes PR #82 - Fixed a wrong name on a local variable reference
 * added CONTRIBUTING.md
