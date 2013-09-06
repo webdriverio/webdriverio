@@ -1,4 +1,4 @@
-Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/christian-bromann/webdriverjs.png)](https://travis-ci.org/christian-bromann/webdriverjs)
+Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/christian-bromann/webdriverjs.png)](https://travis-ci.org/christian-bromann/webdriverjs) [![Selenium Test Status](https://saucelabs.com/buildstatus/webdriverjs)](https://saucelabs.com/u/webdriverjs)
 =====================================================
 
 This library is a webdriver module for nodejs. It makes it possible to write
