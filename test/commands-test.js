@@ -258,7 +258,7 @@ describe('webdriverjs API test', function(){
 
         });
 
-        describe.only('call command test', function() {
+        describe('call command test', function() {
 
            beforeEach(function(done) {
                client
@@ -902,7 +902,7 @@ describe('webdriverjs API test', function(){
         };
 
         request(options, function(err) {
-            
+
             if(err) {
                 console.log(err);
                 return;
