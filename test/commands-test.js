@@ -258,6 +258,25 @@ describe('webdriverjs API test', function(){
 
         });
 
+        describe.only('call command test', function() {
+
+           beforeEach(function(done) {
+               client
+                    .url(testpageURL)
+                    .click('.btn1')
+                    .call(done);
+           });
+
+           it('should work, not stall', function(done) {
+                client.isVisible('.btn1_clicked',function(err,result){
+                    expect(err).to.be.null;
+                    assert(result, '.btn1 was clicked');
+                })
+                .call(done);
+           });
+
+        });
+
         describe('click command test',function(done) {
 
             // TODO call URL in before function doesn't work, why?
