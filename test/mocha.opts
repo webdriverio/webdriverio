@@ -1,2 +1,2 @@
 --reporter spec
--t 60000
+-t 999999
