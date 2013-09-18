@@ -96,7 +96,7 @@ Create client as singleton instance for use in different files<br>
 Type: `Boolean`<br>
 Default: *true*
 
-## [Sauce Labs](https://saucelabs.com/) support
+## <img src="http://a0.twimg.com/profile_images/794342508/Logo_Square.png" width="48" /> [Sauce Labs](https://saucelabs.com/) support
 To run your tests via Sauce Labs, add the following attributes to your option
 object. If you are using Webdriverjs in a public repository, never publish your
 Sauce Labs key! Export these informations as enviroment variables.
@@ -110,7 +110,7 @@ port: 80
 
 Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.saucelabs.example.js)!
 
-## [BrowserStack](http://www.browserstack.com/) support
+## <img src="http://a0.twimg.com/profile_images/1440403042/logo-separate-big_normal.png" width="48" /> [BrowserStack](http://www.browserstack.com/) support
 You can also run your tests with BrowserStack on a remote machine.
 
 ```js
@@ -122,8 +122,8 @@ port: 80
 
 Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.browserstack.example.js)!
 
-## [TestingBot](https://testingbot.com/) support
-You can also run your tests with BrowserStack on a remote machine.
+## <img src="https://si0.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/) support
+You can also run your tests with TestingBot on a remote machine.
 
 ```js
 host: 'hub.testingbot.com', // TestingBot remote host
