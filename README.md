@@ -102,41 +102,33 @@ object. If you are using Webdriverjs in a public repository, never publish your
 Sauce Labs key! Export these informations as enviroment variables.
 
 ```js
-host: 'ondemand.saucelabs.com',               // Sauce Labs remote host
-user: 'webdriverjs',                          // your username
-key:  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',  // your account key
+host: 'ondemand.saucelabs.com', // Sauce Labs remote host
+user: '<username>',             // your username
+key:  '<access-key>',           // your access key
 port: 80
 ```
 
 Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.saucelabs.example.js)!
 
 ## [BrowserStack](http://www.browserstack.com/) support
-You can also run your tests with BrowserStack on a remote machine. To do that,
-put your username and BrowserStack key in your `desiredCapabilities` attribute
-and define BrowserStack as remote host.
+You can also run your tests with BrowserStack on a remote machine.
 
 ```js
-desiredCapabilities: {
-    'browser': 'firefox',
-    ...
-    'browserstack.user' : '<username>',
-    'browserstack.key': '<key>'
-},
-host: 'hub.browserstack.com',
+host: 'hub.browserstack.com', // Browserstack remote host
+user: '<username>',           // your username
+key:  '<access-key>',         // your access key
 port: 80
 ```
 
 Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.browserstack.example.js)!
 
 ## [TestingBot](https://testingbot.com/) support
-To run your tests via TestingBot, add the following attributes to your option
-object. If you are using Webdriverjs in a public repository, never publish your
-key and secret! Export these informations as enviroment variables.
+You can also run your tests with BrowserStack on a remote machine.
 
 ```js
-host: 'hub.testingbot.com',
-client_key: 'key',
-client_secret:  'secret',
+host: 'hub.testingbot.com', // TestingBot remote host
+user: '<client_key>',       // your client key
+key:  '<client_secret>',    // your client secret
 port: 80
 ```
 

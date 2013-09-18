@@ -1,17 +1,15 @@
 var webdriverjs = require('../index'),
     client = webdriverjs.remote({
+        desiredCapabilities: {
+            browserName: 'chrome',
+            version: '27',
+            platform: 'XP'
+        },
         host: 'hub.browserstack.com',
         port: 80,
+        user : process.env.BROWSERSTACK_USERNAME,
+        key: process.env.BROWSERSTACK_ACCESS_KEY,
         logLevel: 'silent',
-        desiredCapabilities: {
-            'browser': 'IE',
-            'browser_version': '7.0',
-            'os': 'Windows',
-            'os_version': 'XP',
-            'browserstack.debug': 'true',
-            'browserstack.user' : 'test1359',
-            'browserstack.key': 'rRz7rSR24gUy446CpJB9'
-        }
     }).init();
  
 client
