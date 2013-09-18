@@ -1,10 +1,9 @@
 var webdriverjs = require('../index'),
     client = webdriverjs.remote({
         desiredCapabilities: {
-            browserName: 'firefox',
-            version: '23',
-            platform: 'WINDOWS',
-            tags: ['examples'],
+            browserName: 'chrome',
+            version: '27',
+            platform: 'XP',
             name: 'This is an example test'
         },
         host: 'hub.testingbot.com',
@@ -13,7 +12,7 @@ var webdriverjs = require('../index'),
         key: process.env.TESTINGBOT_SECRET,
         logLevel: 'silent'
     }).init();
- 
+
 client
     .url('http://google.com')
     .setValue('*[name="q"]','webdriverjs')
