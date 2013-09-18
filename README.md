@@ -17,8 +17,7 @@ npm install webdriverjs
 To run tests on your local machine, you have to download a selenium standalone
 server which executes the selenium commands. You find the latest version
 [here](https://code.google.com/p/selenium/downloads/detail?name=selenium-server-standalone-2.35.0.jar).
-It is also possible to run the tests in the could (e.g. on BrowserStack
-or Sauce Labs). For more informations, see below.
+It is also possible to run the tests in the could (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
 
 ## Example of webdriverjs
 
@@ -105,7 +104,7 @@ Sauce Labs key! Export these informations as enviroment variables.
 ```js
 host: 'ondemand.saucelabs.com',               // Sauce Labs remote host
 user: 'webdriverjs',                          // your username
-key:  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'  // your account key
+key:  'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',  // your account key
 port: 80
 ```
 
@@ -128,6 +127,20 @@ port: 80
 ```
 
 Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.browserstack.example.js)!
+
+## [TestingBot](https://testingbot.com/) support
+To run your tests via TestingBot, add the following attributes to your option
+object. If you are using Webdriverjs in a public repository, never publish your
+key and secret! Export these informations as enviroment variables.
+
+```js
+host: 'hub.testingbot.com',
+client_key: 'key',
+client_secret:  'secret',
+port: 80
+```
+
+Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.testingbot.example.js)!
 
 ## webdriverjs.endAll
 If you wish to end all sessions, you can call the endAll method:

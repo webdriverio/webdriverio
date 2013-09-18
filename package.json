@@ -57,6 +57,7 @@
     "vows",
     "jasmine",
     "assert",
-    "cucumber"
+    "cucumber",
+    "testingbot"
   ]
 }
