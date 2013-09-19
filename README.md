@@ -80,16 +80,24 @@ Type: `Object`<br>
 
 ```js
 browserName: 'chrome',  // options: firefox, chrome, opera, safari
-version: '27.0',         // browser version
-platform: 'XP',          // OS platform
-tags: ['tag1','tag2'],   // specify some tags (e.g. if you use Sauce Labs)
-name: 'my test'          // set name for test (e.g. if you use Sauce Labs)
+version: '27.0',        // browser version
+platform: 'XP',         // OS platform
+tags: ['tag1','tag2'],  // specify some tags (e.g. if you use Sauce Labs)
+name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 ```
 
 ### logLevel
 Type: `String`<br>
 Default: *verbose*<br>
 Options: *verbose* | *silent* | *command* | *data* | *result*
+
+### screenshotPath
+Type: `String`<br>
+Default: *empty string*<br>
+Options:<br>
+*empty string* - if no path is given save screenshot in current path (where the shell command gets executed)<br>
+*absolute path* - save screenshot at given absolute path<br>
+*relative path* - save screenshot relative to the project root path (which contains ./node_modules/webdriverjs)
 
 ### singleton
 Create client as singleton instance for use in different files<br>
