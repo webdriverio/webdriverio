@@ -21,7 +21,7 @@ var capabilities   = {
     platform: 'XP',
     tags: ['webdriverjs','api','test'],
     name: 'webdriverjs API test',
-    build: 'build' + process.env.TRAVIS_BUILD_NUMBER,
+    build: process.env.TRAVIS_BUILD_NUMBER ? 'build' + process.env.TRAVIS_BUILD_NUMBER : new Date().getTime(),
     username: process.env.SAUCE_USERNAME,
     accessKey: process.env.SAUCE_ACCESS_KEY,
     'record-video': false,
@@ -663,7 +663,6 @@ describe('webdriverjs API test', function(){
             });
         });
 
-
         it('waitfor works when chained and wait the specified amount of time if the elemtn doesnt exist', function(done) {
 
             var startTime = 10000000000000;
@@ -874,7 +873,7 @@ describe('webdriverjs API test', function(){
         // mark travis job as passed
         var options = {
             headers: { 'Content-Type': 'text/json' },
-            url: 'http://' + process.env.SAUCE_USERNAME + ':' + process.env.SAUCE_ACCESS_KEY + '@saucelabs.com/rest/v1/' + process.env.SAUCE_USERNAME + '/jobs/' + client.sessionId,
+            url: 'http://' + process.env.SAUCE_USERNAME + ':' + process.env.SAUCE_ACCESS_KEY + '@saucelabs.com/rest/v1/' + process.env.SAUCE_USERNAME + '/jobs/' + client.requestHandler.sessionID,
             method: 'PUT',
             body: JSON.stringify({
                 passed: true,
