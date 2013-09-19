@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.13 (2013-09-19)
+* simplified remote connection establishment
+* added documentation for using webdriverjs with TestingBot
+* command `getAttribute` returns unfiltered value from browser-driver
+
 ## v0.7.12 (2013-09-06)
 * improved `setValue` and `addValue` command
 * enables proper use of modifier keys
