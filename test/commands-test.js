@@ -65,7 +65,7 @@ describe('webdriverjs API test', function(){
             it('getAttribute: style of elem .nested should be "text-transform:uppercase;"', function(done){
                 client.getAttribute('.nested', 'style', function(err,result) {
                     expect(err).to.be.null;
-                    assert.strictEqual(result,'text-transform:uppercase;');
+                    assert.strictEqual(result,'text-transform: uppercase;');
                 }).call(done);
             });
 
