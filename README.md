@@ -96,7 +96,7 @@ Saves a screenshot if selenium driver crashes
 Type: `String`|`null`<br>
 Default: `null`<br>
 Options:<br>
-`null` - doesn't save any error screenshot at all
+`null` - doesn't save any error screenshot at all<br>
 *empty string* - if no path is given save screenshot in current path (where the shell command gets executed)<br>
 *absolute path* - save screenshot at given absolute path<br>
 *relative path* - save screenshot relative to the project root path (which contains ./node_modules/webdriverjs)
