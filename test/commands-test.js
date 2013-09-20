@@ -978,7 +978,7 @@ describe('webdriverjs API test', function(){
                             });
                         });
                     })
-                    .buttonClick(function(err) {
+                    .buttonClick('.btn1',function(err) {
                         expect(err).to.be.null;
                         result += 'f';
                     })
