@@ -207,7 +207,7 @@ can assert values or have more logic when the callback is called.
 - **call(callback)**<br>call given function in async order of current command queue
 - **clearElement(`String` css selector, `Function` callback)**<br>clear an element of text
 - **click(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
-- **close(`Function` callback)**<br>Close the current window
+- **close(`String` tab ID to focus on, `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
 - **deleteCookie(`String` name, `Function` callback)**<br>Delete a cookie for current page.
 - **doubleClick(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
 - **dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback)**<br>Drags an item to a destination
@@ -215,7 +215,7 @@ can assert values or have more logic when the callback is called.
 - **endAll(`Function` callback)**<br>Ends all sessions (closes the browser)
 - **execute(`String` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 - **getAttribute(`String` css selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the css selector and attribute name
-- **getCookie(name, `Function` callback)**<br>Gets the cookie for current page.
+- **getCookie(`String` name, `Function` callback)**<br>Gets the cookie for current page.
 - **getCssProperty(`String` css selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a css selector
 - **getCurrentTabId(`Function` callback)**<br>Retrieve the current window handle.
 - **getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
