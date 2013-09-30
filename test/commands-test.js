@@ -203,6 +203,21 @@ describe('webdriverjs API test', function(){
                     expect(res.value).to.equal('WebdriverJS Testpage');
                 }).call(done);
             });
+
+            it('should provide an executeAsync method', function(done) {
+                client
+                    .timeouts('script', 2000)
+                    .executeAsync(function() {
+                        var cb = arguments[arguments.length - 1];
+                        setTimeout(function() {
+                            cb(document.title + '-async');
+                        }, 1000);
+                    }, function(err, res) {
+                        expect(err).to.be.null;
+                        expect(res.value).to.equal('WebdriverJS Testpage-async');
+                    })
+                    .call(done)
+            })
         })
 
         describe('test cookie functionality',function() {
