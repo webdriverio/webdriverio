@@ -217,11 +217,13 @@ can assert values or have more logic when the callback is called.
 - **getAttribute(`String` css selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the css selector and attribute name
 - **getCookie(name, `Function` callback)**<br>Gets the cookie for current page.
 - **getCssProperty(`String` css selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a css selector
+- **getCurrentTabId(`Function` callback)**<br>Retrieve the current window handle.
 - **getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
 - **getElementSize(`String` css selector, `Function` callback)**<br>Gets the width and height for an object based on the css selector
 - **getLocation(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector
 - **getLocationInView(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector in the view
 - **getSource(`Function` callback)**<br>Gets source code of the page
+- **getTabIds(`Function` callback)**<br>Retrieve the list of all window handles available to the session.
 - **getTagName(`String` css selector, `Function` callback)**<br>Gets the tag name of a dom obj found by the css selector
 - **getText(`String` css selector, `Function` callback)**<br>Gets the text content from a dom obj found by the css selector
 - **getTitle(`Function` callback)**<br>Gets the title of the page
@@ -235,6 +237,7 @@ can assert values or have more logic when the callback is called.
 - **setCookie(`Object` cookie, `Function` callback)**<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
 - **setValue(`String` css selector, `String|String[]` value, `Function` callback)**<br>Sets a value to an object found by a css selector (clears value before). You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **submitForm(`String` css selector, `Function` callback)**<br>Submits a form found by the css selector
+- **switchTab(`String` tab ID)**<br>switch focus to a particular tab/window
 - **waitFor(`String` css selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
 # List of current implemented wire protocol bindings
