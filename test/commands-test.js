@@ -176,6 +176,50 @@ describe('webdriverjs API test', function(){
 
         });
 
+        describe('script execution', function() {
+            before(function(done) {
+                client.url(testpageURL).call(done);
+            });
+
+            it('should be able to execute some js', function(done) {
+                client.execute('return document.title', [], function(err, res) {
+                    expect(err).to.be.null;
+                    expect(res.value).to.equal('WebdriverJS Testpage');
+                }).call(done);
+            });
+
+            it('should be forgiving on giving an `args` parameter', function(done) {
+                client.execute('return document.title', function(err, res) {
+                    expect(err).to.be.null;
+                    expect(res.value).to.equal('WebdriverJS Testpage');
+                }).call(done);
+            });
+
+            it('should be able to execute a pure function', function(done) {
+                client.execute(function() {
+                    return document.title
+                }, function(err, res) {
+                    expect(err).to.be.null;
+                    expect(res.value).to.equal('WebdriverJS Testpage');
+                }).call(done);
+            });
+
+            it('should provide an executeAsync method', function(done) {
+                client
+                    .timeouts('script', 2000)
+                    .executeAsync(function() {
+                        var cb = arguments[arguments.length - 1];
+                        setTimeout(function() {
+                            cb(document.title + '-async');
+                        }, 1000);
+                    }, function(err, res) {
+                        expect(err).to.be.null;
+                        expect(res.value).to.equal('WebdriverJS Testpage-async');
+                    })
+                    .call(done)
+            })
+        })
+
         describe('test cookie functionality',function() {
 
             before(function(done) {
