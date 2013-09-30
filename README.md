@@ -207,6 +207,7 @@ can assert values or have more logic when the callback is called.
 - **call(callback)**<br>call given function in async order of current command queue
 - **clearElement(`String` css selector, `Function` callback)**<br>clear an element of text
 - **click(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
+- **close(`Function` callback)**<br>Close the current window
 - **deleteCookie(`String` name, `Function` callback)**<br>Delete a cookie for current page.
 - **doubleClick(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
 - **dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback)**<br>Drags an item to a destination
