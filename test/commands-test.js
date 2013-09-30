@@ -176,6 +176,19 @@ describe('webdriverjs API test', function(){
 
         });
 
+        describe('script execution', function() {
+            before(function(done) {
+                client.url(testpageURL).call(done);
+            });
+
+            it('should be able to execute some js', function(done) {
+                client.execute('return document.title', [], function(err, res) {
+                    expect(err).to.be.null;
+                    expect(res.value).to.equal('WebdriverJS Testpage');
+                }).call(done);
+            })
+        })
+
         describe('test cookie functionality',function() {
 
             before(function(done) {
