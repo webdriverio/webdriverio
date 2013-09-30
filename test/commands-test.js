@@ -188,10 +188,17 @@ describe('webdriverjs API test', function(){
                 }).call(done);
             });
 
+            it('should be forgiving on giving an `args` parameter', function(done) {
+                client.execute('return document.title', function(err, res) {
+                    expect(err).to.be.null;
+                    expect(res.value).to.equal('WebdriverJS Testpage');
+                }).call(done);
+            });
+
             it('should be able to execute a pure function', function(done) {
                 client.execute(function() {
                     return document.title
-                }, [], function(err, res) {
+                }, function(err, res) {
                     expect(err).to.be.null;
                     expect(res.value).to.equal('WebdriverJS Testpage');
                 }).call(done);
