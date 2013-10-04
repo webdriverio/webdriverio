@@ -72,7 +72,7 @@
 <div class="btn4_clicked">Button #4 clicked</div>
 <div class="btn4_dblclicked">Button #4 dblclicked</div>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="./jquery.min.js"></script>
 <script type="text/javascript">
     $('.btn1').click(function() {
         $('.btn1_clicked').css('display','block');
