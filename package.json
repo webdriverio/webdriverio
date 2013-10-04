@@ -26,10 +26,12 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "node test/runner.js",
     "prepublish": "npm prune"
   },
-  "dependencies": {},
+  "dependencies": {
+    "deepmerge": "~0.2.7"
+  },
   "devDependencies": {
     "chai": "1.x",
     "request": "~2.27.0"
