@@ -707,20 +707,35 @@ describe('webdriverjs API test', function(){
             });
         });
 
-        it('waitfor works when chained and wait the specified amount of time if the elemtn doesnt exist', function(done) {
+        describe('waitFor command should wait until an element is available on page or the timeout expires',function() {
 
-            var startTime = 10000000000000;
-            client
-                .url(testpageURL)
-                .call(function() {
-                    startTime = Date.now();
-                })
-                .waitFor('#new-element', 3000) // this element doesnt exist
-                .call(function() {
-                    var delta = Date.now() - startTime;
-                    delta.should.be.within(2999,10000);
-                    done();
-                });
+            it('waitfor works when chained and wait the specified amount of time if the element doesn\'t exist', function(done) {
+
+                var startTime = null;
+                client
+                    .url(testpageURL)
+                    .call(function() {
+                        startTime = Date.now();
+                    })
+                    .waitFor('#new-element', 3000) // this element doesnt exist
+                    .call(function() {
+                        var delta = Date.now() - startTime;
+                        delta.should.be.within(2999,5000);
+                        done();
+                    });
+
+            });
+
+            it('should wait until an element appears after 3 seconds',function(done) {
+
+                client
+                    .url(testpageURL)
+                    .waitFor('.lateElem', 5000, function(err,res) {
+                        console.log(err,res);
+                    })
+                    .call(done);
+
+            });
 
         });
 

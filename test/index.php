@@ -119,6 +119,11 @@
         var data=e.dataTransfer.getData("Text");
         e.target.appendChild(document.getElementById(data));
     }
+
+    setTimeout(function() {
+        var newElement = $('<div />').addClass('lateElem').html('Sorry, I\'m late!');
+        $('body').append(newElement);
+    },3000);
 </script>
 <hr>
 <input type="search" class="searchinput" name="searchinput">
