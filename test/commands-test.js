@@ -184,23 +184,23 @@ describe('webdriverjs API test', function(){
             it('should be able to execute some js', function(done) {
                 client.execute('return document.title', [], function(err, res) {
                     expect(err).to.be.null;
-                    expect(res.value).to.equal('WebdriverJS Testpage');
+                    expect(res.value).to.equal(testpageTitle);
                 }).call(done);
             });
 
             it('should be forgiving on giving an `args` parameter', function(done) {
                 client.execute('return document.title', function(err, res) {
                     expect(err).to.be.null;
-                    expect(res.value).to.equal('WebdriverJS Testpage');
+                    expect(res.value).to.equal(testpageTitle);
                 }).call(done);
             });
 
             it('should be able to execute a pure function', function(done) {
                 client.execute(function() {
-                    return document.title
+                    return document.title;
                 }, function(err, res) {
                     expect(err).to.be.null;
-                    expect(res.value).to.equal('WebdriverJS Testpage');
+                    expect(res.value).to.equal(testpageTitle);
                 }).call(done);
             });
 
@@ -214,11 +214,11 @@ describe('webdriverjs API test', function(){
                         }, 1000);
                     }, function(err, res) {
                         expect(err).to.be.null;
-                        expect(res.value).to.equal('WebdriverJS Testpage-async');
+                        expect(res.value).to.equal(testpageTitle + '-async');
                     })
-                    .call(done)
-            })
-        })
+                    .call(done);
+            });
+        });
 
         describe('test cookie functionality',function() {
 
