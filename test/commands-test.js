@@ -1083,6 +1083,31 @@ describe('webdriverjs API test', function(){
                     .call(done);
             });
 
+            it('should close remaining tabs without passing tab handle, tab focus should change automatically', function(done) {
+                client
+                    .pause(1)
+                    .getTabIds(function(err,res) {
+                        expect(err).to.be.null;
+                        res.should.have.length(3);
+                    })
+                    // open tabs: 'f1-2', 'f1-6', 'f1-8'
+                    .close(function(err,res) {
+                        expect(err).to.be.null;
+                        res.openTabs.should.have.length(2);
+                    })
+                    // open tabs: 'f1-2', 'f1-6'
+                    .close(function(err,res) {
+                        expect(err).to.be.null;
+                        res.openTabs.should.have.length(1);
+                    })
+                    // open tabs: f1-6'
+                    .close(function(err,res) {
+                        expect(err).to.be.null;
+                        res.openTabs.should.have.length(0);
+                    })
+                    .call(done);
+            });
+
         });
 
     });
