@@ -1062,6 +1062,27 @@ describe('webdriverjs API test', function(){
                     .call(done);
             });
 
+            it('should open new windows and should switch tab focus automatically', function(done) {
+
+                client
+                    .url(testpageURL)
+                    .newWindow('http://google.com','_blank',function(err,res) {
+                        expect(err).to.be.null;
+                    })
+                    .getTitle(function(err,title) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(title,'Google');
+                    })
+                    .newWindow(testpageURL,'_blank',function(err) {
+                        expect(err).to.be.null;
+                    })
+                    .getTitle(function(err,title) {
+                        expect(err).to.be.null;
+                        assert.strictEqual(title,testpageTitle);
+                    })
+                    .call(done);
+            });
+
         });
 
     });
