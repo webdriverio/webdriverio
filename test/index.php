@@ -50,6 +50,7 @@
 <div class="box purple" id="purplebox"></div>
 
 <a href="https://github.com" id="githubRepo" class="clearfix">GitHub Repo</a>
+<a href="http://localhost/github/webdriverjs/test/" target="_blank" id="newWindow">open new tab</a>
 
 <div class="nested" style="text-transform: uppercase">
     <h2>nested elements</h2>
