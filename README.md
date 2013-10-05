@@ -271,6 +271,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [executeAsync](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute_async)
 - [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
 - [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
+- [implicit_wait](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts/implicit_wait)
 - [init](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/)
 - [keys](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/keys)
 - [moveto](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto)
