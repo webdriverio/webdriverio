@@ -1,32 +1,26 @@
-/* jshint -W024 */
-/* jshint expr:true */
+describe('Promises', function() {
+it('should execute all commands in right order (asynchronous execution test)', function(done) {
 
-module.exports = function(testpageURL,testpageTitle,assert,should,expect){
-
-    it('should execute all commands in right order (asynchronous execution test)', function(done) {
-
-        var result = '',
-            client = this.client;
+        var result = '';
 
         client
-            .url(testpageURL)
             .click('.btn1', function(err) {
-                expect(err).to.be.null;
+                assert.equal(null, err);
                 result += '1';
             })
             .isVisible('.btn1', function(err) {
-                expect(err).to.be.null;
+                assert.equal(null, err);
                 result += '2';
             })
             .call(function() {
                 result += '3';
 
                 client.click('.btn1',function(err) {
-                    expect(err).to.be.null;
+                    assert.equal(null, err);
                     result += '4';
 
                     client.isVisible('.btn1', function(err) {
-                        expect(err).to.be.null;
+                        assert.equal(null, err);
                         result += '5';
                     })
                     .call(function() {
@@ -36,16 +30,20 @@ module.exports = function(testpageURL,testpageTitle,assert,should,expect){
                             result += '7';
 
                             client.doubleClick('.btn1', function(err) {
-                                expect(err).to.be.null;
+                                assert.equal(null, err);
                                 result += '8';
 
                                 client.call(function() {
                                     result += '9';
 
                                     client.isVisible('.btn1', function(err) {
-                                        expect(err).to.be.null;
+                                        assert.equal(null, err);
                                         result += '0';
 
+                                        // this can't work
+                                        // there's no way the chain
+                                        // can now when the setTimeout
+                                        // will be finished
                                         setTimeout(function() {
                                             client.call(function() {
                                                 result += 'a';
@@ -55,7 +53,7 @@ module.exports = function(testpageURL,testpageTitle,assert,should,expect){
                                 });
                             })
                             .click('.btn1', function(err) {
-                                expect(err).to.be.null;
+                                assert.equal(null, err);
                                 result += 'b';
                             });
                         });
@@ -67,21 +65,20 @@ module.exports = function(testpageURL,testpageTitle,assert,should,expect){
                         result += 'd';
 
                         client.isVisible('.btn1', function(err) {
-                            expect(err).to.be.null;
+                            assert.equal(null, err);
                             result += 'e';
                         });
                     });
                 })
                 .buttonClick('.btn1',function(err) {
-                    expect(err).to.be.null;
+                    assert.equal(null, err);
                     result += 'f';
                 })
                 .call(function() {
-                    assert(result,'1234567890abcdef');
+                    assert.equal(result,'1234567890abcdef');
                     done();
                 });
             });
 
     });
-
-};
+})

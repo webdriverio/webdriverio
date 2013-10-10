@@ -14,10 +14,19 @@ Either download it from github or use npm:
 npm install webdriverjs
 ```
 
+## Testing
+
+Easy:
+```sh
+npm install -g selenium-standalone
+start-selenium
+npm test
+```
+
 To run tests on your local machine, you have to download a selenium standalone
 server which executes the selenium commands. You find the latest version
 [here](https://code.google.com/p/selenium/downloads/detail?name=selenium-server-standalone-2.35.0.jar).
-It is also possible to run the tests in the could (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
+It is also possible to run the tests in the cloud (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
 
 ## Example of webdriverjs
 
@@ -48,16 +57,16 @@ describe('my webdriverjs tests', function(){
         client
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
-                expect(err).to.be.null;
+                assert.equal(null, err)
                 assert.strictEqual(result.height , 30);
                 assert.strictEqual(result.width, 94);
             })
             .getTitle(function(err, title) {
-                expect(err).to.be.null;
+                assert.equal(null, err)
                 assert.strictEqual(title,'GitHub · Build software better, together.');
             })
             .getElementCssProperty('class name','subheading', 'color', function(err, result){
-                expect(err).to.be.null;
+                assert.equal(null, err)
                 assert.strictEqual(result, 'rgba(136, 136, 136, 1)');
             })
             .call(done);
@@ -190,7 +199,7 @@ client
     .init()
     .url('http://www.github.com')
     .getUrlAndTitle(function(err,result){
-        expect(err).to.be.null;
+        assert.equal(null, err)
         assert.strictEqual(result.url,'https://github.com/');
         assert.strictEqual(result.title,'GitHub · Build software better, together.');
     })
