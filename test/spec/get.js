@@ -5,7 +5,7 @@ describe('get commands should return the evaluated value', function() {
         // load source of testpage for getSource() test
         var path = require('path');
         var fs = require('fs');
-        fs.readFile(path.join(__dirname, '..', 'site', 'index.php'), function (err, html) {
+        fs.readFile(path.join(__dirname, '..', 'site', 'index.html'), function (err, html) {
             if (err) {
                 throw err;
             }
