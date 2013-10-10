@@ -1,0 +1,3 @@
+test/setup.js test/spec/*.js test/teardown.js
+--reporter spec
+--require test/bootstrap.js

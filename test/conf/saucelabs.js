@@ -1,4 +1,7 @@
 module.exports = {
+    testPage: {
+        url: 'http://webdriverjs.christian-bromann.com'
+    },
     host: 'ondemand.saucelabs.com',
     port: 80,
     desiredCapabilities : {
