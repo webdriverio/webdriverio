@@ -4,7 +4,7 @@ describe('addValue', function() {
 
     describe('simple usage', function() {
         it('can add values to an input', function(done) {
-            this.browser
+            this.client
                 .pause(1) // We should not have to pause!
                 .addValue(input, '0', helper.noError)
                 .addValue(input, '1', helper.noError)
@@ -17,7 +17,7 @@ describe('addValue', function() {
 
     describe('unicode key controllers', function () {
         it('navigates and deletes inside inputs', function(done) {
-            this.browser
+            this.client
                 .pause(1) // We should not have to pause!
                 .addValue(input, '012', helper.noError)
                 .addValue(input, 'Left arrow', helper.noError)
@@ -38,7 +38,7 @@ describe('addValue', function() {
         });
 
         it('understand complex characters and key modifiers', function(done) {
-            this.browser
+            this.client
                 .pause(1)
                 .addValue(input, [
                     'Shift', '1', 'NULL',           // !
@@ -52,7 +52,7 @@ describe('addValue', function() {
         });
 
         it('can use the numpad', function(done) {
-            this.browser
+            this.client
                 .pause(1)
                 .addValue(input, [
                     'Numpad 0', 'Numpad 1', 'Numpad 2', 'Numpad 3',
@@ -67,6 +67,6 @@ describe('addValue', function() {
     after(clean);
 
     function clean(done) {
-        this.browser.clearElement(input, done);
+        this.client.clearElement(input, done);
     }
 });
