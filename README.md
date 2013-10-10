@@ -18,8 +18,9 @@ npm install webdriverjs
 
 Easy:
 ```sh
-npm install -g selenium-standalone
+npm install -g selenium-standalone http-server
 start-selenium
+cd test && http-server
 npm test
 ```
 
