@@ -14,9 +14,8 @@ Either download it from github or use npm:
 npm install webdriverjs
 ```
 
-## Testing
+## Local testing
 
-Easy:
 ```sh
 npm install -g selenium-standalone http-server
 start-selenium
@@ -24,9 +23,6 @@ cd test && http-server
 npm test
 ```
 
-To run tests on your local machine, you have to download a selenium standalone
-server which executes the selenium commands. You find the latest version
-[here](https://code.google.com/p/selenium/downloads/detail?name=selenium-server-standalone-2.35.0.jar).
 It is also possible to run the tests in the cloud (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
 
 ## Example of webdriverjs
