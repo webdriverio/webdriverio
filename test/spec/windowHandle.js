@@ -1,12 +1,13 @@
 describe('should work with window commands proberly', function() {
+    before(h.setup);
 
     var tabs = null;
 
     it('should open two tabs', function(done) {
 
-        client
+        this.client
             .url(conf.testPage.url)
-            .click('#newWindow', helper.noError)
+            .click('#newWindow', h.noError)
             .getTabIds(function(err,res) {
                 assert.equal(null, err);
                 assert.equal(2, res.length);
@@ -16,7 +17,7 @@ describe('should work with window commands proberly', function() {
     });
 
     it('should return title ("Google") of the current tab', function(done) {
-        client
+        this.client
             .switchTab(tabs[1])
             .getTitle(function(err,title) {
                 assert.equal(null, err)
@@ -30,7 +31,7 @@ describe('should work with window commands proberly', function() {
     });
 
     it('should return title of testpage after switching tab', function(done) {
-        client
+        this.client
             .switchTab(tabs[0], function(err,res) {
                 assert.equal(null, err)
             })
@@ -47,7 +48,7 @@ describe('should work with window commands proberly', function() {
 
 
     it('should change the tab after closing one by passing a tab id to the command', function(done) {
-        client
+        this.client
             .pause(1) // problem with command chain here
             .getTabIds(function(err,res) {
                 assert.equal(null, err);
@@ -73,7 +74,7 @@ describe('should work with window commands proberly', function() {
 
     it.skip('should open new windows and should switch tab focus automatically', function(done) {
 
-        client
+        this.client
             .url(conf.testPage.url)
             .newWindow(conf.testPage.url2,'two',function(err,res) {
                 assert.equal(null, err)
@@ -93,7 +94,7 @@ describe('should work with window commands proberly', function() {
     });
 
     it.skip('should close remaining tabs without passing tab handle, tab focus should change automatically', function(done) {
-        client
+        this.client
             .pause(1)
             .getTabIds(function(err,res) {
                 assert.equal(null, err);

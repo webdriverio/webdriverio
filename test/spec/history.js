@@ -1,6 +1,8 @@
 describe('test ability to go back and forward in browser history', function() {
+    before(h.setup);
+
     it('should be able to go backward in history', function(done){
-        client
+        this.client
             .getTitle(function(err,title) {
                 assert.equal(null, err)
                 assert.strictEqual(title,conf.testPage.title);
@@ -19,7 +21,7 @@ describe('test ability to go back and forward in browser history', function() {
     });
 
     it('should be able to go forward in history', function(done){
-        client
+        this.client
             .forward()
             .getTitle(function(err,title) {
                 assert.equal(null, err)

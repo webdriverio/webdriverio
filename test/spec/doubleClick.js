@@ -1,7 +1,8 @@
 describe('doubleClick command test',function(done) {
+    before(h.setup);
 
     it('text should be visible after doubleClick on .btn1', function(done){
-        client
+        this.client
             .isVisible('.btn1',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);
@@ -19,7 +20,7 @@ describe('doubleClick command test',function(done) {
 
 
     it('text should NOT be visible after doubleClick on .btn2 because button is disabled', function(done){
-        client
+        this.client
             .isVisible('.btn2',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);
@@ -37,7 +38,7 @@ describe('doubleClick command test',function(done) {
 
 
     it('text should not be visible after doubleClick on .btn3 because button is behind overlay', function(done){
-        client
+        this.client
             .isVisible('.btn3',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);
@@ -55,7 +56,7 @@ describe('doubleClick command test',function(done) {
 
 
     it('text should be visible after doubleClicking on on .btn4 1px/1px width/height', function(done){
-        client
+        this.client
             .isVisible('.btn4',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);

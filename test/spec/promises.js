@@ -2,8 +2,9 @@ describe('Promises', function() {
 it('should execute all commands in right order (asynchronous execution test)', function(done) {
 
         var result = '';
+        var client = this.client;
 
-        client
+        this.client
             .click('.btn1', function(err) {
                 assert.equal(null, err);
                 result += '1';
