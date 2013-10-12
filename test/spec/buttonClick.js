@@ -1,7 +1,8 @@
 describe('buttonClick command test',function() {
+    before(h.setup);
 
     it('text should be visible after click on .btn1', function(done){
-        client
+        this.client
             .pause(1)
             .isVisible('.btn1',function(err,result) {
                 assert.equal(null, err);
@@ -19,7 +20,7 @@ describe('buttonClick command test',function() {
     });
 
     it('text should NOT be visible after click on .btn2 because button is disabled', function(done){
-        client
+        this.client
             .isVisible('.btn2',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);
@@ -37,7 +38,7 @@ describe('buttonClick command test',function() {
 
 
     it('text should not be visible after click on .btn3 because button is behind overlay', function(done){
-        client
+        this.client
             .isVisible('.btn3',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);
@@ -55,7 +56,7 @@ describe('buttonClick command test',function() {
 
 
     it('text should be visible after clicking ion .btn4 1px/1px width/height', function(done){
-        client
+        this.client
             .isVisible('.btn4',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);

@@ -1,7 +1,8 @@
 describe('script execution', function() {
+    before(h.setup);
 
     it('should be able to execute some js', function(done) {
-        client
+        this.client
             .execute('return document.title', [], function(err, res) {
                 assert.equal(null, err)
                 assert.equal(conf.testPage.title, res.value);
@@ -10,7 +11,7 @@ describe('script execution', function() {
     });
 
     it('should be forgiving on giving an `args` parameter', function(done) {
-        client
+        this.client
             .execute('return document.title', function(err, res) {
                 assert.equal(null, err)
                 assert.equal(conf.testPage.title, res.value);
@@ -19,7 +20,7 @@ describe('script execution', function() {
     });
 
     it('should be able to execute a pure function', function(done) {
-        client
+        this.client
             .execute(function() {
                 return document.title;
             }, function(err, res) {
@@ -30,7 +31,7 @@ describe('script execution', function() {
     });
 
     it('should provide an executeAsync method', function(done) {
-        client
+        this.client
             .timeouts('script', 2000)
             .executeAsync(function() {
                 var cb = arguments[arguments.length - 1];

@@ -1,7 +1,8 @@
 describe.skip('drag&drop command test', function() {
+    before(h.setup);
 
     it('should drag and drop the overlay without an error', function(done) {
-        client
+        this.client
             .dragAndDrop('#overlay','.red',function(err,result) {
                 assert.equal(null, err);
                 assert.equal(0, result.status);
@@ -10,7 +11,7 @@ describe.skip('drag&drop command test', function() {
     });
 
     it('should be able to click on .btn3 because the overlay is gone now', function(done) {
-        client
+        this.client
             .isVisible('.btn3',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);

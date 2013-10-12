@@ -1,9 +1,10 @@
 describe('waitFor command should wait until an element is available on page or the timeout expires',function() {
+    before(h.setup);
 
     it('waitfor works when chained and wait the specified amount of time if the element doesn\'t exist', function(done) {
 
         var startTime = null;
-        client
+        this.client
             .call(function() {
                 startTime = Date.now();
             })
@@ -17,7 +18,7 @@ describe('waitFor command should wait until an element is available on page or t
     });
 
     it('should wait until an element appears after 3 seconds',function(done) {
-        client.waitFor('.lateElem', 5000, done);
+        this.client.waitFor('.lateElem', 5000, done);
     });
 
 });

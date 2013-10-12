@@ -2,10 +2,6 @@
 
     describe('test cookie functionality',function() {
 
-        before(function(done) {
-            client.url(testpageURL).call(done);
-        });
-
         it('should set a cookie and read its content afterwards', function(done){
             client
                 .setCookie({name: 'test',value: 'cookie saved!'})
