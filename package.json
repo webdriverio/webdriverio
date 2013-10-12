@@ -1,12 +1,13 @@
 {
   "name": "webdriverjs",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
-  "version": "0.7.14",
+  "version": "0.8.0",
   "homepage": "https://github.com/camme/webdriverjs",
   "author": "camilo tapia <camilo.tapia@gmail.com>",
   "contributors": [
     "Dan Jenkins <dan.jenkins@holidayextras.com>",
-    "Christian Bromann <mail@christian-bromann.com>"
+    "Christian Bromann <mail@christian-bromann.com>",
+    "Vincent Voyer <vincent@zeroload.net>"
   ],
   "repository": {
     "type": "git",
@@ -21,7 +22,7 @@
       "url": "https://github.com/camme/webdriverjs/blob/master/LICENSE-MIT"
     }
   ],
-  "main": "./index",
+  "main": "./index.js",
   "engines": {
     "node": ">= 0.8.0"
   },
@@ -29,10 +30,10 @@
     "test": "mocha",
     "prepublish": "npm prune"
   },
-  "dependencies": {},
   "devDependencies": {
-    "chai": "1.x",
-    "request": "~2.27.0"
+    "request": "~2.27.0",
+    "deepmerge": "~0.2.7",
+    "mocha": "~1.13.0"
   },
   "optionalDependencies": {},
   "tags": [
@@ -59,5 +60,6 @@
     "assert",
     "cucumber",
     "testingbot"
-  ]
+  ],
+  "dependencies": {}
 }

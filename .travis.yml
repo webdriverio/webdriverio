@@ -1,8 +1,6 @@
 language: node_js
 node_js:
-- '0.8'
-before_script:
-- npm install -g mocha
+- '0.10'
 env:
   global:
   - secure: RRh5YMC/bl6LrUTW55SKsyrltmde7rThOclWLIwSeApTGcC7DTzKePsqPBop0S9mAhWXPztoV6xKWyp1yTJ1Ucwo4B7Y+q7ehNzk/+UYyibuUxKCq6er7YjcNZmGmNjvysnjBbM1BEWkAQITQeHJ+8WOMUMGhvONImlv/CgIJ34=

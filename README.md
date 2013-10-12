@@ -9,19 +9,25 @@ directory for test samples.
 ## How to install it
 
 Either download it from github or use npm:
-    
+
 ```shell
 npm install webdriverjs
 ```
 
-To run tests on your local machine, you have to download a selenium standalone
-server which executes the selenium commands. You find the latest version
-[here](https://code.google.com/p/selenium/downloads/detail?name=selenium-server-standalone-2.35.0.jar).
-It is also possible to run the tests in the could (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
+## Local testing
+
+```sh
+npm install -g selenium-standalone http-server
+start-selenium
+cd test && http-server
+npm test
+```
+
+It is also possible to run the tests in the cloud (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
 
 ## Example of webdriverjs
 
-Run selenium server first:  
+Run selenium server first:
 
 ```shell
 java -jar path/to/your/selenium-server-standalone-2.35.0.jar
@@ -48,16 +54,16 @@ describe('my webdriverjs tests', function(){
         client
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
-                expect(err).to.be.null;
+                assert.equal(null, err)
                 assert.strictEqual(result.height , 30);
                 assert.strictEqual(result.width, 94);
             })
             .getTitle(function(err, title) {
-                expect(err).to.be.null;
+                assert.equal(null, err)
                 assert.strictEqual(title,'GitHub · Build software better, together.');
             })
             .getElementCssProperty('class name','subheading', 'color', function(err, result){
-                expect(err).to.be.null;
+                assert.equal(null, err)
                 assert.strictEqual(result, 'rgba(136, 136, 136, 1)');
             })
             .call(done);
@@ -80,16 +86,26 @@ Type: `Object`<br>
 
 ```js
 browserName: 'chrome',  // options: firefox, chrome, opera, safari
-version: '27.0',         // browser version
-platform: 'XP',          // OS platform
-tags: ['tag1','tag2'],   // specify some tags (e.g. if you use Sauce Labs)
-name: 'my test'          // set name for test (e.g. if you use Sauce Labs)
+version: '27.0',        // browser version
+platform: 'XP',         // OS platform
+tags: ['tag1','tag2'],  // specify some tags (e.g. if you use Sauce Labs)
+name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 ```
 
 ### logLevel
 Type: `String`<br>
 Default: *verbose*<br>
 Options: *verbose* | *silent* | *command* | *data* | *result*
+
+### screenshotPath
+Saves a screenshot if selenium driver crashes
+Type: `String`|`null`<br>
+Default: `null`<br>
+Options:<br>
+`null` - doesn't save any error screenshot at all<br>
+*empty string* - if no path is given save screenshot in current path (where the shell command gets executed)<br>
+*absolute path* - save screenshot at given absolute path<br>
+*relative path* - save screenshot relative to the project root path (which contains ./node_modules/webdriverjs)
 
 ### singleton
 Create client as singleton instance for use in different files<br>
@@ -138,7 +154,7 @@ Find a test example [here](https://github.com/camme/webdriverjs/blob/master/exam
 If you wish to end all sessions, you can call the endAll method:
 
     require("webdriverjs").endAll(callback);
-    
+
 Where callback is an optional parameter. This method can be used if you run
 lots of tests, and you want to make sure that all sessions on your selenium
 server are closed when you are done. Usually its enough to close each client
@@ -180,7 +196,7 @@ client
     .init()
     .url('http://www.github.com')
     .getUrlAndTitle(function(err,result){
-        expect(err).to.be.null;
+        assert.equal(null, err)
         assert.strictEqual(result.url,'https://github.com/');
         assert.strictEqual(result.title,'GitHub · Build software better, together.');
     })
@@ -197,6 +213,7 @@ can assert values or have more logic when the callback is called.
 - **call(callback)**<br>call given function in async order of current command queue
 - **clearElement(`String` css selector, `Function` callback)**<br>clear an element of text
 - **click(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
+- **close([`String` tab ID to focus on,] `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
 - **deleteCookie(`String` name, `Function` callback)**<br>Delete a cookie for current page.
 - **doubleClick(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
 - **dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback)**<br>Drags an item to a destination
@@ -204,13 +221,15 @@ can assert values or have more logic when the callback is called.
 - **endAll(`Function` callback)**<br>Ends all sessions (closes the browser)
 - **execute(`String` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
 - **getAttribute(`String` css selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the css selector and attribute name
-- **getCookie(name, `Function` callback)**<br>Gets the cookie for current page.
+- **getCookie(`String` name, `Function` callback)**<br>Gets the cookie for current page.
 - **getCssProperty(`String` css selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a css selector
+- **getCurrentTabId(`Function` callback)**<br>Retrieve the current window handle.
 - **getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
 - **getElementSize(`String` css selector, `Function` callback)**<br>Gets the width and height for an object based on the css selector
 - **getLocation(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector
 - **getLocationInView(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector in the view
 - **getSource(`Function` callback)**<br>Gets source code of the page
+- **getTabIds(`Function` callback)**<br>Retrieve the list of all window handles available to the session.
 - **getTagName(`String` css selector, `Function` callback)**<br>Gets the tag name of a dom obj found by the css selector
 - **getText(`String` css selector, `Function` callback)**<br>Gets the text content from a dom obj found by the css selector
 - **getTitle(`Function` callback)**<br>Gets the title of the page
@@ -218,12 +237,14 @@ can assert values or have more logic when the callback is called.
 - **isSelected(`String` css selector, `Function` callback)**<br>Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
 - **isVisible(`String` css selector, `Function` callback)**<br>Return true or false if the selected dom obj is visible (found by css selector)
 - **moveToObject(`String` css selector, `Function` callback)**<br>Moves the page to the selected dom object
+- **newWindow(`String` url, `String` name for the new window, `String` new window features (e.g. size, position, scrollbars, etc.), `Function` callback)**<br>equivalent function to `Window.open()` in a browser
 - **pause(`Integer` milliseconds, `Function` callback)**<br>Pauses the commands by the provided milliseconds
 - **refresh(`Function` callback)**<br>Refresh the current page
 - **saveScreenshot(`String` path to file, `Function` callback)**<br>Saves a screenshot as a png from the current state of the browser
 - **setCookie(`Object` cookie, `Function` callback)**<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
 - **setValue(`String` css selector, `String|String[]` value, `Function` callback)**<br>Sets a value to an object found by a css selector (clears value before). You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **submitForm(`String` css selector, `Function` callback)**<br>Submits a form found by the css selector
+- **switchTab(`String` tab ID)**<br>switch focus to a particular tab/window
 - **waitFor(`String` css selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
 # List of current implemented wire protocol bindings
@@ -232,12 +253,16 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [alertAccept](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/accept_alert)
 - [alertDismiss](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/dismiss_alert)
 - [alertText](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/alert_text)
+- [back](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/back)
 - [buttondown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttondown)
 - [buttonup](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttonup)
+- [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie)
+- [cookieName](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie/:name)
+- [doubleclick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/doubleclick)
 - [element](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element)
 - [elementIdAttribute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/attribute/:name)
+- [elementIdClear](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/clear)
 - [elementIdClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/click)
-- [elementDoubleClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/doubleclick)
 - [elementIdCssProperty](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/css/:propertyName)
 - [elementIdDisplayed](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/displayed)
 - [elementIdLocation](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/location)
@@ -249,26 +274,28 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [elementIdSelected](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/selected)
 - [elements](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/elements)
 - [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
+- [executeAsync](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute_async)
+- [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
 - [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
+- [implicit_wait](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts/implicit_wait)
 - [init](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/)
+- [keys](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/keys)
 - [moveto](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto)
+- [refresh](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/refresh)
 - [screenshot](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/screenshot)
 - [session](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId)
 - [sessions](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/sessions)
+- [source](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/source)
 - [status](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/status)
 - [submit](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/submit)
+- [timeouts](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts)
 - [title](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/title)
 - [url](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url)
-- [source](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/source)
 - [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
-- [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
+- [windowHandle](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handle)
 - [windowHandlePosition](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/position)
+- [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
 - [windowHandleSize](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/size)
-- [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
-- [back](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/back)
-- [refresh](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/refresh)
-- [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie)
-- [cookieName](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie/:name)
 
 # More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)

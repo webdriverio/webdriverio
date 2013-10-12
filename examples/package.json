@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "buster": "~0.7.6",
+    "chai": "~1.8.1",
+    "vows": "~0.7.0"
+  }
+}
