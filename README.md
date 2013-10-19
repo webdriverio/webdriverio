@@ -17,7 +17,7 @@ npm install webdriverjs
 To run tests on your local machine, you have to download a selenium standalone
 server which executes the selenium commands. You find the latest version
 [here](https://code.google.com/p/selenium/downloads/detail?name=selenium-server-standalone-2.35.0.jar).
-It is also possible to run the tests in the could (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
+It is also possible to run the tests in the cloud (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
 
 ## Example of webdriverjs
 
