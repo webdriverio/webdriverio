@@ -3,10 +3,9 @@ describe('addValue', function() {
     before(h.setup);
     beforeEach(clean);
 
-    describe('simple usage', function() {
+    describe.only('simple usage', function() {
         it('can add values to an input', function(done) {
             this.client
-                .pause(1) // We should not have to pause!
                 .addValue(input, '0', h.noError)
                 .addValue(input, '1', h.noError)
                 .addValue(input, '2', h.noError)
@@ -19,7 +18,6 @@ describe('addValue', function() {
     describe('unicode key controllers', function () {
         it('navigates and deletes inside inputs', function(done) {
             this.client
-                .pause(1) // We should not have to pause!
                 .addValue(input, '012', h.noError)
                 .addValue(input, 'Left arrow', h.noError)
                 .addValue(input, 'Left arrow', h.noError)
@@ -40,7 +38,6 @@ describe('addValue', function() {
 
         it('understand complex characters and key modifiers', function(done) {
             this.client
-                .pause(1)
                 .addValue(input, [
                     'Shift', '1', 'NULL',           // !
                     'Shift', '2', '3', '4', 'NULL', // @#$
@@ -54,7 +51,6 @@ describe('addValue', function() {
 
         it('can use the numpad', function(done) {
             this.client
-                .pause(1)
                 .addValue(input, [
                     'Numpad 0', 'Numpad 1', 'Numpad 2', 'Numpad 3',
                     'Numpad 4', 'Numpad 5', 'Numpad 6', 'Numpad 7',
@@ -68,21 +64,20 @@ describe('addValue', function() {
             var text = 'test';
 
             this.client
-                .pause(1)
                 // first set some text
-                .setValue('.searchinput',text,h.noError)
+                .setValue(input,text,h.noError)
                 // mark text via shift + left arrow
-                .addValue('.searchinput',['Shift','Left arrow','Left arrow','Left arrow','Left arrow','NULL'], h.noError)
+                .addValue(input,['Shift','Left arrow','Left arrow','Left arrow','Left arrow','NULL'], h.noError)
                 // cut text
-                .addValue('.searchinput',['Control','x','NULL'],h.noError)
+                .addValue(input,['Control','x','NULL'],h.noError)
                 // test: input field should be empty
-                .getValue('.searchinput',function(err,res) {
+                .getValue(input,function(err,res) {
                     assert.equal(null, err)
                     assert.strictEqual(res,'');
                 })
                 // paste value from clipboard
-                .addValue('.searchinput',['Control','v'],h.noError)
-                .getValue('.searchinput',function(err,res) {
+                .addValue(input,['Control','v'],h.noError)
+                .getValue(input,function(err,res) {
                     assert.equal(null, err)
                     assert.strictEqual(res,text);
                 })
@@ -93,7 +88,6 @@ describe('addValue', function() {
             var text = 'test';
 
             this.client
-                .pause(1)
                 // first set some text
                 .setValue('.searchinput',text,h.noError)
                 // mark text via shift + left arrow
@@ -116,7 +110,6 @@ describe('addValue', function() {
 
         it('a new addValue command should release the modifier key', function(done) {
             this.client
-                .pause(1)
                 .addValue('.searchinput',['Shift','1'],h.noError)
                 .addValue('.searchinput',['1'],h.noError)
                 .getValue('.searchinput',function(err,res) {

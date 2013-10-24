@@ -72,6 +72,23 @@ describe('should work with window commands proberly', function() {
             .call(done);
     });
 
+    describe('window sizes', function() {
+        before(h.setup);
+        before(function(done) {
+            this.client.windowHandleSize({
+                width: 500,
+                height: 500
+            }, done);
+        });
+
+        it('changed the window size', function(done) {
+            this.client.windowHandleSize(function() {
+                console.log(arguments);
+                done();
+            })
+        });
+    });
+
     it.skip('should open new windows and should switch tab focus automatically', function(done) {
 
         this.client
