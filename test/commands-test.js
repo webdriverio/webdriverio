@@ -663,7 +663,7 @@ describe('webdriverjs API test', function(){
             });
         });
 
-        it('waitfor works when chained and wait the specified amount of time if the elemtn doesnt exist', function(done) {
+        it('waitfor works when chained and wait the specified amount of time if the element doesnt exist', function(done) {
 
             var startTime = 10000000000000;
             client
@@ -678,6 +678,21 @@ describe('webdriverjs API test', function(){
                     done();
                 });
 
+        });
+
+        it('wait should simply wait the specified amount of time', function(done) {
+            var startTime = 10000000000000;
+            client
+                .url(testpageURL)
+                .call(function() {
+                    startTime = Date.now();
+                })
+                .wait(3000)
+                .call(function() {
+                    var delta = Date.now() - startTime;
+                    delta.should.be.within(2999,10000);
+                    done();
+                });            
         });
 
         it.skip('closeAll ends all sessions', function(done) {
