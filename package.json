@@ -64,7 +64,7 @@
   "dependencies": {
     "lodash.assign": "~2.2.1",
     "lodash.partial": "~2.2.1",
-    "chainit": "git+ssh://git@github.com:vvo/chainit.git#0.0.4",
+    "chainit": "0.0.4",
     "mocha": "~1.14.0",
     "chai": "~1.8.1",
     "lodash.merge": "~2.2.1"
