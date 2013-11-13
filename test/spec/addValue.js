@@ -3,7 +3,7 @@ describe('addValue', function() {
     before(h.setup);
     beforeEach(clean);
 
-    describe.only('simple usage', function() {
+    describe('simple usage', function() {
         it('can add values to an input', function(done) {
             this.client
                 .addValue(input, '0', h.noError)
