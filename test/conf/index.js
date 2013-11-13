@@ -1,4 +1,4 @@
-var merge = require('deepmerge');
+var merge = require('lodash.merge');
 
 var env = process.env.TEST_ENV || 'local';
 

@@ -49,7 +49,6 @@ describe('should work with window commands proberly', function() {
 
     it('should change the tab after closing one by passing a tab id to the command', function(done) {
         this.client
-            .pause(1) // problem with command chain here
             .getTabIds(function(err,res) {
                 assert.equal(null, err);
                 assert.equal(2, res.length);
@@ -72,8 +71,8 @@ describe('should work with window commands proberly', function() {
             .call(done);
     });
 
-    describe('window sizes', function() {
-        before(h.setup);
+    // this will not work if you use a tilling window manager
+    describe('changing window sizes', function() {
         before(function(done) {
             this.client.windowHandleSize({
                 width: 500,
@@ -82,10 +81,27 @@ describe('should work with window commands proberly', function() {
         });
 
         it('changed the window size', function(done) {
-            this.client.windowHandleSize(function() {
-                console.log(arguments);
-                done();
-            })
+            this.client.windowHandleSize(function(err, res) {
+                assert(err === null);
+                // on some systems, we might not have changed the size, like on phantomjs
+                // still, no error means it worked
+                assert.ok(res.value.width >= 500);
+                assert.ok(res.value.height >= 500);
+                done(err);
+            });
+        });
+
+        it('can maximizes windows', function(done) {
+            this.client
+            .windowHandleMaximize()
+            .windowHandleSize(function(err, res) {
+                assert(err === null);
+                // on some systems, we might not have maximized, like on phantomjs
+                // still, no error means it worked
+                assert.ok(res.value.width >= 500);
+                assert.ok(res.value.height >= 500);
+                done(err);
+            });
         });
     });
 
@@ -112,7 +128,6 @@ describe('should work with window commands proberly', function() {
 
     it.skip('should close remaining tabs without passing tab handle, tab focus should change automatically', function(done) {
         this.client
-            .pause(1)
             .getTabIds(function(err,res) {
                 assert.equal(null, err);
                 assert.equal(3, res.length);

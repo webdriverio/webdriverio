@@ -3,7 +3,6 @@ describe('buttonClick command test',function() {
 
     it('text should be visible after click on .btn1', function(done){
         this.client
-            .pause(1)
             .isVisible('.btn1',function(err,result) {
                 assert.equal(null, err);
                 assert.ok(result);

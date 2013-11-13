@@ -9,10 +9,12 @@ describe('test ability to go back and forward in browser history', function() {
             })
             .click('#secondPageLink')
             .getTitle(function(err,title) {
+                console.log(err, title)
                 assert.equal(null, err);
                 assert.strictEqual(title,'two');
             })
             .back()
+            .pause(100)
             .getTitle(function(err,title) {
                 assert.equal(null, err)
                 assert.strictEqual(title,conf.testPage.title);
@@ -23,6 +25,7 @@ describe('test ability to go back and forward in browser history', function() {
     it('should be able to go forward in history', function(done){
         this.client
             .forward()
+            .pause(100)
             .getTitle(function(err,title) {
                 assert.equal(null, err)
                 assert.strictEqual(title,'two');
