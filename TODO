@@ -1,0 +1,16 @@
+- re-add `addCommand` API
+
+- test with saucelabs browsers
+- npm test with phantomjs
+- add selenium instructions
+- why is selenium faulting on uncaughtexceptions (no return from server)
+
+- use `request`, refactor handleRequest + tests
+- remove unecessary files
+
+- test cookies
+- add most of the protocol commands
+
+- add simple jshint (unused vars, globals, indent)
+
+- update API docs
