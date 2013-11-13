@@ -5,7 +5,7 @@
 - add selenium instructions
 - why is selenium faulting on uncaughtexceptions (no return from server)
 
-- use `request`, refactor handleRequest + tests
+- use `mikeal/request`, refactor handleRequest + tests
 - remove unecessary files
 
 - test cookies
