@@ -35,8 +35,7 @@ describe('click command test',function() {
             .call(done);
     });
 
-    // test is taking too long in chrome AND should not be ok
-    xit('text should be visible after click on .btn3 altought it is behind an overlay', function(done){
+    it('text should be visible after click on .btn3 altought it is behind an overlay', function(done){
         this.client
             .isVisible('.btn3',function(err,result) {
                 assert.equal(null, err);
