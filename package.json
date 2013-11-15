@@ -31,11 +31,9 @@
     "prepublish": "npm prune"
   },
   "devDependencies": {
-    "request": "~2.27.0",
-    "deepmerge": "~0.2.7",
-    "mocha": "~1.13.0"
+    "mocha": "~1.14.0",
+    "chai": "~1.8.1"
   },
-  "optionalDependencies": {},
   "tags": [
     "web",
     "test",
@@ -65,8 +63,6 @@
     "lodash.assign": "~2.2.1",
     "lodash.partial": "~2.2.1",
     "chainit": "0.0.4",
-    "mocha": "~1.14.0",
-    "chai": "~1.8.1",
     "lodash.merge": "~2.2.1"
   }
 }
