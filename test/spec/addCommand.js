@@ -1,4 +1,4 @@
-xdescribe('addCommand', function () {
+describe('addCommand', function () {
     before(h.setup);
 
     before(function() {
