@@ -6,10 +6,9 @@ describe('addCommand', function () {
             .addCommand("getUrlAndTitle", function(callback) {
                 this.url(function(err,urlResult) {
                     this.getTitle(function(err,titleResult) {
-                        var specialResult = {url: urlResult.value, title: titleResult};
-                        if (typeof callback == "function") {
-                            callback(err,specialResult);
-                        }
+                        callback(err, {
+                            url: urlResult.value, title: titleResult
+                        });
                     });
                 });
             })
