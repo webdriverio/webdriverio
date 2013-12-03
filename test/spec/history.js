@@ -9,7 +9,6 @@ describe('test ability to go back and forward in browser history', function() {
             })
             .click('#secondPageLink')
             .getTitle(function(err,title) {
-                console.log(err, title)
                 assert.equal(null, err);
                 assert.strictEqual(title,'two');
             })
