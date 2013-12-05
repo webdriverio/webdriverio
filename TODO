@@ -1,16 +1,16 @@
-- re-add `addCommand` API
+- travis ci
 
-- test with saucelabs browsers
 - npm test with phantomjs
 - add selenium instructions
-- why is selenium faulting on uncaughtexceptions (no return from server)
-
 - use `mikeal/request`, refactor handleRequest + tests
-- remove unecessary files
-
+- refactor log
 - test cookies
 - add most of the protocol commands
-
 - add simple jshint (unused vars, globals, indent)
-
 - update API docs
+- webdriverjs real error messages
+- move testing the lib in readme
+- early return
+
+bug selenium perso
+- why is selenium faulting on uncaughtexceptions (no return from server)
