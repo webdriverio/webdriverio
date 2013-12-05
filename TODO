@@ -1,3 +1,17 @@
+Needed before full PR:
+- provide a way to launch selenium tests on travis from local
+- hide and regenerate saucelab access key
+- use sauce_connect wrappers as https://github.com/admc/wd/blob/master/.travis.yml
+- show travis badge
+- update other badges
+- update readme with breaking api changes modifications
+- default to silent
+
+testing:
+- test cookies
+- test all protocol methods
+- test on node 0.11 (even on travis)
+
 chore:
 - move testing the lib in readme
 - update API docs
@@ -13,16 +27,6 @@ features:
 - add most of the protocol commands
 - webdriverjs usefull error messages when using mocha
 - .error(cb) chain api call (chainit feature)
-
-testing:
-- test cookies
-- test all protocol methods
-- provide a way to launch selenium tests on travis from local
-- hide and regenerate saucelab access key
-
-travis:
-- use sauce_connect wrappers as https://github.com/admc/wd/blob/master/.travis.yml
-- use
 
 bug selenium perso
 - why is selenium faulting on uncaughtexceptions (no return from server)
