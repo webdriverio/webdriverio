@@ -150,28 +150,6 @@ port: 80
 
 Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.testingbot.example.js)!
 
-## webdriverjs.endAll
-If you wish to end all sessions, you can call the endAll method:
-
-    require("webdriverjs").endAll(callback);
-
-Where callback is an optional parameter. This method can be used if you run
-lots of tests, and you want to make sure that all sessions on your selenium
-server are closed when you are done. Usually its enough to close each client
-with its end() method, but if you, for some reason, want to make sure that
-no sessions are open, use endAll(). (note: this method is also available
-from the client returned from .remote() as well, but its the same as
-webdriverjs.endAll())
-
-## webdriverjs.sessions
-To get a list of all open sessions, you can call:
-
-    require("webdriverjs").sessions(callback);
-
-which wil return an array with all sessions from selenium (note: this method
-is also available from the client returned from .remote() as well, but its
-the same as webdriverjs.sessions()).
-
 ## Extending
 If you which to extend with your own set of commands there is a method
 called addCommand available from the client object:
