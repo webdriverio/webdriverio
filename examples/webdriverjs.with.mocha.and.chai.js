@@ -1,6 +1,3 @@
-/* jshint -W024 */
-/* jshint expr:true */
-
 var chai        = require('chai'),
     assert      = chai.assert,
     expect      = chai.expect,
