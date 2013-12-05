@@ -15,4 +15,4 @@
  *     Vincent Voyer <vincent@zeroload.net>
  */
 
-module.exports = require('./lib/webdriverjs');
+module.exports = require('./lib/webdriverjs.js');
