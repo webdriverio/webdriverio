@@ -12,6 +12,7 @@
  * Contributors:
  *     Dan Jenkins <dan.jenkins@holidayextras.com>
  *     Christian Bromann <mail@christian-bromann.com>
+ *     Vincent Voyer <vincent@zeroload.net>
  */
 
 module.exports = require('./lib/webdriverjs');
