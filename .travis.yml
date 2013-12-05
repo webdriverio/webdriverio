@@ -4,7 +4,8 @@ node_js:
 before_script:
   - ./node_modules/.bin/http-server test -p 8080 &
 addons:
-  sauce_connect:
-    username: "camme-webdriverjs"
-    access_key:
-        secure: QRHPKD3Em9atpokmy1RGTJq0QDx1VSizFs9vIhrLtWke3y5CxL7tbFZu2IZeZQziaLIyenQzouUUyLutAUsiHhhaXq6tckwq5HBY01AXlQHQQ5jaYHIPOnVjysG0r/ZCR9wCj52FGIfIuTj7moATV2AqCugdW9HBZY+/RGf3f78=
+  sauce_connect: true
+env:
+    global:
+        - SAUCE_USERNAME=camme-webdriverjs
+        - SAUCE_ACCESS_KEY=8a3aaf12-e0fa-453e-9b2d-17afadd61db9
