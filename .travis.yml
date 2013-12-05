@@ -8,4 +8,4 @@ addons:
 env:
     global:
         - SAUCE_USERNAME=camme-webdriverjs
-        - secure: ZjqMA/JrUBti+RUE/9MrEvL1aqgcHQ1pH/2TfTaLbZ4651WIhKevqOcp6m5PPk8GNwp8pOpDvN1onJIKippz+HMEN9MIHubofGSK03a0PqVt9BRAiGRH3Tp51tetIPhyZY7sUn/CL3KcB9+nGCj1k4kKjEqW73KJA3igVKFo3HY=
+        - secure: lSzNpGQXV8HlReK2meTE7ySWoYnVy1n1BIln0pZGcJ0jovHpitVGnR2S/0Bu91td8agjlNUWksBR72PCSDoTQyAH105EVDVkUXkGQoKvKrdnvszGGO/aDu0Ly2Mwc47zR9BILleAtOiW+yQGd7fRdgVy1sPYPDydlUDdRpqXi0w=
