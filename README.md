@@ -1,81 +1,51 @@
-Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/christian-bromann/webdriverjs.png)](https://travis-ci.org/christian-bromann/webdriverjs) [![Selenium Test Status](https://saucelabs.com/buildstatus/webdriverjs)](https://saucelabs.com/u/webdriverjs) [![Dependency Status](https://gemnasium.com/christian-bromann/webdriverjs.png)](https://gemnasium.com/christian-bromann/webdriverjs)
+Webdriver/selenium 2.0 javascript bindings for nodejs
 =====================================================
 
+[![Build Status](https://travis-ci.org/camme/webdriverjs.png)](https://travis-ci.org/camme/webdriverjs)
+[![Selenium Test Status](https://saucelabs.com/browser-matrix/camme-webdriverjs.svg)](https://saucelabs.com/u/camme-webdriverjs)
+
 This library is a webdriver module for nodejs. It makes it possible to write
-super easy selenium tests in your favorite BDD or TDD test framework. Even
-Cucumber tests are supported. Take a look into the [example](https://github.com/camme/webdriverjs/tree/master/examples)
-directory for test samples.
+super easy selenium tests in your favorite BDD or TDD test framework.
+
+Have a look at the many [examples](examples/).
+
+Breaking 1.x API changes, see [upgrading to 1.x](#upgrading-to-1-x).
 
 ## How to install it
-
-Either download it from github or use npm:
 
 ```shell
 npm install webdriverjs
 ```
 
-## Local testing
+## Usage
 
-```sh
-npm install -g selenium-standalone http-server
-start-selenium
-cd test && http-server
-npm test
-```
+`webdriverjs` implements most of selenium's [JsonWireProtocol](https://code.google.com/p/selenium/wiki/JsonWireProtocol).
 
-It is also possible to run the tests in the cloud (e.g. on BrowserStack, Sauce Labs or TestingBot). For more informations, see below.
+Make sure you have a running selenium standalone/grid/hub.
 
-## Example of webdriverjs
-
-Run selenium server first:
-
-```shell
-java -jar path/to/your/selenium-server-standalone-2.35.0.jar
-```
-
-Webdriverjs has just a few methods. Most of the methods you will use regurarly
-are the methods available from the client. To begin using Webdriverjs you just
-need to create a client.
-
-**example using [Mocha](http://visionmedia.github.com/mocha/) and [Chai](http://chaijs.com/)**
+Or use [selenium-standalone](https://github.com/vvo/selenium-standalone) package to run one easily.
 
 ```js
-var webdriverjs = require('webdriverjs'),
-    client = {};
+var webdriverjs = require('../index');
+var options = {
+    desiredCapabilities: {
+        browserName: 'chrome'
+    }
+};
 
-describe('my webdriverjs tests', function(){
-    this.timeout(99999999);
-    before(function(){
-            client = webdriverjs.remote(options);
-            client.init();
-    });
-
-    it('Github test',function(done) {
-        client
-            .url('https://github.com/')
-            .getElementSize('.header-logo-wordmark', function(err, result) {
-                assert.equal(null, err)
-                assert.strictEqual(result.height , 30);
-                assert.strictEqual(result.width, 94);
-            })
-            .getTitle(function(err, title) {
-                assert.equal(null, err)
-                assert.strictEqual(title,'GitHub · Build software better, together.');
-            })
-            .getElementCssProperty('class name','subheading', 'color', function(err, result){
-                assert.equal(null, err)
-                assert.strictEqual(result, 'rgba(136, 136, 136, 1)');
-            })
-            .call(done);
-    });
-
-    after(function(done) {
-        client.end(done);
-    });
-});
+webdriverjs
+    .remote(options)
+    .init()
+    .url('http://www.google.com')
+    .title(function(err, res) {
+        console.log('Title was: ' + res.value);
+    })
+    .end();
 ```
 
-See more examples with other libraries in the [example directory](https://github.com/Camme/webdriverjs/tree/master/examples).
+See the [full list of options](#options) you can pass to `.remote(options)`
+
+See [helpers](#list-of-current-helper-methods) and [protocol methods](#list-of-current-implemented-wire-protocol-bindings).
 
 ## Options
 
@@ -92,78 +62,45 @@ tags: ['tag1','tag2'],  // specify some tags (e.g. if you use Sauce Labs)
 name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 ```
 
+See the [selenium documentation](https://code.google.com/p/selenium/wiki/DesiredCapabilities) for a list of the available `capabilities`.
+
 ### logLevel
-Type: `String`<br>
-Default: *verbose*<br>
+Type: `String`
+
+Default: *silent*
+
 Options: *verbose* | *silent* | *command* | *data* | *result*
 
 ### screenshotPath
-Saves a screenshot if selenium driver crashes
-Type: `String`|`null`<br>
-Default: `null`<br>
-Options:<br>
-`null` - doesn't save any error screenshot at all<br>
-*empty string* - if no path is given save screenshot in current path (where the shell command gets executed)<br>
-*absolute path* - save screenshot at given absolute path<br>
-*relative path* - save screenshot relative to the project root path (which contains ./node_modules/webdriverjs)
+Saves a screenshot to a given path if selenium driver crashes
+
+Type: `String`|`null`
+
+Default: `null`
 
 ### singleton
-Create client as singleton instance for use in different files<br>
-Type: `Boolean`<br>
-Default: *true*
 
-## <img src="http://a0.twimg.com/profile_images/794342508/Logo_Square.png" width="48" /> [Sauce Labs](https://saucelabs.com/) support
-To run your tests via Sauce Labs, add the following attributes to your option
-object. If you are using Webdriverjs in a public repository, never publish your
-Sauce Labs key! Export these informations as enviroment variables.
+Type: `Boolean`
 
-```js
-host: 'ondemand.saucelabs.com', // Sauce Labs remote host
-user: '<username>',             // your username
-key:  '<access-key>',           // your access key
-port: 80
-```
+Default: *false*
 
-Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.saucelabs.example.js)!
+Set to true if you always want to reuse the same remote
 
-## <img src="http://a0.twimg.com/profile_images/1440403042/logo-separate-big_normal.png" width="48" /> [BrowserStack](http://www.browserstack.com/) support
-You can also run your tests with BrowserStack on a remote machine.
+## Adding custom commands
 
-```js
-host: 'hub.browserstack.com', // Browserstack remote host
-user: '<username>',           // your username
-key:  '<access-key>',         // your access key
-port: 80
-```
-
-Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.browserstack.example.js)!
-
-## <img src="https://si0.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/) support
-You can also run your tests with TestingBot on a remote machine.
-
-```js
-host: 'hub.testingbot.com', // TestingBot remote host
-user: '<client_key>',       // your client key
-key:  '<client_secret>',    // your client secret
-port: 80
-```
-
-Find a test example [here](https://github.com/camme/webdriverjs/blob/master/examples/webdriverjs.testingbot.example.js)!
-
-## Extending
 If you which to extend with your own set of commands there is a method
-called addCommand available from the client object:
+called `addCommand` available from the client object:
 
 ```js
 var client = require("webdriverjs").remote();
 
 // create a command the returns the current url and title as one result
 // just to show an example
-client.addCommand("getUrlAndTitle", function(callback) {
+client.addCommand("getUrlAndTitle", function(cb) {
     this.url(function(err,urlResult) {
         this.getTitle(function(err,titleResult) {
             var specialResult = {url: urlResult.value, title: titleResult};
-            callback(err,specialResult);
+            cb(err,specialResult);
         })
     });
 });
@@ -179,7 +116,35 @@ client
     .end();
 ```
 
-# List of current helper methods
+## Local testing
+
+If you want to help us in developing webdriverjs, you can easily add
+[mocha](https://github.com/visionmedia/mocha) [tests](test/) and run them locally:
+
+```sh
+npm install -g selenium-standalone http-server
+
+# start a local selenium instances
+start-selenium
+
+# serves the test directory holding the test files
+http-server test
+
+# runs tests !
+npm test
+```
+
+## Selenium cloud providers
+
+Webdriverjs supports
+
+<img src="http://a0.twimg.com/profile_images/794342508/Logo_Square.png" width="48" /> [Sauce Labs](https://saucelabs.com/)
+<img src="http://a0.twimg.com/profile_images/1440403042/logo-separate-big_normal.png" width="48" /> [BrowserStack](http://www.browserstack.com/)
+<img src="https://si0.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/)
+
+See the corresponding [examples](examples/).
+
+## List of current helper methods
 These are the current implemented helper methods. All methods take from 0
 to a couple of parameters. Also all methods accept a callback so that we
 can assert values or have more logic when the callback is called.
@@ -223,7 +188,7 @@ can assert values or have more logic when the callback is called.
 - **switchTab(`String` tab ID)**<br>switch focus to a particular tab/window
 - **waitFor(`String` css selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
-# List of current implemented wire protocol bindings
+## List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)
 
 - [alertAccept](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/accept_alert)
@@ -273,9 +238,20 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
 - [windowHandleSize](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/size)
 
-# More on selenium and its protocol
+## More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
+
+## Upgrading to 1.x
+
+The 1.x refactor was done to fix many bugs due to the chain API.
+
+We also removed some features that were not well designed/fully functionning:
+
+* default logger is now silent
+* `singleton` option defaults to `false`
+* `webdriverjs.endAll` and `webdriverjs.sessions` methods are gone. You must access them on the
+`client` instance
 
 ## NPM Maintainers
 
@@ -284,3 +260,4 @@ The npm module for this library is maintained by:
 * [Camilo Tapia](http://github.com/Camme)
 * [Dan Jenkins](http://github.com/danjenkins)
 * [Christian Bromann](https://github.com/christian-bromann)
+* [Vincent Voyer](https://github.com/vvo)
