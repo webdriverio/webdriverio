@@ -1,6 +1,6 @@
 var merge = require('lodash.merge');
 
-var env = process.env.TEST_ENV || 'local';
+var env = process.env.TRAVIS ? 'travis-ci' || 'local';
 
 var defaults = require('./defaults.js');
 var asked = require('./' + env + '.js');
