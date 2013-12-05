@@ -9,7 +9,7 @@ super easy selenium tests in your favorite BDD or TDD test framework.
 
 Have a look at the many [examples](examples/).
 
-Breaking 1.x API changes, see [upgrading to 1.x](#upgrading-to-1-x).
+Breaking 1.x API changes, see [upgrading to 1.x](#upgrading-to-1x).
 
 ## How to install it
 
@@ -76,7 +76,7 @@ Saves a screenshot to a given path if selenium driver crashes
 
 Type: `String`|`null`
 
-Default: `null`
+Default: *null*
 
 ### singleton
 
@@ -138,9 +138,9 @@ npm test
 
 Webdriverjs supports
 
-<img src="http://a0.twimg.com/profile_images/794342508/Logo_Square.png" width="48" /> [Sauce Labs](https://saucelabs.com/)
-<img src="http://a0.twimg.com/profile_images/1440403042/logo-separate-big_normal.png" width="48" /> [BrowserStack](http://www.browserstack.com/)
-<img src="https://si0.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/)
+* <img src="http://a0.twimg.com/profile_images/794342508/Logo_Square.png" width="48" /> [Sauce Labs](https://saucelabs.com/)
+* <img src="http://a0.twimg.com/profile_images/1440403042/logo-separate-big_normal.png" width="48" /> [BrowserStack](http://www.browserstack.com/)
+* <img src="https://si0.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/)
 
 See the corresponding [examples](examples/).
 
