@@ -1,6 +1,3 @@
-/* jshint -W024 */
-/* jshint expr:true */
-
 var webdriverjs = require('../index'),
     assert      = require('assert');
 
