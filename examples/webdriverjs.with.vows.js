@@ -1,5 +1,3 @@
-// division-by-zero-test.js
-
 var vows = require('vows'),
     assert = require('assert'),
     webdriverjs = require('../index'),
