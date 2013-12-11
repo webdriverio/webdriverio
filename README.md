@@ -1,7 +1,7 @@
 Webdriver/selenium 2.0 javascript bindings for nodejs
 =====================================================
 
-[![Build Status](https://travis-ci.org/camme/webdriverjs.png)](https://travis-ci.org/camme/webdriverjs)
+[![Build Status](https://travis-ci.org/camme/webdriverjs.png?branch=master)](https://travis-ci.org/camme/webdriverjs)
 [![Selenium Test Status](https://saucelabs.com/browser-matrix/camme-webdriverjs.svg)](https://saucelabs.com/u/camme-webdriverjs)
 
 This library is a webdriver module for nodejs. It makes it possible to write
