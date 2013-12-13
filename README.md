@@ -86,6 +86,34 @@ Default: *false*
 
 Set to true if you always want to reuse the same remote
 
+## Selector API
+
+The JsonWireProtocol provides several strategies to query an element. WebdriverJS simplifies these
+to make it more familiar with the common existing selector libraries like [Sizzle](http://sizzlejs.com/).
+The follwing selector types are supported:
+
+- **CSS3 query selector**
+  e.g. `.myClass`, `#someID`, `div[attributeName="value"]` etc.
+- **link text**
+  To get a anchor element with a specific text in it (f.i. `<a href="http://webdriver.io">WebdriverJS</a>`)
+  query the text starting with an equal (=) sign. In this example use `=WebdriverJS`
+- **partial link text**
+  To find a anchor element whose visible text partially matches your search value, query it by using `*=`
+  in front of the query string (e.g. `*=driver`)
+- **tag name**
+  To query an element with a specific tag name use `<tag>` or `<tag />`
+- **name attribute**
+  For quering elements with a specific name attribute you can eather use a normal CSS3 selector or the
+  provided name strategy from the JsonWireProtocol by passing something like `[name="some-name"]` as
+  selector parameter
+- **xPath**
+  It is also possible to query elements via a specific xPath. The selector has to have a format like
+  for example `//BODY/DIV[6]/DIV[1]/SPAN[1]`
+
+In near future WebdriverJS will cover more selector features like form selector (e.g. `:password`,`:file` etc)
+or positional selectors like `:first` or `:nth`.
+
+
 ## Adding custom commands
 
 If you which to extend with your own set of commands there is a method
@@ -149,44 +177,43 @@ These are the current implemented helper methods. All methods take from 0
 to a couple of parameters. Also all methods accept a callback so that we
 can assert values or have more logic when the callback is called.
 
-- **addValue(`String` css selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a css selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
-- **buttonClick(`String` css selector, `Function` callback)**<br>click on a button using a css selector
+- **addValue(`String` selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
+- **buttonClick(`String` selector, `Function` callback)**<br>click on a button using a selector
 - **call(callback)**<br>call given function in async order of current command queue
-- **clearElement(`String` css selector, `Function` callback)**<br>clear an element of text
-- **click(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
+- **clearElement(`String` selector, `Function` callback)**<br>clear an element of text
+- **click(`String` selector, `Function` callback)**<br>Clicks on an element based on a selector
 - **close([`String` tab ID to focus on,] `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
 - **deleteCookie(`String` name, `Function` callback)**<br>Delete a cookie for current page.
-- **doubleClick(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
+- **doubleClick(`String` selector, `Function` callback)**<br>Clicks on an element based on a selector
 - **dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback)**<br>Drags an item to a destination
 - **end(`Function` callback)**<br>Ends a sessions (closes the browser)
 - **endAll(`Function` callback)**<br>Ends all sessions (closes the browser)
 - **execute(`String` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
-- **getAttribute(`String` css selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the css selector and attribute name
+- **getAttribute(`String` selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the selector and attribute name
 - **getCookie(`String` name, `Function` callback)**<br>Gets the cookie for current page.
-- **getCssProperty(`String` css selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a css selector
+- **getCssProperty(`String` selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a selector
 - **getCurrentTabId(`Function` callback)**<br>Retrieve the current window handle.
-- **getElementCssProperty(`String` find by, `String` finder, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with one of the base selecting mechanisms in the webdriver protocol (class name, css selector, id, name, link text, partial link text, tag name, xpath)
-- **getElementSize(`String` css selector, `Function` callback)**<br>Gets the width and height for an object based on the css selector
-- **getLocation(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector
-- **getLocationInView(`String` css selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the css selector in the view
+- **getElementSize(`String` selector, `Function` callback)**<br>Gets the width and height for an object based on the selector
+- **getLocation(`String` selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the selector
+- **getLocationInView(`String` selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the selector in the view
 - **getSource(`Function` callback)**<br>Gets source code of the page
 - **getTabIds(`Function` callback)**<br>Retrieve the list of all window handles available to the session.
-- **getTagName(`String` css selector, `Function` callback)**<br>Gets the tag name of a dom obj found by the css selector
-- **getText(`String` css selector, `Function` callback)**<br>Gets the text content from a dom obj found by the css selector
+- **getTagName(`String` selector, `Function` callback)**<br>Gets the tag name of a dom obj found by the selector
+- **getText(`String` selector, `Function` callback)**<br>Gets the text content from a dom obj found by the selector
 - **getTitle(`Function` callback)**<br>Gets the title of the page
-- **getValue(`String` css selector, `Function` callback)**<br>Gets the value of a dom obj found by css selector
-- **isSelected(`String` css selector, `Function` callback)**<br>Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
-- **isVisible(`String` css selector, `Function` callback)**<br>Return true or false if the selected dom obj is visible (found by css selector)
-- **moveToObject(`String` css selector, `Function` callback)**<br>Moves the page to the selected dom object
+- **getValue(`String` selector, `Function` callback)**<br>Gets the value of a dom obj found by selector
+- **isSelected(`String` selector, `Function` callback)**<br>Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by selector).
+- **isVisible(`String` selector, `Function` callback)**<br>Return true or false if the selected dom obj is visible (found by selector)
+- **moveToObject(`String` selector, `Function` callback)**<br>Moves the page to the selected dom object
 - **newWindow(`String` url, `String` name for the new window, `String` new window features (e.g. size, position, scrollbars, etc.), `Function` callback)**<br>equivalent function to `Window.open()` in a browser
 - **pause(`Integer` milliseconds, `Function` callback)**<br>Pauses the commands by the provided milliseconds
 - **refresh(`Function` callback)**<br>Refresh the current page
 - **saveScreenshot(`String` path to file, `Function` callback)**<br>Saves a screenshot as a png from the current state of the browser
 - **setCookie(`Object` cookie, `Function` callback)**<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
-- **setValue(`String` css selector, `String|String[]` value, `Function` callback)**<br>Sets a value to an object found by a css selector (clears value before). You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
-- **submitForm(`String` css selector, `Function` callback)**<br>Submits a form found by the css selector
+- **setValue(`String` selector, `String|String[]` value, `Function` callback)**<br>Sets a value to an object found by a selector (clears value before). You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
+- **submitForm(`String` selector, `Function` callback)**<br>Submits a form found by the selector
 - **switchTab(`String` tab ID)**<br>switch focus to a particular tab/window
-- **waitFor(`String` css selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by css selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
+- **waitFor(`String` selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
 ## List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)

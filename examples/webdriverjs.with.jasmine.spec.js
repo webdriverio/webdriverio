@@ -22,7 +22,7 @@ describe('my webdriverjs tests', function() {
                 expect(err).toBe(null);
                 expect(title).toBe('GitHub · Build software better, together.');
             })
-            .getElementCssProperty('css selector','a[href="/plans"]', 'color', function(err, result){
+            .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 expect(err).toBe(null);
                 expect(result).toBe('rgba(65,131,196,1)');
             })

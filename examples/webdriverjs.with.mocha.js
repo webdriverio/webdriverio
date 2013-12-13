@@ -23,7 +23,7 @@ describe('my webdriverjs tests', function(){
                 assert(err === null);
                 assert(title === 'GitHub · Build software better, together.');
             })
-            .getElementCssProperty('css selector','a[href="/plans"]', 'color', function(err, result){
+            .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 assert(err === null);
                 assert(result === 'rgba(65,131,196,1)');
             })

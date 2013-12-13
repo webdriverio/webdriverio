@@ -60,7 +60,7 @@ vows.describe('my github tests').addBatch({
             'check color of subheading': {
 
                 topic: function() {
-                    client.getElementCssProperty('css selector','a[href="/plans"]', 'color', this.callback);
+                    client.getCssProperty('a[href="/plans"]', 'color', this.callback);
                 },
 
                 'getElementCssProperty() should cause no error': function(err,result) {
