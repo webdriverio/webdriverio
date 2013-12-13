@@ -7,6 +7,10 @@ describe('test different selector strategies', function () {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
             })
+            .getAttribute('.red', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'css selector');
+            })
             .call(done);
     });
 
@@ -15,6 +19,10 @@ describe('test different selector strategies', function () {
             .isVisible('#purplebox',function(err,isVisible) {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
+            })
+            .getAttribute('#purplebox', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'id');
             })
             .call(done);
     });
@@ -25,6 +33,10 @@ describe('test different selector strategies', function () {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
             })
+            .getAttribute('[name="searchinput"]', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'name');
+            })
             .call(done);
     });
 
@@ -34,14 +46,22 @@ describe('test different selector strategies', function () {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
             })
+            .getAttribute('=GitHub Repo', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'link text');
+            })
             .call(done);
     });
 
     it('should find an element using "partial link text" method',function(done) {
         this.client
-            .isVisible('*=Repo',function(err,isVisible) {
+            .isVisible('*=new',function(err,isVisible) {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
+            })
+            .getAttribute('*=new', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'partial link text');
             })
             .call(done);
     });
@@ -52,6 +72,10 @@ describe('test different selector strategies', function () {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
             })
+            .getAttribute('<textarea />', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'tag name');
+            })
             .call(done);
     });
 
@@ -61,6 +85,10 @@ describe('test different selector strategies', function () {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
             })
+            .getAttribute('<textarea>', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'tag name');
+            })
             .call(done);
     });
 
@@ -69,6 +97,10 @@ describe('test different selector strategies', function () {
             .isVisible('//BODY/DIV[6]/DIV[1]/SPAN[1]',function(err,isVisible) {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
+            })
+            .getAttribute('//BODY/DIV[6]/DIV[1]/SPAN[1]', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'xpath');
             })
             .call(done);
     });
