@@ -1,11 +1,13 @@
 language: node_js
 node_js:
-- '0.10'
+  - '0.10'
 before_script:
   - ./node_modules/.bin/http-server test -p 8080 &
 addons:
   sauce_connect: true
 env:
     global:
-        - SAUCE_USERNAME=camme-webdriverjs
-        - secure: lSzNpGQXV8HlReK2meTE7ySWoYnVy1n1BIln0pZGcJ0jovHpitVGnR2S/0Bu91td8agjlNUWksBR72PCSDoTQyAH105EVDVkUXkGQoKvKrdnvszGGO/aDu0Ly2Mwc47zR9BILleAtOiW+yQGd7fRdgVy1sPYPDydlUDdRpqXi0w=
+        - secure: RRh5YMC/bl6LrUTW55SKsyrltmde7rThOclWLIwSeApTGcC7DTzKePsqPBop0S9mAhWXPztoV6xKWyp1yTJ1Ucwo4B7Y+q7ehNzk/+UYyibuUxKCq6er7YjcNZmGmNjvysnjBbM1BEWkAQITQeHJ+8WOMUMGhvONImlv/CgIJ34=
+        - secure: smf2QW85/Yosojq0jTOWVcXzJXmvwazBQSdx+xhgLr/CocslkLA0pBnrSCSoI022DUYORHz8+gyLb9JTeZatPPMW591pSDRgZhqWe6PT3PXByb2mDHVtu0ZSZ8XxYDOCHFshyZRTn7F3O61TaR69nHLQjBKefKoHUhT/u+ChZ50=
+        - secure: mEYkVNpkr/QrvJXxWTMbj/Bzj5BoH+34fpLARnOJuRWUJaZaqe8x1omIn7b2I4OL546yHmSHPa1XFygVtIi5ocvkDi5lIDut/xc/L7nlASS81ngYvVSbGULA0yp6bnHSKXgnkVViMUeCsIFLCFRn8vM5+8/uj6mf5LxiQQ/4K4A=
+        - secure: PcZ4JsuoZG+LDVJmJv73HJjetRWRymtOo3uD1keTuFfswiB257Dl382CRVMZIR3qVfUwEAy4xh2stWRlUQshlBRiR9XkFGFzLMrP5clcyNrC+A6ff0o9cB9+YPmJi9AFy/pByaV+eHH/aWDlPgNjBNZj3Lfnu9iow/YAKvN7+NA=
