@@ -92,21 +92,21 @@ The JsonWireProtocol provides several strategies to query an element. WebdriverJ
 to make it more familiar with the common existing selector libraries like [Sizzle](http://sizzlejs.com/).
 The follwing selector types are supported:
 
-- **CSS3 query selector**
+- **CSS3 query selector**<br>
   e.g. `.myClass`, `#someID`, `div[attributeName="value"]` etc.
-- **link text**
+- **link text**<br>
   To get a anchor element with a specific text in it (f.i. `<a href="http://webdriver.io">WebdriverJS</a>`)
   query the text starting with an equal (=) sign. In this example use `=WebdriverJS`
-- **partial link text**
+- **partial link text**<br>
   To find a anchor element whose visible text partially matches your search value, query it by using `*=`
   in front of the query string (e.g. `*=driver`)
-- **tag name**
+- **tag name**<br>
   To query an element with a specific tag name use `<tag>` or `<tag />`
-- **name attribute**
+- **name attribute**<br>
   For quering elements with a specific name attribute you can eather use a normal CSS3 selector or the
   provided name strategy from the JsonWireProtocol by passing something like `[name="some-name"]` as
   selector parameter
-- **xPath**
+- **xPath**<br>
   It is also possible to query elements via a specific xPath. The selector has to have a format like
   for example `//BODY/DIV[6]/DIV[1]/SPAN[1]`
 
