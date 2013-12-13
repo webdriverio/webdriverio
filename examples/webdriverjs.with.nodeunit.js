@@ -21,7 +21,7 @@ module.exports = {
                 test.ok(err === null, 'getTitle() should cause no error');
                 test.ok(title === 'GitHub · Build software better, together.', 'title should be "GitHub · Build software better, together."');
             })
-            .getElementCssProperty('css selector','a[href="/plans"]', 'color', function(err, result){
+            .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 test.ok(err === null, 'getElementCssProperty() should cause no error');
                 test.ok(result === 'rgba(65,131,196,1)', 'color is "' + result + '" but should be "rgba(65,131,196,1)"');
             });
