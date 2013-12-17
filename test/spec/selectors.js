@@ -104,4 +104,14 @@ describe('test different selector strategies', function () {
             })
             .call(done);
     });
+
+    // check if it is still backwards compatible for obsolete command
+    it('should still work with obsolte command',function(done) {
+        this.client
+            .getElementCssProperty('css selector','.red', 'background-color', function(err,result) {
+                assert.equal(null, err);
+                assert.strictEqual('rgba(255,0,0,1)',result);
+            })
+            .call(done);
+    });
 });

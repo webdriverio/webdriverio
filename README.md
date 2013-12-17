@@ -90,12 +90,12 @@ Set to true if you always want to reuse the same remote
 
 The JsonWireProtocol provides several strategies to query an element. WebdriverJS simplifies these
 to make it more familiar with the common existing selector libraries like [Sizzle](http://sizzlejs.com/).
-The follwing selector types are supported:
+The following selector types are supported:
 
-- **CSS3 query selector**<br>
-  e.g. `.myClass`, `#someID`, `div[attributeName="value"]` etc.
+- **CSS query selector**<br>
+  e.g. `client.click('h2.subheading a', function(err,res) {...})` etc.
 - **link text**<br>
-  To get a anchor element with a specific text in it (f.i. `<a href="http://webdriver.io">WebdriverJS</a>`)
+  To get an anchor element with a specific text in it (f.i. `<a href="http://webdriver.io">WebdriverJS</a>`)
   query the text starting with an equal (=) sign. In this example use `=WebdriverJS`
 - **partial link text**<br>
   To find a anchor element whose visible text partially matches your search value, query it by using `*=`
