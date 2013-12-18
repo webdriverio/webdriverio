@@ -1,3 +1,5 @@
+notifications:
+  email: false
 language: node_js
 node_js:
   - '0.10'
@@ -6,6 +8,12 @@ before_script:
 addons:
   sauce_connect: true
 env:
-    global:
-        - secure: RRh5YMC/bl6LrUTW55SKsyrltmde7rThOclWLIwSeApTGcC7DTzKePsqPBop0S9mAhWXPztoV6xKWyp1yTJ1Ucwo4B7Y+q7ehNzk/+UYyibuUxKCq6er7YjcNZmGmNjvysnjBbM1BEWkAQITQeHJ+8WOMUMGhvONImlv/CgIJ34=
-        - secure: smf2QW85/Yosojq0jTOWVcXzJXmvwazBQSdx+xhgLr/CocslkLA0pBnrSCSoI022DUYORHz8+gyLb9JTeZatPPMW591pSDRgZhqWe6PT3PXByb2mDHVtu0ZSZ8XxYDOCHFshyZRTn7F3O61TaR69nHLQjBKefKoHUhT/u+ChZ50=
+  global:
+    - secure: RRh5YMC/bl6LrUTW55SKsyrltmde7rThOclWLIwSeApTGcC7DTzKePsqPBop0S9mAhWXPztoV6xKWyp1yTJ1Ucwo4B7Y+q7ehNzk/+UYyibuUxKCq6er7YjcNZmGmNjvysnjBbM1BEWkAQITQeHJ+8WOMUMGhvONImlv/CgIJ34=
+    - secure: smf2QW85/Yosojq0jTOWVcXzJXmvwazBQSdx+xhgLr/CocslkLA0pBnrSCSoI022DUYORHz8+gyLb9JTeZatPPMW591pSDRgZhqWe6PT3PXByb2mDHVtu0ZSZ8XxYDOCHFshyZRTn7F3O61TaR69nHLQjBKefKoHUhT/u+ChZ50=
+  matrix:
+    - BROWSER=chrome
+    - BROWSER=firefox
+    - BROWSER=explorer
+    - BROWSER=iphone
+    - BROWSER=ipad
