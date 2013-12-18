@@ -33,7 +33,7 @@ describe('addValue', function() {
                 .getValue(input, h.checkResult('01'))
                 .addValue(input, ['Space', '01'])
                 .getValue(input, h.checkResult('01 01'))
-                .call(done)
+                .call(done);
         });
 
         it('understand complex characters and key modifiers', function(done) {
@@ -46,7 +46,7 @@ describe('addValue', function() {
                     'Shift','8','9','0'             // *()
                 ], h.noError)
                 .getValue(input, h.checkResult('!@#$%^&*()'))
-                .call(done)
+                .call(done);
         });
 
         it('can use the numpad', function(done) {
@@ -57,8 +57,8 @@ describe('addValue', function() {
                     'Numpad 8', 'Numpad 9'
                 ], h.noError)
                 .getValue(input, h.checkResult('0123456789'))
-                .call(done)
-        })
+                .call(done);
+        });
 
         it('it should cut&paste a text via Control + x and Control + v', function(done) {
             var text = 'test';
@@ -72,13 +72,13 @@ describe('addValue', function() {
                 .addValue(input,['Control','x','NULL'],h.noError)
                 // test: input field should be empty
                 .getValue(input,function(err,res) {
-                    assert.equal(null, err)
+                    assert.equal(null, err);
                     assert.strictEqual(res,'');
                 })
                 // paste value from clipboard
                 .addValue(input,['Control','v'],h.noError)
                 .getValue(input,function(err,res) {
-                    assert.equal(null, err)
+                    assert.equal(null, err);
                     assert.strictEqual(res,text);
                 })
                 .call(done);
@@ -96,13 +96,13 @@ describe('addValue', function() {
                 .addValue('.searchinput',['Control','c','NULL','Right arrow'],h.noError)
                 // test: input field should contain test value
                 .getValue('.searchinput',function(err,res) {
-                    assert.equal(null, err)
+                    assert.equal(null, err);
                     assert.strictEqual(res,text);
                 })
                 // paste value from clipboard
                 .addValue('.searchinput',['Control','v'],h.noError)
                 .getValue('.searchinput',function(err,res) {
-                    assert.equal(null, err)
+                    assert.equal(null, err);
                     assert.strictEqual(res,text + text);
                 })
                 .call(done);
@@ -113,7 +113,7 @@ describe('addValue', function() {
                 .addValue('.searchinput',['Shift','1'],h.noError)
                 .addValue('.searchinput',['1'],h.noError)
                 .getValue('.searchinput',function(err,res) {
-                    assert.equal(null, err)
+                    assert.equal(null, err);
                     assert.strictEqual(res,'!1');
                 })
                 .call(done);

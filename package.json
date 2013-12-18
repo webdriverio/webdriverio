@@ -65,6 +65,7 @@
     "lodash.partial": "~2.2.1",
     "chainit": "~1.0.1",
     "lodash.merge": "~2.2.1",
-    "pragma-singleton": "~1.0.3"
+    "pragma-singleton": "~1.0.3",
+    "request": "~2.30.0"
   }
 }

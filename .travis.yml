@@ -11,10 +11,6 @@ env:
   global:
     - secure: RRh5YMC/bl6LrUTW55SKsyrltmde7rThOclWLIwSeApTGcC7DTzKePsqPBop0S9mAhWXPztoV6xKWyp1yTJ1Ucwo4B7Y+q7ehNzk/+UYyibuUxKCq6er7YjcNZmGmNjvysnjBbM1BEWkAQITQeHJ+8WOMUMGhvONImlv/CgIJ34=
     - secure: smf2QW85/Yosojq0jTOWVcXzJXmvwazBQSdx+xhgLr/CocslkLA0pBnrSCSoI022DUYORHz8+gyLb9JTeZatPPMW591pSDRgZhqWe6PT3PXByb2mDHVtu0ZSZ8XxYDOCHFshyZRTn7F3O61TaR69nHLQjBKefKoHUhT/u+ChZ50=
-    - TIMEOUT=600000
-    - HTTP_TIMEOUT=300000
-    - HTTP_RETRIES=10
-    - HTTP_RETRY_DELAY=10000
 
   matrix:
     - _BROWSER: "chrome"
@@ -23,19 +19,6 @@ env:
     - _BROWSER: "firefox"
       _PLATFORM: "Windows_8"
       _VERSION: "25"
-    - _BROWSER: "internet_explorer"
-      _PLATFORM: "Windows_8"
-      _VERSION: "8"
-    - _BROWSER: "iphone"
-      _PLATFORM: "OS_X_10.8"
-      _VERSION: "6.1"
-      _DEVICEORIENTATION: "portrait"
-    - _BROWSER: "ipad"
-      _PLATFORM: "OS_X_10.8"
-      _VERSION: "6.1"
-      _DEVICEORIENTATION: "portrait"
-    - _BROWSER: "android"
+    - _BROWSER: "firefox"
       _PLATFORM: "Linux"
-      _VERSION: "4.0"
-      _DEVICEORIENTATION: "portrait"
-      _DEVICETYPE: "tablet"
+      _VERSION: "25"
