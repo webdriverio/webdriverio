@@ -1,4 +1,4 @@
-describe('buttonClick command test',function() {
+describe('clickMouseButton command test',function() {
     before(h.setup);
 
     it('text should be visible after click on .btn1', function(done){
@@ -7,7 +7,7 @@ describe('buttonClick command test',function() {
                 assert.equal(null, err);
                 assert.ok(result);
             })
-            .buttonClick('.btn1',function(err,result) {
+            .clickMouseButton('.btn1',function(err,result) {
                 assert.equal(null, err);
                 assert.equal(0, result.status);
             })
@@ -24,7 +24,7 @@ describe('buttonClick command test',function() {
                 assert.equal(null, err);
                 assert.ok(result);
             })
-            .buttonClick('.btn2',function(err,result) {
+            .clickMouseButton('.btn2',function(err,result) {
                 assert.equal(null, err);
                 assert.equal(0, result.status);
             })
@@ -42,7 +42,7 @@ describe('buttonClick command test',function() {
                 assert.equal(null, err);
                 assert.ok(result);
             })
-            .buttonClick('.btn3',function(err,result) {
+            .clickMouseButton('.btn3',function(err,result) {
                 assert.equal(null, err);
                 assert.equal(0, result.status);
             })
@@ -60,7 +60,7 @@ describe('buttonClick command test',function() {
                 assert.equal(null, err);
                 assert.ok(result);
             })
-            .buttonClick('.btn4',function(err,result) {
+            .clickMouseButton('.btn4',function(err,result) {
                 assert.equal(null, err);
                 assert.equal(0, result.status);
             })

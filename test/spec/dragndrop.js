@@ -16,7 +16,7 @@ describe.skip('drag&drop command test', function() {
                 assert.equal(null, err);
                 assert.ok(result);
             })
-            .buttonClick('.btn3',function(err,result) {
+            .clickMouseButton('.btn3',function(err,result) {
                 assert.equal(null, err);
                 assert.equal(0, result.status);
             })
