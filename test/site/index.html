@@ -43,20 +43,20 @@
 
 <h1>Test CSS Attributes</h1>
 <hr>
-<div class="box red" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+<div class="box red" ondrop="drop(event)" ondragover="allowDrop(event)" data-foundBy="css selector"></div>
 <div class="box green"></div>
 <div class="box yellow"></div>
 <div class="box black"></div>
-<div class="box purple" id="purplebox"></div>
+<div class="box purple" id="purplebox" data-foundBy="id"></div>
 
 <a href="./two.html" id="secondPageLink">two</a>
-<a href="https://github.com" id="githubRepo" class="clearfix">GitHub Repo</a>
-<a href="./two.html" target="_blank" id="newWindow">open new tab</a>
+<a href="https://github.com" id="githubRepo" class="clearfix" data-foundBy="link text">GitHub Repo</a>
+<a href="./two.html" target="_blank" id="newWindow" data-foundBy="partial link text">open new tab</a>
 
 <div class="nested" style="text-transform: uppercase">
     <h2>nested elements</h2>
     <div>
-        <span>nested span</span>
+        <span data-foundBy="xpath">nested span</span>
     </div>
 </div>
 
@@ -127,7 +127,7 @@
     },3000);
 </script>
 <hr>
-<input type="search" class="searchinput" name="searchinput">
+<input type="search" class="searchinput" name="searchinput" data-foundBy="name">
 <hr>
 <form method="GET">
     <input name="a" value="a">
@@ -158,4 +158,5 @@ function qry(variable) {
     console.log('Query variable %s not found', variable);
 }
 </script>
+<textarea cols="30" rows="10" data-foundBy="tag name"></textarea>
 </body></html>
