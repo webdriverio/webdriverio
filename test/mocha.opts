@@ -1,4 +1,4 @@
 test/spec/*.js test/teardown.js
---timeout 100000
+--timeout 1000000
 --reporter spec
 --require test/bootstrap.js
