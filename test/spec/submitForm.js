@@ -1,11 +1,11 @@
-describe('test submit button with click and submitForm', function(done) {
+describe.skip('test submit button with click and submitForm', function(done) {
     before(h.setup);
 
     var elementShouldBeNotFound = function(err,result) {
         assert.ok(err !== null);
     };
     var elementShouldBeVisible = function(err,result) {
-        assert.equal(null, err)
+        assert.equal(null, err);
         assert.strictEqual(result,true);
     };
 

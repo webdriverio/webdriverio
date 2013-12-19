@@ -24,7 +24,7 @@ describe('singleton option', function() {
         before(function(done) {
             c1
                 .init()
-                .url(conf.testPage.url2, done)
+                .url(conf.testPage.url2, done);
         });
 
         it('browses on the other reference', function(done) {
@@ -34,8 +34,12 @@ describe('singleton option', function() {
                 })
                 .getTitle(function(err, title) {
                     assert.equal(title, 'two');
-                    done(err)
-                })
+                    done(err);
+                });
+        });
+
+        it('should end other reference probably', function(done) {
+            c1.end(done);
         });
     });
-})
+});
