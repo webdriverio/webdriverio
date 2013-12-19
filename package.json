@@ -31,9 +31,9 @@
     "prepublish": "npm prune"
   },
   "devDependencies": {
-    "mocha": "~1.14.0",
+    "mocha": "~1.15.1",
     "chai": "~1.8.1",
-    "http-server": "~0.5.5"
+    "http-server": "~0.6.1"
   },
   "tags": [
     "web",
@@ -61,10 +61,10 @@
     "testingbot"
   ],
   "dependencies": {
-    "lodash.assign": "~2.2.1",
-    "lodash.partial": "~2.2.1",
+    "lodash.assign": "~2.4.1",
+    "lodash.partial": "~2.4.1",
     "chainit": "~1.0.1",
-    "lodash.merge": "~2.2.1",
+    "lodash.merge": "~2.4.1",
     "pragma-singleton": "~1.0.3",
     "request": "~2.30.0"
   }
