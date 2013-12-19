@@ -1,3 +1,5 @@
+notifications:
+  email: false
 language: node_js
 node_js:
   - '0.10'
@@ -6,6 +8,17 @@ before_script:
 addons:
   sauce_connect: true
 env:
-    global:
-        - secure: RRh5YMC/bl6LrUTW55SKsyrltmde7rThOclWLIwSeApTGcC7DTzKePsqPBop0S9mAhWXPztoV6xKWyp1yTJ1Ucwo4B7Y+q7ehNzk/+UYyibuUxKCq6er7YjcNZmGmNjvysnjBbM1BEWkAQITQeHJ+8WOMUMGhvONImlv/CgIJ34=
-        - secure: smf2QW85/Yosojq0jTOWVcXzJXmvwazBQSdx+xhgLr/CocslkLA0pBnrSCSoI022DUYORHz8+gyLb9JTeZatPPMW591pSDRgZhqWe6PT3PXByb2mDHVtu0ZSZ8XxYDOCHFshyZRTn7F3O61TaR69nHLQjBKefKoHUhT/u+ChZ50=
+  global:
+    - SAUCE_USERNAME: "webdriverjs"
+    - SAUCE_ACCESS_KEY: "6ccbed11-96f8-4199-901d-b9a93bdbc376"
+
+  matrix:
+    - _BROWSER: "chrome"
+      _PLATFORM: "Windows_8"
+      _VERSION: "31"
+    - _BROWSER: "firefox"
+      _PLATFORM: "Windows_8"
+      _VERSION: "25"
+    - _BROWSER: "firefox"
+      _PLATFORM: "Linux"
+      _VERSION: "25"

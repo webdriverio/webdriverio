@@ -7,8 +7,11 @@ module.exports = {
     "port": 80,
     "logLevel": "silent",
     "desiredCapabilities" : {
-        "browserName": "chrome",
-        "version": "31",
+        "browserName": process.env._BROWSER.replace(/_/g,' '),
+        "platform": process.env._PLATFORM.replace(/_/g,' '),
+        "version": process.env._VERSION,
+        "device-orientation": process.env._DEVICEORIENTATION || "",
+        "device-type": process.env._DEVICETYPE || "",
         "tunnel-identifier": process.env.TRAVIS_JOB_NUMBER,
         "tags": ["webdriverjs","api","test"],
         "name": "webdriverjs API test",
@@ -16,4 +19,4 @@ module.exports = {
         "username": process.env.SAUCE_USERNAME,
         "accessKey": process.env.SAUCE_ACCESS_KEY
     }
-}
+};
