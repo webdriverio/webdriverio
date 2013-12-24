@@ -6,9 +6,9 @@ describe('my webdriverjs tests', function(){
     this.timeout(99999999);
     var client = {};
 
-    before(function(){
+    before(function(done){
             client = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
-            client.init();
+            client.init(done);
     });
 
     it('Github test',function(done) {
