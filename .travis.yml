@@ -4,7 +4,9 @@ language: node_js
 node_js:
   - '0.10'
 before_script:
-  - ./node_modules/.bin/http-server test -p 8080 &
+  - curl -O http://selenium.googlecode.com/files/selenium-server-standalone-2.39.0.jar
+  - java -jar selenium-server-standalone-2.39.0.jar &
+  - python -m SimpleHTTPServer 8080 &
 addons:
   sauce_connect: true
 env:
@@ -22,3 +24,6 @@ env:
     - _BROWSER: "firefox"
       _PLATFORM: "Linux"
       _VERSION: "25"
+    - _BROWSER: "phantomjs"
+      _PLATFORM: ""
+      _VERSION: ""
