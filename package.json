@@ -32,8 +32,7 @@
   },
   "devDependencies": {
     "mocha": "~1.15.1",
-    "chai": "~1.8.1",
-    "http-server": "~0.5.5"
+    "chai": "~1.8.1"
   },
   "tags": [
     "web",
