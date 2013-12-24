@@ -1,4 +1,4 @@
-describe.only('test cookie functionality',function() {
+describe('test cookie functionality',function() {
     before(h.setup);
 
     it('should set a cookie and read its content afterwards', function(done){
