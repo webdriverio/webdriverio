@@ -1,6 +1,6 @@
 var merge = require('lodash.merge');
 
-var env = process.env.TRAVIS && process.env.TRAVIS_BRANCH === 'master' ? 'travis-ci' : 'local';
+var env = process.env.TRAVIS && process.env._BROWSER !== 'phantomjs' ? 'travis-ci' : 'local';
 
 var defaults = require('./defaults.js');
 var asked = require('./' + env + '.js');

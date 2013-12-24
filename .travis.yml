@@ -25,5 +25,3 @@ env:
       _PLATFORM: "Linux"
       _VERSION: "25"
     - _BROWSER: "phantomjs"
-      _PLATFORM: ""
-      _VERSION: ""
