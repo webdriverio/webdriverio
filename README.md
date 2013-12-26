@@ -152,8 +152,7 @@ can assert values or have more logic when the callback is called.
 - **addValue(`String` css selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a css selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **call(callback)**<br>call given function in async order of current command queue
 - **clearElement(`String` css selector, `Function` callback)**<br>clear an element of text
-- **click(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
-- **clickMouseButton(`String` css selector, `String` button, `Function` callback)**<br>Clicks a mouse button on a location determined by the css selector. button is optional and is one of [left, middle, right].
+- **click(`String` css selector, `String` button, `Function` callback)**<br>Clicks on an element based on a css selector. `String` button is optional and is one of [left, middle, right].
 - **close([`String` tab ID to focus on,] `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
 - **deleteCookie(`String` name, `Function` callback)**<br>Delete a cookie for current page.
 - **doubleClick(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
@@ -195,7 +194,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [alertDismiss](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/dismiss_alert)
 - [alertText](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/alert_text)
 - [back](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/back)
-- [buttonClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/click)
+- [buttonPress](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/click)
 - [buttonDown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttondown)
 - [buttonUp](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttonup)
 - [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie)
