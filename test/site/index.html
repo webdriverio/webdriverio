@@ -80,21 +80,25 @@
 <script src="./jquery.min.js"></script>
 <script type="text/javascript">
     $('.btn1')
-        .click(function() {
-            $('.btn1_clicked').css('display','block');
-        })
         .mousedown(function(e) {
             switch(e.which) {
+                case 1:
+                    $('.btn1_clicked').css('display','block');
+                break;
                 case 2:
                     $('.btn1_middle_clicked').css('display','block');
-                    // e.preventDefault();
                 break;
                 case 3:
                     $('.btn1_right_clicked').css('display','block');
-                    // e.preventDefault();
                 break;
             }
-        });
+            return false;
+        })
+        .contextmenu(function() {
+                console.info('on contextmenu');
+                return false;
+            })
+        ;
     $('.btn2').click(function() {
         $('.btn2_clicked').css('display','block');
     });

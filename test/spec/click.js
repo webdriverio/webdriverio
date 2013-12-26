@@ -123,11 +123,7 @@ describe('click command test',function() {
                     button: 'right',
                     expectConfirmationVisible: true,
                 });
-                this.client
-                    // For some reason, in Chrome, right clicking again makes the context menu disappear.
-                    // This is only for cosmetics; letting the menu remain doesn't affect the rest of the tests.
-                    .buttonPress('right')
-                    .call(done);
+                this.client.call(done);
             });
         });
     };
