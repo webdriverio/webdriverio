@@ -1,0 +1,9 @@
+{
+    "id": "com.webdriverjs.example",
+    "lib": {
+        "www": {
+            "id": "phonegap",
+        }
+    },
+    "name": "WebdriverJSExample"
+}
