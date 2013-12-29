@@ -21,7 +21,7 @@ h = {
          * For tests caused by pull requests PhantomJS tests are sufficient.
          */
         if(
-            process.env.TRAVIS_BRANCH !== undefined && (
+            process.env.TRAVIS !== undefined && (
            (process.env.TRAVIS_BRANCH === 'master' && process.env._BROWSER === 'phantomjs') ||
            (process.env.TRAVIS_BRANCH !== 'master' && process.env._BROWSER !== 'phantomjs'))) {
             console.log('This test was skipped');
