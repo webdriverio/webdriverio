@@ -155,7 +155,7 @@ npm install -g selenium-standalone http-server
 start-selenium
 
 # serves the test directory holding the test files
-http-server test
+http-server
 
 # runs tests !
 npm test
