@@ -1,22 +1,26 @@
-var request = require('request');
+var request = require('saucelabs');
 
 describe('teardown', function() {
 
-    if (process.env.TRAVIS !== undefined) {
-        it('it marks tests on saucelabs as passed/failed', function(done) {
-            // mark travis job as passed
-            var options = {
-                headers: { 'Content-Type': 'text/json' },
-                url: 'http://' + process.env.SAUCE_USERNAME + ':' + process.env.SAUCE_ACCESS_KEY + '@saucelabs.com/rest/v1/' + process.env.SAUCE_USERNAME + '/jobs/' + this.client.requestHandler.sessionID,
-                method: 'PUT',
-                body: JSON.stringify({
-                    passed: true
-                })
-            };
+    it('it marks tests on saucelabs as passed/failed', function(done) {
 
-            request(options, done);
-        });
-    }
+        if(this.client.options.username && this.client.options.accessKey) {
+
+            var sauceAccount = new SauceLabs({
+                username: this.client.options.username,
+                password: this.client.options.accessKey
+            });
+
+            sauceAccount.stopJob(this.client.requestHandler.sessionID, {
+                passed: true,
+                public: true
+            },done);
+
+        } else {
+            done();
+        }
+
+    });
 
     it('stops the client', function(done) {
         this.client.endAll(done);
