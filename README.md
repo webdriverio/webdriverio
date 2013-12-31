@@ -152,14 +152,14 @@ can assert values or have more logic when the callback is called.
 - **addValue(`String` css selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a css selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **call(callback)**<br>call given function in async order of current command queue
 - **clearElement(`String` css selector, `Function` callback)**<br>clear an element of text
-- **click(`String` css selector, `String` button, `Function` callback)**<br>Clicks on an element based on a css selector. `String` button is optional and is one of [left, middle, right].
+- **click(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector.
 - **close([`String` tab ID to focus on,] `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
 - **deleteCookie(`String` name, `Function` callback)**<br>Delete a cookie for current page.
 - **doubleClick(`String` css selector, `Function` callback)**<br>Clicks on an element based on a css selector
 - **dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback)**<br>Drags an item to a destination
 - **end(`Function` callback)**<br>Ends a sessions (closes the browser)
 - **endAll(`Function` callback)**<br>Ends all sessions (closes the browser)
-- **execute(`String` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
+- **execute(`String` or `Function` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame. If script is a `Function`, arguments is required.
 - **getAttribute(`String` css selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the css selector and attribute name
 - **getCookie(`String` name, `Function` callback)**<br>Gets the cookie for current page.
 - **getCssProperty(`String` css selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a css selector
@@ -176,10 +176,13 @@ can assert values or have more logic when the callback is called.
 - **getValue(`String` css selector, `Function` callback)**<br>Gets the value of a dom obj found by css selector
 - **isSelected(`String` css selector, `Function` callback)**<br>Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by css selector).
 - **isVisible(`String` css selector, `Function` callback)**<br>Return true or false if the selected dom obj is visible (found by css selector)
+- **leftClick(`String` css selector, `Function` callback)**<br>Apply left click mouse event at an element
+- **middleClick(`String` css selector, `Function` callback)**<br>Apply middle click mouse event at an element
 - **moveToObject(`String` css selector, `Function` callback)**<br>Moves the page to the selected dom object
 - **newWindow(`String` url, `String` name for the new window, `String` new window features (e.g. size, position, scrollbars, etc.), `Function` callback)**<br>equivalent function to `Window.open()` in a browser
 - **pause(`Integer` milliseconds, `Function` callback)**<br>Pauses the commands by the provided milliseconds
 - **refresh(`Function` callback)**<br>Refresh the current page
+- **rightClick(`String` css selector, `Function` callback)**<br>Apply right click mouse event at an element
 - **saveScreenshot(`String` path to file, `Function` callback)**<br>Saves a screenshot as a png from the current state of the browser
 - **setCookie(`Object` cookie, `Function` callback)**<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
 - **setValue(`String` css selector, `String|String[]` value, `Function` callback)**<br>Sets a value to an object found by a css selector (clears value before). You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
