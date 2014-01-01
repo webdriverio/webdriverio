@@ -78,6 +78,7 @@
 <div class="btn4_dblclicked">Button #4 dblclicked</div>
 
 <script src="./jquery.min.js"></script>
+<script src="./jquery.hammerjs.min.js"></script>
 <script type="text/javascript">
     $('.btn1')
         .mousedown(function(e) {
@@ -144,6 +145,11 @@
         var newElement = $('<div />').addClass('lateElem').html('Sorry, I\'m late!');
         $('body').append(newElement);
     },3000);
+
+    $('.nested h2').hammer().on('tap doubletap dragup, dragdown, dragleft, dragright swipeup, swipedown, swipeleft, swiperight', function(e) {
+        $('.searchinput').val(e.type);
+        console.log(e);
+    })
 </script>
 <hr>
 <input type="search" class="searchinput" name="searchinput" data-foundBy="name">
