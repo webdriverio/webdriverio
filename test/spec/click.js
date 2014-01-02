@@ -7,27 +7,42 @@ var clickAndConfirm = function(params) {
         .isVisible(params.confirmationClass, function(err, result) {
             assert.equal(err, null);
             assert.ok(!result, 'confirmation must be invisible as a precondition');
-        })
-        [params.clickMethodName](params.btnClass, function(err, result) {
-            assert.equal(err, null);
-            assert.equal(result.status, 0);
-        })
+        });
+
+    if(params.moveBeforeClick) {
+        params.client
+            .moveToObject(params.btnClass, function(err, result) {
+                assert.equal(err, null);
+            })
+            [params.clickMethodName](function(err, result) {
+                assert.equal(err, null);
+                assert.equal(result.status, 0);
+            });
+    } else {
+        params.client
+            [params.clickMethodName](params.btnClass, function(err, result) {
+                assert.equal(err, null);
+                assert.equal(result.status, 0);
+            });
+    }
+
+    params.client
         .isVisible(params.confirmationClass, function(err, result) {
             assert.equal(err, null);
-            assert.equal(result, params.expectConfirmationVisible,
-                'expectation failed on ' + params.btnClass + ' being clicked');
+            assert.equal(result, params.expectConfirmationVisible);
         });
 };
 
 
 describe('left click commands',function() {
 
-    var testMouseClick = function(clickMethodName) {
+    var testMouseClick = function(clickMethodName, moveBeforeClick) {
 
         it('text should be visible after click on .btn1', function(done){
             clickAndConfirm({
                 client: this.client,
                 clickMethodName: clickMethodName,
+                moveBeforeClick: moveBeforeClick,
                 btnClass: '.btn1',
                 confirmationClass: '.btn1_clicked',
                 expectConfirmationVisible: true,
@@ -39,6 +54,7 @@ describe('left click commands',function() {
             clickAndConfirm({
                 client: this.client,
                 clickMethodName: clickMethodName,
+                moveBeforeClick: moveBeforeClick,
                 btnClass: '.btn2',
                 confirmationClass: '.btn2_clicked',
                 expectConfirmationVisible: false,
@@ -51,6 +67,7 @@ describe('left click commands',function() {
             clickAndConfirm({
                 client: this.client,
                 clickMethodName: clickMethodName,
+                moveBeforeClick: moveBeforeClick,
                 btnClass: '.btn4',
                 confirmationClass: '.btn4_clicked',
                 expectConfirmationVisible: true,
@@ -75,20 +92,16 @@ describe('left click commands',function() {
 
     beforeEach(h.setup);
 
-    describe('mouse button click', function() {
-        ['click', 'buttonClick', 'leftClick'].forEach(function(clickMethodName) {
-            describe('`' + clickMethodName + '`', function() {
-                testMouseClick(clickMethodName);
-            });
+    ['click', 'buttonClick'].forEach(function(clickMethodName) {
+        describe('`' + clickMethodName + '`', function() {
+            testMouseClick(clickMethodName);
+            testEventClick(clickMethodName);
         });
     });
 
-    describe('click command can directly invoke click event', function() {
-        ['click', 'buttonClick'].forEach(function(clickMethodName) {
-            describe('`' + clickMethodName + '`', function() {
-                testEventClick(clickMethodName);
-            });
-        });
+    describe('`leftClick`', function() {
+        testMouseClick('leftClick');
+        testMouseClick('leftClick', true);
     });
 
 });
