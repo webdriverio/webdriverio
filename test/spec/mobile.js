@@ -1,8 +1,9 @@
-describe.only('mobile tests', function() {
+describe('mobile tests', function() {
 
     before(h.setup);
+    beforeEach(openGestureTestPage);
 
-    it.skip('should get current orientation', function(done) {
+    it('should get current orientation', function(done) {
 
         this.client
             .getOrientation(function(err,res) {
@@ -14,42 +15,159 @@ describe.only('mobile tests', function() {
                 assert.equal(null, err);
                 assert.equal(res, 'LANDSCAPE');
             })
+            .setOrientation('portrait', h.noError)
             .call(done);
 
     });
 
-    it.skip('should scroll to specified X and Y position', function(done) {
+    // not implemented in appium yet
+    it.skip('[not implemented in appium yet] should execute touch command', function(done) {
 
         this.client
-            .isVisible('//window[1]/scrollview[1]/webview[1]/text[1]', function(err,res) {
+            .getAttribute('//*[@id="log-gesture-touch"]','class',function(err,res) {
                 assert.equal(null, err);
-                // headline should be visible on app start
-                assert.equal(res, true);
+                assert.equal(res, '');
             })
-            .scroll('//window[1]/scrollview[1]/webview[1]/textfield[5]',10,100,h.noError)
-            .isVisible('//window[1]/scrollview[1]/webview[1]/text[1]', function(err,res) {
+            .touch('//*[@id="hitarea"]', h.noError)
+            .getAttribute('//*[@id="log-gesture-touch"]','class',function(err,res) {
                 assert.equal(null, err);
-                // headline shouldn't be visible when we scroll down
-                assert.equal(res, false);
+                assert.equal(res, 'active');
             })
             .call(done);
-
     });
 
-    it.only('should tap on an element', function(done) {
+    // not implemented in appium yet
+    it.skip('[not implemented in appium yet] should execute release command', function(done) {
 
         this.client
-            .getValue('//window[1]/scrollview[1]/webview[1]/textfield[1]',function(err,res) {
+            .getAttribute('//*[@id="log-gesture-release"]','class',function(err,res) {
                 assert.equal(null, err);
-                assert.equal(res.toLowerCase(), '');
+                assert.equal(res, '');
             })
-            .tap('//window[1]/scrollview[1]/webview[1]/text[2]', h.noError)
-            .getValue('//window[1]/scrollview[1]/webview[1]/textfield[1]',function(err,res) {
+            .release('//*[@id="hitarea"]', h.noError)
+            .getAttribute('//*[@id="log-gesture-release"]','class',function(err,res) {
                 assert.equal(null, err);
-                assert.equal(res.toLowerCase(), 'tap');
+                assert.equal(res, 'active');
             })
             .call(done);
-
     });
+
+    // not implemented in appium yet
+    it.skip('[not implemented in appium yet] should execute hold command', function(done) {
+
+        this.client
+            .getAttribute('//*[@id="log-gesture-hold"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, '');
+            })
+            .hold('//*[@id="hitarea"]', h.noError)
+            .getAttribute('//*[@id="log-gesture-hold"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'active');
+            })
+            .call(done);
+    });
+
+    it('should execute tap command', function(done) {
+
+        // TODO why we can't call this.client in callbacks
+        var self = this;
+
+        this.client
+            .getAttribute('//*[@id="log-gesture-tap"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, '');
+            })
+            .getLocation('//*[@id="log-gesture-tap"]', function(err,res) {
+                self.client
+                    .tap(null, res.x, res.y, h.noError);
+            })
+            .getAttribute('//*[@id="log-gesture-tap"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'active');
+            })
+            .call(done);
+    });
+
+    // TODO figure out why toubletap is not working with tapCount 2
+    it.skip('[TODO] should execute doubletap command', function(done) {
+
+        // TODO why we can't call this.client in callbacks
+        var self = this;
+
+        this.client
+            .getAttribute('//*[@id="log-gesture-doubletap"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, '');
+            })
+            .getLocation('//*[@id="log-gesture-tap"]', function(err,res) {
+                self.client.tap(null, res.x, res.y, 2.0, 2.0, h.noError);
+            })
+            .getAttribute('//*[@id="log-gesture-doubletap"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'active');
+            })
+            .call(done);
+    });
+
+    it('should execute dragRight command', function(done) {
+        this.client
+            .getAttribute('//*[@id="log-gesture-dragright"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, '');
+            })
+            .dragRight('//*[@id="hitarea"]',h.noError)
+            .getAttribute('//*[@id="log-gesture-dragright"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'active');
+            })
+            .call(done);
+    });
+
+    it('should execute dragLeft command', function(done) {
+        this.client
+            .getAttribute('//*[@id="log-gesture-dragleft"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, '');
+            })
+            .dragLeft('//*[@id="hitarea"]',h.noError)
+            .getAttribute('//*[@id="log-gesture-dragleft"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'active');
+            })
+            .call(done);
+    });
+
+    it('should execute dragUp command', function(done) {
+        this.client
+            .getAttribute('//*[@id="log-gesture-dragup"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, '');
+            })
+            .dragUp('//*[@id="hitarea"]',h.noError)
+            .getAttribute('//*[@id="log-gesture-dragup"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'active');
+            })
+            .call(done);
+    });
+
+    it('should execute dragDown command', function(done) {
+        this.client
+            .getAttribute('//*[@id="log-gesture-dragdown"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, '');
+            })
+            .dragDown('//*[@id="hitarea"]',h.noError)
+            .getAttribute('//*[@id="log-gesture-dragdown"]','class',function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'active');
+            })
+            .call(done);
+    });
+
+    function openGestureTestPage(done) {
+        this.client.url(h.conf.testPage.gestureTest).call(done);
+    }
 
 });
