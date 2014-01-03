@@ -1,0 +1,23 @@
+{
+  "name": "WebdriverJS Testpage",
+  "version": "0.0.1",
+  "homepage": "http://webdriver.io",
+  "authors": [
+    "christian-bromann <contact@christian-bromann.com>"
+  ],
+  "main": "index.html",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-ui": "~1.10.3",
+    "jquery-hammerjs": "*",
+    "jquery": "~2.0.3"
+  }
+}
