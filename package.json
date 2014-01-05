@@ -27,6 +27,7 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
+    "pretest": "cd test/site/www && npm install -g bower && bower install",
     "test": "node test/runner.js",
     "prepublish": "npm prune"
   },
