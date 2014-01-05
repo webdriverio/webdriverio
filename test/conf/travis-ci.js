@@ -7,8 +7,8 @@ module.exports = {
     port: 80,
     logLevel: 'silent',
     desiredCapabilities : {
-        browserName: process.env._BROWSER.replace(/_/g,' '),
-        platform: process.env._PLATFORM.replace(/_/g,' '),
+        browserName: (process.env._BROWSER || '').replace(/_/g,' '),
+        platform: (process.env._PLATFORM || '').replace(/_/g,' '),
         version: process.env._VERSION,
         'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
         tags: ['webdriverjs','api','test'],
