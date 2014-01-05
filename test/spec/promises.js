@@ -73,7 +73,7 @@ describe('Promises', function() {
                         });
                     });
                 })
-                .buttonClick('.btn1',function(err) {
+                .click('.btn1',function(err) {
                     assert.equal(null, err);
                     result += 'f';
                 })

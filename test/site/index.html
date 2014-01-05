@@ -33,7 +33,8 @@
         bottom: 50px;
     }
     .btn1_clicked,.btn2_clicked,.btn3_clicked,.btn4_clicked,
-    .btn1_dblclicked,.btn2_dblclicked,.btn3_dblclicked,.btn4_dblclicked {
+    .btn1_dblclicked,.btn2_dblclicked,.btn3_dblclicked,.btn4_dblclicked,
+    .btn1_middle_clicked, .btn1_right_clicked {
         display:none;
     }
     </style>
@@ -62,6 +63,8 @@
 
 <button class="btn1">Klick #1</button>
 <div class="btn1_clicked">Button #1 clicked</div>
+<div class="btn1_middle_clicked">Button #1 middle-clicked</div>
+<div class="btn1_right_clicked">Button #1 right-clicked</div>
 <div class="btn1_dblclicked">Button #1 dblclicked</div>
 <button class="btn2" disabled="">Klick #2</button>
 <div class="btn2_clicked">Button #2 clicked</div>
@@ -76,9 +79,25 @@
 
 <script src="./jquery.min.js"></script>
 <script type="text/javascript">
-    $('.btn1').click(function() {
-        $('.btn1_clicked').css('display','block');
-    });
+    $('.btn1')
+        .mousedown(function(e) {
+            switch(e.which) {
+                case 1:
+                    $('.btn1_clicked').css('display','block');
+                break;
+                case 2:
+                    $('.btn1_middle_clicked').css('display','block');
+                break;
+                case 3:
+                    $('.btn1_right_clicked').css('display','block');
+                break;
+            }
+            return false;
+        })
+        .contextmenu(function() {
+            console.info('on contextmenu');
+            return false;
+        });
     $('.btn2').click(function() {
         $('.btn2_clicked').css('display','block');
     });
