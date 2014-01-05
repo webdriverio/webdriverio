@@ -1,73 +1,138 @@
-describe('click command test',function() {
+var clickAndConfirm = function(params) {
+    params.client
+        .isVisible(params.btnClass, function(err,result) {
+            assert.equal(err, null);
+            assert.ok(result);
+        })
+        .isVisible(params.confirmationClass, function(err, result) {
+            assert.equal(err, null);
+            assert.ok(!result, 'confirmation must be invisible as a precondition');
+        });
+
+    if(params.moveBeforeClick) {
+        params.client
+            .moveToObject(params.btnClass, function(err, result) {
+                assert.equal(err, null);
+            })
+            [params.clickMethodName](function(err, result) {
+                assert.equal(err, null);
+                assert.equal(result.status, 0);
+            });
+    } else {
+        params.client
+            [params.clickMethodName](params.btnClass, function(err, result) {
+                assert.equal(err, null);
+                assert.equal(result.status, 0);
+            });
+    }
+
+    params.client
+        .isVisible(params.confirmationClass, function(err, result) {
+            assert.equal(err, null);
+            assert.equal(result, params.expectConfirmationVisible);
+        });
+};
+
+
+describe('left click commands',function() {
+
+    var testMouseClick = function(clickMethodName, moveBeforeClick) {
+
+        it('text should be visible after click on .btn1', function(done){
+            clickAndConfirm({
+                client: this.client,
+                clickMethodName: clickMethodName,
+                moveBeforeClick: moveBeforeClick,
+                btnClass: '.btn1',
+                confirmationClass: '.btn1_clicked',
+                expectConfirmationVisible: true,
+            });
+            this.client.call(done);
+        });
+
+        it('text should NOT be visible after click on .btn2 because button is disabled', function(done){
+            clickAndConfirm({
+                client: this.client,
+                clickMethodName: clickMethodName,
+                moveBeforeClick: moveBeforeClick,
+                btnClass: '.btn2',
+                confirmationClass: '.btn2_clicked',
+                expectConfirmationVisible: false,
+            });
+            this.client.call(done);
+        });
+
+
+        it('text should be visible after clicking on .btn4 1px/1px width/height', function(done){
+            clickAndConfirm({
+                client: this.client,
+                clickMethodName: clickMethodName,
+                moveBeforeClick: moveBeforeClick,
+                btnClass: '.btn4',
+                confirmationClass: '.btn4_clicked',
+                expectConfirmationVisible: true,
+            });
+            this.client.call(done);
+        });
+
+    };
+
+    var testEventClick = function(clickMethodName) {
+        it('text should be visible after click on .btn3 altought it is behind an overlay', function(done){
+            clickAndConfirm({
+                client: this.client,
+                clickMethodName: clickMethodName,
+                btnClass: '.btn3',
+                confirmationClass: '.btn3_clicked',
+                expectConfirmationVisible: true,
+            });
+            this.client.call(done);
+        });
+    };
+
+    beforeEach(h.setup);
+
+    ['click', 'buttonClick'].forEach(function(clickMethodName) {
+        describe('`' + clickMethodName + '`', function() {
+            testMouseClick(clickMethodName);
+            testEventClick(clickMethodName);
+        });
+    });
+
+    describe('`leftClick`', function() {
+        testMouseClick('leftClick');
+        testMouseClick('leftClick', true);
+    });
+
+});
+
+describe('rightclick', function() {
     before(h.setup);
 
-    it('text should be visible after click on .btn1', function(done){
-        this.client
-            .isVisible('.btn1',function(err,result) {
-                assert.equal(null, err);
-                assert.ok(result);
-            })
-            .click('.btn1',function(err,result) {
-                assert.equal(null, err);
-                assert.equal(0, result.status);
-            })
-            .isVisible('.btn1_clicked',function(err,result){
-                assert.equal(null, err)
-                assert(result, '.btn1 was clicked');
-            })
-            .call(done);
+    it('text should be visible after right-clicking on .btn1', function(done) {
+        clickAndConfirm({
+            client: this.client,
+            clickMethodName: 'rightClick',
+            btnClass: '.btn1',
+            confirmationClass: '.btn1_right_clicked',
+            expectConfirmationVisible: true,
+        });
+        this.client.call(done);
     });
+});
 
-    it('text should NOT be visible after click on .btn2 because button is disabled', function(done){
-        this.client
-            .isVisible('.btn2',function(err,result) {
-                assert.equal(null, err);
-                assert.ok(result);
-            })
-            .click('.btn2',function(err,result) {
-                assert.equal(null, err);
-                assert.equal(0, result.status);
-            })
-            .isVisible('.btn2_clicked',function(err,result){
-                assert.equal(null, err)
-                assert(!result, '.btn2 was not clicked');
-            })
-            .call(done);
+describe.skip('middleClick', function() {
+    before(h.setup);
+
+    // note this fails with most browsers: middle click becomes left click.
+    it('text should be visible after middle-clicking on .btn1', function(done) {
+        clickAndConfirm({
+            client: this.client,
+            clickMethodName: 'middleClick',
+            btnClass: '.btn1',
+            confirmationClass: '.btn1_middle_clicked',
+            expectConfirmationVisible: true,
+        });
+        this.client.call(done);
     });
-
-    it('text should be visible after click on .btn3 altought it is behind an overlay', function(done){
-        this.client
-            .isVisible('.btn3',function(err,result) {
-                assert.equal(null, err);
-                assert.ok(result);
-            })
-            .click('.btn3',function(err,result) {
-                assert.equal(null, err);
-                assert.equal(0, result.status);
-            })
-            .isVisible('.btn3_clicked',function(err,result){
-                assert.equal(null, err);
-                assert(result, '.btn3 was clicked');
-            })
-            .call(done);
-    });
-
-
-    it('text should be visible after clicking on .btn4 1px/1px width/height', function(done){
-        this.client
-            .isVisible('.btn4',function(err,result) {
-                assert.equal(null, err);
-                assert.ok(result);
-            })
-            .click('.btn4',function(err,result) {
-                assert.equal(null, err);
-                assert.equal(0, result.status);
-            })
-            .isVisible('.btn4_clicked',function(err,result){
-                assert.equal(null, err);
-                assert(result, '.btn4 was clicked');
-            })
-            .call(done);
-    });
-
 });
