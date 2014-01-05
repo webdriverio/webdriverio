@@ -27,7 +27,7 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "node test/runner.js",
     "prepublish": "npm prune"
   },
   "devDependencies": {
@@ -35,7 +35,8 @@
     "chai": "~1.8.1",
     "request": "~2.30.0",
     "jshint": "~2.4.1",
-    "saucelabs": "~0.1.1"
+    "saucelabs": "~0.1.1",
+    "glob": "~3.2.7"
   },
   "tags": [
     "web",

@@ -24,13 +24,13 @@ describe('singleton option', function() {
         before(function(done) {
             c1
                 .init()
-                .url(conf.testPage.url2, done);
+                .url(conf.testPage.subPage, done);
         });
 
         it('browses on the other reference', function(done) {
             c2
                 .url(function(err, res) {
-                    assert.equal(res.value, conf.testPage.url2);
+                    assert.equal(res.value, conf.testPage.subPage);
                 })
                 .getTitle(function(err, title) {
                     assert.equal(title, 'two');

@@ -1,5 +1,5 @@
-describe.skip('test submit button with click and submitForm', function(done) {
-    before(h.setup);
+describe('test submit button with click and submitForm', function(done) {
+    beforeEach(h.setup);
 
     var elementShouldBeNotFound = function(err,result) {
         assert.ok(err !== null);
@@ -11,11 +11,10 @@ describe.skip('test submit button with click and submitForm', function(done) {
 
     it('click on submit button should send data from form', function(done) {
         this.client
-            .url(conf.testPage.url)
             .isVisible('.gotDataA', elementShouldBeNotFound)
             .isVisible('.gotDataB', elementShouldBeNotFound)
             .isVisible('.gotDataC', elementShouldBeNotFound)
-            .click('.send',         h.noError)
+            .click('.sendBtn',      h.noError)
             .isVisible('.gotDataA', elementShouldBeVisible)
             .isVisible('.gotDataB', elementShouldBeVisible)
             .isVisible('.gotDataC', elementShouldBeVisible)
@@ -24,7 +23,6 @@ describe.skip('test submit button with click and submitForm', function(done) {
 
     it('submit form via provided command should send data from form', function(done) {
         this.client
-            .url(conf.testPage.url)
             .isVisible('.gotDataA', elementShouldBeNotFound)
             .isVisible('.gotDataB', elementShouldBeNotFound)
             .isVisible('.gotDataC', elementShouldBeNotFound)

@@ -94,11 +94,11 @@ describe('test different selector strategies', function () {
 
     it('should find an element using "xpath" method',function(done) {
         this.client
-            .isVisible('//BODY/DIV[6]/DIV[1]/SPAN[1]',function(err,isVisible) {
+            .isVisible('//html/body/section/div[6]/div/span',function(err,isVisible) {
                 assert.equal(null, err);
                 assert.equal(isVisible,true);
             })
-            .getAttribute('//BODY/DIV[6]/DIV[1]/SPAN[1]', 'data-foundBy', function(err,attr) {
+            .getAttribute('//html/body/section/div[6]/div/span', 'data-foundBy', function(err,attr) {
                 assert.equal(null, err);
                 assert.equal(attr,'xpath');
             })
@@ -106,7 +106,7 @@ describe('test different selector strategies', function () {
     });
 
     // check if it is still backwards compatible for obsolete command
-    it('should still work with obsolte command',function(done) {
+    it('should still work with obsolete command',function(done) {
         this.client
             .getElementCssProperty('css selector','.red', 'background-color', function(err,result) {
                 assert.equal(null, err);

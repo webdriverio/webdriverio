@@ -3,6 +3,8 @@ describe('addValue', function() {
     before(h.setup);
     beforeEach(clean);
 
+    it.run = it;
+
     describe('simple usage', function() {
         it('can add values to an input', function(done) {
             this.client
@@ -60,7 +62,7 @@ describe('addValue', function() {
                 .call(done);
         });
 
-        it('it should cut&paste a text via Control + x and Control + v', function(done) {
+        it[h.isMobile ? 'skip' : 'run']((h.isMobile ? '[SKIP ON MOBILE] ':'') + 'it should cut&paste a text via Control + x and Control + v', function(done) {
             var text = 'test';
 
             this.client
@@ -84,7 +86,7 @@ describe('addValue', function() {
                 .call(done);
         });
 
-        it('it should copy&paste a text via Control + c and Control + v', function(done) {
+        it[h.isMobile ? 'skip' : 'run']((h.isMobile ? '[SKIP ON MOBILE] ':'') + 'it should copy&paste a text via Control + c and Control + v', function(done) {
             var text = 'test';
 
             this.client

@@ -1,22 +1,6 @@
 describe('get commands should return the evaluated value', function() {
     before(h.setup);
 
-    var testpageSource;
-
-    before(function(done) {
-        // load source of testpage for getSource() test
-        var path = require('path');
-        var fs = require('fs');
-        fs.readFile(path.join(__dirname, '..', 'site', 'index.html'), function (err, html) {
-            if (err) {
-                throw err;
-            }
-            testpageSource = html.toString();
-            done();
-        });
-
-    });
-
     it('getAttribute: style of elem .nested should be "text-transform:uppercase;"', function(done){
         this.client
             .getAttribute('.nested', 'style', function(err,result) {
@@ -90,36 +74,40 @@ describe('get commands should return the evaluated value', function() {
             });
     });
 
-    it('getLocation: location of elem .green should be x=120 , y=89', function(done){
+    it('getLocation: location of elem .green should be x=127 , y=242', function(done){
         this.client
-            .url(conf.testPage.url + '?' + Date.now())
+            .url(conf.testPage.start + '?' + Date.now())
             .getLocation('.green', function(err,result) {
                 assert.equal(null, err);
-                assert.strictEqual(result.x,120);
-                assert(result.y > 80 && result.y <100);
+                assert.strictEqual(result.x,127);
+                assert.strictEqual(result.y,242);
                 done(err);
             });
     });
 
-    it('getLocationInView: location of elem .green should be x=120 , y=89', function(done){
+    it('getLocationInView: location of elem .green should be x=127 , y=198', function(done){
+        var that = this;
+
         this.client
             .getLocationInView('.green', function(err,result) {
                 assert.equal(null, err);
-                assert.strictEqual(result.x,120);
-                assert(result.y > 80 && result.y <100);
+                assert.strictEqual(result.x,127);
+                assert.strictEqual(result.y,that.client.desiredCapabilities.browserName === 'phantomjs' ? 198 : 242);
                 done(err);
             });
     });
 
-    it.skip('getSource: source code of testpage should be the same as the code, which was fetched before test', function(done){
+    it('getSource: source code of testpage should be the same as the code, which was fetched before test', function(done){
         this.client
             .getSource(function(err,result) {
                 assert.equal(null, err);
 
-                // remove not visible php code
-                testpageSource = testpageSource.replace(/<\?php[^?]*\?>\n/g,'');
-
-                assert.strictEqual(result,testpageSource);
+                assert(
+                    result.indexOf('Test CSS Attributes') > 0 &&
+                    result.indexOf('open new tab') > 0 &&
+                    result.indexOf('$(\'.btn3_clicked\').css(\'display\',\'block\');') > 0 &&
+                    result.indexOf('</html>') > 0
+                );
                 done(err);
             });
     });

@@ -12,6 +12,7 @@ header {
     height: 40px;
     width: 96%;
     padding: 20px 2% 0;
+    z-index: 999999;
     background: url("data:image/gif;base64,R0lGODlhBAAEAJEAABERESIiIgcHBwAAACH5BAAAAAAALAAAAAAEAAQAAAIHBCQRiIZaAAA7") repeat;
 }
 
@@ -53,6 +54,10 @@ header a {
 
 .page {
     padding: 80px 15px 15px;
+}
+
+h2 {
+    font-size: 18px;
 }
 
 .box {
