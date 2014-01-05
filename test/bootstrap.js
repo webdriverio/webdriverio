@@ -20,6 +20,7 @@ h = {
          * Only execute cross browser tests on changes within master branch.
          * For tests caused by pull requests PhantomJS tests are sufficient.
          */
+        console.log(process.env.TRAVIS, process.env.TRAVIS_BRANCH, process.env._BROWSER)
         if(
             process.env.TRAVIS !== undefined && (
            (process.env.TRAVIS_BRANCH === 'master' && process.env._BROWSER === 'phantomjs') ||
