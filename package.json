@@ -33,7 +33,8 @@
   "devDependencies": {
     "mocha": "~1.15.1",
     "chai": "~1.8.1",
-    "request": "~2.30.0"
+    "request": "~2.30.0",
+    "jshint": "~2.4.1"
   },
   "tags": [
     "web",
