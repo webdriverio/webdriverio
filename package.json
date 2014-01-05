@@ -32,7 +32,9 @@
   },
   "devDependencies": {
     "mocha": "~1.15.1",
-    "chai": "~1.8.1"
+    "chai": "~1.8.1",
+    "request": "~2.30.0",
+    "jshint": "~2.4.1"
   },
   "tags": [
     "web",
@@ -60,11 +62,8 @@
     "testingbot"
   ],
   "dependencies": {
-    "lodash.assign": "~2.4.1",
-    "lodash.partial": "~2.4.1",
     "chainit": "~1.1.2",
     "lodash.merge": "~2.4.1",
-    "pragma-singleton": "~1.0.3",
-    "request": "~2.30.0"
+    "pragma-singleton": "~1.0.3"
   }
 }
