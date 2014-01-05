@@ -34,7 +34,7 @@ glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
                 password: process.env.SAUCE_ACCESS_KEY
             });
 
-            sauceAccount.stopJob(this.client.requestHandler.sessionID, {
+            sauceAccount.stopJob(client.requestHandler.sessionID, {
                 passed: failures === 0,
                 public: true
             },done);

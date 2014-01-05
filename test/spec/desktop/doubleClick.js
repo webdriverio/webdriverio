@@ -41,7 +41,9 @@ describe('doubleClick command test',function(done) {
     });
 
 
-    it('text should not be visible after doubleClick on .btn3 because button is behind overlay', function(done){
+    it('text should be visible after doubleClick on .btn3 although button is behind overlay', function(done){
+        var that = this;
+
         this.client
             .isVisible('.btn3',function(err,result) {
                 assert.equal(null, err);
@@ -53,7 +55,8 @@ describe('doubleClick command test',function(done) {
             })
             .isVisible('.btn3_dblclicked',function(err,result){
                 assert.equal(null, err);
-                assert(!result, '.btn3 was doubleClicked');
+                // doesnt work in chromedriver
+                assert((that.client.desiredCapabilities.browserName === 'chrome') !== result, '.btn3 was doubleClicked');
             })
             .call(done);
     });

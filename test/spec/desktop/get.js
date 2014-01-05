@@ -74,29 +74,6 @@ describe('get commands should return the evaluated value', function() {
             });
     });
 
-    it('getLocation: location of elem .green should be x=127 , y=242', function(done){
-        this.client
-            .url(conf.testPage.start + '?' + Date.now())
-            .getLocation('.green', function(err,result) {
-                assert.equal(null, err);
-                assert.strictEqual(result.x,127);
-                assert(result.y > 240);
-                done(err);
-            });
-    });
-
-    it('getLocationInView: location of elem .green should be x=127 , y=198', function(done){
-        var that = this;
-
-        this.client
-            .getLocationInView('.green', function(err,result) {
-                assert.equal(null, err);
-                assert.strictEqual(result.x,127);
-                assert.strictEqual(result.y,that.client.desiredCapabilities.browserName === 'phantomjs' ? 198 : 242);
-                done(err);
-            });
-    });
-
     it('getSource: source code of testpage should be the same as the code, which was fetched before test', function(done){
         this.client
             .getSource(function(err,result) {

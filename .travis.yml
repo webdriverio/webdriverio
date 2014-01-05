@@ -26,7 +26,7 @@ env:
       _VERSION: "25"
     - _PLATFORM: "Mac"
       _APP: "safari"
-      _DEVICE: "iPhone Simulator"
+      _DEVICE: "iPhone_Simulator"
       _ENV: "mobile"
     - _BROWSER: "android"
       _PLATFORM: "Linux"
