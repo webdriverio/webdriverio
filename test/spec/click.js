@@ -106,20 +106,8 @@ describe('left click commands',function() {
 
 });
 
-describe('non-left clicks', function() {
+describe('rightclick', function() {
     before(h.setup);
-
-    // note this fails with most browsers: middle click becomes left click.
-    it.skip('text should be visible after middle-clicking on .btn1', function(done) {
-        clickAndConfirm({
-            client: this.client,
-            clickMethodName: 'middleClick',
-            btnClass: '.btn1',
-            confirmationClass: '.btn1_middle_clicked',
-            expectConfirmationVisible: true,
-        });
-        this.client.call(done);
-    });
 
     it('text should be visible after right-clicking on .btn1', function(done) {
         clickAndConfirm({
@@ -127,6 +115,22 @@ describe('non-left clicks', function() {
             clickMethodName: 'rightClick',
             btnClass: '.btn1',
             confirmationClass: '.btn1_right_clicked',
+            expectConfirmationVisible: true,
+        });
+        this.client.call(done);
+    });
+});
+
+describe.skip('middleClick', function() {
+    before(h.setup);
+
+    // note this fails with most browsers: middle click becomes left click.
+    it('text should be visible after middle-clicking on .btn1', function(done) {
+        clickAndConfirm({
+            client: this.client,
+            clickMethodName: 'middleClick',
+            btnClass: '.btn1',
+            confirmationClass: '.btn1_middle_clicked',
             expectConfirmationVisible: true,
         });
         this.client.call(done);
