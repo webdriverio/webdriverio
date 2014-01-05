@@ -3,3 +3,4 @@ node_modules
 .DS_Store
 test/site/platforms/*
 test/site/www/components/
+test/site.zip

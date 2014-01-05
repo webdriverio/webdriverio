@@ -1,27 +1,10 @@
-describe('mobile tests', function() {
+describe('specific mobile command tests', function() {
 
     before(h.setup);
     beforeEach(openGestureTestPage);
 
-    it('should get current orientation', function(done) {
-
-        this.client
-            .getOrientation(function(err,res) {
-                assert.equal(null, err);
-                assert.equal(res, 'PORTRAIT');
-            })
-            .setOrientation('landscape', h.noError)
-            .getOrientation(function(err,res) {
-                assert.equal(null, err);
-                assert.equal(res, 'LANDSCAPE');
-            })
-            .setOrientation('portrait', h.noError)
-            .call(done);
-
-    });
-
-    // not implemented in appium yet
-    it.skip('[not implemented in appium yet] should execute touch command', function(done) {
+    // not implemented in appium
+    it.skip('[not implemented in appium] should execute touch command', function(done) {
 
         this.client
             .getAttribute('//*[@id="log-gesture-touch"]','class',function(err,res) {
@@ -36,8 +19,8 @@ describe('mobile tests', function() {
             .call(done);
     });
 
-    // not implemented in appium yet
-    it.skip('[not implemented in appium yet] should execute release command', function(done) {
+    // not implemented in appium
+    it.skip('[not implemented in appium] should execute release command', function(done) {
 
         this.client
             .getAttribute('//*[@id="log-gesture-release"]','class',function(err,res) {
@@ -52,8 +35,8 @@ describe('mobile tests', function() {
             .call(done);
     });
 
-    // not implemented in appium yet
-    it.skip('[not implemented in appium yet] should execute hold command', function(done) {
+    // not implemented in appium
+    it.skip('[not implemented in appium] should execute hold command', function(done) {
 
         this.client
             .getAttribute('//*[@id="log-gesture-hold"]','class',function(err,res) {
@@ -166,8 +149,25 @@ describe('mobile tests', function() {
             .call(done);
     });
 
+    it('should get current orientation', function(done) {
+
+        this.client
+            .getOrientation(function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'PORTRAIT');
+            })
+            .setOrientation('landscape', h.noError)
+            .getOrientation(function(err,res) {
+                assert.equal(null, err);
+                assert.equal(res, 'LANDSCAPE');
+            })
+            .setOrientation('portrait', h.noError)
+            .call(done);
+
+    });
+
     function openGestureTestPage(done) {
-        this.client.url(h.conf.testPage.gestureTest).call(done);
+        this.client.url(conf.testPage.gestureTest).call(done);
     }
 
 });

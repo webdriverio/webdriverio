@@ -4,7 +4,7 @@ describe('script execution', function() {
     it('should be able to execute some js', function(done) {
         this.client
             .execute('return document.title', [], function(err, res) {
-                assert.equal(null, err)
+                assert.equal(null, err);
                 assert.equal(conf.testPage.title, res.value);
                 done(err);
             });
@@ -13,7 +13,7 @@ describe('script execution', function() {
     it('should be forgiving on giving an `args` parameter', function(done) {
         this.client
             .execute('return document.title', function(err, res) {
-                assert.equal(null, err)
+                assert.equal(null, err);
                 assert.equal(conf.testPage.title, res.value);
                 done(err);
             });
@@ -30,15 +30,16 @@ describe('script execution', function() {
             });
     });
 
-    it('should provide an executeAsync method', function(done) {
+    it.skip('[not implemented in appium] should provide an executeAsync method', function(done) {
         this.client
-            .timeouts('script', 2000)
+            .timeouts('ms', 2000)
             .executeAsync(function() {
                 var cb = arguments[arguments.length - 1];
                 setTimeout(function() {
                     cb(document.title + '-async');
                 }, 1000);
             }, function(err, res) {
+                console.log(err,res);
                 assert.equal(null, err);
                 assert.equal(conf.testPage.title + '-async', res.value);
                 done(err);

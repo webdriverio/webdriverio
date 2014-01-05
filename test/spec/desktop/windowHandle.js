@@ -1,7 +1,7 @@
 /**
  * not working via sauce connect
  */
-describe.skip('should work with window commands proberly', function() {
+describe('should work with window commands proberly', function() {
     before(h.setup);
 
     var tabs = null;
@@ -9,7 +9,7 @@ describe.skip('should work with window commands proberly', function() {
     it('should open two tabs', function(done) {
 
         this.client
-            .url(conf.testPage.url)
+            .url(conf.testPage.start)
             .click('#newWindow', h.noError)
             .getTabIds(function(err,res) {
                 assert.equal(null, err);
@@ -74,58 +74,25 @@ describe.skip('should work with window commands proberly', function() {
             .call(done);
     });
 
-    // this will not work if you use a tilling window manager
-    describe('changing window sizes', function() {
-        before(function(done) {
-            this.client.windowHandleSize({
-                width: 500,
-                height: 500
-            }, done);
-        });
-
-        it('changed the window size', function(done) {
-            this.client.windowHandleSize(function(err, res) {
-                assert(err === null);
-                // on some systems, we might not have changed the size, like on phantomjs
-                // still, no error means it worked
-                assert.ok(res.value.width >= 500);
-                assert.ok(res.value.height >= 500);
-                done(err);
-            });
-        });
-
-        it('can maximizes windows', function(done) {
-            this.client
-            .windowHandleMaximize()
-            .windowHandleSize(function(err, res) {
-                assert(err === null);
-                // on some systems, we might not have maximized, like on phantomjs
-                // still, no error means it worked
-                assert.ok(res.value.width >= 500);
-                assert.ok(res.value.height >= 500);
-                done(err);
-            });
-        });
-    });
-
     it('should open new windows and should switch tab focus automatically', function(done) {
 
         this.client
-            .url(conf.testPage.url)
-            .newWindow(conf.testPage.url2,'two',function(err,res) {
+            .url(conf.testPage.start)
+            .newWindow(conf.testPage.subPage,'two',function(err,res) {
                 assert.equal(null, err);
             })
             .getTitle(function(err,title) {
                 assert.equal(null, err);
                 assert.strictEqual(title,'two');
             })
-            .newWindow(conf.testPage.url,'Testpage',function(err) {
+            .newWindow(conf.testPage.start,'Testpage',function(err) {
                 assert.equal(null, err);
             })
             .getTitle(function(err,title) {
                 assert.equal(null, err);
                 assert.strictEqual(title,conf.testPage.title);
             })
+            .pause(1000)
             .call(done);
     });
 
@@ -145,11 +112,7 @@ describe.skip('should work with window commands proberly', function() {
                 assert.equal(null, err);
                 assert.equal(1, res.openTabs.length);
             })
-            // open tabs: f1-6'
-            .close(function(err,res) {
-                assert.equal(null, err);
-                assert.equal(0, res.openTabs.length);
-            })
+            // NOTE: PhantomJS can't close all tabs, real browser can
             .call(done);
     });
 });

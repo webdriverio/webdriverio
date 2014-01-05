@@ -3,7 +3,7 @@ describe('doubleClick command test',function(done) {
 
     before(function(done) {
         this.client.refresh(done);
-    })
+    });
 
     it('text should be visible after doubleClick on .btn1', function(done){
         this.client
@@ -16,7 +16,7 @@ describe('doubleClick command test',function(done) {
                 assert.equal(0, result.status);
             })
             .isVisible('.btn1_dblclicked',function(err,result){
-                assert.equal(null, err)
+                assert.equal(null, err);
                 assert(result, '.btn1 was doubleClicked');
             })
             .call(done);
@@ -41,7 +41,7 @@ describe('doubleClick command test',function(done) {
     });
 
 
-    xit('text should not be visible after doubleClick on .btn3 because button is behind overlay', function(done){
+    it('text should not be visible after doubleClick on .btn3 because button is behind overlay', function(done){
         this.client
             .isVisible('.btn3',function(err,result) {
                 assert.equal(null, err);
@@ -53,7 +53,7 @@ describe('doubleClick command test',function(done) {
             })
             .isVisible('.btn3_dblclicked',function(err,result){
                 assert.equal(null, err);
-                assert(result, '.btn3 was doubleClicked');
+                assert(!result, '.btn3 was doubleClicked');
             })
             .call(done);
     });
@@ -70,7 +70,7 @@ describe('doubleClick command test',function(done) {
                 assert.equal(0, result.status);
             })
             .isVisible('.btn4_dblclicked',function(err,result){
-                assert.equal(null, err)
+                assert.equal(null, err);
                 // it is possible to click on a button with width/height = 0
                 assert(result, '.btn4 was doubleClicked');
             })
