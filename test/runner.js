@@ -27,21 +27,20 @@ glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
     });
 
     mocha.run(function(failures) {
-        if(process.env.TRAVIS_BUILD_NUMBER) {
+        client.end(function(err,res) {
 
-            var sauceAccount = new SauceLabs({
-                username: process.env.SAUCE_USERNAME,
-                password: process.env.SAUCE_ACCESS_KEY
-            });
+            if(process.env.TRAVIS_BUILD_NUMBER) {
+                var sauceAccount = new SauceLabs({
+                    username: process.env.SAUCE_USERNAME,
+                    password: process.env.SAUCE_ACCESS_KEY
+                });
 
-            sauceAccount.stopJob(client.requestHandler.sessionID, {
-                passed: failures === 0,
-                public: true
-            },done);
-
-        }
-
-        client.endAll();
+                sauceAccount.updateJob(client.requestHandler.sessionID, {
+                    passed: failures === 0,
+                    public: true
+                });
+            }
+        });
     });
 });
 
