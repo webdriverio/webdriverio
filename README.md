@@ -176,7 +176,6 @@ These are the current implemented helper methods. All methods take from 0
 to a couple of parameters. Also all methods accept a callback so that we
 can assert values or have more logic when the callback is called.
 
-<<<<<<< HEAD
 - **addValue(`String` selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **call(callback)**<br>call given function in async order of current command queue
 - **clearElement(`String` selector, `Function` callback)**<br>clear an element of text
