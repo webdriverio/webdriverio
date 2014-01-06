@@ -1,4 +1,4 @@
-describe('dsalkjdslakjdlksadsa element', function() {
+describe('element selector API', function() {
     before(h.setup);
 
     describe('using the old syntax', function() {
