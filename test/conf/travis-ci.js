@@ -12,6 +12,7 @@ module.exports = {
         platform: (process.env._PLATFORM || '').replace(/_/g,' '),
         version: process.env._VERSION,
         'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
+        'idle-timeout': 900,
         tags: ['webdriverjs','api','test'],
         name: 'webdriverjs API test',
         build: process.env.TRAVIS_BUILD_NUMBER,
