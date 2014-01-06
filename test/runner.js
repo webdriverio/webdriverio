@@ -38,7 +38,9 @@ glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
                 sauceAccount.updateJob(client.requestHandler.sessionID, {
                     passed: failures === 0,
                     public: true
-                },function(){});
+                },function(err,res){
+                    console.log(err || res);
+                });
             }
         });
     });

@@ -6,7 +6,7 @@ module.exports = {
     },
     host: 'ondemand.saucelabs.com',
     port: 80,
-    logLevel: 'silent',
+    logLevel: 'command',
     desiredCapabilities : {
         browserName: (process.env._BROWSER || '').replace(/_/g,' '),
         platform: (process.env._PLATFORM || '').replace(/_/g,' '),
