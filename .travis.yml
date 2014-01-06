@@ -1,14 +1,23 @@
 notifications:
   email: false
+
 language: node_js
+
 node_js:
   - '0.10'
+
 before_script:
   - curl -O http://selenium.googlecode.com/files/selenium-server-standalone-2.39.0.jar
   - java -jar selenium-server-standalone-2.39.0.jar &
   - python -m SimpleHTTPServer 8080 &
+
 addons:
   sauce_connect: true
+
+branches:
+  except:
+    - website
+
 env:
   global:
     - SAUCE_USERNAME: "webdriverjs"
@@ -24,9 +33,11 @@ env:
     - _BROWSER: "firefox"
       _PLATFORM: "Linux"
       _VERSION: "25"
-    - _PLATFORM: "Mac"
-      _APP: "safari"
-      _DEVICE: "iPhone_Simulator"
-      _VERSION: "7"
-      _ENV: "mobile"
     - _BROWSER: "phantomjs"
+
+    allow_failures:
+      - _PLATFORM: "Mac"
+        _APP: "safari"
+        _DEVICE: "iPhone_Simulator"
+        _VERSION: "7"
+        _ENV: "mobile"
