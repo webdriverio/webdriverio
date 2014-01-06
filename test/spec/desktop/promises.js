@@ -1,4 +1,4 @@
-describe('Promises', function() {
+describe.only('Promises', function() {
     before(h.setup);
     it('should execute all commands in right order (asynchronous execution test)', function(done) {
         var result = '';
