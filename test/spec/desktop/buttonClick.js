@@ -48,7 +48,7 @@ describe('buttonClick command test',function() {
             })
             .isVisible('.btn3_clicked',function(err,result){
                 assert.equal(null, err);
-                assert(!result, '.btn3 was clicked');
+                assert(result, '.btn3 was clicked');
             })
             .call(done);
     });
