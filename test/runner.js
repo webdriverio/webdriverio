@@ -1,6 +1,6 @@
 var Mocha     = require('mocha'),
     SauceLabs = require('saucelabs'),
-    glob      = require("glob"),
+    glob      = require('glob'),
     env       = process.env._ENV || 'desktop',
     client;
 
@@ -27,7 +27,7 @@ glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
     });
 
     mocha.run(function(failures) {
-        client.end(function(err,res) {
+        client.end(function() {
 
             if(process.env.TRAVIS_BUILD_NUMBER) {
                 var sauceAccount = new SauceLabs({
