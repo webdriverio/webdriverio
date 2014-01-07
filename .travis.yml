@@ -33,11 +33,9 @@ env:
     - _BROWSER: "firefox"
       _PLATFORM: "Linux"
       _VERSION: "25"
+    - _PLATFORM: "Mac"
+      _APP: "safari"
+      _DEVICE: "iPhone_Simulator"
+      _VERSION: "7"
+      _ENV: "mobile"
     - _BROWSER: "phantomjs"
-
-    allow_failures:
-      - _PLATFORM: "Mac"
-        _APP: "safari"
-        _DEVICE: "iPhone_Simulator"
-        _VERSION: "7"
-        _ENV: "mobile"
