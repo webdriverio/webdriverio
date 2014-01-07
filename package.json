@@ -27,7 +27,7 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "pretest": "cd test/site/www && npm install -g bower && bower install",
+    "pretest": "cd test/site/www && ../../../node_modules/.bin/bower install",
     "test": "node test/runner.js",
     "prepublish": "npm prune"
   },
@@ -37,7 +37,8 @@
     "request": "~2.30.0",
     "jshint": "~2.4.1",
     "saucelabs": "~0.1.1",
-    "glob": "~3.2.7"
+    "glob": "~3.2.7",
+    "bower": "~1.2.8"
   },
   "tags": [
     "web",
