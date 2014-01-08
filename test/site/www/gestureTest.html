@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>two</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+    <header>
+        <h1>WebdriverJS Testpage</h1>
+        <a href="gestureTest.html">2</a>
+        <a href="index.html">1</a>
+    </header>
+
+    <div class="page">
+    	<p>
+            <label class="checkbox">
+                <input type="checkbox" checked id="prevent-default"> block browser behavior (preventDefault)
+            </label>
+        </p>
+        <div class="container">
+        <div class="log well well-small">
+            <h4>Events</h4>
+            <ul class="unstyled events" id="events-list">
+                <li>touch</li>
+                <li>release</li>
+                <li>hold</li>
+                <li>tap</li>
+                <li>doubletap</li>
+
+                <li>dragstart</li>
+                <li>drag</li>
+                <li>dragend</li>
+                <li>dragleft</li>
+                <li>dragright</li>
+                <li>dragup</li>
+                <li>dragdown</li>
+
+                <li>swipe</li>
+                <li>swipeleft</li>
+                <li>swiperight</li>
+                <li>swipeup</li>
+                <li>swipedown</li>
+
+                <li>transformstart</li>
+                <li>transform</li>
+                <li>transformend</li>
+                <li>rotate</li>
+                <li>rotateleft</li>
+                <li>rotateright</li>
+                <li>pinch</li>
+                <li>pinchin</li>
+                <li>pinchout</li>
+            </ul>
+            <h4>EventData</h4>
+            <ul class="unstyled properties">
+                <li class="property-gesture"><strong>gesture</strong> <span id="log-prop-gesture"></span></li>
+                <li><strong>touches</strong> <span id="log-prop-touches"></span></li>
+                <li><strong>pointerType</strong> <span id="log-prop-pointerType"></span></li>
+                <li><strong>center</strong> <span id="log-prop-center"></span></li>
+                <li><strong>angle</strong> <span id="log-prop-angle"></span>&deg;</li>
+                <li><strong>direction</strong> <span id="log-prop-direction"></span></li>
+                <li><strong>distance</strong> <span id="log-prop-distance"></span>px</li>
+
+                <li><strong>deltaTime</strong> <span id="log-prop-deltaTime"></span>ms</li>
+                <li><strong>deltaX</strong> <span id="log-prop-deltaX"></span>px</li>
+                <li><strong>deltaY</strong> <span id="log-prop-deltaY"></span>px</li>
+
+                <li><strong>velocityX</strong> <span id="log-prop-velocityX"></span></li>
+                <li><strong>velocityY</strong> <span id="log-prop-velocityY"></span></li>
+
+                <li><strong>scale</strong>  <span id="log-prop-scale"></span></li>
+                <li><strong>rotation</strong> <span id="log-prop-rotation"></span>&deg;</li>
+
+                <li><strong>target</strong> <span id="log-prop-target"></span></li>
+            </ul>
+        </div>
+
+        <div id="hitarea" class="hitarea"></div>
+        </div>
+    </div>
+
+    <script src="components/jquery/jquery.min.js"></script>
+    <script src="components/hammerjs/hammer.js"></script>
+    <script src="components/hammerjs/plugins/hammer.fakemultitouch.js"></script>
+
+    <script>
+
+        Hammer.plugins.fakeMultitouch();
+
+        function getEl(id) {
+            return document.getElementById(id);
+        }
+
+
+        var log_elements = {};
+        var prevent_scroll_drag = true;
+
+
+        $("#prevent-default").click(function() {
+            hammertime.options.prevent_default = this.checked;
+        });
+
+
+        function getLogElement(type, name) {
+            var el = log_elements[type + name];
+            if(!el) {
+                return log_elements[type + name] = getEl("log-"+ type +"-"+ name);
+            }
+            return el;
+        }
+
+        // log properties
+        var properties = ['gesture','center','deltaTime','angle','direction',
+            'distance','deltaX','deltaY','velocityX','velocityY', 'pointerType',
+            'scale','rotation','touches','target'];
+
+        function logEvent(ev) {
+            if(!ev.gesture) {
+                return;
+            }
+
+            // add to the large event log at the bottom of the page
+            var log = [this.id, ev.type];
+            //event_log.innerHTML = log.join(" - ") +"\n" + event_log.innerHTML;
+
+            // highlight gesture
+            var event_el = getLogElement('gesture', ev.type);
+            event_el.className = "active";
+
+
+            for(var i= 0,len=properties.length; i<len; i++) {
+                var prop = properties[i];
+                var value = ev.gesture[prop];
+                switch(prop) {
+                    case 'center':
+                        value = value.pageX +"x"+ value.pageY;
+                        break;
+                    case 'gesture':
+                        value = ev.type;
+                        break;
+                    case 'target':
+                        value = ev.gesture.target.tagName;
+                        break;
+                    case 'touches':
+                        value = ev.gesture.touches.length;
+                        break;
+                }
+                getLogElement('prop', prop).innerHTML = value;
+            }
+        }
+
+
+        // get all the events
+        var all_events = [];
+        $("#events-list li").each(function() {
+            var li = $(this);
+            var type = li.text();
+            li.attr("id", "log-gesture-"+type);
+            all_events.push(type);
+        });
+
+
+        // start!
+        var hammertime = Hammer(getEl('hitarea'), {
+                prevent_default: true,
+                no_mouseevents: true
+            })
+            .on(all_events.join(" "), logEvent);
+
+    </script>
+
+</body>
+</html>

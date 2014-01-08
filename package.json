@@ -27,14 +27,18 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "mocha",
+    "pretest": "cd test/site/www && ../../../node_modules/.bin/bower install",
+    "test": "node test/runner.js",
     "prepublish": "npm prune"
   },
   "devDependencies": {
     "mocha": "~1.15.1",
     "chai": "~1.8.1",
     "request": "~2.30.0",
-    "jshint": "~2.4.1"
+    "jshint": "~2.4.1",
+    "saucelabs": "~0.1.1",
+    "glob": "~3.2.7",
+    "bower": "~1.2.8"
   },
   "tags": [
     "web",

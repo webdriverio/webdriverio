@@ -32,7 +32,7 @@ describe('Promises', function() {
 
                             result += '7';
 
-                            client.doubleClick('.btn1', function(err) {
+                            client.click('.btn1', function(err) {
                                 assert.equal(null, err);
                                 result += '8';
 
@@ -83,4 +83,4 @@ describe('Promises', function() {
                 });
             });
     });
-})
+});

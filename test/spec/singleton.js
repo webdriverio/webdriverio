@@ -3,7 +3,7 @@ describe('singleton option', function() {
     var c2;
     var conf = require('../conf/index.js');
 
-    before(function() {
+    before(function(done) {
         var webdriverjs = require('../../index.js');
         var merge = require('lodash.merge');
 
@@ -14,32 +14,26 @@ describe('singleton option', function() {
         c2 = webdriverjs.remote(merge(conf, {
             singleton: true
         }));
+
+        c1.init().url(conf.testPage.subPage, done);
     });
 
     it('creates only one instance', function() {
         assert(c1 === c2);
     });
 
-    describe('when browsing on one reference', function() {
-        before(function(done) {
-            c1
-                .init()
-                .url(conf.testPage.url2, done);
-        });
+    it('browses on the other reference', function(done) {
+        c2
+            .url(function(err, res) {
+                assert.equal(res.value, conf.testPage.subPage);
+            })
+            .getTitle(function(err, title) {
+                assert.equal(title, 'two');
+                done(err);
+            });
+    });
 
-        it('browses on the other reference', function(done) {
-            c2
-                .url(function(err, res) {
-                    assert.equal(res.value, conf.testPage.url2);
-                })
-                .getTitle(function(err, title) {
-                    assert.equal(title, 'two');
-                    done(err);
-                });
-        });
-
-        it('should end other reference probably', function(done) {
-            c1.end(done);
-        });
+    it('should end other reference probably', function(done) {
+        c1.end(done);
     });
 });
