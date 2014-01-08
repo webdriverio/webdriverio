@@ -5,23 +5,23 @@ describe('Promises', function() {
         var client = this.client;
 
         this.client
-            .click('//html/body/section/button[1]', function(err) {
+            .click('.btn1', function(err) {
                 assert.equal(null, err);
                 result += '1';
             })
-            .isVisible('//html/body/section/button[1]', function(err) {
+            .isVisible('.btn1', function(err) {
                 assert.equal(null, err);
                 result += '2';
             })
             .call(function() {
                 result += '3';
 
-                client.click('//html/body/section/button[1]',function(err) {
+                client.click('.btn1',function(err) {
 
                     assert.equal(null, err);
                     result += '4';
 
-                    client.isVisible('//html/body/section/button[1]', function(err) {
+                    client.isVisible('.btn1', function(err) {
                         assert.equal(null, err);
                         result += '5';
                     })
@@ -32,14 +32,14 @@ describe('Promises', function() {
 
                             result += '7';
 
-                            client.click('//html/body/section/button[1]', function(err) {
+                            client.click('.btn1', function(err) {
                                 assert.equal(null, err);
                                 result += '8';
 
                                 client.call(function() {
                                     result += '9';
 
-                                    client.isVisible('//html/body/section/button[1]', function(err) {
+                                    client.isVisible('.btn1', function(err) {
                                         assert.equal(null, err);
                                         result += '0';
 
@@ -55,25 +55,25 @@ describe('Promises', function() {
                                     });
                                 });
                             })
-                            .click('//html/body/section/button[1]', function(err) {
+                            .click('.btn1', function(err) {
                                 assert.equal(null, err);
                                 result += 'b';
                             });
                         });
                     })
-                    .click('//html/body/section/button[1]', function() {
+                    .click('.btn1', function() {
                         result += 'c';
                     })
                     .call(function() {
                         result += 'd';
 
-                        client.isVisible('//html/body/section/button[1]', function(err) {
+                        client.isVisible('.btn1', function(err) {
                             assert.equal(null, err);
                             result += 'e';
                         });
                     });
                 })
-                .buttonClick('//html/body/section/button[1]',function(err) {
+                .click('.btn1',function(err) {
                     assert.equal(null, err);
                     result += 'f';
                 })
