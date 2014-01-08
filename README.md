@@ -183,10 +183,16 @@ can assert values or have more logic when the callback is called.
 - **close([`String` tab ID to focus on,] `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
 - **deleteCookie(`String` name, `Function` callback)**<br>Delete a cookie for current page.
 - **doubleClick(`String` selector, `Function` callback)**<br>Clicks on an element based on a selector
+- **drag(`String` selector, `Number` startX, `Number` startY, `Number` endX, `Number` endY, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag on the screen or an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
 - **dragAndDrop(`String` sourceCssSelector, `String` destinationCssSelector, `Function` callback)**<br>Drags an item to a destination
+- **dragDown(`String` selector, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag down on an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
+- **dragLeft(`String` selector, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag left on an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
+- **dragRight(`String` selector, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag right on an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
+- **dragUp(`String` selector, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag up on an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
 - **end(`Function` callback)**<br>Ends a sessions (closes the browser)
 - **endAll(`Function` callback)**<br>Ends all sessions (closes the browser)
 - **execute(`String` or `Function` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame. If script is a `Function`, arguments is required.
+- **flick(`String` selector, `Number` startX, `Number` startY, `Number` endX, `Number` endY, `Number` touchCount, `Function` callback)**<br>Perform a flick on the screen or an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
 - **getAttribute(`String` selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the selector and attribute name
 - **getCookie(`String` name, `Function` callback)**<br>Gets the cookie for current page.
 - **getCssProperty(`String` selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a selector
@@ -194,6 +200,7 @@ can assert values or have more logic when the callback is called.
 - **getElementSize(`String` selector, `Function` callback)**<br>Gets the width and height for an object based on the selector
 - **getLocation(`String` selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the selector
 - **getLocationInView(`String` selector, `Function` callback)**<br>Gets the x and y coordinate for an object based on the selector in the view
+- **getOrientation(`Function` callback)**<br>Get the current browser orientation.
 - **getSource(`Function` callback)**<br>Gets source code of the page
 - **getTabIds(`Function` callback)**<br>Retrieve the list of all window handles available to the session.
 - **getTagName(`String` selector, `Function` callback)**<br>Gets the tag name of a dom obj found by the selector
@@ -203,17 +210,23 @@ can assert values or have more logic when the callback is called.
 - **isSelected(`String` selector, `Function` callback)**<br>Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by selector).
 - **isVisible(`String` selector, `Function` callback)**<br>Return true or false if the selected dom obj is visible (found by selector)
 - **leftClick(`String` selector, `Function` callback)**<br>Apply left click at an element. If selector is not provided, click at the last moved-to location.
+- **hold(`String` selector,`Function` callback)**<br>Long press on an element using finger motion events.
 - **middleClick(`String` selector, `Function` callback)**<br>Apply middle click at an element. If selector is not provided, click at the last moved-to location.
 - **moveToObject(`String` selector, `Function` callback)**<br>Moves the page to the selected dom object
 - **newWindow(`String` url, `String` name for the new window, `String` new window features (e.g. size, position, scrollbars, etc.), `Function` callback)**<br>equivalent function to `Window.open()` in a browser
 - **pause(`Integer` milliseconds, `Function` callback)**<br>Pauses the commands by the provided milliseconds
 - **refresh(`Function` callback)**<br>Refresh the current page
+- **release(`String` selector, `Function` callback)**<br>Finger up on an element.
 - **rightClick(`String` selector, `Function` callback)**<br>Apply right click at an element. If selector is not provided, click at the last moved-to location.
 - **saveScreenshot(`String` path to file, `Function` callback)**<br>Saves a screenshot as a png from the current state of the browser
+- **scroll(`String` selector, `Function`callback)**<br>Scroll to a specific element. You can also pass two offset values as parameter to scroll to a specific position (e.g. `scroll(xoffset,yoffset,callback)`).
 - **setCookie(`Object` cookie, `Function` callback)**<br>Sets a [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#Cookie_JSON_Object) for current page.
+- **setOrientation(`String` orientation, `Function` callback)**<br>Set the current browser orientation.
 - **setValue(`String` selector, `String|String[]` value, `Function` callback)**<br>Sets a value to an object found by a selector (clears value before). You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **submitForm(`String` selector, `Function` callback)**<br>Submits a form found by the selector
 - **switchTab(`String` tab ID)**<br>switch focus to a particular tab/window
+- **tap(`String` selector,`Number` x,`Number` y,`Number` tapCount,`Number` touchCount,`Number` duration,`Function` callback)**<br>Perform a tap on the screen or an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
+- **touch(`String` selector, `Function` callback)**<br>Finger down on an element.
 - **waitFor(`String` selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
 ## List of current implemented wire protocol bindings
@@ -250,6 +263,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [implicitWait](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts/implicit_wait)
 - [init](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/)
 - [keys](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/keys)
+- [orientation](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/orientation)
 - [moveto](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto)
 - [refresh](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/refresh)
 - [screenshot](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/screenshot)
@@ -260,6 +274,17 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [submit](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/submit)
 - [timeouts](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts)
 - [title](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/title)
+- [touchClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/click)
+- [touchDoubleClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/doubleclick)
+- [touchDown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/down)
+- [touchFlick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/flick)
+- [touchFlickPrecise](https://github.com/appium/appium/blob/master/docs/gestures.md)
+- [touchLongClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/longclick)
+- [touchMove](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/move)
+- [touchScroll](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/scroll)
+- [touchSwipe](https://github.com/appium/appium/blob/master/docs/gestures.md)
+- [touchTap](https://github.com/appium/appium/blob/master/docs/gestures.md)
+- [touchUp](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/up)
 - [url](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url)
 - [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
 - [windowHandle](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handle)

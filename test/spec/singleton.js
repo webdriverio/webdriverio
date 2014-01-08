@@ -1,4 +1,4 @@
-describe('singleton option', function() {
+describe.skip('singleton option', function() {
     var c1;
     var c2;
     var conf = require('../conf/index.js');
