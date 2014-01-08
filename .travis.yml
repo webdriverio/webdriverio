@@ -20,8 +20,8 @@ branches:
 
 env:
   global:
-    - SAUCE_USERNAME: "webdriverjs"
-    - SAUCE_ACCESS_KEY: "6ccbed11-96f8-4199-901d-b9a93bdbc376"
+    - SAUCE_USERNAME=camme-webdriverjs
+    - secure: lSzNpGQXV8HlReK2meTE7ySWoYnVy1n1BIln0pZGcJ0jovHpitVGnR2S/0Bu91td8agjlNUWksBR72PCSDoTQyAH105EVDVkUXkGQoKvKrdnvszGGO/aDu0Ly2Mwc47zR9BILleAtOiW+yQGd7fRdgVy1sPYPDydlUDdRpqXi0w=
 
   matrix:
     - _BROWSER: "chrome"
