@@ -56,7 +56,7 @@ describe('doubleClick command test',function(done) {
             .isVisible('.btn3_dblclicked',function(err,result){
                 assert.equal(null, err);
                 // doesnt work in chromedriver
-                assert(!result, '.btn3 was doubleClicked');
+                assert((that.client.desiredCapabilities.browserName === 'chrome') !== result, '.btn3 was doubleClicked');
             })
             .call(done);
     });
