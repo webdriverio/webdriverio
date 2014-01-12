@@ -40,26 +40,28 @@ describe('doubleClick command test',function(done) {
             .call(done);
     });
 
+    // doubleClick on a button behind overlay won't work in chrome
+    // in fact it should work nowhere since selenium mimics what users CAN do
+    // and users can't click on buttons behind overlays
+    if (['chrome', 'phantomjs'].indexOf(conf.desiredCapabilities.browserName) === -1) {
+        it('text should be visible after doubleClick on .btn3 although button is behind overlay', function(done){
+            this.client
+                .isVisible('.btn3',function(err,result) {
+                    assert.equal(null, err);
+                    assert.ok(result);
+                })
+                .doubleClick('.btn3',function(err,result) {
+                    assert.equal(null, err);
+                    assert.equal(0, result.status);
+                })
+                .client.isVisible('.btn3_dblclicked',function(err,result){
+                    assert.equal(null, err);
+                    assert.ok(result, '.btn3 was doubleClicked');
+                })
+                .call(done);
+        });
+    }
 
-    it('text should be visible after doubleClick on .btn3 although button is behind overlay', function(done){
-        var that = this;
-
-        this.client
-            .isVisible('.btn3',function(err,result) {
-                assert.equal(null, err);
-                assert.ok(result);
-            })
-            .doubleClick('.btn3',function(err,result) {
-                assert.equal(null, err);
-                assert.equal(0, result.status);
-            })
-            .isVisible('.btn3_dblclicked',function(err,result){
-                assert.equal(null, err);
-                // doesnt work in chromedriver
-                assert((that.client.desiredCapabilities.browserName === 'chrome') !== result, '.btn3 was doubleClicked');
-            })
-            .call(done);
-    });
 
 
     it('text should be visible after doubleClicking on on .btn4 1px/1px width/height', function(done){
