@@ -149,7 +149,7 @@ If you want to help us in developing webdriverjs, you can easily add
 [mocha](https://github.com/visionmedia/mocha) [tests](test/) and run them locally:
 
 ```sh
-npm install -g selenium-standalone http-server
+npm install -g selenium-standalone http-server phantomjs
 
 # start a local selenium instances
 start-selenium
