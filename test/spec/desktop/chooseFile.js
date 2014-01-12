@@ -2,7 +2,7 @@ describe('choosing a file in an <input type=file>', function() {
     before(h.setup);
 
     var path = require('path');
-    var toUpload = path.join(__dirname, '..', 'fixtures', 'cat-to-upload.gif');
+    var toUpload = path.join(__dirname, '..', '..', 'fixtures', 'cat-to-upload.gif');
 
     it('uploads a file and fills the form with it', function(done) {
         this.client
