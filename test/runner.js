@@ -21,7 +21,7 @@ var mocha = new Mocha({
 });
 
 glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
-    
+
     files.forEach(function(file) {
         mocha.addFile(file);
     });
@@ -40,7 +40,10 @@ glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
                     public: true
                 },function(err,res){
                     console.log(err || res);
+                    process.exit(failures);
                 });
+            } else {
+                process.exit(failures)
             }
         });
     });
