@@ -1,3 +1,7 @@
+FIX .execute(func) => provide cb in this.cb
+
+
+
 Needed before full PR:
 - provide a way to launch selenium tests on travis from local
 - hide and regenerate saucelab access key
