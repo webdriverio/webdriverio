@@ -43,7 +43,7 @@ describe('doubleClick command test',function(done) {
     // doubleClick on a button behind overlay won't work in chrome
     // in fact it should work nowhere since selenium mimics what users CAN do
     // and users can't click on buttons behind overlays
-    if (['chrome', 'phantomjs'].indexOf(conf.desiredCapabilities.browserName) === -1) {
+    if (['chrome', 'phantomjs', 'firefox'].indexOf(conf.desiredCapabilities.browserName) === -1) {
         it('text should be visible after doubleClick on .btn3 although button is behind overlay', function(done){
             this.client
                 .isVisible('.btn3',function(err,result) {
