@@ -68,6 +68,7 @@
   "dependencies": {
     "chainit": "~1.1.2",
     "lodash.merge": "~2.4.1",
-    "pragma-singleton": "~1.0.3"
+    "pragma-singleton": "~1.0.3",
+    "archiver": "~0.4.10"
   }
 }
