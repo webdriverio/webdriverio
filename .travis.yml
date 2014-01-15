@@ -14,10 +14,6 @@ before_script:
 addons:
   sauce_connect: true
 
-branches:
-  except:
-    - website
-
 env:
   global:
     - SAUCE_USERNAME=camme-webdriverjs
