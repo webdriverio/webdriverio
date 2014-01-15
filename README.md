@@ -179,7 +179,7 @@ can assert values or have more logic when the callback is called.
 - **addValue(`String` selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **call(callback)**<br>call given function in async order of current command queue
 - **chooseFile(`String` selector, `String` localFilePath, `Function` callback)**<br>Given a
-selector corresponding to an `<input type=file`, will upload the local file
+selector corresponding to an `<input type=file>`, will upload the local file
 to the browser machine and fill the form accordingly. It does not submit the form
 for you.
 - **clearElement(`String` selector, `Function` callback)**<br>clear an element of text
