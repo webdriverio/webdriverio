@@ -149,7 +149,7 @@ If you want to help us in developing webdriverjs, you can easily add
 [mocha](https://github.com/visionmedia/mocha) [tests](test/) and run them locally:
 
 ```sh
-npm install -g selenium-standalone http-server
+npm install -g selenium-standalone http-server phantomjs
 
 # start a local selenium instances
 start-selenium
@@ -178,6 +178,10 @@ can assert values or have more logic when the callback is called.
 
 - **addValue(`String` selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **call(callback)**<br>call given function in async order of current command queue
+- **chooseFile(`String` selector, `String` localFilePath, `Function` callback)**<br>Given a
+selector corresponding to an `<input type=file`, will upload the local file
+to the browser machine and fill the form accordingly. It does not submit the form
+for you.
 - **clearElement(`String` selector, `Function` callback)**<br>clear an element of text
 - **click(`String` selector, `Function` callback)**<br>Clicks on an element based on a selector.
 - **close([`String` tab ID to focus on,] `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
@@ -258,6 +262,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [elements](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/elements)
 - [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
 - [executeAsync](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute_async)
+- file (undocumented protocol command)
 - [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
 - [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
 - [implicitWait](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts/implicit_wait)

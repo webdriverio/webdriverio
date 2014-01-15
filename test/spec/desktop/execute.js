@@ -31,23 +31,17 @@ describe('script execution', function() {
     });
 
     it('should provide an executeAsync method', function(done) {
-        var that = this;
-
         this.client
-            .timeouts('script', 2000)
+            .timeouts('script', 5000)
             .executeAsync(function() {
                 var cb = arguments[arguments.length - 1];
                 setTimeout(function() {
                     cb(document.title + '-async');
-                }, 1000);
+                }, 500);
             }, function(err, res) {
                 assert.equal(null, err);
                 assert.equal(conf.testPage.title + '-async', res.value);
-
-                // pause for 1s to prevent PhantomJS from crashing
-                that.client.pause(1000).call(function(){
-                    done(err);
-                });
+                done(err);
             });
     });
 
