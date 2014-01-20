@@ -4,8 +4,7 @@ module.exports = {
         subPage: 'http://127.0.0.1:8080/test/site/www/two.html',
         gestureTest: 'http://127.0.0.1:8080/test/site/www/gestureTest.html'
     },
-    host: 'ondemand.saucelabs.com',
-    port: 80,
+    port: 4445,
     logLevel: 'command',
     desiredCapabilities : {
         browserName: (process.env._BROWSER || '').replace(/_/g,' '),
