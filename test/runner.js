@@ -43,7 +43,7 @@ glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
                     process.exit(failures);
                 });
             } else {
-                process.exit(failures)
+                process.exit(failures);
             }
         });
     });
