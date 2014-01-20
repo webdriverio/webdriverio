@@ -27,6 +27,10 @@ glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
     });
 
     mocha.run(function(failures) {
+        if (!client) {
+            return process.exit(failures);
+        }
+
         client.end(function() {
 
             if(process.env.TRAVIS_BUILD_NUMBER) {
