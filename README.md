@@ -8,6 +8,8 @@ super easy selenium tests in your favorite BDD or TDD test framework.
 
 Have a look at the many [examples](examples/).
 
+For news or announcements follow [@webdriverjs](https://twitter.com/WebdriverJS) on Twitter.
+
 Breaking 1.x API changes, see [upgrading to 1.x](#upgrading-to-1x).
 
 ## How to install it
