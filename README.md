@@ -18,6 +18,11 @@ Breaking 1.x API changes, see [upgrading to 1.x](#upgrading-to-1x).
 npm install webdriverjs
 ```
 
+## Disclaimer
+
+This is not the official webdriverjs driver, for differences between this and the official
+driver, please see [our answer](https://github.com/camme/webdriverjs/issues/138#issuecomment-32051980).
+
 ## Usage
 
 `webdriverjs` implements most of selenium's [JsonWireProtocol](https://code.google.com/p/selenium/wiki/JsonWireProtocol).
