@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "mocha": "~1.17.1",
-    "chai": "~1.8.1",
+    "chai": "~1.9.0",
     "jshint": "~2.4.1",
     "saucelabs": "~0.1.1",
     "glob": "~3.2.7",
