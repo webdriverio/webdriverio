@@ -1,4 +1,4 @@
-var merge = require('lodash.merge');
+var merge = require('deepmerge');
 
 var env = process.env.TRAVIS && process.env._BROWSER !== 'phantomjs' ? 'travis-ci' : 'local';
 
