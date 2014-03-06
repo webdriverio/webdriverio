@@ -17,8 +17,8 @@ script: "if [[ $TRAVIS_BRANCH == 'master' && $_BROWSER == 'phantomjs' ]] || [[ $
 after_script:
   - "[ -d ./coverage ] && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
 
-#addons:
-#  sauce_connect: true
+addons:
+  sauce_connect: true
 
 env:
   global:
