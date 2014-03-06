@@ -28,7 +28,8 @@
   },
   "scripts": {
     "pretest": "cd test/site/www && ../../../node_modules/.bin/bower install",
-    "test": "./node_modules/.bin/istanbul cover ./test/runner.js -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "test": "node ./test/runner.js",
+    "coverage": "./node_modules/.bin/istanbul cover ./test/runner.js -- -R spec",
     "prepublish": "npm prune"
   },
   "devDependencies": {
