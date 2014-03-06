@@ -29,7 +29,7 @@
   "scripts": {
     "pretest": "cd test/site/www && ../../../node_modules/.bin/bower install",
     "test": "node ./test/runner.js",
-    "coverage": "./node_modules/.bin/istanbul cover ./test/runner.js -- -R spec",
+    "coverage": "./node_modules/.bin/istanbul cover ./test/runner.js",
     "prepublish": "npm prune"
   },
   "devDependencies": {
