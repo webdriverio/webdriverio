@@ -17,7 +17,7 @@ if (process.env.TRAVIS_BUILD_NUMBER && (
 
 var mocha = new Mocha({
     timeout: 1000000,
-    reporter: 'spec'
+    reporter: 'mocha-lcov-reporter'
 });
 
 glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
