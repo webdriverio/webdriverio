@@ -28,7 +28,7 @@
   },
   "scripts": {
     "pretest": "cd test/site/www && ../../../node_modules/.bin/bower install",
-    "test": "istanbul cover ./test/runner.js -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "test": "./node_modules/.bin/istanbul cover ./test/runner.js -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "prepublish": "npm prune"
   },
   "devDependencies": {
@@ -38,7 +38,10 @@
     "saucelabs": "~0.1.1",
     "glob": "~3.2.7",
     "bower": "~1.2.8",
-    "nock": "~0.27.1"
+    "nock": "~0.27.1",
+    "coveralls": "~2.8.0",
+    "mocha-lcov-reporter": "~0.0.1",
+    "istanbul": "^0.2.6"
   },
   "tags": [
     "web",
@@ -70,8 +73,6 @@
     "lodash.merge": "~2.4.1",
     "pragma-singleton": "~1.0.3",
     "archiver": "~0.5.2",
-    "request": "~2.33.0",
-    "coveralls": "^2.8.0",
-    "mocha-lcov-reporter": "0.0.1"
+    "request": "~2.33.0"
   }
 }
