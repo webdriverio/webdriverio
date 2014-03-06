@@ -11,7 +11,7 @@ before_script:
   - java -jar selenium-server-standalone-2.39.0.jar &
   - python -m SimpleHTTPServer 8080 &
 
-script: npm coverage
+script: npm run-script coverage
 
 after_script:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
