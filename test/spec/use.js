@@ -1,7 +1,6 @@
-describe('use', function () {
+describe.only('use', function () {
 
-    var conf = require('../conf/index.js');
-    var webdriverjs;
+    before(h.setup);
 
     var commandModule = function() {
 
@@ -21,14 +20,9 @@ describe('use', function () {
 
     it('Adding commands with use()', function(done) {
 
-        var webdriverjs = require('../../index.js');
-        var client = webdriverjs.remote(conf);
+        this.client.use(commandModule);
 
-        client.use(commandModule);
-
-        client
-            .init()
-            .url(conf.testPage.start)
+        this.client
             .foo()
             .getValue('form input[name="a"]', function(err, value) {
                 assert.equal(value, 'fooooooo');
