@@ -28,7 +28,7 @@
   },
   "scripts": {
     "pretest": "cd test/site/www && ../../../node_modules/.bin/bower install",
-    "test": "node test/runner.js",
+    "test": "istanbul cover ./test/runner.js -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "prepublish": "npm prune"
   },
   "devDependencies": {
@@ -70,6 +70,8 @@
     "lodash.merge": "~2.4.1",
     "pragma-singleton": "~1.0.3",
     "archiver": "~0.5.2",
-    "request": "~2.33.0"
+    "request": "~2.33.0",
+    "coveralls": "^2.8.0",
+    "mocha-lcov-reporter": "0.0.1"
   }
 }
