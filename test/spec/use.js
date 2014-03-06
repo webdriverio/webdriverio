@@ -1,4 +1,4 @@
-describe.only('use', function () {
+describe('use', function () {
 
     before(h.setup);
 

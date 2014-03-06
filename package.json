@@ -40,7 +40,6 @@
     "bower": "~1.2.8",
     "nock": "~0.27.1",
     "coveralls": "~2.8.0",
-    "mocha-lcov-reporter": "~0.0.1",
     "istanbul": "^0.2.6"
   },
   "tags": [
