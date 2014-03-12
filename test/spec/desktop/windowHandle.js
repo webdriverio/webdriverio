@@ -78,14 +78,14 @@ describe('should work with window commands proberly', function() {
 
         this.client
             .url(conf.testPage.start)
-            .newWindow(conf.testPage.subPage,'two',function(err,res) {
+            .newWindow(conf.testPage.subPage,'two','menubar=no,toolbar=no',function(err,res) {
                 assert.equal(null, err);
             })
             .getTitle(function(err,title) {
                 assert.equal(null, err);
                 assert.strictEqual(title,'two');
             })
-            .newWindow(conf.testPage.start,'Testpage',function(err) {
+            .newWindow(conf.testPage.start,'Testpage','menubar=no,toolbar=no',function(err) {
                 assert.equal(null, err);
             })
             .getTitle(function(err,title) {
