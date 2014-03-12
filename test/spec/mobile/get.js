@@ -74,17 +74,6 @@ describe('get commands should return the evaluated value', function() {
             });
     });
 
-    it('getLocation: location of elem .green should be x=127 , y=282', function(done){
-        this.client
-            .url(conf.testPage.start + '?' + Date.now())
-            .getLocation('.green', function(err,result) {
-                assert.equal(null, err);
-                assert.strictEqual(result.x,127);
-                assert.strictEqual(result.y,282);
-                done(err);
-            });
-    });
-
     it.skip('[not implemented in appium] getLocationInView: location of elem .green should be x=127 , y=198', function(done){
         var that = this;
 
