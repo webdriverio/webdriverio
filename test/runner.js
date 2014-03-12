@@ -4,17 +4,6 @@ var Mocha     = require('mocha'),
     env       = process.env._ENV || 'desktop',
     client;
 
-/**
- * Only execute cross browser tests on changes within master branch.
- * For tests caused by pull requests PhantomJS tests are sufficient.
- */
-if (process.env.TRAVIS_BUILD_NUMBER && (
-   (process.env.TRAVIS_BRANCH === 'master' && process.env._BROWSER === 'phantomjs') ||
-   (process.env.TRAVIS_BRANCH !== 'master' && process.env._BROWSER !== 'phantomjs'))) {
-    console.log('This test was skipped');
-    process.exit(0);
-}
-
 var mocha = new Mocha({
     timeout: 1000000,
     reporter: 'spec'
