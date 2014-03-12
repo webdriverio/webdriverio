@@ -74,7 +74,7 @@ h = {
             if (client) {
                 this.client = client;
             } else {
-                this.client = client = new wdjs(conf).init();
+                this.client = client = wdjs.remote(conf).init();
             }
 
             this.client.url(conf.testPage.start, done);
