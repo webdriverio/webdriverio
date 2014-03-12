@@ -5,7 +5,7 @@ describe.skip('singleton option', function() {
 
     before(function(done) {
         var webdriverjs = require('../../index.js');
-        var merge = require('lodash.merge');
+        var merge = require('deepmerge');
 
         c1 = webdriverjs.remote(merge(conf, {
             singleton: true
