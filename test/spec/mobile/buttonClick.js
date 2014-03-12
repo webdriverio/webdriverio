@@ -35,25 +35,6 @@ describe('buttonClick command test',function() {
             .call(done);
     });
 
-
-    it('text should not be visible after click on .btn3 because button is behind overlay', function(done){
-        this.client
-            .isVisible('.btn3',function(err,result) {
-                assert.equal(null, err);
-                assert.ok(result);
-            })
-            .buttonClick('.btn3',function(err,result) {
-                assert.equal(null, err);
-                assert.equal(0, result.status);
-            })
-            .isVisible('.btn3_clicked',function(err,result){
-                assert.equal(null, err);
-                assert(!result, '.btn3 was clicked');
-            })
-            .call(done);
-    });
-
-
     it('text should be visible after clicking ion .btn4 1px/1px width/height', function(done){
         this.client
             .isVisible('.btn4',function(err,result) {

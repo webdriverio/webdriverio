@@ -77,25 +77,11 @@ describe('left click commands',function() {
 
     };
 
-    var testEventClick = function(clickMethodName) {
-        it('text should be visible after click on .btn3 altought it is behind an overlay', function(done){
-            clickAndConfirm({
-                client: this.client,
-                clickMethodName: clickMethodName,
-                btnClass: '.btn3',
-                confirmationClass: '.btn3_clicked',
-                expectConfirmationVisible: true,
-            });
-            this.client.call(done);
-        });
-    };
-
     beforeEach(h.setup);
 
     ['click', 'buttonClick'].forEach(function(clickMethodName) {
         describe('`' + clickMethodName + '`', function() {
             testMouseClick(clickMethodName);
-            testEventClick(clickMethodName);
         });
     });
 
