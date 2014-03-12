@@ -15,4 +15,30 @@
  *     Vincent Voyer <vincent@zeroload.net>
  */
 
-module.exports = require('./lib/webdriverjs.js');
+var createSingleton = require('pragma-singleton'),
+    WebdriverJS = require('./lib/webdriverjs.js'),
+    package = require('./package.json');
+    chainIt = require('chainit'),
+
+// expose version number
+module.exports.version = package.version;
+
+// use the chained API reference to add static methods
+module.exports.remote = function remote(options, Constructor) {
+    if (typeof options === 'function') {
+        Constructor = options;
+        options = {};
+    } else {
+        options = options || {};
+
+        // allows easy webdriverjs-$framework creation (like webdriverjs-angular)
+        Constructor = Constructor || chainIt(WebdriverJS);
+    }
+
+    var singleton = createSingleton(Constructor);
+    if (options.singleton) {
+        return new singleton(options);
+    } else {
+        return new Constructor(options);
+    }
+};
