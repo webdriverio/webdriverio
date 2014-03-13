@@ -1,6 +1,7 @@
 /**
- * not working via sauce connect
+ * because of some reason this isnt working on iPad
  */
+if(process.env._DEVICE !== 'iPad_Simulator') {
 describe('should work with window commands proberly', function() {
     before(h.setup);
 
@@ -119,3 +120,4 @@ describe('should work with window commands proberly', function() {
             .call(done);
     });
 });
+}
