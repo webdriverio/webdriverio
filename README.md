@@ -172,9 +172,9 @@ npm test
 
 Webdriverjs supports
 
-* <img src="http://a0.twimg.com/profile_images/794342508/Logo_Square.png" width="48" /> [Sauce Labs](https://saucelabs.com/)
-* <img src="http://a0.twimg.com/profile_images/1440403042/logo-separate-big_normal.png" width="48" /> [BrowserStack](http://www.browserstack.com/)
-* <img src="https://si0.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/)
+* <img src="https://pbs.twimg.com/profile_images/794342508/Logo_Square_bigger.png" width="48" /> [Sauce Labs](https://saucelabs.com/)
+* <img src="https://pbs.twimg.com/profile_images/1440403042/logo-separate-big_bigger.png" width="48" /> [BrowserStack](http://www.browserstack.com/)
+* <img src="https://pbs.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/)
 
 See the corresponding [examples](examples/).
 
