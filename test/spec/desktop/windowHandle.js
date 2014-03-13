@@ -1,6 +1,3 @@
-/**
- * not working via sauce connect
- */
 describe('should work with window commands proberly', function() {
     before(h.setup);
 
