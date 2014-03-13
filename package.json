@@ -1,7 +1,7 @@
 {
   "name": "webdriverjs",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "homepage": "https://github.com/camme/webdriverjs",
   "author": "camilo tapia <camilo.tapia@gmail.com>",
   "contributors": [
@@ -37,7 +37,7 @@
     "jshint": "~2.4.1",
     "saucelabs": "~0.1.1",
     "glob": "~3.2.7",
-    "bower": "~1.2.8",
+    "bower": "~1.3.1",
     "nock": "~0.27.1",
     "coveralls": "~2.8.0",
     "istanbul": "^0.2.6"
@@ -68,10 +68,10 @@
     "testingbot"
   ],
   "dependencies": {
-    "chainit": "~1.1.2",
+    "chainit": "~1.2.0",
     "pragma-singleton": "~1.0.3",
-    "archiver": "~0.5.2",
-    "request": "~2.33.0",
+    "archiver": "~0.6.1",
+    "request": "~2.34.0",
     "deepmerge": "~0.2.7"
   }
 }
