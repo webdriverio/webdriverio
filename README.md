@@ -1,4 +1,4 @@
-Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/camme/webdriverjs.png?branch=master)](https://travis-ci.org/camme/webdriverjs) [![Coverage Status](https://coveralls.io/repos/camme/webdriverjs/badge.png?branch=master)](https://coveralls.io/r/camme/webdriverjs?branch=master)
+Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/camme/webdriverjs.png?branch=master)](https://travis-ci.org/camme/webdriverjs)
 =====================================================
 
 [![Selenium Test Status](https://saucelabs.com/browser-matrix/camme-webdriverjs.svg)](https://saucelabs.com/u/camme-webdriverjs)
