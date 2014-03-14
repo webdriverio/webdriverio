@@ -32,7 +32,7 @@ module.exports.remote = function remote(options, Constructor) {
         options = options || {};
 
         // allows easy webdriverjs-$framework creation (like webdriverjs-angular)
-        Constructor = Constructor || chainIt(WebdriverJS);
+        Constructor = chainIt(Constructor || WebdriverJS);
     }
 
     var singleton = createSingleton(Constructor);

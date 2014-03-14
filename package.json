@@ -68,7 +68,7 @@
     "testingbot"
   ],
   "dependencies": {
-    "chainit": "~1.2.0",
+    "chainit": "^1.3.1",
     "pragma-singleton": "~1.0.3",
     "archiver": "~0.6.1",
     "request": "~2.34.0",
