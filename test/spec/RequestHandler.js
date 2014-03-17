@@ -1,8 +1,7 @@
 describe('RequestHandler', function() {
-    var RH = require('../../lib/utils/RequestHandler.js');
-
-    var nock = require('nock');
-    // nock.recorder.rec();
+    var RH = require('../../lib/utils/RequestHandler.js'),
+        nock = require('nock'),
+        noOps = function(){};
 
     it('gives a session', function(done) {
         nock('http://127.0.0.1:4444')
@@ -14,7 +13,13 @@ describe('RequestHandler', function() {
             'content-type': 'application/json;charset=UTF-8',
             'content-length': '673' });
 
-        var rh = new RH();
+        var options = {
+            eventHandler: { emit: noOps },
+            options: {},
+            logger: { log: noOps }
+        }
+
+        var rh = new RH(options);
         rh.create('/session', {
             desiredCapabilities: {
                 browserName: 'chrome'
