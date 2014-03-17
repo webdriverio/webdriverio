@@ -1,0 +1,16 @@
+{
+    "manifest_version": 2,
+    "name": "WebdriverJS Chrome Helper",
+    "version": "0.1",
+    "description": "Chrome helper extension to enhance functionality of automated selenium tests",
+    "content_scripts": [{
+        "js": [
+            "socket.io.js",
+            "extension.js"
+        ],
+        "matches": ["<all_urls>"],
+        "all_frames": true
+    }],
+    "permissions": [ "cookies", "tabs", "http://*/*", "https://*/*" ],
+    "content_security_policy": "script-src 'self' http://localhost; object-src 'self'"
+}
