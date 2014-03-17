@@ -1,6 +1,7 @@
 var webdriverjs = require('../../index.js'),
-    merge = require('deepmerge'),
-    conf = require('../conf/index.js');
+    conf        = require('../conf/index.js'),
+    tmpConf     = { desiredCapabilities: { browserName: 'phantomjs' }},
+    client;
 
 describe('event handling', function () {
     describe('test webdriverjs events (init/command/error/end)', function () {
@@ -14,10 +15,7 @@ describe('event handling', function () {
             client;
 
         before(function() {
-            conf.port = 4444;
-            client = webdriverjs.remote(merge(conf, {
-                singleton: true
-            }));
+            client = webdriverjs.remote(tmpConf);
 
             client.on('end', function() {
                 isEndHandlerEmitted = true;
@@ -46,8 +44,8 @@ describe('event handling', function () {
                 .init()
                 .call(function() {
                     assert.ok(isInitHandlerEmitted,'init handler wasn\'t called');
-                    assert.strictEqual(commandUrl,'http://localhost:' + conf.port + '/wd/hub/session');
-                    assert.strictEqual(desiredCapabilties,conf.desiredCapabilities.browserName);
+                    assert.strictEqual(commandUrl,'http://127.0.0.1:4444/wd/hub/session');
+                    assert.strictEqual(desiredCapabilties,'phantomjs');
                 })
                 .call(done);
         });
@@ -125,12 +123,8 @@ describe('event handling', function () {
         });
 
         it('two instances should have different event handlers', function() {
-            var clientA = webdriverjs.remote(merge(conf, {
-                singleton: false
-            }));
-            var clientB = webdriverjs.remote(merge(conf, {
-                singleton: false
-            }));
+            var clientA = webdriverjs.remote(tmpConf);
+            var clientB = webdriverjs.remote(tmpConf);
 
             clientA.on('testme', function(key) {
                 assert.strictEqual(key,'A');
