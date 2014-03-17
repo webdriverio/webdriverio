@@ -10,8 +10,6 @@ Have a look at the many [examples](examples/).
 
 For news or announcements follow [@webdriverjs](https://twitter.com/WebdriverJS) on Twitter.
 
-Breaking 1.x API changes, see [upgrading to 1.x](#upgrading-to-1x).
-
 ## How to install it
 
 ```shell
@@ -20,8 +18,8 @@ npm install webdriverjs
 
 ## Disclaimer
 
-This is not the official webdriverjs driver, for differences between this and the official
-driver, please see [our answer](https://github.com/camme/webdriverjs/issues/138#issuecomment-32051980).
+This is not the official WebdriverJS driver, for differences between this and the official driver,
+please take a look on [this issue post](https://github.com/camme/webdriverjs/issues/138#issuecomment-32051980).
 
 ## Usage
 
@@ -185,10 +183,7 @@ can assert values or have more logic when the callback is called.
 
 - **addValue(`String` selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **call(callback)**<br>call given function in async order of current command queue
-- **chooseFile(`String` selector, `String` localFilePath, `Function` callback)**<br>Given a
-selector corresponding to an `<input type=file>`, will upload the local file
-to the browser machine and fill the form accordingly. It does not submit the form
-for you.
+- **chooseFile(`String` selector, `String` localFilePath, `Function` callback)**<br>Given a selector corresponding to an `<input type=file>`, will upload the local file to the browser machine and fill the form accordingly. It does not submit the form for you.
 - **clearElement(`String` selector, `Function` callback)**<br>clear an element of text
 - **click(`String` selector, `Function` callback)**<br>Clicks on an element based on a selector.
 - **close([`String` tab ID to focus on,] `Function` callback)**<br>Close the current window (optional: and switch focus to opended tab)
@@ -200,6 +195,7 @@ for you.
 - **dragLeft(`String` selector, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag left on an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
 - **dragRight(`String` selector, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag right on an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
 - **dragUp(`String` selector, `Number` touchCount, `Number` duration, `Function` callback)**<br>Perform a drag up on an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
+- **emit(`String` eventName, [arg1], [arg2], [...])**<br>Execute each event listeners in order with the supplied arguments.
 - **end(`Function` callback)**<br>Ends a sessions (closes the browser)
 - **endAll(`Function` callback)**<br>Ends all sessions (closes the browser)
 - **execute(`String` or `Function` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame. If script is a `Function`, arguments is required.
@@ -225,9 +221,13 @@ for you.
 - **middleClick(`String` selector, `Function` callback)**<br>Apply middle click at an element. If selector is not provided, click at the last moved-to location.
 - **moveToObject(`String` selector, `Function` callback)**<br>Moves the page to the selected dom object
 - **newWindow(`String` url, `String` name for the new window, `String` new window features (e.g. size, position, scrollbars, etc.), `Function` callback)**<br>equivalent function to `Window.open()` in a browser
+- **on(`String` eventName, `Function` fn)**<br>Register event listener on specific event (the following are already defined: `init`,`command`,`end`,`error`)
+- **once(`String` eventName, `Function` fn)**<br>Adds a one time listener for the event (the following are already defined: `init`,`command`,`end`,`error`)
 - **pause(`Integer` milliseconds, `Function` callback)**<br>Pauses the commands by the provided milliseconds
 - **refresh(`Function` callback)**<br>Refresh the current page
-- **release(`String` selector, `Function` callback)**<br>Finger up on an element.
+- **release(`String` selector, `Function` callback)**<br>Finger up on an element
+- **removeListener(`String` eventName, `Function` fn)**<br>Remove a listener from the listener array for the specified event
+- **removeAllListeners([`String` eventName])**<br>Removes all listeners, or those of the specified event
 - **rightClick(`String` selector, `Function` callback)**<br>Apply right click at an element. If selector is not provided, click at the last moved-to location.
 - **saveScreenshot(`String` path to file, `Function` callback)**<br>Saves a screenshot as a png from the current state of the browser
 - **scroll(`String` selector, `Function`callback)**<br>Scroll to a specific element. You can also pass two offset values as parameter to scroll to a specific position (e.g. `scroll(xoffset,yoffset,callback)`).
@@ -307,17 +307,6 @@ Here are the implemented bindings (and links to the official json protocol bindi
 ## More on selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
-
-## Upgrading to 1.x
-
-The 1.x refactor was done to fix many bugs due to the chain API.
-
-We also removed some features that were not well designed/fully functionning:
-
-* default logger is now silent
-* `singleton` option defaults to `false`
-* `webdriverjs.endAll` and `webdriverjs.sessions` methods are gone. You must access them on the
-`client` instance
 
 ## NPM Maintainers
 
