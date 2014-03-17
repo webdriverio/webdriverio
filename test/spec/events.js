@@ -14,6 +14,7 @@ describe('event handling', function () {
             client;
 
         before(function() {
+            conf.port = 4444;
             client = webdriverjs.remote(merge(conf, {
                 singleton: true
             }));
