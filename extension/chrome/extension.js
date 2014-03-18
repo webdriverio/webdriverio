@@ -1,6 +1,6 @@
 (function () {
 
-    function createXPathFromElement(elm) {
+    var createXPathFromElement = function(elm) {
         var allNodes = document.getElementsByTagName('*');
         
         for (segs = []; elm && elm.nodeType == 1; elm = elm.parentNode) {
@@ -38,17 +38,38 @@
         return segs.length ? '/' + segs.join('/') : null;
     };
 
+    var sanitize = function(e) {
+        // remove window reference
+        if(e.view) delete e.view;
+
+        for (var k in e) {
+            // console.log(k,e[k] instanceof HTMLElement);
+            if(e[k] instanceof HTMLElement) {
+                // console.log(k,'is HTMLElement');
+                var elem = createXPathFromElement(e[k]);
+                delete e[k];
+
+                e[k] = elem;
+            }
+        }
+
+        return e;
+    }
+
+    var transferEventData = function(e) {
+        e = sanitize(e);
+        socket.emit(this.eventName + '-' + this.elem, e);
+    }
+
     var socket = io.connect('http://localhost:5555');
     socket.on('addEventListener', function(data) {
-
         var elem = document.querySelectorAll(data.elem)[0];
+        elem.addEventListener(data.eventName, transferEventData.bind(data), data.useCapture);
+    });
 
-        elem.addEventListener(data.eventName, function(e) {
-            socket.emit(data.eventName, {
-                type: e.type
-            });
-        });
-
+    socket.on('removeEventListener', function(data) {
+        var elem = document.querySelectorAll(data.elem)[0];
+        elem.removeEventListener(data.eventName, transferEventData.bind(data), data.useCapture);
     });
 
 })();
