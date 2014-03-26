@@ -31,11 +31,11 @@ vows.describe('my github tests').addBatch({
                     assert(err === null);
                 },
 
-                'height is 30px': function(err,result) {
+                'height is 32px': function(err,result) {
                     assert(result.height === 32);
                 },
 
-                'width is 94px': function(err,result) {
+                'width is 89px': function(err,result) {
                     assert(result.width === 89);
                 }
 
