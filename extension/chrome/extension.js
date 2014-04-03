@@ -1,5 +1,15 @@
+/* istanbul ignore next */
 (function () {
 
+    /**
+     * create xPath from Element
+     * it is difficult to return a DOM Element back into node environment and it is
+     * hard to test stuff on it anyway - so we return an xPath that can be reused
+     * to query elements via JSONWire
+     * 
+     * @param  {Object} elm  DOM element
+     * @return {String}      corresponding xpath of DOM element
+     */
     var createXPathFromElement = function(elm) {
         var allNodes = document.getElementsByTagName('*');
         
@@ -38,14 +48,25 @@
         return segs.length ? '/' + segs.join('/') : null;
     };
 
+    /**
+     * [sanitize description]
+     * @param  {[type]} e [description]
+     * @return {[type]}   [description]
+     */
     var sanitize = function(e) {
-        // remove window reference
+
+        /**
+         * remove window reference because of circular references
+         */
         if(e.view) delete e.view;
 
         for (var k in e) {
-            // console.log(k,e[k] instanceof HTMLElement);
+            
+            /**
+             * convert any HTML element into an xPath string
+             */
             if(e[k] instanceof HTMLElement) {
-                // console.log(k,'is HTMLElement');
+
                 var elem = createXPathFromElement(e[k]);
                 delete e[k];
 
@@ -56,20 +77,40 @@
         return e;
     }
 
-    var transferEventData = function(e) {
+    var socketData = null;
+
+    /**
+     * event listener function that communicates with node environment
+     * @param  {Event} e  listener event (e.g. click, focus etc.)
+     */
+    function transferEventData(e) {
         e = sanitize(e);
-        socket.emit(this.eventName + '-' + this.elem, e);
+        socket.emit(socketData.eventName + '-' + socketData.elem, e);
+        socketData = null;
     }
 
+    /**
+     * create socket connection and listen on event registration channel
+     */
     var socket = io.connect('http://localhost:5555');
     socket.on('addEventListener', function(data) {
-        var elem = document.querySelectorAll(data.elem)[0];
-        elem.addEventListener(data.eventName, transferEventData.bind(data), data.useCapture);
+        socketData = data;
+        var elem = document.querySelectorAll(data.elem);
+
+        for(var i = 0; i < elem.length; ++i) {
+            elem[i].addEventListener(data.eventName, transferEventData, data.useCapture);
+        }
     });
 
+    /**
+     * channel to remove event listener
+     */
     socket.on('removeEventListener', function(data) {
-        var elem = document.querySelectorAll(data.elem)[0];
-        elem.removeEventListener(data.eventName, transferEventData.bind(data), data.useCapture);
+        var elem = document.querySelectorAll(data.elem);
+
+        for(var i = 0; i < elem.length; ++i) {
+            elem[i].removeEventListener(data.eventName, transferEventData, data.useCapture);
+        }
     });
 
 })();
