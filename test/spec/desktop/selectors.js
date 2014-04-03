@@ -105,6 +105,19 @@ describe('test different selector strategies', function () {
             .call(done);
     });
 
+    it('should find an element using "xpath" method for ParenthesizedExpressions', function(done) {
+        this.client
+            .isVisible('(//div)[7]/span',function(err,isVisible) {
+                assert.equal(null, err);
+                assert.equal(isVisible,true);
+            })
+            .getAttribute('(//div)[7]/span', 'data-foundBy', function(err,attr) {
+                assert.equal(null, err);
+                assert.equal(attr,'xpath');
+            })
+            .call(done);
+    });
+
     // check if it is still backwards compatible for obsolete command
     it('should still work with obsolete command',function(done) {
         this.client
