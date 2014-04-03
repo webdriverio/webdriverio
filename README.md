@@ -117,6 +117,88 @@ The following selector types are supported:
 In near future WebdriverJS will cover more selector features like form selector (e.g. `:password`,`:file` etc)
 or positional selectors like `:first` or `:nth`.
 
+## Eventhandling
+
+WebdriverJS inherits several function from the NodeJS [EventEmitter](http://nodejs.org/api/events.html) object.
+Additionally it provides an experimental way to register events on browser side (like click,
+focus, keypress etc.).
+
+#### Eventhandling in NodeJS environment
+
+The following functions are supported: `on`,`once`,`emit`,`removeListener`,`removeAllListeners`.
+They behave exactly as described in the official NodeJS [docs](http://nodejs.org/api/events.html).
+There are some predefined events (`error`,`init`,`end`, `command`) which cover important
+WebdriverJS events.
+
+**Example:**
+
+```js
+client.on('error', function(e) {
+    // will be executed everytime an error occured
+    // e.g. when element couldn't be found
+    console.log(e.body.value.class);   // -> "org.openqa.selenium.NoSuchElementException"
+    console.log(e.body.value.message); // -> "no such element ..."
+})
+```
+
+All commands are chainable, so you can use them while chaining your commands
+
+```js
+var cnt;
+
+client
+    .init()
+    .once('countme', function(e) {
+        console.log(e.elements.length, 'elements were found');
+    })
+    .elements('.myElem', function(err,res) {
+        cnt = res.value;
+    })
+    .emit('countme', cnt)
+    .end();
+```
+
+#### Eventhandling on browser side
+
+This is an experimental feature that helps you to listen on events within the browser. It
+is currently only supported for the Chrome browser (other browser will eventually follow).
+To register an event call the `addEventListener` command. If an event gets invoked it returns
+almost the complete event object that got caught within the browser. Only the `Window` will
+be removed to avoid circular references. All objects from type `HTMLElement` will be
+replaced by their xPath. This will help you to query and identify this element with WebdriverJS.
+
+Before you are able to use browser side eventhandling you need set the `experimental` flag
+on client initialization:
+
+```js
+var client = WebdriverJS.remote({
+    logLevel: 'verbose',
+    experimental: true, // <-- enables browser side eventhandling
+    desiredCapabilities: {
+        browserName: 'chrome'
+    }
+});
+```
+
+After that you can use `addEventListener` to register events on one or multiple elements
+and `removeEventListener` to remove them.
+
+**Example**
+
+```js
+client
+    .url('http://google.com')
+    .addEventListener('dblclick','#hplogo', function(e) {
+        console.log(e.target); // -> 'id("hplogo")'
+        console.log(e.type); // -> 'dblclick'
+        console.log(e.clientX, e.clientY); // -> 239 524
+    })
+    .doubleClick('#hplogo') // triggers event
+    .end();
+```
+
+**Again:** this is still an experimental feature. Some events like `hover` will not be
+recorded by the browser. But `click` and custom events are working flawlessly.
 
 ## Adding custom commands
 
