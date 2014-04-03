@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v1.6.0 (2014-04-04)
+* allow parenthesized xpath expressions (thanks to @zauberpony)
+* enhanced README.md
+* implemented browser side eventhandling as "experimental" feature
+
+## v1.5.1 (2014-03-18)
+* re-add code removed by a refactor
+
+## v1.5.0 (2014-03-18)
+* downgrade chainit version because of performance leaks of queue v2.0
+
 ## v1.4.0 (2014-03-17)
 * implemented event handling in WebdriverJS - register events on 'init','command','end','error' or register own costum events
 * new commands: 'on','once','emit','removeListener','removeAllListeners'

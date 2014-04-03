@@ -161,7 +161,7 @@ client
 #### Eventhandling on browser side
 
 This is an experimental feature that helps you to listen on events within the browser. It
-is currently only supported for the Chrome browser (other browser will eventually follow).
+is currently **only** supported in Chrome browser (other browser will eventually follow).
 To register an event call the `addEventListener` command. If an event gets invoked it returns
 almost the complete event object that got caught within the browser. Only the `Window` will
 be removed to avoid circular references. All objects from type `HTMLElement` will be
