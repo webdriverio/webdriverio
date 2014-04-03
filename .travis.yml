@@ -7,6 +7,7 @@ node_js:
   - '0.10'
 
 before_script:
+  - "npm install -g bower"
   - "cd test/site/www && ../../../node_modules/.bin/bower install && cd ../../../"
   - "curl -O http://selenium.googlecode.com/files/selenium-server-standalone-2.39.0.jar"
   - "java -jar selenium-server-standalone-2.39.0.jar 2>&1 >/dev/null &"
