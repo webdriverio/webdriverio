@@ -49,9 +49,9 @@
     };
 
     /**
-     * [sanitize description]
-     * @param  {[type]} e [description]
-     * @return {[type]}   [description]
+     * clean event object remove circular references
+     * @param  {Event} e  event that got caught by the browser
+     * @return {Event}    sanitize event object
      */
     var sanitize = function(e) {
 
