@@ -1,9 +1,8 @@
 /**
  * currently client side events are only supported in chrome
+ * dont execute this test for now
  */
-// if(process.env._BROWSER === 'chrome') {
-
-describe('test client side events', function() {
+describe.skip('test client side events', function() {
     before(h.setup);
 
     var keyCharacter = 't',
@@ -55,5 +54,3 @@ describe('test client side events', function() {
     });
 
 });
-
-// }
