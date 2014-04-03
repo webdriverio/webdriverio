@@ -201,7 +201,7 @@ can assert values or have more logic when the callback is called.
 - **execute(`String` or `Function` script, `Array` arguments, `Function` callback)**<br>Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame. If script is a `Function`, arguments is required.
 - **flick(`String` selector, `Number` startX, `Number` startY, `Number` endX, `Number` endY, `Number` touchCount, `Function` callback)**<br>Perform a flick on the screen or an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
 - **getAttribute(`String` selector, `String` attribute name, `Function` callback)**<br>Get an attribute from an dom obj based on the selector and attribute name
-- **getCookie(`String` name, `Function` callback)**<br>Gets the cookie for current page.
+- **getCookie(`String` name, `Function` callback)**<br>Get cookie for the current page. If no cookie name is specified the command will return all cookies.
 - **getCssProperty(`String` selector, `String` css property name, `Function` callback)**<br>Gets a css property from a dom object selected with a selector
 - **getCurrentTabId(`Function` callback)**<br>Retrieve the current window handle.
 - **getElementSize(`String` selector, `Function` callback)**<br>Gets the width and height for an object based on the selector
