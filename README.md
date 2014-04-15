@@ -206,10 +206,12 @@ If you want to extend the client with your own set of commands there is a method
 called `addCommand` available from the client object:
 
 ```js
-var client = require("webdriverjs").remote();
-
 // create a command the returns the current url and title as one result
 // just to show an example
+var client = require("webdriverjs").remote();
+
+// last parameter has to be a callback function that needs to be called
+// when the command has finished (otherwise the queue stops)
 client.addCommand("getUrlAndTitle", function(customVar, cb) {
     this.url(function(err,urlResult) {
         this.getTitle(function(err,titleResult) {
