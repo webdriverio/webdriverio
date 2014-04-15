@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.6.1 (2014-05-14)
+* fixed tap position
+
 ## v1.6.0 (2014-04-04)
 * allow parenthesized xpath expressions (thanks to @zauberpony)
 * enhanced README.md
