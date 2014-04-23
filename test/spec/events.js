@@ -5,7 +5,7 @@ var webdriverjs = require('../../index.js'),
 
 describe('event handling', function () {
     describe('test webdriverjs events (init/command/error/end)', function () {
-        
+
         var isCommandHandlerEmitted = false,
             isErrorHandlerEmitted = false,
             isInitHandlerEmitted = false,
@@ -50,7 +50,7 @@ describe('event handling', function () {
                 .call(done);
         });
 
-        it('should emit an error event', function(done) {
+        it.skip('should emit an error event', function(done) {
             client
                 .url(conf.testPage.start)
                 // click on non existing element to cause an error
