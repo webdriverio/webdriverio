@@ -1,4 +1,4 @@
-describe('should work with window commands proberly', function() {
+describe.skip('should work with window commands proberly', function() {
     before(h.setup);
 
     var tabs = null;
