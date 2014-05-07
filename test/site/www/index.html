@@ -90,6 +90,10 @@
         }
         </script>
         <textarea cols="30" rows="10" data-foundBy="tag name"></textarea>
+
+        <span class="hidden-text">Eventually visible text</span>
+        <span class="visible-text">Eventually hidden text</span>
+
         </body></html>
     </section>
 
@@ -154,6 +158,11 @@
             var newElement = $('<div />').addClass('lateElem').html('Sorry, I\'m late!');
             $('body').append(newElement);
         },3000);
+
+        setTimeout(function() {
+            $('.hidden-text').show();
+            $('.visible-text').hide();
+        }, 2000);
 
         // Hammer(document.body).on('tap', function(e) {
 
