@@ -17,8 +17,8 @@
 
 var createSingleton = require('pragma-singleton'),
     WebdriverJS = require('./lib/webdriverjs.js'),
-    package = require('./package.json');
-    chainIt = require('chainit'),
+    package = require('./package.json'),
+    chainIt = require('chainit');
 
 // expose version number
 module.exports.version = package.version;
