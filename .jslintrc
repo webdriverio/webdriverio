@@ -1,0 +1,22 @@
+{
+  "indent": 4,
+  "undef": true,
+  "unused": true,
+  "asi": false,
+  "node": true,
+  "quotmark": "single",
+  "trailing": true,
+  "strict_mode": false,
+  "globalstrict": false,
+  "globals": {
+    "define": true,
+    "describe": true,
+    "it": true,
+    "before": true,
+    "assert": true,
+    "h": true,
+    "conf": true,
+    "require": false,
+    "module": false
+  }
+}
