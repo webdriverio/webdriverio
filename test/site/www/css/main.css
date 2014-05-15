@@ -97,7 +97,7 @@ h2 {
 }
 
 .container { position: relative; }
-        
+
 .hitarea {
     position: absolute;
   left: 0;
@@ -132,4 +132,8 @@ h2 {
     background: lightgreen;
     padding: 1px 4px;
     width: auto;
+}
+
+.hidden-text {
+    display: none;
 }
