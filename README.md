@@ -300,6 +300,7 @@ can assert values or have more logic when the callback is called.
 - **getTitle(`Function` callback)**<br>Gets the title of the page
 - **getValue(`String` selector, `Function` callback)**<br>Gets the value of a dom obj found by selector
 - **isSelected(`String` selector, `Function` callback)**<br>Return true or false if an OPTION element, or an INPUT element of type checkbox or radiobutton is currently selected (found by selector).
+- **isEnabled(`String` selector, `Function` callback)**<br>Return true for everything but disabled input elements.
 - **isVisible(`String` selector, `Function` callback)**<br>Return true or false if the selected dom obj is visible (found by selector)
 - **leftClick(`String` selector, `Function` callback)**<br>Apply left click at an element. If selector is not provided, click at the last moved-to location.
 - **hold(`String` selector,`Function` callback)**<br>Long press on an element using finger motion events.
@@ -351,6 +352,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [elementIdText](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/text)
 - [elementIdValue](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/value)
 - [elementIdSelected](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/selected)
+- [elementIdEnabled](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/enabled)
 - [elements](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/elements)
 - [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
 - [executeAsync](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute_async)
