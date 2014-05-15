@@ -325,6 +325,8 @@ can assert values or have more logic when the callback is called.
 - **tap(`String` selector,`Number` x,`Number` y,`Number` tapCount,`Number` touchCount,`Number` duration,`Function` callback)**<br>Perform a tap on the screen or an element (works only on [Appium](https://github.com/appium/appium/blob/master/docs/gestures.md))
 - **touch(`String` selector, `Function` callback)**<br>Finger down on an element.
 - **waitFor(`String` selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
+- **waitForVisible(`String` selector, `Integer` milliseconds[, `Integer` interval in ms], `Function` callback)**<br>Waits for an object to be visible for the amount of milliseconds provided.
+- **waitForInvisible(`String` selector, `Integer` milliseconds[, `Integer` interval in ms], `Function` callback)**<br>Waits for an object to be invisible for the amount of milliseconds provided.
 
 ## List of current implemented wire protocol bindings
 Here are the implemented bindings (and links to the official json protocol binding)

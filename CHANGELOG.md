@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## v1.6.1 (2014-05-14)
+## v1.7.0 (2014-05-15)
+* merged PR #206 and #210
+* new action commands: `isEnabled`, `waitForInvisible`, `waitForVisible`
+* new protocol command: `elementIdEnabled`
+
+## v1.6.1 (2014-04-14)
 * fixed tap position
 
 ## v1.6.0 (2014-04-04)
@@ -106,7 +111,7 @@
 * improved `setValue` and `addValue` command
 * enables proper use of modifier keys
 * added tests using modifier keys
-* execute travis tests with Sauce Labs, added badge README.md 
+* execute travis tests with Sauce Labs, added badge README.md
 
 ## v0.7.11 (2013-08-31)
 * includes PR #82 - Fixed a wrong name on a local variable reference
