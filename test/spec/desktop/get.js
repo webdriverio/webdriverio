@@ -125,4 +125,13 @@ describe('get commands should return the evaluated value', function() {
             });
     });
 
+    it('getValue: value of non-existent element should be null', function(done){
+        this.client
+            .getValue('#non-existent-element', function(err,result) {
+                assert.notEqual(null, err);
+                assert.equal(null, result);
+                done();
+            });
+    });
+
 });
