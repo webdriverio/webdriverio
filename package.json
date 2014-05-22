@@ -68,9 +68,11 @@
   ],
   "dependencies": {
     "archiver": "~0.6.1",
+    "async": "^0.9.0",
     "chainit": "^2.0.2-backcompat",
     "crx": "~0.4.1",
     "css-parse": "^1.7.0",
+    "css-value": "0.0.1",
     "deepmerge": "~0.2.7",
     "gm": "^1.14.2",
     "pragma-singleton": "~1.0.3",
