@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.7.1 (2014-05-23)
+* fixes exception when getValue() returns an error
+
 ## v1.7.0 (2014-05-15)
 * merged PR #206 and #210
 * new action commands: `isEnabled`, `waitForInvisible`, `waitForVisible`
