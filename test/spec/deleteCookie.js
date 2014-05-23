@@ -1,47 +1,45 @@
-describe('test cookie functionality',function() {
-    before(h.setup);
+describe('deleteCookie', function() {
 
-    it('should set a cookie and read its content afterwards', function(done){
+    before(h.setup());
+
+    it('should delete a specific cookie', function(done) {
         this.client
-            .setCookie({name: 'test',value: 'cookie saved!'})
-            .getCookie('test', function(err,result) {
-                assert.equal(null, err);
-                assert.strictEqual(result.name,'test');
-                assert.strictEqual(result.value,'cookie saved!');
+            .setCookie({
+                name: 'test',
+                value: 'cookie saved!'
             })
-            .call(done);
-    });
-
-    it('should delete created cookie and is not able to read its content', function(done){
-        this.client
+            .setCookie({
+                name: 'test2',
+                value: 'cookie2 saved!'
+            })
             .deleteCookie('test')
-            .getCookie('test', function(err,result) {
-                assert.equal(null, err);
-                assert.strictEqual(result,null);
+            .getCookie('test', function(err, result) {
+                assert.ifError(err);
+                assert.strictEqual(result, null);
+            })
+            .getCookie('test2', function(err, result) {
+                assert.ifError(err);
+                assert.notStrictEqual(result, null);
             })
             .call(done);
     });
 
-    it('should set two cookies and read all at once', function(done){
+    it('should delete all cookies', function(done) {
         this.client
-            .setCookie({name: 'test',value: 'cookie saved!'})
-            .setCookie({name: 'test2',value: 'cookie2 saved!'})
-            .getCookie(function(err,result) {
-                assert.equal(null, err);
-                assert.strictEqual(2,result.length);
-                assert.strictEqual('cookie saved!',result[0].value);
-                assert.strictEqual('cookie2 saved!',result[1].value);
+            .setCookie({
+                name: 'test',
+                value: 'cookie saved!'
             })
-            .call(done);
-    });
-
-    it('should delete all previous created cookies at once', function(done){
-        this.client
+            .setCookie({
+                name: 'test2',
+                value: 'cookie2 saved!'
+            })
             .deleteCookie()
-            .getCookie(function(err,result) {
-                assert.equal(null, err);
-                assert.strictEqual(0,result.length);
+            .getCookie(function(err, result) {
+                assert.ifError(err);
+                assert.strictEqual(result.length, 0);
             })
             .call(done);
     });
+
 });

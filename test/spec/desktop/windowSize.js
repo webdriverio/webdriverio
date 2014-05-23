@@ -1,5 +1,5 @@
 describe('changing window sizes', function() {
-    before(h.setup);
+    before(h.setup());
 
     it('should change window size', function(done) {
         this.client
@@ -11,7 +11,7 @@ describe('changing window sizes', function() {
 
     it('changed the window size', function(done) {
         this.client.windowHandleSize(function(err, res) {
-            assert(err === null);
+            assert.ifError(err);
             // on some systems, we might not have changed the size, like on phantomjs
             // still, no error means it worked
             assert.ok(res.value.width >= 500);
@@ -24,7 +24,7 @@ describe('changing window sizes', function() {
         this.client
         .windowHandleMaximize()
         .windowHandleSize(function(err, res) {
-            assert(err === null);
+            assert.ifError(err);
             // on some systems, we might not have maximized, like on phantomjs
             // still, no error means it worked
             assert.ok(res.value.width >= 500);

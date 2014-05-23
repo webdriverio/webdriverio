@@ -1,34 +1,34 @@
 var clickAndConfirm = function(params) {
     params.client
         .isVisible(params.btnClass, function(err,result) {
-            assert.equal(err, null);
+            assert.ifError(err);
             assert.ok(result);
         })
         .isVisible(params.confirmationClass, function(err, result) {
-            assert.equal(err, null);
+            assert.ifError(err);
             assert.ok(!result, 'confirmation must be invisible as a precondition');
         });
 
     if(params.moveBeforeClick) {
         params.client
             .moveToObject(params.btnClass, function(err, result) {
-                assert.equal(err, null);
+                assert.ifError(err);
             })
             [params.clickMethodName](function(err, result) {
-                assert.equal(err, null);
+                assert.ifError(err);
                 assert.equal(result.status, 0);
             });
     } else {
         params.client
             [params.clickMethodName](params.btnClass, function(err, result) {
-                assert.equal(err, null);
+                assert.ifError(err);
                 assert.equal(result.status, 0);
             });
     }
 
     params.client
         .isVisible(params.confirmationClass, function(err, result) {
-            assert.equal(err, null);
+            assert.ifError(err);
             assert.equal(result, params.expectConfirmationVisible);
         });
 };
@@ -77,7 +77,7 @@ describe('left click commands',function() {
 
     };
 
-    beforeEach(h.setup);
+    beforeEach(h.setup());
 
     ['click', 'buttonClick'].forEach(function(clickMethodName) {
         describe('`' + clickMethodName + '`', function() {
@@ -93,7 +93,7 @@ describe('left click commands',function() {
 });
 
 describe('rightclick', function() {
-    before(h.setup);
+    before(h.setup());
 
     it('text should be visible after right-clicking on .btn1', function(done) {
         clickAndConfirm({
@@ -108,7 +108,7 @@ describe('rightclick', function() {
 });
 
 describe.skip('middleClick', function() {
-    before(h.setup);
+    before(h.setup());
 
     // note this fails with most browsers: middle click becomes left click.
     it('text should be visible after middle-clicking on .btn1', function(done) {

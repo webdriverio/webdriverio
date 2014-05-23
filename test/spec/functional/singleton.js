@@ -1,11 +1,12 @@
-describe.skip('singleton option', function() {
-    var c1;
-    var c2;
-    var conf = require('../conf/index.js');
+var webdriverjs = require('../../../index.js'),
+    merge = require('deepmerge'),
+    conf = require('../../conf/index.js');
+
+describe('singleton option', function() {
+
+    var c1, c2;
 
     before(function(done) {
-        var webdriverjs = require('../../index.js');
-        var merge = require('deepmerge');
 
         c1 = webdriverjs.remote(merge(conf, {
             singleton: true
@@ -15,25 +16,33 @@ describe.skip('singleton option', function() {
             singleton: true
         }));
 
-        c1.init().url(conf.testPage.subPage, done);
+        c1.init(done);
     });
 
     it('creates only one instance', function() {
-        assert(c1 === c2);
+        assert.deepEqual(c1, c2);
     });
 
-    it('browses on the other reference', function(done) {
-        c2
-            .url(function(err, res) {
-                assert.equal(res.value, conf.testPage.subPage);
-            })
-            .getTitle(function(err, title) {
-                assert.equal(title, 'two');
-                done(err);
-            });
+    it('should has the same sessionID', function() {
+        assert.strictEqual(c1.requestHandler.sessionID, c2.requestHandler.sessionID);
     });
 
     it('should end other reference probably', function(done) {
-        c1.end(done);
+
+        // end session of one reference
+        c1.end(function(err) {
+            assert.ifError(err);
+
+            // check if other reference has no session anymore
+            c2.session(function(err, res) {
+                assert.ifError(err);
+                assert.ifError(res.value);
+
+                done();
+            });
+
+        });
+
     });
+
 });

@@ -1,6 +1,6 @@
 describe('doubleClick', function(done) {
 
-    before(h.setup());
+    before(h.setup);
 
     it('should make an element visible after doubleClick on .btn1', function(done) {
 

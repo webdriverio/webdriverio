@@ -1,6 +1,6 @@
 describe('specific mobile command tests', function() {
 
-    before(h.setup);
+    before(h.setup());
     beforeEach(openGestureTestPage);
 
     // not implemented in appium
@@ -8,12 +8,12 @@ describe('specific mobile command tests', function() {
 
         this.client
             .getAttribute('//*[@id="log-gesture-touch"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .touch('//*[@id="hitarea"]', h.noError)
             .getAttribute('//*[@id="log-gesture-touch"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -24,12 +24,12 @@ describe('specific mobile command tests', function() {
 
         this.client
             .getAttribute('//*[@id="log-gesture-release"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .release('//*[@id="hitarea"]', h.noError)
             .getAttribute('//*[@id="log-gesture-release"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -40,12 +40,12 @@ describe('specific mobile command tests', function() {
 
         this.client
             .getAttribute('//*[@id="log-gesture-hold"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .hold('//*[@id="hitarea"]', h.noError)
             .getAttribute('//*[@id="log-gesture-hold"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -59,7 +59,7 @@ describe('specific mobile command tests', function() {
 
         this.client
             .getAttribute('//*[@id="log-gesture-tap"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .getLocation('//*[@id="log-gesture-tap"]', function(err,res) {
@@ -67,7 +67,7 @@ describe('specific mobile command tests', function() {
                     .tap(null, res.x, res.y, h.noError);
             })
             .getAttribute('//*[@id="log-gesture-tap"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -81,14 +81,14 @@ describe('specific mobile command tests', function() {
 
         this.client
             .getAttribute('//*[@id="log-gesture-doubletap"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .getLocation('//*[@id="log-gesture-tap"]', function(err,res) {
                 self.client.tap(null, res.x, res.y, 2.0, 2.0, h.noError);
             })
             .getAttribute('//*[@id="log-gesture-doubletap"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -97,12 +97,12 @@ describe('specific mobile command tests', function() {
     it('should execute dragRight command', function(done) {
         this.client
             .getAttribute('//*[@id="log-gesture-dragright"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .dragRight('//*[@id="hitarea"]',h.noError)
             .getAttribute('//*[@id="log-gesture-dragright"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -111,12 +111,12 @@ describe('specific mobile command tests', function() {
     it('should execute dragLeft command', function(done) {
         this.client
             .getAttribute('//*[@id="log-gesture-dragleft"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .dragLeft('//*[@id="hitarea"]',h.noError)
             .getAttribute('//*[@id="log-gesture-dragleft"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -125,12 +125,12 @@ describe('specific mobile command tests', function() {
     it('should execute dragUp command', function(done) {
         this.client
             .getAttribute('//*[@id="log-gesture-dragup"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .dragUp('//*[@id="hitarea"]',h.noError)
             .getAttribute('//*[@id="log-gesture-dragup"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -139,12 +139,12 @@ describe('specific mobile command tests', function() {
     it('should execute dragDown command', function(done) {
         this.client
             .getAttribute('//*[@id="log-gesture-dragdown"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, '');
             })
             .dragDown('//*[@id="hitarea"]',h.noError)
             .getAttribute('//*[@id="log-gesture-dragdown"]','class',function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'active');
             })
             .call(done);
@@ -154,12 +154,12 @@ describe('specific mobile command tests', function() {
 
         this.client
             .getOrientation(function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'PORTRAIT');
             })
             .setOrientation('landscape', h.noError)
             .getOrientation(function(err,res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(res, 'LANDSCAPE');
             })
             .setOrientation('portrait', h.noError)

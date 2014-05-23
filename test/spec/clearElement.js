@@ -1,15 +1,23 @@
-describe('clearElement', function () {
-    var input = 'input.searchinput';
-    before(h.setup);
+describe('clearElement', function() {
+
+    before(h.setup());
+
+    var input = 'input[name="a"]';
 
     it('knows to clear elements', function(done) {
+
         this.client
-            .addValue(input, 'Salut')
+            .getValue(input, function(err, res) {
+                assert.ifError(err);
+                assert.equal(res, 'a');
+            });
             .clearElement(input)
             .getValue(input, function(err, res) {
-                assert.equal(err, null);
+                assert.ifError(err);
                 assert.equal(res, '');
-                done();
-            });
+            })
+            .call(done);
+
     });
+
 });
