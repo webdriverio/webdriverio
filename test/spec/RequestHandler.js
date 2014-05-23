@@ -25,7 +25,7 @@ describe('RequestHandler', function() {
                 browserName: 'chrome'
             }
         }, function(err, res) {
-            assert.equal(null, err);
+            assert.ifError(err);
             assert.equal(res.sessionId, '6656c65b-a84b-4919-870e-ce9d725f3170');
             assert.equal(rh.sessionID, '6656c65b-a84b-4919-870e-ce9d725f3170');
             done();

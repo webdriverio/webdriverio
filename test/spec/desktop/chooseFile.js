@@ -1,5 +1,5 @@
 describe('choosing a file in an <input type=file>', function() {
-    before(h.setup);
+    before(h.setup());
 
     var path = require('path');
     var toUpload = path.join(__dirname, '..', '..', 'fixtures', 'cat-to-upload.gif');
@@ -7,10 +7,10 @@ describe('choosing a file in an <input type=file>', function() {
     it('uploads a file and fills the form with it', function(done) {
         this.client
             .chooseFile('#upload-test', toUpload, function(err) {
-                assert.equal(err, null);
+                assert.ifError(err);
             })
             .getValue('#upload-test', function(err, val) {
-                assert.equal(err, null);
+                assert.ifError(err);
                 assert.ok(/cat\-to\-upload\.gif$/.test(val));
                 done();
             })

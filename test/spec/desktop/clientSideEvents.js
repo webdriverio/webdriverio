@@ -3,7 +3,7 @@
  * dont execute this test for now
  */
 describe.skip('test client side events', function() {
-    before(h.setup);
+    before(h.setup());
 
     var keyCharacter = 't',
         keyType = 'keyup',

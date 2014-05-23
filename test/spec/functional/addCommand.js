@@ -1,34 +1,38 @@
-describe('addCommand', function () {
-    before(h.setup);
+describe('addCommand', function() {
+
+    before(h.setup());
 
     before(function() {
-        this.client
-            .addCommand("getUrlAndTitle", function(callback) {
-                this.url(function(err,urlResult) {
-                    this.getTitle(function(err,titleResult) {
-                        callback(err, {
-                            url: urlResult.value, title: titleResult
-                        });
-                    });
-                });
-            })
-            .addCommand("checkTitle", function(expectedTitle, callback) {
-                this.getTitle(function(err, title) {
-                    callback(err, title === expectedTitle);
-                });
-            });
+
+        this.client.addCommand("getUrlAndTitle", function(callback) {
+
+            var result = {},
+                error;
+
+            this.url(function(err, url) {
+                    error = err;
+                    result.url = url.value;
+                })
+                .getTitle(function(err, title) {
+                    error = err;
+                    result.title = title;
+                })
+                .call(callback.bind(this, error, result));
+
+        });
+
     });
 
-    it('added a `getUrlAndTitle` command',function(done) {
+    it('added a `getUrlAndTitle` command', function(done) {
+
         this.client
-            .getUrlAndTitle(function(err,result){
-                assert.equal(null, err);
+            .getUrlAndTitle(function(err, result) {
+                assert.ifError(err);
                 assert.strictEqual(result.url, conf.testPage.start);
                 assert.strictEqual(result.title, conf.testPage.title);
             })
-            .checkTitle(conf.testPage.title, function(err, res) {
-                assert.equal(true, res);
-            })
             .call(done);
+
     });
+
 });

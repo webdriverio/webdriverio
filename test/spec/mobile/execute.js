@@ -1,10 +1,10 @@
 describe('script execution', function() {
-    before(h.setup);
+    before(h.setup());
 
     it('should be able to execute some js', function(done) {
         this.client
             .execute('return document.title', [], function(err, res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(conf.testPage.title, res.value);
                 done(err);
             });
@@ -13,7 +13,7 @@ describe('script execution', function() {
     it('should be forgiving on giving an `args` parameter', function(done) {
         this.client
             .execute('return document.title', function(err, res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(conf.testPage.title, res.value);
                 done(err);
             });
@@ -24,7 +24,7 @@ describe('script execution', function() {
             .execute(function() {
                 return document.title;
             }, function(err, res) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(conf.testPage.title, res.value);
                 done(err);
             });
@@ -40,7 +40,7 @@ describe('script execution', function() {
                 }, 1000);
             }, function(err, res) {
                 console.log(err,res);
-                assert.equal(null, err);
+                assert.ifError(err);
                 assert.equal(conf.testPage.title + '-async', res.value);
                 done(err);
             });

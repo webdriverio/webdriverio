@@ -1,16 +1,18 @@
 describe('Promises', function() {
-    before(h.setup);
+
+    before(h.setup());
+
     it('should execute all commands in right order (asynchronous execution test)', function(done) {
         var result = '';
         var client = this.client;
 
         this.client
             .click('.btn1', function(err) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 result += '1';
             })
             .isVisible('.btn1', function(err) {
-                assert.equal(null, err);
+                assert.ifError(err);
                 result += '2';
             })
             .call(function() {
@@ -18,11 +20,11 @@ describe('Promises', function() {
 
                 client.click('.btn1',function(err) {
 
-                    assert.equal(null, err);
+                    assert.ifError(err);
                     result += '4';
 
                     client.isVisible('.btn1', function(err) {
-                        assert.equal(null, err);
+                        assert.ifError(err);
                         result += '5';
                     })
                     .call(function() {
@@ -33,14 +35,14 @@ describe('Promises', function() {
                             result += '7';
 
                             client.click('.btn1', function(err) {
-                                assert.equal(null, err);
+                                assert.ifError(err);
                                 result += '8';
 
                                 client.call(function() {
                                     result += '9';
 
                                     client.isVisible('.btn1', function(err) {
-                                        assert.equal(null, err);
+                                        assert.ifError(err);
                                         result += '0';
 
                                         // this can't work
@@ -56,7 +58,7 @@ describe('Promises', function() {
                                 });
                             })
                             .click('.btn1', function(err) {
-                                assert.equal(null, err);
+                                assert.ifError(err);
                                 result += 'b';
                             });
                         });
@@ -68,13 +70,13 @@ describe('Promises', function() {
                         result += 'd';
 
                         client.isVisible('.btn1', function(err) {
-                            assert.equal(null, err);
+                            assert.ifError(err);
                             result += 'e';
                         });
                     });
                 })
                 .click('.btn1',function(err) {
-                    assert.equal(null, err);
+                    assert.ifError(err);
                     result += 'f';
                 })
                 .call(function() {

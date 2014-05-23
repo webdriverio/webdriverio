@@ -1,6 +1,6 @@
-describe('use', function () {
+describe('use', function() {
 
-    before(h.setup);
+    before(h.setup());
 
     var commandModule = function() {
 
@@ -12,11 +12,7 @@ describe('use', function () {
                 .call(cb);
         });
 
-    }
-
-    before(function(done) {
-        done();
-    });
+    };
 
     it('Adding commands with use()', function(done) {
 
