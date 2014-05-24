@@ -32,14 +32,15 @@
     "prepublish": "npm prune"
   },
   "devDependencies": {
-    "mocha": "~1.17.1",
     "chai": "~1.9.0",
-    "jshint": "~2.4.1",
-    "saucelabs": "~0.1.1",
-    "glob": "~3.2.7",
-    "nock": "~0.27.1",
     "coveralls": "~2.8.0",
-    "istanbul": "^0.2.6"
+    "glob": "~3.2.7",
+    "istanbul": "^0.2.6",
+    "jshint": "~2.4.1",
+    "mocha": "~1.17.1",
+    "nock": "~0.27.1",
+    "saucelabs": "~0.1.1",
+    "should": "^3.3.2"
   },
   "tags": [
     "web",
