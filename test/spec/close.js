@@ -25,8 +25,7 @@ describe('close', function() {
             .getTabIds(function(err, tabs) {
                 assert.ifError(err);
                 openedTabs = tabs;
-
-                that.client, done);
+                done();
             })
 
             // open new tab

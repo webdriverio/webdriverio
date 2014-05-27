@@ -31,4 +31,30 @@ describe('RequestHandler', function() {
             done();
         });
     });
+
+    it('does not try to set a session id if the requiresSession parameter is false', function(done) {
+        nock('http://127.0.0.1:4444')
+            .delete('/wd/hub/session/b05936b6-a45a-4e4a-b52c-aa36f67d4742')
+            .reply(204, undefined, { date: 'Mon, 20 Jan 2014 22:35:27 GMT',
+            server: 'Jetty/5.1.x (Linux/3.12.7-2-ARCH amd64 java/1.7.0_51',
+            expires: 'Thu, 01 Jan 1970 00:00:00 GMT',
+            'cache-control': 'no-cache',
+            'content-type': 'application/json;charset=UTF-8',
+            'content-length': '673' });
+
+        var options = {
+            eventHandler: { emit: noOps },
+            options: {},
+            logger: { log: noOps }
+        }
+
+        var rh = new RH(options);
+        rh.create({
+            path: '/session/b05936b6-a45a-4e4a-b52c-aa36f67d4742',
+            method: 'DELETE',
+            requiresSession: false
+        }, function(err, res) {
+            done();
+        });
+    });
 });

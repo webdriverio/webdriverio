@@ -10,7 +10,6 @@ var mocha = new Mocha({
 });
 
 glob('{test/spec/' + env + '/*.js,test/spec/*.js}', function (er, files) {
-
     files.forEach(function(file) {
         mocha.addFile(file);
     });
@@ -56,7 +55,7 @@ h = {
             assert.strictEqual(result, expected);
         };
     },
-    setup: (function() {
+    setup: function() {
         return function(done) {
             var wdjs = require('../index.js');
 
@@ -68,5 +67,5 @@ h = {
 
             this.client.url(conf.testPage.start, done);
         };
-    })()
+    }
 };

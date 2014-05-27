@@ -32,6 +32,8 @@
     "prepublish": "npm prune"
   },
   "devDependencies": {
+    "async": "0.9.0",
+    "css-value": "0.0.1",
     "mocha": "~1.17.1",
     "chai": "~1.9.0",
     "jshint": "~2.4.1",

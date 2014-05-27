@@ -1,7 +1,7 @@
 /**
  * sufficient to get tested with phantomjs
  */
-describe.only('endAll', function() {
+describe('endAll', function() {
 
     /**
      * create a bunch of instances first
@@ -29,7 +29,9 @@ describe.only('endAll', function() {
                 assert.ifError(err);
                 assert.ok(res.value.length === 0);
             })
-            .call(done);
+
+            // reinitialize session for next tests
+            .init(done);
 
     });
 

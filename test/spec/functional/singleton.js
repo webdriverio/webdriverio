@@ -7,7 +7,6 @@ describe('singleton option', function() {
     var c1, c2;
 
     before(function(done) {
-
         c1 = webdriverjs.remote(merge(conf, {
             singleton: true
         }));
@@ -23,7 +22,7 @@ describe('singleton option', function() {
         assert.deepEqual(c1, c2);
     });
 
-    it('should has the same sessionID', function() {
+    it('should have the same sessionID', function() {
         assert.strictEqual(c1.requestHandler.sessionID, c2.requestHandler.sessionID);
     });
 
@@ -34,13 +33,8 @@ describe('singleton option', function() {
             assert.ifError(err);
 
             // check if other reference has no session anymore
-            c2.session(function(err, res) {
-                assert.ifError(err);
-                assert.ifError(res.value);
-
-                done();
-            });
-
+            assert.equal(c2.requestHandler.sessionID, null);
+            done();
         });
 
     });
