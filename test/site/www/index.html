@@ -32,9 +32,7 @@
 
         <div class="nested" style="text-transform: uppercase">
             <h2>nested elements</h2>
-            <div>
-                <span data-foundBy="xpath">nested span</span>
-            </div>
+            <div><span data-foundBy="xpath">nested span</span></div>
         </div>
 
         <hr>
@@ -57,6 +55,12 @@
 
         <hr>
         <input type="search" class="searchinput" name="searchinput" data-foundBy="name">
+        <input type="checkbox" name="checkbox" class="checkbox_selected" checked>
+        <input type="checkbox" name="checkbox" class="checkbox_notselected">
+        <input type="radio" name="radio" class="radio_selected" checked>
+        <input type="radio" name="radio" class="radio_notselected">
+        <div class="visibletest invisible">I am not visible</div>
+        <div class="visibletest hidden">I am not visible</div>
         <hr>
         <form method="GET" action="index.html" class="send">
             <input name="a" value="a">
