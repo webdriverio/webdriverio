@@ -1,4 +1,4 @@
-describe('script execution', function() {
+describe('execute', function() {
     before(h.setup());
 
     it('should be able to execute some js', function(done) {
@@ -26,21 +26,6 @@ describe('script execution', function() {
             }, function(err, res) {
                 assert.ifError(err);
                 assert.equal(conf.testPage.title, res.value);
-                done(err);
-            });
-    });
-
-    it('should provide an executeAsync method', function(done) {
-        this.client
-            .timeouts('script', 5000)
-            .executeAsync(function() {
-                var cb = arguments[arguments.length - 1];
-                setTimeout(function() {
-                    cb(document.title + '-async');
-                }, 500);
-            }, function(err, res) {
-                assert.ifError(err);
-                assert.equal(conf.testPage.title + '-async', res.value);
                 done(err);
             });
     });
