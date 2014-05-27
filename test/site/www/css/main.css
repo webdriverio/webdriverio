@@ -56,6 +56,10 @@ header a {
     padding: 80px 15px 15px;
 }
 
+.page h1 {
+    min-width: 600px;
+}
+
 h2 {
     font-size: 18px;
 }
@@ -97,7 +101,7 @@ h2 {
 }
 
 .container { position: relative; }
-        
+
 .hitarea {
     position: absolute;
   left: 0;
@@ -132,4 +136,11 @@ h2 {
     background: lightgreen;
     padding: 1px 4px;
     width: auto;
+}
+
+.invisible {
+    visibility: hidden;
+}
+.hidden {
+    visibility: visible;
 }
