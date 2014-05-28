@@ -10,7 +10,7 @@ describe('clearElement', function() {
             .getValue(input, function(err, res) {
                 assert.ifError(err);
                 assert.equal(res, 'a');
-            });
+            })
             .clearElement(input)
             .getValue(input, function(err, res) {
                 assert.ifError(err);

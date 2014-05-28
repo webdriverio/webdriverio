@@ -8,7 +8,7 @@ describe('setValue', function() {
         this.client
             .setValue(input, 'b', h.noError)
             .setValue(input, 'c', h.noError)
-            .getValue(input, h.checkResult('bc'))
+            .getValue(input, h.checkResult('c'))
             .call(done);
     });
 
@@ -23,7 +23,7 @@ describe('setValue', function() {
                     'Shift', '7', 'NULL', // &
                     'Shift', '8', '9', '0' // *()
                 ])
-                .getValue(input, h.checkResult('!@#$%^&*()'))
+                .getValue(input, h.checkResult(['!@#$%^&*()','!"§$%&/()=']))
                 .call(done);
         });
 

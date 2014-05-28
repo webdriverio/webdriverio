@@ -7,8 +7,8 @@ describe('getElementSize', function() {
         this.client
             .getElementSize('.red', function(err, size) {
                 assert.ifError(err);
-                size.width.should.be.strictEqual(102);
-                size.height.should.be.strictEqual(102);
+                size.width.should.be.exactly(102);
+                size.height.should.be.exactly(102);
             })
             .call(done);
 

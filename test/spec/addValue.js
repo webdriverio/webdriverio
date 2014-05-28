@@ -37,56 +37,6 @@ describe('addValue', function() {
                 .call(done);
         });
 
-        it('cut&paste a text via Control + x and Control + v', function(done) {
-            var text = 'test';
-
-            this.client
-                .clearElement(searchinput)
-                // first set some text
-                .addValue(searchinput, text)
-                // mark text via shift + left arrow
-                .addValue(searchinput, ['Shift', 'Left arrow', 'Left arrow', 'Left arrow', 'Left arrow', 'NULL'])
-                // cut text
-                .addValue(searchinput, ['Control', 'x', 'NULL'])
-                // test: input field should be empty
-                .getValue(searchinput, function(err, res) {
-                    assert.ifError(err);
-                    assert.strictEqual(res, '');
-                })
-                // paste value from clipboard
-                .addValue(searchinput, ['Control', 'v'])
-                .getValue(searchinput, function(err, res) {
-                    assert.ifError(err);
-                    assert.strictEqual(res, text);
-                })
-                .call(done);
-        });
-
-        it('copy&paste a text via Control + c and Control + v', function(done) {
-            var text = 'test';
-
-            this.client
-                .clearElement(searchinput)
-                // first set some text
-                .addValue(searchinput, text)
-                // mark text via shift + left arrow
-                .addValue(searchinput, ['Shift', 'Left arrow', 'Left arrow', 'Left arrow', 'Left arrow', 'NULL'])
-                // copy text and move cursor to the end of the input field
-                .addValue(searchinput, ['Control', 'c', 'NULL', 'Right arrow'])
-                // test: input field should contain test value
-                .getValue(searchinput, function(err, res) {
-                    assert.ifError(err);
-                    assert.strictEqual(res, text);
-                })
-                // paste value from clipboard
-                .addValue(searchinput, ['Control', 'v'])
-                .getValue(searchinput, function(err, res) {
-                    assert.ifError(err);
-                    assert.strictEqual(res, text + text);
-                })
-                .call(done);
-        });
-
         it('release the modifier key by executing the command again', function(done) {
             this.client
                 .clearElement(searchinput)

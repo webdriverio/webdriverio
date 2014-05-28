@@ -31,8 +31,8 @@ describe('scroll', function() {
                 }
             }, function(err, res) {
                 assert.ifError(err);
-                res.value.x.should.be.exactly(15);
-                res.value.y.should.be.exactly(242);
+                res.value.x.should.be.approximately(15, 15);
+                res.value.y.should.be.approximately(262, 40);
 
             })
             .call(done);
@@ -49,8 +49,8 @@ describe('scroll', function() {
                 }
             }, function(err, res) {
                 assert.ifError(err);
-                res.value.x.should.be.exactly(5);
-                res.value.y.should.be.exactly(220);
+                res.value.x.should.be.approximately(5, 15);
+                res.value.y.should.be.approximately(240, 40);
 
             })
             .call(done);

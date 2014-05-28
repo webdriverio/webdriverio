@@ -9,10 +9,7 @@ describe('doubleClick', function(done) {
                 assert.ifError(err);
                 assert.ok(result);
             })
-            .doubleClick('.btn1', function(err, result) {
-                assert.ifError(err);
-                assert.equal(0, result.status);
-            })
+            .doubleClick('.btn1')
             .isVisible('.btn1_dblclicked', function(err, result) {
                 assert.ifError(err);
                 assert(result, '.btn1 was doubleClicked');
