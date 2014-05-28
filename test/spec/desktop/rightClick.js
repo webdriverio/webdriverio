@@ -9,7 +9,7 @@ describe('rightclick', function() {
                 assert.ifError(err);
                 isVisible.should.be.false;
             })
-            .rightclick('.btn1')
+            .rightClick('.btn1')
             .isVisible('.btn1_right_clicked', function(err,isVisible) {
                 assert.ifError(err);
                 isVisible.should.be.true;

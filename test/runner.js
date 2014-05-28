@@ -62,7 +62,13 @@ h = {
     checkResult: function(expected) {
         return function(err, result) {
             h.noError(err);
-            assert.strictEqual(result, expected);
+
+            if(expected instanceof Array) {
+                expected.should.containDeep([result]);
+            } else {
+                expected.should.be.exactly(result);
+            }
+
         };
     },
     setup: function(newSession, url) {

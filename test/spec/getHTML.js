@@ -6,7 +6,7 @@ describe('getHTML', function() {
         this.client
             .getHTML('.nested div', function(err, html) {
                 assert.equal(err, null);
-                html.should.be.exactly('<div><span data-foundby="xpath" style="position: relative; " class="ui-draggable">nested span</span></div>');
+                html.should.be.exactly('<div><span data-foundby="xpath" class="ui-draggable" style="position: relative;">nested span</span></div>');
             })
             .call(done);
     });
@@ -15,7 +15,7 @@ describe('getHTML', function() {
         this.client
             .getHTML('.nested div', false, function(err, html) {
                 assert.equal(err, null);
-                html.should.be.exactly('<span data-foundby="xpath" style="position: relative; " class="ui-draggable">nested span</span>');
+                html.should.be.exactly('<span data-foundby="xpath" class="ui-draggable" style="position: relative;">nested span</span>');
             })
             .call(done);
     });

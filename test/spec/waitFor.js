@@ -8,7 +8,7 @@ describe('waitFor command should wait until an element is available on page or t
             .call(function() {
                 startTime = Date.now();
             })
-            .waitFor('#new-element', 500) // this element doesnt exist
+            .waitFor('#new-element', 500, function(){}) // this element doesnt exist
             .call(function() {
                 var delta = Date.now() - startTime;
                 assert(delta > 499);

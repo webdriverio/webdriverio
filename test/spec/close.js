@@ -4,11 +4,30 @@ describe('close', function() {
 
     it('should close the current window', function(done) {
 
+        var that = this,
+            openTab;
+
         this.client
-            .close()
+
+            // get current tab id
             .getTabIds(function(err, tabs) {
                 assert.ifError(err);
-                assert.strictEqual(tabs.length, 0);
+                openTab = tabs[0];
+            })
+
+            // open new tab
+            .newWindow(conf.testPage.subPage)
+
+            // command needs to be executed within new function context
+            // to have access to the windowHandle assigned in L25
+            .call(function() {
+                that.client.close();
+            })
+
+            // test if there is only one tab open
+            .windowHandle(function(err, windowHandle) {
+                assert.ifError(err);
+                windowHandle.value.should.be.exactly(openTab);
             })
             .call(done);
 
@@ -17,14 +36,14 @@ describe('close', function() {
     it('should close the current window to switch back to another tab', function(done) {
 
         var that = this,
-            openedTabs = [];
+            openTab;
 
         this.client
 
             // get current tab id
             .getTabIds(function(err, tabs) {
                 assert.ifError(err);
-                openedTabs = tabs;
+                openTab = tabs[0];
             })
 
             // open new tab
@@ -33,19 +52,19 @@ describe('close', function() {
             // ensure that there are two tabs open
             .getTabIds(function(err, tabs) {
                 assert.ifError(err);
-                assert.strictEqual(tabs.length, 2);
+                tabs.should.have.length(2);
             })
 
             // command needs to be executed within new function context
             // to have access to the windowHandle assigned in L25
             .call(function() {
-                that.client.close(openedTabs[0])
+                that.client.close(openTab)
             })
 
             // test if there is only one tab open
-            .getTabIds(function(err, res) {
+            .windowHandle(function(err, windowHandle) {
                 assert.ifError(err);
-                assert.strictEqual(res, openedTabs);
+                windowHandle.value.should.be.exactly(openTab);
             })
             .call(done);
 

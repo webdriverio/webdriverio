@@ -7,10 +7,7 @@ describe('drag&drop command test', function() {
                 assert.ifError(err);
                 assert.strictEqual(res,'');
             })
-            .dragAndDrop('.ui-draggable','.red',function(err,result) {
-                assert.ifError(err);
-                assert.equal(0, result.status);
-            })
+            .dragAndDrop('.ui-draggable','.red')
             .getValue('.searchinput', function(err,res) {
                 assert.ifError(err);
                 assert.strictEqual(res,'Dropped!');

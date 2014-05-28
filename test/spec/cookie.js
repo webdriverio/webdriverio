@@ -1,22 +1,22 @@
 
-describe('getCookie', function() {
+describe('cookie command test', function() {
 
     before(h.setup());
 
-    it('should return null if no cookie is set', function(done){
+    it('getCookie should return null / [] if no cookie(s) is/are set', function(done){
         this.client
             .getCookie('test', function(err,cookie) {
                 assert.ifError(err);
-                assert.ifError(cookie);
+                (cookie === null).should.be.true;
             })
-            .getCookie(function(err,cookie) {
+            .getCookie(function(err,cookies) {
                 assert.ifError(err);
-                assert.ifError(cookie);
+                cookies.should.have.length(0);
             })
             .call(done);
     });
 
-    it('should return multiple cookies if no name is given', function(done){
+    it('getCookie should return multiple cookies if no name is given', function(done){
         this.client
             .setCookie({name: 'test',value: 'cookie saved!'})
             .setCookie({name: 'test2',value: 'cookie saved2!'})
@@ -36,7 +36,7 @@ describe('getCookie', function() {
             .call(done);
     });
 
-    it('should return a single cookies if name is given', function(done){
+    it('getCookie should return a single cookies if name is given', function(done){
         this.client
             .setCookie({name: 'test',value: 'cookie saved!'})
             .setCookie({name: 'test2',value: 'cookie saved2!'})
@@ -53,30 +53,26 @@ describe('getCookie', function() {
             .call(done);
     });
 
-    it('should delete a specific cookie', function(done) {
+    it('deleteCookie should delete a specific cookie', function(done) {
         this.client
+            .setCookie({ name: 'test', value: 'cookie saved!' })
+            .setCookie({ name: 'test2', value: 'cookie2 saved!' })
             .deleteCookie('test')
             .getCookie('test', function(err, result) {
                 assert.ifError(err);
                 assert.strictEqual(result, null);
             })
-            .getCookie('test2', function(err, result) {
+            .getCookie(function(err, result) {
                 assert.ifError(err);
                 assert.notStrictEqual(result, null);
             })
             .call(done);
     });
 
-    it('should delete all cookies', function(done) {
+    it('deleteCookie should delete all cookies', function(done) {
         this.client
-            .setCookie({
-                name: 'test',
-                value: 'cookie saved!'
-            })
-            .setCookie({
-                name: 'test2',
-                value: 'cookie2 saved!'
-            })
+            .setCookie({ name: 'test', value: 'cookie saved!' })
+            .setCookie({ name: 'test2', value: 'cookie2 saved!' })
             .deleteCookie()
             .getCookie(function(err, result) {
                 assert.ifError(err);

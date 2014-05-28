@@ -51,8 +51,11 @@ describe('saveScreenshot', function() {
                         done(err);
                     }
 
-                    size.width.should.be.exactly(windowSize.width);
-                    size.height.should.be.exactly(windowSize.height);
+                    /**
+                     * between devices and platform this can be different
+                     */
+                    size.width.should.be.approximately(windowSize.width, 50);
+                    size.height.should.be.approximately(windowSize.height, 50);
 
                     done();
                 });
