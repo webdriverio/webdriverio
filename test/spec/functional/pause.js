@@ -13,7 +13,7 @@ describe('pause', function() {
             .pause(1000)
             .call(function() {
                 var newTime = new Date().getTime();
-                (newTime - time).should.be.greaterThan(1000);
+                (newTime - time).should.be.greaterThan(999);
                 (newTime - time).should.be.lessThan(1010);
             })
             .call(done);

@@ -1,5 +1,5 @@
 describe('RequestHandler', function() {
-    var RH = require('../../lib/utils/RequestHandler.js'),
+    var RH = require('../../../lib/utils/RequestHandler.js'),
         nock = require('nock'),
         noOps = function(){};
 

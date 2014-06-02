@@ -4,6 +4,13 @@ describe('close', function() {
 
     it('should close the current window', function(done) {
 
+        /**
+         * safari doenst support `newWindow`
+         */
+        if(this.client.desiredCapabilities.browserName === 'safari') {
+            return done();
+        }
+
         var that = this,
             openTab;
 
