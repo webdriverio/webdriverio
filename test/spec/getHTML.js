@@ -4,18 +4,18 @@ describe('getHTML', function() {
 
     it('should return html of given selector including the selector element', function(done) {
         this.client
-            .getHTML('.nested div', function(err, html) {
+            .getHTML('.nested aside', function(err, html) {
                 assert.equal(err, null);
-                html.should.be.exactly('<div><span data-foundby="xpath" class="ui-draggable" style="position: relative;">nested span</span></div>');
+                html.should.be.exactly('<aside><h3>more nested</h3></aside>');
             })
             .call(done);
     });
 
     it('should return html of given selector excluding the selector element', function(done) {
         this.client
-            .getHTML('.nested div', false, function(err, html) {
+            .getHTML('.nested aside', false, function(err, html) {
                 assert.equal(err, null);
-                html.should.be.exactly('<span data-foundby="xpath" class="ui-draggable" style="position: relative;">nested span</span>');
+                html.should.be.exactly('<h3>more nested</h3>');
             })
             .call(done);
     });

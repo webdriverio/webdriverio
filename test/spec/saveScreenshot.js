@@ -8,11 +8,17 @@ describe('saveScreenshot', function() {
 
         var windowSize = {};
 
+        /**
+         * this test wont work in firefoxdriver because it automatically
+         * takes a screenshot of the whole browser dimension
+         */
+        if(this.client.desiredCapabilities.browserName === 'firefox') {
+            return done();
+        }
+
         this.client
+            .windowHandleSize({ width: 500, height: 500 })
             .saveScreenshot('test1.png')
-            .windowHandleSize(function(err,res) {
-                windowSize = res.value;
-            })
             .call(function() {
 
                 gm(__dirname + '/../../test1.png').size(function (err, size) {
@@ -20,9 +26,9 @@ describe('saveScreenshot', function() {
                         done(err);
                     }
 
-                    size.width.should.be.exactly(windowSize.width);
+                    (500).should.be.exactly(size.width);
                     // window height should be greater because of all menubars
-                    windowSize.height.should.be.above(size.height);
+                    (500).should.be.above(size.height);
 
                     done();
                 });

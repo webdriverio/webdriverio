@@ -36,7 +36,7 @@ describe('singleton option', function() {
             // check if other reference has no session anymore
             c2.session(function(err, res) {
                 assert.ifError(err);
-                assert.ifError(res.value);
+                assert.ifError(res);
 
                 done();
             });
