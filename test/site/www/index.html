@@ -33,6 +33,7 @@
         <div class="nested" style="text-transform: uppercase">
             <h2>nested elements</h2>
             <div><span data-foundBy="xpath">nested span</span></div>
+            <aside><h3>more nested</h3></aside>
         </div>
 
         <hr>
@@ -52,13 +53,21 @@
         <button style="height: 1px; width:1px; border:0;" class="btn4">Klick #4</button>
         <div class="btn4_clicked">Button #4 clicked</div>
         <div class="btn4_dblclicked">Button #4 dblclicked</div>
-
+        <select name="selectbox" id="selectbox">
+            <option value="1" class="option1">1</option>
+            <option value="2" class="option2" selected="selected">2</option>
+            <option value="3" class="option3">3</option>
+        </select>
         <hr>
         <input type="search" class="searchinput" name="searchinput" data-foundBy="name">
         <input type="checkbox" name="checkbox" class="checkbox_selected" checked>
         <input type="checkbox" name="checkbox" class="checkbox_notselected">
         <input type="radio" name="radio" class="radio_selected" checked>
         <input type="radio" name="radio" class="radio_notselected">
+        <input type="radio" name="radio2" class="radio_waitForSelected">
+        <input type="radio" name="radio2" class="radio_waitForSelectedReverse" checked>
+        <input type="text" class="waitForValueEnabled" name="waitforinput" disabled="disabled" value="some content">
+        <input type="text" class="waitForValueEnabledReverse" name="waitforinput">
         <div class="visibletest invisible">I am not visible</div>
         <div class="visibletest hidden">I am not visible</div>
         <hr>
@@ -69,7 +78,8 @@
             <input type="file" id="upload-test">
             <input type="submit" value="send" class="sendBtn">
         </form>
-
+        <div class="sometext">some text</div>
+        <div class="sometextlater"></div>
         <script>
         if (qry('a') === 'a') {
             document.write('<div class="gotDataA">got data from input[name="a"]</div>')
@@ -96,6 +106,10 @@
         <textarea cols="30" rows="10" data-foundBy="tag name"></textarea>
         </body></html>
     </section>
+
+    <div class="goAway">I will be gone in a second</div>
+    <div class="notInViewport">Where was I?</div>
+    <div class="onMyWay">On my way out of the document!</div>
 
     <script src="components/jquery/jquery.min.js"></script>
     <script src="components/hammerjs/hammer.js"></script>
@@ -157,7 +171,18 @@
         setTimeout(function() {
             var newElement = $('<div />').addClass('lateElem').html('Sorry, I\'m late!');
             $('body').append(newElement);
-        },3000);
+            $('.goAway').remove();
+            $('.radio_waitForSelected').attr('checked','checked');
+            $('.radio_waitForSelectedReverse').removeAttr('checked');
+            $('.waitForValueEnabled').val('').removeAttr('disabled');
+            $('.waitForValueEnabledReverse').val('some content').attr('disabled','disabled');
+            $('.option3').attr('selected','selected');
+            $('.option2').removeAttr('selected');
+            $('.sometextlater').html('some text');
+            $('.sometext').html('');
+            $('.notInViewport').css('left',0);
+            $('.onMyWay').css('left','100000px');
+        },2000);
 
         // Hammer(document.body).on('tap', function(e) {
 
