@@ -6,10 +6,7 @@ describe('endAll', function() {
     /**
      * create a bunch of instances first
      */
-    before(h.setup(true));
-    before(h.setup(true));
-    before(h.setup(true));
-    before(h.setup(true));
+    before(h.setup());
 
     it('should delete all sessions', function(done) {
 

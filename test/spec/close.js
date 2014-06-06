@@ -1,6 +1,6 @@
 describe('close', function() {
 
-    before(h.setup());
+    beforeEach(h.setup());
 
     it('should close the current window', function(done) {
 
