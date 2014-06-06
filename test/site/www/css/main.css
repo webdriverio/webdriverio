@@ -144,3 +144,12 @@ h2 {
 .hidden {
     visibility: visible;
 }
+.notInViewport {
+    position: absolute;
+    left: -100000px;
+    margin-top: 20px;
+}
+.onMyWay {
+    position: absolute;
+    left: 0;
+}
