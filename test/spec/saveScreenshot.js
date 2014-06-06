@@ -4,9 +4,37 @@ describe('saveScreenshot', function() {
 
     before(h.setup());
 
-    it('should take a screenshot of current viewport', function(done) {
+    var imageSize = {};
 
-        var windowSize = {};
+    it('should take a screenshot of the whole website', function(done) {
+
+        /**
+         * this test wont work in firefoxdriver because it automatically
+         * takes a screenshot of the whole browser dimension
+         */
+        if(this.client.desiredCapabilities.browserName === 'firefox') {
+            return done();
+        }
+
+        this.client
+            .windowHandleSize({ width: 1500, height: 500 })
+            .saveScreenshot('test2.png', true)
+            .call(function() {
+
+                gm(__dirname + '/../../test2.png').size(function (err, size) {
+                    if (err) {
+                        done(err);
+                    }
+
+                    imageSize = size;
+                    done();
+                });
+
+            });
+
+    });
+
+    it('should take a screenshot of current viewport', function(done) {
 
         /**
          * this test wont work in firefoxdriver because it automatically
@@ -26,42 +54,11 @@ describe('saveScreenshot', function() {
                         done(err);
                     }
 
-                    (500).should.be.exactly(size.width);
-                    // window height should be greater because of all menubars
-                    (500).should.be.above(size.height);
-
-                    done();
-                });
-
-            });
-
-    });
-
-    it('should take a screenshot of the whole website', function(done) {
-
-        var windowSize = {};
-
-        this.client
-            .saveScreenshot('test2.png', true)
-            .execute(function() {
-                return {
-                    width: document.documentElement.scrollWidth,
-                    height: document.documentElement.scrollHeight
-                };
-            }, function(err, res) {
-
-                var windowSize = res.value;
-
-                gm(__dirname + '/../../test2.png').size(function (err, size) {
-                    if (err) {
-                        done(err);
-                    }
-
                     /**
                      * between devices and platform this can be different
                      */
-                    size.width.should.be.approximately(windowSize.width, 50);
-                    size.height.should.be.approximately(windowSize.height, 50);
+                    imageSize.width.should.be.above(size.width);
+                    imageSize.height.should.be.above(size.height);
 
                     done();
                 });
