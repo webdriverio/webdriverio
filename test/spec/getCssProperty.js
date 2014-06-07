@@ -31,12 +31,12 @@ describe('getCssProperty', function() {
         this.client
             .getCssProperty('.red', 'font-family', function(err, font) {
                 assert.ifError(err);
-                font.value.should.be.exactly('Helvetica Neue');
+                font.value.should.be.exactly('helvetica neue');
                 font.parsed.value.should.be.an.instanceOf(Array);
                 font.parsed.value.should.have.length(4);
-                font.parsed.value.should.containEql('Helvetica Neue');
-                font.parsed.value.should.containEql('Helvetica');
-                font.parsed.value.should.containEql('Arial');
+                font.parsed.value.should.containEql('helvetica neue');
+                font.parsed.value.should.containEql('helvetica');
+                font.parsed.value.should.containEql('arial');
                 font.parsed.value.should.containEql('sans-serif');
             })
             .call(done);

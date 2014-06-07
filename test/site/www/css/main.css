@@ -6,9 +6,6 @@ html,body {
 }
 
 header {
-    position: fixed;
-    top: 0;
-    left: 0;
     height: 40px;
     width: 96%;
     padding: 20px 2% 0;
