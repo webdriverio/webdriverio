@@ -1,3 +1,8 @@
+/**
+ * still not supported in Appium
+ * TODO test also for mobile when supported
+ */
+
 describe('doubleClick', function(done) {
 
     before(h.setup());

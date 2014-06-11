@@ -1,3 +1,8 @@
+/**
+ * seems to be not supported in Appium
+ * returns null in iOS Simulator
+ */
+
 describe('getLocationInView', function() {
 
     before(h.setup());

@@ -8,7 +8,7 @@ describe('close', function() {
          * safari doenst support `newWindow`
          */
         if(this.client.desiredCapabilities.browserName === 'safari') {
-            return done();
+            done();
         }
 
         var that = this,
@@ -41,6 +41,13 @@ describe('close', function() {
     });
 
     it('should close the current window to switch back to another tab', function(done) {
+
+        /**
+         * safari doenst support `newWindow`
+         */
+        if(this.client.desiredCapabilities.browserName === 'safari') {
+            done();
+        }
 
         var that = this,
             openTab;

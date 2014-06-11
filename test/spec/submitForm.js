@@ -17,10 +17,12 @@ describe('submitForm', function(done) {
 
     it('should send data from form', function(done) {
         this.client
+            .pause(1000)
             .isVisible('.gotDataA', elementShouldBeNotFound)
             .isVisible('.gotDataB', elementShouldBeNotFound)
             .isVisible('.gotDataC', elementShouldBeNotFound)
-            .submitForm('.send',    h.noError)
+            .submitForm('.send')
+            .pause(1000)
             .isVisible('.gotDataA', elementShouldBeVisible)
             .isVisible('.gotDataB', elementShouldBeVisible)
             .isVisible('.gotDataC', elementShouldBeVisible)

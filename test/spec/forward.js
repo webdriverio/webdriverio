@@ -8,16 +8,18 @@ describe('forward', function() {
              * first create a history
              */
             .click('=two')
+            .pause(3000)
             /**
              * go back in history (via execute)
              * here we just want to test the forward command
              */
-            .execute('history.go(-1)')
+            .back()
+            .pause(3000)
             /**
              * now go back in history
              */
             .forward()
-            .pause(100)
+            .pause(1000)
             /**
              * did it work?
              */
