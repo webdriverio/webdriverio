@@ -176,8 +176,7 @@
             $('.radio_waitForSelectedReverse').removeAttr('checked');
             $('.waitForValueEnabled').val('').removeAttr('disabled');
             $('.waitForValueEnabledReverse').val('some content').attr('disabled','disabled');
-            $('.option3').attr('selected','selected');
-            $('.option2').removeAttr('selected');
+            $('#selectbox').get(0).value = "3";
             $('.sometextlater').html('some text');
             $('.sometext').html('');
             $('.notInViewport').css('left',0);
