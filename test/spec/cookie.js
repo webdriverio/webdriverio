@@ -28,9 +28,6 @@ describe('cookie command test', function() {
                 cookies.should.containDeep([{ value: 'cookie saved2!' }]);
                 cookies.should.containDeep([{ name: 'test' }]);
                 cookies.should.containDeep([{ name: 'test2' }]);
-                cookies.should.containDeep([{ path: '/' }]);
-                cookies.should.containDeep([{ secure: false }]);
-                // cookies.should.containDeep([{ httpOnly: false }]);
             })
             .call(done);
     });
@@ -44,9 +41,6 @@ describe('cookie command test', function() {
                 cookie.should.be.an.instanceOf(Object);
                 cookie.value.should.be.exactly('cookie saved2!');
                 cookie.name.should.be.exactly('test2');
-                cookie.path.should.be.exactly('/');
-                cookie.secure.should.be.exactly(false);
-                // cookie.httpOnly.should.be.exactly(false);
             })
             .call(done);
     });

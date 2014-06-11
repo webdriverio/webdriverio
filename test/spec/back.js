@@ -8,10 +8,12 @@ describe('back', function() {
              * first create a history
              */
             .click('=two')
+            .pause(3000)
             /**
              * go back in history
              */
             .back()
+            .pause(3000)
             /**
              * did it work?
              */
