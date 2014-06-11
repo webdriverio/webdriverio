@@ -160,6 +160,7 @@
             var li = $(this);
             var type = li.text();
             li.attr("id", "log-gesture-"+type);
+            li.addClass("log-gesture-"+type);
             all_events.push(type);
         });
 
