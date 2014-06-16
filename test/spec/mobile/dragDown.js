@@ -1,19 +1,22 @@
-describe('dragDown', function() {
+describe('flickDown', function() {
 
-    before(h.setup(false, conf.testPage.gestureTest))
+    before(h.setup(false, conf.testPage.gestureTest));
 
-    it('should trigger dragDown indicator', function(done) {
+    it('should trigger flickDown indicator', function(done) {
         this.client
+            .context('NATIVE_APP')
             .getAttribute('//*[@id="log-gesture-dragdown"]', 'class', function(err, res) {
+                console.log(err,res);
                 assert.ifError(err);
-                assert.equal(res, '');
+                assert.ifError(res);
             })
-            .dragDown('//*[@id="hitarea"]')
+            .flickDown('//*[@id="hitarea"]')
             .getAttribute('//*[@id="log-gesture-dragdown"]', 'class', function(err, res) {
-                assert.ifError(err);
+                console.log(err,res);
+                assert.ifError(err);//*[@id="log-gesture-dragup"]
                 assert.equal(res, 'active');
             })
             .call(done);
     });
 
-})
+});

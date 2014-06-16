@@ -3,8 +3,7 @@ describe('addValue', function() {
     before(h.setup());
 
     var searchinput = 'input.searchinput',
-        input = 'input[name="a"]',
-        clean = function(done) { this.client.clearElement(searchinput, done) };
+        input = 'input[name="a"]';
 
     it('add a value to existing input value', function(done) {
         this.client

@@ -4,9 +4,9 @@ var webdriverjs = require('../../../index.js'),
         desiredCapabilities: {
             browserName: 'phantomjs'
         }
-    },
-    client;
+    };
 
+/* global beforeEach */
 describe('event handling', function() {
     describe('is able to emit and listen to driver specific events and', function() {
 
@@ -23,13 +23,13 @@ describe('event handling', function() {
 
             client.on('end', function() {
                 isEndHandlerEmitted = true;
-            })
+            });
             client.on('init', function() {
                 isInitHandlerEmitted = true;
-            })
+            });
             client.on('error', function() {
                 isErrorHandlerEmitted = true;
-            })
+            });
             client.on('command', function(e) {
 
                 // assign variables only on first command
@@ -40,7 +40,7 @@ describe('event handling', function() {
                 isCommandHandlerEmitted = true;
                 desiredCapabilties = e.data.desiredCapabilities.browserName;
                 commandUrl = e.uri;
-            })
+            });
         });
 
         it('should emit an init event after calling the init command', function(done) {
@@ -91,7 +91,7 @@ describe('event handling', function() {
             iShouldBeGetTriggered = false;
             eventWasTriggeredAtLeastOnce = false;
             this.client.removeAllListeners('testme');
-        })
+        });
 
         it('should register and fire events with on/emit', function(done) {
 
@@ -111,7 +111,7 @@ describe('event handling', function() {
                     } else {
                         done(new Error('event wasn\'t thrown'));
                     }
-                })
+                });
 
         });
 
@@ -141,10 +141,10 @@ describe('event handling', function() {
             });
             clientB.on('testme', function(key) {
                 assert.strictEqual(key, 'B');
-            })
+            });
 
             clientA.emit('testme', 'A');
             clientB.emit('testme', 'B');
-        })
-    })
+        });
+    });
 });

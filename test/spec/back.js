@@ -24,4 +24,4 @@ describe('back', function() {
             .call(done);
     });
 
-})
+});

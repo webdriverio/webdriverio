@@ -1,3 +1,4 @@
+/*jshint expr: true*/
 describe('click', function() {
 
     before(h.setup());

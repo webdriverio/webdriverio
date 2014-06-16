@@ -1,8 +1,8 @@
 describe('orientation commands', function() {
 
-    before(h.setup(false, conf.testPage.gestureTest))
+    before(h.setup(false, conf.testPage.gestureTest));
 
-    it('getOrientation: should get current orientation', function(done) {
+    it('should get current orientation (getOrientation)', function(done) {
 
         this.client
             .getOrientation(function(err, orientation) {
@@ -13,7 +13,7 @@ describe('orientation commands', function() {
 
     });
 
-    it('setOrientation: should change the orientation', function(done) {
+    it('should change the orientation (setOrientation)', function(done) {
 
         this.client
             .setOrientation('landscape')
@@ -25,4 +25,4 @@ describe('orientation commands', function() {
 
     });
 
-})
+});

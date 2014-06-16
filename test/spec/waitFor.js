@@ -1,3 +1,5 @@
+/*jshint expr: true*/
+/*global beforeEach*/
 describe('waitFor',function() {
 
     var duration = 3500;
@@ -8,8 +10,8 @@ describe('waitFor',function() {
             // mobile devices react slowly
             (new Date().getTime() - startTime).should.be.above(this.isMobile ? 600 : 1500);
             done();
-        }
-    }
+        };
+    };
 
     describe('(traditional selenium)', function() {
 

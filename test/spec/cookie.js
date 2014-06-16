@@ -1,4 +1,5 @@
 
+/*jshint expr: true*/
 describe('cookie command test', function() {
 
     before(h.setup());

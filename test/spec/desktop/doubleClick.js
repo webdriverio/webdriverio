@@ -3,7 +3,7 @@
  * TODO test also for mobile when supported
  */
 
-describe('doubleClick', function(done) {
+describe('doubleClick', function() {
 
     before(h.setup());
 

@@ -1,3 +1,4 @@
+/* global beforeEach */
 describe('close', function() {
 
     beforeEach(h.setup());
@@ -72,7 +73,7 @@ describe('close', function() {
             // command needs to be executed within new function context
             // to have access to the windowHandle assigned in L25
             .call(function() {
-                that.client.close(openTab)
+                that.client.close(openTab);
             })
 
             // test if there is only one tab open

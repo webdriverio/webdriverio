@@ -1,3 +1,4 @@
+/* global document */
 describe('scroll', function() {
 
     before(h.setup());
@@ -10,7 +11,7 @@ describe('scroll', function() {
                 return {
                     x: $(document).scrollLeft(),
                     y: $(document).scrollTop(),
-                }
+                };
             }, function(err, res) {
                 assert.ifError(err);
                 res.value.x.should.be.exactly(100);
@@ -28,7 +29,7 @@ describe('scroll', function() {
                 return {
                     x: $(document).scrollLeft(),
                     y: $(document).scrollTop(),
-                }
+                };
             }, function(err, res) {
                 assert.ifError(err);
                 res.value.x.should.be.approximately(15, 15);
@@ -46,7 +47,7 @@ describe('scroll', function() {
                 return {
                     x: $(document).scrollLeft(),
                     y: $(document).scrollTop(),
-                }
+                };
             }, function(err, res) {
                 assert.ifError(err);
                 res.value.x.should.be.approximately(5, 15);

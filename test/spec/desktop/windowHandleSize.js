@@ -57,7 +57,7 @@ describe('windowHandleSize', function() {
                     /**
                      * close opened window
                      */
-                    .close(tabs[1])
+                    .close(tabs[1]);
 
             })
 

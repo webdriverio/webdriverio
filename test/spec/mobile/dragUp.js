@@ -1,15 +1,16 @@
-describe('dragUp', function() {
+describe('flickUp', function() {
 
-    before(h.setup(false, conf.testPage.gestureTest))
+    before(h.setup(false, conf.testPage.gestureTest));
 
-    it('should trigger dragUp indicator', function(done) {
+    it('should trigger flickUp indicator', function(done) {
         this.client
-            .getAttribute('//*[@id="log-gesture-dragup"]', 'class', function(err, res) {
+            .context('NATIVE_APP')
+            .getAttribute('#log-gesture-dragup', 'class', function(err, res) {
                 assert.ifError(err);
                 assert.equal(res, '');
             })
-            .dragUp('//*[@id="hitarea"]')
-            .getAttribute('//*[@id="log-gesture-dragup"]', 'class', function(err, res) {
+            .flickUp('#hitarea')
+            .getAttribute('#log-gesture-dragup', 'class', function(err, res) {
                 assert.ifError(err);
                 assert.equal(res, 'active');
             })

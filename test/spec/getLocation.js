@@ -25,7 +25,7 @@ describe('getLocation', function() {
                 locations.forEach(function(location) {
                     location.x.should.be.type('number');
                     location.y.should.be.type('number');
-                })
+                });
             })
             .call(done);
     });
