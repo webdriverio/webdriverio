@@ -1,3 +1,4 @@
+/*jshint expr: true*/
 describe('isSelected', function() {
 
     before(h.setup());

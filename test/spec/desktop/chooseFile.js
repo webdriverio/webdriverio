@@ -12,8 +12,8 @@ describe('choosing a file in an <input type=file>', function() {
             .getValue('#upload-test', function(err, val) {
                 assert.ifError(err);
                 assert.ok(/cat\-to\-upload\.gif$/.test(val));
-                done();
             })
+            .call(done);
     });
 
     it('errors if file does not exists', function(done) {

@@ -1,3 +1,4 @@
+/*jshint expr: true*/
 describe('isVisible', function() {
 
     before(h.setup());

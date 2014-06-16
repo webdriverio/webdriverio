@@ -7,7 +7,7 @@ describe('remote method', function() {
     it('does not fail without options', function() {
 
         assert.doesNotThrow(function() {
-            var client = webdriverjs.remote();
+            webdriverjs.remote();
         });
 
     });

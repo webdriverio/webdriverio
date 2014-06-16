@@ -1,3 +1,4 @@
+/*jshint expr: true*/
 describe('rightclick', function() {
 
     before(h.setup());

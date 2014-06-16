@@ -30,4 +30,4 @@ describe('forward', function() {
             .call(done);
     });
 
-})
+});

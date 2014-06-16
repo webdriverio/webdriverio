@@ -4,7 +4,7 @@ describe('addCommand', function() {
 
     before(function() {
 
-        this.client.addCommand("getUrlAndTitle", function(callback) {
+        this.client.addCommand('getUrlAndTitle', function(callback) {
 
             var result = {},
                 error;

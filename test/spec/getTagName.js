@@ -20,7 +20,7 @@ describe('getTagName', function() {
 
                 tagnames.forEach(function(tagname) {
                     tagname.should.be.exactly('div');
-                })
+                });
             })
             .call(done);
     });

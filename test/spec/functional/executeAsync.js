@@ -1,3 +1,4 @@
+/* global document */
 describe('executeAsync', function() {
 
     before(h.setup());
@@ -17,4 +18,4 @@ describe('executeAsync', function() {
             .call(done);
     });
 
-})
+});

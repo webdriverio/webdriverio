@@ -1,14 +1,14 @@
-describe('dragLeft', function() {
+describe('flickLeft', function() {
 
-    before(h.setup(false, conf.testPage.gestureTest))
+    before(h.setup(false, conf.testPage.gestureTest));
 
-    it('should trigger dragLeft indicator', function(done) {
+    it('should trigger flickLeft indicator', function(done) {
         this.client
             .getAttribute('//*[@id="log-gesture-dragleft"]', 'class', function(err, res) {
                 assert.ifError(err);
                 assert.equal(res, '');
             })
-            .dragleft('//*[@id="hitarea"]')
+            .flickLeft('//*[@id="hitarea"]')
             .getAttribute('//*[@id="log-gesture-dragleft"]', 'class', function(err, res) {
                 assert.ifError(err);
                 assert.equal(res, 'active');

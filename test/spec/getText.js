@@ -20,7 +20,7 @@ describe('getText', function() {
 
                 texts.forEach(function(tagname) {
                     tagname.should.be.exactly('');
-                })
+                });
             })
             .call(done);
     });

@@ -7,8 +7,8 @@ describe('use', function() {
         var self = this;
         this.addCommand('foo', function(cb) {
             self
-                .setValue('form input[name="a"]', "fooooooo")
-                .setValue('form input[name="b"]', "baaaaaar")
+                .setValue('form input[name="a"]', 'fooooooo')
+                .setValue('form input[name="b"]', 'baaaaaar')
                 .call(cb);
         });
 

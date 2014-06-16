@@ -3,8 +3,7 @@ describe('switchTab', function() {
 
     it('should switch to an other tab', function(done) {
 
-        var that = this,
-            openedTabs = [];
+        var openedTabs = [];
 
         this.client
 
@@ -28,4 +27,4 @@ describe('switchTab', function() {
             .call(done);
 
     });
-})
+});

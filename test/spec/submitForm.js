@@ -1,4 +1,5 @@
-describe('submitForm', function(done) {
+/* global beforeEach */
+describe('submitForm', function() {
 
     beforeEach(h.setup());
 
@@ -10,6 +11,7 @@ describe('submitForm', function(done) {
          */
         isVisible.should.be.exactly(false);
     };
+
     var elementShouldBeVisible = function(err,isVisible) {
         assert.ifError(err);
         isVisible.should.be.exactly(true);
