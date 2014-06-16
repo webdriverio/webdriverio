@@ -123,7 +123,7 @@ WebdriverJS inherits several function from the NodeJS [EventEmitter](http://node
 Additionally it provides an experimental way to register events on browser side (like click,
 focus, keypress etc.).
 
-#### Eventhandling in NodeJS environment
+#### Eventhandling
 
 The following functions are supported: `on`,`once`,`emit`,`removeListener`,`removeAllListeners`.
 They behave exactly as described in the official NodeJS [docs](http://nodejs.org/api/events.html).
@@ -158,47 +158,8 @@ client
     .end();
 ```
 
-#### Eventhandling on browser side
-
-This is an experimental feature that helps you to listen on events within the browser. It
-is currently **only** supported in Chrome browser (other browser will eventually follow).
-To register an event call the `addEventListener` command. If an event gets invoked it returns
-almost the complete event object that got caught within the browser. Only the `Window` will
-be removed to avoid circular references. All objects from type `HTMLElement` will be
-replaced by their xPath. This will help you to query and identify this element with WebdriverJS.
-
-Before you are able to use browser side eventhandling you need set the `experimental` flag
-on client initialization:
-
-```js
-var client = WebdriverJS.remote({
-    logLevel: 'verbose',
-    experimental: true, // <-- enables browser side eventhandling
-    desiredCapabilities: {
-        browserName: 'chrome'
-    }
-});
-```
-
-After that you can use `addEventListener` to register events on one or multiple elements
-and `removeEventListener` to remove them.
-
-**Example**
-
-```js
-client
-    .url('http://google.com')
-    .addEventListener('dblclick','#hplogo', function(e) {
-        console.log(e.target); // -> 'id("hplogo")'
-        console.log(e.type); // -> 'dblclick'
-        console.log(e.clientX, e.clientY); // -> 239 524
-    })
-    .doubleClick('#hplogo') // triggers event
-    .end();
-```
-
-**Again:** this is still an experimental feature. Some events like `hover` will not be
-recorded by the browser. But `click` and custom events are working flawlessly.
+**Note:** make sure you check out the [Browserevent](https://github.com/webdriverjs/eventlistener) side project
+that enables event-handling on client side (Yes, in the browser!! ;-).
 
 ## Adding custom commands
 
