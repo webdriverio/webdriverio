@@ -17,6 +17,8 @@
     "h": true,
     "conf": true,
     "require": false,
-    "module": false
+    "module": false,
+    "document": true,
+    "window": true
   }
 }
