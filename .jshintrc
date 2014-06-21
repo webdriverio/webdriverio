@@ -16,6 +16,8 @@
     "before": true,
     "assert": true,
     "h": true,
-    "conf": true
+    "conf": true,
+    "document": true,
+    "window": true
   }
 }
