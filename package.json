@@ -67,12 +67,13 @@
     "testingbot"
   ],
   "dependencies": {
-    "chainit": "^2.0.2-backcompat",
-    "pragma-singleton": "~1.0.3",
     "archiver": "~0.6.1",
-    "request": "~2.34.0",
-    "deepmerge": "~0.2.7",
+    "chainit": "^2.0.2-backcompat",
     "crx": "~0.4.1",
-    "socket.io": "~0.9.16"
+    "deepmerge": "~0.2.7",
+    "pragma-singleton": "~1.0.3",
+    "request": "~2.37.0",
+    "socket.io": "~0.9.16",
+    "url": "^0.10.1"
   }
 }
