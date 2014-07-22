@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.7.2 (2014-07-22)
+* fixed request headers to work properly with phantomjs standalone - closes #225
+
 ## v1.7.1 (2014-05-23)
 * fixes exception when getValue() returns an error
 
