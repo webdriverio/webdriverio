@@ -1,10 +1,12 @@
-Webdriver/selenium 2.0 javascript bindings for nodejs [![Build Status](https://travis-ci.org/camme/webdriverjs.png?branch=master)](https://travis-ci.org/camme/webdriverjs) [![Coverage Status](https://coveralls.io/repos/camme/webdriverjs/badge.png?branch=master&)](https://coveralls.io/r/camme/webdriverjs?branch=master)
-=====================================================
+WebdriverIO [![Build Status](https://travis-ci.org/webdriverio/webdriverio.png?branch=master)](https://travis-ci.org/webdriverio/webdriverio) [![Coverage Status](https://coveralls.io/repos/webdriverio/webdriverio/badge.png?branch=master&)](https://coveralls.io/r/webdriverio/webdriverio?branch=master)
+===========
 
-[![Selenium Test Status](https://saucelabs.com/browser-matrix/camme-webdriverjs.svg)](https://saucelabs.com/u/camme-webdriverjs)
+[![Selenium Test Status](https://saucelabs.com/browser-matrix/webdriverio.svg)](https://saucelabs.com/u/webdriverio)
 
-This library is a webdriver module for nodejs. It makes it possible to write
-super easy selenium tests in your favorite BDD or TDD test framework.
+This library is a webdriver module for Node.js. It makes it possible to write
+super easy selenium tests in your favorite BDD or TDD test framework. It was
+originated by [Camilo Tapia's](https://github.com/camme) inital selenium project
+called WebdriverJS.
 
 Have a look at the many [examples](examples/).
 
@@ -15,11 +17,6 @@ For news or announcements follow [@webdriverjs](https://twitter.com/WebdriverJS)
 ```shell
 npm install webdriverjs
 ```
-
-## Disclaimer
-
-This is not the official WebdriverJS driver, for differences between this and the official driver,
-please take a look on [this issue post](https://github.com/camme/webdriverjs/issues/138#issuecomment-32051980).
 
 ## Usage
 
