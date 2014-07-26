@@ -150,3 +150,6 @@ h2 {
     position: absolute;
     left: 0;
 }
+.opacity {
+    opacity: 0;
+}
