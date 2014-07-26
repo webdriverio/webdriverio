@@ -78,6 +78,7 @@
     "pragma-singleton": "~1.0.3",
     "request": "~2.34.0",
     "rgb2hex": "^0.1.0",
-    "rimraf": "^2.2.6"
+    "rimraf": "^2.2.6",
+    "url": "^0.10.1"
   }
 }
