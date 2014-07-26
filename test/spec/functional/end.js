@@ -25,9 +25,11 @@ describe('end', function() {
 
             // check if session was closed
             .call(function() {
-                that.client.session('get', sessionID, function(err,res) {
+                that.client.sessions('get', sessionID, function(err,res) {
                     assert.ifError(err);
-                    assert.ifError(res.value);
+                    res.value.forEach(function(session) {
+                        session.id.should.not.equal(sessionID);
+                    });
                 }).call(done);
             });
 

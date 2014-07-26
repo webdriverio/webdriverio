@@ -78,13 +78,13 @@ h = {
             /**
              * if instance already exists and no new session was requested return existing instance
              */
-            if (client && !newSession) {
+            if (client && !newSession && newSession !== null) {
                 this.client = client;
 
             /**
              * if new session was requested create temporary instance
              */
-            } else if(newSession) {
+            } else if(newSession && newSession !== null) {
                 this.client = wdjs.remote(conf).init();
 
             /**
