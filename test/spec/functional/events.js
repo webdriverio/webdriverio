@@ -14,7 +14,7 @@ describe('event handling', function() {
             isErrorHandlerEmitted = false,
             isInitHandlerEmitted = false,
             isEndHandlerEmitted = false,
-            commandUrl = null,
+            uri = null,
             desiredCapabilties = null,
             client;
 
@@ -39,7 +39,7 @@ describe('event handling', function() {
 
                 isCommandHandlerEmitted = true;
                 desiredCapabilties = e.data.desiredCapabilities.browserName;
-                commandUrl = e.uri;
+                uri = e.uri;
             });
         });
 
@@ -48,7 +48,7 @@ describe('event handling', function() {
                 .init()
                 .call(function() {
                     assert.ok(isInitHandlerEmitted, 'init handler wasn\'t called');
-                    assert.strictEqual(commandUrl, 'http://127.0.0.1:4444/wd/hub/session');
+                    assert.strictEqual(uri.host, '127.0.0.1:4444');
                     assert.strictEqual(desiredCapabilties, 'phantomjs');
                 })
                 .call(done);

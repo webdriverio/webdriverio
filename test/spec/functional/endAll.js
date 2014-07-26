@@ -30,4 +30,9 @@ describe('endAll', function() {
 
     });
 
+    /**
+     * create new client instance to continue tests
+     */
+    after(h.setup(null));
+
 });
