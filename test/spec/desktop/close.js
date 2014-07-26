@@ -27,7 +27,7 @@ describe('close', function() {
             .newWindow(conf.testPage.subPage)
 
             // command needs to be executed within new function context
-            // to have access to the windowHandle assigned in L25
+            // to have access to the windowHandle assigned in L23
             .call(function() {
                 that.client.close(openTab);
             })
@@ -71,7 +71,7 @@ describe('close', function() {
             })
 
             // command needs to be executed within new function context
-            // to have access to the windowHandle assigned in L25
+            // to have access to the windowHandle assigned in L61
             .call(function() {
                 that.client.close(openTab);
             })
