@@ -8,7 +8,7 @@ describe('waitFor',function() {
             assert.equal(err, null);
             res.should.be.true;
             // mobile devices react slowly
-            (new Date().getTime() - startTime).should.be.above(this.isMobile ? 600 : 1500);
+            (Date.now() - startTime).should.be.above(this.isMobile ? 600 : 1200);
             done();
         };
     };
@@ -41,12 +41,12 @@ describe('waitFor',function() {
         beforeEach(h.setup());
 
         it('should return w/o err after element was checked', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForChecked('.radio_waitForSelected', duration, checkTime(currentTime, done));
         });
 
         it('(reverse) should return w/o err after element was unchecked', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForChecked('.radio_waitForSelectedReverse', duration, true, checkTime(currentTime, done));
         });
 
@@ -57,12 +57,12 @@ describe('waitFor',function() {
         beforeEach(h.setup());
 
         it('should return w/o err after element was enabled', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForEnabled('.waitForValueEnabled', duration, checkTime(currentTime, done));
         });
 
         it('(reverse) should return w/o err after element was disabled', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForEnabled('.waitForValueEnabledReverse', duration, true, checkTime(currentTime, done));
         });
 
@@ -73,12 +73,12 @@ describe('waitFor',function() {
         beforeEach(h.setup());
 
         it('should return w/o err after element was appended to the DOM', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForExist('.lateElem', duration, checkTime(currentTime, done));
         });
 
         it('(reverse) should return w/o err after element was removed from the DOM', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForExist('.goAway', duration, true, checkTime(currentTime, done));
         });
 
@@ -89,12 +89,12 @@ describe('waitFor',function() {
         beforeEach(h.setup());
 
         it('should return w/o err after element was selected', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForSelected('.option3', duration, checkTime(currentTime, done));
         });
 
         it('(reverse) should return w/o err after element was unselected', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForSelected('.option2', duration, true, checkTime(currentTime, done));
         });
 
@@ -105,12 +105,12 @@ describe('waitFor',function() {
         beforeEach(h.setup());
 
         it('should return w/o err after element got a text/content', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForText('.sometextlater', duration, checkTime(currentTime, done));
         });
 
         it('(reverse) should return w/o err after text/content element was removed', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForText('.sometext', duration, true, checkTime(currentTime, done));
         });
 
@@ -121,12 +121,12 @@ describe('waitFor',function() {
         beforeEach(h.setup());
 
         it('should return w/o err after element got a value', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForEnabled('.waitForValueEnabled', duration, checkTime(currentTime, done));
         });
 
         it('(reverse) should return w/o err after element lost its value', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForEnabled('.waitForValueEnabledReverse', duration, true, checkTime(currentTime, done));
         });
 
@@ -137,12 +137,12 @@ describe('waitFor',function() {
         beforeEach(h.setup());
 
         it('should return w/o err after element moved into document bounderies', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForVisible('.notInViewport', duration, checkTime(currentTime, done));
         });
 
         it('(reverse) should return w/o err after element left document bounderies', function(done) {
-            var currentTime = new Date().getTime();
+            var currentTime = Date.now();
             this.client.waitForVisible('.onMyWay', duration, true, checkTime(currentTime, done));
         });
 
