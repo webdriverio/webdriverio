@@ -28,7 +28,7 @@
   },
   "scripts": {
     "test": "node ./test/runner.js",
-    "coverage": "./node_modules/.bin/istanbul cover ./test/runner.js",
+    "coverage": "./node_modules/.bin/istanbul cover -x \"**/helpers/is*.js\" -x \"**/helpers/click.js\" -x \"**/helpers/has*.js\" -x \"**/helpers/getHTML.js\" -x \"**/helpers/scroll.js\" -x \"**/helpers/newWindow.js\" ./test/runner.js",
     "prepublish": "npm prune"
   },
   "devDependencies": {
