@@ -3,31 +3,30 @@ describe('submitForm', function() {
 
     beforeEach(h.setup());
 
-    var elementShouldBeNotFound = function(err,isVisible) {
+    var elementShouldBeNotExisting = function(err,isExisting) {
         assert.ifError(err);
 
         /**
-         * because there was no element found isVisible is false
+         * because there was no element found isExisting is false
          */
-        isVisible.should.be.exactly(false);
+        isExisting.should.be.exactly(false);
     };
 
-    var elementShouldBeVisible = function(err,isVisible) {
+    var elementShouldBeExisting = function(err,isExisting) {
         assert.ifError(err);
-        isVisible.should.be.exactly(true);
+        isExisting.should.be.exactly(true);
     };
 
     it('should send data from form', function(done) {
         this.client
-            .pause(1000)
-            .isVisible('.gotDataA', elementShouldBeNotFound)
-            .isVisible('.gotDataB', elementShouldBeNotFound)
-            .isVisible('.gotDataC', elementShouldBeNotFound)
+            .isExisting('.gotDataA', elementShouldBeNotExisting)
+            .isExisting('.gotDataB', elementShouldBeNotExisting)
+            .isExisting('.gotDataC', elementShouldBeNotExisting)
             .submitForm('.send')
             .pause(1000)
-            .isVisible('.gotDataA', elementShouldBeVisible)
-            .isVisible('.gotDataB', elementShouldBeVisible)
-            .isVisible('.gotDataC', elementShouldBeVisible)
+            .isExisting('.gotDataA', elementShouldBeExisting)
+            .isExisting('.gotDataB', elementShouldBeExisting)
+            .isExisting('.gotDataC', elementShouldBeExisting)
             .call(done);
     });
 
