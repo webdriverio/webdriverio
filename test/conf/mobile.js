@@ -1,11 +1,9 @@
 module.exports = {
     desiredCapabilities: {
         browserName: process.env._BROWSER || '',
-        platform: (process.env._PLATFORM || '').replace(/_/g,' '),
-        version: (process.env._VERSION || ''),
-        deviceName: (process.env._DEVICENAME || '').replace(/_/g,' '),
-        app: process.env._APP || '',
-        // app: 'sauce-storage:site.zip',
-        // app: 'http://localhost:8080/test/site.zip',
+        platformName: (process.env._PLATFORM || '').replace(/_/g,' '),
+        platformVersion: (process.env._VERSION || ''),
+        'appium-version': '1.0',
+        deviceName: (process.env._DEVICENAME || '').replace(/_/g,' ')
     }
 };
