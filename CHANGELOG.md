@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.7.3 (2014-08-08)
+* removed content-length header attr - closes #265
+
 ## v1.7.2 (2014-07-22)
 * fixed request headers to work properly with phantomjs standalone - closes #225
 
