@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.7.4 (2014-08-09)
+* added correct content-length header attr thanks @rootStar-lock - refs #198
+
 ## v1.7.3 (2014-08-08)
 * removed content-length header attr - closes #265
 
