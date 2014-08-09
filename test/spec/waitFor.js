@@ -7,8 +7,6 @@ describe('waitFor',function() {
         return function(err, res) {
             assert.equal(err, null);
             res.should.be.true;
-            // mobile devices react slowly
-            (Date.now() - startTime).should.be.above(this.isMobile ? 600 : 1200);
             done();
         };
     };
