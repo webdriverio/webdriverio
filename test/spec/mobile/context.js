@@ -4,14 +4,10 @@ describe('context', function() {
 
     it('should return available context modes', function(done) {
         this.client
-            .getNetworkConnection(function(err,res) {
-                console.log(res);
+            .context(function(err,res) {
+                assert.ifError(err);
+                res.value.should.be.exactly('WEBVIEW_1')
             })
-            .pause(2000)
-            // .context(function(err,res) {
-            //     console.log(err,res);
-            // })
-            // .context('NATIVE_APP')
             .call(done);
     });
 

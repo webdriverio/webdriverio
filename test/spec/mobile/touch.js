@@ -1,4 +1,4 @@
-describe('touch', function() {
+describe.skip('touch', function() {
 
     before(h.setup(false, conf.testPage.gestureTest));
 
