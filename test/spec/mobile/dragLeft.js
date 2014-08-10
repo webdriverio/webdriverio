@@ -1,4 +1,4 @@
-describe('flickLeft', function() {
+describe.skip('flickLeft', function() {
 
     before(h.setup(false, conf.testPage.gestureTest));
 
