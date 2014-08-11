@@ -17,11 +17,15 @@
 
 var createSingleton = require('pragma-singleton'),
     WebdriverJS = require('./lib/webdriverio.js'),
+    ErrorHandler   = require('./lib/utils/ErrorHandler.js'),
     package = require('./package.json'),
     chainIt = require('chainit');
 
 // expose version number
 module.exports.version = package.version;
+
+// expose error handler
+module.exports.ErrorHandler = ErrorHandler;
 
 // use the chained API reference to add static methods
 module.exports.remote = function remote(options, Constructor) {
