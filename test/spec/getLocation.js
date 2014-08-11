@@ -9,8 +9,8 @@ describe('getLocation', function() {
                 /**
                  * between devices and platform this can be different
                  */
-                location.x.should.be.below(25);
-                location.y.should.be.below(25);
+                location.x.should.be.below(27);
+                location.y.should.be.below(27);
             })
             .call(done);
     });

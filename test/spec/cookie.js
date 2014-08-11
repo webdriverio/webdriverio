@@ -47,6 +47,11 @@ describe('cookie command test', function() {
     });
 
     it('deleteCookie should delete a specific cookie', function(done) {
+
+        if(this.client.desiredCapabilities.browserName === 'safari' && !this.client.isMobile) {
+            return done();
+        }
+
         this.client
             .setCookie({ name: 'test', value: 'cookie saved!' })
             .setCookie({ name: 'test2', value: 'cookie2 saved!' })
@@ -63,6 +68,11 @@ describe('cookie command test', function() {
     });
 
     it('deleteCookie should delete all cookies', function(done) {
+
+        if(this.client.desiredCapabilities.browserName === 'safari' && !this.client.isMobile) {
+            return done();
+        }
+
         this.client
             .setCookie({ name: 'test', value: 'cookie saved!' })
             .setCookie({ name: 'test2', value: 'cookie2 saved!' })
