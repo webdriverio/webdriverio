@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v2.1.0 (2014-08-11)
+* added isEnabled and elementIdEnabled commands
+* make ErrorHandler easy accessible
+
 ## v2.0.1 (2014-08-10)
 * renamed project lib constructor
 * fixed isMobile detection in `chooseFile` command
