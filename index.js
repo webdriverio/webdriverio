@@ -16,7 +16,7 @@
  */
 
 var createSingleton = require('pragma-singleton'),
-    WebdriverJS = require('./lib/webdriverjs.js'),
+    WebdriverJS = require('./lib/webdriverio.js'),
     package = require('./package.json'),
     chainIt = require('chainit');
 
