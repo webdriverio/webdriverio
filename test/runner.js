@@ -18,7 +18,7 @@ if(env === 'functional') {
     specFiles = '{test/spec/' + env + '/*.js,test/spec/*.js}';
 }
 
-glob(specFiles, function(er, files) {
+glob(process.env._SPEC || specFiles, function(er, files) {
 
     files.forEach(function(file) {
         mocha.addFile(file);
