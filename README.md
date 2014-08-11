@@ -10,31 +10,31 @@ called WebdriverJS.
 
 Have a look at the many [examples](examples/).
 
-For news or announcements follow [@webdriverjs](https://twitter.com/WebdriverJS) on Twitter.
+For news or announcements follow [@webdriverio](https://twitter.com/WebdriverIO) on Twitter.
 
 ## How to install it
 
 ```shell
-npm install webdriverjs
+npm install webdriverio
 ```
 
 ## Usage
 
-`webdriverjs` implements most of selenium's [JsonWireProtocol](https://code.google.com/p/selenium/wiki/JsonWireProtocol).
+`webdriverio` implements all commands of the Selenium [JsonWireProtocol](https://code.google.com/p/selenium/wiki/JsonWireProtocol).
 
-Make sure you have a running selenium standalone/grid/hub.
+Make sure you have a running Selenium standalone/grid/hub.
 
 Or use [selenium-standalone](https://github.com/vvo/selenium-standalone) package to run one easily.
 
 ```js
-var webdriverjs = require('../index');
+var webdriverio = require('../index');
 var options = {
     desiredCapabilities: {
         browserName: 'chrome'
     }
 };
 
-webdriverjs
+webdriverio
     .remote(options)
     .init()
     .url('http://www.google.com')
@@ -63,7 +63,7 @@ tags: ['tag1','tag2'],  // specify some tags (e.g. if you use Sauce Labs)
 name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 ```
 
-See the [selenium documentation](https://code.google.com/p/selenium/wiki/DesiredCapabilities) for a list of the available `capabilities`.
+See the [Selenium documentation](https://code.google.com/p/selenium/wiki/DesiredCapabilities) for a list of the available `capabilities`.
 
 ### logLevel
 Type: `String`
@@ -73,7 +73,7 @@ Default: *silent*
 Options: *verbose* | *silent* | *command* | *data* | *result*
 
 ### screenshotPath
-Saves a screenshot to a given path if selenium driver crashes
+Saves a screenshot to a given path if Selenium driver crashes
 
 Type: `String`|`null`
 
@@ -89,15 +89,15 @@ Set to true if you always want to reuse the same remote
 
 ## Selector API
 
-The JsonWireProtocol provides several strategies to query an element. WebdriverJS simplifies these
+The JsonWireProtocol provides several strategies to query an element. WebdriverIO simplifies these
 to make it more familiar with the common existing selector libraries like [Sizzle](http://sizzlejs.com/).
 The following selector types are supported:
 
 - **CSS query selector**<br>
   e.g. `client.click('h2.subheading a', function(err,res) {...})` etc.
 - **link text**<br>
-  To get an anchor element with a specific text in it (f.i. `<a href="http://webdriver.io">WebdriverJS</a>`)
-  query the text starting with an equal (=) sign. In this example use `=WebdriverJS`
+  To get an anchor element with a specific text in it (f.i. `<a href="http://webdriver.io">WebdriverIO</a>`)
+  query the text starting with an equal (=) sign. In this example use `=WebdriverIO`
 - **partial link text**<br>
   To find a anchor element whose visible text partially matches your search value, query it by using `*=`
   in front of the query string (e.g. `*=driver`)
@@ -111,12 +111,12 @@ The following selector types are supported:
   It is also possible to query elements via a specific xPath. The selector has to have a format like
   for example `//BODY/DIV[6]/DIV[1]/SPAN[1]`
 
-In near future WebdriverJS will cover more selector features like form selector (e.g. `:password`,`:file` etc)
+In near future WebdriverIO will cover more selector features like form selector (e.g. `:password`,`:file` etc)
 or positional selectors like `:first` or `:nth`.
 
 ## Eventhandling
 
-WebdriverJS inherits several function from the NodeJS [EventEmitter](http://nodejs.org/api/events.html) object.
+WebdriverIO inherits several function from the NodeJS [EventEmitter](http://nodejs.org/api/events.html) object.
 Additionally it provides an experimental way to register events on browser side (like click,
 focus, keypress etc.).
 
@@ -125,7 +125,7 @@ focus, keypress etc.).
 The following functions are supported: `on`,`once`,`emit`,`removeListener`,`removeAllListeners`.
 They behave exactly as described in the official NodeJS [docs](http://nodejs.org/api/events.html).
 There are some predefined events (`error`,`init`,`end`, `command`) which cover important
-WebdriverJS events.
+WebdriverIO events.
 
 **Example:**
 
@@ -155,7 +155,7 @@ client
     .end();
 ```
 
-**Note:** make sure you check out the [Browserevent](https://github.com/webdriverjs/eventlistener) side project
+**Note:** make sure you check out the [Browserevent](https://github.com/webdriverio/eventlistener) side project
 that enables event-handling on client side (Yes, in the browser!! ;-).
 
 ## Adding custom commands
@@ -164,7 +164,7 @@ If you which to extend with your own set of commands there is a method
 called `addCommand` available from the client object:
 
 ```js
-var client = require("webdriverjs").remote();
+var client = require("webdriverio").remote();
 
 // create a command the returns the current url and title as one result
 // just to show an example
@@ -190,13 +190,13 @@ client
 
 ## Local testing
 
-If you want to help us in developing webdriverjs, you can easily add
+If you want to help us in developing WebdriverIO, you can easily add
 [mocha](https://github.com/visionmedia/mocha) [tests](test/) and run them locally:
 
 ```sh
 npm install -g selenium-standalone http-server phantomjs
 
-# start a local selenium instances
+# start a local Selenium instances
 start-selenium
 
 # serves the test directory holding the test files
@@ -208,7 +208,7 @@ npm test
 
 ## Selenium cloud providers
 
-Webdriverjs supports
+WebdriverIO supports
 
 * <img src="https://pbs.twimg.com/profile_images/794342508/Logo_Square_bigger.png" width="48" /> [Sauce Labs](https://saucelabs.com/)
 * <img src="https://pbs.twimg.com/profile_images/1440403042/logo-separate-big_bigger.png" width="48" /> [BrowserStack](http://www.browserstack.com/)
@@ -344,7 +344,7 @@ Here are the implemented bindings (and links to the official json protocol bindi
 - [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
 - [windowHandleSize](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/size)
 
-## More on selenium and its protocol
+## More on Selenium and its protocol
 - [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
 
