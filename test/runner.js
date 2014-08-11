@@ -29,6 +29,8 @@ glob(specFiles, function(er, files) {
             return process.exit(failures);
         }
 
+        var sessionID = client.requestHandler.sessionID;
+
         client.end(function() {
 
             if (process.env.TRAVIS_BUILD_NUMBER) {
@@ -37,7 +39,8 @@ glob(specFiles, function(er, files) {
                     password: process.env.SAUCE_ACCESS_KEY
                 });
 
-                sauceAccount.updateJob(client.requestHandler.sessionID, {
+                console.log('update job', sessionID);
+                sauceAccount.updateJob(sessionID, {
                     passed: failures === 0,
                     public: true
                 }, function(err, res) {
