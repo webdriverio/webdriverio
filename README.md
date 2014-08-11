@@ -20,8 +20,6 @@ npm install webdriverio
 
 ## Usage
 
-`webdriverio` implements all commands of the Selenium [JsonWireProtocol](https://code.google.com/p/selenium/wiki/JsonWireProtocol).
-
 Make sure you have a running Selenium standalone/grid/hub.
 
 Or use [selenium-standalone](https://github.com/vvo/selenium-standalone) package to run one easily.
@@ -44,9 +42,7 @@ webdriverio
     .end();
 ```
 
-See the [full list of options](#options) you can pass to `.remote(options)`
-
-See [helpers](#list-of-current-helper-methods) and [protocol methods](#list-of-current-implemented-wire-protocol-bindings).
+See the [full list of options](#options) you can pass to `.remote(options)`.
 
 ## Options
 
@@ -160,19 +156,21 @@ that enables event-handling on client side (Yes, in the browser!! ;-).
 
 ## Adding custom commands
 
-If you which to extend with your own set of commands there is a method
-called `addCommand` available from the client object:
+If you want to extend the client with your own set of commands there is a
+method called `addCommand` available from the client object:
 
 ```js
 var client = require("webdriverio").remote();
 
-// create a command the returns the current url and title as one result
-// just to show an example
-client.addCommand("getUrlAndTitle", function(cb) {
+// example: create a command the returns the current url and title as one result
+// last parameter has to be a callback function that needs to be called
+// when the command has finished (otherwise the queue stops)
+client.addCommand("getUrlAndTitle", function(customVar, cb) {
     this.url(function(err,urlResult) {
         this.getTitle(function(err,titleResult) {
             var specialResult = {url: urlResult.value, title: titleResult};
             cb(err,specialResult);
+            console.log(customVar); // "a custom variable"
         })
     });
 });
@@ -180,7 +178,7 @@ client.addCommand("getUrlAndTitle", function(cb) {
 client
     .init()
     .url('http://www.github.com')
-    .getUrlAndTitle(function(err,result){
+    .getUrlAndTitle('a custom variable', function(err,result){
         assert.equal(null, err)
         assert.strictEqual(result.url,'https://github.com/');
         assert.strictEqual(result.title,'GitHub · Build software better, together.');
@@ -216,10 +214,13 @@ WebdriverIO supports
 
 See the corresponding [examples](examples/).
 
-## List of current helper methods
-These are the current implemented helper methods. All methods take from 0
+## List of current commands methods
+These are the current implemented command methods. All methods take from 0
 to a couple of parameters. Also all methods accept a callback so that we
-can assert values or have more logic when the callback is called.
+can assert values or have more logic when the callback is called. WebdriverIO
+has all [JSONWire protocol](https://code.google.com/p/selenium/wiki/JsonWireProtocol)
+commands implemented and even a whole bunch of undocumented [Appium](http://appium.io/)
+commands of the Selenium.
 
 - **addValue(`String` selector, `String|String[]` value, `Function` callback)**<br>adds a value to an object found by a selector. You can also use unicode characters like `Left arrow` or `Back space`. You'll find all supported characters [here](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value). To do that, the value has to correspond to a key from the table.
 - **call(callback)**<br>call given function in async order of current command queue
@@ -280,73 +281,10 @@ can assert values or have more logic when the callback is called.
 - **touch(`String` selector, `Function` callback)**<br>Finger down on an element.
 - **waitFor(`String` selector, `Integer` milliseconds, `Function` callback)**<br>Waits for an object in the dom (selected by selector) for the amount of milliseconds provided. the callback is called with false if the object isnt found.
 
-## List of current implemented wire protocol bindings
-Here are the implemented bindings (and links to the official json protocol binding)
-
-- [alertAccept](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/accept_alert)
-- [alertDismiss](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/dismiss_alert)
-- [alertText](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/alert_text)
-- [back](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/back)
-- [buttonPress](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/click)
-- [buttonDown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttondown)
-- [buttonUp](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/buttonup)
-- [cookie](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie)
-- [cookieName](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/cookie/:name)
-- [doubleclick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/doubleclick)
-- [element](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element)
-- [elementIdAttribute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/attribute/:name)
-- [elementIdClear](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/clear)
-- [elementIdClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/click)
-- [elementIdCssProperty](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/css/:propertyName)
-- [elementIdDisplayed](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/displayed)
-- [elementIdLocation](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/location)
-- [elementIdLocationInView](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/location_in_view)
-- [elementIdName](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/name)
-- [elementIdSize](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/size)
-- [elementIdText](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/text)
-- [elementIdValue](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/value)
-- [elementIdSelected](http://code.google.com/p/selenium/wiki/JsonWireProtocol#GET_/session/:sessionId/element/:id/selected)
-- [elements](http://code.google.com/p/selenium/wiki/JsonWireProtocol#POST_/session/:sessionId/element/:id/elements)
-- [execute](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute)
-- [executeAsync](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/execute_async)
-- file (undocumented protocol command)
-- [forward](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/forward)
-- [frame](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/frame)
-- [implicitWait](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts/implicit_wait)
-- [init](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/)
-- [keys](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/keys)
-- [orientation](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/orientation)
-- [moveto](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/moveto)
-- [refresh](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/refresh)
-- [screenshot](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/screenshot)
-- [session](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId)
-- [sessions](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/sessions)
-- [source](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/source)
-- [status](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/status)
-- [submit](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/submit)
-- [timeouts](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/timeouts)
-- [title](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/title)
-- [touchClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/click)
-- [touchDoubleClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/doubleclick)
-- [touchDown](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/down)
-- [touchFlick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/flick)
-- [touchFlickPrecise](https://github.com/appium/appium/blob/master/docs/gestures.md)
-- [touchLongClick](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/longclick)
-- [touchMove](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/move)
-- [touchScroll](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/scroll)
-- [touchSwipe](https://github.com/appium/appium/blob/master/docs/gestures.md)
-- [touchTap](https://github.com/appium/appium/blob/master/docs/gestures.md)
-- [touchUp](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/touch/up)
-- [url](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/url)
-- [window](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window)
-- [windowHandle](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handle)
-- [windowHandlePosition](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/position)
-- [windowHandles](http://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window_handles)
-- [windowHandleSize](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/window/:windowHandle/size)
-
 ## More on Selenium and its protocol
-- [Latest standalone server](http://code.google.com/p/selenium/downloads/list)
+- [Latest standalone server](http://www.seleniumhq.org/download/)
 - [The protocol](http://code.google.com/p/selenium/wiki/JsonWireProtocol)
+- [Some useful Selenium resources](https://github.com/christian-bromann/awesome-selenium)
 
 ## NPM Maintainers
 
