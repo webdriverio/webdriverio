@@ -16,10 +16,11 @@ describe('getValue', function() {
             .getValue('form input[name]', function(err, values) {
                 assert.equal(err, null);
                 values.should.be.an.instanceOf(Array);
-                values.should.have.length(3);
+                values.should.have.length(4);
                 values.should.containEql('a');
                 values.should.containEql('b');
                 values.should.containEql('c');
+                values.should.containEql('d');
             })
             .call(done);
     });

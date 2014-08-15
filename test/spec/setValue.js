@@ -6,8 +6,8 @@ describe('setValue', function() {
 
     it('should reset value before setting it', function(done) {
         this.client
-            .setValue(input, 'b', h.noError)
-            .setValue(input, 'c', h.noError)
+            .setValue(input, 'b')
+            .setValue(input, 'c')
             .getValue(input, h.checkResult('c'))
             .call(done);
     });

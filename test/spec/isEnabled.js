@@ -5,11 +5,11 @@ describe('isEnabled', function() {
 
     it('should check if a single element is visible', function(done) {
         this.client
-            .isEnabled('.waitForValueEnabled', function(err, isEnabled) {
+            .isEnabled('input[name="d"]', function(err, isEnabled) {
                 assert.equal(err, null);
                 isEnabled.should.be.false;
             })
-            .isEnabled('.waitForValueEnabledReverse', function(err, isEnabled) {
+            .isEnabled('input[name="b"]', function(err, isEnabled) {
                 assert.equal(err, null);
                 isEnabled.should.be.true;
             })
@@ -21,8 +21,7 @@ describe('isEnabled', function() {
             .isEnabled('form input', function(err, isEnabled) {
                 assert.equal(err, null);
                 isEnabled.should.be.an.instanceOf(Array);
-                isEnabled.should.have.length(5);
-                isEnabled.should.containEql(true);
+                isEnabled.should.have.length(6);
             })
             .call(done);
     });
