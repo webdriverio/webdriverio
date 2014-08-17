@@ -23,7 +23,7 @@ describe('singleton option', function() {
         assert.deepEqual(c1, c2);
     });
 
-    it('should has the same sessionID', function() {
+    it('should have the same sessionID', function() {
         assert.strictEqual(c1.requestHandler.sessionID, c2.requestHandler.sessionID);
     });
 
@@ -32,6 +32,7 @@ describe('singleton option', function() {
         // end session of one reference
         c1.end(function(err) {
             assert.ifError(err);
+            assert.equal(c1.requestHandler.sessionID, null);
 
             // check if other reference has no session anymore
             c2.session(function(err, res) {
