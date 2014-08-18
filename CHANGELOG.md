@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v1.7.5 (2014-08-17)
+* call webdriverjs deprecated and advise user to use [WebdriverIO](http://webdriver.io) instead
+
 ## v1.7.4 (2014-08-09)
 * added correct content-length header attr thanks @rootStar-lock - refs #198
 
