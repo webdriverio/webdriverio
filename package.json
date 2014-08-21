@@ -41,11 +41,9 @@
     "css-parse": "^1.7.0",
     "css-value": "0.0.1",
     "deepmerge": "~0.2.7",
-    "gm": "^1.14.2",
     "pragma-singleton": "~1.0.3",
     "request": "~2.34.0",
     "rgb2hex": "^0.1.0",
-    "rimraf": "^2.2.6",
     "url": "^0.10.1"
   },
   "devDependencies": {
