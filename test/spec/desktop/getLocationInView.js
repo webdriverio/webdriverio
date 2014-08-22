@@ -14,8 +14,8 @@ describe('getLocationInView', function() {
                 /**
                  * between devices and platform this can be different
                  */
-                location.x.should.be.below(22);
-                location.y.should.be.below(22);
+                location.x.should.be.below(30);
+                location.y.should.be.below(30);
             })
             .call(done);
     });

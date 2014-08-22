@@ -1,4 +1,5 @@
-var gm = require('gm');
+var fs = require('fs'),
+    path = require('path');
 
 describe('saveScreenshot', function() {
 
@@ -6,62 +7,18 @@ describe('saveScreenshot', function() {
 
     var imageSize = {};
 
-    it('should take a screenshot of the whole website', function(done) {
+    it('should take a screenshot and output it on a desired location', function(done) {
 
-        /**
-         * this test wont work in firefoxdriver because it automatically
-         * takes a screenshot of the whole browser dimension
-         */
-        if(this.client.desiredCapabilities.browserName === 'firefox') {
-            return done();
-        }
+        var screenshotPath = path.join(__dirname, '..', '..', '..', 'test.png');
 
         this.client
-            .windowHandleSize({ width: 1500, height: 500 })
-            .saveScreenshot('test2.png', true)
+            .saveScreenshot(screenshotPath, true)
             .call(function() {
 
-                gm(__dirname + '/../../test2.png').size(function (err, size) {
-                    if (err) {
-                        done(err);
-                    }
-
-                    imageSize = size;
+                fs.exists(screenshotPath, function(fileExists) {
+                    fileExists.should.be.true;
                     done();
-                });
-
-            });
-
-    });
-
-    it('should take a screenshot of current viewport', function(done) {
-
-        /**
-         * this test wont work in firefoxdriver because it automatically
-         * takes a screenshot of the whole browser dimension
-         */
-        if(this.client.desiredCapabilities.browserName === 'firefox') {
-            return done();
-        }
-
-        this.client
-            .windowHandleSize({ width: 500, height: 500 })
-            .saveScreenshot('test1.png')
-            .call(function() {
-
-                gm(__dirname + '/../../test1.png').size(function (err, size) {
-                    if (err) {
-                        done(err);
-                    }
-
-                    /**
-                     * between devices and platform this can be different
-                     */
-                    imageSize.width.should.be.above(size.width);
-                    imageSize.height.should.be.above(size.height);
-
-                    done();
-                });
+                })
 
             });
 
