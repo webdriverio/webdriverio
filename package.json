@@ -46,7 +46,8 @@
     "request": "~2.34.0",
     "rgb2hex": "^0.1.0",
     "rimraf": "^2.2.6",
-    "url": "^0.10.1"
+    "url": "^0.10.1",
+    "wgxpath": "^0.23.0"
   },
   "devDependencies": {
     "chai": "~1.9.0",
