@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "homepage": "https://github.com/webdriverio/webdriverio",
   "author": "Camilo Tapia <camilo.tapia@gmail.com>",
   "contributors": [
