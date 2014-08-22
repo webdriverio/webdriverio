@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v2.1.2 (2014-08-22)
+* Fix: log command expecting an object and not a string
+* skip close test (still to flaky)
+
 ## v2.1.1 (2014-08-20)
 * took saveScreenshot functionality back to basic
 * removed gm dependency since it causes too many errors when installing
