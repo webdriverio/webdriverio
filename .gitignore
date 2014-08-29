@@ -5,3 +5,4 @@ test/site/platforms/*
 test/site/www/components/
 test/site.zip
 coverage
+.idea
