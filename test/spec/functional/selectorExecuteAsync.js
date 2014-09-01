@@ -139,7 +139,7 @@ describe('selectorExecuteAsync', function() {
 
     it('should be able to accept multiple selectors', function(done) {
         this.client
-            .selectorExecuteAsync(['*=GitHub ', '//*[@class="sometext"]'], function(links, divs, arg) {
+            .selectorExecuteAsync(['*=GitHub ', '//html/body/section/h1'], function(links, divs, arg) {
                 var cb = arguments[arguments.length - 1];
                 setTimeout(function() {
                     var returnStr = 'Returning ';
@@ -152,7 +152,7 @@ describe('selectorExecuteAsync', function() {
                 return str + " with an argument";
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("Returning githubRepo and some text with an argument", res);
+                assert.equal("Returning githubRepo and Test CSS Attributes with an argument", res);
                 done(err);
             });
     });
