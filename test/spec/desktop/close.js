@@ -41,7 +41,7 @@ describe('close', function() {
 
     });
 
-    it.skip('should close the current window to switch back to another tab', function(done) {
+    it('should close the current window to switch back to another tab', function(done) {
 
         /**
          * safari doenst support `newWindow`
