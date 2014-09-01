@@ -24,6 +24,7 @@ describe('switchTab', function() {
                 assert.ifError(err);
                 openedTabs[0].should.be.exactly(res.value);
             })
+            .close()
             .call(done);
 
     });
