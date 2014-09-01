@@ -23,8 +23,8 @@ describe('setViewportSize/getViewportSize', function() {
             })
             .windowHandleSize(function(err, res) {
                 assert.ifError(err);
-                res.value.width.should.be.exactly(500);
-                res.value.height.should.be.greaterThan(500);
+                res.value.width.should.be.greaterThan(499);
+                res.value.height.should.be.greaterThan(499);
             })
             .call(done);
     });
