@@ -17,6 +17,10 @@ describe('setViewportSize/getViewportSize', function() {
 
     it('should let windowHandleSize return bigger values since it includes menu and status bar heights', function(done) {
         this.client
+            .setViewportSize({
+                width: 500,
+                height: 500
+            })
             .windowHandleSize(function(err, res) {
                 assert.ifError(err);
                 res.value.width.should.be.exactly(500);
