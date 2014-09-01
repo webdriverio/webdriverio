@@ -13,7 +13,7 @@ before_script:
   - "java -jar selenium-server-standalone-2.42.2.jar 2>&1 >/dev/null &"
   - "2>/dev/null 1>/dev/null python -m SimpleHTTPServer 8080 &"
 
-script: "npm run coverage"
+script: "sleep 5 && npm run coverage"
 
 after_script:
   - "[ -d ./coverage ] && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
