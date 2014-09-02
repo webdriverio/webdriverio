@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v2.2.0 (2014-09-01)
+* new commands:
+    - [elementIdElement](http://webdriver.io/api/protocol/elementIdElement.html)
+    - [elementIdElements](http://webdriver.io/api/protocol/elementIdElements.html)
+    - [selectorExecute](http://webdriver.io/api/action/selectorExecute.html)
+    - [selectorExecuteAsync](http://webdriver.io/api/action/selectorExecuteAsync.html)
+    - [setViewportSize](http://webdriver.io/api/window/setViewportSize.html)
+    - [getViewportSize](http://webdriver.io/api/window/getViewportSize.html)
+* improved waitfor commands - now with support if all selector strategries (thanks to selectorExecuteAsync and @nickyout)
+
 ## v2.1.2 (2014-08-22)
 * Fix: log command expecting an object and not a string
 * skip close test (still to flaky)
@@ -9,7 +19,9 @@
 * removed gm dependency since it causes too many errors when installing
 
 ## v2.1.0 (2014-08-11)
-* added isEnabled and elementIdEnabled commands
+* new commands:
+    - [isEnabled](http://webdriver.io/api/state/isEnabled.html)
+    - [elementIdEnabled](http://webdriver.io/api/protocol/elementIdEnabled.html)
 * make ErrorHandler easy accessible
 
 ## v2.0.1 (2014-08-10)
