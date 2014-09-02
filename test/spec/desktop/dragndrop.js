@@ -8,7 +8,7 @@ describe('drag&drop command test', function() {
          * not working anymore
          */
         if(process.env._BROWSER === 'internet_explorer') {
-            done();
+            return done();
         }
 
         this.client
