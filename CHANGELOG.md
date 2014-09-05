@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v2.2.1 (2014-09-05)
+* fixed bug in isVisible helper, thanks @fufnf
+
 ## v2.2.0 (2014-09-01)
 * new commands:
     - [elementIdElement](http://webdriver.io/api/protocol/elementIdElement.html)
