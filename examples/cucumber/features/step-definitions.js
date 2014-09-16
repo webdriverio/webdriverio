@@ -27,7 +27,7 @@ var sharedSteps = module.exports = function(){
     this.When(/^I use getElementSize\(\) on the element "([^"]*)"$/, function(className, next) {
         client
             .getElementSize(className, function(err, result) {
-                assert(err === null, 'command getElementSize() returns with an error');
+                assert(err === undefined, 'command getElementSize() returns with an error');
                 tmpResult = result;
                 next();
             });
@@ -36,7 +36,7 @@ var sharedSteps = module.exports = function(){
     this.When(/^I use getTitle\(\) to get the title of this website$/, function(next) {
         client
             .getTitle(function(err, title) {
-                assert(err === null, 'command getTitle() returns with an error');
+                assert(err === undefined, 'command getTitle() returns with an error');
                 tmpResult = title;
                 next();
             });
@@ -45,8 +45,8 @@ var sharedSteps = module.exports = function(){
     this.When(/^I use getElementCssProperty\(\) to get the "([^"]*)" attribute of an element with "([^"]*)" "([^"]*)"$/, function(attribute, findBy, cssSelector, next) {
         client
             .getElementCssProperty(findBy, cssSelector, attribute, function(err, result) {
-                assert(err === null, 'command getElementCssProperty() returns with an error');
-                tmpResult = result;
+                assert(err === undefined, 'command getElementCssProperty() returns with an error');
+                tmpResult = result.value;
                 next();
             });
     });

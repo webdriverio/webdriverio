@@ -14,17 +14,17 @@ describe('my webdriverjs tests', function() {
         client
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
-                expect(err).toBe(null);
-                expect(result.height).toBe(32);
-                expect(result.width).toBe(89);
+                expect(err).toBe(undefined);
+                expect(result.height).toBe(26);
+                expect(result.width).toBe(37);
             })
             .getTitle(function(err, title) {
-                expect(err).toBe(null);
+                expect(err).toBe(undefined);
                 expect(title).toBe('GitHub · Build software better, together.');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
-                expect(err).toBe(null);
-                expect(result).toBe('rgba(65,131,196,1)');
+                expect(err).toBe(undefined);
+                expect(result.value).toBe('rgba(65,131,196,1)');
             })
             .call(done);
     });
