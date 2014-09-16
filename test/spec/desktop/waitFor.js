@@ -144,6 +144,11 @@ describe('waitFor',function() {
             this.client.waitForVisible('.onMyWay', duration, true, checkTime(currentTime, done));
         });
 
+        it('should return w/o err after parent element moved into document bounderies', function(done) {
+            var currentTime = Date.now();
+            this.client.waitForVisible('//*[contains(@class, "visibletestInner")]', duration, checkTime(currentTime, done));
+        });
+
     });
 
 });

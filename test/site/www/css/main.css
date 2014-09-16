@@ -144,7 +144,6 @@ h2 {
 .notInViewport {
     position: absolute;
     left: -100000px;
-    margin-top: 20px;
 }
 .onMyWay {
     position: absolute;
