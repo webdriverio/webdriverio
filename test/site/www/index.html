@@ -70,6 +70,7 @@
         <input type="text" class="waitForValueEnabledReverse" name="waitforinput">
         <div class="visibletest invisible">I am not visible</div>
         <div class="visibletest hidden">I am not visible</div>
+        <div class="invisibleParent hidden"><div class="visibletestInner">I am not visible, am I?</div></div>
         <hr>
         <form method="GET" action="index.html" class="send">
             <input name="a" value="a">
@@ -183,6 +184,7 @@
             $('.sometext').html('');
             $('.notInViewport').css('left',0);
             $('.onMyWay').css('left','-100000px');
+            $('.invisibleParent').removeClass('hidden');
         },2000);
 
         // Hammer(document.body).on('tap', function(e) {
