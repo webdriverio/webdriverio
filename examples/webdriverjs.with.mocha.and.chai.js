@@ -17,17 +17,17 @@ describe('my webdriverjs tests', function(){
         client
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
-                assert.equal(null, err);
-                assert.strictEqual(result.height , 32);
-                assert.strictEqual(result.width, 89);
+                assert.equal(undefined, err);
+                assert.strictEqual(result.height , 26);
+                assert.strictEqual(result.width, 37);
             })
             .getTitle(function(err, title) {
-                assert.equal(null, err);
+                assert.equal(undefined, err);
                 assert.strictEqual(title,'GitHub · Build software better, together.');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
-                assert.equal(null, err);
-                assert.strictEqual(result, 'rgba(65,131,196,1)');
+                assert.equal(undefined, err);
+                assert.strictEqual(result.value, 'rgba(65,131,196,1)');
             })
             .call(done);
     });

@@ -1,7 +1,8 @@
-var buster      = require("buster"),
+var buster      = require('buster'),
+    assert      = require('assert')
     webdriverjs = require('../index');
 
-buster.testCase("my webdriverjs tests", {
+buster.testCase('my webdriverjs tests', {
 
     'setUp': function() {
         this.timeout = 9999999;
@@ -14,17 +15,17 @@ buster.testCase("my webdriverjs tests", {
         client
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
-                assert(err === null);
-                assert(result.height === 32);
-                assert(result.width  === 89);
+                assert(err === undefined);
+                assert(result.height === 26);
+                assert(result.width  === 37);
             })
             .getTitle(function(err, title) {
-                assert(err === null);
+                assert(err === undefined);
                 assert(title === 'GitHub · Build software better, together.');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
-                assert(err === null);
-                assert(result === 'rgba(65,131,196,1)');
+                assert(err === undefined);
+                assert(result.value === 'rgba(65,131,196,1)');
             })
             .call(done);
     },

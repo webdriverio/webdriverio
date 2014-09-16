@@ -32,11 +32,11 @@ vows.describe('my github tests').addBatch({
                 },
 
                 'height is 32px': function(err,result) {
-                    assert(result.height === 32);
+                    assert(result.height === 26);
                 },
 
                 'width is 89px': function(err,result) {
-                    assert(result.width === 89);
+                    assert(result.width === 37);
                 }
 
             },
@@ -68,7 +68,7 @@ vows.describe('my github tests').addBatch({
                 },
 
                 'color should be rgba(65,131,196,1)': function(err,result) {
-                    assert(result === 'rgba(65,131,196,1)');
+                    assert(result.value === 'rgba(65,131,196,1)');
                 }
 
             }
