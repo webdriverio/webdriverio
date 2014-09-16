@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v2.2.2 (2014-09-05)
+* consider parent elements in waitForVisible command (closes #293)
+* added library User-Agent string to header for statistical reporting (closes #296)
+* updated examples
+
 ## v2.2.1 (2014-09-05)
 * fixed bug in isVisible helper, thanks @fufnf
 
