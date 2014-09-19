@@ -11,6 +11,15 @@ describe('getHTML', function() {
             .call(done);
     });
 
+    it('should support native selenium selector strategy like partial link', function(done) {
+        this.client
+            .getHTML('*=new tab', function(err, html) {
+                assert.equal(err, null);
+                html.should.be.exactly('<a href="./two.html" target="_blank" id="newWindow" data-foundby="partial link text">open new tab</a>');
+            })
+            .call(done);
+    });
+
     it('should return html of given selector excluding the selector element', function(done) {
         this.client
             .getHTML('.nested aside', false, function(err, html) {
