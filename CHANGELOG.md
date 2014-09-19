@@ -1,6 +1,9 @@
 # CHANGELOG
 
-## v2.2.2 (2014-09-05)
+## v2.2.3 (2014-09-18)
+* support for all selector strategies in getHTML command (closes #302)
+
+## v2.2.2 (2014-09-15)
 * consider parent elements in waitForVisible command (closes #293)
 * added library User-Agent string to header for statistical reporting (closes #296)
 * updated examples
