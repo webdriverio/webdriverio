@@ -1,5 +1,5 @@
 var webdriverio = require('../index');
-var helper = require('./webdriverjs.externalAddCommandHelper')
+var helper = require('./webdriverio.externalAddCommandHelper')
 
 var options = {
     desiredCapabilities: {
