@@ -1,4 +1,4 @@
-var webdriverjs = require('../index');
+var webdriverio = require('../index');
 var helper = require('./webdriverjs.externalAddCommandHelper')
 
 var options = {
@@ -6,7 +6,7 @@ var options = {
         browserName: 'chrome'
     }
 };
-client = webdriverjs.remote(options);
+client = webdriverio.remote(options);
 client.addCommand('searchGoogle',helper.searchGoogle.bind(client));
 
 var SearchString = 'webdriver.io';
