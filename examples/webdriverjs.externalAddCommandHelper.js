@@ -7,7 +7,7 @@ module.exports = {
         .click('input[name="q"]')
         .keys([searchString])
         .pause(2000)
-        .keys(['\uE006']) //press Enter Key
+        .keys(['Enter']) //press Enter Key
         .call(callback)
   },
 };
