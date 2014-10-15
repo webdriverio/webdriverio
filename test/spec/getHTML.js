@@ -15,7 +15,7 @@ describe('getHTML', function() {
         this.client
             .getHTML('*=new tab', function(err, html) {
                 assert.equal(err, null);
-                html.should.be.exactly('<a href="./two.html" target="_blank" id="newWindow" data-foundby="partial link text">open new tab</a>');
+                html.should.be.exactly('<a id="newWindow" href="./two.html" target="_blank" data-foundby="partial link text">open new tab</a>');
             })
             .call(done);
     });
