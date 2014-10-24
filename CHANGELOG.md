@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v2.3.0 (2014-10-24)
+* added selectByIndex, selectByValue and selectByVisibleText for super easy selecting of options in select elements
+
 ## v2.2.3 (2014-09-18)
 * support for all selector strategies in getHTML command (closes #302)
 
