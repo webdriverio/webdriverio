@@ -1,5 +1,5 @@
-var webdriverjs = require('../index'),
-    client = webdriverjs.remote({
+var webdriverio = require('../index'),
+    client = webdriverio.remote({
         desiredCapabilities: {
             browserName: 'chrome',
             version: '27',
@@ -15,7 +15,7 @@ var webdriverjs = require('../index'),
 
 client
     .url('http://google.com')
-    .setValue('*[name="q"]','webdriverjs')
+    .setValue('*[name="q"]','webdriverio')
     .click('*[name="btnG"]')
     .pause(1000)
     .getTitle(function(err,title) {

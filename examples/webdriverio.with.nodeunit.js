@@ -1,10 +1,10 @@
-var webdriverjs = require('../index'),
+var webdriverio = require('../index'),
     assert      = require('assert');
 
 module.exports = {
 
     setUp: function (callback) {
-        client = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
+        client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
         client.init();
 
         callback();

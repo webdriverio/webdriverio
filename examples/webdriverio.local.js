@@ -1,11 +1,11 @@
-var webdriverjs = require('../index');
+var webdriverio = require('../index');
 var options = {
     desiredCapabilities: {
         browserName: 'chrome'
     }
 };
 
-webdriverjs
+webdriverio
     .remote(options)
     .init()
     .url('http://www.google.com')
