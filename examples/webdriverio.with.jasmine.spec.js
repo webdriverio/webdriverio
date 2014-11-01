@@ -1,12 +1,12 @@
-var webdriverjs = require('../index');
+var webdriverio = require('../index');
 
-describe('my webdriverjs tests', function() {
+describe('my webdriverio tests', function() {
 
     var client = {};
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 9999999;
 
     beforeEach(function() {
-        client = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
+        client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
         client.init();
     });
 

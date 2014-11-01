@@ -1,13 +1,13 @@
-var webdriverjs = require('../index'),
+var webdriverio = require('../index'),
     assert      = require('assert');
 
-describe('my webdriverjs tests', function(){
+describe('my webdriverio tests', function(){
 
     this.timeout(99999999);
     var client = {};
 
     before(function(done){
-            client = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
+            client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
             client.init(done);
     });
 

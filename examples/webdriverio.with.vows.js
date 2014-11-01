@@ -1,6 +1,6 @@
 var vows = require('vows'),
     assert = require('assert'),
-    webdriverjs = require('../index'),
+    webdriverio = require('../index'),
     fs = require('fs');
 
 var client;
@@ -8,14 +8,14 @@ var client;
 // Create a Test Suite
 vows.describe('my github tests').addBatch({
 
-    'init webdriverjs': {
+    'init webdriverio': {
 
         topic: function () {
-            client = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
+            client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
             client.init(this.callback);
         },
 
-        'starting webdriverjs successfully': {
+        'starting webdriverio successfully': {
 
             topic: function (init) {
                 client.url('https://github.com/', this.callback);
@@ -74,7 +74,7 @@ vows.describe('my github tests').addBatch({
             }
         },
 
-        'end webdriverjs': {
+        'end webdriverio': {
 
             topic: function() {
                 client.end(this.callback);
