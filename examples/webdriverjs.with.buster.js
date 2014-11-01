@@ -1,23 +1,22 @@
-var buster      = require('buster'),
-    assert      = require('assert')
+var buster = require("buster"),
+    assert = buster.referee.assert,
     webdriverjs = require('../index');
 
-buster.testCase('my webdriverjs tests', {
-
-    'setUp': function() {
-        this.timeout = 9999999;
-
-        client = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
-        client.init();
+buster.testCase("Nested setup and teardown call order", {
+    
+    'setUp': function (done) {
+        this.timeout = 5000;
+        client = webdriverjs.remote({ desiredCapabilities: {browserName: 'firefox'} });
+        client.init(done);
     },
 
     'test it': function (done) {
         client
-            .url('https://github.com/')
+            .url('http://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 assert(err === undefined);
                 assert(result.height === 26);
-                assert(result.width  === 37);
+                assert(result.width  === 89);
             })
             .getTitle(function(err, title) {
                 assert(err === undefined);
