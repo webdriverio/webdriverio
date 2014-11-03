@@ -17,9 +17,10 @@
 
 var createSingleton = require('pragma-singleton'),
     WebdriverJS = require('./lib/webdriverio.js'),
-    ErrorHandler   = require('./lib/utils/ErrorHandler.js'),
+    ErrorHandler   = require('./lib/utils/ErrorHandler'),
     package = require('./package.json'),
-    chainIt = require('chainit');
+    chainIt = require('chainit'),
+    PromiseHandler = require('./lib/utils/PromiseHandler');
 
 // expose version number
 module.exports.version = package.version;
@@ -37,10 +38,14 @@ module.exports.remote = function remote(options, Constructor) {
 
         // allows easy webdriverjs-$framework creation (like webdriverjs-angular)
         Constructor = chainIt(Constructor || WebdriverJS);
+
+        Object.keys(Constructor.prototype).forEach(function(fnName) {
+            Constructor.prototype[fnName] = PromiseHandler.outer(fnName, Constructor.prototype[fnName]);
+        });
     }
 
-    var singleton = createSingleton(Constructor);
     if (options.singleton) {
+        var singleton = createSingleton(Constructor);
         return new singleton(options);
     } else {
         return new Constructor(options);
