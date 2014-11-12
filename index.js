@@ -36,11 +36,16 @@ module.exports.remote = function remote(options, Constructor) {
     } else {
         options = options || {};
 
-        // allows easy webdriverjs-$framework creation (like webdriverjs-angular)
+        /**
+         * allows easy webdriverjs-$framework creation (like webdriverjs-angular)
+         */
         Constructor = chainIt(Constructor || WebdriverJS);
 
+        /**
+         * fake promise behavior for all commands
+         */
         Object.keys(Constructor.prototype).forEach(function(fnName) {
-            Constructor.prototype[fnName] = PromiseHandler.outer(fnName, Constructor.prototype[fnName]);
+            Constructor.prototype[fnName] = PromiseHandler(fnName, Constructor.prototype[fnName]);
         });
     }
 
