@@ -8,8 +8,8 @@ describe('windowHandlePosition', function() {
             check = function(err, res) {
                 assert.ifError(err);
 
-                res.value.x.should.be.above(1);
-                res.value.y.should.be.above(1);
+                res.value.x.should.be.above(process.env.TRAVIS ? -8 : 1);
+                res.value.y.should.be.above(process.env.TRAVIS ? -8 : 1);
             };
 
         this.client
