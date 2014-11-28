@@ -45,6 +45,13 @@ module.exports.remote = function remote(options, Constructor) {
          * fake promise behavior for all commands
          */
         Object.keys(Constructor.prototype).forEach(function(fnName) {
+            /**
+             * skip internal commands (e.g. `__addToChain`)
+             */
+            if(fnName.indexOf('__') === 0) {
+                return;
+            }
+
             Constructor.prototype[fnName] = PromiseHandler(fnName, Constructor.prototype[fnName]);
         });
     }
