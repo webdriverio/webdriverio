@@ -1,4 +1,4 @@
-describe('Promises', function() {
+describe('Chaining', function() {
 
     before(h.setup());
 
