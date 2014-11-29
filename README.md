@@ -20,9 +20,12 @@ npm install webdriverio
 
 ## Usage
 
-Make sure you have a running Selenium standalone/grid/hub.
+Make sure you have a running Selenium standalone/grid/hub. Or use [selenium-standalone](https://github.com/vvo/selenium-standalone)
+package to run one easily.
 
-Or use [selenium-standalone](https://github.com/vvo/selenium-standalone) package to run one easily.
+Once you initialized your WebdriverIO instance you can chain all available [protocol and action commands](http://webdriver.io/api.html)
+to execute asynchronous requests sequentially. WebdriverIO supports callback and promise based chaining. You can
+either pass a callback as last parameter to handle with the command results:
 
 ```js
 var webdriverio = require('../index');
@@ -36,9 +39,45 @@ webdriverio
     .remote(options)
     .init()
     .url('http://www.google.com')
-    .title(function(err, res) {
-        console.log('Title was: ' + res.value);
+    .getTitle(function(err, title) {
+        console.log('Title was: ' + title);
     })
+    .end();
+```
+
+or you can handle it like a A+ promise:
+
+```js
+webdriverio
+    .remote(options)
+    .init()
+    .url('http://www.google.com')
+    .getTitle()
+        .then(function(title) {
+            console.log('Title was: ' + title);
+        })
+        .reject(function(error) {
+            console.log('uups something went wrong', error);
+        })
+    .end();
+```
+
+Using promised based assertion libraries like [chai-as-promised](https://github.com/domenic/chai-as-promised/)
+makes functional testing with WebdriverIO super easy. No nested callbacks anymore! No confusion whether to use
+callbacks or promises!
+
+```js
+var chai = require("chai");
+var chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
+chai.should();
+chaiAsPromised.transferPromiseness = client.transferPromiseness;
+
+webdriverio
+    .remote(options)
+    .init()
+    .url('http://www.google.com')
+    .getTitle().should.eventually.equal("Google"); // true
     .end();
 ```
 
