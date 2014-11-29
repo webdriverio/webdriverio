@@ -155,7 +155,7 @@ client
     .end();
 ```
 
-**Note:** make sure you check out the [Browserevent](https://github.com/webdriverio/eventlistener) side project
+**Note:** make sure you check out the [Browserevent](https://github.com/webdriverio/browserevent) side project
 that enables event-handling on client side (Yes, in the browser!! ;-).
 
 ## Adding custom commands
