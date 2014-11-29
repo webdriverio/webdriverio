@@ -4,17 +4,15 @@ describe('call', function() {
 
     var isCalled = false;
 
-    before(function() {
+    before(function(done) {
         this.client.call(function() {
             isCalled = true;
+            done();
         });
     });
 
-    it('should have executed a function', function(done) {
-
+    it('should have executed a function', function() {
         assert.ok(isCalled);
-        done();
-
     });
 
 });
