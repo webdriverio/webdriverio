@@ -1,8 +1,8 @@
-describe('Promises', function() {
+describe('PromiseHandler', function() {
 
     before(h.setup());
 
-    it('sync promises with call', function(done) {
+    it('should sync promises with call', function(done) {
         var result = '';
         this.client
             .then(function() {
@@ -73,6 +73,85 @@ describe('Promises', function() {
             })
             .call(done);
 
+    });
+
+    it('should reject promise if command throws an error', function(done) {
+        var result = null;
+        this.client
+            .click('#notExisting').then(function() {
+                result = false;
+            }, function() {
+                result = true;
+            })
+            .call(function() {
+                result.should.be.equal(true);
+            })
+            .call(done);
+    });
+
+    it('should handle waitfor commands within then callbacks', function(done) {
+        this.client
+            .getTitle().then(function() {
+                return this.pause(1000).pause(100).isVisible('body');
+            }).then(function(result) {
+                result.should.be.true;
+            })
+            .call(done);
+    });
+
+    it('should propagate only last command result within then callback', function(done) {
+        this.client
+            .isVisible('html').then(function() {
+                return this.url().getTitle();
+            }).then(function(title) {
+                title.should.be.equal('WebdriverJS Testpage');
+            }).then(function(result) {
+                /**
+                 * undefined because last then doesn't return a promise
+                 */
+                (result === undefined).should.be.true;
+            })
+            .call(done);
+    });
+
+    it('should provide a catch and fail method that executes if the command throws an error', function(done) {
+        var gotExecutedCatch = false,
+            gotExecutedFail = false;
+
+        this.client
+            .click('#notExisting').catch(function() {
+                gotExecutedCatch = true;
+            })
+            .call(function() {
+                gotExecutedCatch.should.be.true;
+            })
+            .click('#notExisting2').fail(function() {
+                gotExecutedFail = true;
+            })
+            .call(function() {
+                gotExecutedFail.should.be.true;
+            })
+            .call(done);
+    });
+
+    it('should provide a catch and fail method that doesn\'t execute if the command passes', function(done) {
+        var gotExecutedCatch = false,
+            gotExecutedFail = false;
+
+        this.client
+            .click('body').catch(function() {
+                gotExecutedCatch = true;
+            })
+            .call(function() {
+                gotExecutedCatch.should.be.false;
+            })
+            .click('body').fail(function() {
+                gotExecutedFail = true;
+            })
+            .call(function() {
+                gotExecutedFail.should.be.false;
+            })
+            .call(done);
     });
 
 });
