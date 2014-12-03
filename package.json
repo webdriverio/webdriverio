@@ -42,6 +42,7 @@
     "css-value": "0.0.1",
     "deepmerge": "~0.2.7",
     "pragma-singleton": "~1.0.3",
+    "q": "^1.1.2",
     "request": "~2.34.0",
     "rgb2hex": "^0.1.0",
     "url": "^0.10.1",
@@ -53,7 +54,7 @@
     "glob": "~3.2.7",
     "istanbul": "^0.2.6",
     "jshint": "~2.4.1",
-    "mocha": "~1.17.1",
+    "mocha": "^2.0.1",
     "nock": "~0.27.1",
     "saucelabs": "~0.1.1",
     "should": "^3.3.2"
