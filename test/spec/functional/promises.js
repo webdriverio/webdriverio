@@ -154,4 +154,29 @@ describe('PromiseHandler', function() {
             .call(done);
     });
 
+    it('should propagate not only promises but also objects or strings', function(done) {
+        var hasBeenExecuted = 0;
+        this.client
+            .isVisible('body').then(function(isVisible) {
+                hasBeenExecuted++;
+                return isVisible;
+            }).then(function(isVisible) {
+                hasBeenExecuted++;
+                isVisible.should.be.true;
+                return 'a string';
+            }).then(function(aString) {
+                hasBeenExecuted++;
+                aString.should.be.equal('a string');
+                return { myElem: 42 };
+            }).then(function(res) {
+                hasBeenExecuted++;
+                res.should.have.property('myElem');
+                res.myElem.should.be.equal(42);
+            })
+            .call(function() {
+                hasBeenExecuted.should.be.equal(4);
+                done();
+            });
+    });
+
 });
