@@ -13,6 +13,15 @@ describe('addValue', function() {
             .call(done);
     });
 
+    it('add a number value', function(done) {
+        this.client
+            .clearElement(input)
+            .addValue(input, 1)
+            .addValue(input, 2.3)
+            .getValue(input, h.checkResult('12.3'))
+            .call(done);
+    });
+
     describe('is able to use unicode keys to', function() {
 
         it('navigate and delete inside inputs', function(done) {
