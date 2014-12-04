@@ -3,7 +3,7 @@
  */
 describe('end', function() {
 
-    before(h.setup(true));
+    before(h.setup({ newSession: true }));
 
     it('should delete a session', function(done) {
 

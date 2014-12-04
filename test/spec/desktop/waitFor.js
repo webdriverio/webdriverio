@@ -151,4 +151,28 @@ describe('waitFor',function() {
 
     });
 
+    describe('timeout', function() {
+
+        before(h.setup({newSession: true, remoteOptions: { waitforTimeout: 1000 }}));
+
+        it('should use specified timeout', function(done) {
+            var startTime = Date.now();
+            this.client.waitForExist('#notExisting', function() {
+                var delta = Date.now() - startTime;
+                delta.should.be.within(1000,1500);
+            })
+            .call(done);
+        });
+
+        it('should use parameter timeout and should overwrite default value', function(done) {
+            var startTime = Date.now();
+            this.client.waitForExist('#notExisting', 2000, function() {
+                var delta = Date.now() - startTime;
+                delta.should.be.within(2000,2500);
+            })
+            .call(done);
+        });
+
+    })
+
 });

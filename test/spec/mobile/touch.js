@@ -1,6 +1,6 @@
 describe.skip('touch', function() {
 
-    before(h.setup(false, conf.testPage.gestureTest));
+    before(h.setup({ url: conf.testPage.gestureTest }));
 
     it('should trigger touch indicator', function(done) {
 
