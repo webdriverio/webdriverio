@@ -79,20 +79,24 @@ h = {
         return function(done) {
             var wdjs = require('../index.js');
 
-            if(options && options.remoteOptions) {
+            if(!options) {
+                options = {};
+            }
+
+            if(options.remoteOptions) {
                 conf = merge(conf, options.remoteOptions);
             }
 
             /**
              * if instance already exists and no new session was requested return existing instance
              */
-            if (client && (!options || !options.newSession)) {
+            if (client && !options.newSession) {
                 this.client = client;
 
             /**
              * if new session was requested create temporary instance
              */
-            } else if(options && options.newSession) {
+            } else if(options.newSession) {
                 this.client = wdjs.remote(conf).init();
 
             /**
