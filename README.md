@@ -62,26 +62,28 @@ webdriverio
     .end();
 ```
 
-Using promised based assertion libraries like [chai-as-promised](https://github.com/domenic/chai-as-promised/)
+Using promised based assertion libraries like [chai-as-promised](https://github.com/domenic/chai-as-promised/) it
 makes functional testing with WebdriverIO super easy. No nested callbacks anymore! No confusion whether to use
 callbacks or promises!
 
 ```js
-var chai = require("chai");
-var chaiAsPromised = require("chai-as-promised");
-chai.use(chaiAsPromised);
-chai.should();
-chaiAsPromised.transferPromiseness = client.transferPromiseness;
+describe('example page', function() {
 
-webdriverio
-    .remote(options)
-    .init()
-    .url('http://www.google.com')
-    .getTitle().should.eventually.equal("Google"); // true
-    .end();
+    before(function() {
+        return client.init().url('http://example.com');
+    });
+
+    it('should display right title and #someElem', function() {
+        return client.getTitle().should.become('Example Title')
+                     .isVisible('#someElem').should.eventually.be.true;
+    });
+
+    after(function() {
+        return client.end();
+    });
+
+});
 ```
-
-See the [full list of options](#options) you can pass to `.remote(options)`.
 
 ## Options
 
