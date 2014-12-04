@@ -153,7 +153,7 @@ describe('waitFor',function() {
 
     describe('timeout', function() {
 
-        before(h.setup({newSession: true, remoteOptions: { waitforTimeout: 1000 }}));
+        before(h.setup());
 
         it('should use specified timeout', function(done) {
             var startTime = Date.now();
