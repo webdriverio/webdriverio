@@ -124,6 +124,14 @@ Default: *false*
 
 Set to true if you always want to reuse the same remote
 
+### waitforTimeout
+
+Type: `Number`
+
+Default: *500*
+
+Default timeout for all waitForXXX commands
+
 ## Selector API
 
 The JsonWireProtocol provides several strategies to query an element. WebdriverIO simplifies these

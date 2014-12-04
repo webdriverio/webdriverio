@@ -2,6 +2,7 @@ var Mocha = require('mocha'),
     should = require('should'),
     SauceLabs = require('saucelabs'),
     glob = require('glob'),
+    merge  = require('deepmerge'),
     env = process.env._ENV,
     client, specFiles;
 
@@ -74,20 +75,24 @@ h = {
 
         };
     },
-    setup: function(newSession, url) {
+    setup: function(options) {
         return function(done) {
             var wdjs = require('../index.js');
+
+            if(options.remoteOptions) {
+                conf = merge(conf, options.remoteOptions);
+            }
 
             /**
              * if instance already exists and no new session was requested return existing instance
              */
-            if (client && !newSession && newSession !== null) {
+            if (client && !options.newSession) {
                 this.client = client;
 
             /**
              * if new session was requested create temporary instance
              */
-            } else if(newSession && newSession !== null) {
+            } else if(options.newSession) {
                 this.client = wdjs.remote(conf).init();
 
             /**
@@ -97,7 +102,7 @@ h = {
                 this.client = client = wdjs.remote(conf).init();
             }
 
-            this.client.url(url || conf.testPage.start, done);
+            this.client.url(options.url || conf.testPage.start, done);
         };
     }
 };

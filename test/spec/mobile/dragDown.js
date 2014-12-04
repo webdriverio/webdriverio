@@ -1,6 +1,6 @@
 describe.skip('flickDown', function() {
 
-    before(h.setup(false, conf.testPage.gestureTest));
+    before(h.setup({ url: conf.testPage.gestureTest }));
 
     it('should trigger flickDown indicator', function(done) {
         this.client
