@@ -159,7 +159,7 @@ describe('waitFor',function() {
             var startTime = Date.now();
             this.client.waitForExist('#notExisting', function() {
                 var delta = Date.now() - startTime;
-                delta.should.be.within(1000,1500);
+                delta.should.be.above(1000);
             })
             .call(done);
         });
@@ -168,7 +168,7 @@ describe('waitFor',function() {
             var startTime = Date.now();
             this.client.waitForExist('#notExisting', 2000, function() {
                 var delta = Date.now() - startTime;
-                delta.should.be.within(2000,2500);
+                delta.should.be.above(2000);
             })
             .call(done);
         });
