@@ -12,6 +12,13 @@ describe('setValue', function() {
             .call(done);
     });
 
+    it('allow number as value', function(done) {
+        this.client
+            .setValue(input, 11)
+            .getValue(input, h.checkResult('11'))
+            .call(done);
+    });
+
     describe('is able to use unicode keys to', function() {
 
         it('understand complex characters and key modifiers', function(done) {
