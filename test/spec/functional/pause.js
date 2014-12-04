@@ -3,6 +3,8 @@
  */
 describe('pause', function() {
 
+    before(h.setup());
+
     it('should pause command queue', function(done) {
 
         var time = new Date().getTime();
