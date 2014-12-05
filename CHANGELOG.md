@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v2.4.0 (2014-12-05)
+* support for promises A+ (yeah!)
+* introduced `waitforTimeout` option so set default timout time for all waitForXXX commands (see #345)
+* let selectByValue accept number values (see #369)
+
 ## v2.3.0 (2014-10-24)
 * added selectByIndex, selectByValue and selectByVisibleText for super easy selecting of options in select elements
 
