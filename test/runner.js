@@ -90,7 +90,7 @@ h = {
             /**
              * if instance already exists and no new session was requested return existing instance
              */
-            if (client && !options.newSession) {
+            if (client && client.requestHandler.sessionID && !options.newSession) {
                 this.client = client;
 
             /**

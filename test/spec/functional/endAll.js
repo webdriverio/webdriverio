@@ -1,7 +1,7 @@
 /**
  * sufficient to get tested with phantomjs
  */
-describe('endAll', function() {
+describe.skip('endAll', function() {
 
     /**
      * create a bunch of instances first
