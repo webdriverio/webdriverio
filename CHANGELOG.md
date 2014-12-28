@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v2.4.1 (2014-12-28)
+* fixed bug in `selectByValue` and `selectByVisibleText` in which the absolute xPath queried value/text of different select element
+* allow more xpath expressions
+
 ## v2.4.0 (2014-12-05)
 * support for promises A+ (yeah!)
 * introduced `waitforTimeout` option so set default timout time for all waitForXXX commands (see #345)
