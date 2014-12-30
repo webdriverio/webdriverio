@@ -16,7 +16,8 @@
  */
 
 var createSingleton = require('pragma-singleton'),
-    WebdriverJS = require('./lib/webdriverio.js'),
+    WebdriverJS = require('./lib/webdriverio'),
+    Multibrowser = require('./lib/multibrowser')
     ErrorHandler   = require('./lib/utils/ErrorHandler'),
     package = require('./package.json'),
     chainIt = require('chainit'),
@@ -29,7 +30,7 @@ module.exports.version = package.version;
 module.exports.ErrorHandler = ErrorHandler;
 
 // use the chained API reference to add static methods
-module.exports.remote = function remote(options, Constructor) {
+var remote = module.exports.remote = function remote(options, Constructor) {
     if (typeof options === 'function') {
         Constructor = options;
         options = {};
@@ -62,4 +63,8 @@ module.exports.remote = function remote(options, Constructor) {
     } else {
         return new Constructor(options);
     }
+};
+
+module.exports.multiremote = function(options, Constructor) {
+    return remote(options, Multibrowser);
 };
