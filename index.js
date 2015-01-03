@@ -1,6 +1,6 @@
 /**
- * webdriverjs
- * https://github.com/Camme/webdriverjs
+ * webdriverio
+ * https://github.com/Camme/webdriverio
  *
  * A WebDriver module for nodejs. Either use the super easy help commands or use the base
  * Webdriver wire protocol commands. Its totally inspired by jellyfishs webdriver, but the
@@ -16,7 +16,7 @@
  */
 
 var createSingleton = require('pragma-singleton'),
-    WebdriverJS = require('./lib/webdriverio'),
+    WebdriverIO = require('./lib/webdriverio'),
     Multibrowser = require('./lib/multibrowser')
     ErrorHandler   = require('./lib/utils/ErrorHandler'),
     package = require('./package.json'),
@@ -31,6 +31,8 @@ module.exports.ErrorHandler = ErrorHandler;
 
 // use the chained API reference to add static methods
 var remote = module.exports.remote = function remote(options, Constructor) {
+    var isMultibrowserConstructor = Constructor && Constructor.name === 'Multibrowser';
+
     if (typeof options === 'function') {
         Constructor = options;
         options = {};
@@ -38,9 +40,9 @@ var remote = module.exports.remote = function remote(options, Constructor) {
         options = options || {};
 
         /**
-         * allows easy webdriverjs-$framework creation (like webdriverjs-angular)
+         * allows easy webdriverio-$framework creation (like webdriverio-angular)
          */
-        Constructor = chainIt(Constructor || WebdriverJS);
+        Constructor = chainIt(Constructor || WebdriverIO);
 
         /**
          * fake promise behavior for all commands
@@ -53,7 +55,21 @@ var remote = module.exports.remote = function remote(options, Constructor) {
                 return;
             }
 
-            Constructor.prototype[fnName] = PromiseHandler(fnName, Constructor.prototype[fnName]);
+            /**
+             * register Multibrowser so the command gets executed like follows
+             *
+             *     |--->PromiseHandler
+             *             |--->Multibrowser
+             *                     |--->ChainIt
+             *
+             * this setup enables calling commands on child processes "synchronously" and having
+             * all functionality chainIt provides
+             */
+            if(isMultibrowserConstructor) {
+                Constructor.prototype[fnName] = PromiseHandler(fnName, Multibrowser.register(fnName, Constructor.prototype[fnName]));
+            } else {
+                Constructor.prototype[fnName] = PromiseHandler(fnName, Constructor.prototype[fnName]);
+            }
         });
     }
 
