@@ -74,6 +74,6 @@ var remote = module.exports.remote = function remote(options, Constructor) {
     }
 };
 
-module.exports.multiremote = function(options, Constructor) {
+module.exports.multiremote = function(options) {
     return remote(options, Multibrowser);
 };
