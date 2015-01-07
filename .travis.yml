@@ -13,8 +13,8 @@ branches:
 before_script:
   - "npm install -g bower"
   - "cd test/site/www && bower install && cd ../../../"
-  - "curl -O http://selenium-release.storage.googleapis.com/2.42/selenium-server-standalone-2.42.2.jar"
-  - "java -jar selenium-server-standalone-2.42.2.jar 2>&1 >/dev/null &"
+  - "curl -O http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar"
+  - "java -jar selenium-server-standalone-2.44.0.jar 2>&1 >/dev/null &"
   - "2>/dev/null 1>/dev/null python -m SimpleHTTPServer 8080 &"
 
 script: "sleep 5 && npm run coverage"
@@ -46,7 +46,7 @@ env:
     - _BROWSER: "Safari"
       _PLATFORM: "iOS"
       _APP: "safari"
-      _DEVICENAME: "iPhone_Simulator"
+      _DEVICENAME: "iPhone_Simulator"382
       _VERSION: "7.1"
       _ENV: "mobile"
     - _BROWSER: "Safari"
