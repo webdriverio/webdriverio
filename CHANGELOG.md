@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v2.4.2 (2015-01-07)
+* fixed bug in PromiseHandler when execute command just got a single function parameter (closes #383)
+* make colored logs optional (closes #298)
+
 ## v2.4.1 (2014-12-28)
 * fixed bug in `selectByValue` and `selectByVisibleText` in which the absolute xPath queried value/text of different select element
 * allow more xpath expressions
