@@ -31,4 +31,18 @@ describe('execute', function() {
             });
     });
 
+    it('should be able to take just a single function', function(done) {
+        this.client
+            .execute(function() {
+                window.testThatStuff = true;
+            })
+            .execute(function() {
+                return window.testThatStuff;
+            }, function(err, res) {
+                assert.ifError(err);
+                assert.equal(res.value, true);
+            })
+            .call(done);
+    });
+
 });
