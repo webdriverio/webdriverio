@@ -46,7 +46,7 @@ env:
     - _BROWSER: "Safari"
       _PLATFORM: "iOS"
       _APP: "safari"
-      _DEVICENAME: "iPhone_Simulator"382
+      _DEVICENAME: "iPhone_Simulator"
       _VERSION: "7.1"
       _ENV: "mobile"
     - _BROWSER: "Safari"
