@@ -109,6 +109,14 @@ Default: *silent*
 
 Options: *verbose* | *silent* | *command* | *data* | *result*
 
+### coloredLogs
+
+Type: `Boolean`
+
+Default: *true*
+
+Enables colors for log output
+
 ### screenshotPath
 Saves a screenshot to a given path if Selenium driver crashes
 
