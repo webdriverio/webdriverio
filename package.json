@@ -41,7 +41,6 @@
     "css-parse": "^1.7.0",
     "css-value": "0.0.1",
     "deepmerge": "~0.2.7",
-    "eventemitter2": "^0.4.14",
     "pragma-singleton": "~1.0.3",
     "q": "^1.1.2",
     "request": "~2.34.0",
