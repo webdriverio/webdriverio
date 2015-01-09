@@ -47,7 +47,7 @@ describe('windowHandlePosition', function() {
 
                 // current window
                 self.client.windowHandlePosition({x: 400, y: 250});
-                self.client.windowHandlePosition(tabid, function(err, res) {
+                self.client.windowHandlePosition(function(err, res) {
                     assert.ifError(err);
 
                     res.value.x.should.be.exactly(400);
