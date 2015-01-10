@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v2.4.3 (2015-01-10)
+* `saveScreenshot` doesn't require a file path anymore if only the base64 data is required (see #393)
+* don't throw an error if error handler is registered (see #385)
+
 ## v2.4.2 (2015-01-07)
 * fixed bug in PromiseHandler when execute command just got a single function parameter (closes #383)
 * make colored logs optional (closes #298)
