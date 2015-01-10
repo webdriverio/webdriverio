@@ -69,6 +69,20 @@ describe('event handling', function() {
 
         });
 
+        it('should not throw an error if an error handler is registered', function(done) {
+            isErrorHandlerEmitted = false;
+
+            client
+                .url(conf.testPage.start)
+                // click on non existing element should not cause an error because an event listener is registered
+                .click('#notExistentant')
+                .call(function() {
+                    assert.ok(isErrorHandlerEmitted, 'error handler was called');
+                })
+                .call(done);
+
+        });
+
         it('should emit an end event after calling the end command', function(done) {
 
             client
