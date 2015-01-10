@@ -13,7 +13,7 @@ describe('saveScreenshot', function() {
             .saveScreenshot(screenshotPath)
             .call(function() {
                 fs.exists(screenshotPath, function(fileExists) {
-                    assert.ok(fileExists);
+                    fileExists.should.be.true;
                     done();
                 })
             });
