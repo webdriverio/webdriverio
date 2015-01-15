@@ -1,12 +1,10 @@
-var Q = require('q');
-
 describe('PromiseHandler', function() {
 
-    before(h.setup());
+    before(h.setupMultibrowser());
 
     it('should sync promises with call', function(done) {
         var result = '';
-        this.client
+        this.matrix
             .then(function() {
                 result += '1';
             })
@@ -26,13 +24,15 @@ describe('PromiseHandler', function() {
     });
 
     it('should propagate results to then', function(done) {
-        this.client
+        this.matrix
             .getTitle().then(function(title) {
-                title.should.be.equal('WebdriverJS Testpage');
+                title.browserA.should.be.equal('WebdriverJS Testpage');
+                title.browserB.should.be.equal('WebdriverJS Testpage');
                 return this.url();
             })
             .then(function(url) {
-                url.value.should.be.equal(conf.testPage.start);
+                url.browserA.value.should.be.equal(conf.testPage.start);
+                url.browserB.value.should.be.equal(conf.testPage.start);
             })
             .then(function(result) {
                 /**
@@ -40,17 +40,17 @@ describe('PromiseHandler', function() {
                  */
                 (result === undefined).should.be.true;
             })
-            .call(done)
+            .call(done);
     });
 
     it('should be working on custom commands', function(done) {
         var result = '';
 
-        this.client.addCommand('fakeCommand', function(param, done) {
+        this.matrix.addCommand('fakeCommand', function(param, done) {
             done(undefined, param);
         });
 
-        this.client
+        this.matrix
             .fakeCommand(0)
             .then(function() {
                 return this.fakeCommand(1);
@@ -79,7 +79,7 @@ describe('PromiseHandler', function() {
 
     it('should reject promise if command throws an error', function(done) {
         var result = null;
-        this.client
+        this.matrix
             .click('#notExisting').then(function() {
                 result = false;
             }, function() {
@@ -92,11 +92,12 @@ describe('PromiseHandler', function() {
     });
 
     it('should handle waitfor commands within then callbacks', function(done) {
-        this.client
+        this.matrix
             .getTitle().then(function() {
                 return this.pause(1000).pause(100).isVisible('body');
             }).then(function(result) {
-                result.should.be.true;
+                result.browserA.should.be.true;
+                result.browserB.should.be.true;
             })
             .call(done);
     });
@@ -105,7 +106,7 @@ describe('PromiseHandler', function() {
         var gotExecutedCatch = false,
             gotExecutedFail = false;
 
-        this.client
+        this.matrix
             .click('#notExisting').catch(function() {
                 gotExecutedCatch = true;
             })
@@ -125,7 +126,7 @@ describe('PromiseHandler', function() {
         var gotExecutedCatch = false,
             gotExecutedFail = false;
 
-        this.client
+        this.matrix
             .click('body').catch(function() {
                 gotExecutedCatch = true;
             })
@@ -143,13 +144,14 @@ describe('PromiseHandler', function() {
 
     it('should propagate not only promises but also objects or strings', function(done) {
         var hasBeenExecuted = 0;
-        this.client
+        this.matrix
             .isVisible('body').then(function(isVisible) {
                 hasBeenExecuted++;
                 return isVisible;
             }).then(function(isVisible) {
                 hasBeenExecuted++;
-                isVisible.should.be.true;
+                isVisible.browserA.should.be.true;
+                isVisible.browserB.should.be.true;
                 return 'a string';
             }).then(function(aString) {
                 hasBeenExecuted++;
@@ -164,36 +166,6 @@ describe('PromiseHandler', function() {
                 hasBeenExecuted.should.be.equal(4);
                 done();
             });
-    });
-
-    describe('should be able to handle 3rd party promises', function() {
-
-        it('should handle Q\'s deferred.promise', function(done) {
-
-            var deferred = Q.defer();
-            deferred.resolve('success');
-
-            this.client
-                .status()
-                .then(function(){
-                    return deferred.promise;
-                })
-                .then(function(result){
-                    result.should.be.equal('success');
-                })
-                .call(done);
-
-        });
-
-    });
-
-    it('should be able to pass a command execution as parameter', function(done) {
-        this.client
-            .then(this.client.getTitle())
-            .then(function(title) {
-                title.should.be.exactly(conf.testPage.title);
-            })
-            .call(done);
     });
 
 });
