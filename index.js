@@ -31,7 +31,6 @@ module.exports.ErrorHandler = ErrorHandler;
 
 // use the chained API reference to add static methods
 var remote = module.exports.remote = function remote(options, Constructor) {
-    var isMultibrowserConstructor = Constructor && Constructor.name === 'Multibrowser';
 
     if (typeof options === 'function') {
         Constructor = options;
@@ -58,11 +57,7 @@ var remote = module.exports.remote = function remote(options, Constructor) {
              * this setup enables calling commands on child processes "synchronously" and having
              * all functionality chainIt provides
              */
-            if(isMultibrowserConstructor) {
-                Constructor.prototype[fnName] = PromiseHandler(fnName, Multibrowser.register(fnName, Constructor.prototype[fnName]));
-            } else {
-                Constructor.prototype[fnName] = PromiseHandler(fnName, Constructor.prototype[fnName]);
-            }
+            Constructor.prototype[fnName] = PromiseHandler(fnName, Constructor.prototype[fnName]);
         });
     }
 
