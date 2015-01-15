@@ -1,19 +1,20 @@
-var Mocha = require('mocha'),
+var WebdriverIO = require('../index.js'),
+    Mocha = require('mocha'),
     should = require('should'),
     SauceLabs = require('saucelabs'),
     glob = require('glob'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
-    client, specFiles;
+    client, matrix, specFiles, specDir;
 
 var mocha = new Mocha({
     timeout: 1000000,
     reporter: 'spec'
 });
 
-if(env === 'functional') {
+if(specDir = env.match(/^(functional|multibrowser)$/)) {
     // only test functional test spec if required
-    specFiles = 'test/spec/functional/*.js';
+    specFiles = 'test/spec/' + specDir[0] + '/*.js';
 } else {
     // otherwise test global + device specific test specs
     specFiles = '{test/spec/' + env + '/*.js,test/spec/*.js}';
@@ -76,12 +77,12 @@ h = {
         };
     },
     setup: function(options) {
-        return function(done) {
-            var wdjs = require('../index.js');
 
-            if(!options) {
-                options = {};
-            }
+        if(!options) {
+            options = {};
+        }
+
+        return function(done) {
 
             if(options.remoteOptions) {
                 conf = merge(conf, options.remoteOptions);
@@ -97,16 +98,49 @@ h = {
              * if new session was requested create temporary instance
              */
             } else if(options.newSession) {
-                this.client = wdjs.remote(conf).init();
+                this.client = WebdriverIO.remote(conf).init();
 
             /**
              * otherwise store created intance for other specs
              */
             } else {
-                this.client = client = wdjs.remote(conf).init();
+                this.client = client = WebdriverIO.remote(conf).init();
             }
 
             this.client.url(options.url || conf.testPage.start, done);
         };
+    },
+    setupMultibrowser: function(options) {
+
+        if(!options) {
+            options = {};
+        }
+
+        return function(done) {
+
+            if(matrix && !options.asSingleton) {
+
+                this.matrix = matrix
+
+            } else {
+
+                this.matrix = WebdriverIO.multiremote(conf.capabilities).init();
+                this.browserA = this.matrix.select('browserA');
+                this.browserB = this.matrix.select('browserB');
+
+                if(!options.asSingleton) {
+                    matrix = this.matrix;
+                }
+
+            }
+
+            this.matrix.url(options.url || conf.testPage.start).call(done);
+        };
+    },
+    instanceLoop: function(cb) {
+        var self = this;
+        Object.keys(this.matrix.instances).forEach(function(instanceName) {
+            cb.call(self, self.matrix[instanceName]);
+        });
     }
 };
