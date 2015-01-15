@@ -47,6 +47,14 @@ var remote = module.exports.remote = function remote(options, Constructor) {
          * fake promise behavior for all commands
          */
         Object.keys(Constructor.prototype).forEach(function(fnName) {
+
+            /**
+             * skip internal commands (e.g. `__addToChain`)
+             */
+            if(fnName.indexOf('__') === 0) {
+                return;
+            }
+
             /**
              * register Multibrowser so the command gets executed like follows
              *
