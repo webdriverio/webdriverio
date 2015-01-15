@@ -67,6 +67,7 @@ env:
     #   _ENV: "mobile"
     - _BROWSER: "phantomjs"
       _ENV: "functional"
+    - _ENV: "multibrowser"
 
 notifications:
   webhooks:

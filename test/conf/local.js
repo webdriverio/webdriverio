@@ -1,8 +1,4 @@
-module.exports = {
-    testPage: {
-        start: 'http://127.0.0.1:8080/test/site/www/index.html',
-        subPage: 'http://127.0.0.1:8080/test/site/www/two.html'
-    },
+var local = {
     host: 'localhost',
     port: process.env._PORT || 4444,
     logLevel: 'silent',
@@ -11,3 +7,14 @@ module.exports = {
         browserName: process.env._BROWSER || 'phantomjs'
     }
 };
+
+if(process.env._ENV === 'multibrowser') {
+    return module.exports = {
+        capabilities: {
+            browserA: local,
+            browserB: local
+        }
+    };
+}
+
+module.exports = local
