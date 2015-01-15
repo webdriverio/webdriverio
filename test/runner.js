@@ -120,7 +120,9 @@ h = {
 
             if(matrix && !options.asSingleton) {
 
-                this.matrix = matrix
+                this.matrix = matrix;
+                this.browserA = browserA;
+                this.browserB = browserB;
 
             } else {
 
@@ -130,6 +132,8 @@ h = {
 
                 if(!options.asSingleton) {
                     matrix = this.matrix;
+                    browserA = this.browserA;
+                    browserB = this.browserB;
                 }
 
             }
