@@ -1,7 +1,12 @@
 /* global document */
 var async = require('async');
 
-describe('executeAsync', function() {
+/**
+ * executeAsync is currently pretty unstable with phantomJS 1.9.x therefor we skip
+ * this test until 2.0 is released
+ * @see https://github.com/detro/ghostdriver/issues/328
+ */
+describe.skip('executeAsync', function() {
     before(h.setupMultibrowser());
 
     before(function(done) {
