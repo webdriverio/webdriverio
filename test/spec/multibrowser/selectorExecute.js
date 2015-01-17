@@ -2,6 +2,25 @@
 describe('selectorExecute', function() {
     before(h.setupMultibrowser());
 
+    it('should be able to accept multiple selectors', function(done) {
+        this.matrix
+            .selectorExecute(['*=GitHub ', '//*[@class="sometext"]'], function(links, divs, arg) {
+                var returnStr = 'Returning ';
+                links.length > 0 && (returnStr += links[0].getAttribute('id'));
+                returnStr += " and ";
+                divs.length > 0 && (returnStr += divs[0].innerHTML);
+                return arg(returnStr);
+            }, function(str) {
+                return str + " with an argument";
+            }, function(err, res) {
+                assert.ifError(err);
+                res.browserA.should.be.equal("Returning githubRepo and some text with an argument");
+                res.browserB.should.be.equal("Returning githubRepo and some text with an argument");
+            })
+            .pause(500)
+            .call(done);
+    });
+
     // TODO: css, xpath, name, id, tag name, link text, partial link text
     it('should be able to resolve a css selector', function(done) {
         this.matrix
@@ -11,8 +30,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("some text");
                 res.browserB.should.be.equal("some text");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to resolve an xpath selector', function(done) {
@@ -23,8 +43,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("some text");
                 res.browserB.should.be.equal("some text");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to resolve a name selector', function(done) {
@@ -35,8 +56,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("searchinput");
                 res.browserB.should.be.equal("searchinput");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to resolve an id selector', function(done) {
@@ -47,8 +69,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("selectbox");
                 res.browserB.should.be.equal("selectbox");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to resolve a tag name selector', function(done) {
@@ -65,8 +88,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("selectbox found");
                 res.browserB.should.be.equal("selectbox found");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to resolve a link text selector', function(done) {
@@ -77,8 +101,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("githubRepo");
                 res.browserB.should.be.equal("githubRepo");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to resolve a partial link text selector', function(done) {
@@ -89,8 +114,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("githubRepo");
                 res.browserB.should.be.equal("githubRepo");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to accept args', function(done) {
@@ -101,8 +127,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("githubRepo with an argument");
                 res.browserB.should.be.equal("githubRepo with an argument");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
     it('should be able to pass functions as args', function(done) {
@@ -115,26 +142,9 @@ describe('selectorExecute', function() {
                 assert.ifError(err);
                 res.browserA.should.be.equal("githubRepo with an argument");
                 res.browserB.should.be.equal("githubRepo with an argument");
-                done(err);
-            });
-    });
-
-    it('should be able to accept multiple selectors', function(done) {
-        this.matrix
-            .selectorExecute(['*=GitHub ', '//*[@class="sometext"]'], function(links, divs, arg) {
-                var returnStr = 'Returning ';
-                links.length > 0 && (returnStr += links[0].getAttribute('id'));
-                returnStr += " and ";
-                divs.length > 0 && (returnStr += divs[0].innerHTML);
-                return arg(returnStr);
-            }, function(str) {
-                return str + " with an argument";
-            }, function(err, res) {
-                assert.ifError(err);
-                res.browserA.should.be.equal("Returning githubRepo and some text with an argument");
-                res.browserB.should.be.equal("Returning githubRepo and some text with an argument");
-                done(err);
-            });
+            })
+            .pause(500)
+            .call(done);
     });
 
 });
