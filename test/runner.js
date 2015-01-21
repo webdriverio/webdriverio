@@ -14,10 +14,10 @@ var mocha = new Mocha({
 
 if(specDir = env.match(/^(functional|multibrowser)$/)) {
     // only test functional test spec if required
-    specFiles = 'test/spec/' + specDir[0] + '/*.js';
+    specFiles = 'test/spec/' + specDir[0] + '/**/*.js';
 } else {
     // otherwise test global + device specific test specs
-    specFiles = '{test/spec/' + env + '/*.js,test/spec/*.js}';
+    specFiles = '{test/spec/' + env + '/**/*.js,test/spec/*.js}';
 }
 
 glob(process.env._SPEC || specFiles, function(er, files) {
