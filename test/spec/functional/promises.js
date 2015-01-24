@@ -1,3 +1,5 @@
+var Q = require('q');
+
 describe('PromiseHandler', function() {
 
     before(h.setup());
@@ -177,6 +179,27 @@ describe('PromiseHandler', function() {
                 hasBeenExecuted.should.be.equal(4);
                 done();
             });
+    });
+
+    describe('should be able to handle 3rd party promises', function() {
+
+        it('should handle Q\'s deferred.promise', function(done) {
+
+            var deferred = Q.defer();
+            deferred.resolve('success');
+
+            this.client
+                .status()
+                .then(function(){
+                    return deferred.promise;
+                })
+                .then(function(result){
+                    result.should.be.equal('success');
+                })
+                .call(done);
+
+        });
+
     });
 
 });
