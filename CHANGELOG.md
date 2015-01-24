@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v2.4.4 (2015-01-24)
+* make PromiseHandler to handle Q promises (see #399)
+
 ## v2.4.3 (2015-01-10)
 * `saveScreenshot` doesn't require a file path anymore if only the base64 data is required (see #393)
 * don't throw an error if error handler is registered (see #385)
