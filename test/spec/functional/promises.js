@@ -202,4 +202,13 @@ describe('PromiseHandler', function() {
 
     });
 
+    it('should be able to pass a command execution as parameter', function(done) {
+        this.client
+            .then(this.client.getTitle())
+            .then(function(title) {
+                title.should.be.exactly(conf.testPage.title);
+            })
+            .call(done);
+    });
+
 });
