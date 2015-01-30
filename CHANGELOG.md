@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v2.4.5 (2015-01-30)
+* return promise result if responseMethod is not a function (see #401)
+
 ## v2.4.4 (2015-01-24)
 * make PromiseHandler to handle Q promises (see #399)
 
