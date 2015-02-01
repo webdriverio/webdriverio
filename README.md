@@ -247,6 +247,11 @@ client
     .end();
 ```
 
+## Run multiple browser at the same time
+
+Check out our [docs page](http://webdriver.io/guide/usage/multiremote.html) for more information on that.
+
+
 ## Selenium cloud providers
 
 WebdriverIO supports
