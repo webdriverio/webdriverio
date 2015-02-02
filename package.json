@@ -47,6 +47,7 @@
     "request": "~2.34.0",
     "rgb2hex": "^0.1.0",
     "url": "^0.10.1",
+    "vargs-callback": "^0.2.4",
     "wgxpath": "^0.23.0"
   },
   "devDependencies": {
