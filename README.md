@@ -249,7 +249,7 @@ client
 
 ## Run multiple browser at the same time
 
-Check out our [docs page](http://webdriver.io/guide/usage/multiremote.html) for more information on that.
+This feature isn't quite ready for release yet but it is already merged into master so you can already play arround with it. Checkout the example [here](https://github.com/webdriverio/webdriverio/blob/master/examples/webdriverio.multiremote.js).
 
 
 ## Selenium cloud providers
