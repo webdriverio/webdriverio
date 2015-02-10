@@ -28,7 +28,7 @@ to execute asynchronous requests sequentially. WebdriverIO supports callback and
 either pass a callback as last parameter to handle with the command results:
 
 ```js
-var webdriverio = require('../index');
+var webdriverio = require('webdriverio');
 var options = {
     desiredCapabilities: {
         browserName: 'chrome'
