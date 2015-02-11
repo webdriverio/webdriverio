@@ -37,4 +37,20 @@ describe('addCommand executed by single multibrowser instance', function() {
 
     });
 
+    it('should promisify added command', function(done) {
+
+        this.browserA
+            .getUrlAndTitle().then(function(result) {
+                assert.strictEqual(result.url, conf.testPage.start);
+                assert.strictEqual(result.title, conf.testPage.title);
+            })
+            .call(done);
+
+    });
+
+    it('should not register that command to other instances', function() {
+        assert.ifError(this.browserB.getUrlAndTitle);
+        assert.ifError(this.matrix.getUrlAndTitle);
+    });
+
 });

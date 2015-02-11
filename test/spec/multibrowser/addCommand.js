@@ -25,15 +25,9 @@ describe('addCommand', function() {
 
         });
 
-        async.waterfall([
-            function(cb) {
-                self.browserA.url(conf.testPage.subPage, cb);
-            },
-            function(res, cb) {
-                self.browserB.url(conf.testPage.start, cb);
-            }
-        ], done);
-
+        this.browserA.url(conf.testPage.subPage);
+        this.browserB.url(conf.testPage.start);
+        this.matrix.call(done);
     });
 
     it('added a `getUrlAndTitle` command', function(done) {
@@ -46,6 +40,22 @@ describe('addCommand', function() {
             })
             .call(done);
 
+    });
+
+    it('should promisify added command', function(done) {
+
+        this.matrix
+            .getUrlAndTitle().then(function(result) {
+                assert.strictEqual(result.url, conf.testPage.subPage);
+                assert.strictEqual(result.title, conf.testPage.title);
+            })
+            .call(done);
+
+    });
+
+    it('should not register that command to other instances', function() {
+        assert.ifError(this.browserA.getUrlAndTitle);
+        assert.ifError(this.browserB.getUrlAndTitle);
     });
 
 });
