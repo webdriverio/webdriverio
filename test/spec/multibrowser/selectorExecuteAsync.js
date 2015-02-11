@@ -1,5 +1,5 @@
 /* global document */
-describe('selectorExecuteAsync', function() {
+describe.skip('selectorExecuteAsync', function() {
     before(h.setupMultibrowser());
 
     // TODO: css, xpath, name, id, tag name, link text, partial link text
