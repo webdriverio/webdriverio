@@ -25,4 +25,4 @@ if(process.env._ENV === 'multibrowser') {
     };
 }
 
-module.exports = local
+module.exports = conf;
