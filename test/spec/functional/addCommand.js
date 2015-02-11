@@ -35,4 +35,15 @@ describe('addCommand', function() {
 
     });
 
+    it('should promisify added command', function(done) {
+
+        this.client
+            .getUrlAndTitle().then(function(result) {
+                assert.strictEqual(result.url, conf.testPage.start);
+                assert.strictEqual(result.title, conf.testPage.title);
+            })
+            .call(done);
+
+    });
+
 });
