@@ -5,6 +5,8 @@ describe('Chaining', function() {
     it('should execute all commands in right order (asynchronous execution test)', function(done) {
         var result = '';
         var matrix = this.matrix;
+        var browserA = this.browserA;
+        var browserB = this.browserB;
 
         this.matrix
             .click('.btn1', function(err) {
@@ -18,30 +20,27 @@ describe('Chaining', function() {
             .call(function() {
                 result += '3';
 
-                matrix.click('.btn1',function(err) {
-
-                    assert.ifError(err);
+                browserA.call(function() {
                     result += '4';
 
-                    matrix.isVisible('.btn1', function(err) {
+                    browserB.isVisible('.btn1', function(err) {
                         assert.ifError(err);
                         result += '5';
                     })
                     .call(function() {
                         result += '6';
 
-                        matrix.call(function() {
-
+                        browserA.call(function() {
                             result += '7';
 
                             matrix.click('.btn1', function(err) {
                                 assert.ifError(err);
                                 result += '8';
 
-                                matrix.call(function() {
+                                browserA.title(function() {
                                     result += '9';
 
-                                    matrix.isVisible('.btn1', function(err) {
+                                    browserB.isVisible('.btn1', function(err) {
                                         assert.ifError(err);
                                         result += '0';
 
