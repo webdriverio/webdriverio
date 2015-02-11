@@ -7,14 +7,9 @@ describe('execute', function() {
     before(function(done) {
         var self = this;
 
-        async.waterfall([
-            function(cb) {
-                self.browserA.url(conf.testPage.subPage, cb);
-            },
-            function(res, cb) {
-                self.browserB.url(conf.testPage.start, cb);
-            }
-        ], done);
+        this.browserA.url(conf.testPage.subPage);
+        this.browserB.url(conf.testPage.start);
+        this.matrix.call(done);
     });
 
     it('should be able to execute some js', function(done) {
