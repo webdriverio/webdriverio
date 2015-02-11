@@ -5,7 +5,7 @@ var WebdriverIO = require('../index.js'),
     glob = require('glob'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
-    client, matrix, specFiles, specDir;
+    client, specFiles, specDir;
 
 var mocha = new Mocha({
     timeout: 1000000,
@@ -31,9 +31,9 @@ glob(process.env._SPEC || specFiles, function(er, files) {
             return process.exit(failures);
         }
 
-        var sessionID = client.requestHandler.sessionID;
+        var sessionID = (client.requestHandler || {}).sessionID;
 
-        client.end(function() {
+        client.endAll(function() {
 
             if (process.env.TRAVIS_BUILD_NUMBER) {
                 var sauceAccount = new SauceLabs({
@@ -118,9 +118,9 @@ h = {
 
         return function(done) {
 
-            if(matrix && !options.asSingleton) {
+            if(client && !options.asSingleton) {
 
-                this.matrix = matrix;
+                this.matrix = client;
                 this.browserA = browserA;
                 this.browserB = browserB;
 
@@ -131,7 +131,7 @@ h = {
                 this.browserB = this.matrix.select('browserB');
 
                 if(!options.asSingleton) {
-                    matrix = this.matrix;
+                    client = this.matrix;
                     browserA = this.browserA;
                     browserB = this.browserB;
                 }
