@@ -33,7 +33,8 @@ glob(process.env._SPEC || specFiles, function(er, files) {
 
         var sessionID = (client.requestHandler || {}).sessionID;
 
-        client.endAll(function() {
+        client.endAll(function(err) {
+            assert.ifError(err);
 
             if (process.env.TRAVIS_BUILD_NUMBER) {
                 var sauceAccount = new SauceLabs({
