@@ -1,4 +1,4 @@
-var conf = {
+module.exports = {
     port: 4445,
     logLevel: 'command',
     waitforTimeout: 1000,
@@ -15,14 +15,3 @@ var conf = {
         accessKey: process.env.SAUCE_ACCESS_KEY
     }
 };
-
-if(process.env._ENV === 'multibrowser') {
-    return module.exports = {
-        capabilities: {
-            browserA: conf,
-            browserB: conf
-        }
-    };
-}
-
-module.exports = conf;
