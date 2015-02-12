@@ -12,6 +12,10 @@ var mocha = new Mocha({
     reporter: 'spec'
 });
 
+// globals for tests
+conf = require('./conf/index.js');
+assert = require('assert');
+
 if(specDir = env.match(/^(functional|multibrowser)$/)) {
     // only test functional test spec if required
     specFiles = 'test/spec/' + specDir[0] + '/**/*.js';
@@ -31,9 +35,10 @@ glob(process.env._SPEC || specFiles, function(er, files) {
             return process.exit(failures);
         }
 
-        var sessionID = (client.requestHandler || {}).sessionID;
+        var sessionID = (client.requestHandler || {}).sessionID,
+            endCommand = conf.runsWithSauce ? 'end' : 'endAll';
 
-        client.endAll(function(err) {
+        client[endCommand](function(err) {
             assert.ifError(err);
 
             if (process.env.TRAVIS_BUILD_NUMBER) {
@@ -56,10 +61,6 @@ glob(process.env._SPEC || specFiles, function(er, files) {
         });
     });
 });
-
-// globals for tests
-conf = require('./conf/index.js');
-assert = require('assert');
 
 h = {
     noError: function(err) {

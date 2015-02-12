@@ -2,6 +2,7 @@ module.exports = {
     port: 4445,
     logLevel: 'command',
     waitforTimeout: 1000,
+    runsWithSauce: true,
     desiredCapabilities: {
         browserName: (process.env._BROWSER || '').replace(/_/g, ' '),
         platform: (process.env._PLATFORM || '').replace(/_/g, ' '),
