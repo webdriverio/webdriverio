@@ -76,11 +76,99 @@ describe('selector strategies helper', function () {
     });
 
     // check if it is still backwards compatible for obsolete command
-    it('should find an element by defining custom strategy',function() {
+    it('should find an element by defining custom strategy', function() {
 
         var element = findStrategy(['my special strategy', '#.some [weird] selector', function(){}]);
         assert.strictEqual(element.using, 'my special strategy');
         assert.strictEqual(element.value, '#.some [weird] selector');
+
+    });
+
+    it('should find an element by tag name + content', function() {
+
+        var element = findStrategy(['div=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//div[normalize-space() = "some random text with "§$%&/()div=or others"]');
+
+    });
+
+    it('should find an element by tag name + id + similar content', function() {
+
+        var element = findStrategy(['h1=Christian']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//h1[normalize-space() = "Christian"]');
+
+    });
+
+    it('should find an element by tag name + similar content', function() {
+
+        var element = findStrategy(['div*=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//div[contains(., "some random text with "§$%&/()div=or others")]');
+
+    });
+
+    it('should find an element by tag name + class + content', function() {
+
+        var element = findStrategy(['div.some-class=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//div[contains(@class, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]');
+
+    });
+
+    it('should find an element class + content', function() {
+
+        var element = findStrategy(['.some-class=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//*[contains(@class, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]');
+
+    });
+
+    it('should find an element by tag name + class + similar content', function() {
+
+        var element = findStrategy(['div.some-class*=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//div[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others")]');
+
+    });
+
+    it('should find an element by class + similar content', function() {
+
+        var element = findStrategy(['.some-class*=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//*[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others")]');
+
+    });
+
+    it('should find an element by tag name + id + content', function() {
+
+        var element = findStrategy(['div#some-class=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//div[contains(@id, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]');
+
+    });
+
+    it('should find an element by id + content', function() {
+
+        var element = findStrategy(['#some-class=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//*[contains(@id, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]');
+
+    });
+
+    it('should find an element by tag name + id + similar content', function() {
+
+        var element = findStrategy(['div#some-id*=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//div[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others")]');
+
+    });
+
+    it('should find an element by id + similar content', function() {
+
+        var element = findStrategy(['#some-id*=some random text with "§$%&/()div=or others']);
+        assert.strictEqual(element.using, 'xpath');
+        assert.strictEqual(element.value, '//*[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others")]');
 
     });
 
