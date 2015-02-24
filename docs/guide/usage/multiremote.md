@@ -1,0 +1,143 @@
+name: multiremote
+category: usage
+tags: guide
+index: 3
+title: WebdriverIO - Multiremote
+---
+
+Run multiple browser at the same time
+=====================================
+
+WebdriverIO allows you to run multiple Selenium sessions in a single test. This becomes handy when you
+need to test application features where multiple users are required (e.g. chat or WebRTC applications).
+Instead of creating a couple of remote instances where you need to execute common commands like [init](http://webdriver.io/api/protocol/init.html)
+or [url](http://webdriver.io/api/protocol/url.html) on each of those instances, you can simply create a
+multiremote instance and control all browser at the same time. To do so just use the `multiremote`
+function and pass an object with named options into it. By giving each capability a name you will be able
+to easy select and access that single instance when executing commands on a single instance.
+
+```js
+var webdriverio = require('webdriverio');
+var browser = webdriverio.multiremote({
+    myChromeBrowser: {
+        desiredCapabilities: {
+            browserName: 'chrome'
+        }
+    },
+    myFirefoxBrowser: {
+        desiredCapabilities: {
+            browserName: 'firefox'
+        }
+    }
+});
+```
+
+This would create two Selenium sessions with Chrome and Firefox. All commands you call with the
+`browser` variable gets executed in parallel with each browser. This helps to streamline your
+integration test and speedup the execution a bit.
+
+```js
+browser.init().url('http://chat.socket.io/');
+```
+
+Using the multiremote instance changes the way how results are accessible in callback functions.
+Since more than one browser executes the command we also receive more than one result.
+
+```js
+browser
+    .init()
+    .url('https://www.whatismybrowser.com/')
+    .getText('.string-major', function(err, text) {
+        console.log(text);
+        // returns:
+        // { 
+        //     myFirefoxBrowser: 'Firefox 35 on Mac OS X (Yosemite)',
+        //     myChromeBrowser: 'Chrome 40 on Mac OS X (Yosemite)'
+        // }
+    })
+    .end();
+```
+
+You will notice that each command gets executed one by one. That means that the command finishes once
+all browser have executed it. This is helpful because it keeps the browser actions synced and it makes
+it easier to understand what currently happens.
+
+Sometimes it is necessary to do different things with each browser in order to test something. For instance
+if we want to test a chat application, there has to be one browser who inputs a text message while the
+other browser waits to receive that message and do an assertion on it. You can get access to a single instance
+by using the `select` method.
+
+```js
+var myChromeBrowser = browser.select('myChromeBrowser');
+var myFirefoxBrowser = browser.select('myFirefoxBrowser');
+ 
+myChromeBrowser
+    .setInput('#message', 'Hi, I am Chrome')
+    .click('#send');
+ 
+myFirefoxBrowser
+    .waitForExist('.messages', 5000)
+    .getText('.messages', function(err, messages) {
+        assert.ok(err);
+        assert.equal(messages, 'Hi, I am Chrome');
+    });
+```
+
+In that example the `myFirefoxBrowser` instance will start waiting on messages once the `myChromeBrowser`
+instance clicked on the send button. The execution is not in parallel.
+
+Multiremote makes it easy and convenient to control multiple browser either doing the same thing or
+something different in parallel. While writing your test make sure to don't mix that up. You can't do
+both in a single execution flow.
+
+```js
+// THIS DOESN'T WORK
+browser
+    .init()
+    .url('http://example.com');
+ 
+myChromeBrowser.click('.button');
+myFirefoxBrowser.click('.anotherButton');
+  
+browser.end();
+```
+
+WebdriverIO is using [ChainIt](https://github.com/vvo/chainit) to queue up the commands and execute
+these in order. It works in a way that it gives each constructor a single queue. If you execute a command
+with a selected instance you are running that command in a different queue loop. In the example above
+the [click](http://webdriver.io/api/action/click.html) command would be executed after [init](http://webdriver.io/api/protocol/init.html)
+was called and __not__ after we opened the url. Each instance is running as a single child process. When
+executing a command with `browser` the function name and its arguments will be sent to all child processes.
+Once all browser have executed that command the next command will get sent over. At the time `myChromeBrowser.click('.button')`
+is executed the browser doesn't now that it has to execute `url` before. Therefor it is recommended to
+use a control flow library like [async](https://github.com/caolan/async) or run each part in a different
+`it` block (e.g. when running tests in [Mocha](http://mochajs.org/) or [Jasmine](http://jasmine.github.io/)).
+
+```js
+describe('login with two browser', function() {
+    it('should open the login page', function(done) {
+        browser.init().url('http://example.com/login').call(done);
+    });
+ 
+    it('each browser should enter its credentials', function(done) {
+        myChromeBrowser.setInput('#username', 'chrome').setInput('#password', '******');
+ 
+        myFirefoxBrowser
+            .setInput('#username', 'firefox').setInput('#password', '******')
+            .call(done);
+    });
+ 
+    it('should login successfully', function(done) {
+        browser
+            .submitForm('#loginForm')
+            .getText('#status', function(err, text) {
+                assert.equal(text.myChromeBrowser, 'Logged in successfully');
+                assert.equal(text.myFirefoxBrowser, 'Logged in successfully');
+            })
+            .call(done);
+    });
+});
+```
+
+__Note:__ this feature is not meant to execute all your tests in parallel. It should help you to
+coordinate more than one browser for sophisticated integration tests.
