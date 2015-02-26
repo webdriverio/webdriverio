@@ -13,8 +13,9 @@ need to test application features where multiple users are required (e.g. chat o
 Instead of creating a couple of remote instances where you need to execute common commands like [init](http://webdriver.io/api/protocol/init.html)
 or [url](http://webdriver.io/api/protocol/url.html) on each of those instances, you can simply create a
 multiremote instance and control all browser at the same time. To do so just use the `multiremote`
-function and pass an object with named options into it. By giving each capability a name you will be able
-to easy select and access that single instance when executing commands on a single instance.
+function and pass an object with named browser with their capabilities into it. By giving each capability
+a name you will be able to easy select and access that single instance when executing commands on a single
+instance.
 
 ```js
 var webdriverio = require('webdriverio');
@@ -84,60 +85,26 @@ myFirefoxBrowser
 ```
 
 In that example the `myFirefoxBrowser` instance will start waiting on messages once the `myChromeBrowser`
-instance clicked on the send button. The execution is not in parallel.
-
-Multiremote makes it easy and convenient to control multiple browser either doing the same thing or
-something different in parallel. While writing your test make sure to don't mix that up. You can't do
-both in a single execution flow.
-
-```js
-// THIS DOESN'T WORK
-browser
-    .init()
-    .url('http://example.com');
- 
-myChromeBrowser.click('.button');
-myFirefoxBrowser.click('.anotherButton');
-  
-browser.end();
-```
-
-WebdriverIO is using [ChainIt](https://github.com/vvo/chainit) to queue up the commands and execute
-these in order. It works in a way that it gives each constructor a single queue. If you execute a command
-with a selected instance you are running that command in a different queue loop. In the example above
-the [click](http://webdriver.io/api/action/click.html) command would be executed after [init](http://webdriver.io/api/protocol/init.html)
-was called and __not__ after we opened the url. Each instance is running as a single child process. When
-executing a command with `browser` the function name and its arguments will be sent to all child processes.
-Once all browser have executed that command the next command will get sent over. At the time `myChromeBrowser.click('.button')`
-is executed the browser doesn't now that it has to execute `url` before. Therefor it is recommended to
-use a control flow library like [async](https://github.com/caolan/async) or run each part in a different
-`it` block (e.g. when running tests in [Mocha](http://mochajs.org/) or [Jasmine](http://jasmine.github.io/)).
+instance clicked on the send button. The execution is not in parallel. Multiremote makes it easy and
+convenient to control multiple browser either doing the same thing in parallel or something different
+in order. You will never have to care about racing conditions since every Selenium commands gets pushed
+into a single execution queue. Once you explicitly use one browser instance to execute a command all other
+browser will wait until that command finishes.
 
 ```js
-describe('login with two browser', function() {
-    it('should open the login page', function(done) {
-        browser.init().url('http://example.com/login').call(done);
-    });
- 
-    it('each browser should enter its credentials', function(done) {
-        myChromeBrowser.setInput('#username', 'chrome').setInput('#password', '******');
- 
-        myFirefoxBrowser
-            .setInput('#username', 'firefox').setInput('#password', '******')
-            .call(done);
-    });
- 
-    it('should login successfully', function(done) {
-        browser
-            .submitForm('#loginForm')
-            .getText('#status', function(err, text) {
-                assert.equal(text.myChromeBrowser, 'Logged in successfully');
-                assert.equal(text.myFirefoxBrowser, 'Logged in successfully');
-            })
-            .call(done);
-    });
+// these commands get executed in parallel by all defined instances
+browser.init().url('http://example.com');
+
+// do something with the Chrome browser
+myChromeBrowser.setValue('.chatMessage', 'Hey Whats up!').keys('Enter')
+
+// do something with the Firefox browser
+myFirefoxBrowser.getText('.message', function(err, message) {
+    console.log(messages);
+    // returns: "Hey Whats up!"
 });
 ```
 
-__Note:__ this feature is not meant to execute all your tests in parallel. It should help you to
+__Note:__ Multiremote is not meant to execute all your tests in parallel. Since all instances wait until the
+last browser has executed the command you wouldn't get any performance imrpovements. It should help you to
 coordinate more than one browser for sophisticated integration tests.
