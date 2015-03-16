@@ -101,9 +101,8 @@ describe('PromiseHandler', function() {
             .call(done);
     });
 
-    it('should provide a catch and fail method that executes if the command throws an error', function(done) {
-        var gotExecutedCatch = false,
-            gotExecutedFail = false;
+    it('should provide a catch method that executes if the command throws an error', function(done) {
+        var gotExecutedCatch = false;
 
         this.client
             .click('#notExisting').catch(function() {
@@ -112,18 +111,11 @@ describe('PromiseHandler', function() {
             .call(function() {
                 gotExecutedCatch.should.be.true;
             })
-            .click('#notExisting2').fail(function() {
-                gotExecutedFail = true;
-            })
-            .call(function() {
-                gotExecutedFail.should.be.true;
-            })
             .call(done);
     });
 
     it('should provide a catch and fail method that doesn\'t execute if the command passes', function(done) {
-        var gotExecutedCatch = false,
-            gotExecutedFail = false;
+        var gotExecutedCatch = false;
 
         this.client
             .click('body').catch(function() {
@@ -131,12 +123,6 @@ describe('PromiseHandler', function() {
             })
             .call(function() {
                 gotExecutedCatch.should.be.false;
-            })
-            .click('body').fail(function() {
-                gotExecutedFail = true;
-            })
-            .call(function() {
-                gotExecutedFail.should.be.false;
             })
             .call(done);
     });
@@ -164,6 +150,38 @@ describe('PromiseHandler', function() {
                 hasBeenExecuted.should.be.equal(4);
                 done();
             });
+    });
+
+    it('should execute promise in a right order', function(done) {
+        var self = this
+            result = '';
+
+        this.client.title().then(function() {
+            result += '1';
+            return self.client.call(function() {}).then(function() {
+                result += '2';
+                return self.client.then(function() {
+                    result += '3';
+                })
+            })
+        }).then(function() {
+            result += '4';
+        }).call(function() {
+            result.should.be.equal('1234');
+            done();
+        })
+    });
+
+    it('should resolve array values', function(done) {
+        // var value;
+        this.client
+            .title()
+            .then(function() {
+                return [1,2];
+            }).then(function(value) {
+                value.should.be.instanceof(Array).and.have.lengthOf(2);
+            })
+            .call(done);
     });
 
     describe('should be able to handle 3rd party promises', function() {
