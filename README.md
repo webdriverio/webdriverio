@@ -56,7 +56,7 @@ webdriverio
         .then(function(title) {
             console.log('Title was: ' + title);
         })
-        .reject(function(error) {
+        .catch(function(error) {
             console.log('uups something went wrong', error);
         })
     .end();
