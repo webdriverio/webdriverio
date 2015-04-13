@@ -10,30 +10,34 @@ var options = {
 webdriverio
     .remote(options)
     .init()
-    .url('http://www.google.com')
-    .elements('input[type="submit"]')
+    .url('https://news.ycombinator.com/')
+    .elements('.pagetop>a')
     .then(function (elements) {
-        elements = elements.value;
+        var self = this,
+            promises = [];
 
-        var promises = [];
+        elements.value.forEach(function (element) {
+            var id = element.ELEMENT;
 
-        elements.forEach(function (element) {
-            element = element.ELEMENT;
-            var promise = this
-                .elementIdAttribute(element, 'type')
-                .then(function (val) {
-                    console.log(val);
-                });
-
-
-            promises.push(promise);
-        }.bind(this));
+            promises.push(
+                self
+                    .elementIdText(id)
+                    .then(function (res) {
+                        return res.value;
+                    }
+                )
+            );
+        });
 
         return Q.all(promises);
     })
 
+    .then(function (inputValues) {
+        console.log(inputValues);
+    })
+
     .end()
-    .then(function(){
+    .then(function () {
         //TODO: get the promise after .end() working
         console.log('Client ended');
     });
