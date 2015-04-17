@@ -34,9 +34,9 @@ var options = {
         browserName: 'chrome'
     }
 };
+var client = webdriverio.remote(options);
 
-webdriverio
-    .remote(options)
+client
     .init()
     .url('http://www.google.com')
     .getTitle(function(err, title) {
@@ -48,8 +48,7 @@ webdriverio
 or you can handle it like a A+ promise:
 
 ```js
-webdriverio
-    .remote(options)
+client
     .init()
     .url('http://www.google.com')
     .getTitle()
