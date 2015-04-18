@@ -38,6 +38,5 @@ webdriverio
 
     .end()
     .finally(function () {
-        //TODO: get the promise after .end() working
         console.log('Client ended');
     });
