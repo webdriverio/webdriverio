@@ -18,4 +18,6 @@ webdriverio
     .pause(2000)
     .selectByValue('select', 'years/2009.html')
     .pause(2000)
+    .selectByVisibleText('select', '2008')
+    .pause(2000)
     .end();
