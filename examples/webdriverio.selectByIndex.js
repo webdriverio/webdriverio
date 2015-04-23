@@ -13,6 +13,7 @@ webdriverio
     .remote(options)
     .init()
     .url('http://thenostalgiamachine.com/')
+    .pause(2000)
     .selectByIndex('select', 4)
-
-    //.end();
+    .pause(2000)
+    .end();
