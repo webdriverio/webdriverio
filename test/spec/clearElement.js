@@ -4,20 +4,14 @@ describe('clearElement', function() {
 
     var input = 'input[name="a"]';
 
-    it('knows to clear elements', function(done) {
-
-        this.client
-            .getValue(input, function(err, res) {
-                assert.ifError(err);
-                assert.equal(res, 'a');
-            })
-            .clearElement(input)
-            .getValue(input, function(err, res) {
-                assert.ifError(err);
-                assert.equal(res, '');
-            })
-            .call(done);
-
+    it('knows to clear elements', function() {
+        return this.client.getValue(input).then(function(res) {
+            assert.equal(res, 'a');
+        })
+        .clearElement(input)
+        .getValue(input).then(function(res) {
+            assert.equal(res, '');
+        });
     });
 
 });
