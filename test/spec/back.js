@@ -2,8 +2,8 @@ describe('back', function() {
 
     before(h.setup());
 
-    it('should be able to go backward in history', function(done){
-        this.client
+    it('should be able to go backward in history', function(){
+        return this.client
             /**
              * first create a history
              */
@@ -17,11 +17,9 @@ describe('back', function() {
             /**
              * did it work?
              */
-            .getTitle(function(err,title) {
-                assert.ifError(err);
+            .getTitle().then(function(title) {
                 title.should.be.exactly('WebdriverJS Testpage');
-            })
-            .call(done);
+            });
     });
 
 });

@@ -2,8 +2,8 @@ describe('forward', function() {
 
     before(h.setup());
 
-    it('should be able to go forward in history', function(done){
-        this.client
+    it('should be able to go forward in history', function(){
+        return this.client
             /**
              * first create a history
              */
@@ -23,11 +23,9 @@ describe('forward', function() {
             /**
              * did it work?
              */
-            .getTitle(function(err,title) {
-                assert.ifError(err);
+            .getTitle().then(function (title) {
                 title.should.be.exactly('two');
-            })
-            .call(done);
+            });
     });
 
 });
