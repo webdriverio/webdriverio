@@ -90,7 +90,7 @@ describe('example page', function() {
 });
 ```
 
-If you're looking for a complete workflow example, [this post](http://twin.github.io/selenium-testing-workflow-with-webdriverio/) explains a way to run tests using gulp, selenium-standalone, Mocha and WebdriverIO.
+If you're looking for a complete workflow example, [this post](http://twin.github.io/selenium-testing-workflow-with-webdriverio/) explains a way to run tests using gulp, selenium-standalone, Mocha and WebdriverIO. If you want to use Cucumber for real BDD testing check out the [cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate) project.
 
 ## Options
 
