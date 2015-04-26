@@ -67,6 +67,12 @@ callbacks or promises!
 
 ```js
 describe('example page', function() {
+    var chai = require('chai');
+    var chaiAsPromised = require('chai-as-promised');
+    
+    chai.use(chaiAsPromised);
+    chai.should();
+    chaiAsPromised.transferPromiseness = client.transferPromiseness;
 
     before(function() {
         return client.init().url('http://example.com');
