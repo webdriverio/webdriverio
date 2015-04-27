@@ -67,15 +67,11 @@ h = {
         assert(err === undefined);
     },
     checkResult: function(expected) {
-        return function(err, result) {
-            h.noError(err);
-
+        return function(result) {
             if(expected instanceof Array) {
-                expected.should.containDeep([result]);
-            } else {
-                expected.should.be.exactly(result);
+                return expected.should.containDeep([result]);
             }
-
+            expected.should.be.exactly(result);
         };
     },
     setup: function(options) {
@@ -84,7 +80,7 @@ h = {
             options = {};
         }
 
-        return function(done) {
+        return function() {
 
             if(options.remoteOptions) {
                 conf = merge(conf, options.remoteOptions);
@@ -109,7 +105,7 @@ h = {
                 this.client = client = WebdriverIO.remote(conf).init();
             }
 
-            this.client.url(options.url || conf.testPage.start, done);
+            return this.client.url(options.url || conf.testPage.start);
         };
     },
     setupMultibrowser: function(options) {
