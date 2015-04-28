@@ -263,7 +263,7 @@ This feature isn't quite ready for release yet but it is already merged into mas
 
 WebdriverIO supports
 
-* <img src="https://pbs.twimg.com/profile_images/794342508/Logo_Square_bigger.png" width="48" /> [Sauce Labs](https://saucelabs.com/)
+* <img src="https://pbs.twimg.com/profile_images/542098872772730880/gSns7f_b_400x400.jpeg" width="48" /> [Sauce Labs](https://saucelabs.com/)
 * <img src="https://avatars0.githubusercontent.com/u/1119453?v=3&s=200" width="48" /> [BrowserStack](http://www.browserstack.com/)
 * <img src="https://pbs.twimg.com/profile_images/1647337797/testingbot1_bigger.png" width="48" /> [TestingBot](https://testingbot.com/)
 
