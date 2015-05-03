@@ -7,7 +7,6 @@ describe.skip('selectBy', function() {
 
         it('should find element without special conditions', function() {
             return this.client.selectByVisibleText('#selectTest', 'seis').getValue('#selectTest').then(function (value) {
-                console.log(value);
                 value.should.be.exactly('someValue6');
             });
         });
