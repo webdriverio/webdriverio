@@ -1,4 +1,4 @@
-describe.skip('setValue', function() {
+describe('setValue', function() {
 
     before(h.setup());
 
