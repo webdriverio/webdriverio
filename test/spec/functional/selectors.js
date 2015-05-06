@@ -172,4 +172,35 @@ describe('selector strategies helper', function () {
 
     });
 
+    it('should find an element by id + positional css selector', function() {
+
+        var element = findStrategy(['#some-id:first-child']);
+        assert.strictEqual(element.using, 'css selector');
+        assert.strictEqual(element.value, '#some-id:first-child');
+
+    });
+
+    it('should find an element by positional css selector :first-child', function() {
+
+        var element = findStrategy([':first-child']);
+        assert.strictEqual(element.using, 'css selector');
+        assert.strictEqual(element.value, ':first-child');
+
+    });
+
+    it('should find an element by positional css selector *:first', function() {
+
+        var element = findStrategy(['*:first-child']);
+        assert.strictEqual(element.using, 'css selector');
+        assert.strictEqual(element.value, '*:first-child');
+
+    });
+
+    it('should find an element by positional css selector .someClass:nth-child(2)', function() {
+
+        var element = findStrategy(['someClass:nth-child(2)']);
+        assert.strictEqual(element.using, 'css selector');
+        assert.strictEqual(element.value, 'someClass:nth-child(2)');
+
+    });
 });

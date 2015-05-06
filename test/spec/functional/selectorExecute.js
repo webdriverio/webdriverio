@@ -127,4 +127,36 @@ describe('selectorExecute', function() {
             });
     });
 
+    it('should be able to resolve a :first-child css selector', function(done) {
+        this.client
+            .selectorExecute('form input:first-child', function(arr) {
+                    return arr[0].getAttribute('value');
+                }, function(err, res) {
+                    assert.ifError(err);
+                    assert.equal("a", res);
+                    done(err);
+                });
+    });
+
+    it('should be able to resolve a :first-of-type css selector', function(done) {
+        this.client
+            .selectorExecute('.page a:first-of-type', function(arr) {
+                    return arr[0].innerText;
+                }, function(err, res) {
+                    assert.ifError(err);
+                    assert.equal("two", res);
+                    done(err);
+                });
+    });
+
+    it('should be able to resolve a :nth-child() css selector', function(done) {this.client
+            .selectorExecute('.page :nth-child(3)', function(arr) {
+                    return arr[0].innerText;
+                }, function(err, res) {
+                    assert.ifError(err);
+                    assert.equal("GitHub Repo", res);
+                    done(err);
+                });
+    });
+
 });
