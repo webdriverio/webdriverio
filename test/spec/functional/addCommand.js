@@ -3,47 +3,33 @@ describe('addCommand', function() {
     before(h.setup());
 
     before(function() {
-
         this.client.addCommand('getUrlAndTitle', function(callback) {
 
-            var result = {},
-                error;
+            var result = {};
 
-            this.url(function(err, url) {
-                    error = err;
-                    result.url = url.value;
-                })
-                .getTitle(function(err, title) {
-                    error = err;
-                    result.title = title;
-                })
-                .call(callback.bind(this, error, result));
+            return this.url().then(function(url) {
+                result.url = url.value;
+            }).getTitle().then(function(title) {
+                result.title = title;
+            }).then(function() {
+                return result;
+            });
 
         });
-
     });
 
-    it('added a `getUrlAndTitle` command', function(done) {
-
-        this.client
-            .getUrlAndTitle(function(err, result) {
-                assert.ifError(err);
-                assert.strictEqual(result.url, conf.testPage.start);
-                assert.strictEqual(result.title, conf.testPage.title);
-            })
-            .call(done);
-
+    it('added a `getUrlAndTitle` command', function() {
+        return this.client.getUrlAndTitle().then(function(result) {
+            assert.strictEqual(result.url, conf.testPage.start);
+            assert.strictEqual(result.title, conf.testPage.title);
+        });
     });
 
-    it('should promisify added command', function(done) {
-
-        this.client
-            .getUrlAndTitle().then(function(result) {
-                assert.strictEqual(result.url, conf.testPage.start);
-                assert.strictEqual(result.title, conf.testPage.title);
-            })
-            .call(done);
-
+    it('should promisify added command', function() {
+        return this.client.getUrlAndTitle().then(function(result) {
+            assert.strictEqual(result.url, conf.testPage.start);
+            assert.strictEqual(result.title, conf.testPage.title);
+        });
     });
 
 });
