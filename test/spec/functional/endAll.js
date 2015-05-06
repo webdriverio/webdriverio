@@ -8,13 +8,12 @@ describe.skip('endAll', function() {
      */
     before(h.setup());
 
-    it('should delete all sessions', function(done) {
+    it('should delete all sessions', function() {
 
-        this.client
+        return this.client
 
             // check if client has running sessions
-            .sessions(function(err,res) {
-                assert.ifError(err);
+            .sessions().then(function(res) {
                 assert.ok(res.value && res.value.length > 0);
             })
 
@@ -22,11 +21,9 @@ describe.skip('endAll', function() {
             .endAll()
 
             // check if sessions were closed
-            .sessions(function(err,res) {
-                assert.ifError(err);
+            .sessions().then(function(res) {
                 assert.ok(res.value.length === 0);
-            })
-            .call(done);
+            });
 
     });
 

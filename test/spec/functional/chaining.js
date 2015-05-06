@@ -7,42 +7,35 @@ describe('Chaining', function() {
         var client = this.client;
 
         this.client
-            .click('.btn1', function(err) {
-                assert.ifError(err);
+            .click('.btn1').then(function() {
                 result += '1';
             })
-            .isVisible('.btn1', function(err) {
-                assert.ifError(err);
+            .isVisible('.btn1').then(function() {
                 result += '2';
             })
             .call(function() {
                 result += '3';
 
-                client.click('.btn1',function(err) {
+                return client.click('.btn1').then(function() {
 
-                    assert.ifError(err);
                     result += '4';
 
-                    client.isVisible('.btn1', function(err) {
-                        assert.ifError(err);
+                    return client.isVisible('.btn1').then(function() {
                         result += '5';
-                    })
-                    .call(function() {
+                    }).call(function() {
                         result += '6';
 
-                        client.call(function() {
+                        return client.call(function() {
 
                             result += '7';
 
-                            client.click('.btn1', function(err) {
-                                assert.ifError(err);
+                            return client.click('.btn1').then(function() {
                                 result += '8';
 
-                                client.call(function() {
+                                return client.call(function() {
                                     result += '9';
 
-                                    client.isVisible('.btn1', function(err) {
-                                        assert.ifError(err);
+                                    return client.isVisible('.btn1').then(function() {
                                         result += '0';
 
                                         // this can't work
@@ -56,27 +49,23 @@ describe('Chaining', function() {
                                         // },1000);
                                     });
                                 });
-                            })
-                            .click('.btn1', function(err) {
-                                assert.ifError(err);
+                            }).click('.btn1').then(function() {
                                 result += 'b';
                             });
                         });
                     })
-                    .click('.btn1', function() {
+                    .click('.btn1').then(function() {
                         result += 'c';
                     })
                     .call(function() {
                         result += 'd';
 
-                        client.isVisible('.btn1', function(err) {
-                            assert.ifError(err);
+                        return client.isVisible('.btn1').then(function() {
                             result += 'e';
                         });
                     });
                 })
-                .click('.btn1',function(err) {
-                    assert.ifError(err);
+                .click('.btn1').then(function() {
                     result += 'f';
                 })
                 .call(function() {
