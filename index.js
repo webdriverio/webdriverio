@@ -51,5 +51,7 @@ var remote = module.exports.remote = function remote(options) {
         });
     });
 
-    return wdio();
+    var prototype = wdio();
+    prototype.defer.resolve();
+    return prototype;
 };

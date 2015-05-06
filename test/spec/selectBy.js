@@ -1,5 +1,5 @@
 /*jshint expr: true*/
-describe.skip('selectBy', function() {
+describe('selectBy', function() {
 
     before(h.setup());
 
@@ -57,7 +57,7 @@ describe.skip('selectBy', function() {
 
         it('should find element with spaces before and after the value', function() {
             return this.client.selectByValue('#selectTest',  'someValue3').getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('   someValue3  ');
+                value.should.be.exactly('someValue3');
             });
         });
 
