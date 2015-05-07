@@ -1,5 +1,3 @@
-var Q = require('q');
-
 describe('chai-as-promised', function() {
 
     /**
