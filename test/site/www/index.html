@@ -16,7 +16,7 @@
     </header>
 
     <section class="page">
-        <h1>Test CSS Attributes</h1>
+        <h1 class="findme">Test CSS Attributes</h1>
 
         <a href="./two.html" id="secondPageLink">two</a>
         <a href="https://github.com" id="githubRepo" class="clearfix" data-foundBy="link text">GitHub Repo</a>
@@ -31,9 +31,12 @@
         <div class="box purple" id="purplebox" data-foundBy="id"></div>
 
         <div class="nested" style="text-transform: uppercase">
-            <h2>nested elements</h2>
+            <h2 class="findme">nested elements</h2>
             <div><span data-foundBy="xpath">nested span</span></div>
-            <aside><h3>more nested</h3></aside>
+            <aside class="moreNesting">
+                <h3 class="findme">more nested</h3>
+            </aside>
+            <a href="#" class="firstClassNested">Hello</a>
         </div>
 
         <hr>
