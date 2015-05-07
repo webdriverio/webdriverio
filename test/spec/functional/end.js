@@ -8,14 +8,14 @@ describe('end', function() {
     it('should delete a session', function() {
 
         var that = this,
-            sessionID;
+            sessions;
 
         return this.client
 
             // check if client has a running session
-            .session().then(function(res) {
+            .sessions().then(function(res) {
                 assert.ok(res.value);
-                sessionID = that.client.requestHandler.sessionID;
+                sessions = res.value.length;
             })
 
             // end session
@@ -23,8 +23,8 @@ describe('end', function() {
 
             // check if session was closed
             .then(function() {
-                return this.sessions('get', sessionID).then(function(openSessions) {
-                    openSessions.value.should.have.length(0);
+                return this.sessions().then(function(openSessions) {
+                    openSessions.value.should.have.length(sessions - 1);
                 });
             });
 
