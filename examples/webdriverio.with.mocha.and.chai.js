@@ -1,6 +1,5 @@
 var chai        = require('chai'),
     assert      = chai.assert,
-    expect      = chai.expect,
     webdriverio = require('../index');
 
 describe('my webdriverio tests', function(){

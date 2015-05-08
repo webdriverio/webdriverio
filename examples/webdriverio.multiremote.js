@@ -5,8 +5,8 @@ var WebdriverIO = require('../'),
                 browserName: 'chrome',
                 chromeOptions: {
                     args: [
-                        "use-fake-device-for-media-stream",
-                        "use-fake-ui-for-media-stream",
+                        'use-fake-device-for-media-stream',
+                        'use-fake-ui-for-media-stream',
                     ]
                 }
             }
@@ -16,8 +16,8 @@ var WebdriverIO = require('../'),
                 browserName: 'chrome',
                 chromeOptions: {
                     args: [
-                        "use-fake-device-for-media-stream",
-                        "use-fake-ui-for-media-stream",
+                        'use-fake-device-for-media-stream',
+                        'use-fake-ui-for-media-stream',
                     ]
                 }
             }

@@ -1,4 +1,3 @@
-/* global document */
 describe('selectorExecute executed by single multibrowser instance', function() {
     before(h.setupMultibrowser());
 
@@ -6,10 +5,10 @@ describe('selectorExecute executed by single multibrowser instance', function() 
     it('should be able to resolve a css selector', function(done) {
         this.browserB
             .selectorExecute('[class="sometext"]', function(arr) {
-                return arr[0].innerHTML
+                return arr[0].innerHTML;
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("some text", res);
+                assert.equal('some text', res);
                 done(err);
             });
     });
@@ -17,10 +16,10 @@ describe('selectorExecute executed by single multibrowser instance', function() 
     it('should be able to resolve an xpath selector', function(done) {
         this.browserB
             .selectorExecute('//*[@class="sometext"]', function(arr) {
-                return arr[0].innerHTML
+                return arr[0].innerHTML;
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("some text", res);
+                assert.equal('some text', res);
                 done(err);
             });
     });
@@ -28,10 +27,10 @@ describe('selectorExecute executed by single multibrowser instance', function() 
     it('should be able to resolve a name selector', function(done) {
         this.browserB
             .selectorExecute('[name="searchinput"]', function(arr) {
-                return arr[0].getAttribute('name')
+                return arr[0].getAttribute('name');
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("searchinput", res);
+                assert.equal('searchinput', res);
                 done(err);
             });
     });
@@ -42,7 +41,7 @@ describe('selectorExecute executed by single multibrowser instance', function() 
                 return arr[0].getAttribute('id');
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("selectbox", res);
+                assert.equal('selectbox', res);
                 done(err);
             });
     });
@@ -52,14 +51,14 @@ describe('selectorExecute executed by single multibrowser instance', function() 
             .selectorExecute('<select />', function(arr) {
                 var found = 'nothing found';
                 arr.forEach(function(el) {
-                    if (el.getAttribute('id') === "selectbox") {
-                        found = "selectbox found";
+                    if (el.getAttribute('id') === 'selectbox') {
+                        found = 'selectbox found';
                     }
                 });
                 return found;
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("selectbox found", res);
+                assert.equal('selectbox found', res);
                 done(err);
             });
     });
@@ -70,7 +69,7 @@ describe('selectorExecute executed by single multibrowser instance', function() 
                 return arr.length > 0 && arr[0].getAttribute('id');
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo", res);
+                assert.equal('githubRepo', res);
                 done(err);
             });
     });
@@ -81,7 +80,7 @@ describe('selectorExecute executed by single multibrowser instance', function() 
                 return arr.length > 0 && arr[0].getAttribute('id');
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo", res);
+                assert.equal('githubRepo', res);
                 done(err);
             });
     });
@@ -90,9 +89,9 @@ describe('selectorExecute executed by single multibrowser instance', function() 
         this.browserB
             .selectorExecute('*=GitHub ', function(arr, arg) {
                 return arr.length > 0 && arr[0].getAttribute('id') + arg;
-            }, " with an argument", function(err, res) {
+            }, ' with an argument', function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo with an argument", res);
+                assert.equal('githubRepo with an argument', res);
                 done(err);
             });
     });
@@ -102,10 +101,10 @@ describe('selectorExecute executed by single multibrowser instance', function() 
             .selectorExecute('*=GitHub ', function(arr, arg) {
                 return arg(arr.length > 0 && arr[0].getAttribute('id'));
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo with an argument", res);
+                assert.equal('githubRepo with an argument', res);
                 done(err);
             });
     });
@@ -115,14 +114,14 @@ describe('selectorExecute executed by single multibrowser instance', function() 
             .selectorExecute(['*=GitHub ', '//*[@class="sometext"]'], function(links, divs, arg) {
                 var returnStr = 'Returning ';
                 links.length > 0 && (returnStr += links[0].getAttribute('id'));
-                returnStr += " and ";
+                returnStr += ' and ';
                 divs.length > 0 && (returnStr += divs[0].innerHTML);
                 return arg(returnStr);
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("Returning githubRepo and some text with an argument", res);
+                assert.equal('Returning githubRepo and some text with an argument', res);
                 done(err);
             });
     });

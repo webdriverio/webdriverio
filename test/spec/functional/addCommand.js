@@ -3,7 +3,7 @@ describe('addCommand', function() {
     before(h.setup());
 
     before(function() {
-        this.client.addCommand('getUrlAndTitle', function(callback) {
+        this.client.addCommand('getUrlAndTitle', function() {
 
             var result = {};
 

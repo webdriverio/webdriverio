@@ -1,6 +1,3 @@
-/* global document */
-var async = require('async');
-
 /**
  * executeAsync is currently pretty unstable with phantomJS 1.9.x therefor we skip
  * this test until 2.0 is released

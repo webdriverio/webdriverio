@@ -6,4 +6,4 @@ config['My tests'] = {
     tests: [
         'examples/webdriverjs.with.buster.js'
     ]
-}
+};

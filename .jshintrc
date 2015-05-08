@@ -6,6 +6,7 @@
   "node": true,
   "quotmark": "single",
   "trailing": true,
+  "expr": true,
   "globals": {
     "$": true,
     "jQuery": true,
@@ -20,6 +21,9 @@
     "h": true,
     "conf": true,
     "document": true,
-    "window": true
+    "window": true,
+    "expect": true,
+    "afterEach": true,
+    "jasmine": true
   }
 }

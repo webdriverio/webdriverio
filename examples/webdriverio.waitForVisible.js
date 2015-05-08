@@ -1,5 +1,4 @@
-var webdriverio = require('../index'),
-    Q = require('q');
+var webdriverio = require('../index');
 
 var options = {
     desiredCapabilities: {

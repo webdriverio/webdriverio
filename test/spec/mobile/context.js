@@ -6,7 +6,7 @@ describe('context', function() {
         this.client
             .context(function(err,res) {
                 assert.ifError(err);
-                res.value.should.be.exactly('WEBVIEW_1')
+                res.value.should.be.exactly('WEBVIEW_1');
             })
             .call(done);
     });

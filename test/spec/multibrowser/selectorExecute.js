@@ -1,4 +1,3 @@
-/* global document */
 describe('selectorExecute', function() {
     before(h.setupMultibrowser());
 
@@ -7,15 +6,15 @@ describe('selectorExecute', function() {
             .selectorExecute(['*=GitHub ', '//*[@class="sometext"]'], function(links, divs, arg) {
                 var returnStr = 'Returning ';
                 links.length > 0 && (returnStr += links[0].getAttribute('id'));
-                returnStr += " and ";
+                returnStr += ' and ';
                 divs.length > 0 && (returnStr += divs[0].innerHTML);
                 return arg(returnStr);
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("Returning githubRepo and some text with an argument");
-                res.browserB.should.be.equal("Returning githubRepo and some text with an argument");
+                res.browserA.should.be.equal('Returning githubRepo and some text with an argument');
+                res.browserB.should.be.equal('Returning githubRepo and some text with an argument');
             })
             .pause(500)
             .call(done);
@@ -25,11 +24,11 @@ describe('selectorExecute', function() {
     it('should be able to resolve a css selector', function(done) {
         this.matrix
             .selectorExecute('[class="sometext"]', function(arr) {
-                return arr[0].innerHTML
+                return arr[0].innerHTML;
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("some text");
-                res.browserB.should.be.equal("some text");
+                res.browserA.should.be.equal('some text');
+                res.browserB.should.be.equal('some text');
             })
             .pause(500)
             .call(done);
@@ -38,11 +37,11 @@ describe('selectorExecute', function() {
     it('should be able to resolve an xpath selector', function(done) {
         this.matrix
             .selectorExecute('//*[@class="sometext"]', function(arr) {
-                return arr[0].innerHTML
+                return arr[0].innerHTML;
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("some text");
-                res.browserB.should.be.equal("some text");
+                res.browserA.should.be.equal('some text');
+                res.browserB.should.be.equal('some text');
             })
             .pause(500)
             .call(done);
@@ -51,11 +50,11 @@ describe('selectorExecute', function() {
     it('should be able to resolve a name selector', function(done) {
         this.matrix
             .selectorExecute('[name="searchinput"]', function(arr) {
-                return arr[0].getAttribute('name')
+                return arr[0].getAttribute('name');
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("searchinput");
-                res.browserB.should.be.equal("searchinput");
+                res.browserA.should.be.equal('searchinput');
+                res.browserB.should.be.equal('searchinput');
             })
             .pause(500)
             .call(done);
@@ -67,8 +66,8 @@ describe('selectorExecute', function() {
                 return arr[0].getAttribute('id');
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("selectbox");
-                res.browserB.should.be.equal("selectbox");
+                res.browserA.should.be.equal('selectbox');
+                res.browserB.should.be.equal('selectbox');
             })
             .pause(500)
             .call(done);
@@ -79,15 +78,15 @@ describe('selectorExecute', function() {
             .selectorExecute('<select />', function(arr) {
                 var found = 'nothing found';
                 arr.forEach(function(el) {
-                    if (el.getAttribute('id') === "selectbox") {
-                        found = "selectbox found";
+                    if (el.getAttribute('id') === 'selectbox') {
+                        found = 'selectbox found';
                     }
                 });
                 return found;
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("selectbox found");
-                res.browserB.should.be.equal("selectbox found");
+                res.browserA.should.be.equal('selectbox found');
+                res.browserB.should.be.equal('selectbox found');
             })
             .pause(500)
             .call(done);
@@ -99,8 +98,8 @@ describe('selectorExecute', function() {
                 return arr.length > 0 && arr[0].getAttribute('id');
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo");
-                res.browserB.should.be.equal("githubRepo");
+                res.browserA.should.be.equal('githubRepo');
+                res.browserB.should.be.equal('githubRepo');
             })
             .pause(500)
             .call(done);
@@ -112,8 +111,8 @@ describe('selectorExecute', function() {
                 return arr.length > 0 && arr[0].getAttribute('id');
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo");
-                res.browserB.should.be.equal("githubRepo");
+                res.browserA.should.be.equal('githubRepo');
+                res.browserB.should.be.equal('githubRepo');
             })
             .pause(500)
             .call(done);
@@ -123,10 +122,10 @@ describe('selectorExecute', function() {
         this.matrix
             .selectorExecute('*=GitHub ', function(arr, arg) {
                 return arr.length > 0 && arr[0].getAttribute('id') + arg;
-            }, " with an argument", function(err, res) {
+            }, ' with an argument', function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo with an argument");
-                res.browserB.should.be.equal("githubRepo with an argument");
+                res.browserA.should.be.equal('githubRepo with an argument');
+                res.browserB.should.be.equal('githubRepo with an argument');
             })
             .pause(500)
             .call(done);
@@ -137,11 +136,11 @@ describe('selectorExecute', function() {
             .selectorExecute('*=GitHub ', function(arr, arg) {
                 return arg(arr.length > 0 && arr[0].getAttribute('id'));
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo with an argument");
-                res.browserB.should.be.equal("githubRepo with an argument");
+                res.browserA.should.be.equal('githubRepo with an argument');
+                res.browserB.should.be.equal('githubRepo with an argument');
             })
             .pause(500)
             .call(done);
