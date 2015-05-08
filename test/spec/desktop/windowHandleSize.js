@@ -1,28 +1,20 @@
 describe('windowHandleSize', function() {
     before(h.setup());
 
-    it('should change window size of current window if no handle is given', function(done) {
-        this.client
-            .windowHandleSize({
-                width: 500,
-                height: 500
-            })
-            .windowHandleSize(function(err, res) {
-                assert.ifError(err);
-                // on some systems, we might not have changed the size, like on phantomjs
-                // still, no error means it worked
-                res.value.width.should.be.exactly(500);
-                res.value.height.should.be.exactly(500);
-            })
-            .call(done);
+    it('should change window size of current window if no handle is given', function() {
+        return this.client.windowHandleSize({
+            width: 500,
+            height: 500
+        }).windowHandleSize().then(function(res) {
+            // on some systems, we might not have changed the size, like on phantomjs
+            // still, no error means it worked
+            res.value.width.should.be.exactly(500);
+            res.value.height.should.be.exactly(500);
+        });
     });
 
-    it('should change window size of a different window using a window handle', function(done) {
-
-        var that = this;
-
-        this.client
-
+    it('should change window size of a different window using a window handle', function() {
+        return this.client
             /**
              * open new window
              */
@@ -31,10 +23,8 @@ describe('windowHandleSize', function() {
             /**
              * get current window handles
              */
-            .getTabIds(function(err, tabs) {
-                assert.ifError(err);
-
-                that.client
+            .getTabIds().then(function(tabs) {
+                return this
                     /**
                      * switch to other tab
                      */
@@ -48,8 +38,7 @@ describe('windowHandleSize', function() {
                     /**
                      * check if other tab has now another size
                      */
-                    .windowHandleSize(tabs[1], function(err, res) {
-                        assert.ifError(err);
+                    .windowHandleSize(tabs[1]).then(function(res) {
                         res.value.width.should.be.exactly(600);
                         res.value.height.should.be.exactly(500);
                     })
@@ -59,10 +48,6 @@ describe('windowHandleSize', function() {
                      */
                     .close(tabs[1]);
 
-            })
-
-            .call(done);
-
+            });
     });
-
 });

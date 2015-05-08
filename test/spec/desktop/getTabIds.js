@@ -6,34 +6,22 @@ describe('getTabIds', function() {
 
     before(h.setup());
 
-    it('should return a single tab id', function(done) {
-
-        this.client
-            .getTabIds(function(err, tabs) {
-                assert.ifError(err);
-                tabs.should.be.an.instanceOf(Array);
-                tabs.should.have.length(1);
-            })
-            .call(done);
-
+    it('should return a single tab id', function() {
+        return this.client.getTabIds().then(function(tabs) {
+            tabs.should.be.an.instanceOf(Array);
+            tabs.should.have.length(1);
+        });
     });
 
-    it('should return two tab ids after openening a new window', function(done) {
+    it('should return two tab ids after openening a new window', function() {
         var tabsIds;
-
-        this.client
-            .newWindow(conf.testPage.subPage)
-            .getTabIds(function(err, tabs) {
-                tabsIds = tabs;
-                assert.ifError(err);
-                tabs.should.be.an.instanceOf(Array);
-                tabs.should.have.length(2);
-            })
-            .call(function() {
-                this.close(tabsIds[0]);
-            })
-            .call(done);
-
+        return this.client.newWindow(conf.testPage.subPage).getTabIds().then(function(tabs) {
+            tabsIds = tabs;
+            tabs.should.be.an.instanceOf(Array);
+            tabs.should.have.length(2);
+        }).call(function() {
+            return this.close(tabsIds[0]);
+        });
     });
 
 });
