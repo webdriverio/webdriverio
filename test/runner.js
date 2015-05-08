@@ -39,16 +39,13 @@ glob(process.env._SPEC || specFiles, function(er, files) {
         var sessionID = (client.requestHandler || {}).sessionID,
             endCommand = conf.runsWithSauce ? 'end' : 'endAll';
 
-        client[endCommand](function(err) {
-            assert.ifError(err);
-
+        client[endCommand]().then(function() {
             if (process.env.TRAVIS_BUILD_NUMBER) {
                 var sauceAccount = new SauceLabs({
                     username: process.env.SAUCE_USERNAME,
                     password: process.env.SAUCE_ACCESS_KEY
                 });
 
-                console.log('update job', sessionID);
                 sauceAccount.updateJob(sessionID, {
                     passed: failures === 0,
                     public: true
