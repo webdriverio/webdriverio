@@ -2,60 +2,39 @@ describe('windowHandlePosition', function() {
 
     before(h.setup());
 
-    it('should return window position', function(done) {
+    var check = function(res) {
+        res.value.x.should.be.above(process.env.TRAVIS ? -9 : 1);
+        res.value.y.should.be.above(process.env.TRAVIS ? -9 : 1);
+    };
 
-        var self = this,
-            check = function(err, res) {
-                assert.ifError(err);
-
-                res.value.x.should.be.above(process.env.TRAVIS ? -9 : 1);
-                res.value.y.should.be.above(process.env.TRAVIS ? -9 : 1);
-            };
-
-        this.client
-            // use current tab id as a valid one
-            .getCurrentTabId(function(err, tabid) {
-                assert.ifError(err);
-
-                // specified window
-                self.client.windowHandlePosition(tabid, check);
-
-                // current window
-                self.client.windowHandlePosition(check);
-            })
-            .call(done);
-
+    it('should return window position of specified window', function() {
+        // use current tab id as a valid one
+        return this.client.getCurrentTabId().then(function(tabid) {
+            return this.windowHandlePosition(tabid).then(check);
+        });
     });
 
-    it('should change window position', function(done) {
+    it('should return window position of current window', function() {
+        return this.client.windowHandlePosition().then(check);
+    });
 
-        var self = this;
+    it('should change window position of specified window', function() {
+        // use current tab id as a valid one
+        return this.client.getCurrentTabId().then(function(tabid) {
+            // specified window
+            return this.windowHandlePosition(tabid, {x: 300, y: 150}).windowHandlePosition(tabid).then(function(res) {
+                res.value.x.should.be.exactly(300);
+                res.value.y.should.be.exactly(150);
+            });
+        });
+    });
 
-        this.client
-            // use current tab id as a valid one
-            .getCurrentTabId(function(err, tabid) {
-                assert.ifError(err);
-
-                // specified window
-                self.client.windowHandlePosition(tabid, {x: 300, y: 150});
-                self.client.windowHandlePosition(tabid, function(err, res) {
-                    assert.ifError(err);
-
-                    res.value.x.should.be.exactly(300);
-                    res.value.y.should.be.exactly(150);
-                });
-
-                // current window
-                self.client.windowHandlePosition({x: 400, y: 250});
-                self.client.windowHandlePosition(function(err, res) {
-                    assert.ifError(err);
-
-                    res.value.x.should.be.exactly(400);
-                    res.value.y.should.be.exactly(250);
-                });
-            })
-            .call(done);
-
+    it('should change window position of current window', function() {
+        // use current tab id as a valid one
+        return this.client.windowHandlePosition({x: 400, y: 250}).windowHandlePosition().then(function(res) {
+            res.value.x.should.be.exactly(400);
+            res.value.y.should.be.exactly(250);
+        });
     });
 
 });
