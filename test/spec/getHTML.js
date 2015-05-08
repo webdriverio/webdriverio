@@ -3,8 +3,8 @@ describe('getHTML', function() {
     before(h.setup());
 
     it('should return html of given selector including the selector element', function() {
-        return this.client.getHTML('.nested aside').then(function (html) {
-            html.should.be.exactly('<aside><h3>more nested</h3></aside>');
+        return this.client.getHTML('.moreNesting section').then(function (html) {
+            html.should.be.exactly('<section><span>bar</span></section>');
         });
     });
 
@@ -15,8 +15,8 @@ describe('getHTML', function() {
     });
 
     it('should return html of given selector excluding the selector element', function() {
-        return this.client.getHTML('.nested aside', false).then(function (html) {
-            html.should.be.exactly('<h3>more nested</h3>');
+        return this.client.getHTML('.moreNesting section', false).then(function (html) {
+            html.should.be.exactly('<span>bar</span>');
         });
     });
 

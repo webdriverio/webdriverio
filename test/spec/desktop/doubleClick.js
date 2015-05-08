@@ -7,19 +7,16 @@ describe('doubleClick', function() {
 
     before(h.setup());
 
-    it('should make an element visible after doubleClick on .btn1', function(done) {
+    it('should make an element visible after doubleClick on .btn1', function() {
 
-        this.client
-            .isVisible('.btn1', function(err, result) {
-                assert.ifError(err);
-                assert.ok(result);
+        return this.client
+            .isVisible('.btn1').then(function(isVisible) {
+                isVisible.should.be.true;
             })
             .doubleClick('.btn1')
-            .isVisible('.btn1_dblclicked', function(err, result) {
-                assert.ifError(err);
-                assert(result, '.btn1 was doubleClicked');
-            })
-            .call(done);
+            .isVisible('.btn1_dblclicked').then(function(isVisible) {
+                isVisible.should.be.true;
+            });
 
     });
 
