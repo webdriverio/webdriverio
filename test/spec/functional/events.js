@@ -58,7 +58,7 @@ describe('event handling', function() {
                 .url(conf.testPage.start)
                 // click on non existing element to cause an error
                 .click('#notExistentant').catch(function(err) {
-                    assert(err.message.match(/Problem: Unable to find element with id 'notExistentant'/));
+                    err.message.should.match(/Problem: Unable to find element with id 'notExistentant'/);
                 })
                 .call(function() {
                     assert.ok(isErrorHandlerEmitted, 'error handler wasn\'t called');
@@ -66,7 +66,8 @@ describe('event handling', function() {
         });
 
         it('should emit an end event after calling the end command', function() {
-            return client.end().call(function() {
+            client.end();
+            client.call(function() {
                 assert.ok(isEndHandlerEmitted, 'end handler wasn\'t called');
             });
         });
@@ -77,13 +78,13 @@ describe('event handling', function() {
     });
 
     describe('costume events', function() {
-        var iShouldBeGetTriggered = false,
+        var iWasTriggered = false,
             eventWasTriggeredAtLeastOnce = false;
 
         before(h.setup());
 
         beforeEach(function() {
-            iShouldBeGetTriggered = false;
+            iWasTriggered = false;
             eventWasTriggeredAtLeastOnce = false;
             this.client.removeAllListeners('testme');
         });
@@ -92,15 +93,15 @@ describe('event handling', function() {
             return this.client
                 .emit('testme')
                 .on('testme', function() {
-                    assert.ok(iShouldBeGetTriggered, 'event was triggered unexpected');
+                    assert.ok(iWasTriggered, 'event was triggered unexpected');
                     eventWasTriggeredAtLeastOnce = true;
                 })
                 .call(function() {
-                    iShouldBeGetTriggered = true;
+                    iWasTriggered = true;
                 })
                 .emit('testme')
                 .call(function() {
-                    eventWasTriggeredAtLeastOnce.should.be.ok;
+                    eventWasTriggeredAtLeastOnce.should.be.true;
                 });
 
         });
@@ -108,12 +109,12 @@ describe('event handling', function() {
         it('should register and fire events with once/emit', function() {
             return this.client
                 .once('testme', function() {
-                    assert.ok(iShouldBeGetTriggered, 'event was triggered unexpected');
+                    assert.ok(iWasTriggered, 'event was triggered unexpected');
                     assert.ok(!eventWasTriggeredAtLeastOnce, 'once event got triggered twice');
                     eventWasTriggeredAtLeastOnce = true;
                 })
                 .call(function() {
-                    iShouldBeGetTriggered = true;
+                    iWasTriggered = true;
                 })
                 .emit('testme')
                 .emit('testme');
