@@ -142,13 +142,13 @@ describe('waitFor',function() {
 
     });
 
-    describe.skip('timeout', function() {
+    describe('timeout', function() {
 
         before(h.setup());
 
         it('should use specified timeout', function() {
             var startTime = Date.now();
-            return this.client.waitForExist('#notExisting').then(function() {
+            return this.client.waitForExist('#notExisting').catch(function() {
                 var delta = Date.now() - startTime;
                 delta.should.be.above(1000);
             });
@@ -156,7 +156,7 @@ describe('waitFor',function() {
 
         it('should use parameter timeout and should overwrite default value', function() {
             var startTime = Date.now();
-            return this.client.waitForExist('#notExisting', 2000).finally(function() {
+            return this.client.waitForExist('#notExisting', 2000).catch(function() {
                 var delta = Date.now() - startTime;
                 delta.should.be.above(2000);
             });
