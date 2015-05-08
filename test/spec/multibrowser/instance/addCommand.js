@@ -1,5 +1,3 @@
-var async = require('async');
-
 describe('addCommand executed by single multibrowser instance', function() {
 
     before(h.setupMultibrowser({

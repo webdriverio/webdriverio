@@ -1,6 +1,4 @@
 /* global document */
-var async = require('async');
-
 describe('execute executed by single multibrowser instance', function() {
     before(h.setupMultibrowser());
 

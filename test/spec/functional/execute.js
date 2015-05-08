@@ -1,4 +1,3 @@
-/* global document */
 describe('execute', function() {
     before(h.setup());
 

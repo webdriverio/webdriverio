@@ -1,5 +1,5 @@
 var webdriverio = require('../index'),
-    assert      = require('assert');
+    client;
 
 module.exports = {
 

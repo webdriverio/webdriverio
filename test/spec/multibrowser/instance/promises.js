@@ -39,7 +39,7 @@ describe('PromiseHandler executed by single multibrowser instance', function() {
                  */
                 (result === undefined).should.be.true;
             })
-            .call(done)
+            .call(done);
     });
 
     it('should be working on custom commands', function(done) {

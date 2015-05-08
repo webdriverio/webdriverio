@@ -4,8 +4,7 @@ var WebdriverIO = require('../'),
         browserB: { desiredCapabilities: { browserName: 'firefox' } }
     }),
     browserA = matrix.select('browserA'),
-    browserB = matrix.select('browserB'),
-    name;
+    browserB = matrix.select('browserB');
 
 /**
  * open chat application

@@ -54,7 +54,7 @@ describe('switchTab', function() {
 
                     // switch tab to another tab
                     // IMPORTANT this always needs to be done in a callback
-                    self.client.switchTab(openedTabs[2])
+                    self.client.switchTab(openedTabs[2]);
                 })
                 .call(done);
 

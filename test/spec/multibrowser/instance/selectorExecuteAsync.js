@@ -1,4 +1,3 @@
-/* global document */
 describe.skip('selectorExecuteAsync executed by single multibrowser instance', function() {
     before(h.setupMultibrowser());
 
@@ -12,7 +11,7 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("some text", res);
+                assert.equal('some text', res);
                 done(err);
             });
     });
@@ -26,7 +25,7 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("some text", res);
+                assert.equal('some text', res);
                 done(err);
             });
     });
@@ -40,7 +39,7 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("searchinput", res);
+                assert.equal('searchinput', res);
                 done(err);
             });
     });
@@ -54,7 +53,7 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("selectbox", res);
+                assert.equal('selectbox', res);
                 done(err);
             });
     });
@@ -66,15 +65,15 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 setTimeout(function() {
                     var found = 'nothing found';
                     arr.forEach(function(el) {
-                        if (el.getAttribute('id') === "selectbox") {
-                            found = "selectbox found";
+                        if (el.getAttribute('id') === 'selectbox') {
+                            found = 'selectbox found';
                         }
                     });
                     cb(found);
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("selectbox found", res);
+                assert.equal('selectbox found', res);
                 done(err);
             });
     });
@@ -88,7 +87,7 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo", res);
+                assert.equal('githubRepo', res);
                 done(err);
             });
     });
@@ -102,7 +101,7 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo", res);
+                assert.equal('githubRepo', res);
                 done(err);
             });
     });
@@ -114,9 +113,9 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 setTimeout(function() {
                     cb(arr.length > 0 && arr[0].getAttribute('id') + arg);
                 }, 100);
-            }, " with an argument", function(err, res) {
+            }, ' with an argument', function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo with an argument", res);
+                assert.equal('githubRepo with an argument', res);
                 done(err);
             });
     });
@@ -129,10 +128,10 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                     cb(arg(arr.length > 0 && arr[0].getAttribute('id')));
                 }, 100);
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("githubRepo with an argument", res);
+                assert.equal('githubRepo with an argument', res);
                 done(err);
             });
     });
@@ -144,15 +143,15 @@ describe.skip('selectorExecuteAsync executed by single multibrowser instance', f
                 setTimeout(function() {
                     var returnStr = 'Returning ';
                     links.length > 0 && (returnStr += links[0].getAttribute('id'));
-                    returnStr += " and ";
+                    returnStr += ' and ';
                     divs.length > 0 && (returnStr += divs[0].innerHTML);
                     cb(arg(returnStr));
                 }, 100);
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                assert.equal("Returning githubRepo and Test CSS Attributes with an argument", res);
+                assert.equal('Returning githubRepo and Test CSS Attributes with an argument', res);
                 done(err);
             });
     });

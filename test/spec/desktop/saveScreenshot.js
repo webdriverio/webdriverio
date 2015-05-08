@@ -1,6 +1,7 @@
 var fs = require('fs'),
     path = require('path');
 
+/*jshint -W030 */
 describe('saveScreenshot', function() {
 
     before(h.setup());
@@ -15,7 +16,7 @@ describe('saveScreenshot', function() {
                 fs.exists(screenshotPath, function(fileExists) {
                     fileExists.should.be.true;
                     done();
-                })
+                });
             });
 
     });

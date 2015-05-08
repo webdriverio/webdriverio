@@ -13,7 +13,7 @@ webdriverio
     .timeoutsAsyncScript(5000)
     .selectorExecuteAsync('//div', function(inputs, message, callback){
 
-        setTimeout(callback.bind(null, inputs.length + ' ' + message), 2500)
+        setTimeout(callback.bind(null, inputs.length + ' ' + message), 2500);
 
     }, 'divs on the page')
     .then(function(res){

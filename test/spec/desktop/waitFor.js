@@ -1,5 +1,4 @@
 /*jshint expr: true*/
-/*global beforeEach*/
 describe('waitFor',function() {
 
     var duration = 3500;
@@ -173,6 +172,6 @@ describe('waitFor',function() {
             .call(done);
         });
 
-    })
+    });
 
 });

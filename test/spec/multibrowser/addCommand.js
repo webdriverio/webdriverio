@@ -1,11 +1,8 @@
-var async = require('async');
-
 describe('addCommand', function() {
 
     before(h.setupMultibrowser());
 
     before(function(done) {
-        var self = this;
 
         this.matrix.addCommand('getUrlAndTitle', function(callback) {
 

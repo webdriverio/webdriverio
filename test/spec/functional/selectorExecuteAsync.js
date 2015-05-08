@@ -1,4 +1,3 @@
-/* global document */
 describe('selectorExecuteAsync', function() {
     before(h.setup());
 
@@ -10,7 +9,7 @@ describe('selectorExecuteAsync', function() {
                 return cb(arr[0].innerHTML);
             }, 100);
         }).then(function(res) {
-            assert.equal("some text", res);
+            assert.equal('some text', res);
         });
     });
 
@@ -21,7 +20,7 @@ describe('selectorExecuteAsync', function() {
                 return cb(arr[0].innerHTML);
             }, 100);
         }).then(function(res) {
-            assert.equal("some text", res);
+            assert.equal('some text', res);
         });
     });
 
@@ -32,7 +31,7 @@ describe('selectorExecuteAsync', function() {
                 cb(arr[0].getAttribute('name'));
             }, 100);
         }).then(function(res) {
-            assert.equal("searchinput", res);
+            assert.equal('searchinput', res);
         });
     });
 
@@ -43,7 +42,7 @@ describe('selectorExecuteAsync', function() {
                 cb(arr[0].getAttribute('id'));
             }, 100);
         }).then(function(res) {
-            assert.equal("selectbox", res);
+            assert.equal('selectbox', res);
         });
     });
 
@@ -53,14 +52,14 @@ describe('selectorExecuteAsync', function() {
             setTimeout(function() {
                 var found = 'nothing found';
                 arr.forEach(function(el) {
-                    if (el.getAttribute('id') === "selectbox") {
-                        found = "selectbox found";
+                    if (el.getAttribute('id') === 'selectbox') {
+                        found = 'selectbox found';
                     }
                 });
                 cb(found);
             }, 100);
         }).then(function(res) {
-            assert.equal("selectbox found", res);
+            assert.equal('selectbox found', res);
         });
     });
 
@@ -71,7 +70,7 @@ describe('selectorExecuteAsync', function() {
                 cb(arr.length > 0 && arr[0].getAttribute('id'));
             }, 100);
         }).then(function(res) {
-            assert.equal("githubRepo", res);
+            assert.equal('githubRepo', res);
         });
     });
 
@@ -82,7 +81,7 @@ describe('selectorExecuteAsync', function() {
                 cb(arr.length > 0 && arr[0].getAttribute('id'));
             }, 100);
         }).then(function(res) {
-            assert.equal("githubRepo", res);
+            assert.equal('githubRepo', res);
         });
     });
 
@@ -92,8 +91,8 @@ describe('selectorExecuteAsync', function() {
             setTimeout(function() {
                 cb(arr.length > 0 && arr[0].getAttribute('id') + arg);
             }, 100);
-        }, " with an argument", function(err, res) {
-            assert.equal("githubRepo with an argument", res);
+        }, ' with an argument', function(err, res) {
+            assert.equal('githubRepo with an argument', res);
         });
     });
 
@@ -104,9 +103,9 @@ describe('selectorExecuteAsync', function() {
                 cb(arg(arr.length > 0 && arr[0].getAttribute('id')));
             }, 100);
         }, function(str) {
-            return str + " with an argument";
+            return str + ' with an argument';
         }).then(function(res) {
-            assert.equal("githubRepo with an argument", res);
+            assert.equal('githubRepo with an argument', res);
         });
     });
 
@@ -116,14 +115,14 @@ describe('selectorExecuteAsync', function() {
             setTimeout(function() {
                 var returnStr = 'Returning ';
                 links.length > 0 && (returnStr += links[0].getAttribute('id'));
-                returnStr += " and ";
+                returnStr += ' and ';
                 divs.length > 0 && (returnStr += divs[0].innerHTML);
                 cb(arg(returnStr));
             }, 100);
         }, function(str) {
-            return str + " with an argument";
+            return str + ' with an argument';
         }).then(function(res) {
-            assert.equal("Returning githubRepo and Test CSS Attributes with an argument", res);
+            assert.equal('Returning githubRepo and Test CSS Attributes with an argument', res);
         });
     });
 

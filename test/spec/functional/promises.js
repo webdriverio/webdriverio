@@ -151,12 +151,12 @@ describe('PromiseHandler', function() {
                 return this.then(function() {
                     result += '3';
                 });
-            })
+            });
         }).then(function() {
             result += '4';
         }).call(function() {
             result.should.be.equal('1234');
-        })
+        });
     });
 
     it('should resolve array values', function() {
