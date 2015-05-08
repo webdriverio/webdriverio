@@ -1,11 +1,12 @@
 var WebdriverIO = require('../index.js'),
     Mocha = require('mocha'),
-    should = require('should'),
+    should = require('should'), // jshint ignore:line
     SauceLabs = require('saucelabs'),
     glob = require('glob'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
-    client, specFiles, specDir;
+    specDir = env.match(/^(functional|multibrowser)$/),
+    client, specFiles, specDir, browserA, browserB;
 
 var mocha = new Mocha({
     timeout: 1000000,
@@ -16,7 +17,7 @@ var mocha = new Mocha({
 conf = require('./conf/index.js');
 assert = require('assert');
 
-if(specDir = env.match(/^(functional|multibrowser)$/)) {
+if(specDir) {
     // only test functional test spec if required
     specFiles = 'test/spec/' + specDir[0] + '/**/*.js';
 } else {

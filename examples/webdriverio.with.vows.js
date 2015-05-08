@@ -1,7 +1,6 @@
 var vows = require('vows'),
     assert = require('assert'),
-    webdriverio = require('../index'),
-    fs = require('fs');
+    webdriverio = require('../index');
 
 var client;
 
@@ -17,17 +16,17 @@ vows.describe('my github tests').addBatch({
 
         'starting webdriverio successfully': {
 
-            topic: function (init) {
+            topic: function () {
                 client.url('https://github.com/', this.callback);
             },
 
             'check logo dimension': {
 
-                topic: function (url) {
+                topic: function () {
                     client.getElementSize('.header-logo-wordmark', this.callback);
                 },
 
-                'getElementSize() should cause no error': function(err,result) {
+                'getElementSize() should cause no error': function(err) {
                     assert(err === null);
                 },
 
@@ -47,7 +46,7 @@ vows.describe('my github tests').addBatch({
                     client.getTitle(this.callback);
                 },
 
-                'getTitle() should cause no error': function(err,result) {
+                'getTitle() should cause no error': function(err) {
                     assert(err === null);
                 },
 
@@ -63,7 +62,7 @@ vows.describe('my github tests').addBatch({
                     client.getCssProperty('a[href="/plans"]', 'color', this.callback);
                 },
 
-                'getElementCssProperty() should cause no error': function(err,result) {
+                'getElementCssProperty() should cause no error': function(err) {
                     assert(err === null);
                 },
 
@@ -80,7 +79,7 @@ vows.describe('my github tests').addBatch({
                 client.end(this.callback);
             },
 
-            'should end successfully': function(err,result) {
+            'should end successfully': function(err) {
                 assert(err === null);
             }
 

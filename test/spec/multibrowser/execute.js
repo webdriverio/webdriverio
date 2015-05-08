@@ -1,12 +1,7 @@
-/* global document */
-var async = require('async');
-
 describe('execute', function() {
     before(h.setupMultibrowser());
 
     before(function(done) {
-        var self = this;
-
         this.browserA.url(conf.testPage.subPage);
         this.browserB.url(conf.testPage.start);
         this.matrix.call(done);

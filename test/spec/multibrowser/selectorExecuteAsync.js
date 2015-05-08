@@ -1,4 +1,3 @@
-/* global document */
 describe.skip('selectorExecuteAsync', function() {
     before(h.setupMultibrowser());
 
@@ -12,8 +11,8 @@ describe.skip('selectorExecuteAsync', function() {
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("some text");
-                res.browserB.should.be.equal("some text");
+                res.browserA.should.be.equal('some text');
+                res.browserB.should.be.equal('some text');
                 done(err);
             });
     });
@@ -27,8 +26,8 @@ describe.skip('selectorExecuteAsync', function() {
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("some text");
-                res.browserB.should.be.equal("some text");
+                res.browserA.should.be.equal('some text');
+                res.browserB.should.be.equal('some text');
                 done(err);
             });
     });
@@ -42,8 +41,8 @@ describe.skip('selectorExecuteAsync', function() {
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("searchinput");
-                res.browserB.should.be.equal("searchinput");
+                res.browserA.should.be.equal('searchinput');
+                res.browserB.should.be.equal('searchinput');
                 done(err);
             });
     });
@@ -57,8 +56,8 @@ describe.skip('selectorExecuteAsync', function() {
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("selectbox");
-                res.browserB.should.be.equal("selectbox");
+                res.browserA.should.be.equal('selectbox');
+                res.browserB.should.be.equal('selectbox');
                 done(err);
             });
     });
@@ -70,16 +69,16 @@ describe.skip('selectorExecuteAsync', function() {
                 setTimeout(function() {
                     var found = 'nothing found';
                     arr.forEach(function(el) {
-                        if (el.getAttribute('id') === "selectbox") {
-                            found = "selectbox found";
+                        if (el.getAttribute('id') === 'selectbox') {
+                            found = 'selectbox found';
                         }
                     });
                     cb(found);
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("selectbox found");
-                res.browserB.should.be.equal("selectbox found");
+                res.browserA.should.be.equal('selectbox found');
+                res.browserB.should.be.equal('selectbox found');
                 done(err);
             });
     });
@@ -93,8 +92,8 @@ describe.skip('selectorExecuteAsync', function() {
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo");
-                res.browserB.should.be.equal("githubRepo");
+                res.browserA.should.be.equal('githubRepo');
+                res.browserB.should.be.equal('githubRepo');
                 done(err);
             });
     });
@@ -108,8 +107,8 @@ describe.skip('selectorExecuteAsync', function() {
                 }, 100);
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo");
-                res.browserB.should.be.equal("githubRepo");
+                res.browserA.should.be.equal('githubRepo');
+                res.browserB.should.be.equal('githubRepo');
                 done(err);
             });
     });
@@ -121,10 +120,10 @@ describe.skip('selectorExecuteAsync', function() {
                 setTimeout(function() {
                     cb(arr.length > 0 && arr[0].getAttribute('id') + arg);
                 }, 100);
-            }, " with an argument", function(err, res) {
+            }, ' with an argument', function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo with an argument");
-                res.browserB.should.be.equal("githubRepo with an argument");
+                res.browserA.should.be.equal('githubRepo with an argument');
+                res.browserB.should.be.equal('githubRepo with an argument');
                 done(err);
             });
     });
@@ -137,11 +136,11 @@ describe.skip('selectorExecuteAsync', function() {
                     cb(arg(arr.length > 0 && arr[0].getAttribute('id')));
                 }, 100);
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("githubRepo with an argument");
-                res.browserB.should.be.equal("githubRepo with an argument");
+                res.browserA.should.be.equal('githubRepo with an argument');
+                res.browserB.should.be.equal('githubRepo with an argument');
                 done(err);
             });
     });
@@ -153,16 +152,16 @@ describe.skip('selectorExecuteAsync', function() {
                 setTimeout(function() {
                     var returnStr = 'Returning ';
                     links.length > 0 && (returnStr += links[0].getAttribute('id'));
-                    returnStr += " and ";
+                    returnStr += ' and ';
                     divs.length > 0 && (returnStr += divs[0].innerHTML);
                     cb(arg(returnStr));
                 }, 100);
             }, function(str) {
-                return str + " with an argument";
+                return str + ' with an argument';
             }, function(err, res) {
                 assert.ifError(err);
-                res.browserA.should.be.equal("Returning githubRepo and Test CSS Attributes with an argument");
-                res.browserB.should.be.equal("Returning githubRepo and Test CSS Attributes with an argument");
+                res.browserA.should.be.equal('Returning githubRepo and Test CSS Attributes with an argument');
+                res.browserB.should.be.equal('Returning githubRepo and Test CSS Attributes with an argument');
                 done(err);
             });
     });

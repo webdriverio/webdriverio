@@ -12,7 +12,7 @@
 var webdriverjs = require('../../../index'),
     assert      = require('assert');
 
-var sharedSteps = module.exports = function(){
+module.exports = function(){
 
     var client    = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'}, logLevel: 'silent' }),
         tmpResult = null;

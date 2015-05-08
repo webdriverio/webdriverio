@@ -1,9 +1,10 @@
-var buster = require("buster"),
+var buster = require('buster'),
     assert = buster.referee.assert,
-    webdriverio = require('../index');
+    webdriverio = require('../index'),
+    client;
 
-buster.testCase("Nested setup and teardown call order", {
-    
+buster.testCase('Nested setup and teardown call order', {
+
     'setUp': function (done) {
         this.timeout = 5000;
         client = webdriverio.remote({ desiredCapabilities: {browserName: 'firefox'} });

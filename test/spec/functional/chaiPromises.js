@@ -55,6 +55,6 @@ describe('chai-as-promised', function() {
 
     it('should support deep comparisons', function() {
         return this.client.getText('#selectbox option').should.become(['1', '2', '3']);
-    })
+    });
 
 });

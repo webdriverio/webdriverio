@@ -5,7 +5,7 @@ describe('call', function() {
     var isCalled = false;
 
     before(function() {
-        return this.client.call(function(zwei) {
+        return this.client.call(function() {
             isCalled = true;
         });
     });

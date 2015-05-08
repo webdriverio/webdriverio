@@ -29,7 +29,7 @@ module.exports.version = package.version;
 module.exports.ErrorHandler = ErrorHandler;
 
 // use the chained API reference to add static methods
-var remote = module.exports.remote = function remote(options) {
+module.exports.remote = function remote(options) {
 
     options = options || {};
 

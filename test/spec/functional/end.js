@@ -7,8 +7,7 @@ describe('end', function() {
 
     it('should delete a session', function() {
 
-        var that = this,
-            sessions;
+        var sessions;
 
         return this.client
 
