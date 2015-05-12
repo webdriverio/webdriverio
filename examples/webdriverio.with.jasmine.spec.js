@@ -1,3 +1,20 @@
+/**
+ * To execute this test please download the NPM Jasmine package first and initialise a Jasmine
+ * test suite by running:
+ *
+ * ```sh
+ * $ npm install -g jasmine
+ * $ jasmine init
+ * ```
+ *
+ * Then run the test. Make sure you've all WebdriverIO dependencies installed
+ *
+ * ```sh
+ * $ jasmine webdriverio.with.jasmine.spec.js
+ * ```
+ *
+ */
+
 var webdriverio = require('../index');
 
 describe('my webdriverio tests', function() {
