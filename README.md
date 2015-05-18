@@ -103,11 +103,20 @@ name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 See the [Selenium documentation](https://code.google.com/p/selenium/wiki/DesiredCapabilities) for a list of the available `capabilities`.
 
 ### logLevel
+Level of logging verbosity.
+
 Type: `String`
 
 Default: *silent*
 
 Options: *verbose* | *silent* | *command* | *data* | *result*
+
+### baseUrl
+Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/` the base url gets prepended.
+
+Type: `String`
+
+Default: *null*
 
 ### coloredLogs
 
@@ -133,12 +142,11 @@ Default: *false*
 Set to true if you always want to reuse the same remote
 
 ### waitforTimeout
+Default timeout for all waitForXXX commands.
 
 Type: `Number`
 
 Default: *500*
-
-Default timeout for all waitForXXX commands
 
 ## Selector API
 
