@@ -140,14 +140,6 @@ Type: `String`|`null`
 
 Default: *null*
 
-### singleton
-
-Type: `Boolean`
-
-Default: *false*
-
-Set to true if you always want to reuse the same remote
-
 ### waitforTimeout
 Default timeout for all waitForXXX commands.
 
