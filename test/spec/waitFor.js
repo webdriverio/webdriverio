@@ -1,9 +1,12 @@
 describe('waitFor',function() {
 
     var duration = 3500;
-    var checkTime = function() {
+    var checkTime = function(before) {
         return function(res) {
+            var after = new Date().getTime(),
+                time = after - before;
             res.should.be.true;
+            time.should.be.within(1900, 3000);
         };
     };
 
@@ -21,22 +24,6 @@ describe('waitFor',function() {
 
         it('should return without error after element appears in time',function() {
             return this.client.waitFor('.lateElem', 5000);
-        });
-
-    });
-
-    describe('Checked', function() {
-
-        beforeEach(h.setup());
-
-        it('should return w/o err after element was checked', function() {
-            var currentTime = Date.now();
-            return this.client.waitForChecked('//html/body/section/input[6]', duration).then(checkTime(currentTime));
-        });
-
-        it('(reverse) should return w/o err after element was unchecked', function() {
-            var currentTime = Date.now();
-            return this.client.waitForChecked('.radio_waitForSelectedReverse', duration, true).then(checkTime(currentTime));
         });
 
     });
@@ -111,12 +98,12 @@ describe('waitFor',function() {
 
         it('should return w/o err after element got a value', function() {
             var currentTime = Date.now();
-            return this.client.waitForEnabled('.waitForValueEnabled', duration).then(checkTime(currentTime));
+            return this.client.waitForValue('//*[contains(@class, "waitForValueEnabledReverse")]', duration).then(checkTime(currentTime));
         });
 
         it('(reverse) should return w/o err after element lost its value', function() {
             var currentTime = Date.now();
-            return this.client.waitForEnabled('//*[contains(@class, "waitForValueEnabledReverse")]', duration, true).then(checkTime(currentTime));
+            return this.client.waitForValue('.waitForValueEnabled', duration, true).then(checkTime(currentTime));
         });
 
     });
@@ -127,17 +114,12 @@ describe('waitFor',function() {
 
         it('should return w/o err after element moved into document bounderies', function() {
             var currentTime = Date.now();
-            return this.client.waitForVisible('//*[contains(@class, "notInViewport")]', duration).then(checkTime(currentTime));
+            return this.client.waitForVisible('//*[contains(@class, "notVisible")]', duration).then(checkTime(currentTime));
         });
 
         it('(reverse) should return w/o err after element left document bounderies', function() {
             var currentTime = Date.now();
             return this.client.waitForVisible('.onMyWay', duration, true).then(checkTime(currentTime));
-        });
-
-        it('should return w/o err after parent element moved into document bounderies', function() {
-            var currentTime = Date.now();
-            return this.client.waitForVisible('//*[contains(@class, "visibletestInner")]', duration).then(checkTime(currentTime));
         });
 
     });
