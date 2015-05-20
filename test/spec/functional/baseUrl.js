@@ -4,7 +4,7 @@ describe('baseUrl', function() {
 
     it('should get prepended if url starts with /', function() {
         return this.client.url('/test/site/www/two.html').getTitle().then(function (title) {
-            title.should.be.exactly('two');
+            title.should.be.equal('two');
         });
     });
 

@@ -10,7 +10,7 @@ describe('chai-as-promised', function() {
     var chai = require('chai');
     var chaiAsPromised = require('chai-as-promised');
 
-    chai.should();
+    chai.Should();
     chai.use(chaiAsPromised);
 
     before(h.setup());
