@@ -15,7 +15,8 @@ var mocha = new Mocha({
 
 // globals for tests
 conf = require('./conf/index.js');
-assert = require('assert');
+assert = require('chai').assert;
+expect = require('chai').expect;
 
 if(specDir) {
     // only test functional test spec if required
