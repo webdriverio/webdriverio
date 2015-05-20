@@ -1,6 +1,6 @@
 var q = require('q');
 
-describe.only('waitUntil', function() {
+describe('waitUntil', function() {
 
     before(h.setup());
 
