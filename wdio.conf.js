@@ -49,6 +49,12 @@ exports.config = {
     baseUrl: 'http://localhost:8080',
     waitforTimeout: 1000,
     framework: 'mocha',
+
+    reporter: 'xunit',
+    reporterOptions: {
+        outputDir: './'
+    },
+
     mochaOpts: {
         ui: 'bdd'
     },
