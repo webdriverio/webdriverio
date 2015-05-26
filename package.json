@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "archiver": "~0.14.3",
+    "co": "^4.5.4",
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
     "deepmerge": "~0.2.7",
