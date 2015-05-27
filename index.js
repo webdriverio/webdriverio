@@ -16,7 +16,7 @@
  */
 
 var WebdriverIO = require('./lib/webdriverio'),
-    // Multibrowser = require('./lib/multibrowser'),
+    Multibrowser = require('./lib/multibrowser'),
     ErrorHandler   = require('./lib/utils/ErrorHandler'),
     package = require('./package.json'),
     path = require('path'),
@@ -29,14 +29,14 @@ module.exports.version = package.version;
 module.exports.ErrorHandler = ErrorHandler;
 
 // use the chained API reference to add static methods
-module.exports.remote = function remote(options) {
+var remote = module.exports.remote = function remote(options, modifier) {
 
     options = options || {};
 
     /**
      * initialise monad
      */
-    var wdio = WebdriverIO(options);
+    var wdio = WebdriverIO(options, modifier);
 
     /**
      * build prototype: commands
@@ -55,3 +55,15 @@ module.exports.remote = function remote(options) {
     prototype.defer.resolve();
     return prototype;
 };
+
+module.exports.multiremote = function multiremote(options) {
+    var clients = {},
+        multibrowser;
+
+    Object.keys(options).forEach(function(browserName) {
+        clients[browserName] = remote(options[browserName]);
+    });
+
+    multibrowser = remote(options, Multibrowser(clients));
+    return multibrowser;
+}
