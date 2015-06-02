@@ -25,6 +25,7 @@
     "expect": true,
     "afterEach": true,
     "jasmine": true,
-    "alert": true
+    "alert": true,
+    "browser": true
   }
 }
