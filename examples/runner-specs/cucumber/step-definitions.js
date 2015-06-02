@@ -9,23 +9,19 @@
  * $ cucumber.js
  */
 
-var webdriverjs = require('../../../index'),
-    assert      = require('assert');
+var assert = require('assert'),
+    tmpResult;
 
 module.exports = function(){
 
-    var client    = webdriverjs.remote({ desiredCapabilities: {browserName: 'phantomjs'}, logLevel: 'silent' }),
-        tmpResult = null;
-    client.init();
-
     this.Given(/^I go on the website "([^"]*)"$/, function(url, next) {
-        client
+        browser
             .url(url)
             .call(next);
     });
 
     this.When(/^I use getElementSize\(\) on the element "([^"]*)"$/, function(className, next) {
-        client
+        browser
             .getElementSize(className, function(err, result) {
                 assert(err === undefined, 'command getElementSize() returns with an error');
                 tmpResult = result;
@@ -34,7 +30,7 @@ module.exports = function(){
     });
 
     this.When(/^I use getTitle\(\) to get the title of this website$/, function(next) {
-        client
+        browser
             .getTitle(function(err, title) {
                 assert(err === undefined, 'command getTitle() returns with an error');
                 tmpResult = title;
@@ -42,18 +38,9 @@ module.exports = function(){
             });
     });
 
-    this.When(/^I use getElementCssProperty\(\) to get the "([^"]*)" attribute of an element with "([^"]*)" "([^"]*)"$/, function(attribute, findBy, cssSelector, next) {
-        client
-            .getElementCssProperty(findBy, cssSelector, attribute, function(err, result) {
-                assert(err === undefined, 'command getElementCssProperty() returns with an error');
-                tmpResult = result.value;
-                next();
-            });
-    });
-
     this.Then(/^I should get a width of "([^"]*)" and height of "([^"]*)"$/, function(width, height, next) {
-        assert(tmpResult.width  == width , 'width of element is ' + tmpResult.width + ' but should be ' + width);
-        assert(tmpResult.height == height, 'height of element is ' + tmpResult.width + ' but should be ' + height);
+        assert.equal(parseInt(tmpResult.width), parseInt(width, 10) , 'width of element is ' + tmpResult.width + ' but should be ' + width);
+        assert.equal(parseInt(tmpResult.height), parseInt(height, 10), 'height of element is ' + tmpResult.height + ' but should be ' + height);
         next();
     });
 
