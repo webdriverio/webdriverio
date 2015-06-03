@@ -2,11 +2,6 @@ describe('Browsermatrix', function() {
 
     before(h.setupMultibrowser({ asSingleton: true }));
 
-    it('should make browser accessible to the instance variable', function() {
-        this.matrix.instances.should.have.property('browserA');
-        this.matrix.instances.should.have.property('browserB');
-    });
-
     it('should provide all WebdriverIO commands', function() {
         Object.keys(require('../../../lib/webdriverio')).forEach(function(fnName) {
             this.matrix[fnName].should.be.typeof('function');
