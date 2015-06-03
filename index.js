@@ -57,13 +57,14 @@ var remote = module.exports.remote = function remote(options, modifier) {
 };
 
 module.exports.multiremote = function multiremote(options) {
-    var clients = {},
-        multibrowser;
+    var multibrowser = new Multibrowser();
 
     Object.keys(options).forEach(function(browserName) {
-        clients[browserName] = remote(options[browserName]);
+        multibrowser.addInstance(
+            browserName,
+            remote(options[browserName], multibrowser.getInstanceModifier())
+        );
     });
 
-    multibrowser = remote(options, Multibrowser(clients));
-    return multibrowser;
-}
+    return remote(options, multibrowser.getModifier());
+};
