@@ -8,40 +8,36 @@ describe('Chaining', function() {
         var browserA = this.browserA;
         var browserB = this.browserB;
 
-        this.matrix
-            .click('.btn1', function(err) {
-                assert.ifError(err);
+        matrix
+            .click('.btn1').then(function() {
                 result += '1';
             })
-            .isVisible('.btn1', function(err) {
-                assert.ifError(err);
+            .isVisible('.btn1').then(function() {
                 result += '2';
             })
             .call(function() {
                 result += '3';
 
-                browserA.call(function() {
+                return browserA.click('.btn1').then(function() {
+
                     result += '4';
 
-                    browserB.isVisible('.btn1', function(err) {
-                        assert.ifError(err);
+                    return browserB.isVisible('.btn1').then(function() {
                         result += '5';
-                    })
-                    .call(function() {
+                    }).call(function() {
                         result += '6';
 
-                        browserA.call(function() {
+                        return browserA.call(function() {
+
                             result += '7';
 
-                            matrix.click('.btn1', function(err) {
-                                assert.ifError(err);
+                            return browserB.click('.btn1').then(function() {
                                 result += '8';
 
-                                browserA.title(function() {
+                                return browserA.call(function() {
                                     result += '9';
 
-                                    browserB.isVisible('.btn1', function(err) {
-                                        assert.ifError(err);
+                                    return browserB.isVisible('.btn1').then(function() {
                                         result += '0';
 
                                         // this can't work
@@ -49,33 +45,29 @@ describe('Chaining', function() {
                                         // can now when the setTimeout
                                         // will be finished
                                         // setTimeout(function() {
-                                        //     matrix.call(function() {
+                                        //     client.call(function() {
                                         //         result += 'a';
                                         //     });
                                         // },1000);
                                     });
                                 });
-                            })
-                            .click('.btn1', function(err) {
-                                assert.ifError(err);
+                            }).click('.btn1').then(function() {
                                 result += 'b';
                             });
                         });
                     })
-                    .click('.btn1', function() {
+                    .click('.btn1').then(function() {
                         result += 'c';
                     })
                     .call(function() {
                         result += 'd';
 
-                        matrix.isVisible('.btn1', function(err) {
-                            assert.ifError(err);
+                        return browserA.isVisible('.btn1').then(function() {
                             result += 'e';
                         });
                     });
                 })
-                .click('.btn1',function(err) {
-                    assert.ifError(err);
+                .click('.btn1').then(function() {
                     result += 'f';
                 })
                 .call(function() {
@@ -84,4 +76,26 @@ describe('Chaining', function() {
                 });
             });
     });
+
+    it('should be able to sync browser chained commands', function() {
+        var result = '';
+        var matrix = this.matrix;
+        var browserA = this.browserA;
+        var browserB = this.browserB;
+
+        browserA.isVisible('.btn1').then(function() {
+            result += '0'; // use same value as we don't know what command is faster
+        });
+
+        browserB.click('.btn1').then(function() {
+            result += '0'; // use same value as we don't know what command is faster
+        });
+
+        return matrix.sync().click('.btn1').then(function() {
+            result += '7';
+        }).call(function() {
+            assert.equal(result,'007');
+        });
+    });
+
 });

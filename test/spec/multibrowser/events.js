@@ -1,29 +1,42 @@
-var WebdriverIO = require('../../../index.js'),
-    conf = require('../../conf/index.js');
+var webdriverjs = require('../../../index.js'),
+    conf = require('../../conf/index.js'),
+    tmpConf = {
+        'phantom1': {
+            desiredCapabilities: {
+                browserName: 'phantomjs'
+            }
+        },
+        'phantom2': {
+            desiredCapabilities: {
+                browserName: 'phantomjs'
+            }
+        }
+    };
 
-/* global beforeEach */
 describe('event handling', function() {
+
     describe('is able to emit and listen to driver specific events and', function() {
 
-        var isCommandHandlerEmitted = 0,
-            isErrorHandlerEmitted = 0,
-            isInitHandlerEmitted = 0,
-            isEndHandlerEmitted = 0,
-            uri = null,
+        var isCommandHandlerEmitted = false,
+            isErrorHandlerEmitted = false,
+            isInitHandlerEmitted = false,
+            isEndHandlerEmitted = false,
             desiredCapabilties = null,
             matrix;
 
         before(function() {
-            matrix = WebdriverIO.multiremote(conf.capabilities);
+            matrix = webdriverjs.multiremote(tmpConf);
 
             matrix.on('end', function() {
-                isEndHandlerEmitted++;
+                isEndHandlerEmitted = true;
             });
-            matrix.on('init', function() {
-                isInitHandlerEmitted++;
+
+            matrix.on('init', function(e) {
+                isInitHandlerEmitted = true;
+                desiredCapabilties = e.phantom1.value.browserName;
             });
             matrix.on('error', function() {
-                isErrorHandlerEmitted++;
+                isErrorHandlerEmitted = true;
             });
             matrix.on('command', function(e) {
 
@@ -33,51 +46,39 @@ describe('event handling', function() {
                 }
 
                 isCommandHandlerEmitted = true;
-                desiredCapabilties = e.data.desiredCapabilities.browserName;
-                uri = e.uri;
             });
         });
 
-        it('should emit an init event after calling the init command', function(done) {
-            matrix
+        it('should emit an init event after calling the init command', function() {
+            return matrix
                 .init()
                 .call(function() {
-                    isInitHandlerEmitted.should.be.equal(2);
-                    assert.strictEqual(uri.host, 'localhost:4444');
+                    assert.ok(isInitHandlerEmitted, 'init handler wasn\'t called');
                     assert.strictEqual(desiredCapabilties, 'phantomjs');
-                })
-                .call(done);
+                });
         });
 
-        it('should emit an error event after querying a non existing element', function(done) {
-
-            matrix
+        it('should emit an error event after querying a non existing element', function() {
+            return matrix
                 .url(conf.testPage.start)
                 // click on non existing element to cause an error
-                .click('#notExistentant', function(err) {
-                    assert(err.browserA.message.match(/Problem: Unable to find element with id 'notExistentant'/));
+                .click('#notExistentant').catch(function(err) {
+                    err.message.should.match(/Problem: Unable to find element with id 'notExistentant'/);
                 })
                 .call(function() {
-                    isErrorHandlerEmitted.should.be.equal(2);
-                })
-                .call(done);
-
+                    assert.ok(isErrorHandlerEmitted, 'error handler wasn\'t called');
+                });
         });
 
-        it('should emit an end event after calling the end command', function(done) {
-
-            matrix
-                .end()
-                .call(function() {
-                    isEndHandlerEmitted.should.be.equal(2);
-                })
-                .call(done);
-
+        it('should emit an end event after calling the end command', function() {
+            matrix.end();
+            matrix.call(function() {
+                assert.ok(isEndHandlerEmitted, 'end handler wasn\'t called');
+            });
         });
 
         after(function() {
-            matrix.removeAllListeners();
-            matrix.end();
+            return matrix.end();
         });
     });
 
