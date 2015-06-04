@@ -5,7 +5,7 @@ WebdriverIO [![Build Status](https://travis-ci.org/webdriverio/webdriverio.png?b
 
 This library is a webdriver module for Node.js. It makes it possible to write
 super easy selenium tests in your favorite BDD or TDD test framework. It was
-originated by [Camilo Tapia's](https://github.com/camme) inital selenium project
+originated by [Camilo Tapia's](https://github.com/camme) initial selenium project
 called WebdriverJS.
 
 Have a look at the many [examples](examples/).
