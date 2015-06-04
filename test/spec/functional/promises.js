@@ -187,8 +187,8 @@ describe('PromiseHandler', function() {
             var Promise = require('es6-promise').Promise;
 
             return this.client.status().then(function(){
-                return new Promise(function (resolve, reject) {
-                    resolve('success')
+                return new Promise(function (resolve) {
+                    resolve('success');
                 });
             }).then(function(result){
                 result.should.be.equal('success');
