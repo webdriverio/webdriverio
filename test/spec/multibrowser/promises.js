@@ -36,8 +36,8 @@ describe('PromiseHandler', function() {
     it('should be working on custom commands', function() {
         var result = '';
 
-        this.matrix.addCommand('fakeCommand', function(param, done) {
-            return param
+        this.matrix.addCommand('fakeCommand', function(param) {
+            return param;
         });
 
         return this.matrix.fakeCommand(0).then(function() {

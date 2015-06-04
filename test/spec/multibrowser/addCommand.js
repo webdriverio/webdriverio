@@ -6,8 +6,7 @@ describe('addCommand', function() {
 
         this.matrix.addCommand('getUrlAndTitle', function() {
 
-            var result = {},
-                error;
+            var result = {};
 
             return this.url().then(function(res) {
                 result.url = res.value;
