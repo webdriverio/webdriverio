@@ -38,7 +38,7 @@ describe('event handling', function() {
             matrix.on('error', function() {
                 isErrorHandlerEmitted = true;
             });
-            matrix.on('command', function(e) {
+            matrix.on('command', function() {
 
                 // assign variables only on first command
                 if (isCommandHandlerEmitted) {
