@@ -183,6 +183,18 @@ describe('PromiseHandler', function() {
 
         });
 
+        it('should work with ES6 promises', function() {
+            var Promise = require('es6-promise').Promise;
+
+            return this.client.status().then(function(){
+                return new Promise(function (resolve, reject) {
+                    resolve('success')
+                });
+            }).then(function(result){
+                result.should.be.equal('success');
+            });
+        });
+
     });
 
     it('should be able to pass a command execution as parameter', function() {
