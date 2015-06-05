@@ -111,6 +111,14 @@ Default: *silent*
 
 Options: *verbose* | *silent* | *command* | *data* | *result*
 
+### logOutput
+Pipe WebdriverIO logs into a file. You can define either a directory and WebdriverIO generates a filename for the log file
+or you can pass in writeable stream and everything gets redirected to that (last one doesn't work yet with the wdio runner).
+
+Type: `String|writeable stream`
+
+Defaults: *null*
+
 ### baseUrl
 Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/` the base url gets prepended.
 
