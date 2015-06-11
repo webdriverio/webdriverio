@@ -134,7 +134,7 @@ Default: *true*
 
 Enables colors for log output
 
-### screenshotPath
+### errorScreenshotDir
 Saves a screenshot to a given path if Selenium driver crashes
 
 Type: `String`|`null`
