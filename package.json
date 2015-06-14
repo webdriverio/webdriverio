@@ -22,11 +22,11 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "node ./test/runner.js",
-    "test-mobile": "_APP=safari _BROWSER=safari _PLATFORMVERSION=7.1 _APPIUMVERSION=1.2 _PLATFORMNAME=iOS _DEVICENAME=iPhone_Simulator _PORT=4723 _ENV=mobile node ./test/runner.js",
-    "test-desktop": "_ENV=desktop _BROWSER=chrome node ./test/runner.js",
-    "test-functional": "_ENV=functional _BROWSER=phantomjs node ./test/runner.js",
-    "test-multibrowser": "_ENV=multibrowser node ./test/runner.js",
+    "test": "grunt test-all",
+    "test-mobile": "grunt test-mobile",
+    "test-desktop": "grunt test-desktop",
+    "test-functional": "grunt test-functional",
+    "test-multibrowser": "grunt test-multibrowser",
     "coverage": "./node_modules/.bin/istanbul cover -x \"**/helpers/_*.js\" ./test/runner.js",
     "postinstall": "[ \"$NODE_ENV\" != production ] && cd test/site/www/ && bower install",
     "prepublish": "npm prune"
@@ -63,6 +63,7 @@
     "load-grunt-tasks": "^3.2.0",
     "mocha": "^2.2.5",
     "nock": "~1.7.1",
+    "phantomjs": "^1.9.17",
     "saucelabs": "~0.1.1",
     "should": "^6.0.1"
   },

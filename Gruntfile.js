@@ -3,6 +3,8 @@
 var seleniumVersion = '2.45.0',
     seleniumMinorVersion = seleniumVersion.split('.').slice(0, 2).join('.');
 
+process.env.PATH = 'node_modules/.bin/:' + process.env.PATH;
+
 module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
@@ -27,8 +29,6 @@ module.exports = function (grunt) {
             }
         }
     }
-
-    //TODO add saucelabs support. see runner.js
 
     //TODO istanbul code coverage
     // "coverage": "./node_modules/.bin/istanbul cover -x \"**/helpers/_*.js\" ./test/runner.js",
@@ -83,9 +83,20 @@ module.exports = function (grunt) {
 
     grunt.registerTask('run-test', ['connect', 'start-selenium-server', 'force:mochaTest', 'passfail', 'stop-selenium-server']);
 
+    grunt.registerTask('test-functional', function () {
+        setEnv('functional');
+        setBrowser('phantomjs');
+        grunt.task.run('run-test');
+    });
+
     grunt.registerTask('test-desktop', function () {
         setEnv('desktop');
         setBrowser('chrome');
+        grunt.task.run('run-test');
+    });
+
+    grunt.registerTask('test-multibrowser', function () {
+        setEnv('multibrowser');
         grunt.task.run('run-test');
     });
 
@@ -98,22 +109,10 @@ module.exports = function (grunt) {
         process.env._PLATFORMNAME = 'iOS';
         process.env._DEVICENAME = 'iPhone_Simulator';
         process.env._PORT = 4723;
-        //TODO run phone simulator app?
         grunt.task.run('run-test');
     });
 
-    grunt.registerTask('test-functional', function () {
-        setEnv('functional');
-        setBrowser('phantomjs');
-        grunt.task.run('run-test');
-    });
+    grunt.registerTask('test-all', ['test-functional', 'test-desktop', 'test-multibrowser', 'test-mobile']);
 
-    grunt.registerTask('test-multibrowser', function () {
-        setEnv('multibrowser');
-        grunt.task.run('run-test');
-    });
-
-    grunt.registerTask('test', ['test-desktop']);
-
-    grunt.registerTask('default', ['test']);
+    grunt.registerTask('default', ['test-desktop']);
 }
