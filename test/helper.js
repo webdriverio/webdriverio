@@ -1,7 +1,6 @@
 'use strict';
 
 var WebdriverIO = require('../index.js'),
-    conf = global.conf || require('./conf/index.js'),
     client, browserA, browserB;
 
 function end(passed, done) {
@@ -53,7 +52,6 @@ module.exports = {
         };
     },
     setup: function(options) {
-
         if(!options) {
             options = {};
         }
@@ -96,7 +94,6 @@ module.exports = {
         };
     },
     setupMultibrowser: function(options) {
-
         if(!options) {
             options = {};
         }

@@ -7,8 +7,12 @@ process.env.PATH = 'node_modules/.bin/:' + process.env.PATH;
 
 module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
+    require('./test/tasks/appium')(grunt);
 
     function setBrowser(browserName) {
+        if (grunt.option('browser')) {
+            browserName = grunt.option('browser');
+        }
         process.env._BROWSER = browserName;
         grunt.config.set('start-selenium-server.dev.options.serverOptions.browser', browserName);
     }
@@ -46,6 +50,7 @@ module.exports = function (grunt) {
         'start-selenium-server': {
             dev: {
                 options: {
+                    autostop: true,
                     downloadUrl: 'https://selenium-release.storage.googleapis.com/' + seleniumMinorVersion + '/selenium-server-standalone-' + seleniumVersion + '.jar',
                     serverOptions: {
                         browser: 'chrome'
@@ -53,8 +58,10 @@ module.exports = function (grunt) {
                 }
             }
         },
-        'stop-selenium-server': {
-            dev: {}
+        'appium': {
+            options: {
+                args: []
+            }
         },
         'mochaTest': {
             test: {
@@ -81,7 +88,7 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('run-test', ['connect', 'start-selenium-server', 'force:mochaTest', 'passfail', 'stop-selenium-server']);
+    grunt.registerTask('run-test', ['connect', 'start-selenium-server', 'force:mochaTest', 'passfail']);
 
     grunt.registerTask('test-functional', function () {
         setEnv('functional');
@@ -102,17 +109,15 @@ module.exports = function (grunt) {
 
     grunt.registerTask('test-mobile', function () {
         setEnv('mobile');
-        setBrowser('Safari');
-        process.env._APP = 'safari';
-        process.env._PLATFORMVERSION = 7.1;
-        process.env._APPIUMVERSION = 1.2;
+        setBrowser('safari');
+        process.env._DEVICENAME = 'iPhone Simulator';
         process.env._PLATFORMNAME = 'iOS';
-        process.env._DEVICENAME = 'iPhone_Simulator';
+        process.env._PLATFORMVERSION = 8.3;
+        process.env._APP = 'safari';
         process.env._PORT = 4723;
-        grunt.task.run('run-test');
+        // process.env._APPIUMVERSION = 1.2;
+        grunt.task.run('connect', 'appium', 'force:mochaTest', 'passfail');
     });
-
-    grunt.registerTask('test-all', ['test-functional', 'test-desktop', 'test-multibrowser', 'test-mobile']);
 
     grunt.registerTask('default', ['test-desktop']);
 }
