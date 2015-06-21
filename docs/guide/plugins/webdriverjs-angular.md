@@ -4,11 +4,12 @@ tags: guide
 title: WebdriverIO - webdriverjs-angular
 ---
 
-# webdriverjs-angular <br>[![Build Status](https://travis-ci.org/webdriverio/webdriverjs-angular.png?branch=master)](https://travis-ci.org/webdriverio/webdriverjs-angular) [![Dependency Status](https://david-dm.org/webdriverio/webdriverjs-angular.png?theme=shields.io)](https://david-dm.org/webdriverio/webdriverjs-angular) [![devDependency Status](https://david-dm.org/webdriverio/webdriverjs-angular/dev-status.png?theme=shields.io)](https://david-dm.org/webdriverio/webdriverjs-angular#info=devDependencies)
+# webdriverjs-angular [![Build Status](https://travis-ci.org/webdriverio/webdriverjs-angular.png?branch=master)](https://travis-ci.org/webdriverio/webdriverjs-angular)
 
 Functional test you angularjs application without having to `.pause()` or `.wait()`.
 
-Based on [WebdriverIO](/), you access the same API commands but you never have to `.pause()` between actions.
+Based on [WebdriverIO](http://webdriver.io), you access
+the same API commands but you never have to `.pause()` between actions.
 
 ## Usage
 
@@ -31,12 +32,13 @@ webdriverjsAngular
     .end();
 ```
 
-For more options, usage and API details, have a look at the [API](/api.html) section.
+For more options, usage and API details, see
+[WebdriverIO](http://webdriver.io).
 
-## Why another webdriverjs library?
+## Why another webdriverjs lib?
 
 1. webdriverjs-angular is based on an existing lib, it's extending
-[WebdriverIO](https://github.com/webdriverio/webdriverio).
+[WebdriverIO](http://webdriver.io).
 
 2. webdriverjs-angular is designed to work well with angularJS applications.
 AngularJS applications have a specific behavior that needs to be taken care
@@ -62,7 +64,7 @@ You will not find any `elementByNgBinding`, `addMockModule`,
 We think your functionnal tests should be as framework-agnostic as possible.
 
 If you need `elementByNgBinding`, just use regular
-[WebdriverIO](https://github.com/webdriverio/webdriverio)
+[WebdriverIO](http://webdriver.io)
 commands like `.element('[ng-binding=model]')`.
 
 ## Local testing
