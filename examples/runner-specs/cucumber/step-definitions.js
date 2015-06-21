@@ -23,18 +23,16 @@ module.exports = function(){
     this.When(/^I use getElementSize\(\) on the element "([^"]*)"$/, function(className, next) {
         browser
             .getElementSize(className, function(err, result) {
-                assert(err === undefined, 'command getElementSize() returns with an error');
                 tmpResult = result;
-                next();
+                next(err);
             });
     });
 
     this.When(/^I use getTitle\(\) to get the title of this website$/, function(next) {
         browser
             .getTitle(function(err, title) {
-                assert(err === undefined, 'command getTitle() returns with an error');
                 tmpResult = title;
-                next();
+                next(err);
             });
     });
 
