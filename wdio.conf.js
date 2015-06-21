@@ -9,8 +9,9 @@ exports.config = {
     /**
      * service providers
      */
-    user: 'cb-onboarding',
-    key:  'bdsabalkdbla-asddas-das-asd-adad',
+    user: 'webdriverio',
+    key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+    updateJob: true,
 
     /**
      * specify test files
