@@ -1,7 +1,7 @@
 name: eventhandling
 category: usage
 tags: guide
-index: 4
+index: 3
 title: WebdriverIO - Eventhandling
 ---
 
@@ -34,7 +34,7 @@ client
     .once('countme', function(e) {
         console.log(e.elements.length, 'elements were found');
     })
-    .elements('.myElem', function(err,res) {
+    .elements('.myElem').then(function(res) {
         cnt = res.value;
     })
     .emit('countme', cnt)

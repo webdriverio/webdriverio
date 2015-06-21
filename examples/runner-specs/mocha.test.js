@@ -4,10 +4,6 @@ describe('webdriver.io page', function() {
 
     it('should have the right title - the good old callback way', function(done) {
 
-        if(browser.options.desiredCapabilities.browserName === 'chrome') {
-            throw new Error("Hi");
-        }
-
         browser
             .url('/')
             .getTitle(function(err, title) {
