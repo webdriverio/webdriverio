@@ -4,11 +4,11 @@ tags: guide
 title: WebdriverIO - WebdriverCSS
 ----
 
-WebdriverCSS [![Version](http://img.shields.io/badge/version-v1.0.0-brightgreen.svg)](https://www.npmjs.org/package/webdrivercss) [![Build Status](https://travis-ci.org/webdriverio/webdrivercss.png?branch=master)](https://travis-ci.org/webdriverio/webdrivercss) [![Coverage Status](https://coveralls.io/repos/webdriverio/webdrivercss/badge.png?branch=master)](https://coveralls.io/r/webdriverio/webdrivercss?branch=master)
+WebdriverCSS [![Version](http://img.shields.io/badge/version-v1.1.3-brightgreen.svg)](https://www.npmjs.org/package/webdrivercss) [![Build Status](https://travis-ci.org/webdriverio/webdrivercss.png?branch=master)](https://travis-ci.org/webdriverio/webdrivercss) [![Coverage Status](https://coveralls.io/repos/webdriverio/webdrivercss/badge.png?branch=master)](https://coveralls.io/r/webdriverio/webdrivercss?branch=master)
 ============
 
 __CSS regression testing in WebdriverIO__. This plugin is an automatic visual regression-testing
-tool for [WebdriverIO](http://webdriver.io). It was inspired by [James Cryers](https://github.com/jamescryer)
+tool for [WebdriverIO](http://webdriver.io). It was inspired by [James Cryer's](https://github.com/jamescryer)
 awesome project called [PhantomCSS](https://github.com/Huddle/PhantomCSS). After
 initialization it enhances a WebdriverIO instance with an additional command called
 `webdrivercss` and enables the possibility to save screenshots of specific parts of
@@ -43,10 +43,10 @@ client
     .url('http://example.com')
     .webdrivercss('startpage',[
         {
-            name: 'header'
+            name: 'header',
             elem: '#header'
         }, {
-            name: 'hero'
+            name: 'hero',
             elem: '//*[@id="hero"]/div[2]'
         }
     ], function(err, res) {
@@ -59,41 +59,29 @@ client
 
 ## Install
 
-WebdriverCSS uses GraphicsMagick/ImageMagick for image processing as well as [node-canvas](https://github.com/learnboost/node-canvas)
-for comparing and analyzing screenshots with [node-resemble](https://github.com/kpdecker/node-resemble).
-To install this package you'll need to have [GraphicsMagick](http://www.graphicsmagick.org/), [ImageMagick](http://www.imagemagick.org/),
-[Cairo](https://github.com/LearnBoost/node-canvas/wiki/_pages) and of course Node.JS, NPM and Python preinstalled on your system.
+WebdriverCSS uses [GraphicsMagick](http://www.graphicsmagick.org/) for image processing. To install this
+package you'll need to have it preinstalled on your system.
 
 #### Mac OS X using [Homebrew](http://mxcl.github.io/homebrew/)
 ```sh
-$ brew install imagemagick graphicsmagick cairo
+$ brew install graphicsmagick
 ```
 
 #### Ubuntu using apt-get
 ```sh
-$ sudo apt-get install imagemagick libmagickcore-dev
 $ sudo apt-get install graphicsmagick
-$ sudo apt-get install libcairo2-dev
 ```
 
 #### Windows
 
-Download and install executables for [ImageMagick](http://www.imagemagick.org/script/binary-releases.php)/[GraphicsMagick](http://www.graphicsmagick.org/download.html)
-and [Cairo](http://cairographics.org/download/). Please make sure you install the right binaries desired for your system (32bit vs 64bit).
+Download and install executables for [GraphicsMagick](http://www.graphicsmagick.org/download.html).
+Please make sure you install the right binaries desired for your system (32bit vs 64bit).
 
 After these dependencies are installed you can install WebdriverCSS via NPM as usual:
 
 ```sh
 $ npm install webdrivercss
 $ npm install webdriverio # if not already installed
-```
-
-Make sure your `PKG_CONFIG_PATH` is set in your environment otherwise you won't be able to install `canvas`
-probably. That actual path to your pkgconfig might differ though.
-
-```sh
-# make sure that this path exists on your machine
-$ export PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig
 ```
 
 ## Setup
@@ -103,20 +91,20 @@ as parameter. Additionally you can define some options to configure the plugin. 
 the `webdrivercss` command will be available only for this instance.
 
 * **screenshotRoot** `String` ( default: *./webdrivercss* )<br>
-  path were all screenshots gets saved
+  path where all screenshots get saved.
 
 * **failedComparisonsRoot** `String` ( default: *./webdrivercss/diff* )<br>
-  path were all screenshot diffs gets saved
+  path where all screenshot diffs get saved.
 
 * **misMatchTolerance** `Number` ( default: *0.05* )<br>
   number between 0 and 100 that defines the degree of mismatch to consider two images as
-  identical, increasing this value will decrease test coverage
+  identical, increasing this value will decrease test coverage.
 
 * **screenWidth** `Numbers[]` ( default: *[]* )<br>
-  if set all screenshots will be taken in different screen widths (e.g. for responsive design tests)
+  if set, all screenshots will be taken in different screen widths (e.g. for responsive design tests)
 
 * **updateBaseline** `Boolean` ( default: *false* )<br>
-  updates baseline images if comparison keeps failing
+  updates baseline images if comparison keeps failing.
 
 
 ### Example
@@ -127,7 +115,7 @@ var client = require('webdriverio').remote({
     desiredCapabilities: {
         browserName: 'phantomjs'
     }
-});
+}).init();
 
 // initialise WebdriverCSS for `client` instance
 require('webdrivercss').init(client, {
@@ -174,6 +162,9 @@ available:
 
 * **hide** `String[]`<br>
   hides all elements queried by all kinds of different [WebdriverIO selector strategies](http://webdriver.io/guide/usage/selectors.html) (via `visibility: hidden`)
+
+* **remove** `String[]`<br>
+  removes all elements queried by all kinds of different [WebdriverIO selector strategies](http://webdriver.io/guide/usage/selectors.html) (via `display: none`)
 
 The following paragraphs will give you a more detailed insight how to use these options properly.
 
@@ -248,16 +239,16 @@ client
     .end();
 ```
 
-The following options might be interesting if you want to syncronize your taken images with
+The following options might be interesting if you want to synchronize your taken images with
 an external API. Checkout the [webdrivercss-adminpanel](https://github.com/webdriverio/webdrivercss-adminpanel)
 for more information on that.
 
 * **api** `String`
   URL to API interface
 * **user** `String`
-  user name (only necessary if API requires Basic Authentification or oAuth)
+  user name (only necessary if API requires Basic Authentication or oAuth)
 * **key** `String`
-  assigned user key (only necessary if API requires Basic Authentification or oAuth)
+  assigned user key (only necessary if API requires Basic Authentication or oAuth)
 
 
 ### Define specific areas
@@ -397,6 +388,44 @@ This will capture the following image at once:
 ![alt text](http://webdriver.io/images/webdrivercss/header.new.320px.png "Logo Title Text 1")
 
 **file name:** header.320px.png
+
+Note that if you have multiple tests running one after the other, it is important to change the first
+argument passed to the `webdrivercss()` command to be unique, as WebdriverCSS saves time by remembering
+the name of previously captured screenshots.
+
+```js
+// Example using Mocha
+it('should check the first page',function(done) {
+  client
+    .init()
+    .url('https://example.com')
+    // Make this name unique.
+    .webdrivercss('page1', [
+      {
+        name: 'test',
+        screenWidth: [320,480,640,1024]
+      }, {
+        name: 'test_two',
+        screenWidth: [444,666]
+      }
+    ])
+    .end()
+    .call(done);
+});
+
+it('should check the second page',function(done) {
+  client
+    // ...
+    // Make this name unique.
+    .webdrivercss('page2', [
+      // ..
+    ])
+    // ...
+);
+
+```
+
+
 
 ### Synchronize your taken Images
 
