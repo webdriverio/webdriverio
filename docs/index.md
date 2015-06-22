@@ -38,7 +38,7 @@ layout: start
     </ul>
 </aside>
 
-<div class="plugins">
+<div class="rulethemall">
     <h2 class="text-align">One Tool To Rule Them All:</h2>
     <a href="https://github.com/webdriverio/grunt-webdriver"><img src="/images/plugins/grunt.png" alt="Grunt Integration"></a>
     <a href="https://github.com/webdriverio/gulp-webdriver"><img src="/images/plugins/gulp.png" alt="Gulp Integration"></a>
