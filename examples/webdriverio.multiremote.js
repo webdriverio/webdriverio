@@ -29,5 +29,6 @@ var channel = Math.round(Math.random() * 100000000000);
 matrix
     .init()
     .url('https://apprtc.appspot.com/r/' + channel)
+    .click('#confirm-join-button')
     .pause(5000)
     .end();
