@@ -26,4 +26,10 @@ describe('selectorChaining', function() {
         });
     });
 
+    it('should be possible to keep selector empty if element was used before', function() {
+        return this.client.element('.nested').element('.moreNesting').element('.findme').getText().then(function(elements) {
+            elements.should.be.equal('MORE NESTED');
+        });
+    });
+
 });
