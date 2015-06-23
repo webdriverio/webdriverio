@@ -1,7 +1,7 @@
 name: eventhandling
 category: usage
 tags: guide
-index: 3
+index: 6
 title: WebdriverIO - Eventhandling
 ---
 
