@@ -1,7 +1,7 @@
 name: multiremote
 category: usage
 tags: guide
-index: 3
+index: 4
 title: WebdriverIO - Multiremote
 ---
 
@@ -69,11 +69,11 @@ by using the `select` method.
 ```js
 var myChromeBrowser = browser.select('myChromeBrowser');
 var myFirefoxBrowser = browser.select('myFirefoxBrowser');
-
+&nbsp;
 myChromeBrowser
     .setInput('#message', 'Hi, I am Chrome')
     .click('#send');
-
+&nbsp;
 myFirefoxBrowser
     .waitForExist('.messages', 5000)
     .getText('.messages').then(function(messages) {
@@ -91,16 +91,16 @@ again:
 ```js
 // these commands get executed in parallel by all defined instances
 browser.init().url('http://example.com');
-
+&nbsp;
 // do something with the Chrome browser
 myChromeBrowser.setValue('.chatMessage', 'Hey Whats up!').keys('Enter')
-
+&nbsp;
 // do something with the Firefox browser
 myFirefoxBrowser.getText('.message', function(err, message) {
     console.log(messages);
     // returns: "Hey Whats up!"
 });
-
+&nbsp;
 // now sync instances again
 browser.sync().url('http://anotherwebsite.com');
 ```

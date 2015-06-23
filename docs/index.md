@@ -58,7 +58,7 @@ automated tests is as easy as:
 var webdriverio = require('webdriverio');
 var options = { desiredCapabilities: { browserName: 'chrome' } };
 var client = webdriverio.remote(options);
- 
+&nbsp;
 client
     .init()
     .url('https://duckduckgo.com/')
@@ -79,15 +79,15 @@ test runner supports ES6 generators and allows you to get rid of nasty callback 
 ```js
 describe('my feature', function() {
   it('should to something', function *() {
- 
+&nbsp;
     yield browser
         .url('https://duckduckgo.com/');
         .setInput('#search_form_input_homepage', 'WebdriverIO')
         .click('#search_button_homepage');
- 
+&nbsp;
     var title = yield browser.getTitle();
     console.log(title); // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
- 
+&nbsp;
   });
 });
 ```

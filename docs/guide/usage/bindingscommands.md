@@ -15,7 +15,7 @@ in the [protocol docs](https://code.google.com/p/selenium/wiki/JsonWireProtocol#
 ```js
 client.element().then(function(result) {
      console.log(result);
-
+&nbsp;
      /**
       * returns:
       *
@@ -39,11 +39,10 @@ your tests to look more concise and expressive. So instead of doing this:
 ```js
 client.element('#myElem').then(function(res) {
     assert(err === null);
-
+&nbsp;
     client.elementIdCssProperty(res.value.ELEMENT, 'width').then(function(res) {
         assert(res.value === '100px');
     });
-
 });
 ```
 
@@ -52,7 +51,7 @@ you can simply do this:
 ```js
 client.getCssProperty('#myElem', 'width').then(function(width) {
     assert(width.parsed.value === 100);
-
+&nbsp;
     /**
      * console.log(width) returns:
      *
