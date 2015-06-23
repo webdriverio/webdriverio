@@ -1,7 +1,7 @@
 name: multiremote
 category: usage
 tags: guide
-index: 3
+index: 4
 title: WebdriverIO - Multiremote
 ---
 
