@@ -33,7 +33,7 @@ we can shorten everything even more.
 before(function() {
     var chai = require('chai');
     var chaiAsPromised = require('chai-as-promised');
-
+&nbsp;
     chai.Should();
     chai.use(chaiAsPromised);
     chaiAsPromised.transferPromiseness = client.transferPromiseness;
