@@ -63,6 +63,25 @@ module.exports = function (grunt) {
                 args: []
             }
         },
+        'instrument': {
+            files:  'lib/**/**.js',
+            options: {
+                lazy: true
+            }
+        },
+        'storeCoverage': {
+            options: {
+                dir: './coverage'
+            }
+        },
+        'makeReport': {
+            src: './coverage/**/*.json',
+            options: {
+                type: 'lcov',
+                dir: './coverage',
+                print: 'detail'
+            }
+        },
         'mochaTest': {
             test: {
                 src: grunt.option('spec') || process.env._SPEC,
@@ -89,6 +108,9 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('run-test', ['connect', 'start-selenium-server', 'force:mochaTest', 'passfail']);
+
+    // TODO run test against instrumented source
+    grunt.registerTask('coverage', ['instrument', 'test-functional', 'storeCoverage', 'makeReport']);
 
     grunt.registerTask('test-functional', function () {
         setEnv('functional');
