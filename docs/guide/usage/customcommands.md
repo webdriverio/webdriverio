@@ -37,4 +37,8 @@ client
     .end();
 ```
 
+By default WebdriverIO will throw an error if you try to overwrite an existing command.
+You can bypass that behavior by passing `true` as 3rd parameter to the `addCommand`
+function.
+
 **Note:** the result of your custom command will be the result of the promise you return.
