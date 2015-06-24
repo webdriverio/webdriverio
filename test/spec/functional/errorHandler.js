@@ -8,7 +8,7 @@ describe('ErrorHandler', function() {
 
     it('should throw selenium error when passing specific error ID', function() {
         var error = new WebdriverIO.ErrorHandler(17);
-        error.name.should.be.exactly('JavaScriptError');
+        error.name.should.be.exactly('Error');
     });
 
 });
