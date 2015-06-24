@@ -10,24 +10,6 @@ describe('waitFor',function() {
         };
     };
 
-    describe('(traditional selenium)', function() {
-
-        before(h.setup());
-
-        it('should at least wait until duration has expired', function() {
-            var startTime = Date.now();
-            return this.client.waitFor('#notExisting', 500).finally(function() {
-                var delta = Date.now() - startTime;
-                assert(delta > 499);
-            });
-        });
-
-        it('should return without error after element appears in time',function() {
-            return this.client.waitFor('.lateElem', 5000);
-        });
-
-    });
-
     describe('Enabled', function() {
 
         beforeEach(h.setup());
