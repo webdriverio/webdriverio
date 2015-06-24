@@ -1,8 +1,8 @@
 module.exports = {
     desiredCapabilities: {
         browserName: process.env._BROWSER || '',
-        platformName: (process.env._PLATFORM || '').replace(/_/g,' '),
-        platformVersion: (process.env._VERSION || ''),
+        platformName: (process.env._PLATFORMNAME || '').replace(/_/g,' '),
+        platformVersion: (process.env._PLATFORMVERSION || ''),
         'appium-version': '1.3.4',
         deviceName: (process.env._DEVICENAME || '').replace(/_/g,' ')
     }

@@ -17,8 +17,9 @@ describe('saveScreenshot', function() {
 
     it('should take a screenshot and return it as a PNG image in Buffer', function() {
         return this.client.saveScreenshot(function(image) {
+            expect(image).to.exist;
             // Check for PNG header
-            assert.equal(image.toString('hex', 0, 4), '89504e47');
+            expect(image.toString('hex', 0, 4)).to.equal('89504e47');
         });
     });
 

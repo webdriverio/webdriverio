@@ -3,7 +3,27 @@
  */
 describe('end', function() {
 
-    before(h.setup({ newSession: true }));
+    beforeEach(h.setup({ newSession: true }));
+
+    it('should return a Promise once the session has been deleted', function(done) {
+
+        var promise = this.client
+
+            // check if client has running sessions
+            .sessions().then(function(res) {
+                assert.ok(res.value && res.value.length > 0);
+            })
+
+            // end sessions
+            .end();
+
+        expect(promise).to.have.property('then');
+        promise.then(function (res) {
+            expect(res.state).to.equal('success');
+        })
+        .then(done)
+        .catch(done);
+    });
 
     it('should delete a session', function() {
 
@@ -28,5 +48,6 @@ describe('end', function() {
             });
 
     });
+
 
 });

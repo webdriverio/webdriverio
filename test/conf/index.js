@@ -7,7 +7,8 @@ var asked = require('./' + env + '.js');
 
 if(process.env._ENV === 'mobile') {
     var mobile = require('./mobile');
-    asked = merge(asked,mobile);
+    asked = merge(asked, mobile);
 }
+
 
 module.exports = merge(defaults, asked);

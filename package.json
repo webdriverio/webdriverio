@@ -16,23 +16,19 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/webdriverio/webdriverio/blob/master/LICENSE-MIT"
-    }
-  ],
+  "license": "LicenseRef-LICENSE-MIT",
   "main": "./index.js",
   "engines": {
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "node ./test/runner.js",
-    "test-mobile": "_APP=safari _BROWSER=safari _PLATFORMVERSION=7.1 _APPIUMVERSION=1.2 _PLATFORMNAME=iOS _DEVICENAME=iPhone_Simulator _PORT=4723 _ENV=mobile node ./test/runner.js",
-    "test-desktop": "_ENV=desktop _BROWSER=chrome node ./test/runner.js",
-    "test-functional": "_ENV=functional _BROWSER=phantomjs node ./test/runner.js",
-    "test-multibrowser": "_ENV=multibrowser node ./test/runner.js",
+    "test": "grunt test-all",
+    "test-mobile": "grunt test-mobile",
+    "test-desktop": "grunt test-desktop",
+    "test-functional": "grunt test-functional",
+    "test-multibrowser": "grunt test-multibrowser",
     "coverage": "./node_modules/.bin/istanbul cover -x \"**/helpers/_*.js\" ./test/runner.js",
+    "postinstall": "[ \"$NODE_ENV\" != production ] && cd test/site/www/ && bower install",
     "prepublish": "npm prune"
   },
   "dependencies": {
@@ -50,14 +46,26 @@
     "wgxpath": "~1.0.0"
   },
   "devDependencies": {
+    "appium": "^1.4.3",
+    "bower": "^1.4.1",
     "chai": "~2.3.0",
     "chai-as-promised": "^5.0.0",
     "coveralls": "~2.11.2",
     "es6-promise": "^2.1.1",
     "glob": "~5.0.5",
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-connect": "^0.10.1",
+    "grunt-force-task": "^1.0.0",
+    "grunt-istanbul": "^0.6.1",
+    "grunt-mocha-test": "^0.12.7",
+    "grunt-passfail": "^0.1.2",
+    "grunt-selenium-server": "^0.1.5",
     "istanbul": "^0.3.13",
-    "mocha": "^2.2.4",
+    "load-grunt-tasks": "^3.2.0",
+    "mocha": "^2.2.5",
     "nock": "~1.7.1",
+    "phantomjs": "^1.9.17",
     "saucelabs": "~0.1.1",
     "should": "^6.0.1"
   },
