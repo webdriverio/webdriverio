@@ -16,7 +16,7 @@ describe('saveScreenshot', function() {
     });
 
     it('should take a screenshot and return it as a PNG image in Buffer', function() {
-        return this.client.saveScreenshot(function(image) {
+        return this.client.saveScreenshot().then(function(image) {
             // Check for PNG header
             assert.equal(image.toString('hex', 0, 4), '89504e47');
         });

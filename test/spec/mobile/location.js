@@ -2,27 +2,16 @@ describe('orientation commands', function() {
 
     before(h.setup({ url: conf.testPage.gestureTest }));
 
-    it('should get current orientation (getOrientation)', function(done) {
-
-        this.client
-            .getOrientation(function(err, orientation) {
-                assert.ifError(err);
-                orientation.should.be.exactly('portrait');
-            })
-            .call(done);
-
+    it('should get current orientation (getOrientation)', function() {
+        return this.client.getOrientation().then(function(orientation) {
+            orientation.should.be.exactly('portrait');
+        });
     });
 
-    it('should change the orientation (setOrientation)', function(done) {
-
-        this.client
-            .setOrientation('landscape')
-            .getOrientation(function(err, orientation) {
-                assert.ifError(err);
-                orientation.should.be.exactly('landscape');
-            })
-            .call(done);
-
+    it('should change the orientation (setOrientation)', function() {
+        return this.client.setOrientation('landscape').getOrientation().then(function(orientation) {
+            orientation.should.be.exactly('landscape');
+        });
     });
 
 });

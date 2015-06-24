@@ -63,7 +63,7 @@ describe('event handling', function() {
                 .url(conf.testPage.start)
                 // click on non existing element to cause an error
                 .click('#notExistentant').catch(function(err) {
-                    err.message.should.match(/Problem: Unable to find element with id 'notExistentant'/);
+                    expect(err.message).to.be.equal('Unable to find element with id \'notExistentant\'');
                 })
                 .call(function() {
                     assert.ok(isErrorHandlerEmitted, 'error handler wasn\'t called');
