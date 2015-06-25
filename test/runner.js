@@ -9,7 +9,7 @@ var WebdriverIO = require('../index.js'),
     client, specFiles, specDir, browserA, browserB;
 
 var mocha = new Mocha({
-    timeout: 1000000,
+    timeout: 100000,
     reporter: 'spec'
 });
 
