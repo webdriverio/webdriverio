@@ -69,7 +69,7 @@ callbacks or promises!
 describe('example page', function() {
     var chai = require('chai');
     var chaiAsPromised = require('chai-as-promised');
-    
+
     chai.use(chaiAsPromised);
     chai.should();
     chaiAsPromised.transferPromiseness = client.transferPromiseness;
@@ -142,7 +142,7 @@ Default: *true*
 Enables colors for log output
 
 ### errorScreenshotDir
-Saves a screenshot to a given path if Selenium driver crashes
+Saves a screenshot to a given path if a command fails
 
 Type: `String`|`null`
 
