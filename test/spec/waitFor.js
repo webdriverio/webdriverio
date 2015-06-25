@@ -1,6 +1,6 @@
 describe('waitFor',function() {
 
-    var duration = 3500;
+    var duration = 5000;
     var checkTime = function(before) {
         return function(res) {
             var after = new Date().getTime(),
