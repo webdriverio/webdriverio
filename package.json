@@ -23,6 +23,7 @@
     }
   ],
   "main": "./index.js",
+  "bin": "bin/wdio",
   "engines": {
     "node": ">= 0.8.0"
   },
