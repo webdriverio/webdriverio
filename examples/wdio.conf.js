@@ -90,6 +90,24 @@ exports.config = {
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 1000,
     //
+    // Initialise the browser instance with a WebdriverIO plugin. The object should have the
+    // plugin name as key and the desired plugin options as property. Make sure you have
+    // the plugin installed before running any tests. The following plugins are currently
+    // available:
+    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
+    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
+    // Browserevent: https://github.com/webdriverio/browserevent
+    plugins: {
+        webdrivercss: {
+            screenshotRoot: 'my-shots',
+            failedComparisonsRoot: 'diffs',
+            misMatchTolerance: 0.05,
+            screenWidth: [320,480,640,1024]
+        },
+        webdriverrtc: {},
+        browserevent: {}
+    },
+    //
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
     // see also: http://webdriver.io/guide/testrunner/frameworks.html
