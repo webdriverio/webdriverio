@@ -93,5 +93,5 @@ DELETE http://ondemand.saucelabs.com:80/wd/hub/session/3f1c00dc831f49698a50a793c
 </testsuites>
 ```
 
-This enables a great integration to CI systems like Jenkins. Check out the [Jenkins Integration](/guide/testrunner/jenkinsintegration.html)
+This enables a great integration to CI systems like Jenkins. Check out the [Jenkins Integration](/guide/testrunner/jenkins.html)
 section to learn more about how to integrate WebdriverIO with Jenkins.
