@@ -23,7 +23,9 @@
     }
   ],
   "main": "./index.js",
-  "bin": "bin/wdio",
+  "bin": {
+    "wdio": "bin/wdio"
+  },
   "engines": {
     "node": ">= 0.8.0"
   },
@@ -42,6 +44,7 @@
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
     "deepmerge": "~0.2.7",
+    "glob": "^5.0.10",
     "optimist": "^0.6.1",
     "q": "~1.3.0",
     "request": "~2.55.0",
