@@ -38,7 +38,7 @@ Now the important part: create a build step to execute shell commands. That buil
 project. Since this demo project only tests an external app we don't need to build anything but install the
 node dependencies and run our test command `npm test` which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`.
 
-![Run Job](/images/jenkins-runjob.png "Run Job")
+![Build Step](/images/jenkins-runjob.png "Build Step")
 
 After our test we want Jenkins to track our xunit report. To do so we have to add a post-build action
 called _"Publish JUnit test result report"_. You could also install an external xunit plugin to track
@@ -48,7 +48,7 @@ According to our config file we store the xunit reports in our workspace root di
 xml files. So all we need to do in order to track the reports is to point Jenkins to all xml files in our root
 directory:
 
-![Post Job](/images/jenkins-postjob.png "Post Job")
+![Post-build Action](/images/jenkins-postjob.png "Post-build Action")
 
 That's it! This is all you need to setup Jenkins to run your WebdriverIO jobs. The only thing that
 didn't got mentioned is that Jenkins is setup in a way that it runs Node.js v0.12 and has the [Sauce Labs](https://saucelabs.com/)

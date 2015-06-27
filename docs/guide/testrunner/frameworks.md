@@ -23,7 +23,7 @@ e.g. [Chai As Promise](http://chaijs.com/plugins/chai-as-promised). Initialise t
 before: function() {
     var chai = require('chai');
     var chaiAsPromised = require('chai-as-promised');
-
+&nbsp;
     chai.use(chaiAsPromised);
     expect = chai.expect;
     chai.Should();
@@ -40,8 +40,11 @@ it('should do some chai assertions', function() {
 });
 ```
 
-If you want to define specific Mocha settings you can do that by adding `mochaOpts` to your configuration
-file. There are three different approaches how to deal with asynchronicity in your it blocks:
+Make sure to checkout the [transfer promises](/guide/usage/transferpromises.html) section to enable multiple
+consecutive assertions. If you want to define specific Mocha settings you can do that by adding `mochaOpts`
+to your configuration file.
+
+There are three different approaches how to deal with asynchronicity in your `it` blocks:
 
 ###### The Good Old Callback Way
 
