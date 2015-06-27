@@ -115,7 +115,7 @@ describe('my feature', function() {
             without any configuration in your enviroment.
         </p>
         <div>
-            <p>Webdriverjs supports services like:</p>
+            <p>WebdriverIO supports services like:</p>
             <p>
                 <a href="https://saucelabs.com">Sauce Labs</a>
                 <a href="http://www.browserstack.com/">BrowserStack</a>
