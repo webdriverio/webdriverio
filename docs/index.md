@@ -33,7 +33,7 @@ layout: start
     </ul>
     <ul>
         <li>Visual Regression Test Integration</li>
-        <li>different reporters made for async test caes</li>
+        <li><a href="http://gulpjs.com/">Gulp</a> and <a href="http://gruntjs.com/">Grunt</a> support</li>
         <li>selector chaining</li>
     </ul>
 </aside>
@@ -73,12 +73,12 @@ client
 
 ## Write your test specs with ES6 support!
 
-If your Node version allows it you can write your test specs using yield. The `wdio`
+If your are using Node.js (>=v0.11) or io.js you can write your test specs using yield. The `wdio`
 test runner supports ES6 generators and allows you to get rid of nasty callback code.
 
 ```js
 describe('my feature', function() {
-  it('should to something', function *() {
+  it('should do something', function *() {
 &nbsp;
     yield browser
         .url('https://duckduckgo.com/');
@@ -91,6 +91,15 @@ describe('my feature', function() {
   });
 });
 ```
+
+## Easy Test Setup
+
+The `wdio` command line interface comes with a nice configuration utility that helps you to
+create your config file in less than a minute.
+
+<div class="cliwindow">
+![WDIO configuration utility](/images/config-utility.gif "WDIO configuration utility")
+</div>
 
 <div>
     <article class="col2">
