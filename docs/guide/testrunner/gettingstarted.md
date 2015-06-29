@@ -44,11 +44,25 @@ Options:
 
 Sweet! Now you need to define a configuration file where all information about your tests, capabilities and
 settings are set. Switch over to the [Configuration File](/guide/testrunner/configurationfile.html) section
-to find out how that file should look like. Once you have your configuration file set up you can start your
+to find out how that file should look like. With the `wdio` configuration helper it is super easy to
+generate your config file. Just run:
+
+```sh
+$ wdio config
+```
+
+and it launches the helper utility. It will ask you questions depending on the answers you give. This way
+you can generate your config file in less than a minute.
+
+<div class="cliwindow" style="width: 92%">
+![WDIO configuration utility](/images/config-utility.gif "WDIO configuration utility")
+</div>
+
+Once you have your configuration file set up you can start your
 integration tests by calling:
 
 ```sh
-$ wdio config.js
+$ wdio wdio.conf.js
 ```
 
 That's it!
