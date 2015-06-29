@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v3.0.0 (2015-06-29)
+* rewritten WebdriverIO core to a Monad
+* removed ChainIt dependency
+* implemented test runner with different reporter and support for Mocha, Jasmine and Cucumber
+* added multiremote feature to control multiple instances at the same time
+* enable selector chaining
+* removed waitFor command (same as waitForExist)
+* new commands: [debug](http://webdriver.io/api/utility/debug.html)
+
 ## v2.4.5 (2015-01-30)
 * return promise result if responseMethod is not a function (see #401)
 
