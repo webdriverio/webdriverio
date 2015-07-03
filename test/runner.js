@@ -1,22 +1,24 @@
 var WebdriverIO = require('../index.js'),
     Mocha = require('mocha'),
-    should = require('should'),
+    should = require('should'), // jshint ignore:line
     SauceLabs = require('saucelabs'),
     glob = require('glob'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
-    client, specFiles, specDir;
+    specDir = env.match(/^(functional|multibrowser)$/),
+    client, specFiles, specDir, browserA, browserB;
 
 var mocha = new Mocha({
-    timeout: 1000000,
+    timeout: 100000,
     reporter: 'spec'
 });
 
 // globals for tests
 conf = require('./conf/index.js');
-assert = require('assert');
+assert = require('chai').assert;
+expect = require('chai').expect;
 
-if(specDir = env.match(/^(functional|multibrowser)$/)) {
+if(specDir) {
     // only test functional test spec if required
     specFiles = 'test/spec/' + specDir[0] + '/**/*.js';
 } else {
@@ -38,16 +40,13 @@ glob(process.env._SPEC || specFiles, function(er, files) {
         var sessionID = (client.requestHandler || {}).sessionID,
             endCommand = conf.runsWithSauce ? 'end' : 'endAll';
 
-        client[endCommand](function(err) {
-            assert.ifError(err);
-
+        client[endCommand]().then(function() {
             if (process.env.TRAVIS_BUILD_NUMBER) {
                 var sauceAccount = new SauceLabs({
                     username: process.env.SAUCE_USERNAME,
                     password: process.env.SAUCE_ACCESS_KEY
                 });
 
-                console.log('update job', sessionID);
                 sauceAccount.updateJob(sessionID, {
                     passed: failures === 0,
                     public: true
@@ -67,15 +66,11 @@ h = {
         assert(err === undefined);
     },
     checkResult: function(expected) {
-        return function(err, result) {
-            h.noError(err);
-
+        return function(result) {
             if(expected instanceof Array) {
-                expected.should.containDeep([result]);
-            } else {
-                expected.should.be.exactly(result);
+                return expected.should.containDeep([result]);
             }
-
+            expected.should.be.exactly(result);
         };
     },
     setup: function(options) {
@@ -84,7 +79,7 @@ h = {
             options = {};
         }
 
-        return function(done) {
+        return function() {
 
             if(options.remoteOptions) {
                 conf = merge(conf, options.remoteOptions);
@@ -109,7 +104,7 @@ h = {
                 this.client = client = WebdriverIO.remote(conf).init();
             }
 
-            this.client.url(options.url || conf.testPage.start, done);
+            return this.client.url(options.url || conf.testPage.start);
         };
     },
     setupMultibrowser: function(options) {

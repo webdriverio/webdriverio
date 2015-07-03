@@ -1,7 +1,7 @@
 name: multiremote
 category: usage
 tags: guide
-index: 3
+index: 4
 title: WebdriverIO - Multiremote
 ---
 
@@ -33,9 +33,11 @@ var browser = webdriverio.multiremote({
 });
 ```
 
-This would create two Selenium sessions with Chrome and Firefox. All commands you call with the
-`browser` variable gets executed in parallel with each browser. This helps to streamline your
-integration test and speedup the execution a bit.
+This would create two Selenium sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can
+also boot up two mobile devices using [Appium](http://appium.io/). Any kind of OS/browser combination is
+possible here. All commands you call with the `browser` variable gets executed in parallel with each instance.
+This helps to streamline your integration test and speedup the execution a bit. For example initialise the
+session and open up an url:
 
 ```js
 browser.init().url('http://chat.socket.io/');
@@ -48,13 +50,9 @@ Since more than one browser executes the command we also receive more than one r
 browser
     .init()
     .url('https://www.whatismybrowser.com/')
-    .getText('.string-major', function(err, text) {
-        console.log(text);
-        // returns:
-        // { 
-        //     myFirefoxBrowser: 'Firefox 35 on Mac OS X (Yosemite)',
-        //     myChromeBrowser: 'Chrome 40 on Mac OS X (Yosemite)'
-        // }
+    .getText('.string-major').then(function(resultChrome, resultFirefox) {
+        console.log(resultChrome); // returns: 'Chrome 40 on Mac OS X (Yosemite)'
+        console.log(resultFirefox); // returns: 'Firefox 35 on Mac OS X (Yosemite)'
     })
     .end();
 ```
@@ -71,40 +69,41 @@ by using the `select` method.
 ```js
 var myChromeBrowser = browser.select('myChromeBrowser');
 var myFirefoxBrowser = browser.select('myFirefoxBrowser');
- 
+&nbsp;
 myChromeBrowser
     .setInput('#message', 'Hi, I am Chrome')
     .click('#send');
- 
+&nbsp;
 myFirefoxBrowser
     .waitForExist('.messages', 5000)
-    .getText('.messages', function(err, messages) {
-        assert.ok(err);
+    .getText('.messages').then(function(messages) {
         assert.equal(messages, 'Hi, I am Chrome');
     });
 ```
 
-In that example the `myFirefoxBrowser` instance will start waiting on messages once the `myChromeBrowser`
-instance clicked on the send button. The execution is not in parallel. Multiremote makes it easy and
-convenient to control multiple browser either doing the same thing in parallel or something different
-in order. You will never have to care about racing conditions since every Selenium commands gets pushed
-into a single execution queue. Once you explicitly use one browser instance to execute a command all other
-browser will wait until that command finishes.
+In that example the `myFirefoxBrowser` instance will start waiting on a messages once the `myChromeBrowser`
+instance clicked on the send button. The execution is in parallel. Multiremote makes it easy and convenient
+to control multiple browser either doing the same thing in parallel or something different. In the latter case
+it might be the case where you want to sync up your instances to do something in parallel again. To do so
+just call the `sync` method. All methods which are chained behind the `sync` method get executed in parallel
+again:
 
 ```js
 // these commands get executed in parallel by all defined instances
 browser.init().url('http://example.com');
-
+&nbsp;
 // do something with the Chrome browser
 myChromeBrowser.setValue('.chatMessage', 'Hey Whats up!').keys('Enter')
-
+&nbsp;
 // do something with the Firefox browser
 myFirefoxBrowser.getText('.message', function(err, message) {
     console.log(messages);
     // returns: "Hey Whats up!"
 });
+&nbsp;
+// now sync instances again
+browser.sync().url('http://anotherwebsite.com');
 ```
 
-__Note:__ Multiremote is not meant to execute all your tests in parallel. Since all instances wait until the
-last browser has executed the command you wouldn't get any performance imrpovements. It should help you to
-coordinate more than one browser for sophisticated integration tests.
+__Note:__ Multiremote is not meant to execute all your tests in parallel. It should help you to coordinate
+more than one browser for sophisticated integration tests.

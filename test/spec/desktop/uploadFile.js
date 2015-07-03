@@ -4,13 +4,11 @@ describe('using the uploadFile helper', function() {
     var path = require('path');
     var toUpload = path.join(__dirname, '..', '..', 'fixtures', 'cat-to-upload.gif');
 
-    it('uploads a file to the distant client', function(done) {
-        this.client
-            .uploadFile(toUpload, function(err, res) {
-                assert.ifError(err);
-                assert.ok(res.value);
-                assert.ok(/cat\-to\-upload\.gif$/.test(res.value));
-                done(err);
-            });
+    it('uploads a file to the distant client', function() {
+        return this.client.uploadFile(toUpload).then(function(res) {
+            assert.ok(res.value);
+            assert.ok(/cat\-to\-upload\.gif$/.test(res.value));
+        });
     });
+
 });

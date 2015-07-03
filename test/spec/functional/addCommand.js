@@ -2,47 +2,61 @@ describe('addCommand', function() {
 
     before(h.setup());
 
-    before(function() {
+    describe('add regular command', function() {
 
-        this.client.addCommand('getUrlAndTitle', function(callback) {
+        before(function() {
+            this.client.addCommand('getUrlAndTitle', function() {
 
-            var result = {},
-                error;
+                var result = {};
 
-            this.url(function(err, url) {
-                    error = err;
+                return this.url().then(function(url) {
                     result.url = url.value;
-                })
-                .getTitle(function(err, title) {
-                    error = err;
+                }).getTitle().then(function(title) {
                     result.title = title;
-                })
-                .call(callback.bind(this, error, result));
+                }).then(function() {
+                    return result;
+                });
 
+            });
+        });
+
+        it('added a `getUrlAndTitle` command', function() {
+            return this.client.getUrlAndTitle().then(function(result) {
+                assert.strictEqual(result.url, conf.testPage.start);
+                assert.strictEqual(result.title, conf.testPage.title);
+            });
+        });
+
+        it('should promisify added command', function() {
+            return this.client.getUrlAndTitle().then(function(result) {
+                assert.strictEqual(result.url, conf.testPage.start);
+                assert.strictEqual(result.title, conf.testPage.title);
+            });
         });
 
     });
 
-    it('added a `getUrlAndTitle` command', function(done) {
+    describe('try to add an existing command', function() {
 
-        this.client
-            .getUrlAndTitle(function(err, result) {
-                assert.ifError(err);
-                assert.strictEqual(result.url, conf.testPage.start);
-                assert.strictEqual(result.title, conf.testPage.title);
-            })
-            .call(done);
+        it('should throw an error', function() {
+            var self = this;
 
-    });
+            (function(){
+                self.client.addCommand('shake', function() {
+                    return 'should fail';
+                });
+            }).should.throw();
+        });
 
-    it('should promisify added command', function(done) {
+        it('should overwrite existing method if overwrite flag is given', function() {
+            this.client.addCommand('shake', function() {
+                return 'should not fail';
+            }, true);
 
-        this.client
-            .getUrlAndTitle().then(function(result) {
-                assert.strictEqual(result.url, conf.testPage.start);
-                assert.strictEqual(result.title, conf.testPage.title);
-            })
-            .call(done);
+            return this.client.shake().then(function(res) {
+                expect(res).to.be.equal('should not fail');
+            });
+        });
 
     });
 

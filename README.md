@@ -5,7 +5,7 @@ WebdriverIO [![Build Status](https://travis-ci.org/webdriverio/webdriverio.png?b
 
 This library is a webdriver module for Node.js. It makes it possible to write
 super easy selenium tests in your favorite BDD or TDD test framework. It was
-originated by [Camilo Tapia's](https://github.com/camme) inital selenium project
+originated by [Camilo Tapia's](https://github.com/camme) initial selenium project
 called WebdriverJS.
 
 Have a look at the many [examples](examples/).
@@ -69,7 +69,7 @@ callbacks or promises!
 describe('example page', function() {
     var chai = require('chai');
     var chaiAsPromised = require('chai-as-promised');
-    
+
     chai.use(chaiAsPromised);
     chai.should();
     chaiAsPromised.transferPromiseness = client.transferPromiseness;
@@ -110,11 +110,28 @@ name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 See the [Selenium documentation](https://code.google.com/p/selenium/wiki/DesiredCapabilities) for a list of the available `capabilities`.
 
 ### logLevel
+Level of logging verbosity.
+
 Type: `String`
 
 Default: *silent*
 
 Options: *verbose* | *silent* | *command* | *data* | *result*
+
+### logOutput
+Pipe WebdriverIO logs into a file. You can define either a directory and WebdriverIO generates a filename for the log file
+or you can pass in writeable stream and everything gets redirected to that (last one doesn't work yet with the wdio runner).
+
+Type: `String|writeable stream`
+
+Defaults: *null*
+
+### baseUrl
+Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/` the base url gets prepended.
+
+Type: `String`
+
+Default: *null*
 
 ### coloredLogs
 
@@ -124,28 +141,19 @@ Default: *true*
 
 Enables colors for log output
 
-### screenshotPath
-Saves a screenshot to a given path if Selenium driver crashes
+### errorScreenshotDir
+Saves a screenshot to a given path if a command fails
 
 Type: `String`|`null`
 
 Default: *null*
 
-### singleton
-
-Type: `Boolean`
-
-Default: *false*
-
-Set to true if you always want to reuse the same remote
-
 ### waitforTimeout
+Default timeout for all waitForXXX commands.
 
 Type: `Number`
 
 Default: *500*
-
-Default timeout for all waitForXXX commands
 
 ## Selector API
 

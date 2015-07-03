@@ -1,12 +1,12 @@
 var webdriverio = require('../index');
-var helper = require('./webdriverio.externalAddCommandHelper')
+var helper = require('./webdriverio.externalAddCommandHelper');
 
 var options = {
     desiredCapabilities: {
         browserName: 'chrome'
     }
 };
-client = webdriverio.remote(options);
+var client = webdriverio.remote(options);
 client.addCommand('searchGoogle',helper.searchGoogle.bind(client));
 
 var SearchString = 'webdriver.io';

@@ -9,12 +9,13 @@ var local = {
 };
 
 if(process.env._ENV === 'multibrowser') {
-    return module.exports = {
+    module.exports = {
         capabilities: {
             browserA: local,
             browserB: local
         }
     };
+    return;
 }
 
-module.exports = local
+module.exports = local;

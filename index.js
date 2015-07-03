@@ -15,13 +15,12 @@
  *     Vincent Voyer <vincent@zeroload.net>
  */
 
-var createSingleton = require('pragma-singleton'),
-    WebdriverIO = require('./lib/webdriverio'),
-    Multibrowser = require('./lib/multibrowser')
+var WebdriverIO = require('./lib/webdriverio'),
+    Multibrowser = require('./lib/multibrowser'),
     ErrorHandler   = require('./lib/utils/ErrorHandler'),
     package = require('./package.json'),
-    chainIt = require('chainit'),
-    PromiseHandler = require('./lib/utils/PromiseHandler');
+    path = require('path'),
+    fs = require('fs');
 
 // expose version number
 module.exports.version = package.version;
@@ -30,53 +29,42 @@ module.exports.version = package.version;
 module.exports.ErrorHandler = ErrorHandler;
 
 // use the chained API reference to add static methods
-var remote = module.exports.remote = function remote(options, Constructor) {
+var remote = module.exports.remote = function remote(options, modifier) {
 
-    if (typeof options === 'function') {
-        Constructor = options;
-        options = {};
-    } else {
-        options = options || {};
+    options = options || {};
 
-        /**
-         * allows easy webdriverio-$framework creation (like webdriverio-angular)
-         */
-        Constructor = chainIt(Constructor || WebdriverIO);
+    /**
+     * initialise monad
+     */
+    var wdio = WebdriverIO(options, modifier);
 
-        /**
-         * fake promise behavior for all commands
-         */
-        Object.keys(Constructor.prototype).forEach(function(fnName) {
+    /**
+     * build prototype: commands
+     */
+    ['protocol', 'commands'].forEach(function(commandType) {
+        var dir = path.join(__dirname, 'lib', commandType),
+            files = fs.readdirSync(dir);
 
-            /**
-             * skip internal commands (e.g. `__addToChain`)
-             */
-            if(fnName.indexOf('__') === 0) {
-                return;
-            }
-
-            /**
-             * register Multibrowser so the command gets executed like follows
-             *
-             *     |--->PromiseHandler
-             *             |--->Multibrowser
-             *                     |--->ChainIt
-             *
-             * this setup enables calling commands on child processes "synchronously" and having
-             * all functionality chainIt provides
-             */
-            Constructor.prototype[fnName] = PromiseHandler(fnName, Constructor.prototype[fnName]);
+        files.forEach(function(filename) {
+            var commandName = filename.slice(0, -3);
+            wdio.lift(commandName, require(path.join(dir, filename)));
         });
-    }
+    });
 
-    if (options.singleton) {
-        var singleton = createSingleton(Constructor);
-        return new singleton(options);
-    } else {
-        return new Constructor(options);
-    }
+    var prototype = wdio();
+    prototype.defer.resolve();
+    return prototype;
 };
 
-module.exports.multiremote = function(options) {
-    return remote(options, Multibrowser);
+module.exports.multiremote = function multiremote(options) {
+    var multibrowser = new Multibrowser();
+
+    Object.keys(options).forEach(function(browserName) {
+        multibrowser.addInstance(
+            browserName,
+            remote(options[browserName], multibrowser.getInstanceModifier())
+        );
+    });
+
+    return remote(options, multibrowser.getModifier());
 };

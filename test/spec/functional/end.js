@@ -5,32 +5,26 @@ describe('end', function() {
 
     before(h.setup({ newSession: true }));
 
-    it('should delete a session', function(done) {
+    it('should delete a session', function() {
 
-        var that = this,
-            sessionID;
+        var sessions;
 
-        this.client
+        return this.client
 
             // check if client has a running session
-            .session(function(err,res) {
-                assert.ifError(err);
+            .sessions().then(function(res) {
                 assert.ok(res.value);
-
-                sessionID = that.client.requestHandler.sessionID;
+                sessions = res.value.length;
             })
 
             // end session
             .end()
 
             // check if session was closed
-            .call(function() {
-                that.client.sessions('get', sessionID, function(err,res) {
-                    assert.ifError(err);
-                    res.value.forEach(function(session) {
-                        session.id.should.not.equal(sessionID);
-                    });
-                }).call(done);
+            .then(function() {
+                return this.sessions().then(function(openSessions) {
+                    openSessions.value.should.have.length(sessions - 1);
+                });
             });
 
     });

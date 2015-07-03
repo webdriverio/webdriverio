@@ -10,7 +10,7 @@ find help and answers in our [Google Group](https://groups.google.com/forum/#!fo
 [Twitter](https://twitter.com/webdriverio). The following will give you a short step by step introduction to get
 your first WebdriverIO script up and running.
 
-Lets suppose you've [Node.js](http://nodejs.org/) and Java already installed. First thing we need to do is to
+Let's suppose you have [Node.js](http://nodejs.org/) and Java already installed. First thing we need to do is to
 start a selenium server that executes all selenium commands within the browser. To do so we create an example
 folder first:
 
@@ -23,14 +23,14 @@ Then let's download the current [selenium standalone server](http://docs.seleniu
 
 ** 2. Download selenium standalone server**
 ```sh
-$ curl -O http://selenium-release.storage.googleapis.com/2.43/selenium-server-standalone-2.43.1.jar
+$ curl -O http://selenium-release.storage.googleapis.com/2.45/selenium-server-standalone-2.45.0.jar
 ```
 
 Start the server by executing the following:
 
 ** 3. Start selenium standalone server**
 ```sh
-$ java -jar selenium-server-standalone-2.43.1.jar
+$ java -jar selenium-server-standalone-2.45.0.jar
 ```
 
 Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via
@@ -49,7 +49,7 @@ var options = {
         browserName: 'firefox'
     }
 };
-
+&nbsp;
 webdriverio
     .remote(options)
     .init()

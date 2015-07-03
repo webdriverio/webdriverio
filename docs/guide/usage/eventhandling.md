@@ -1,7 +1,7 @@
 name: eventhandling
 category: usage
 tags: guide
-index: 4
+index: 6
 title: WebdriverIO - Eventhandling
 ---
 
@@ -28,13 +28,13 @@ All commands are chainable, so you can use them while chaining your commands
 
 ```js
 var cnt;
-
+&nbsp;
 client
     .init()
     .once('countme', function(e) {
         console.log(e.elements.length, 'elements were found');
     })
-    .elements('.myElem', function(err,res) {
+    .elements('.myElem').then(function(res) {
         cnt = res.value;
     })
     .emit('countme', cnt)

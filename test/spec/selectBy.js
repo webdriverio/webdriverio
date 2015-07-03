@@ -3,100 +3,68 @@ describe('selectBy', function() {
 
     before(h.setup());
 
-    describe('VisibleText', function(done) {
+    describe('VisibleText', function() {
 
-        it('should find element without special conditions', function(done) {
-            this.client
-                .selectByVisibleText('#selectTest', 'seis')
-                .getValue('#selectTest', function(err, value) {
-                    assert.ifError(err);
-                    value.should.be.exactly('someValue6');
-                })
-                .call(done);
+        it('should find element without special conditions', function() {
+            return this.client.selectByVisibleText('#selectTest', 'seis').getValue('#selectTest').then(function (value) {
+                value.should.be.exactly('someValue6');
+            });
         });
 
-        it('should find element with spaces before and after the text', function(done) {
-            this.client
-                .selectByVisibleText('#selectTest', 'dos')
-                .getValue('#selectTest', function(err, value) {
-                    assert.ifError(err);
-                    value.should.be.exactly('someValue2');
-                })
-                .call(done);
+        it('should find element with spaces before and after the text', function() {
+            return this.client.selectByVisibleText('#selectTest', 'dos').getValue('#selectTest').then(function (value) {
+                value.should.be.exactly('someValue2');
+            });
         });
 
-        it('should find element with spaces before and after the text parameter', function(done) {
-            this.client
-                .selectByVisibleText('#selectTest', '    cinco    ')
-                .getValue('#selectTest', function(err, value) {
-                    assert.ifError(err);
-                    value.should.be.exactly('someValue5');
-                })
-                .call(done);
+        it('should find element with spaces before and after the text parameter', function() {
+            return this.client.selectByVisibleText('#selectTest', '   cinco  ').getValue('#selectTest').then(function (value) {
+                value.should.be.exactly('someValue5');
+            });
         });
 
     });
 
-    describe('Index', function(done) {
+    describe('Index', function() {
 
-        it('should find element without special conditions', function(done) {
-            this.client
-                .selectByIndex('#selectTest', 3)
-                .getValue('#selectTest', function(err, value) {
-                    assert.ifError(err);
-                    value.should.be.exactly('someValue4');
-                })
-                .call(done);
+        it('should find element without special conditions', function() {
+            return this.client.selectByIndex('#selectTest', 3).getValue('#selectTest').then(function (value) {
+                value.should.be.exactly('someValue4');
+            });
         });
 
-        it('should throw error if index is negative', function(done) {
-            this.client
-                .selectByIndex('#selectTest', -2, function(err) {
-                    assert.ifError(!!!err);
-                })
-                .call(done);
+        it('should throw error if index is negative', function() {
+            return this.client.selectByIndex('#selectTest', -2).catch(function(err) {
+                assert.ifError(!!!err);
+            });
         });
 
-        it('should throw error if index is higher than number of options', function(done) {
-            this.client
-                .selectByIndex('#selectTest', 99, function(err) {
-                    assert.ifError(!!!err);
-                })
-                .call(done);
+        it('should throw error if index is higher than number of options', function() {
+            return this.client.selectByIndex('#selectTest', 99).catch(function(err) {
+                assert.ifError(!!!err);
+            });
         });
 
     });
 
-    describe('Value', function(done) {
+    describe('Value', function() {
 
-        it('should find element without special conditions', function(done) {
-            this.client
-                .selectByValue('#selectTest', 'someValue1')
-                .getValue('#selectTest', function(err, value) {
-                    assert.ifError(err);
-                    value.should.be.exactly('someValue1');
-                })
-                .call(done);
+        it('should find element without special conditions', function() {
+            return this.client.selectByValue('#selectTest',  'someValue1').getValue('#selectTest').then(function (value) {
+                value.should.be.exactly('someValue1');
+            });
         });
 
-        it('should find element with spaces before and after the value', function(done) {
-            this.client
-                .selectByValue('#selectTest', 'someValue3')
-                .getValue('#selectTest', function(err, value) {
-                    assert.ifError(err);
-                    value.should.be.exactly('   someValue3  ');
-                })
-                .call(done);
+        it('should find element with spaces before and after the value', function() {
+            return this.client.selectByValue('#selectTest',  'someValue3').getValue('#selectTest').then(function (value) {
+                value.should.be.exactly('someValue3');
+            });
         });
 
-        it('should find element with spaces before and after the value parameter', function(done) {
-            this.client
-                .selectByValue('#selectTest', '    someValue5    ')
-                .getValue('#selectTest', function(err, value) {
-                    assert.ifError(err);
-                    value.should.be.exactly('someValue5');
-                })
-                .call(done);
+        it('should find element with spaces before and after the value parameter', function() {
+            return this.client.selectByValue('#selectTest', '    someValue5    ').getValue('#selectTest').then(function (value) {
+                value.should.be.exactly('someValue5');
+            });
         });
 
     });

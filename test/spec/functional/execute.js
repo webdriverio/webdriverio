@@ -1,48 +1,39 @@
-/* global document */
 describe('execute', function() {
     before(h.setup());
 
-    it('should be able to execute some js', function(done) {
-        this.client
-            .execute('return document.title', [], function(err, res) {
-                assert.ifError(err);
+    it('should be able to execute some js', function() {
+        return this.client
+            .execute('return document.title', []).then(function(res) {
                 assert.equal(conf.testPage.title, res.value);
-                done(err);
             });
     });
 
-    it('should be forgiving on giving an `args` parameter', function(done) {
-        this.client
-            .execute('return document.title', function(err, res) {
-                assert.ifError(err);
+    it('should be forgiving on giving an `args` parameter', function() {
+        return this.client
+            .execute('return document.title').then(function(res) {
                 assert.equal(conf.testPage.title, res.value);
-                done(err);
             });
     });
 
-    it('should be able to execute a pure function', function(done) {
-        this.client
+    it('should be able to execute a pure function', function() {
+        return this.client
             .execute(function() {
                 return document.title;
-            }, function(err, res) {
-                assert.ifError(err);
+            }).then(function(res) {
                 assert.equal(conf.testPage.title, res.value);
-                done(err);
             });
     });
 
-    it('should be able to take just a single function', function(done) {
-        this.client
+    it('should be able to take just a single function', function() {
+        return this.client
             .execute(function() {
                 window.testThatStuff = true;
             })
             .execute(function() {
                 return window.testThatStuff;
-            }, function(err, res) {
-                assert.ifError(err);
+            }).then(function(res) {
                 assert.equal(res.value, true);
-            })
-            .call(done);
+            });
     });
 
 });
