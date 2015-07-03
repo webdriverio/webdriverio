@@ -7,4 +7,4 @@ test/site.zip
 coverage
 .idea
 test.png
-package.json.orig
+*.orig
