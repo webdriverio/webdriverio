@@ -23,6 +23,7 @@ for a list of the available `capabilities`. Also useful is Sauce Labs [Automated
 that helps you to create this object by clicking together your desired capabilities.
 
 Type: `Object`<br>
+Default: `{ browserName: 'firefox' }`<br>
 
 **Example:**
 
@@ -46,7 +47,7 @@ Pipe WebdriverIO logs into a file. You can define either a directory and Webdriv
 or you can pass in writeable stream and everything gets redirected to that (last one doesn't work yet with the wdio runner).
 
 Type: `String|writeable stream`<br>
-Defaults: *null*
+Default: *null*
 
 ### baseUrl
 Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/` the base url gets prepended.

@@ -8,7 +8,7 @@ title: WebdriverIO - Install
 # Install
 
 You will need to have [Node.js](http://nodejs.org/) and [NPM](https://www.npmjs.org/) installed on your machine.
-Check out the project website for more instruction. If you want to have WebdriverIO integrated into your test
+Check out their project websites for more instructions. If you want to have WebdriverIO integrated into your test
 suite, then install it locally with:
 
 ```sh
@@ -30,7 +30,8 @@ $ wdio --help
 
 ## Set up your Selenium environment
 
-There are two ways of setting up your Selenium environment: as a standalone package or by installing the server and browser driver separately.
+There are two ways of setting up your Selenium environment: as a standalone package or by installing the
+server and browser driver separately.
 
 ### Use of existing standalone package
 
