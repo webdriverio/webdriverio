@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v3.0.1 (2015-07-04)
+* lowercase framework string (fixes #601)
+* make v3 work with PhantomJS < 2.0 (fixes #594)
+
 ## v3.0.0 (2015-06-29)
 * rewritten WebdriverIO core to a Monad
 * removed ChainIt dependency
