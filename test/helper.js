@@ -1,6 +1,7 @@
 'use strict';
 
 var WebdriverIO = require('../index.js'),
+    merge = require('deepmerge'),
     client, browserA, browserB;
 
 function end(passed, done) {
