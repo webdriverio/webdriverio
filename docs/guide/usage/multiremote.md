@@ -71,7 +71,7 @@ var myChromeBrowser = browser.select('myChromeBrowser');
 var myFirefoxBrowser = browser.select('myFirefoxBrowser');
 &nbsp;
 myChromeBrowser
-    .setInput('#message', 'Hi, I am Chrome')
+    .setValue('#message', 'Hi, I am Chrome')
     .click('#send');
 &nbsp;
 myFirefoxBrowser

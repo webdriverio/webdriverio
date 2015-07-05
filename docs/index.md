@@ -62,7 +62,7 @@ var client = webdriverio.remote(options);
 client
     .init()
     .url('https://duckduckgo.com/')
-    .setInput('#search_form_input_homepage', 'WebdriverIO')
+    .setValue('#search_form_input_homepage', 'WebdriverIO')
     .click('#search_button_homepage')
     .getTitle().then(function(title) {
         console.log('Title is: ' + title);
@@ -82,7 +82,7 @@ describe('my feature', function() {
 &nbsp;
     yield browser
         .url('https://duckduckgo.com/');
-        .setInput('#search_form_input_homepage', 'WebdriverIO')
+        .setValue('#search_form_input_homepage', 'WebdriverIO')
         .click('#search_button_homepage');
 &nbsp;
     var title = yield browser.getTitle();
