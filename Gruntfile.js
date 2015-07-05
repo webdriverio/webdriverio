@@ -20,6 +20,10 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
     require('./test/tasks/appium')(grunt);
 
+    if (grunt.option('selenium')) {
+        selenium.version = grunt.option('selenium');
+    }
+
     function setBrowser(browserName) {
         if (grunt.option('browser')) {
             browserName = grunt.option('browser');
