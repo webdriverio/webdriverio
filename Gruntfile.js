@@ -76,6 +76,9 @@ module.exports = function (grunt) {
             }
         },
         'mochaTest': {
+            options: {
+                force: true
+            },
             test: {
                 src: grunt.option('spec') || process.env._SPEC,
                 options: {
@@ -100,7 +103,7 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('run-test', ['connect', 'start-selenium-server', 'force:mochaTest', 'passfail']);
+    grunt.registerTask('run-test', ['connect', 'start-selenium-server', 'mochaTest', 'passfail']);
 
     grunt.registerTask('test-functional', function () {
         setEnv('functional');
@@ -122,12 +125,13 @@ module.exports = function (grunt) {
     grunt.registerTask('test-mobile', function () {
         setEnv('mobile');
         setBrowser('safari');
-        process.env._DEVICENAME = 'iPhone Simulator';
+        process.env._DEVICENAME = 'iPhone 6 Plus';
         process.env._PLATFORMNAME = 'iOS';
-        process.env._PLATFORMVERSION = 8.3;
+        process.env._PLATFORMVERSION = 8.4;
         process.env._APP = 'safari';
         process.env._PORT = 4723;
-        // process.env._APPIUMVERSION = 1.2;
-        grunt.task.run('connect', 'appium', 'force:mochaTest', 'passfail');
+        process.env._APPIUMVERSION = '1.3.4';
+        grunt.config.set('mochaTest.test.options.timeout', 30 * 1000);
+        grunt.task.run('connect', 'appium', 'mochaTest', 'passfail');
     });
 }
