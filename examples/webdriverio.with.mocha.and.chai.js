@@ -26,7 +26,7 @@ describe('my webdriverio tests', function(){
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 assert.equal(undefined, err);
-                assert.strictEqual(result.value, 'rgba(65,131,196,1)');
+                assert.strictEqual(result.value, 'rgba(64,120,192,1)');
             })
             .call(done);
     });
