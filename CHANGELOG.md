@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v3.0.3 (2015-07-06)
+* show also title of pending test (refs #606)
+
 ## v3.0.2 (2015-07-06)
 * if specFn is undefined we are dealing with a pending function (fixes #606)
 
