@@ -66,8 +66,8 @@ vows.describe('my github tests').addBatch({
                     assert(err === null);
                 },
 
-                'color should be rgba(65,131,196,1)': function(err,result) {
-                    assert(result.value === 'rgba(65,131,196,1)');
+                'color should be rgba(64,120,192,1)': function(err,result) {
+                    assert(result.value === 'rgba(64,120,192,1)');
                 }
 
             }

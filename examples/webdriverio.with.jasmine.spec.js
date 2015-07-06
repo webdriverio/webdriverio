@@ -41,7 +41,7 @@ describe('my webdriverio tests', function() {
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, color){
                 expect(err).toBeFalsy();
-                expect(color).toBe('rgba(65,131,196,1)');
+                expect(color).toBe('rgba(64,120,192,1)');
             })
             .call(done);
     });

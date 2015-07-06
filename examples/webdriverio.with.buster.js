@@ -25,7 +25,7 @@ buster.testCase('Nested setup and teardown call order', {
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 assert(err === undefined);
-                assert(result.value === 'rgba(65,131,196,1)');
+                assert(result.value === 'rgba(64,120,192,1)');
             })
             .call(done);
     },
