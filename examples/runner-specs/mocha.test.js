@@ -24,6 +24,8 @@ describe('webdriver.io page', function() {
 
     });
 
+    it('should be a pending test');
+
     it('should have the right title - the fancy generator way', function* () {
 
         yield browser.url('/');
