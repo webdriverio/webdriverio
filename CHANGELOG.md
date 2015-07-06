@@ -16,7 +16,7 @@
 * implemented test runner with different reporter and support for Mocha, Jasmine and Cucumber
 * added multiremote feature to control multiple instances at the same time
 * enable selector chaining
-* removed waitFor command (same as waitForExist)
+* removed waitFor command (please replace it with waitForExist as it works the same way)
 * new commands: [debug](http://webdriver.io/api/utility/debug.html)
 
 ## v2.4.5 (2015-01-30)
