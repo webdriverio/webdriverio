@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v3.0.2 (2015-07-06)
+* if specFn is undefined we are dealing with a pending function (fixes #606)
+
 ## v3.0.1 (2015-07-04)
 * lowercase framework string (fixes #601)
 * make v3 work with PhantomJS < 2.0 (fixes #594)
