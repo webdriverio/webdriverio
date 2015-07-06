@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v3.0.4 (2015-07-07)
+* fixed bug where feature files got filtered out in config parser
+
 ## v3.0.3 (2015-07-06)
 * show also title of pending test (refs #606)
 
