@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v3.0.5 (2015-07-07)
+* mocha framework: allow inclusive and exclusive tests
+
 ## v3.0.4 (2015-07-07)
 * fixed bug where feature files got filtered out in config parser
 
