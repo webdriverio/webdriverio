@@ -8,7 +8,7 @@ WebdriverIO
 
 ***
 
-#### [Homepage](http://webdriver.io) | [Developer Guide](http://webdriver.io/guide) | [API Reference](http://webdriver.io/api) | [Contribute](http://webdriver.io/contribute.html)
+#### [Homepage](http://webdriver.io) | [Developer Guide](http://webdriver.io/guide.html) | [API Reference](http://webdriver.io/api.html) | [Contribute](http://webdriver.io/contribute.html)
 
 This library is a webdriver module for Node.js. It makes it possible to write
 super easy selenium tests in your favorite BDD/TDD test framework. It was
