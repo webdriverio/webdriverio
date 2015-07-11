@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v3.1.0 (2015-07-11)
+* better error messages if waitForXXX commands fail
+* improved error handling
+* set default logging prefs
+* allow to intercept jasmine assertions
+* check logging types before requesting logs
+* minor bugfixes and doc improvements
+
 ## v3.0.5 (2015-07-07)
 * mocha framework: allow inclusive and exclusive tests
 
