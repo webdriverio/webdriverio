@@ -48,7 +48,7 @@ describe('event handling', function() {
                 .init()
                 .call(function() {
                     assert.ok(isInitHandlerEmitted, 'init handler wasn\'t called');
-                    assert.strictEqual(uri.host, '0.0.0.0:4444');
+                    assert.strictEqual(uri.host, '127.0.0.1:4444');
                     assert.strictEqual(desiredCapabilties, 'phantomjs');
                 });
         });
