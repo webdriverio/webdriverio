@@ -24,8 +24,9 @@ a test!
 
 Download the latest Selenium [standalone server](http://selenium-release.storage.googleapis.com/index.html)
 and run it via
+
 ```sh
-$ java -jar selenium-server-standalone-2.41.0.jar
+$ java -jar selenium-server-standalone-2.46.0.jar
 ```
 
 Make sure you have all the dependencies installed
@@ -54,22 +55,22 @@ To ensure that you can run one of the following commands:
 ```sh
 # if your patch is browser specific
 # (e.g. upload files)
-npm run-script test-desktop
+npm run test-desktop
 
 # if your patch is mobile specific
 # (e.g. flick or swipe tests)
-npm run-script test-mobile
+npm run test-mobile
 
 # if your patch is functional and hasn't something to do with Selenium
 # (e.g. library specific fixes like changes within EventHandler.js)
-npm run-script test-functional
+npm run test-functional
 ```
 
 While developing you can run tests on specific specs by passing another
 environment variable `_SPEC`, e.g.
 
 ```sh
-$ _SPEC=test/spec/YOURSPEC.js npm run-script test-desktop
+$ _SPEC=test/spec/YOURSPEC.js npm run test-desktop
 ```
 
 ### Syntax rules

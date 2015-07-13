@@ -95,6 +95,37 @@ Jasmine already provides assertion methods you can use with WebdriverIO. Also th
 asynchronicity is the same like using Mocha. The only difference is that you can change Jasmines
 `defaultTimeoutInterval` by settings it in the `jasmineNodeOpts` in your configuration file.
 
+### Intercept Assertion
+
+The Jasmine framework allows it to intercept each assertion in order to log the state of the application
+or website depending on the result. For example it is pretty handy to take a screenshot everytime
+an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler`
+that takes a function to execute. The function parameter give you information about the result of
+the assertion. The following example demonstrate how to take a screenshot if an assertion fails:
+
+```js
+jasmineNodeOpts: {
+    defaultTimeoutInterval: 10000,
+    expectationResultHandler: function(passed, assertion) {
+&nbsp;
+        /**
+         * only take screenshot if assertion failed
+         */
+        if(!passed) {
+            return;
+        }
+&nbsp;
+        var title = assertion.message.replace(/\s/g, '-');
+        browser.saveScreenshot(('assertionError_' + title + '.png'));
+&nbsp;
+    }
+},
+```
+
+Please note that you can't stop the test execution to do something async. It might happen that
+the command takes too much time and the website state has changed. Though usually after 2 another
+commands the screenshot got taken which gives you still valueable information about the error.
+
 ## Using Cucumber
 
 If you want to use Cucumber set the `framework` property to cucumber, either by adding `framework: 'cucumber'`

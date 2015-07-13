@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v3.1.0 (2015-07-11)
+* better error messages if waitForXXX commands fail
+* improved error handling
+* set default logging prefs
+* allow to intercept jasmine assertions
+* check logging types before requesting logs
+* minor bugfixes and doc improvements
+
+## v3.0.5 (2015-07-07)
+* mocha framework: allow inclusive and exclusive tests
+
+## v3.0.4 (2015-07-07)
+* fixed bug where feature files got filtered out in config parser
+
 ## v3.0.3 (2015-07-06)
 * show also title of pending test (refs #606)
 
@@ -16,7 +30,7 @@
 * implemented test runner with different reporter and support for Mocha, Jasmine and Cucumber
 * added multiremote feature to control multiple instances at the same time
 * enable selector chaining
-* removed waitFor command (same as waitForExist)
+* removed waitFor command (please replace it with waitForExist as it works the same way)
 * new commands: [debug](http://webdriver.io/api/utility/debug.html)
 
 ## v2.4.5 (2015-01-30)

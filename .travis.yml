@@ -6,6 +6,8 @@ language: node_js
 node_js:
   - "0.12"
 
+sudo: false
+
 branches:
   except:
     - /^v[0-9]/
