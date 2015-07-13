@@ -30,7 +30,7 @@
     "test-mobile": "grunt test-mobile",
     "test-functional": "grunt test-functional",
     "test-multibrowser": "grunt test-multibrowser",
-    "coverage": "istanbul cover grunt test-functional",
+    "coverage": "istanbul cover grunt test",
     "postinstall": "[ \"$NODE_ENV\" != production ] && cd test/site/www/ && bower install",
     "prepublish": "npm prune"
   },
