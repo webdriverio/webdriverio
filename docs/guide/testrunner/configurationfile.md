@@ -157,6 +157,13 @@ exports.config = {
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,
         //
+        // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
+        // or website depending on the result. For example it is pretty handy to take a screenshot everytime
+        // an assertion fails.
+        expectationResultHandler: function(passed, assertion) {
+            // do something
+        },
+        //
         // Make use of jasmine specific grep functionality
         grep: null,
         invertGrep: null

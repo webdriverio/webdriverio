@@ -106,7 +106,7 @@ the assertion. The following example demonstrate how to take a screenshot if an 
 ```js
 jasmineNodeOpts: {
     defaultTimeoutInterval: 10000,
-    expectationResultHandler: function(passed assertion) {
+    expectationResultHandler: function(passed, assertion) {
 &nbsp;
         /**
          * only take screenshot if assertion failed
