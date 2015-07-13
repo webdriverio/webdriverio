@@ -1,5 +1,5 @@
 module.exports = {
-    port: 4445,
+    port: 4444,
     logLevel: 'command',
     waitforTimeout: 1000,
     runsWithSauce: true,
