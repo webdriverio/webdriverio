@@ -66,7 +66,7 @@ client.getText('h1=Welcome to my Page', function(err, text) {
 or using query partial text
 
 ```js
-client.getText('h1=Welcome', function(err, text) {
+client.getText('h1*=Welcome', function(err, text) {
     console.log(text); // outputs: "Welcome to my Page"
 });
 ```
@@ -81,16 +81,16 @@ The same works for ids and class names:
 client.getText('.someElem=WebdriverIO is the best', function(err, text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
- 
+
 client.getText('#elem=WebdriverIO is the best', function(err, text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
- 
-client.getText('.someElem=WebdriverIO', function(err, text) {
+
+client.getText('.someElem*=WebdriverIO', function(err, text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
- 
-client.getText('#elem=WebdriverIO', function(err, text) {
+
+client.getText('#elem*=WebdriverIO', function(err, text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
 ```
