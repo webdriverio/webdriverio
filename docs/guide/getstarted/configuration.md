@@ -5,7 +5,7 @@ index: 2
 title: WebdriverIO - Configuration
 ---
 
-# Basic Configuartion
+# Basic Configuration
 
 If you create a WebdriverIO instance you need to define couple of options in order to set the proper
 capabilities and settings. When calling the `remote` method like:
