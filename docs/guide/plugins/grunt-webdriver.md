@@ -21,7 +21,7 @@ install this plugin with this command:
 npm install grunt-webdriver --save-dev
 ```
 
-One the plugin has been installed, it may be enabled inside your Gruntfile
+Once the plugin has been installed, it may be enabled inside your Gruntfile
 with this line of JavaScript:
 
 ```js
