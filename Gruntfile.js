@@ -1,7 +1,8 @@
 'use strict';
-var selenium = {
+var merge = require('deepmerge'),
+    selenium = {
         base: 'https://selenium-release.storage.googleapis.com',
-        version: '2.45.0',
+        version: '2.46.0',
         get minorVersion () {
             return this.version.split('.').slice(0, 2).join('.');
         },
@@ -82,8 +83,10 @@ module.exports = function (grunt) {
                     }
                 }
             },
-            'appium': {
+            'stop-selenium-server': {
+                dev: {}
             },
+            'appium': {},
             'mochaTest': {
                 options: {
                     force: true

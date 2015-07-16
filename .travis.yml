@@ -31,42 +31,24 @@ env:
     - secure: dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w=
 
   matrix:
-    - _BROWSER: "chrome"
-      _PLATFORM: "Windows_8"
-      _VERSION: "34"
-      _ENV: "desktop"
-    - _BROWSER: "firefox"
-      _PLATFORM: "Windows_8"
-      _VERSION: "29"
-      _ENV: "desktop"
-    - _BROWSER: "internet_explorer"
-      _PLATFORM: "Windows_8"
+    - _ENV: "desktop"
+      _BROWSER: "chrome"
+
+    - _ENV: "desktop"
+      _BROWSER: "firefox"
+
+    - _ENV: "desktop"
+      _BROWSER: "internet_explorer"
       _VERSION: "10"
-      _ENV: "desktop"
-    - _BROWSER: "Safari"
-      _PLATFORM: "iOS"
-      _APP: "safari"
-      _DEVICENAME: "iPhone_Simulator"
-      _VERSION: "7.1"
-      _ENV: "mobile"
-    - _BROWSER: "Safari"
-      _PLATFORM: "iOS"
-      _APP: "safari"
+
+    - _ENV: "mobile"
+
+    - _ENV: "mobile"
       _DEVICENAME: "iPad_Simulator"
-      _VERSION: "7.1"
-      _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "android"
-    #   _DEVICENAME: "Google_Nexus_7_HD_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "Android"
-    #   _DEVICENAME: "Samsung_Galaxy_Nexus_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
-    - _BROWSER: "phantomjs"
-      _ENV: "functional"
+
+    - _ENV: "functional"
+      _BROWSER: "phantomjs"
+
     - _ENV: "multibrowser"
 
 notifications:
