@@ -171,7 +171,9 @@ exports.config = {
     //
     // If you are using Cucumber you need to specify where your step definitions are located.
     cucumberOpts: {
-        require: ['./examples/runner-specs/cucumber/step-definitions.js']
+        require: ['./examples/runner-specs/cucumber/step-definitions.js'],
+        // Enable this config to treat undefined definitions as warnings.
+        ignoreUndefinedDefinitions: false
     },
     //
     // =====
