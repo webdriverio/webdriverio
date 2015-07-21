@@ -56,7 +56,7 @@ module.exports = function (grunt) {
                 _MOCHATIMEOUT: 5 * 1000
             },
             unshift: {
-                PATH: 'node_modules/.bin/:'
+                PATH: './node_modules/.bin/:./node_modules/chromedriver/bin/:'
             }
         }
     });

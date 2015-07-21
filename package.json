@@ -56,6 +56,7 @@
     "bower": "^1.4.1",
     "chai": "~2.3.0",
     "chai-as-promised": "^5.0.0",
+    "chromedriver": "^2.16.0",
     "coveralls": "~2.11.2",
     "es6-promise": "^2.1.1",
     "grunt": "^0.4.5",
