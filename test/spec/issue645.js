@@ -1,29 +1,40 @@
 var Q = require("q");
 
-describe('issue645', function() {
+describe.only('issue645', function() {
 
     before(h.setup({url: 'http://localhost:8080/test/site/www/table.html'}));
 
-    it('should select cell using context of row', function(done) {
+    it('should select cell using context of row', function() {
 
         this.timeout(60000);
         this.slow(5000);
 
         var client = this.client;
 
-        this.client.waitForVisible("table", 5000).elements("tr").then(function(rows) {
+        return this.client.waitForVisible("table", 5000).elements("tr").then(function(rows) {
+
+            var foundRows = [];
 
             rows.value.forEach(function(element, idx) {
-                console.log(idx, "row", element, "element");
                 
-                var td1 = client.elementIdElement(element.ELEMENT, "td=2015-03-02").then(function() { console.log("found date row "+idx); });
-                var td2 = client.elementIdElement(element.ELEMENT, "td=12:00").then(function() { console.log("found time row "+idx); });
+                var td1 = client.elementIdElement(element.ELEMENT, "td=2015-03-02");
+                var td2 = client.elementIdElement(element.ELEMENT, "td=12:00");
 
-                Q.all([td1, td2]).then(function() {
-                    console.log("found correct in row "+idx);
-                },function() {
-                   console.log("found nothing in row "+idx);
-                });
+                var p = Q.all([td1, td2])
+                    .then(function() {
+                        return true;
+                    }).catch(function() {
+                       return false;
+                    });
+
+                foundRows.push(p);
+            });
+
+            return Q.all(foundRows).then(function(rows) {
+                rows.should.be.an.instanceOf(Array);
+                rows.should.have.length(2);
+                rows.should.containEql(true);
+                rows.should.containEql(false);
             });
         });
 
