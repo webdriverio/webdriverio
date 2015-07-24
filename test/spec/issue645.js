@@ -5,7 +5,7 @@ describe('issue645', function() {
     before(h.setup({url: 'http://localhost:8080/test/site/www/table.html'}));
 
     it('should select cell using context of row', function(done) {
-        
+
         this.timeout(60000);
         this.slow(5000);
 
