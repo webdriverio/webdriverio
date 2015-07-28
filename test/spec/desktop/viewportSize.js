@@ -21,4 +21,14 @@ describe('setViewportSize/getViewportSize', function() {
         });
     });
 
+    it('should set window size exactly when parameter \'type\' is false', function() {
+        return this.client.setViewportSize({
+            width: 500,
+            height: 500
+        }, false).windowHandleSize().then(function(res) {
+            res.value.width.should.be.exactly(500);
+            res.value.height.should.be.exactly(500);
+        });
+    })
+
 });
