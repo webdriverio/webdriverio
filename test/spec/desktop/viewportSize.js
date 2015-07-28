@@ -29,6 +29,5 @@ describe('setViewportSize/getViewportSize', function() {
             res.value.width.should.be.exactly(500);
             res.value.height.should.be.exactly(500);
         });
-    })
-
+    });
 });
