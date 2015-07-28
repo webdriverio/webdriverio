@@ -1,3 +1,5 @@
+var q = require('q');
+
 describe('selectorChaining', function() {
 
     before(h.setup());
@@ -30,6 +32,38 @@ describe('selectorChaining', function() {
         return this.client.element('.nested').element('.moreNesting').element('.findme').getText().then(function(elements) {
             elements.should.be.equal('MORE NESTED');
         });
+    });
+
+    it('should select cell using context of row', function() {
+        var client = this.client;
+
+        return this.client.elements('tr').then(function(rows) {
+
+            var foundRows = [];
+
+            rows.value.forEach(function(element) {
+
+                var td1 = client.elementIdElement(element.ELEMENT, 'td=2015-03-02');
+                var td2 = client.elementIdElement(element.ELEMENT, 'td=12:00');
+
+                var p = q.all([td1, td2])
+                    .then(function() {
+                        return true;
+                    }).catch(function() {
+                        return false;
+                    });
+
+                foundRows.push(p);
+            });
+
+            return q.all(foundRows).then(function(rows) {
+                rows.should.be.an.instanceOf(Array);
+                rows.should.have.length(2);
+                rows.should.containEql(true);
+                rows.should.containEql(false);
+            });
+        });
+
     });
 
 });
