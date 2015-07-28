@@ -5,7 +5,7 @@ describe('setViewportSize/getViewportSize', function() {
         return this.client.setViewportSize({
             width: 500,
             height: 500
-        }).getViewportSize().then(function(size) {
+        }, true).getViewportSize().then(function(size) {
             size.width.should.be.exactly(500);
             size.height.should.be.exactly(500);
         });
@@ -15,20 +15,19 @@ describe('setViewportSize/getViewportSize', function() {
         return this.client.setViewportSize({
             width: 500,
             height: 500
-        }).windowHandleSize().then(function(res) {
+        }, true).windowHandleSize().then(function(res) {
             res.value.width.should.be.greaterThan(499);
             res.value.height.should.be.greaterThan(499);
         });
     });
 
-    it('should set window size exactly when parameter \'type\' is false', function() {
+    it('should set window size exactly when parameter \'type\' is false by default', function() {
         return this.client.setViewportSize({
             width: 500,
             height: 500
-        }, false).windowHandleSize().then(function(res) {
+        }).windowHandleSize().then(function(res) {
             res.value.width.should.be.exactly(500);
             res.value.height.should.be.exactly(500);
         });
-    })
-
+    });
 });
