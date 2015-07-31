@@ -1,4 +1,4 @@
-we![WebdriverIO](http://www.christian-bromann.com/wdio.png)
+![WebdriverIO](http://www.christian-bromann.com/wdio.png)
 WebdriverIO
 ===========
 
@@ -14,6 +14,7 @@ This library is a [webdriver](http://google-opensource.blogspot.com/2009/05/intr
 (browser automation) module for Node.JS. It makes it possible to write
 super easy [Selenium](https://en.wikipedia.org/wiki/Selenium_(software)) tests in your favorite
 BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, Browsertack or Testingbot.
+
 
 ## Syantax example
 
@@ -46,11 +47,15 @@ browser
 For more details on the comparison between WebdriverIO, selenium-webdriverjs and WD.js,
 read [this discussion](https://github.com/webdriverio/webdriverio/issues/138).
 
-## History
 
-WebdriverIO was originated by [Camilo Tapia's](https://github.com/camme) initial
-Selenium project called WebdriverJS, which was the first webdriver project on NPM.
-In 2014, the project was renamed WebdriverIO.
+## Plugins
+
+[![Grunt Integration](http://webdriver.io/images/plugins/grunt.png)](https://github.com/webdriverio/grunt-webdriver)
+[![Gulp Integration](http://webdriver.io/images/plugins/gulp.png)](https://github.com/webdriverio/gulp-webdriver)
+[![Sublime Text Plugin](http://webdriver.io/images/plugins/sublime.png)](https://packagecontrol.io/packages/WebdriverIO)
+[![Visual Regression Testing with Applitools Eyes](http://webdriver.io/images/plugins/applitools.png)](https://github.com/webdriverio/webdrivercss#applitools-eyes-support)
+[![WebRTC Analytics Plugin](http://webdriver.io/images/plugins/webrtc.png)](https://github.com/webdriverio/webdriverrtc)
+
 
 ## Installation
 
@@ -68,18 +73,10 @@ npm install -g webdriverio
 
 Simply run `wdio config` and the configuration helper wizard will get you set up:
 
-![wdio wizard screen](https://cloud.githubusercontent.com/assets/33569/9005399/b876d33e-3732-11e5-98bc-d47ef030e595.png)
+![wdio wizard](http://webdriver.io/images/config-utility.gif)
 
 With all that done, have a look at the many [examples](examples/).
 
-
-## Plugins
-
-[![Grunt Integration](http://webdriver.io/images/plugins/grunt.png)](https://github.com/webdriverio/grunt-webdriver)
-[![Gulp Integration](http://webdriver.io/images/plugins/gulp.png)](https://github.com/webdriverio/gulp-webdriver)
-[![Sublime Text Plugin](http://webdriver.io/images/plugins/sublime.png)](https://packagecontrol.io/packages/WebdriverIO)
-[![Visual Regression Testing with Applitools Eyes](http://webdriver.io/images/plugins/applitools.png)](https://github.com/webdriverio/webdrivercss#applitools-eyes-support)
-[![WebRTC Analytics Plugin](http://webdriver.io/images/plugins/webrtc.png)](https://github.com/webdriverio/webdriverrtc)
 
 ## Need help?
 
@@ -89,6 +86,7 @@ Twitter or just file an [issue](https://github.com/webdriverio/webdriverio/issue
 Also if you miss any feature, let us know so we can make WebdriverIO even better. For news or
 announcements check [@WebdriverIO](http://twitter.com/webdriverio) on Twitter.
 
+
 ## NPM Maintainers
 
 The [npm module](https://www.npmjs.com/package/webdriverio) for this library is maintained by:
@@ -97,6 +95,14 @@ The [npm module](https://www.npmjs.com/package/webdriverio) for this library is 
 * [Dan Jenkins](http://github.com/danjenkins)
 * [Christian Bromann](https://github.com/christian-bromann)
 * [Vincent Voyer](https://github.com/vvo)
+
+
+## History
+
+WebdriverIO was originated by [Camilo Tapia's](https://github.com/camme) initial
+Selenium project called WebdriverJS, which was the first webdriver project on NPM.
+In 2014, the project was renamed WebdriverIO.
+
 
 ### License
 
