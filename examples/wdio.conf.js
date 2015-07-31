@@ -23,7 +23,7 @@ exports.config = {
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
-    // If you are using Sauce Labs WebdriverIO takes care about updating the job information
+    // If you are using Sauce Labs, WebdriverIO takes care to update the job information
     // once the test is done. This option is set to `true` per default.
     //
     updateJob: true,
@@ -47,12 +47,12 @@ exports.config = {
     // Capabilities
     // ============
     // Define your capabilities here. WebdriverIO can run multiple capabilties at the same
-    // time. Depending on the number of capabilities WebdriverIO launches several test
+    // time. Depending on the number of capabilities, WebdriverIO launches several test
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
     //
-    // If you have trouble getting all important capabilities together check out Sauce Labs
-    // platform configurator. A great tool to configure your capabilities.
+    // If you have trouble getting all important capabilities together, check out the
+    // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
@@ -77,20 +77,20 @@ exports.config = {
     // Level of logging verbosity.
     logLevel: 'silent',
     //
-    // Enables colors for log output
+    // Enables colors for log output.
     coloredLogs: true,
     //
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: 'shots',
     //
-    // Shorten url command calls by setting a base url. If your url parameter starts with "/"
-    // the base url gets prepended.
+    // Set a base URL in order to shorten url command calls. If your url parameter starts
+    //  with "/", the base url gets prepended.
     baseUrl: 'http://localhost:8080',
     //
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 1000,
     //
-    // Initialise the browser instance with a WebdriverIO plugin. The object should have the
+    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
     // plugin name as key and the desired plugin options as property. Make sure you have
     // the plugin installed before running any tests. The following plugins are currently
     // available:
@@ -151,7 +151,7 @@ exports.config = {
             // do something
         },
         //
-        // Make use of jasmine specific grep functionality
+        // Make use of Jasmine-specific grep functionality
         grep: null,
         invertGrep: null
     },
@@ -166,7 +166,7 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // Run functions before or after the test. If one of them return with a promise, WebdriverIO
+    // Run functions before or after the test. If one of them returns with a promise, WebdriverIO
     // will wait until that promise got resolved to continue.
     // see also: http://webdriver.io/guide/testrunner/hooks.html
     //
