@@ -15,6 +15,33 @@ This library is a [webdriver](https://w3c.github.io/webdriver/webdriver-spec.htm
 super easy [Selenium](https://en.wikipedia.org/wiki/Selenium_(software)) tests in your favorite
 BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, Browsertack or Testingbot.
 
+## Installation
+
+```shell
+npm install webdriverio
+```
+
+or if you want to use the wdio test runner
+
+```shell
+npm install -g webdriverio
+```
+
+## Getting started
+
+Simply run `wdio config` and the configuration helper wizard will get you set up:
+
+![wdio wizard](http://webdriver.io/images/config-utility.gif)
+
+With all that done, have a look at the many [examples](examples/).
+
+## Plugins
+
+[![Grunt Integration](http://webdriver.io/images/plugins/grunt.png)](https://github.com/webdriverio/grunt-webdriver)
+[![Gulp Integration](http://webdriver.io/images/plugins/gulp.png)](https://github.com/webdriverio/gulp-webdriver)
+[![Sublime Text Plugin](http://webdriver.io/images/plugins/sublime.png)](https://packagecontrol.io/packages/WebdriverIO)
+[![Visual Regression Testing with Applitools Eyes](http://webdriver.io/images/plugins/applitools.png)](https://github.com/webdriverio/webdrivercss#applitools-eyes-support)
+[![WebRTC Analytics Plugin](http://webdriver.io/images/plugins/webrtc.png)](https://github.com/webdriverio/webdriverrtc)
 
 ## Syantax example
 
@@ -46,37 +73,6 @@ browser
 
 For more details on the comparison between WebdriverIO, selenium-webdriverjs and WD.js,
 read [this discussion](https://github.com/webdriverio/webdriverio/issues/138).
-
-
-## Plugins
-
-[![Grunt Integration](http://webdriver.io/images/plugins/grunt.png)](https://github.com/webdriverio/grunt-webdriver)
-[![Gulp Integration](http://webdriver.io/images/plugins/gulp.png)](https://github.com/webdriverio/gulp-webdriver)
-[![Sublime Text Plugin](http://webdriver.io/images/plugins/sublime.png)](https://packagecontrol.io/packages/WebdriverIO)
-[![Visual Regression Testing with Applitools Eyes](http://webdriver.io/images/plugins/applitools.png)](https://github.com/webdriverio/webdrivercss#applitools-eyes-support)
-[![WebRTC Analytics Plugin](http://webdriver.io/images/plugins/webrtc.png)](https://github.com/webdriverio/webdriverrtc)
-
-
-## Installation
-
-```shell
-npm install webdriverio
-```
-
-or if you want to use the wdio test runner
-
-```shell
-npm install -g webdriverio
-```
-
-## Getting started
-
-Simply run `wdio config` and the configuration helper wizard will get you set up:
-
-![wdio wizard](http://webdriver.io/images/config-utility.gif)
-
-With all that done, have a look at the many [examples](examples/).
-
 
 ## Need help?
 
