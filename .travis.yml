@@ -33,21 +33,25 @@ env:
   matrix:
     - _ENV: "desktop"
       _BROWSER: "chrome"
+      _PLATFORM: "Windows_8"
 
     - _ENV: "desktop"
       _BROWSER: "firefox"
+      _PLATFORM: "Windows_8"
 
     - _ENV: "desktop"
       _BROWSER: "internet_explorer"
       _VERSION: "10"
+      _PLATFORM: "Windows_8"
 
     - _ENV: "mobile"
+      _PLATFORM: "iOS"
 
     - _ENV: "mobile"
       _DEVICENAME: "iPad_Simulator"
+      _PLATFORM: "iOS"
 
     - _ENV: "functional"
-      _BROWSER: "phantomjs"
 
     - _ENV: "multibrowser"
 

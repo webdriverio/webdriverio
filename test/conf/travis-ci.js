@@ -1,11 +1,11 @@
 module.exports = {
-    host: 'localhost',
-    port: process.env._PORT || 4444,
+    port: process.env._PORT || 4445,
     logLevel: 'command',
     waitforTimeout: 1000,
     runsWithSauce: true,
     desiredCapabilities: {
-        browserName: (process.env._BROWSER || 'phantomjs').replace(/_/g, ' '),
+        browserName: (process.env._BROWSER || '').replace(/_/g, ' '),
+        platform: (process.env._PLATFORM || '').replace(/_/g, ' '),
         version: process.env._VERSION,
         'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
         'idle-timeout': 900,
@@ -15,4 +15,4 @@ module.exports = {
         username: process.env.SAUCE_USERNAME,
         accessKey: process.env.SAUCE_ACCESS_KEY
     }
-};
+}
