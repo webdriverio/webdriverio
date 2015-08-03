@@ -8,8 +8,8 @@ title: WebdriverIO - Test Runner Reporters
 Reporters
 =========
 
-WebdriverIO provides three different reporter you can use to get an overview about your test results.
-Choose between `dot` (default), `spec` or xunit, either by adding: `reporter: '...'` to your
+WebdriverIO provides three different reporters you can use to get an overview about your test results.
+Choose between `dot` (default), `spec` or `xunit`, either by adding: `reporter: '...'` to your
 config file or by adding `-r ...` to the command line.
 
 ## Dot Reporter
@@ -24,26 +24,26 @@ that spec.
 ## Spec Reporter
 
 Like in most common test frameworks the spec reporter outputs a hierarchical view nested just as the
-test cases are. The WebdriverIO specs reporter additional prints how many instances have run that
+test cases are. The WebdriverIO specs reporter additionally prints how many instances have run that
 test.
 
 ![Spec Reporter](/images/spec.png "Spec Reporter")
 
-If a test in one instance fails both reporter (dot and spec) tell you which instance (with browser name,
-version and platform information) failed the test. Thanks to the monadic core structure of WebdriverIO
-all stacktraces will contain useful information and don't confuse you with endless long useless file
+If a test in one instance fails, both reporters (dot and spec) tell you which instance (with browser name,
+version and platform information) failed the test. Thanks to the monadic core structure of WebdriverIO,
+all stacktraces will contain useful information and don't confuse you with endlessly long useless file
 references.
 
 Here is an example of a test that fails in one spec. As you can see the test fails in Chrome for a
-different reason then in Firefox and Safari. If you are using Sauce Labs WebdriverIO also provides the
+different reason then in Firefox and Safari. If you are using Sauce Labs, WebdriverIO also provides the
 link to the test.
 
 ![A Failing Test](/images/failing-test.png "A Failing Test")
 
 ## Xunit Reporter
 
-The xunit reporter helps you to create sophisticated reports for your CI server. These reports are xml
-files which get stored depending on the location you define in your config file. Therefor please set
+The xunit reporter helps you to create sophisticated reports for your CI server. These reports are XML
+files which are stored in the location you define in your config file. Therefore please set
 a proper directory where you want your reports saved:
 
 ```js
@@ -52,7 +52,7 @@ reporterOptions: {
 }
 ```
 
-WebdriverIO will create for each instance a single report file. The xml will contain all necessary
+WebdriverIO will create for each instance a single report file. The XML will contain all necessary
 information you need to debug your test:
 
 ```xml WDIO.xunit.safari.5_1.osx10_6.64814.xml
@@ -94,5 +94,5 @@ DELETE http://ondemand.saucelabs.com:80/wd/hub/session/3f1c00dc831f49698a50a793c
 </testsuites>
 ```
 
-This enables a great integration to CI systems like Jenkins. Check out the [Jenkins Integration](/guide/testrunner/jenkins.html)
+This enables an excellent integration with CI systems like Jenkins. Check out the [Jenkins Integration](/guide/testrunner/jenkins.html)
 section to learn more about how to integrate WebdriverIO with Jenkins.
