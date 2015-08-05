@@ -12,7 +12,7 @@ exports.config = {
     //
     host: '0.0.0.0',
     port: 4444,
-    path: '/',
+    path: '/wd/hub',
     //
     // =================
     // Service Providers
