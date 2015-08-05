@@ -21,10 +21,11 @@ exports.config = {
     // supported cloud services like Sauce Labs, Browserstack or Testing Bot you also don't
     // need to define host and port information because WebdriverIO can figure that our
     // according to your user and key information. However if you are using a private Selenium
-    // backend you should define the host address and port here.
+    // backend you should define the host address, port, and path here.
     //
     host: '0.0.0.0',
     port: 4444,
+    path: '/',
     //
     // =================
     // Service Providers

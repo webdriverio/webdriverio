@@ -49,6 +49,24 @@ or you can pass in writeable stream and everything gets redirected to that (last
 Type: `String|writeable stream`<br>
 Default: *null*
 
+### host
+Host of your WebDriver server.
+
+Type: `String`<br>
+Default: *127.0.0.1*
+
+### port
+Port your WebDriver server is on.
+
+Type: `Number`<br>
+Default: *4444* 
+
+### path
+Path to WebDriver server.
+
+Type: `String`<br>
+Default: */wd/hub*
+
 ### baseUrl
 Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/` the base url gets prepended.
 
