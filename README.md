@@ -15,9 +15,9 @@ This library is a [webdriver](https://w3c.github.io/webdriver/webdriver-spec.htm
 super easy [Selenium](https://en.wikipedia.org/wiki/Selenium_(software)) tests in your favorite
 BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, Browsertack or Testingbot.
 
-Unlike integrated testing frameworks (Nightwatch, Intern), WebdriverIO lets you use your favorite test framework,
-such as Cucumber, which the other two don't officially support ([1](https://github.com/nightwatchjs/nightwatch/issues/22#issuecomment-34429738),
-[2](https://github.com/theintern/intern/pull/196)).
+WebdriverIO is agnostic with regards to the test framework you want to use. Cucumber, Jasmine and Mocha+Chai
+are supported by the configuration wizard, and you can use other frameworks as well - for example
+[Yadda](https://github.com/webdriverio/cucumber-boilerplate).
 
 ## Installation
 
