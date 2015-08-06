@@ -15,6 +15,10 @@ This library is a [webdriver](https://w3c.github.io/webdriver/webdriver-spec.htm
 super easy [Selenium](https://en.wikipedia.org/wiki/Selenium_(software)) tests in your favorite
 BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, Browsertack or Testingbot.
 
+Unlike integrated testing frameworks (Nightwatch, Intern), WebdriverIO lets you use your favorite test framework,
+such as Cucumber, which the other two don't officially support ([1](https://github.com/nightwatchjs/nightwatch/issues/22#issuecomment-34429738),
+[2](https://github.com/theintern/intern/pull/196)).
+
 ## Installation
 
 ```shell
@@ -43,7 +47,7 @@ With all that done, have a look at the many [examples](examples/).
 [![Visual Regression Testing with Applitools Eyes](http://webdriver.io/images/plugins/applitools.png)](https://github.com/webdriverio/webdrivercss#applitools-eyes-support)
 [![WebRTC Analytics Plugin](http://webdriver.io/images/plugins/webrtc.png)](https://github.com/webdriverio/webdriverrtc)
 
-## Syantax example
+## Syntax example
 
 ```js
 client
