@@ -93,20 +93,29 @@ describe('waitFor',function() {
 
         before(h.setup());
 
-        it('should use specified timeout', function() {
+        it('should use specified timeout', function (done) {
             var startTime = Date.now();
-            return this.client.waitForExist('#notExisting').catch(function() {
-                var delta = Date.now() - startTime;
-                delta.should.be.above(1000);
-            });
+            return this.client.waitForExist('#notExisting').then(
+                function () {
+                    done(new Error('waitForExist promise should be rejected'));
+                }, function () {
+                    var delta = Date.now() - startTime;
+                    delta.should.be.above(1000);
+                    done();
+                });
         });
 
-        it('should use parameter timeout and should overwrite default value', function() {
+        it('should use parameter timeout and should overwrite default value', function (done) {
             var startTime = Date.now();
-            return this.client.waitForExist('#notExisting', 2000).catch(function() {
-                var delta = Date.now() - startTime;
-                delta.should.be.above(2000);
-            });
+            this.client.waitForExist('#notExisting', 2000).then(
+                function () {
+                    done(new Error('waitForExist promise should be rejected'));
+                },
+                function () {
+                    var delta = Date.now() - startTime;
+                    delta.should.be.above(2000);
+                    done();
+                });
         });
 
     });
