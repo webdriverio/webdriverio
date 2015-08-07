@@ -111,7 +111,7 @@ jasmineNodeOpts: {
         /**
          * only take screenshot if assertion failed
          */
-        if(!passed) {
+        if(passed) {
             return;
         }
 &nbsp;
