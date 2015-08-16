@@ -50,6 +50,6 @@ it('should contain a certain text after clicking', function() {
     return client
         .click('button=Send')
         .isVisible('#status_message').should.eventually.be.true
-        .getText('#status_message').should.eventually.be.equal('wrong status message');
+        .getText('#status_message').should.eventually.be.equal('Message sent!');
 });
 ```
