@@ -35,6 +35,84 @@ tags: ['tag1','tag2'],  // specify some tags (e.g. if you use Sauce Labs)
 name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 ```
 
+**Example for using Sauce Labs for mobile:**
+```js
+var options = {
+host : ’ondemand. saucelabs .com’ ,     // connect to SauceLabs
+port: 80,                               // connection port
+user: ’yourusername’,                   // Username
+key : ’123123123XXXX123123123 ’ ,       //Password
+    desiredCapabilities : {             // you have to check at Sauce Labs, which devices and browser versions are available
+        browserName : ’ Iphone ’ ,      // device, you want to connect use for your tests
+        version : ’7.1 ’ ,              // OS version
+        platform: ’iOS’,                // platform name
+}
+};
+```
+
+####desiredCapabilities for Appium
+If you want to reuse your tests of WebdriverIO together with Appium for real device tests, you just need to exchange the port at the desiredCapabilities and add some options. Android tests are possible with Chrome, iOS tests with Safari, but you need the SafariLauncher to start the Safari. It need to be installed on the device and opened as a native app. It can be downloaded here : https://github.com/budhash/SafariLauncher
+Appium also provides native App testing, but in this case, some App data are needed.
+
+
+**Example for iOS with Safari Launcher or native app:**
+
+```js
+var options = {
+    waitforTimeout: 5000,
+    desiredCapabilities: {
+    	platformName: 'iOS',                                // operating system
+        app: 'net.company.SafariLauncher',                // bundle id of the app or safari launcher
+        udid: 'asdfasdasdasdasd',                           // udid of the device
+		deviceName: 'iPhone',                               // name of the device
+		appiumVersion: '1.3.5'                              // currently used appium version
+    },
+    host: 'localhost',
+    port: 4723                                              // port for Appium
+};
+```
+
+
+
+**Example for Android - native App:**
+
+```js
+var options = {
+    waitforTimeout: 5000,
+    desiredCapabilities: {
+    	platformName: 'android',                        // operating system
+        app: 'net.myandroidapp.test.uniapp',            // bundle id of the app
+        appActivity: 'MainActivity',                    // app activity, which should be started
+        avdReadyTimeout: '1000',                        // waiting time for the app to start
+        udid: 'asdfasdfasdf',                           // udid of the android device
+		deviceName: 'devicexy',                         // device name
+    },
+    host: 'localhost',                                  // localhost
+    port: 4723                                          // port for appium
+};
+
+```
+**Example for Android - Chrome**
+
+```js
+var options = {
+    waitforTimeout: 5000,
+    desiredCapabilities: {
+    	platformName: 'android',                        // operating system
+    	platformVersion:'4.3',                          // OS version
+        browserName: 'chrome',                          // browser
+        udid: 'asdfasdfasdf',                           // udid of the android device
+		deviceName: 'devicexy',                         // device name
+    },
+    host: 'localhost',                                  // localhost
+    port: 4723                                          // port for appium
+};
+
+```
+
+
+
+
 ### logLevel
 Level of logging verbosity.
 
