@@ -1,0 +1,3 @@
+---
+instrumentation:
+  excludes: ["**/helpers/_*.js"]

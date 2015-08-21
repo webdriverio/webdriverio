@@ -1,5 +1,5 @@
 module.exports = {
-    port: 4445,
+    port: process.env._PORT || 4445,
     logLevel: 'command',
     waitforTimeout: 1000,
     runsWithSauce: true,
@@ -15,4 +15,4 @@ module.exports = {
         username: process.env.SAUCE_USERNAME,
         accessKey: process.env.SAUCE_ACCESS_KEY
     }
-};
+}

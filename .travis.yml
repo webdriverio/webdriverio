@@ -4,7 +4,7 @@ notifications:
 language: node_js
 
 node_js:
-  - '0.10'
+  - "0.12"
 
 sudo: false
 
@@ -15,11 +15,7 @@ branches:
     - master
 
 before_script:
-  - "npm install -g bower"
-  - "cd test/site/www && bower install && cd ../../../"
-  - "curl -O http://selenium-release.storage.googleapis.com/2.43/selenium-server-standalone-2.43.1.jar"
-  - "java -jar selenium-server-standalone-2.43.1.jar 2>&1 >/dev/null &"
-  - "2>/dev/null 1>/dev/null python -m SimpleHTTPServer 8080 &"
+  - "npm install"
 
 script: "sleep 5 && npm run coverage"
 
@@ -35,42 +31,28 @@ env:
     - secure: dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w=
 
   matrix:
-    - _BROWSER: "chrome"
+    - _ENV: "desktop"
+      _BROWSER: "chrome"
       _PLATFORM: "Windows_8"
-      _VERSION: "34"
-      _ENV: "desktop"
-    - _BROWSER: "firefox"
+
+    - _ENV: "desktop"
+      _BROWSER: "firefox"
       _PLATFORM: "Windows_8"
-      _VERSION: "29"
-      _ENV: "desktop"
-    - _BROWSER: "internet_explorer"
-      _PLATFORM: "Windows_8"
+
+    - _ENV: "desktop"
+      _BROWSER: "internet_explorer"
       _VERSION: "10"
-      _ENV: "desktop"
-    - _BROWSER: "Safari"
+      _PLATFORM: "Windows_8"
+
+    - _ENV: "mobile"
       _PLATFORM: "iOS"
-      _APP: "safari"
-      _DEVICENAME: "iPhone_Simulator"
-      _VERSION: "7.1"
-      _ENV: "mobile"
-    - _BROWSER: "Safari"
-      _PLATFORM: "iOS"
-      _APP: "safari"
+
+    - _ENV: "mobile"
       _DEVICENAME: "iPad_Simulator"
-      _VERSION: "7.1"
-      _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "android"
-    #   _DEVICENAME: "Google_Nexus_7_HD_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "Android"
-    #   _DEVICENAME: "Samsung_Galaxy_Nexus_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
-    - _BROWSER: "phantomjs"
-      _ENV: "functional"
+      _PLATFORM: "iOS"
+
+    - _ENV: "functional"
+
     - _ENV: "multibrowser"
 
 notifications:
