@@ -11,23 +11,22 @@ describe('setViewportSize/getViewportSize', function() {
         });
     });
 
-    it('should let windowHandleSize return bigger values since it includes menu and status bar heights', function() {
-        return this.client.setViewportSize({
-            width: 500,
-            height: 500
-        }, true).windowHandleSize().then(function(res) {
-            res.value.width.should.be.greaterThan(499);
-            res.value.height.should.be.greaterThan(499);
-        });
-    });
-
-    it('should set window size exactly when parameter \'type\' is false by default', function() {
+    it('should set window size exactly when parameter \'type\' is true by default', function() {
         return this.client.setViewportSize({
             width: 500,
             height: 500
         }).windowHandleSize().then(function(res) {
             res.value.width.should.be.exactly(500);
             res.value.height.should.be.exactly(500);
+        });
+    });
+
+    it('should let windowHandleSize return bigger values since it includes menu and status bar heights', function() {
+        return this.client.setViewportSize({
+            width: 500,
+            height: 500
+        }, false).windowHandleSize().then(function(res) {
+            res.value.width.should.be.greaterThan(500);
         });
     });
 });
