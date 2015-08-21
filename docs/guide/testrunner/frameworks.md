@@ -36,10 +36,26 @@ before: function() {
 Once that is done you can write beautiful assertions like:
 
 ```js
-it('should do some chai assertions', function() {
-    return browser
-        .url('http://webdriver.io')
-        .getTitle().should.eventually.be.equal('WebdriverIO');
+describe('my awesome website', function() {
+    it('should do some chai assertions', function() {
+        return browser
+            .url('http://webdriver.io')
+            .getTitle().should.eventually.be.equal('WebdriverIO');
+    });
+});
+```
+
+WebdriverIO supports Mochas `BDD` (default) and `TDD` [interface](https://mochajs.org/#interfaces). If you like
+to write your specs in TDD language set the ui property in your `mochaOpts` config to `tdd`, now your test files should
+get written like:
+
+```js
+suite('my awesome website', function() {
+    test('should do some chai assertions', function() {
+        return browser
+            .url('http://webdriver.io')
+            .getTitle().should.eventually.be.equal('WebdriverIO');
+    });
 });
 ```
 
