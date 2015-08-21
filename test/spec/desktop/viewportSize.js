@@ -1,6 +1,13 @@
 describe('setViewportSize/getViewportSize', function() {
     before(h.setup());
 
+    beforeEach(function() {
+        return this.client.windowHandleSize({
+            width: 300,
+            height: 300
+        });
+    })
+
     it('should change viewport size of current window and should return the exact value', function() {
         return this.client.setViewportSize({
             width: 500,
@@ -15,9 +22,12 @@ describe('setViewportSize/getViewportSize', function() {
         return this.client.setViewportSize({
             width: 500,
             height: 500
+        }).getViewportSize().then(function(size) {
+            size.width.should.be.exactly(500);
+            size.height.should.be.exactly(500);
         }).windowHandleSize().then(function(res) {
             res.value.width.should.be.exactly(500);
-            res.value.height.should.be.exactly(500);
+            res.value.height.should.be.greaterThan(500);
         });
     });
 
@@ -25,8 +35,11 @@ describe('setViewportSize/getViewportSize', function() {
         return this.client.setViewportSize({
             width: 500,
             height: 500
-        }, false).windowHandleSize().then(function(res) {
-            res.value.width.should.be.greaterThan(500);
+        }, false).getViewportSize().then(function(size) {
+            size.width.should.be.exactly(500);
+            size.height.should.be.lessThan(500);
+        }).windowHandleSize().then(function(res) {
+            res.value.height.should.be.exactly(500);
         });
     });
 });
