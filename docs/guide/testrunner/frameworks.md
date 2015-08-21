@@ -13,6 +13,9 @@ The wdio runner currently supports [Mocha](http://mochajs.org/), [Jasmine](http:
 NPM. Note that the modules need to be installed at the same place WebdriverIO is installed. If you installed
 WebdriverIO globally make sure you have the test frameworks installed globally as well.
 
+Within your spec files or step definition you can access the webdriver instance using the global variable `browser`.
+You don't need to initiate or end the Selenium session. This is taken care of by the wdio testrunner.
+
 ## Using Mocha
 
 If you like to use Mocha you should additionally install an assertion library that supports promises,
