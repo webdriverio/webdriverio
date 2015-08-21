@@ -22,18 +22,18 @@ module.exports = function(){
 
     this.When(/^I use getElementSize\(\) on the element "([^"]*)"$/, function(className, next) {
         browser
-            .getElementSize(className, function(err, result) {
+            .getElementSize(className).then(function(result) {
                 tmpResult = result;
-                next(err);
-            });
+                next();
+            }, next);
     });
 
     this.When(/^I use getTitle\(\) to get the title of this website$/, function(next) {
         browser
-            .getTitle(function(err, title) {
+            .getTitle().then(function(title) {
                 tmpResult = title;
-                next(err);
-            });
+                next();
+            }, next);
     });
 
     this.Then(/^I should get a width of "([^"]*)" and height of "([^"]*)"$/, function(width, height, next) {
