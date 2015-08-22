@@ -5,7 +5,7 @@ index: 2
 title: WebdriverIO - Configuration
 ---
 
-# Basic Configuration
+# Configuration
 
 If you create a WebdriverIO instance you need to define couple of options in order to set the proper
 capabilities and settings. When calling the `remote` method like:
@@ -59,7 +59,7 @@ Default: *127.0.0.1*
 Port your WebDriver server is on.
 
 Type: `Number`<br>
-Default: *4444* 
+Default: *4444*
 
 ### path
 Path to WebDriver server.
@@ -90,3 +90,29 @@ Default timeout for all waitForXXX commands.
 
 Type: `Number`<br>
 Default: *500*
+
+## Setup [Babel](https://babeljs.io/) to write tests using next generation JavaScript
+
+There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine test you just need
+to register Babel in the before hook of your config file
+
+```js
+    before(function() {
+        require('babel/register')({
+            blacklist: [
+                'regenerator'
+            ]
+        });
+    }),
+```
+
+Make sure to allow generator calls to directly go through since Node >v0.10 has sufficient generator support.
+If you run Mocha test you can use Mochas internal compiler to register Babel, e.g.:
+
+```js
+   mochaOpts: {
+        ui: 'bdd',
+        compilers: ['js:babel-core/register'],
+        require: ['./test/helpers/common.js']
+    },
+```
