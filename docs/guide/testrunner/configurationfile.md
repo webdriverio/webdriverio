@@ -176,7 +176,9 @@ exports.config = {
     cucumberOpts: {
         require: ['./examples/runner-specs/cucumber/step-definitions.js'],
         // Enable this config to treat undefined definitions as warnings.
-        ignoreUndefinedDefinitions: false
+        ignoreUndefinedDefinitions: false,
+        // run only certain scenarios annotated by tags
+        tags: ['foo', 'bar']
     },
     //
     // =====
