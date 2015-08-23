@@ -73,8 +73,8 @@ client
 
 ## Write your test specs with ES6 support!
 
-If your are using Node.js (>=v0.11) or io.js you can write your test specs using yield. The `wdio`
-test runner supports ES6 generators and allows you to get rid of nasty callback code.
+If you are using Node.js (>=v0.11) or io.js you can write your test specs using [`yield`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield).
+The `wdio` test runner supports ES6 generators and allows you to get rid of nasty callback code.
 
 ```js
 describe('my feature', function() {
