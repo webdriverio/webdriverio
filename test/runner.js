@@ -29,6 +29,11 @@ if(specDir) {
     specFiles = '{test/spec/' + env + '/**/*.js,test/spec/*.js}';
 }
 
+function handleError(e) {
+    console.log('========== ERROR ==========\n', e.message, '\n', e.stack);
+    process.exit(1);
+}
+
 q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
 
     files.forEach(function(file) {
@@ -48,7 +53,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
         accessKey: process.env.SAUCE_ACCESS_KEY
     });
 
-}).then(function(sauceConnectProcess) {
+}, handleError).then(function(sauceConnectProcess) {
 
     if(sauceConnectProcess) {
         console.log('-> Sauce Connect ready');
@@ -59,7 +64,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     mocha.run.call(mocha, mochaDefer.resolve.bind(mochaDefer));
     return mochaDefer.promise;
 
-}).then(function(f) {
+}, handleError).then(function(f) {
     failures = f;
 
     if (!client) {
@@ -72,12 +77,12 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     console.log('-> end all clients');
     return client[endCommand]();
 
-}).then(function() {
+}, handleError).then(function() {
 
     /**
      * only update sauce job when running in CI
      */
-    if (!process.env.TRAVIS_BUILD_NUMBER) {
+    if (!process.env.TRAVIS_BUILD_ID || specDir) {
         return process.exit(failures);
     }
 
@@ -92,7 +97,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
         public: true
     });
 
-}).then(function(res) {
+}, handleError).then(function(res) {
 
     console.log('-> sauce job updated', res);
     process.exit(failures);
@@ -100,7 +105,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     console.log('-> shutting down sauce connect');
     return q.nfcall(sauceConnectProcess.close);
 
-}).then(function() {
+}, handleError).then(function() {
 
     console.log("-> closed Sauce Connect process");
 
