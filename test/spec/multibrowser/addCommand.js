@@ -23,19 +23,11 @@ describe('addCommand', function() {
         return this.matrix.sync();
     });
 
-    /**
-     * callbacks currently not supported in multibrowser mode
-     */
-    it.skip('added a `getUrlAndTitle` command', function(done) {
-
-        this.matrix
-            .getUrlAndTitle(function(err, browserA, browserB) {
-                assert.ifError(err);
-                assert.strictEqual(browserA.url, conf.testPage.gestureTest);
-                assert.strictEqual(browserB.title, conf.testPage.title);
-            })
-            .call(done);
-
+    it('added a `getUrlAndTitle` command', function() {
+        return this.matrix.getUrlAndTitle().then(function(browserA, browserB) {
+            assert.strictEqual(browserA.url, conf.testPage.gestureTest);
+            assert.strictEqual(browserB.title, conf.testPage.title);
+        });
     });
 
     it('should promisify added command', function() {

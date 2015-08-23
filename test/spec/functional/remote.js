@@ -22,7 +22,7 @@ describe('remote method', function() {
 
     it('should be able to set startPath', function() {
 
-        var client = webdriverjs.remote({ startPath: startPath });
+        var client = webdriverjs.remote({ path: startPath });
         assert.strictEqual(client.requestHandler.startPath, startPath);
 
     });

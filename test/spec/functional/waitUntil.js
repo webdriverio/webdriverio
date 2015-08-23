@@ -28,7 +28,7 @@ describe('waitUntil', function() {
         return this.client.waitUntil(function() {
             return defer.promise;
         }, 1000).catch(function(err) {
-            err.message.should.match(/Promise was fulfilled with a falsy value/);
+            err.message.should.match(/Promise never resolved with an truthy value/);
         });
     });
 
