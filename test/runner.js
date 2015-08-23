@@ -1,7 +1,9 @@
 var WebdriverIO = require('../index.js'),
+    q = require('q'),
     Mocha = require('mocha'),
     should = require('should'), // jshint ignore:line
     SauceLabs = require('saucelabs'),
+    sauceConnectLauncher = require('sauce-connect-launcher'),
     glob = require('glob'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
@@ -26,13 +28,38 @@ if(specDir) {
     specFiles = '{test/spec/' + env + '/**/*.js,test/spec/*.js}';
 }
 
-glob(process.env._SPEC || specFiles, function(er, files) {
+q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
 
     files.forEach(function(file) {
         mocha.addFile(file);
     });
 
-    mocha.run(function(failures) {
+    /**
+     * start sauce connect only in CI and for desktop and mobile tests
+     */
+    if(!process.env.TRAVIS_BUILD_ID || specDir) {
+        return;
+    }
+
+    console.log('-> Starting Sauce Connect');
+    return q.nfcall(sauceConnectLauncher, {
+        username: process.env.SAUCE_USERNAME,
+        accessKey: process.env.SAUCE_ACCESS_KEY
+    });
+
+}).then(function(sauceConnectProcess) {
+
+    if(sauceConnectProcess) {
+        console.log('-> Sauce Connect ready');
+    }
+
+    console.log('-> Start Mocha tests');
+    var mochaDefer = q.defer();
+    mocha.run.call(mocha, mochaDefer.resolve.bind(mochaDefer));
+    return mochaDefer.promise;
+
+}).then(function(failures) {
+
         if (!client) {
             return process.exit(failures);
         }
@@ -40,25 +67,41 @@ glob(process.env._SPEC || specFiles, function(er, files) {
         var sessionID = (client.requestHandler || {}).sessionID,
             endCommand = conf.runsWithSauce ? 'end' : 'endAll';
 
-        client[endCommand]().then(function() {
-            if (process.env.TRAVIS_BUILD_NUMBER) {
-                var sauceAccount = new SauceLabs({
-                    username: process.env.SAUCE_USERNAME,
-                    password: process.env.SAUCE_ACCESS_KEY
-                });
+        console.log('-> end all clients');
+        return client[endCommand]();
 
-                sauceAccount.updateJob(sessionID, {
-                    passed: failures === 0,
-                    public: true
-                }, function(err, res) {
-                    console.log(err || res);
-                    process.exit(failures);
-                });
-            } else {
-                process.exit(failures);
-            }
-        });
+}).then(function() {
+
+    /**
+     * only update sauce job when running in CI
+     */
+    if (!process.env.TRAVIS_BUILD_NUMBER) {
+        return process.exit(failures);
+    }
+
+    var sauceAccount = new SauceLabs({
+        username: process.env.SAUCE_USERNAME,
+        password: process.env.SAUCE_ACCESS_KEY
     });
+
+    console.log('-> update sauce job');
+    return q.nfcall(sauceAccount.updateJob, sessionID, {
+        passed: failures === 0,
+        public: true
+    });
+
+}).then(function(res) {
+
+    console.log('-> sauce job updated', res);
+    process.exit(failures);
+
+    console.log('-> shutting down sauce connect');
+    return q.nfcall(sauceConnectProcess.close);
+
+}).then(function() {
+
+    console.log("-> closed Sauce Connect process");
+
 });
 
 h = {
