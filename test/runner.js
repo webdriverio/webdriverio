@@ -8,6 +8,7 @@ var WebdriverIO = require('../index.js'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
     specDir = env.match(/^(functional|multibrowser)$/),
+    failures = 0,
     client, specFiles, specDir, browserA, browserB;
 
 var mocha = new Mocha({
@@ -58,17 +59,18 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     mocha.run.call(mocha, mochaDefer.resolve.bind(mochaDefer));
     return mochaDefer.promise;
 
-}).then(function(failures) {
+}).then(function(f) {
+    failures = f;
 
-        if (!client) {
-            return process.exit(failures);
-        }
+    if (!client) {
+        return process.exit(failures);
+    }
 
-        var sessionID = (client.requestHandler || {}).sessionID,
-            endCommand = conf.runsWithSauce ? 'end' : 'endAll';
+    var sessionID = (client.requestHandler || {}).sessionID,
+        endCommand = conf.runsWithSauce ? 'end' : 'endAll';
 
-        console.log('-> end all clients');
-        return client[endCommand]();
+    console.log('-> end all clients');
+    return client[endCommand]();
 
 }).then(function() {
 
