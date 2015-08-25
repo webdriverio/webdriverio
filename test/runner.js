@@ -45,18 +45,15 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     return mochaDefer.promise;
 
 }, handleError).then(function(f) {
-    failures = f;
-    console.log('-> Mocha tests finished with ', failures, ' failures');
+    failures = typeof f === 'number' ? f : f.failures || 'unknown';
+    console.log('-> Mocha tests finished with', failures, 'failures');
 
     if (!client) {
         return process.exit(failures);
     }
 
-    var sessionID = (client.requestHandler || {}).sessionID,
-        endCommand = conf.runsWithSauce ? 'end' : 'endAll';
-
     console.log('-> end all clients');
-    return client[endCommand]();
+    return client[conf.runsWithSauce ? 'end' : 'endAll']();
 
 }, handleError).then(function() {
 
@@ -67,12 +64,13 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
         return process.exit(failures);
     }
 
-    var sauceAccount = new SauceLabs({
-        username: process.env.SAUCE_USERNAME,
-        password: process.env.SAUCE_ACCESS_KEY
-    });
+    var sessionID = (client.requestHandler || {}).sessionID,
+        sauceAccount = new SauceLabs({
+            username: process.env.SAUCE_USERNAME,
+            password: process.env.SAUCE_ACCESS_KEY
+        });
 
-    console.log('-> update sauce job');
+    console.log('-> update sauce job: ', sessionID);
     return q.nfcall(sauceAccount.updateJob, sessionID, {
         passed: failures === 0,
         public: true
@@ -128,7 +126,7 @@ h = {
                 this.client = client = WebdriverIO.remote(conf).init();
             }
 
-            return this.client.url(options.url || conf.testPage.start);
+            return this.client.url('http://google.com' || options.url || conf.testPage.start);
         };
     },
     setupMultibrowser: function(options) {
