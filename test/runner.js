@@ -46,6 +46,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
 
 }, handleError).then(function(f) {
     failures = f;
+    console.log('-> Mocha tests finished with ', failures, ' failures');
 
     if (!client) {
         return process.exit(failures);
