@@ -3,7 +3,6 @@ var WebdriverIO = require('../index.js'),
     Mocha = require('mocha'),
     should = require('should'), // jshint ignore:line
     SauceLabs = require('saucelabs'),
-    sauceConnectLauncher = require('sauce-connect-launcher'),
     glob = require('glob'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
@@ -39,25 +38,6 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     files.forEach(function(file) {
         mocha.addFile(file);
     });
-
-    /**
-     * start sauce connect only in CI and for desktop and mobile tests
-     */
-    if(!process.env.TRAVIS_BUILD_ID || specDir) {
-        return;
-    }
-
-    console.log('-> Starting Sauce Connect');
-    return q.nfcall(sauceConnectLauncher, {
-        username: process.env.SAUCE_USERNAME,
-        accessKey: process.env.SAUCE_ACCESS_KEY
-    });
-
-}, handleError).then(function(sauceConnectProcess) {
-
-    if(sauceConnectProcess) {
-        console.log('-> Sauce Connect ready');
-    }
 
     console.log('-> Start Mocha tests');
     var mochaDefer = q.defer();
@@ -101,13 +81,6 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
 
     console.log('-> sauce job updated', res);
     process.exit(failures);
-
-    console.log('-> shutting down sauce connect');
-    return q.nfcall(sauceConnectProcess.close);
-
-}, handleError).then(function() {
-
-    console.log("-> closed Sauce Connect process");
 
 });
 
