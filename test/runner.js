@@ -81,7 +81,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
         console.log(e);
     }
 
-    console.log(test);
+    console.log(test.inspect());
     return test;
 
 }, handleError).then(function(res) {

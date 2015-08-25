@@ -72,9 +72,6 @@ describe('event handling', function() {
             });
         });
 
-        after(function() {
-            return client.end();
-        });
     });
 
     describe('costume events', function() {
