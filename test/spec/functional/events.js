@@ -74,7 +74,7 @@ describe('event handling', function() {
 
     });
 
-    describe('costume events', function() {
+    describe('custom events', function() {
         var iWasTriggered = false,
             eventWasTriggeredAtLeastOnce = false;
 

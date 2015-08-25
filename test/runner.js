@@ -29,6 +29,7 @@ if(specDir) {
 }
 
 function handleError(e) {
+    console.log(1,e);
     console.log('========== ERROR ==========\n', e.message, '\n', e.stack);
     process.exit(1);
 }
@@ -72,17 +73,10 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     });
 
     console.log('-> update sauce job: ', sessionID);
-    try {
-    var test = q.nfcall(sauceAccount.updateJob, sessionID, {
+    return q.nfcall(sauceAccount.updateJob, sessionID, {
         passed: failures === 0,
         public: true
     });
-    } catch(e) {
-        console.log(e);
-    }
-
-    console.log(test.inspect());
-    return test;
 
 }, handleError).then(function(res) {
 
