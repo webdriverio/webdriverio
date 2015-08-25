@@ -12,7 +12,9 @@ describe('setViewportSize/getViewportSize', function() {
         return this.client.setViewportSize({
             width: 800,
             height: 800
-        }, true).getViewportSize().then(function(size) {
+        }, true)
+        .pause(2000) // give the browser time to resize
+        .getViewportSize().then(function(size) {
             size.width.should.be.exactly(800);
             size.height.should.be.exactly(800);
         });
@@ -22,7 +24,9 @@ describe('setViewportSize/getViewportSize', function() {
         return this.client.setViewportSize({
             width: 800,
             height: 800
-        }).getViewportSize().then(function(size) {
+        })
+        .pause(2000) // give the browser time to resize
+        .getViewportSize().then(function(size) {
             size.width.should.be.exactly(800);
             size.height.should.be.exactly(800);
         }).windowHandleSize().then(function(res) {
@@ -35,7 +39,9 @@ describe('setViewportSize/getViewportSize', function() {
         return this.client.setViewportSize({
             width: 800,
             height: 800
-        }, false).getViewportSize().then(function(size) {
+        }, false)
+        .pause(2000) // give the browser time to resize
+        .getViewportSize().then(function(size) {
             size.width.should.be.exactly(800);
             size.height.should.be.lessThan(800);
         }).windowHandleSize().then(function(res) {
