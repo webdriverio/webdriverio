@@ -126,7 +126,7 @@ h = {
                 this.client = client = WebdriverIO.remote(conf).init();
             }
 
-            return this.client.url('http://google.com' || options.url || conf.testPage.start);
+            return this.client.url(options.url || conf.testPage.start);
         };
     },
     setupMultibrowser: function(options) {
