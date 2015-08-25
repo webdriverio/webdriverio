@@ -1,7 +1,7 @@
 /**
  * to flaky in IE
  */
-var runTest = process.env._BROWSER === 'internet_explorer' ? describe.only : describe;
+var runTest = process.env._BROWSER === 'internet_explorer' ? describe.skip : describe;
 
 runTest('switchTab', function() {
 
