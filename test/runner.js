@@ -29,7 +29,6 @@ if(specDir) {
 }
 
 function handleError(e) {
-    console.log(1,e);
     console.log('========== ERROR ==========\n', e.message, '\n', e.stack);
     process.exit(1);
 }
@@ -73,14 +72,12 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     });
 
     console.log('-> update sauce job: ', sessionID);
-    return q.nfcall(sauceAccount.updateJob.bind(sauceAccount), sessionID, {
+    var updateJobDefer = q.defer();
+    sauceAccount.updateJob(sessionID, {
         passed: failures === 0,
         public: true
-    }).then(function(e) {
-        console.log(1, e);
-    }, function(e) {
-        console.log(2, e);
-    });
+    }, updateJobDefer.resolve.bind(updateJobDefer));
+    return updateJobDefer.promise;
 
 }, handleError).then(function(res) {
 
