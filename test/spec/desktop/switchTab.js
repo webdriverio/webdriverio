@@ -1,4 +1,9 @@
-describe('switchTab', function() {
+/**
+ * to flaky in IE
+ */
+var runTest = process.env._BROWSER === 'internet_explorer' ? describe.only : describe;
+
+runTest('switchTab', function() {
 
     before(h.setup());
 
