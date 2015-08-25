@@ -8,7 +8,7 @@ var WebdriverIO = require('../index.js'),
     env = process.env._ENV,
     specDir = env.match(/^(functional|multibrowser)$/),
     failures = 0,
-    client, specFiles, specDir, browserA, browserB;
+    client, sessionID, specFiles, specDir, browserA, browserB;
 
 var mocha = new Mocha({
     timeout: 100000,
@@ -52,6 +52,8 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
         return process.exit(failures);
     }
 
+    sessionID = (client.requestHandler || {}).sessionID;
+
     console.log('-> end all clients');
     return client[conf.runsWithSauce ? 'end' : 'endAll']();
 
@@ -64,11 +66,10 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
         return process.exit(failures);
     }
 
-    var sessionID = (client.requestHandler || {}).sessionID,
-        sauceAccount = new SauceLabs({
-            username: process.env.SAUCE_USERNAME,
-            password: process.env.SAUCE_ACCESS_KEY
-        });
+    var sauceAccount = new SauceLabs({
+        username: process.env.SAUCE_USERNAME,
+        password: process.env.SAUCE_ACCESS_KEY
+    });
 
     console.log('-> update sauce job: ', sessionID);
     return q.nfcall(sauceAccount.updateJob, sessionID, {
