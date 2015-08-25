@@ -6,9 +6,7 @@ var local = {
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
     desiredCapabilities: {
-        browserName: process.env._BROWSER || 'chrome',
-        platform: 'OS X 10.11',
-        version: '44.0'
+        browserName: process.env._BROWSER || 'phantomjs'
     }
 };
 
