@@ -76,6 +76,10 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     return q.nfcall(sauceAccount.updateJob, sessionID, {
         passed: failures === 0,
         public: true
+    }).then(function(e) {
+        console.log(1, e);
+    }, function(e) {
+        console.log(2, e);
     });
 
 }, handleError).then(function(res) {

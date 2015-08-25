@@ -77,9 +77,6 @@ describe('event handling', function() {
             });
         });
 
-        after(function() {
-            return matrix.end();
-        });
     });
 
     describe('costume events', function() {
