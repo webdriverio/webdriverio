@@ -56,7 +56,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     sessionID = (client.requestHandler || {}).sessionID;
 
     console.log('-> end all clients');
-    return client[conf.runsWithSauce ? 'end' : 'endAll']();
+    return client[conf.runsWithSauce ? 'end' : 'endAll']().catch(function(e) {});
 
 }, handleError).then(function() {
 
@@ -73,7 +73,7 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     });
 
     console.log('-> update sauce job: ', sessionID);
-    return q.nfcall(sauceAccount.updateJob, sessionID, {
+    return q.nfcall(sauceAccount.updateJob.bind(sauceAccount), sessionID, {
         passed: failures === 0,
         public: true
     }).then(function(e) {
