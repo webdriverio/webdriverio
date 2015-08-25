@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v3.2.0 (2015-08-25)
+* improved error handling (no error propagation) (#629)
+* wdio test runner cli improvements (#704)
+* added protocol bindings for contexts (#703)
+* make selenium path customizable (#690)
+* enable compilers and require in Mocha framework (#660)
+* new command `getCommandHistory` (#618)
+* allow to ignore undefined steps (#635)
+* bugfixes (#631, #637, #669, #684, #699)
+
 ## v3.1.0 (2015-07-11)
 * better error messages if waitForXXX commands fail
 * improved error handling
