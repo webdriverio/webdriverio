@@ -1,10 +1,8 @@
 var local = {
-    // host: 'localhost',
-    // port: process.env._PORT || 4445,
+    host: 'localhost',
+    port: process.env._PORT || 4444,
     logLevel: 'silent',
     waitforTimeout: 1000,
-    user: process.env.SAUCE_USERNAME,
-    key: process.env.SAUCE_ACCESS_KEY,
     desiredCapabilities: {
         browserName: process.env._BROWSER || 'phantomjs'
     }
