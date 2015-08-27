@@ -5,10 +5,8 @@ Feature: Example feature
 
   Scenario: Get size of an element
     Given I go on the website "https://github.com/"
-    When I use getElementSize() on the element ".header-logo-wordmark"
-    Then I should get a width of "89" and height of "26"
+    Then  should the element ".header-logo-wordmark" be 37px wide and 26px high
 
   Scenario: Get title of website
     Given I go on the website "https://github.com/"
-    When I use getTitle() to get the title of this website
-    Then the command should return "GitHub · Build software better, together."
+    Then  should the title of the page be "GitHub · Build software better, together."

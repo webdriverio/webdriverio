@@ -14,36 +14,19 @@ var assert = require('assert'),
 
 module.exports = function(){
 
-    this.Given(/^I go on the website "([^"]*)"$/, function(url, next) {
-        browser
-            .url(url)
-            .call(next);
+    this.Given(/^I go on the website "([^"]*)"$/, function(url) {
+        browser.url(url);
     });
 
-    this.When(/^I use getElementSize\(\) on the element "([^"]*)"$/, function(className, next) {
-        browser
-            .getElementSize(className).then(function(result) {
-                tmpResult = result;
-                next();
-            }, next);
+    this.Then(/^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/, function(selector, width, height) {
+        var elemSize = browser.getElementSize(selector);
+        assert.equal(elemSize.width, width, 'width of element is ' + elemSize.width + ' but should be ' + width);
+        assert.equal(elemSize.height, height, 'height of element is ' + elemSize.height + ' but should be ' + height);
     });
 
-    this.When(/^I use getTitle\(\) to get the title of this website$/, function(next) {
-        browser
-            .getTitle().then(function(title) {
-                tmpResult = title;
-                next();
-            }, next);
+    this.Then(/^should the title of the page be "([^"]*)"$/, function(expectedTitle) {
+        var title = browser.getTitle();
+        assert.equal(title, expectedTitle, ' title is "'+ title + '" but should be "'+ expectedTitle);
     });
 
-    this.Then(/^I should get a width of "([^"]*)" and height of "([^"]*)"$/, function(width, height, next) {
-        assert.equal(parseInt(tmpResult.width), parseInt(width, 10) , 'width of element is ' + tmpResult.width + ' but should be ' + width);
-        assert.equal(parseInt(tmpResult.height), parseInt(height, 10), 'height of element is ' + tmpResult.height + ' but should be ' + height);
-        next();
-    });
-
-    this.Then(/^the command should return "([^"]*)"$/, function(result, next) {
-        assert(tmpResult == result , ' result of command is "'+ tmpResult + '" but should be "'+ result);
-        next();
-    });
 };
