@@ -40,11 +40,11 @@
   },
   "dependencies": {
     "archiver": "~0.14.3",
-    "co": "^4.5.4",
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
     "deepmerge": "~0.2.7",
     "ejs": "^2.3.1",
+    "fibers": "^1.0.6",
     "glob": "^5.0.10",
     "inquirer": "^0.8.5",
     "optimist": "^0.6.1",

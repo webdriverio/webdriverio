@@ -17,10 +17,9 @@
 
 var WebdriverIO = require('./lib/webdriverio'),
     Multibrowser = require('./lib/multibrowser'),
-    ErrorHandler   = require('./lib/utils/ErrorHandler'),
-    package = require('./package.json'),
-    path = require('path'),
-    fs = require('fs');
+    ErrorHandler = require('./lib/utils/ErrorHandler'),
+    implementedCommands = require('./lib/helpers/getImplementedCommands')(),
+    package = require('./package.json');
 
 // expose version number
 module.exports.version = package.version;
@@ -41,14 +40,8 @@ var remote = module.exports.remote = function remote(options, modifier) {
     /**
      * build prototype: commands
      */
-    ['protocol', 'commands'].forEach(function(commandType) {
-        var dir = path.join(__dirname, 'lib', commandType),
-            files = fs.readdirSync(dir);
-
-        files.forEach(function(filename) {
-            var commandName = filename.slice(0, -3);
-            wdio.lift(commandName, require(path.join(dir, filename)));
-        });
+    Object.keys(implementedCommands).forEach(function(commandName) {
+        wdio.lift(commandName, implementedCommands[commandName]);
     });
 
     var prototype = wdio();
