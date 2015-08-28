@@ -15,7 +15,7 @@ testing features when adding promised based assertion libraries like [chai-as-pr
 it('should contain a certain text after clicking', function() {
     return client
         .click('button=Send')
-        .isVisible('#status_message').then(isVisible) {
+        .isVisible('#status_message').then(function(isVisible) {
             assert.ok(isVisible, 'status message is not visible');
         })
         .getText('#status_message').then(function(message) {
