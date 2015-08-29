@@ -63,6 +63,10 @@ Make sure to checkout the [transfer promises](/guide/usage/transferpromises.html
 consecutive assertions. If you want to define specific Mocha settings you can do that by adding `mochaOpts`
 to your configuration file.
 
+If you get messages like
+`timeout of 10000ms exceeded. Ensure the done() callback is being called in this test.`
+then you can increasing the `timeout` settings in `mochaOpts`.
+
 There are three different approaches how to deal with asynchronicity in your `it` blocks:
 
 ###### The Good Old Callback Way
