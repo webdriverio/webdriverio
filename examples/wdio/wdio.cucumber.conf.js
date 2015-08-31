@@ -10,7 +10,7 @@ exports.config = {
      * specify test files
      */
     specs: [
-        './examples/runner-specs/jasmine.spec.js'
+        './examples/wdio/runner-specs/cucumber/features/*.feature'
     ],
     exclude: [
         'test/spec/multibrowser/**',
@@ -36,15 +36,15 @@ exports.config = {
     screenshotPath: 'shots',
     baseUrl: 'http://webdriver.io',
     waitforTimeout: 10000,
-    framework: 'jasmine',
+    framework: 'cucumber',
 
     reporter: 'spec',
     reporterOptions: {
         outputDir: './'
     },
 
-    jasmineNodeOpts: {
-        defaultTimeoutInterval: 9999999
+    cucumberOpts: {
+        require: ['./examples/runner-specs/cucumber/step-definitions.js']
     },
 
     /**

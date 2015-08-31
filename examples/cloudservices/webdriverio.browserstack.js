@@ -1,4 +1,4 @@
-var webdriverio = require('../index'),
+var webdriverio = require('../../index'),
     client = webdriverio.remote({
         desiredCapabilities: {
             browserName: 'chrome',
@@ -11,13 +11,13 @@ var webdriverio = require('../index'),
         key: process.env.BROWSERSTACK_ACCESS_KEY,
         logLevel: 'silent',
     }).init();
- 
+
 client
     .url('http://google.com')
     .setValue('*[name="q"]','webdriverio')
     .click('*[name="btnG"]')
     .pause(1000)
-    .getTitle(function(err,title) {
+    .getTitle().then(function(title) {
         console.log(title);
     })
     .end();

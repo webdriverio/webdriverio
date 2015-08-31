@@ -1,23 +1,23 @@
-var buster = require('buster'),
-    assert = buster.referee.assert,
-    webdriverio = require('../index'),
-    client;
+var webdriverio = require('../../index'),
+    assert      = require('assert');
 
-buster.testCase('Nested setup and teardown call order', {
+describe('my webdriverio tests', function(){
 
-    'setUp': function (done) {
-        this.timeout = 5000;
-        client = webdriverio.remote({ desiredCapabilities: {browserName: 'firefox'} });
-        client.init(done);
-    },
+    this.timeout(99999999);
+    var client = {};
 
-    'test it': function (done) {
+    before(function(done){
+            client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
+            client.init(done);
+    });
+
+    it('Github test',function(done) {
         client
-            .url('http://github.com/')
+            .url('https://github.com/')
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 assert(err === undefined);
                 assert(result.height === 26);
-                assert(result.width  === 89);
+                assert(result.width  === 37);
             })
             .getTitle(function(err, title) {
                 assert(err === undefined);
@@ -28,9 +28,9 @@ buster.testCase('Nested setup and teardown call order', {
                 assert(result.value === 'rgba(64,120,192,1)');
             })
             .call(done);
-    },
+    });
 
-    'tearDown': function(done) {
+    after(function(done) {
         client.end(done);
-    }
+    });
 });

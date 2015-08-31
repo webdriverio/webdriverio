@@ -1,15 +1,16 @@
-var webdriverio = require('../index'),
+var webdriverio = require('../../index'),
     client = webdriverio.remote({
         desiredCapabilities: {
             browserName: 'chrome',
             version: '27',
             platform: 'XP',
+            tags: ['examples'],
             name: 'This is an example test'
         },
-        host: 'hub.testingbot.com',
+        host: 'ondemand.saucelabs.com',
         port: 80,
-        user: process.env.TESTINGBOT_KEY,
-        key: process.env.TESTINGBOT_SECRET,
+        user: process.env.SAUCE_USERNAME,
+        key: process.env.SAUCE_ACCESS_KEY,
         logLevel: 'silent'
     }).init();
 

@@ -10,7 +10,7 @@ exports.config = {
      * specify test files
      */
     specs: [
-        './examples/runner-specs/mocha.test.js'
+        './examples/wdio/runner-specs/mocha.multiremote.test.js'
     ],
     exclude: [
         'test/spec/multibrowser/**',
@@ -20,13 +20,18 @@ exports.config = {
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'phantomjs'
-    }, {
-        browserName: 'chrome'
-    }, {
-        browserName: 'firefox'
-    }],
+    capabilities: {
+        browserA: {
+            desiredCapabilities: {
+                browserName: 'chrome'
+            }
+        },
+        browserB: {
+            desiredCapabilities: {
+                browserName: 'chrome'
+            }
+        }
+    },
 
     /**
      * test configurations
@@ -34,7 +39,7 @@ exports.config = {
     logLevel: 'silent',
     coloredLogs: true,
     screenshotPath: 'shots',
-    baseUrl: 'http://webdriver.io',
+    baseUrl: 'http://chat.socket.io',
     waitforTimeout: 10000,
     framework: 'mocha',
 
@@ -45,16 +50,6 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd'
-    },
-
-    /**
-     * hooks
-     */
-    onPrepare: function() {
-        console.log('let\'s go');
-    },
-    onComplete: function() {
-        console.log('that\'s it');
     }
 
 };
