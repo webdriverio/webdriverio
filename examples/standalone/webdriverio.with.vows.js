@@ -1,6 +1,6 @@
 var vows = require('vows'),
     assert = require('assert'),
-    webdriverio = require('../index');
+    webdriverio = require('../../index');
 
 var client;
 

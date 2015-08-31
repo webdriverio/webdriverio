@@ -15,7 +15,7 @@
  *
  */
 
-var webdriverio = require('../index');
+var webdriverio = require('../../index');
 
 describe('my webdriverio tests', function() {
 

@@ -1,4 +1,4 @@
-var WebdriverIO = require('../'),
+var WebdriverIO = require('../../'),
     matrix = WebdriverIO.multiremote({
         browserA: {
             desiredCapabilities: {

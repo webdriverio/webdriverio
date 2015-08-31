@@ -10,7 +10,7 @@ exports.config = {
      * specify test files
      */
     specs: [
-        './examples/runner-specs/webdrivercss.js'
+        './examples/wdio/runner-specs/webdrivercss.js'
     ],
     /**
      * capabilities
