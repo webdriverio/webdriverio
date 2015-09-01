@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v3.2.1 (2015-09-01)
+* command response with null value will be logged again (#738)
+* added documentation
+* support w3c webdriver draft keys (#744)
+* enable multiremote test in wdio test runner (#741)
+* kill Selenium session properly when canceling the wdio process (#746)
+
 ## v3.2.0 (2015-08-25)
 * improved error handling (no error propagation) (#629)
 * wdio test runner cli improvements (#704)
