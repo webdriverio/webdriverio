@@ -1,0 +1,48 @@
+var chai = require('chai');
+var expect = chai.expect;
+var webdriverio = require('webdriverio');
+
+
+var options = {
+    waitforTimeout: 5000,
+    desiredCapabilities: {
+    	platformName: 'android',                        // operating system
+    	platformVersion:'4.3',                          // OS version
+        browserName: 'chrome',                          // browser
+        udid: 'asdfasdfasdf',                           // udid of the android device
+		deviceName: 'devicexy',                         // device name
+    },
+    host: 'localhost',                                  // localhost
+    port: 4723                                          // port for appium
+};
+
+var client;
+
+describe('Simple cases', function() {
+      this.timeout(300000);
+      before(function(done) {
+          client = webdriverio.remote(options);
+          client.init(done);
+      });
+
+      after(function(done) {
+          client.end(done);
+      });
+
+
+    describe("Google-search", function() {
+        it("search-function", function(done) {
+           client
+    		    .url('http://google.com')
+    		  .setValue('*[name="q"]','webdriverio')
+    		  .click('*[name="btnG"]')
+    		  .pause(1000)
+    		  .getTitle().then(function(title) {
+        	  	console.log(title);
+   				 })
+    		  .call(done);
+       	});
+    });
+
+ 
+});
