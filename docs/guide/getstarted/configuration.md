@@ -110,6 +110,7 @@ to register Babel in the before hook of your config file
 ```
 
 Make sure to allow generator calls to directly go through since Node >v0.10 has sufficient generator support.
+
 If you run Mocha test you can use Mochas internal compiler to register Babel, e.g.:
 
 ```js
@@ -118,4 +119,12 @@ If you run Mocha test you can use Mochas internal compiler to register Babel, e.
         compilers: ['js:babel-core/register'],
         require: ['./test/helpers/common.js']
     },
+```
+
+For generator support, add a file called `.babelrc` to your project root directory with the following content:
+
+```
+{
+    blacklist: ['regenerator']
+}
 ```
