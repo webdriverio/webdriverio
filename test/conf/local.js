@@ -1,6 +1,7 @@
 var local = {
     host: 'localhost',
     port: process.env._PORT || 4444,
+    path: process.env._PATH,
     logLevel: 'silent',
     waitforTimeout: 1000,
     desiredCapabilities: {
