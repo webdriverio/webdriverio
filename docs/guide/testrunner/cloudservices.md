@@ -145,3 +145,20 @@ build: 'myApp #' + process.env.TRAVIS_BUILD_NUMBER + '.' + process.env.TRAVIS_JO
 'browserstack.local': 'true',
 'browserstack.debug': 'true'
 ```
+
+## [TestingBot](https://testingbot.com/)
+
+The only requirement is to set the `user` and `key` in your config (either
+exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your
+TestingBot username and secret key.
+
+You can also pass in any optional [supported capabilites](https://testingbot.com/support/other/test-options)
+as a key/value in the capabilities for any browser.
+
+### [Local Testing](https://testingbot.com/support/other/tunnel)
+
+If you want to run tests against a server that is not accessible to the
+Internet (like on `localhost`), then you need to use Local Testing.
+TestingBot provides a JAVA based tunnel to allow you to test websites not accessible from the internet.
+
+Their tunnel support page contains the information necessary to get this up and running.
