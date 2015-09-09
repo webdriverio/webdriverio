@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v3.2.2 (2015-09-09)
+* fixed bug where cli args didn't overwrite config properties
+* fixed bug where browser extensions throw E2BIG error
+* allow test files with .coffee extension
+* better error message if command gets executed w/o session id
+* allow usage of custom reporter
+
 ## v3.2.1 (2015-09-01)
 * command response with null value will be logged again (#738)
 * added documentation
