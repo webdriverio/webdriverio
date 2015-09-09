@@ -125,6 +125,6 @@ For generator support, add a file called `.babelrc` to your project root directo
 
 ```
 {
-    blacklist: ['regenerator']
+    "blacklist": ["regenerator"]
 }
 ```
