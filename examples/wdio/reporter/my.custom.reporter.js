@@ -47,14 +47,12 @@ var CustomReporter = function(options) {
     this.on('test:pending', function() {
         console.log('test:pending');
     });
-
 };
 
 /**
  * Inherit from EventEmitter
  */
 util.inherits(CustomReporter, events.EventEmitter);
-
 
 /**
  * Expose Custom Reporter
