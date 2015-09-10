@@ -15,18 +15,18 @@ The basic construction should look like:
 ```js
 var util = require('util'),
     events = require('events');
-&nsbsp;
+&nbsp;
 var CustomReporter = function(options) {
     // you can access reporter options via
     // `options.reporterOptions`
     // ...
 };
-&nsbsp;
+&nbsp;
 /**
  * Inherit from EventEmitter
  */
 util.inherits(CustomReporter, events.EventEmitter);
-&nsbsp;
+&nbsp;
 /**
  * Expose Custom Reporter
  */
@@ -38,7 +38,7 @@ your wdio.conf.js file should look like this:
 
 ```js
 var CustomReporter = require('./reporter/my.custom.reporter');
-
+&nbsp;
 exports.config = {
     // ...
 &nbsp;
@@ -56,7 +56,7 @@ depend on the event and are unified across the frameworks (Mocha, Jasmine and Cu
 custom reporter it should work for all frameworks. The following list contains all possible events you can register
 an event handler on:
 
-```
+```txt
 'start'
 'suite:start'
 'hook:start'
