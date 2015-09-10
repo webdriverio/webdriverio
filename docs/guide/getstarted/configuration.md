@@ -38,6 +38,12 @@ tags: ['tag1','tag2'],  // specify some tags (e.g. if you use Sauce Labs)
 name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
 ```
 
+####desiredCapabilities for Appium
+If you want to reuse your tests of WebdriverIO together with Appium for real device tests, you just need to exchange the port at the desiredCapabilities and add some options. Android tests are possible with Chrome, iOS tests with Safari, but you need the SafariLauncher to start the Safari. It need to be installed on the device and opened as a native app. It can be downloaded here : https://github.com/budhash/SafariLauncher
+Appium also provides native App testing, but in this case, some App data are needed.
+Examples can be found in the examples folder on github. 
+
+
 ### logLevel
 Level of logging verbosity.
 
