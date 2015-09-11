@@ -2,16 +2,14 @@ describe('chai-as-promised', function() {
 
     /**
      *  Remove the `should` global on Object.prototype to allow chai.should for these tests,
-     *  and set up chai, chai-as-promised and chai.should properly
+     *  and set up chai and chai.should properly
      */
 
     require('should').noConflict();
 
     var chai = require('chai');
-    var chaiAsPromised = require('chai-as-promised');
 
     chai.Should();
-    chai.use(chaiAsPromised);
 
     before(h.setup());
 
