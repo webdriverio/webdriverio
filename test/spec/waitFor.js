@@ -48,7 +48,7 @@ describe('waitFor',function() {
 
         it('should pass through an error from isExisting()', function() {
             var client = this.client;
-            restore = function() {client.addCommand('isExisting', require('../../lib/commands/isExisting'), true);}
+            var restore = function() {client.addCommand('isExisting', require('../../lib/commands/isExisting'), true);}
             this.client.addCommand('isExisting', function() {throw new Error("My error")}, true);
 
             return expect(this.client.waitForExist('#notExisting', duration))
@@ -151,7 +151,7 @@ describe('waitFor',function() {
 
         it('should pass through an error from isVisible()', function() {
             var client = this.client;
-            restore = function() {client.addCommand('isVisible', require('../../lib/commands/isVisible'), true);}
+            var restore = function() {client.addCommand('isVisible', require('../../lib/commands/isVisible'), true);}
             this.client.addCommand('isVisible', function() {throw new Error("My error")}, true);
 
             return expect(this.client.waitForVisible('#notExisting', duration))
