@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v3.2.3 (2015-09-11)
+* some minor bugfixes
+
 ## v3.2.2 (2015-09-09)
 * fixed bug where cli args didn't overwrite config properties
 * fixed bug where browser extensions throw E2BIG error
