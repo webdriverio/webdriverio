@@ -54,6 +54,16 @@ exports.config = {
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
     //
+    // First you can define how many instances should be started at the same time. Let's
+    // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
+    // set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
+    // files and you set maxInstances to 10, all spec files will get tested at the same time
+    // and 30 processes will get spawned. The property basically handles how many capabilities
+    // from the same test should run tests.
+    //
+    //
+    maxInstances: 10,
+    //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://docs.saucelabs.com/reference/platforms-configurator
@@ -61,6 +71,10 @@ exports.config = {
     capabilities: [{
         browserName: 'chrome'
     }, {
+        // maxInsatnces can get overwritten per capability. So if you have an in house Selenium
+        // grid with only 5 firefox instance avaiable you can make sure that not more than
+        // one instance gets started at a time.
+        maxInstances: 5,
         browserName: 'firefox',
         specs: [
             'test/ffOnly/*'
@@ -71,6 +85,8 @@ exports.config = {
             'test/spec/alert.js'
         ]
     }],
+    //
+    //
     //
     // ===================
     // Test Configurations
