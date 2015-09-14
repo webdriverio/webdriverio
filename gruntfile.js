@@ -22,12 +22,6 @@ module.exports = function(grunt) {
             },
             target: ['index.js']
         },
-        jshint: {
-            options: {
-                jshintrc: true
-            },
-            src: ['index.js']
-        },
         contributors: {
             options: {
                 commitMessage: 'update contributors'
