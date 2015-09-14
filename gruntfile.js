@@ -20,7 +20,7 @@ module.exports = function(grunt) {
             options: {
                 parser: 'babel-eslint'
             },
-            target: ['index.js']
+            target: ['lib/**/*.js', '!lib/scripts', 'test/spec', 'test/conf']
         },
         contributors: {
             options: {
