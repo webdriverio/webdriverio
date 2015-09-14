@@ -22,9 +22,9 @@ describe('my webdriverio tests', function() {
     var client = {};
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 9999999;
 
-    beforeEach(function() {
+    beforeEach(function(done) {
         client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
-        client.init();
+        client.init(done);
     });
 
     it('test it', function(done) {
