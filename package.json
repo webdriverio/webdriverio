@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
-  "version": "3.2.3",
+  "version": "4.0.0",
   "homepage": "http://webdriver.io",
   "author": "Camilo Tapia <camilo.tapia@gmail.com>",
   "contributors": [
@@ -16,13 +16,8 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/webdriverio/webdriverio/blob/master/LICENSE-MIT"
-    }
-  ],
-  "main": "./index.js",
+  "licenses": "MIT",
+  "main": "./build/index.js",
   "bin": {
     "wdio": "bin/wdio"
   },
@@ -44,7 +39,6 @@
     "css-value": "~0.0.1",
     "deepmerge": "~0.2.7",
     "ejs": "^2.3.1",
-    "fibers": "^1.0.6",
     "glob": "^5.0.10",
     "inquirer": "^0.8.5",
     "optimist": "^0.6.1",
@@ -59,13 +53,19 @@
     "chai": "~2.3.0",
     "chai-as-promised": "^5.0.0",
     "coveralls": "~2.11.2",
-    "es6-promise": "^2.1.1",
-    "glob": "~5.0.5",
     "istanbul": "^0.3.13",
     "mocha": "^2.2.4",
-    "nock": "~1.7.1",
-    "saucelabs": "~0.1.1",
-    "should": "^6.0.1"
+    "should": "^6.0.1",
+    "babel-eslint": "^4.1.1",
+    "eslint": "^1.4.1",
+    "eslint-config-standard": "^4.3.2",
+    "eslint-plugin-standard": "^1.3.0",
+    "grunt": "^0.4.5",
+    "grunt-babel": "^5.0.1",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-jshint": "https://github.com/christian-bromann/grunt-contrib-jshint",
+    "grunt-eslint": "^17.1.0",
+    "load-grunt-tasks": "^3.2.0"
   },
   "tags": [
     "web",
