@@ -15,49 +15,48 @@
  *     Vincent Voyer <vincent@zeroload.net>
  */
 
-var WebdriverIO = require('./lib/webdriverio'),
-    Multibrowser = require('./lib/multibrowser'),
-    ErrorHandler = require('./lib/utils/ErrorHandler'),
-    implementedCommands = require('./lib/helpers/getImplementedCommands')(),
-    package = require('./package.json');
+import WebdriverIO from './lib/webdriverio'
+import Multibrowser from './lib/multibrowser'
+import ErrorHandler from './lib/utils/ErrorHandler'
+import getImplementedCommands from './lib/helpers/getImplementedCommands'
+import package from './package.json'
 
-// expose version number
-module.exports.version = package.version;
+const IMPLEMENTED_COMMANDS = getImplementedCommands()
+const VERSION = package.version
+const ERROR_HANDLER = ErrorHandler;
 
-// expose error handler
-module.exports.ErrorHandler = ErrorHandler;
-
-// use the chained API reference to add static methods
-var remote = module.exports.remote = function remote(options, modifier) {
+let remote = function(options, modifier) {
 
     options = options || {};
 
     /**
      * initialise monad
      */
-    var wdio = WebdriverIO(options, modifier);
+    let wdio = WebdriverIO(options, modifier);
 
     /**
      * build prototype: commands
      */
-    Object.keys(implementedCommands).forEach(function(commandName) {
-        wdio.lift(commandName, implementedCommands[commandName]);
+    for (let [commandFn, commandName] of IMPLEMENTED_COMMANDS) {
+        wdio.lift(commandName, commandFn);
     });
 
-    var prototype = wdio();
+    let prototype = wdio();
     prototype.defer.resolve();
     return prototype;
 };
 
-module.exports.multiremote = function multiremote(options) {
-    var multibrowser = new Multibrowser();
+let multiremote = function(options) {
+    let multibrowser = new Multibrowser();
 
-    Object.keys(options).forEach(function(browserName) {
+    for (let [capabilities, browserName] of options) {
         multibrowser.addInstance(
             browserName,
-            remote(options[browserName], multibrowser.getInstanceModifier())
+            remote(capabilities, multibrowser.getInstanceModifier())
         );
     });
 
     return remote(options, multibrowser.getModifier());
 };
+
+export { remote, multibrowser }
