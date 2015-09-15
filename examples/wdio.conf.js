@@ -188,7 +188,7 @@ exports.config = {
     //
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
-    after: function() {
+    after: function(failures, pid) {
         console.log('finish up the tests');
     },
     //
