@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v3.2.4 (2015-09-16)
+* bugfixes in xunit reporter
+* removed undefined first argument in after hook
+* improved error handling in waitFor commands
+
 ## v3.2.3 (2015-09-11)
 * some minor bugfixes
 
