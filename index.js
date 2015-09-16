@@ -19,44 +19,41 @@ import WebdriverIO from './lib/webdriverio'
 import Multibrowser from './lib/multibrowser'
 import ErrorHandler from './lib/utils/ErrorHandler'
 import getImplementedCommands from './lib/helpers/getImplementedCommands'
-import package from './package.json'
+import pkg from './package.json'
 
 const IMPLEMENTED_COMMANDS = getImplementedCommands()
-const VERSION = package.version
-const ERROR_HANDLER = ErrorHandler;
+const VERSION = pkg.version
+const ERROR_HANDLER = ErrorHandler
 
-let remote = function(options, modifier) {
-
-    options = options || {};
-
+let remote = function (options = {}, modifier) {
     /**
      * initialise monad
      */
-    let wdio = WebdriverIO(options, modifier);
+    let wdio = WebdriverIO(options, modifier)
 
     /**
      * build prototype: commands
      */
     for (let [commandFn, commandName] of IMPLEMENTED_COMMANDS) {
-        wdio.lift(commandName, commandFn);
-    });
+        wdio.lift(commandName, commandFn)
+    }
 
-    let prototype = wdio();
-    prototype.defer.resolve();
-    return prototype;
-};
+    let prototype = wdio()
+    prototype.defer.resolve()
+    return prototype
+}
 
-let multiremote = function(options) {
-    let multibrowser = new Multibrowser();
+let multiremote = function (options) {
+    let multibrowser = new Multibrowser()
 
     for (let [capabilities, browserName] of options) {
         multibrowser.addInstance(
             browserName,
             remote(capabilities, multibrowser.getInstanceModifier())
-        );
-    });
+        )
+    }
 
-    return remote(options, multibrowser.getModifier());
-};
+    return remote(options, multibrowser.getModifier())
+}
 
-export { remote, multibrowser }
+export { remote, multiremote, VERSION, ERROR_HANDLER }
