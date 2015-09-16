@@ -8,8 +8,10 @@ describe('chai-as-promised', function() {
     require('should').noConflict();
 
     var chai = require('chai');
+    var chaiAsPromised = require('chai-as-promised');
 
     chai.Should();
+    chai.use(chaiAsPromised);
 
     before(h.setup());
 
