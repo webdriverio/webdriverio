@@ -1,4 +1,4 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
     grunt.initConfig({
         pkgFile: 'package.json',
         clean: ['build'],
@@ -10,7 +10,7 @@ module.exports = function(grunt) {
                 files: [{
                     expand: true,
                     cwd: './',
-                    src: ['./**/*', '!test','!node_modules', '!examples', '!docs'],
+                    src: ['lib/**/*', 'index.js'],
                     dest: 'build',
                     ext: '.js'
                 }]
@@ -33,23 +33,23 @@ module.exports = function(grunt) {
                 pushTo: 'upstream'
             }
         }
-    });
+    })
 
-    require('load-grunt-tasks')(grunt);
-    grunt.registerTask('default', ['build']);
-    grunt.registerTask('build', 'Build wdio-mocha', function() {
+    require('load-grunt-tasks')(grunt)
+    grunt.registerTask('default', ['build'])
+    grunt.registerTask('build', 'Build wdio-mocha', function () {
         grunt.task.run([
             'jshint',
             'eslint',
             'clean',
             'babel'
-        ]);
-    });
-    grunt.registerTask('release', 'Bump and tag version', function(type) {
+        ])
+    })
+    grunt.registerTask('release', 'Bump and tag version', function (type) {
         grunt.task.run([
             'build',
             'contributors',
             'bump:' + (type || 'patch')
-        ]);
-    });
-};
+        ])
+    })
+}
