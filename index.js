@@ -45,10 +45,10 @@ let remote = function (options = {}, modifier) {
 let multiremote = function (options) {
     let multibrowser = new Multibrowser()
 
-    for (let [capabilities, browserName] of options) {
+    for (let browserName of Object.keys(options)) {
         multibrowser.addInstance(
             browserName,
-            remote(capabilities, multibrowser.getInstanceModifier())
+            remote(options[browserName], multibrowser.getInstanceModifier())
         )
     }
 
