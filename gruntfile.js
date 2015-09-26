@@ -4,7 +4,7 @@ module.exports = function (grunt) {
         clean: ['build'],
         babel: {
             options: {
-                sourceMap: true
+                sourceMap: false
             },
             dist: {
                 files: [{
