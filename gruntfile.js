@@ -4,13 +4,13 @@ module.exports = function (grunt) {
         clean: ['build'],
         babel: {
             options: {
-                sourceMap: false
+                sourceMap: true
             },
             dist: {
                 files: [{
                     expand: true,
                     cwd: './',
-                    src: ['lib/**/*', 'index.js'],
+                    src: ['lib/**/*.js', 'index.js'],
                     dest: 'build',
                     ext: '.js'
                 }]
@@ -20,7 +20,7 @@ module.exports = function (grunt) {
             options: {
                 parser: 'babel-eslint'
             },
-            target: ['lib/**/*.js', '!lib/scripts', 'test/spec', 'test/conf']
+            target: ['lib/**/*.js', '!lib/scripts/*', '!test/spec', '!test/conf']
         },
         contributors: {
             options: {
@@ -39,7 +39,6 @@ module.exports = function (grunt) {
     grunt.registerTask('default', ['build'])
     grunt.registerTask('build', 'Build wdio-mocha', function () {
         grunt.task.run([
-            'jshint',
             'eslint',
             'clean',
             'babel'
