@@ -1,3 +1,7 @@
+require("babel/register")({
+    ignore: /\/(test|node_modules|docs|examples)/
+});
+
 var WebdriverIO = require('../index.js'),
     q = require('q'),
     Mocha = require('mocha'),
@@ -55,10 +59,8 @@ q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
     sessionID = (client.requestHandler || {}).sessionID;
 
     console.log('-> end all clients');
-    return client[conf.runsWithSauce ? 'end' : 'endAll']().catch(function(e) {});
-
+    return client[conf.runsWithSauce ? 'end' : 'endAll']();
 }, handleError).then(function() {
-
     /**
      * only update sauce job when running in CI
      */

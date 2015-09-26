@@ -1,4 +1,4 @@
-var findStrategy = require('../../../lib/helpers/find-element-strategy');
+var findStrategy = require('../../../lib/helpers/findElementStrategy');
 assert = require('assert');
 
 describe('selector strategies helper', function () {
