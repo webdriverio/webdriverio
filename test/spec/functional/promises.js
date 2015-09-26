@@ -184,8 +184,6 @@ describe('PromiseHandler', function() {
         });
 
         it('should work with ES6 promises', function() {
-            var Promise = require('es6-promise').Promise;
-
             return this.client.status().then(function(){
                 return new Promise(function (resolve) {
                     resolve('success');

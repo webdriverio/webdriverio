@@ -23,7 +23,6 @@ import pkg from './package.json'
 
 const IMPLEMENTED_COMMANDS = getImplementedCommands()
 const VERSION = pkg.version
-const ERROR_HANDLER = ErrorHandler
 
 let remote = function (options = {}, modifier) {
     /**
@@ -56,4 +55,4 @@ let multiremote = function (options) {
     return remote(options, multibrowser.getModifier())
 }
 
-export { remote, multiremote, VERSION, ERROR_HANDLER }
+export { remote, multiremote, VERSION, ErrorHandler }
