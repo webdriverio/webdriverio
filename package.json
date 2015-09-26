@@ -25,13 +25,14 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
+    "build": "./node_modules/.bin/grunt build && cp package.json build/package.json",
     "test": "node ./test/runner.js",
     "test-mobile": "_APP=safari _BROWSER=safari _PLATFORMVERSION=7.1 _APPIUMVERSION=1.2 _PLATFORMNAME=iOS _DEVICENAME=iPhone_Simulator _PORT=4723 _ENV=mobile node ./test/runner.js",
     "test-desktop": "_ENV=desktop _BROWSER=chrome node ./test/runner.js",
     "test-functional": "_ENV=functional _BROWSER=phantomjs node ./test/runner.js",
     "test-multibrowser": "_ENV=multibrowser node ./test/runner.js",
     "coverage": "./node_modules/.bin/istanbul cover -x \"**/helpers/_*.js\" ./test/runner.js",
-    "prepublish": "npm prune"
+    "prepublish": "npm prune && npm build"
   },
   "dependencies": {
     "archiver": "~0.14.3",
