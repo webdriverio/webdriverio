@@ -6,11 +6,29 @@ module.exports = function (grunt) {
             options: {
                 sourceMap: false
             },
-            dist: {
+            commands: {
                 files: [{
                     expand: true,
                     cwd: './',
-                    src: ['lib/**/*.js', 'index.js'],
+                    src: ['lib/commands/*.js'],
+                    dest: 'build',
+                    ext: '.js'
+                }]
+            },
+            protocol: {
+                files: [{
+                    expand: true,
+                    cwd: './',
+                    src: ['lib/protocol/*.js'],
+                    dest: 'build',
+                    ext: '.js'
+                }]
+            },
+            core: {
+                files: [{
+                    expand: true,
+                    cwd: './',
+                    src: ['lib/*.js', 'lib/utils/*.js', 'lib/helpers/*.js', 'index.js'],
                     dest: 'build',
                     ext: '.js'
                 }]
@@ -31,6 +49,20 @@ module.exports = function (grunt) {
             options: {
                 commitMessage: 'v%VERSION%',
                 pushTo: 'upstream'
+            }
+        },
+        watch: {
+            commands: {
+                files: 'lib/commands/*.js',
+                tasks: ['babel:commands']
+            },
+            protocol: {
+                files: 'lib/protocol/*.js',
+                tasks: ['babel:protocol']
+            },
+            core: {
+                files: ['lib/*.js', 'lib/helpers/*.js', 'lib/utils/*.js', 'index.js'],
+                tasks: ['babel:core']
             }
         }
     })
