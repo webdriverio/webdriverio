@@ -34,4 +34,18 @@ describe('webdriver.io page', function() {
 
     });
 
+    it('should have mocha’s normal `this` context within a generator spec', function* () {
+        yield browser.pause(100);
+        assert(this);
+        assert(this.test);
+        assert(this.test.title);
+        assert(this.test.fullTitle());
+    });
+
+    it('should be skippable (pending) from within a generator spec', function* () {
+        yield browser.pause(100);
+        this.skip();
+        throw new Error("this should not be reached");
+    });
+
 });
