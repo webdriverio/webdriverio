@@ -34,4 +34,10 @@ describe('webdriver.io page', function() {
 
     });
 
+    it('should be skippable (pending) from within a generator spec', function* () {
+        yield browser.pause(100);
+        this.skip();
+        throw new Error("this should not be reached");
+    });
+
 });
