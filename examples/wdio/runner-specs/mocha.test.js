@@ -26,6 +26,10 @@ describe('webdriver.io page', function() {
 
     it('should be a pending test');
 
+    // NOTE: On Node 0.10 and below, the generator `function*` syntax in the following
+    // tests will break the parser. Use Babel (`require("babel/register")` in
+    // wdio.mocha.conf.js) or similar to transpile this code for older Nodes.
+
     it('should have the right title - the fancy generator way', function* () {
 
         yield browser.url('/');
