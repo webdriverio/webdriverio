@@ -1,5 +1,14 @@
 var assert = require('assert');
 
+var generatorTests = (function () {
+    try {
+        // this succeeds either with native generators or with regenerator (Babel):
+        return require('./mocha.generatorTests.js');
+    } catch (err) { // otherwise, assume generators are unavailable:
+        return {};
+    }
+})();
+
 describe('webdriver.io page', function() {
 
     it('should have the right title - the good old callback way', function(done) {
@@ -26,26 +35,10 @@ describe('webdriver.io page', function() {
 
     it('should be a pending test');
 
-    it('should have the right title - the fancy generator way', function* () {
+    it('should have the right title - the fancy generator way', generatorTests.wdTitleSpec);
 
-        yield browser.url('/');
-        var title = yield browser.getTitle();
-        assert.equal(title, 'WebdriverIO - Selenium 2.0 javascript bindings for nodejs');
+    it('should have mocha’s normal `this` context within a generator spec', generatorTests.contextSpec);
 
-    });
-
-    it('should have mocha’s normal `this` context within a generator spec', function* () {
-        yield browser.pause(100);
-        assert(this);
-        assert(this.test);
-        assert(this.test.title);
-        assert(this.test.fullTitle());
-    });
-
-    it('should be skippable (pending) from within a generator spec', function* () {
-        yield browser.pause(100);
-        this.skip();
-        throw new Error("this should not be reached");
-    });
+    it('should be skippable (pending) from within a generator spec', generatorTests.skippableSpec);
 
 });
