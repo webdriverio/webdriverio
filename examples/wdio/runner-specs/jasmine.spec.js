@@ -1,3 +1,6 @@
+var hasES6Support = require('../../../lib/helpers/detectHarmony');
+var generatorTests = hasES6Support ? require('./jasmine.generatorTests.js') : { wdTitleSpec: function () {} };
+
 describe('webdriver.io page', function() {
 
     it('should have the right title - the good old callback way', function(done) {
@@ -22,12 +25,6 @@ describe('webdriver.io page', function() {
 
     });
 
-    it('should have the right title - the fancy generator way', function* () {
-
-        yield browser.url('/');
-        var title = yield browser.getTitle();
-        expect(title).toBe('WebdriverIO - Selenium 2.0 javascript bindings for nodejs');
-
-    });
+    (hasES6Support ? it : xit)('should have the right title - the fancy generator way', generatorTests.wdTitleSpec);
 
 });

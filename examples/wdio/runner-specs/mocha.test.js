@@ -1,13 +1,7 @@
 var assert = require('assert');
 
-var generatorTests = (function () {
-    try {
-        // this succeeds either with native generators or with regenerator (Babel):
-        return require('./mocha.generatorTests.js');
-    } catch (err) { // otherwise, assume generators are unavailable:
-        return {};
-    }
-})();
+var hasES6Support = require('../../../lib/helpers/detectHarmony');
+var generatorTests = hasES6Support ? require('./mocha.generatorTests.js') : {};
 
 describe('webdriver.io page', function() {
 

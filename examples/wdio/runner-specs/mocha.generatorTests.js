@@ -1,3 +1,5 @@
+var assert = require('assert');
+
 module.exports = {
     wdTitleSpec: function* () {
         yield browser.url('/');
