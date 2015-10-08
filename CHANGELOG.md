@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v3.2.5 (2015-10-07)
+* make sure edge driver follows standards for querying elements (#762)
+* fixed xunit reporter bug (#797, #801)
+* fixed indention bug in spec reporter (#800)
+* Preserve mocha `this` in testrunner-wrapped generators (#813)
+* better Babel support (##816)
+
 ## v3.2.4 (2015-09-16)
 * bugfixes in xunit reporter
 * removed undefined first argument in after hook
