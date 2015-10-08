@@ -4,6 +4,7 @@ module.exports = function (grunt) {
         clean: ['build'],
         babel: {
             options: {
+                optional: ['runtime'],
                 sourceMap: false
             },
             commands: {
