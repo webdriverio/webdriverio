@@ -17,7 +17,7 @@ describe('my webdriverio tests', function(){
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 assert(err === undefined);
                 assert(result.height === 26);
-                assert(result.width  === 37);
+                assert(result.width  === 89);
             })
             .getTitle(function(err, title) {
                 assert(err === undefined);
