@@ -11,4 +11,4 @@ Feature: Example feature
   Scenario: Get title of website
     Given I go on the website "https://github.com/"
     When I use getTitle() to get the title of this website
-    Then the command should return "GitHub · Build software better, together."
+    Then the command should return "GitHub · Where software is built"

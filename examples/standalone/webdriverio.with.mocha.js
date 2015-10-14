@@ -17,11 +17,11 @@ describe('my webdriverio tests', function(){
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 assert(err === undefined);
                 assert(result.height === 26);
-                assert(result.width  === 37);
+                assert(result.width  === 89);
             })
             .getTitle(function(err, title) {
                 assert(err === undefined);
-                assert(title === 'GitHub · Build software better, together.');
+                assert(title === 'GitHub · Where software is built');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 assert(err === undefined);
