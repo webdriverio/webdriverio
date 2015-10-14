@@ -19,7 +19,7 @@ module.exports = {
             })
             .getTitle(function(err, title) {
                 test.ok(err === undefined, 'getTitle() should cause no error');
-                test.ok(title === 'GitHub · Build software better, together.', 'title should be "GitHub · Build software better, together."');
+                test.ok(title === 'GitHub · Where software is built', 'title should be "GitHub · Where software is built"');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 test.ok(err === undefined, 'getElementCssProperty() should cause no error');
