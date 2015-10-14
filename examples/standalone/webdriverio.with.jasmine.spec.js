@@ -37,7 +37,7 @@ describe('my webdriverio tests', function() {
             })
             .getTitle(function(err, title) {
                 expect(err).toBeFalsy();
-                expect(title).toBe('GitHub · Build software better, together.');
+                expect(title).toBe('GitHub · Where software is built');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, color){
                 expect(err).toBeFalsy();
