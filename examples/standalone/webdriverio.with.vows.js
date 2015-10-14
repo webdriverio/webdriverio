@@ -35,7 +35,7 @@ vows.describe('my github tests').addBatch({
                 },
 
                 'width is 89px': function(err,result) {
-                    assert(result.width === 37);
+                    assert(result.width === 89);
                 }
 
             },
