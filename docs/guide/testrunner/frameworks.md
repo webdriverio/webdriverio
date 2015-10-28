@@ -152,7 +152,7 @@ commands the screenshot got taken which gives you still valueable information ab
 ## Using Cucumber
 
 If you want to use Cucumber set the `framework` property to cucumber, either by adding `framework: 'cucumber'`
-to the [config file](/guide/testrunner/configurationfile.html) or by adding `-f cucumber` to the command line.
+to the [config file](/guide/testrunner/configurationfile.html) or by adding `-f cucumber` to the command line. Please make sure you have cucumber v0.7.0 installed (globally or as project dependency).
 
 Options for Cucumber such as 'format' can be given in the config file with cucumberOpts:
 
