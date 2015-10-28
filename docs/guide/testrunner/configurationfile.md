@@ -186,7 +186,6 @@ exports.config = {
     // =====
     // Run functions before or after the test. If one of them return with a promise, WebdriverIO
     // will wait until that promise got resolved to continue.
-    // see also: http://webdriver.io/guide/testrunner/hooks.html
     //
     // Gets executed before all workers get launched.
     onPrepare: function() {
