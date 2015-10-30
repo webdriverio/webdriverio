@@ -5,7 +5,7 @@ module.exports = function (grunt) {
         babel: {
             options: {
                 optional: ['runtime'],
-                sourceMap: false
+                sourceMap: 'inline'
             },
             commands: {
                 files: [{
