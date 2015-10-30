@@ -61,15 +61,24 @@ module.exports = function (grunt) {
         watch: {
             commands: {
                 files: 'lib/commands/*.js',
-                tasks: ['babel:commands']
+                tasks: ['babel:commands'],
+                options: {
+                    spawn: false
+                }
             },
             protocol: {
                 files: 'lib/protocol/*.js',
-                tasks: ['babel:protocol']
+                tasks: ['babel:protocol'],
+                options: {
+                    spawn: false
+                }
             },
             core: {
                 files: ['lib/*.js', 'lib/helpers/*.js', 'lib/utils/*.js', 'index.js'],
-                tasks: ['babel:core']
+                tasks: ['babel:core'],
+                options: {
+                    spawn: false
+                }
             }
         }
     })
