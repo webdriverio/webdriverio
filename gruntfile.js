@@ -29,7 +29,13 @@ module.exports = function (grunt) {
                 files: [{
                     expand: true,
                     cwd: './',
-                    src: ['lib/*.js', 'lib/utils/*.js', 'lib/helpers/*.js', 'index.js'],
+                    src: [
+                        'lib/*.js',
+                        'lib/scripts/*.js',
+                        'lib/utils/*.js',
+                        'lib/helpers/*.js',
+                        'index.js'
+                    ],
                     dest: 'build',
                     ext: '.js'
                 }]
