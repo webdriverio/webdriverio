@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v3.2.6 (2015-10-31)
+* expose sessionId and capabilities to after() hook
+* Adds a configuration: option.waitforInterval and a parameter to waitUntil for setting the polling interval for waitUntil.
+* support for mocha's 'qunit' interface 
+
 ## v3.2.5 (2015-10-07)
 * make sure edge driver follows standards for querying elements (#762)
 * fixed xunit reporter bug (#797, #801)
