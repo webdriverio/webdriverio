@@ -96,6 +96,16 @@ describe('waitFor',function() {
             return this.client.waitForText('.sometext', duration, true).then(checkTime);
         });
 
+        it('should return with an error if the text never appears', function() {
+            return expect(this.client.waitForText('.sometext', 10))
+            .to.be.rejectedWith('element (.sometext) still without text after 10ms');
+        });
+
+        it('should pass through an error from getText()', function() {
+            return expect(this.client.waitForText('#notExisting', duration, true))
+            .to.be.rejectedWith("An element could not be located on the page using the given search parameters")
+        });
+
     });
 
     describe('Value', function() {
