@@ -17,6 +17,16 @@ describe('waitFor',function() {
             return this.client.waitForEnabled('.waitForValueEnabledReverse', duration, true).then(checkTime);
         });
 
+        it('should return with an error if the element never becomes visible', function() {
+            return expect(this.client.waitForEnabled('.waitForValueEnabledReverse', 10))
+                .to.be.rejectedWith('element (.waitForValueEnabledReverse) still not enabled after 10ms');
+        });
+
+        it('should pass through an error from isEnabled()', function() {
+            return expect(this.client.waitForEnabled('#notExisting', duration, true))
+                .to.be.rejectedWith('An element could not be located on the page using the given search parameters');
+        });
+
     });
 
     describe('Exist', function() {
