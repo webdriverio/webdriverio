@@ -72,6 +72,16 @@ describe('waitFor',function() {
             return this.client.waitForSelected('.option2', duration, true).then(checkTime);
         });
 
+        it('should return with an error if the element never becomes visible', function() {
+            return expect(this.client.waitForSelected('.option2', 10))
+            .to.be.rejectedWith('element (.option2) still not selected after 10ms');
+        });
+
+        it('should pass through an error from isSelected()', function() {
+            return expect(this.client.waitForSelected('#notExisting', duration, true))
+            .to.be.rejectedWith("An element could not be located on the page using the given search parameters")
+        });
+
     });
 
     describe('Text', function() {
