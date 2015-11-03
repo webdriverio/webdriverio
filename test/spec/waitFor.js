@@ -144,6 +144,22 @@ describe('waitFor',function() {
             return this.client.waitForVisible('.onMyWay', duration, true).then(checkTime);
         });
 
+        it('should return with an error if the element never becomes visible', function() {
+            return expect(this.client.waitForVisible('#notExisting', 10))
+            .to.be.rejectedWith('element (#notExisting) still not visible after 10ms');
+        });
+
+        it('should pass through an error from isVisible()', function() {
+            var client = this.client;
+            var restore = function() {client.addCommand('isVisible', require('../../lib/commands/isVisible'), true);}
+            this.client.addCommand('isVisible', function() {throw new Error("My error")}, true);
+
+            return expect(this.client.waitForVisible('#notExisting', duration))
+            .to.be.rejectedWith("My error")
+            .then(restore)
+            .catch(function(err) {restore(); throw err;});
+        });
+
     });
 
     describe('timeout', function() {
