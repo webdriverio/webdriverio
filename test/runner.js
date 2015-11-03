@@ -23,6 +23,7 @@ var mocha = new Mocha({
 conf = require('./conf/index.js');
 assert = require('chai').assert;
 expect = require('chai').expect;
+require('chai').use(require('chai-as-promised'));
 
 if(specDir) {
     // only test functional test spec if required
