@@ -41,6 +41,23 @@ describe('waitFor',function() {
             return this.client.waitForExist('.goAway', duration, true).then(checkTime);
         });
 
+        it('should return with an error if the element never exists', function() {
+            return expect(this.client.waitForExist('#notExisting', 10))
+            .to.be.rejectedWith('element (#notExisting) still not existing after 10ms');
+        });
+
+        it('should pass through an error from isExisting()', function() {
+            var client = this.client;
+            var restore = function() {client.addCommand('isExisting', require('../../lib/commands/isExisting'), true);}
+            this.client.addCommand('isExisting', function() {throw new Error("My error")}, true);
+
+            return expect(this.client.waitForExist('#notExisting', duration))
+            .to.be.rejectedWith("My error")
+            .then(restore)
+            .catch(function(err) {restore(); throw err;});
+        });
+
+
     });
 
     describe('Selected', function() {
