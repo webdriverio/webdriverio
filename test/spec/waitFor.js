@@ -120,6 +120,16 @@ describe('waitFor',function() {
             return this.client.waitForValue('.waitForValueEnabled', duration, true).then(checkTime);
         });
 
+        it('should return with an error if the text never appears', function() {
+            return expect(this.client.waitForValue('.sometext', 10))
+            .to.be.rejectedWith('element (.sometext) still without a value after 10ms');
+        });
+
+        it('should pass through an error from getValue()', function() {
+            return expect(this.client.waitForValue('#notExisting', duration, true))
+            .to.be.rejectedWith("An element could not be located on the page using the given search parameters")
+        });
+
     });
 
     describe('Visible', function() {
