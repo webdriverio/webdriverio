@@ -29,7 +29,7 @@ function runInParallel(fns) {
     });
 }
 
-describe.only('staleElementRetry', function() {
+describe('staleElementRetry', function() {
 
     before(h.setup());
 
