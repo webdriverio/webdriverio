@@ -62,7 +62,7 @@ describe('addCommand', function() {
 
     });
 
-    describe.only('add a namespaced command', function() {
+    describe('add a namespaced command', function() {
 
         it('should add a namespaced getUrlAndTitle', function() {
             this.client.addCommand('mynamespace', 'getUrlAndTitle', getUrlAndTitle);
