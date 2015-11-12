@@ -1,9 +1,11 @@
 var webdriverio = require('../../index'),
     client = webdriverio.remote({
         desiredCapabilities: {
-            browserName: 'chrome',
-            version: '27',
-            platform: 'XP'
+			browser : 'Chrome',
+			browser_version : '46.0',
+			os : 'Windows',
+			os_version : '10',
+			resolution : '1024x768'
         },
         host: 'hub.browserstack.com',
         port: 80,
