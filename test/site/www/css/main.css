@@ -153,3 +153,29 @@ h2 {
 .opacity {
     opacity: 0;
 }
+
+.viewportTest {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    background-color: red;
+}
+
+.outTopLeft {
+    left: -100px;
+    top: -100px;
+}
+
+.outTopRight {
+    right: -100px;
+    top: -100px;
+}
+.outBottomLeft {
+    left: -100px;
+    bottom: -100px;
+}
+
+.outBottomRight {
+    right: 0;
+    bottom: -100px;
+}

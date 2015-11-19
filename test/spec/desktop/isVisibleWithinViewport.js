@@ -29,4 +29,15 @@ describe('isVisibleWithinViewport', function() {
             isVisibleWithinViewport[1].should.equal(true); // this element is now within the viewport
         });
     });
+
+    it('should check that elements just outside the viewport are hidden', function() {
+        return this.client.scroll(0, 0).isVisibleWithinViewport('.viewportTest').then(function (isVisibleWithinViewport) {
+            isVisibleWithinViewport.should.be.an.instanceOf(Array);
+            isVisibleWithinViewport.should.have.length(4);
+            isVisibleWithinViewport[0].should.equal(false);
+            isVisibleWithinViewport[1].should.equal(false);
+            isVisibleWithinViewport[2].should.equal(false);
+            isVisibleWithinViewport[3].should.equal(false);
+        });
+    });
 });
