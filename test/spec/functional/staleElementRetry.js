@@ -29,7 +29,11 @@ function runInParallel(fns) {
     });
 }
 
-describe('staleElementRetry', function() {
+/**
+ * PhantomJS < v2.0 crashes here
+ * ToDo manually install phantomjs 2.0
+ */
+describe.skip('staleElementRetry', function() {
 
     before(h.setup());
 
