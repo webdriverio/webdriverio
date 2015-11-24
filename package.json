@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "archiver": "~0.14.3",
+    "babel-runtime": "^5.8.25",
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
     "deepmerge": "~0.2.7",
@@ -54,7 +55,6 @@
   "devDependencies": {
     "babel": "^5.8.23",
     "babel-eslint": "^4.1.1",
-    "babel-runtime": "^5.8.25",
     "chai": "~2.3.0",
     "chai-as-promised": "^5.0.0",
     "coveralls": "~2.11.2",
