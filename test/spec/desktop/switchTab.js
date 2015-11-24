@@ -47,6 +47,12 @@ runTest('switchTab', function() {
         it('it then should have the desired new tab id', function() {
             return this.client.getCurrentTabId().then(function(res) {
                 openedTabs[2].should.be.exactly(res);
+            });
+        });
+
+        it('it should select the first available tab when called without a window handle', function() {
+            return this.client.switchTab().getCurrentTabId().then(function(res) {
+                openedTabs[0].should.be.exactly(res);
                 // get back to old tab
                 return this.switchTab(myTab);
             });
