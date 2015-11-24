@@ -1,9 +1,20 @@
 # CHANGELOG
 
+## v3.3.0 (2015-11-24)
+* added Unicode support (#850)
+* enable passing cli args to runner processes (#851)
+* docs improvements (#854, #853, #861, #871)
+* elminate Seleniums staleElement errors (#857)
+* fixed screenshot file names for Windows user (#868)
+* added new command `getUrl` (#877)
+* fixed isVisibleWithinViewport helper (#885, #886, #887)
+* update Sauce Labs job even when using Sauce Connect (#881)
+* fixed switchTab command (#898)
+
 ## v3.2.6 (2015-10-31)
 * expose sessionId and capabilities to after() hook
 * Adds a configuration: option.waitforInterval and a parameter to waitUntil for setting the polling interval for waitUntil.
-* support for mocha's 'qunit' interface 
+* support for mocha's 'qunit' interface
 
 ## v3.2.5 (2015-10-07)
 * make sure edge driver follows standards for querying elements (#762)
