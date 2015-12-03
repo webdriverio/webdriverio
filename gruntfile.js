@@ -80,7 +80,13 @@ module.exports = function (grunt) {
                     spawn: false
                 }
             }
-        }
+        },
+        copy: {
+            main: {
+                src: 'package.json',
+                dest: 'build/',
+            },
+        },
     })
 
     require('load-grunt-tasks')(grunt)
@@ -89,7 +95,8 @@ module.exports = function (grunt) {
         grunt.task.run([
             'eslint',
             'clean',
-            'babel'
+            'babel',
+            'copy'
         ])
     })
     grunt.registerTask('release', 'Bump and tag version', function (type) {
