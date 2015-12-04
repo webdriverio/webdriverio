@@ -43,6 +43,7 @@
     "ejs": "^2.3.1",
     "glob": "^5.0.10",
     "inquirer": "^0.8.5",
+    "npm-install-package": "^1.0.2",
     "optimist": "^0.6.1",
     "q": "~1.3.0",
     "request": "2.49.0",
@@ -71,7 +72,10 @@
     "load-grunt-tasks": "^3.2.0",
     "mocha": "^2.2.4",
     "saucelabs": "^1.0.1",
-    "should": "^6.0.1"
+    "should": "^6.0.1",
+    "wdio-dot-reporter": "0.0.4",
+    "wdio-mocha-framework": "^0.2.1",
+    "wdio-sauce-service": "0.0.1"
   },
   "tags": [
     "web",
