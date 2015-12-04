@@ -72,10 +72,7 @@
     "load-grunt-tasks": "^3.2.0",
     "mocha": "^2.2.4",
     "saucelabs": "^1.0.1",
-    "should": "^6.0.1",
-    "wdio-dot-reporter": "0.0.4",
-    "wdio-mocha-framework": "^0.2.1",
-    "wdio-sauce-service": "0.0.1"
+    "should": "^6.0.1"
   },
   "tags": [
     "web",
