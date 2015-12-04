@@ -82,11 +82,15 @@ module.exports = function (grunt) {
             }
         },
         copy: {
-            main: {
+            packagejson: {
                 src: 'package.json',
-                dest: 'build/',
+                dest: 'build/'
             },
-        },
+            ejstemplate: {
+                src: 'lib/helpers/wdio.conf.ejs',
+                dest: 'build/'
+            }
+        }
     })
 
     require('load-grunt-tasks')(grunt)
