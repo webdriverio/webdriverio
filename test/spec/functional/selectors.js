@@ -188,4 +188,12 @@ describe('selector strategies helper', function () {
 
     });
 
+    it('should find an element by accessibility id', function() {
+
+        var element = findStrategy('~foo');
+        assert.strictEqual(element.using, 'accessibility id');
+        assert.strictEqual(element.value, 'foo');
+
+    });
+
 });
