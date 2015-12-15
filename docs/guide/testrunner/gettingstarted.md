@@ -9,7 +9,7 @@ Getting Started
 ===============
 
 Since `v3` WebdriverIO comes with its own test runner to help you getting started with integration testing
-as quick as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the
+as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the
 past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficient as
 possible.
 
