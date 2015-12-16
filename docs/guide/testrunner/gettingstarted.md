@@ -65,6 +65,16 @@ integration tests by calling:
 $ wdio wdio.conf.js
 ```
 
-Now, you can access to the selenium instance via global variable `browser`.
+Your tests can access to the selenium instance via global variable `browser`.
 
-That's it!
+## Organizing tests
+
+It's possible to organize your tests by creating multiple configuration files: each file can define
+a different list of "specs" directories.
+
+Mocha's "grep" option is exposed to the "--mochaOpts" option, so you can use it to perform pattern matching
+on your test descriptions:
+
+```sh
+wdio --mochaOpts.grep "search term here"
+```
