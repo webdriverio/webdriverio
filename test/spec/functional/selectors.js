@@ -172,4 +172,28 @@ describe('selector strategies helper', function () {
 
     });
 
+    it('should find an element by ui automator strategy (android only)', function() {
+
+        var element = findStrategy('android=foo');
+        assert.strictEqual(element.using, '-android uiautomator');
+        assert.strictEqual(element.value, 'foo');
+
+    });
+
+    it('should find an element by ui automation strategy (ios only)', function() {
+
+        var element = findStrategy('ios=foo');
+        assert.strictEqual(element.using, '-ios uiautomation');
+        assert.strictEqual(element.value, 'foo');
+
+    });
+
+    it('should find an element by accessibility id', function() {
+
+        var element = findStrategy('~foo');
+        assert.strictEqual(element.using, 'accessibility id');
+        assert.strictEqual(element.value, 'foo');
+
+    });
+
 });
