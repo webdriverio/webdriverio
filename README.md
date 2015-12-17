@@ -13,7 +13,7 @@ WebdriverIO
 This library is a [webdriver](https://w3c.github.io/webdriver/webdriver-spec.html)
 (browser automation) module for Node.JS. It makes it possible to write
 super easy [Selenium](https://en.wikipedia.org/wiki/Selenium_(software)) tests in your favorite
-BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, Browsertack or Testingbot.
+BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, BrowserStack or TestingBot.
 
 WebdriverIO is agnostic with regards to the test framework you want to use. Cucumber, Jasmine and Mocha+Chai
 are supported by the configuration wizard, and you can use other frameworks as well - for example
