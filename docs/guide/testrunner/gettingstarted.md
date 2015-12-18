@@ -77,5 +77,5 @@ Additionally, Mocha's "grep" option is exposed to the `--mochaOpts` option, so y
 on your test descriptions:
 
 ```sh
-wdio --mochaOpts.grep "search term here"
+wdio wdio.conf.js --mochaOpts.grep "search term here"
 ```
