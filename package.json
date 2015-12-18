@@ -56,8 +56,10 @@
   "devDependencies": {
     "babel": "^5.8.23",
     "babel-eslint": "^4.1.1",
-    "chai": "~2.3.0",
-    "chai-as-promised": "^5.0.0",
+    "chai": "^3.4.1",
+    "chai-as-promised": "^5.1.0",
+    "chai-string": "^1.1.4",
+    "codeclimate-test-reporter": "^0.1.1",
     "coveralls": "~2.11.2",
     "eslint": "^1.4.1",
     "eslint-config-standard": "^4.4.0",
@@ -68,11 +70,14 @@
     "grunt-contrib-copy": "^0.8.2",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-eslint": "^17.1.0",
+    "grunt-mocha-istanbul": "^3.0.1",
+    "grunt-mocha-test": "^0.12.7",
+    "grunt-selenium-server": "^0.1.7",
+    "isparta": "^4.0.0",
     "istanbul": "^0.3.13",
     "load-grunt-tasks": "^3.2.0",
-    "mocha": "^2.2.4",
-    "saucelabs": "^1.0.1",
-    "should": "^6.0.1"
+    "mocha": "^2.3.4",
+    "saucelabs": "^1.0.1"
   },
   "tags": [
     "web",
