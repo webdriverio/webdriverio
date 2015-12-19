@@ -1,9 +1,6 @@
-describe('forward', function() {
-
-    before(h.setup());
-
-    it('should be able to go forward in history', function(){
-        return this.client
+describe('forward', () => {
+    it('should be able to go forward in history', async function () {
+        await this.client
             /**
              * first create a history
              */
@@ -19,13 +16,8 @@ describe('forward', function() {
              * now go back in history
              */
             .forward()
-            .pause(1000)
-            /**
-             * did it work?
-             */
-            .getTitle().then(function (title) {
-                title.should.be.exactly('two');
-            });
-    });
+            .pause(1000);
 
-});
+        (await this.client.getTitle()).should.be.equal('two')
+    })
+})

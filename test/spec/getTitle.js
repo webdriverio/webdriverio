@@ -1,11 +1,7 @@
-describe('getTitle', function() {
+import conf from '../conf/index'
 
-    before(h.setup());
-
-    it('should return the text of a single element', function() {
-        return this.client.getTitle().then(function (title) {
-            title.should.be.exactly(conf.testPage.title);
-        });
-    });
-
-});
+describe('getTitle', () => {
+    it('should return the text of a single element', async function () {
+        (await this.client.getTitle()).should.be.equal(conf.testPage.title)
+    })
+})
