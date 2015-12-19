@@ -1,25 +1,17 @@
-describe('getElementSize', function() {
+describe('getElementSize', () => {
+    it('should return a the size of an element', async function () {
+        const size = await this.client.getElementSize('.overlay')
+        size.width.should.be.equal(100)
+        size.height.should.be.equal(50)
+    })
 
-    before(h.setup());
+    it('should return certain property width if set', async function () {
+        const width = await this.client.getElementSize('.overlay', 'width')
+        width.should.be.equal(100)
+    })
 
-    it('should return a the size of an element', function() {
-        return this.client.getElementSize('.overlay').then(function (size) {
-            size.width.should.be.exactly(100);
-            size.height.should.be.exactly(50);
-        });
-    });
-
-    it('should return certain property width if set', function() {
-        return this.client.getElementSize('.overlay', 'width').then(function (width) {
-            width.should.be.exactly(100);
-        });
-
-    });
-
-    it('should return certain property height if set', function() {
-        return this.client.getElementSize('.overlay', 'height').then(function (height) {
-            height.should.be.exactly(50);
-        });
-    });
-
-});
+    it('should return certain property height if set', async function () {
+        const height = await this.client.getElementSize('.overlay', 'height')
+        height.should.be.equal(50)
+    })
+})

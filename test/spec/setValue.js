@@ -1,42 +1,31 @@
-describe('setValue', function() {
+describe('setValue', () => {
+    const input = 'input[name="a"]'
 
-    before(h.setup());
+    it('should reset value before setting it', async function () {
+        await this.client.setValue(input, 'b').setValue(input, 'c');
+        (await this.client.getValue(input)).should.be.equal('c')
+    })
 
-    var input = 'input[name="a"]';
+    it('allow number as value', async function () {
+        await this.client.setValue(input, 11);
+        (await this.client.getValue(input)).should.be.equal('11')
+    })
 
-    it('should reset value before setting it', function() {
-        return this.client
-            .setValue(input, 'b')
-            .setValue(input, 'c')
-            .getValue(input).then(h.checkResult('c'));
-    });
+    describe('is able to use unicode keys to', () => {
+        it('understand complex characters and key modifiers', async function () {
+            await this.client.setValue(input, [
+                'Shift', '1', 'NULL', // !
+                'Shift', '2', '3', '4', 'NULL', // @#$
+                'Shift', '5', '6', 'NULL', // %^
+                'Shift', '7', 'NULL', // &
+                'Shift', '8', '9', '0' // *()
+            ]);
+            (['!@#$%^&*()', '!"§$%&/()=']).should.contain(await this.client.getValue(input))
+        })
 
-    it('allow number as value', function() {
-        return this.client
-            .setValue(input, 11)
-            .getValue(input).then(h.checkResult('11'));
-    });
-
-    describe('is able to use unicode keys to', function() {
-
-        it('understand complex characters and key modifiers', function() {
-            return this.client
-                .setValue(input, [
-                    'Shift', '1', 'NULL', // !
-                    'Shift', '2', '3', '4', 'NULL', // @#$
-                    'Shift', '5', '6', 'NULL', // %^
-                    'Shift', '7', 'NULL', // &
-                    'Shift', '8', '9', '0' // *()
-                ])
-                .getValue(input).then(h.checkResult(['!@#$%^&*()','!"§$%&/()=']));
-        });
-
-        it('use the numpad', function() {
-            return this.client
-                .setValue(input, ['Numpad 0', 'Numpad 1', 'Numpad 2'])
-                .getValue(input).then(h.checkResult('012'));
-        });
-
-    });
-
-});
+        it('use the numpad', async function () {
+            await this.client.setValue(input, ['Numpad 0', 'Numpad 1', 'Numpad 2']);
+            (await this.client.getValue(input)).should.be.equal('012')
+        })
+    })
+})
