@@ -1,14 +1,13 @@
-var WebdriverIO = require('../../../index');
+import { ErrorHandler } from '../../../index'
 
-describe('ErrorHandler', function() {
+describe('ErrorHandler', () => {
+    it('should accessible through module object', () => {
+        expect(ErrorHandler).not.to.be.undefined
+        expect(ErrorHandler).not.to.be.null
+    })
 
-    it('should accessible through module object', function() {
-        WebdriverIO.hasOwnProperty('ErrorHandler').should.be.true;
-    });
-
-    it('should throw selenium error when passing specific error ID', function() {
-        var error = new WebdriverIO.ErrorHandler(17);
-        error.name.should.be.exactly('Error');
-    });
-
-});
+    it('should throw selenium error when passing specific error ID', () => {
+        const error = new ErrorHandler(17)
+        error.name.should.be.equal('Error')
+    })
+})
