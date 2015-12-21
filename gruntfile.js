@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         grep: argv.grep,
         invert: argv.invert,
         bail: argv.bail,
-        timeout: 10000
+        timeout: 20000
     }
 
     function addEnv (envs) {
@@ -27,8 +27,7 @@ module.exports = function (grunt) {
         clean: ['build'],
         babel: {
             options: {
-                optional: ['runtime'],
-                sourceMap: 'inline'
+                optional: ['runtime']
             },
             commands: {
                 files: [{
