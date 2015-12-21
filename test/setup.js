@@ -1,4 +1,4 @@
-import { remote } from '../index'
+import { remote, multiremote } from '../index'
 import SauceLabs from 'saucelabs'
 import chai from 'chai'
 import chaiString from 'chai-string'
@@ -17,6 +17,14 @@ global.assert = chai.assert
 global.expect = chai.expect
 
 before(async function () {
+    if (process.env._ENV === 'multibrowser') {
+        this.client = multiremote(conf.capabilities)
+        await this.client.init()
+        this.browserA = this.client.select('browserA')
+        this.browserB = this.client.select('browserB')
+        return
+    }
+
     this.client = remote(conf)
     await this.client.init()
 })
@@ -27,7 +35,7 @@ beforeEach(async function() {
 
 after(async function () {
     const sessionId = this.client.requestHandler.sessionID
-    await this.client.endAll()
+    await this.client[process.env._ENV === 'multibrowser' ? 'end' : 'endAll']()
 
     /**
      * if we are not running on travis we are done here
@@ -88,8 +96,8 @@ global.h = {
     },
     instanceLoop: (cb) => {
         var self = this
-        Object.keys(this.matrix.instances).forEach((instanceName) =>
-            cb.call(self, self.matrix[instanceName])
+        Object.keys(this.client.instances).forEach((instanceName) =>
+            cb.call(self, self.client[instanceName])
         )
     }
 }

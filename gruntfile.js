@@ -68,6 +68,10 @@ module.exports = function (grunt) {
                 src: ['./test/setup.js', 'test/spec/functional/**/*.js'],
                 options: mochaInstanbulOpts
             },
+            multibrowser: {
+                src: ['./test/setup.js', 'test/spec/multibrowser/**/*.js'],
+                options: mochaInstanbulOpts
+            },
             mobile: {
                 src: ['./test/setup.js', 'test/spec/mobile/**/*.js'],
                 options: mochaInstanbulOpts
@@ -80,6 +84,10 @@ module.exports = function (grunt) {
         mochaTest: {
             functional: {
                 src: ['./test/setup.js', 'test/spec/functional/**/*.js'],
+                options: mochaOpts
+            },
+            multibrowser: {
+                src: ['./test/setup.js', 'test/spec/multibrowser/**/*.js'],
                 options: mochaOpts
             },
             mobile: {
