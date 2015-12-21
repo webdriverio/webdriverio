@@ -1,175 +1,95 @@
-require("babel/register")({
-    ignore: /\/(test|node_modules|docs|examples)/
-});
+import { remote } from '../index'
+import SauceLabs from 'saucelabs'
+import chai from 'chai'
+import chaiString from 'chai-string'
+import chaiAsPromised from 'chai-as-promised'
 
-var WebdriverIO = require('../index.js'),
-    q = require('q'),
-    Mocha = require('mocha'),
-    should = require('should'), // jshint ignore:line
-    SauceLabs = require('saucelabs'),
-    glob = require('glob'),
-    merge  = require('deepmerge'),
-    env = process.env._ENV,
-    specDir = env.match(/^(functional|multibrowser)$/),
-    failures = 0,
-    client, sessionID, specFiles, specDir, browserA, browserB;
+import conf from './conf/index'
+global.conf = conf
 
-var mocha = new Mocha({
-    timeout: 100000,
-    reporter: 'spec'
-});
+/**
+ * setup chai
+ */
+chai.should()
+chai.use(chaiString)
+chai.use(chaiAsPromised)
+global.assert = chai.assert
+global.expect = chai.expect
 
-// globals for tests
-conf = require('./conf/index.js');
-assert = require('chai').assert;
-expect = require('chai').expect;
-require('chai').use(require('chai-as-promised'));
+before(async function () {
+    this.client = remote(conf)
+    await this.client.init()
+})
 
-if(specDir) {
-    // only test functional test spec if required
-    specFiles = 'test/spec/' + specDir[0] + '/**/*.js';
-} else {
-    // otherwise test global + device specific test specs
-    specFiles = '{test/spec/' + env + '/**/*.js,test/spec/*.js}';
-}
+beforeEach(async function() {
+    await this.client.url(conf.testPage.start)
+})
 
-function handleError(e) {
-    console.log('========== ERROR ==========\n', e.message, '\n', e.stack);
-    process.exit(1);
-}
+after(async function () {
+    const sessionId = this.client.requestHandler.sessionID
+    await this.client.endAll()
 
-q.nfcall(glob, process.env._SPEC || specFiles).then(function(files) {
-
-    files.forEach(function(file) {
-        mocha.addFile(file);
-    });
-
-    console.log('-> Start Mocha tests');
-    var mochaDefer = q.defer();
-    mocha.run.call(mocha, mochaDefer.resolve.bind(mochaDefer));
-    return mochaDefer.promise;
-
-}, handleError).then(function(f) {
-    failures = typeof f === 'number' ? f : f.failures || 'unknown';
-    console.log('-> Mocha tests finished with', failures, 'failures');
-
-    if (!client) {
-        return process.exit(failures);
-    }
-
-    sessionID = (client.requestHandler || {}).sessionID;
-
-    console.log('-> end all clients');
-    return client[conf.runsWithSauce ? 'end' : 'endAll']();
-}, handleError).then(function() {
     /**
-     * only update sauce job when running in CI
+     * if we are not running on travis we are done here
      */
-    if (!process.env.TRAVIS_BUILD_ID || specDir) {
-        return process.exit(failures);
+    if (!process.env.CI || !process.env._ENV || !process.env._ENV.match(/(desktop|mobile)/)) {
+        return
     }
 
-    var sauceAccount = new SauceLabs({
+    /**
+     * if not update the job ob sauce
+     */
+    const failures = getFailures(this._runnable.parent)
+    const account = new SauceLabs({
         username: process.env.SAUCE_USERNAME,
         password: process.env.SAUCE_ACCESS_KEY
-    });
+    })
 
-    console.log('-> update sauce job: ', sessionID);
-    var updateJobDefer = q.defer();
-    sauceAccount.updateJob(sessionID, {
-        passed: failures === 0,
-        public: true
-    }, updateJobDefer.resolve.bind(updateJobDefer));
-    return updateJobDefer.promise;
+    await new Promise((r) => {
+        account.updateJob(sessionId, {
+            passed: failures === 0,
+            public: true
+        }, r)
+    })
+})
 
-}, handleError).then(function(res) {
+function getFailures (suite) {
+    let failures = 0
 
-    console.log('-> sauce job updated', res);
-    process.exit(failures);
-
-});
-
-h = {
-    noError: function(err) {
-        assert(err === undefined);
-    },
-    checkResult: function(expected) {
-        return function(result) {
-            if(expected instanceof Array) {
-                return expected.should.containDeep([result]);
-            }
-            expected.should.be.exactly(result);
-        };
-    },
-    setup: function(options) {
-
-        if(!options) {
-            options = {};
+    if (suite.suites && suite.suites.length) {
+        for (let s of suite.suites) {
+            failures += getFailures(s)
         }
-
-        return function() {
-
-            if(options.remoteOptions) {
-                conf = merge(conf, options.remoteOptions);
-            }
-
-            /**
-             * if instance already exists and no new session was requested return existing instance
-             */
-            if (client && client.requestHandler.sessionID && !options.newSession) {
-                this.client = client;
-
-            /**
-             * if new session was requested create temporary instance
-             */
-            } else if(options.newSession) {
-                this.client = WebdriverIO.remote(conf).init();
-
-            /**
-             * otherwise store created intance for other specs
-             */
-            } else {
-                this.client = client = WebdriverIO.remote(conf).init();
-            }
-
-            return this.client.url(options.url || conf.testPage.start);
-        };
-    },
-    setupMultibrowser: function(options) {
-
-        if(!options) {
-            options = {};
-        }
-
-        return function(done) {
-
-            if(client && !options.asSingleton) {
-
-                this.matrix = client;
-                this.browserA = browserA;
-                this.browserB = browserB;
-
-            } else {
-
-                this.matrix = WebdriverIO.multiremote(conf.capabilities).init();
-                this.browserA = this.matrix.select('browserA');
-                this.browserB = this.matrix.select('browserB');
-
-                if(!options.asSingleton) {
-                    client = this.matrix;
-                    browserA = this.browserA;
-                    browserB = this.browserB;
-                }
-
-            }
-
-            this.matrix.url(options.url || conf.testPage.start).call(done);
-        };
-    },
-    instanceLoop: function(cb) {
-        var self = this;
-        Object.keys(this.matrix.instances).forEach(function(instanceName) {
-            cb.call(self, self.matrix[instanceName]);
-        });
     }
-};
+
+    if (suite.tests && suite.tests.length) {
+        for (let t of suite.tests) {
+            failures += t.state === 'failed' ? 1 : 0
+        }
+    }
+
+    return failures
+}
+
+/**
+ * general helper global
+ */
+global.h = {
+    noError: (err, msg) => {
+        (err === undefined).should.be.equal(true, msg)
+    },
+    checkResult: (expected) => {
+        return (result) => {
+            if (Array.isArray(expected)) {
+                return expected.should.containDeep([result])
+            }
+            expected.should.be.exactly(result)
+        }
+    },
+    instanceLoop: (cb) => {
+        var self = this
+        Object.keys(this.matrix.instances).forEach((instanceName) =>
+            cb.call(self, self.matrix[instanceName])
+        )
+    }
+}
