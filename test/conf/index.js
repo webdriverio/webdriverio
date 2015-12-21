@@ -1,13 +1,20 @@
-var merge = require('deepmerge');
+import merge from 'deepmerge'
+import defaults from './defaults.js'
 
-var env = process.env.TRAVIS && process.env._BROWSER !== 'phantomjs' && process.env._ENV !== 'multibrowser' ? 'travis-ci' : 'local';
+const ENV = process.env.TRAVIS && process.env._BROWSER !== 'phantomjs' && process.env._ENV !== 'multibrowser' ? 'travis-ci' : 'local'
+let asked = require(`./${ENV}.js`)
 
-var defaults = require('./defaults.js');
-var asked = require('./' + env + '.js');
-
-if(process.env._ENV === 'mobile') {
-    var mobile = require('./mobile');
-    asked = merge(asked,mobile);
+if (process.env._ENV === 'mobile') {
+    const mobile = require('./mobile')
+    asked = merge(asked, mobile)
 }
 
-module.exports = merge(defaults, asked);
+const conf = merge(defaults, asked)
+
+if (conf.desiredCapabilities.browserName === 'chrome') {
+    conf.desiredCapabilities.chromeOptions = {
+        args: ['--disable-popup-blocking']
+    }
+}
+
+export default conf
