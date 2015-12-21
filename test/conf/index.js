@@ -11,7 +11,7 @@ if (process.env._ENV === 'mobile') {
 
 const conf = merge(defaults, asked)
 
-if (conf.desiredCapabilities.browserName === 'chrome') {
+if (conf.desiredCapabilities && conf.desiredCapabilities.browserName === 'chrome') {
     conf.desiredCapabilities.chromeOptions = {
         args: ['--disable-popup-blocking']
     }
