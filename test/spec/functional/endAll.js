@@ -1,35 +1,37 @@
-/**
- * sufficient to get tested with phantomjs
- */
-describe('endAll', function() {
+const WebdriverIO = require('../../../')
 
-    /**
-     * create a bunch of instances first
-     */
-    before(h.setup());
+describe('endAll', () => {
+    it('should delete multiple sessions', async function () {
+        // at the beginning there is only one session
+        (await this.client.sessions()).value.should.have.length(1)
 
-    it('should delete all sessions', function() {
+        // create two new session
+        const testDriverA = WebdriverIO.remote({
+            desiredCapabilities: {
+                browserName: 'phantomjs'
+            }
+        })
+        await testDriverA.init()
+        const testDriverB = WebdriverIO.remote({
+            desiredCapabilities: {
+                browserName: 'phantomjs'
+            }
+        })
+        await testDriverB.init();
 
-        return this.client
+        // now we should have two sessions
+        (await this.client.sessions()).value.should.have.length(3)
 
-            // check if client has running sessions
-            .sessions().then(function(res) {
-                assert.ok(res.value && res.value.length > 0);
-            })
+        // end all sessions
+        await testDriverB.endAll();
 
-            // end sessions
-            .endAll()
+        // now there should be only one session again
+        (await this.client.sessions()).value.should.have.length(0)
+    })
 
-            // check if sessions were closed
-            .sessions().then(function(res) {
-                assert.ok(res.value.length === 0);
-            });
-
-    });
-
-    /**
-     * create new client instance to continue tests
-     */
-    after(h.setup(null));
-
-});
+    after(async function () {
+        // reinitialise the session
+        this.client.requestHandler.sessionID = null
+        await this.client.init()
+    })
+})

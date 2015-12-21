@@ -1,77 +1,72 @@
-describe('Chaining', function() {
-
-    before(h.setup());
-
-    it('should execute all commands in right order (asynchronous execution test)', function(done) {
-        var result = '';
-        var client = this.client;
+describe('Chaining', () => {
+    it('should execute all commands in right order (asynchronous execution test)', function (done) {
+        let result = ''
+        let client = this.client
 
         this.client
-            .click('.btn1').then(function() {
-                result += '1';
+            .click('.btn1').then(function () {
+                result += '1'
             })
-            .isVisible('.btn1').then(function() {
-                result += '2';
+            .isVisible('.btn1').then(function () {
+                result += '2'
             })
-            .call(function() {
-                result += '3';
+            .call(function () {
+                result += '3'
 
-                return client.click('.btn1').then(function() {
+                return client.click('.btn1').then(function () {
+                    result += '4'
 
-                    result += '4';
+                    return client.isVisible('.btn1').then(function () {
+                        result += '5'
+                    }).call(function () {
+                        result += '6'
 
-                    return client.isVisible('.btn1').then(function() {
-                        result += '5';
-                    }).call(function() {
-                        result += '6';
+                        return client.call(function () {
+                            result += '7'
 
-                        return client.call(function() {
+                            return client.click('.btn1').then(function () {
+                                result += '8'
 
-                            result += '7';
+                                return client.call(function () {
+                                    result += '9'
 
-                            return client.click('.btn1').then(function() {
-                                result += '8';
-
-                                return client.call(function() {
-                                    result += '9';
-
-                                    return client.isVisible('.btn1').then(function() {
-                                        result += '0';
+                                    return client.isVisible('.btn1').then(function () {
+                                        result += '0'
 
                                         // this can't work
                                         // there's no way the chain
                                         // can now when the setTimeout
                                         // will be finished
-                                        // setTimeout(function() {
-                                        //     client.call(function() {
-                                        //         result += 'a';
-                                        //     });
-                                        // },1000);
-                                    });
-                                });
-                            }).click('.btn1').then(function() {
-                                result += 'b';
-                            });
-                        });
+                                        // setTimeout(function () {
+                                        //     client.call(function () {
+                                        //         result += 'a'
+                                        //     })
+                                        // },1000)
+                                    })
+                                })
+                            }).click('.btn1').then(function () {
+                                result += 'b'
+                            })
+                        })
                     })
-                    .click('.btn1').then(function() {
-                        result += 'c';
+                    .click('.btn1').then(function () {
+                        result += 'c'
                     })
-                    .call(function() {
-                        result += 'd';
+                    .call(function () {
+                        result += 'd'
 
-                        return client.isVisible('.btn1').then(function() {
-                            result += 'e';
-                        });
-                    });
+                        return client.isVisible('.btn1').then(function () {
+                            result += 'e'
+                        })
+                    })
                 })
-                .click('.btn1').then(function() {
-                    result += 'f';
+                .click('.btn1').then(function () {
+                    result += 'f'
                 })
-                .call(function() {
-                    assert.equal(result,'1234567890bcdef');
-                    done();
-                });
-            });
-    });
-});
+                .call(function () {
+                    result.should.be.equal('1234567890bcdef')
+                    done()
+                })
+            })
+    })
+})

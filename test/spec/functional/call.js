@@ -1,17 +1,13 @@
-describe('call', function() {
+describe('call', () => {
+    let isCalled = false
 
-    before(h.setup());
+    before(function () {
+        return this.client.call(() => {
+            isCalled = true
+        })
+    })
 
-    var isCalled = false;
-
-    before(function() {
-        return this.client.call(function() {
-            isCalled = true;
-        });
-    });
-
-    it('should have executed a function', function() {
-        assert.ok(isCalled);
-    });
-
-});
+    it('should have executed a function', () => {
+        isCalled.should.be.true
+    })
+})
