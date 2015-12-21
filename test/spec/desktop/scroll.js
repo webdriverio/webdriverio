@@ -1,3 +1,4 @@
+/* global $ */
 describe('scroll', () => {
     let windowSize = {}
 
