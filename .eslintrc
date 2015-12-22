@@ -13,6 +13,7 @@
     "afterEach": true,
     "it": true,
     "should": true,
-    "browser": true
+    "browser": true,
+    "mock": true
   }
 }

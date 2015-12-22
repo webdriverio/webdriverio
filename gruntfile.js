@@ -83,6 +83,10 @@ module.exports = function (grunt) {
             ios: {
                 src: ['./test/setup.js', 'test/spec/mobile/*.js', 'test/spec/mobile/ios/*.js'],
                 options: mochaInstanbulOpts
+            },
+            unit: {
+                src: ['./test/setup-unit.js', 'test/spec/unit/*.js'],
+                options: mochaInstanbulOpts
             }
         },
         mochaTest: {
@@ -104,6 +108,10 @@ module.exports = function (grunt) {
             },
             ios: {
                 src: ['./test/setup.js', 'test/spec/mobile/*.js', 'test/spec/mobile/ios/*.js'],
+                options: mochaOpts
+            },
+            unit: {
+                src: ['./test/setup-unit.js', 'test/spec/unit/*.js'],
                 options: mochaOpts
             }
         },
