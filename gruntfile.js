@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         grep: argv.grep,
         invert: argv.invert,
         bail: argv.bail,
-        timeout: 20000
+        timeout: 1200000
     }
 
     function addEnv (envs) {
@@ -72,12 +72,16 @@ module.exports = function (grunt) {
                 src: ['./test/setup.js', 'test/spec/multibrowser/**/*.js'],
                 options: mochaInstanbulOpts
             },
-            mobile: {
-                src: ['./test/setup.js', 'test/spec/mobile/**/*.js'],
+            desktop: {
+                src: ['./test/setup.js', 'test/spec/*.js', 'test/spec/desktop/*.js'],
                 options: mochaInstanbulOpts
             },
-            desktop: {
-                src: ['./test/setup.js', 'test/spec/addValue.js'],
+            android: {
+                src: ['./test/setup.js', 'test/spec/mobile/*.js', 'test/spec/mobile/android/*.js'],
+                options: mochaInstanbulOpts
+            },
+            ios: {
+                src: ['./test/setup.js', 'test/spec/mobile/*.js', 'test/spec/mobile/ios/*.js'],
                 options: mochaInstanbulOpts
             }
         },
@@ -90,12 +94,16 @@ module.exports = function (grunt) {
                 src: ['./test/setup.js', 'test/spec/multibrowser/**/*.js'],
                 options: mochaOpts
             },
-            mobile: {
-                src: ['./test/setup.js', 'test/spec/mobile/**/*.js'],
-                options: mochaOpts
-            },
             desktop: {
                 src: ['./test/setup.js', 'test/spec/*.js', 'test/spec/desktop/*.js'],
+                options: mochaOpts
+            },
+            android: {
+                src: ['./test/setup.js', 'test/spec/mobile/*.js', 'test/spec/mobile/android/*.js'],
+                options: mochaOpts
+            },
+            ios: {
+                src: ['./test/setup.js', 'test/spec/mobile/*.js', 'test/spec/mobile/ios/*.js'],
                 options: mochaOpts
             }
         },
@@ -191,6 +199,22 @@ module.exports = function (grunt) {
         isSeleniumServerRunning = isSeleniumServerRunning === undefined ? true : isSeleniumServerRunning
         cmd = cmd || 'mochaTest'
         env = env || 'desktop'
+
+        /**
+         * quick set up for dev
+         */
+        if (!process.env.CI && env === 'ios') {
+            process.env._PLATFORM = 'iOS'
+            process.env._VERSION = '9.2'
+            process.env._DEVICENAME = 'iPhone 6'
+            process.env._APP = __dirname + '/test/site/platforms/ios/build/emulator/WebdriverJS Example Phonegap Application.app'
+        } else if (!process.env.CI && env === 'android') {
+            process.env._PLATFORM = 'Android'
+            process.env._VERSION = '4.4'
+            process.env._DEVICENAME = 'Samsung Galaxy S4 Emulator'
+            process.env._APP = __dirname + '/test/site/platforms/android/build/outputs/apk/android-debug.apk'
+        }
+
         var tasks = [cmd + ':' + env]
 
         addEnv({ _ENV: env })
