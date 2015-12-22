@@ -1,5 +1,5 @@
 /**
- * to flaky in IE
+ * too flaky in IE
  */
 var runTest = process.env._BROWSER === 'internet_explorer' ? describe.skip : describe;
 
@@ -10,7 +10,7 @@ runTest('switchTab', function() {
     describe('should switch tabs', function() {
 
         var openedTabs = [],
-            myTab, newTab;
+            myTab, newTab, popupTab;
 
         it('by getting the current tab id first', function() {
             // get current tab id
@@ -58,11 +58,30 @@ runTest('switchTab', function() {
             });
         });
 
+        it('for windows opened via Javascript', function() {
+            // Back to the index.html page
+            return this.client.switchTab(myTab)
+                // Launch the JS popup
+                .click('#newWindowJs')
+                .getTabIds().then(function(res) {
+                    openedTabs = res;
+                    popupTab = openedTabs[openedTabs.length - 1];
+                })
+                .switchTab(popupTab)
+                .getCurrentTabId().then(function(tabId) {
+                    openedTabs[4].should.be.exactly(tabId);
+                })
+                .window(openedTabs[4])
+                .getCurrentTabId().then(function(tabId) {
+                    openedTabs[4].should.be.exactly(tabId);
+                });
+        });
+
         /**
          * clean up that tab mess ^^
          */
         after(function() {
-            return this.client.close(openedTabs[1]).close(openedTabs[2]).close(openedTabs[3]);
+            return this.client.close(openedTabs[1]).close(openedTabs[2]).close(openedTabs[3]).close(openedTabs[4]);
         });
 
     });
