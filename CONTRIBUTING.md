@@ -91,7 +91,9 @@ And in case we didn't emphasize it enough: we love tests!
 ## Documentation
 
 For convenience and ease of maintenance, our project's documentation pages are generated partly from markdown files in 
-the `docs/` directory and partly from comments in the source code.
+the `docs/` directory and partly from comments in the source code.  
+
+As with code contributions, your first step should be to fork the repo.
 
 ### Markdown Pages
 
@@ -157,3 +159,6 @@ arguments following and equals sign, e.g. `{Number=42}`
 `cookie`, `mobile`, `property`, `protocol`, `state`, `utility`, `window`.  You probably will not ever need to change this.
 
 6. **Returns:** Identifies the data type returned and a short description.
+
+
+When you have completed your updates to the documentation, push to your fork and submit a pull request.
