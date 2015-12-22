@@ -30,6 +30,10 @@ before(async function () {
 })
 
 beforeEach(async function() {
+    if (process.env._ENV.match(/(android|ios)/)) {
+        return
+    }
+
     await this.client.url(conf.testPage.start)
 })
 
