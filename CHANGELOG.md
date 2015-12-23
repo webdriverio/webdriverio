@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v3.4.0 (2015-12-23)
+* documentation improvements (#910, #925, #939, #947, #949, #943, #964, #966)
+* added selectByName command (#917)
+* bugfix: emit test:end in jasmine (#918)
+
 ## v3.3.0 (2015-11-24)
 * added Unicode support (#850)
 * enable passing cli args to runner processes (#851)
