@@ -1,3 +1,8 @@
+/**
+ * testing this as unit test because of buggy android behavior
+ * @see https://github.com/appium/appium/issues/3581
+ * @see https://discuss.appium.io/t/adb-loses-device-connection-after-setnetworkconnection-api-is-used/561/13
+ */
 describe('network connection', () => {
     it('should response with assertions helper', async function () {
         mock('get', '/session/123ABC/network_connection', { value: 0 })

@@ -39,7 +39,7 @@ beforeEach(async function() {
 
 after(async function () {
     const sessionId = this.client.requestHandler.sessionID
-    await this.client[process.env._ENV === 'multibrowser' ? 'end' : 'endAll']()
+    await this.client[process.env._ENV.match(/(multibrowser|android)/) ? 'end' : 'endAll']()
 
     /**
      * if we are not running on travis we are done here
@@ -81,27 +81,4 @@ function getFailures (suite) {
     }
 
     return failures
-}
-
-/**
- * general helper global
- */
-global.h = {
-    noError: (err, msg) => {
-        (err === undefined).should.be.equal(true, msg)
-    },
-    checkResult: (expected) => {
-        return (result) => {
-            if (Array.isArray(expected)) {
-                return expected.should.containDeep([result])
-            }
-            expected.should.be.exactly(result)
-        }
-    },
-    instanceLoop: (cb) => {
-        var self = this
-        Object.keys(this.client.instances).forEach((instanceName) =>
-            cb.call(self, self.client[instanceName])
-        )
-    }
 }
