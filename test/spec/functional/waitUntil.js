@@ -1,75 +1,46 @@
-var q = require('q');
+describe('waitUntil', () => {
+    it('should pass', async function () {
+        (await this.client.waitUntil(
+            () => new Promise((r) => setTimeout(() => r('foobar'), 500)),
+            1000
+        )).should.be.equal('foobar')
+    })
 
-describe('waitUntil', function() {
+    it('should fail', async function () {
+        let error
+        try {
+            await this.client.waitUntil(() => new Promise((r) => setTimeout(() => r(false), 500)), 1000)
+        } catch (e) {
+            error = e
+        } finally {
+            error.message.should.match(/Promise never resolved with an truthy value/)
+        }
+    })
 
-    before(h.setup());
+    it('should get rejected', async function () {
+        let error
+        try {
+            await this.client.waitUntil(() => new Promise((_, r) => setTimeout(() => r('foobar'), 500)), 1000)
+        } catch (e) {
+            error = e
+        } finally {
+            error.message.should.match(/Promise was fulfilled but got rejected/)
+        }
+    })
 
-    it('should pass', function() {
-        var defer = q.defer();
+    it('should timeout', async function () {
+        let error
+        try {
+            await this.client.waitUntil(() => new Promise((r) => setTimeout(() => r('foobar'), 1000)), 500)
+        } catch (e) {
+            error = e
+        } finally {
+            error.message.should.match(/Promise never resolved with an truthy value/)
+        }
+    })
 
-        setTimeout(function() {
-            defer.resolve('foobar');
-        }, 500);
-
-        return this.client.waitUntil(function() {
-            return defer.promise;
-        }, 1000).then(function(res) {
-            res.should.be.equal('foobar');
-        });
-    });
-
-    it('should fail', function() {
-        var defer = q.defer();
-
-        setTimeout(function() {
-            defer.resolve(false);
-        }, 500);
-
-        return this.client.waitUntil(function() {
-            return defer.promise;
-        }, 1000).catch(function(err) {
-            err.message.should.match(/Promise never resolved with an truthy value/);
-        });
-    });
-
-    it('should get rejected', function() {
-        var defer = q.defer();
-
-        setTimeout(function() {
-            defer.reject('foobar');
-        }, 500);
-
-        return this.client.waitUntil(function() {
-            return defer.promise;
-        }, 1000).catch(function(err) {
-            err.message.should.match(/Promise was fulfilled but got rejected/);
-        });
-    });
-
-    it('should timeout', function() {
-        var defer = q.defer();
-
-        setTimeout(function() {
-            defer.resolve('foobar');
-        }, 1000);
-
-        return this.client.waitUntil(function() {
-            return defer.promise;
-        }, 500).catch(function(err) {
-            err.message.should.match(/Promise never resolved with an truthy value/);
-        });
-    });
-
-    it('should allow a promise condition', function() {
-        var defer = q.defer();
-
-        setTimeout(function() {
-            defer.resolve('foobar');
-        }, 500);
-
-        return this.client.waitUntil(defer.promise, 1000).then(function(res) {
-            res.should.be.equal('foobar');
-        });
-    });
-
-});
+    it('should allow a promise condition', async function () {
+        (await this.client.waitUntil(new Promise((r) => setTimeout(() => r('foobar'), 500)), 1000))
+            .should.be.equal('foobar')
+    })
+})

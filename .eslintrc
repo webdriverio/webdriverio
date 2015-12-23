@@ -3,5 +3,17 @@
   "parser": "babel-eslint",
   "rules": {
     "indent": [2, 4]
+  },
+  "globals": {
+    "expect": true,
+    "describe": true,
+    "before": true,
+    "beforeEach": true,
+    "after": true,
+    "afterEach": true,
+    "it": true,
+    "should": true,
+    "browser": true,
+    "mock": true
   }
 }

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     port: 4445,
     logLevel: 'command',
     waitforTimeout: 1000,
@@ -15,4 +15,4 @@ module.exports = {
         username: process.env.SAUCE_USERNAME,
         accessKey: process.env.SAUCE_ACCESS_KEY
     }
-};
+}

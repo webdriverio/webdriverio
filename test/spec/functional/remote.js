@@ -1,30 +1,22 @@
-var webdriverjs = require('../../../index.js'),
-    assert = require('assert'),
-    sessionID = 'ba8ca350-e0e3-4a73-aab5-1679559cdcd2',
-    startPath = '/abc/xyz';
+import { remote } from '../../../index.js'
 
-describe('remote method', function() {
+const sessionID = 'ba8ca350-e0e3-4a73-aab5-1679559cdcd2'
+const startPath = '/abc/xyz'
 
-    it('does not fail without options', function() {
+describe('remote method', () => {
+    it('does not fail without options', () => {
+        expect(() => {
+            remote()
+        }).not.to.throw
+    })
 
-        assert.doesNotThrow(function() {
-            webdriverjs.remote();
-        });
+    it('attaches client to existing session', () => {
+        var client = remote(sessionID)
+        client.requestHandler.sessionID.should.be.equal(sessionID)
+    })
 
-    });
-
-    it('attaches client to existing session', function() {
-
-        var client = webdriverjs.remote(sessionID);
-        assert.strictEqual(client.requestHandler.sessionID, sessionID);
-
-    });
-
-    it('should be able to set startPath', function() {
-
-        var client = webdriverjs.remote({ path: startPath });
-        assert.strictEqual(client.requestHandler.startPath, startPath);
-
-    });
-
-});
+    it('should be able to set startPath', () => {
+        var client = remote({ path: startPath })
+        client.requestHandler.startPath.should.be.equal(startPath)
+    })
+})

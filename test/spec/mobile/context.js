@@ -1,17 +1,20 @@
-describe('context', function() {
+import labels from '../../fixtures/labels'
 
-    before(h.setup());
+describe('context', () => {
+    it('should return all available context modes', async function () {
+        const contexts = await this.client.contexts()
+        contexts.value.should.have.length(2)
+        expect(contexts.value).to.include(labels.NATIVE_APP_CONTEXT)
+        expect(contexts.value).to.include(labels.WEBVIEW_CONTEXT)
+    })
 
-    it('should return the current context mode', function() {
-        return this.client.context().then(function(context) {
-            context.value.should.be.exactly('WEBVIEW_1');
-        });
-    });
+    it('should return the current context mode', async function () {
+        await this.client.context(labels.WEBVIEW_CONTEXT);
+        (await this.client.context()).value.should.be.equal(labels.WEBVIEW_CONTEXT)
+    })
 
-    it('should return all available context modes', function() {
-      return this.client.contexts().then(function(contexts) {
-        contexts.value.should.have.length(2);
-      });
-    });
-
-});
+    it('should be able to switch to native context', async function () {
+        await this.client.context(labels.NATIVE_APP_CONTEXT);
+        (await this.client.context()).value.should.be.equal(labels.NATIVE_APP_CONTEXT)
+    })
+})

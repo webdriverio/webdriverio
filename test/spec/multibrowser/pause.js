@@ -1,17 +1,9 @@
-describe('pause', function() {
-
-    before(h.setupMultibrowser());
-
-    it('should pause command queue', function() {
-
-        var time = new Date().getTime();
-
-        return this.matrix.pause(1000).call(function() {
-            var newTime = new Date().getTime();
-            (newTime - time).should.be.greaterThan(999);
-            (newTime - time).should.be.lessThan(1100);
-        });
-
-    });
-
-});
+describe('pause', () => {
+    it('should pause command queue', async function () {
+        var time = new Date().getTime()
+        await this.client.pause(1000)
+        var newTime = new Date().getTime();
+        (newTime - time).should.be.greaterThan(999);
+        (newTime - time).should.be.lessThan(1100)
+    })
+})
