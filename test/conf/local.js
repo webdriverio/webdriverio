@@ -1,4 +1,4 @@
-var local = {
+let config = {
     host: 'localhost',
     port: process.env._PORT || 4444,
     path: process.env._PATH,
@@ -7,16 +7,16 @@ var local = {
     desiredCapabilities: {
         browserName: process.env._BROWSER || 'phantomjs'
     }
-};
-
-if(process.env._ENV === 'multibrowser') {
-    module.exports = {
-        capabilities: {
-            browserA: local,
-            browserB: local
-        }
-    };
-    return;
 }
 
-module.exports = local;
+if (process.env._ENV === 'multibrowser') {
+    let multibrowserConfig = {
+        capabilities: {
+            browserA: config,
+            browserB: config
+        }
+    }
+    config = multibrowserConfig
+}
+
+export default config

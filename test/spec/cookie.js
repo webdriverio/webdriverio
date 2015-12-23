@@ -1,75 +1,56 @@
+describe('cookie command test', () => {
+    it('getCookie should return null / [] if no cookie(s) is/are set', async function () {
+        (await this.client.getCookie('test') === null).should.be.equal(true);
+        (await this.client.getCookie()).should.have.length(0)
+    })
 
-/*jshint expr: true*/
-describe('cookie command test', function() {
+    it('getCookie should return multiple cookies if no name is given', async function () {
+        await this.client.setCookie({name: 'test', value: 'cookie saved!'})
+        await this.client.setCookie({name: 'test2', value: 'cookie saved2!'})
 
-    before(h.setup());
+        const cookies = await this.client.getCookie()
+        cookies.should.be.an.instanceOf(Array)
+        cookies.should.have.length(2)
+        expect(cookies).to.have.deep.property('[1].value', 'cookie saved!')
+        expect(cookies).to.have.deep.property('[0].value', 'cookie saved2!')
+        expect(cookies).to.have.deep.property('[1].name', 'test')
+        expect(cookies).to.have.deep.property('[0].name', 'test2')
+    })
 
-    it('getCookie should return null / [] if no cookie(s) is/are set', function(){
-        return this.client
-            .getCookie('test').then(function (cookie) {
-                (cookie === null).should.be.true;
-            })
-            .getCookie().then(function (cookies) {
-                cookies.should.have.length(0);
-            });
-    });
+    it('getCookie should return a single cookies if name is given', async function () {
+        await this.client.setCookie({name: 'test', value: 'cookie saved!'})
+        await this.client.setCookie({name: 'test2', value: 'cookie saved2!'})
 
-    it('getCookie should return multiple cookies if no name is given', function(){
-        return this.client
-            .setCookie({name: 'test',value: 'cookie saved!'})
-            .setCookie({name: 'test2',value: 'cookie saved2!'})
-            .getCookie().then(function (cookies) {
-                cookies.should.be.an.instanceOf(Array);
-                cookies.should.have.length(2);
-                cookies.should.containDeep([{ value: 'cookie saved!' }]);
-                cookies.should.containDeep([{ value: 'cookie saved2!' }]);
-                cookies.should.containDeep([{ name: 'test' }]);
-                cookies.should.containDeep([{ name: 'test2' }]);
-            });
-    });
+        const cookie = await this.client.getCookie('test2')
+        cookie.should.be.an.instanceOf(Object)
+        cookie.value.should.be.equal('cookie saved2!')
+        cookie.name.should.be.equal('test2')
+    })
 
-    it('getCookie should return a single cookies if name is given', function(){
-        return this.client
-            .setCookie({name: 'test',value: 'cookie saved!'})
-            .setCookie({name: 'test2',value: 'cookie saved2!'})
-            .getCookie('test2').then(function (cookie) {
-                cookie.should.be.an.instanceOf(Object);
-                cookie.value.should.be.exactly('cookie saved2!');
-                cookie.name.should.be.exactly('test2');
-            });
-    });
-
-    it('deleteCookie should delete a specific cookie', function() {
-
-        if(this.client.desiredCapabilities.browserName === 'safari' && !this.client.isMobile) {
-            return;
+    it('deleteCookie should delete a specific cookie', async function () {
+        if (this.client.desiredCapabilities.browserName === 'safari' && !this.client.isMobile) {
+            return
         }
 
-        return this.client
-            .setCookie({ name: 'test', value: 'cookie saved!' })
-            .setCookie({ name: 'test2', value: 'cookie2 saved!' })
-            .deleteCookie('test')
-            .getCookie('test').then(function (result) {
-                assert.strictEqual(result, null);
-            })
-            .getCookie().then(function (result) {
-                assert.notStrictEqual(result, null);
-            });
-    });
+        await this.client.setCookie({ name: 'test', value: 'cookie saved!' })
+        await this.client.setCookie({ name: 'test2', value: 'cookie2 saved!' })
+        await this.client.deleteCookie('test');
 
-    it('deleteCookie should delete all cookies', function() {
+        (await this.client.getCookie('test') === null).should.be.equal(true);
+        (await this.client.getCookie()).should.have.length(1)
+    })
 
-        if(this.client.desiredCapabilities.browserName === 'safari' && !this.client.isMobile) {
-            return;
+    it('deleteCookie should delete all cookies', async function () {
+        if (this.client.desiredCapabilities.browserName === 'safari' && !this.client.isMobile) {
+            return
         }
 
-        return this.client
-            .setCookie({ name: 'test', value: 'cookie saved!' })
-            .setCookie({ name: 'test2', value: 'cookie2 saved!' })
-            .deleteCookie()
-            .getCookie().then(function (result) {
-                assert.strictEqual(result.length, 0);
-            });
-    });
+        await this.client.setCookie({ name: 'test', value: 'cookie saved!' })
+        await this.client.setCookie({ name: 'test2', value: 'cookie2 saved!' })
+        await this.client.deleteCookie();
 
-});
+        (await this.client.getCookie('test') === null).should.be.equal(true);
+        (await this.client.getCookie('test2') === null).should.be.equal(true);
+        (await this.client.getCookie()).should.have.length(0)
+    })
+})

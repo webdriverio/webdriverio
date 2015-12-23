@@ -1,39 +1,23 @@
-describe('execute', function() {
-    before(h.setup());
+import conf from '../../conf/index.js'
 
-    it('should be able to execute some js', function() {
-        return this.client
-            .execute('return document.title', []).then(function(res) {
-                assert.equal(conf.testPage.title, res.value);
-            });
-    });
+describe('execute boob', () => {
+    it('should be able to execute some js', async function () {
+        (await this.client.execute('return document.title', [])).value.should.be.equal(conf.testPage.title)
+    })
 
-    it('should be forgiving on giving an `args` parameter', function() {
-        return this.client
-            .execute('return document.title').then(function(res) {
-                assert.equal(conf.testPage.title, res.value);
-            });
-    });
+    it('should be forgiving on giving an `args` parameter', async function () {
+        (await this.client.execute('return document.title')).value.should.be.equal(conf.testPage.title)
+    })
 
-    it('should be able to execute a pure function', function() {
-        return this.client
-            .execute(function() {
-                return document.title;
-            }).then(function(res) {
-                assert.equal(conf.testPage.title, res.value);
-            });
-    });
+    it('should be able to execute a pure function', async function () {
+        (await this.client.execute(() => document.title)).value.should.be.equal(conf.testPage.title)
+    })
 
-    it('should be able to take just a single function', function() {
-        return this.client
-            .execute(function() {
-                window.testThatStuff = true;
-            })
-            .execute(function() {
-                return window.testThatStuff;
-            }).then(function(res) {
-                assert.equal(res.value, true);
-            });
-    });
+    it('should be able to take just a single function', async function () {
+        await this.client.execute(() => {
+            window.testThatStuff = true
+        });
 
-});
+        (await this.client.execute(() => window.testThatStuff)).value.should.be.true
+    })
+})
