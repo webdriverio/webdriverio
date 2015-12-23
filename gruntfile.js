@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         grep: argv.grep,
         invert: argv.invert,
         bail: argv.bail,
-        timeout: 1200000
+        timeout: 120000
     }
 
     function addEnv (envs) {

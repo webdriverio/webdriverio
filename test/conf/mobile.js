@@ -1,9 +1,13 @@
 export default {
+    port: 4723,
     desiredCapabilities: {
-        browserName: process.env._BROWSER || '',
+        app: process.env._APP,
+        appPackage: 'io.webdriverjs.example',
+        appActivity: '.MainActivity',
+        browserName: '',
         platformName: (process.env._PLATFORM || '').replace(/_/g, ' '),
         platformVersion: (process.env._VERSION || ''),
-        'appium-version': '1.3.4',
-        deviceName: (process.env._DEVICENAME || '').replace(/_/g, ' ')
+        deviceName: (process.env._DEVICENAME || '').replace(/_/g, ' '),
+        'appium-version': '1.4.13'
     }
 }
