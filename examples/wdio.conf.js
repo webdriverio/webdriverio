@@ -252,6 +252,20 @@ exports.config = {
     //
     // Gets executed after all workers got shut down and the process is about to exit. It is not
     // possible to defer the end of the process using a promise.
-    onComplete: function(exitCode) {
+    onComplete: function (exitCode) {
+    }
+    //
+    // Cucumber specific hooks
+    beforeFeature: function (feature) {
+    },
+    beforeScenario: function (scenario) {
+    },
+    beforeStep: function (step) {
+    },
+    afterStep: function (stepResult) {
+    },
+    afterScenario: function (scenario) {
+    },
+    afterFeature: function (feature) {
     }
 };
