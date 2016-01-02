@@ -38,6 +38,6 @@ exports.config = {
     waitforTimeout: 10000,
     framework: 'mocha',
 
-    reporter: 'spec',
+    reporters: ['dot'],
 
 };
