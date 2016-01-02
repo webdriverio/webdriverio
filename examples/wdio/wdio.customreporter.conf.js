@@ -36,7 +36,7 @@ exports.config = {
     waitforTimeout: 10000,
     framework: 'mocha',
 
-    reporter: CustomReporter,
+    reporters: [CustomReporter],
     reporterOptions: {
         outputDir: './'
     },

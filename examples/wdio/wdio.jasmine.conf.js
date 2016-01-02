@@ -38,7 +38,7 @@ exports.config = {
     waitforTimeout: 10000,
     framework: 'jasmine',
 
-    reporter: 'spec',
+    reporters: ['dot'],
     reporterOptions: {
         outputDir: './'
     },

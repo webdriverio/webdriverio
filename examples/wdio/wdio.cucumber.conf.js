@@ -37,7 +37,7 @@ exports.config = {
     waitforTimeout: 10000,
     framework: 'cucumber',
 
-    reporter: 'spec',
+    reporters: ['dot'],
     reporterOptions: {
         outputDir: './'
     },

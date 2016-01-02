@@ -43,7 +43,7 @@ exports.config = {
     waitforTimeout: 10000,
     framework: 'mocha',
 
-    reporter: 'dot',
+    reporters: ['dot'],
     reporterOptions: {
         outputDir: './'
     },
