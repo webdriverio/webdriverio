@@ -12,11 +12,14 @@ let config = {
 if (process.env._ENV === 'multibrowser') {
     let multibrowserConfig = {
         capabilities: {
-            browserA: config,
-            browserB: config
+            browserA: Object.assign({}, config),
+            browserB: Object.assign({}, config)
         }
     }
     config = multibrowserConfig
+
+    config.capabilities.browserA.baseUrl = 'http://google.com'
+    config.capabilities.browserB.baseUrl = 'http://yahoo.com'
 }
 
 export default config
