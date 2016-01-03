@@ -63,6 +63,19 @@ describe('event handling', () => {
             await client.end()
             isEndHandlerEmitted.should.be.true
         })
+
+        it('should emit custom command events', async () => {
+            isErrorHandlerEmitted = false
+            client.addCommand('throwMe', () => {
+                throw new Error('uups')
+            })
+
+            try {
+                await client.throwMe()
+            } catch (e) {}
+
+            isErrorHandlerEmitted.should.be.true
+        })
     })
 
     describe('custom events', () => {
