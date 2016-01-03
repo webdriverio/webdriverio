@@ -48,11 +48,7 @@ describe('event handling', () => {
             desiredCapabilties.should.be.equal('phantomjs')
         })
 
-        /**
-         * broken and need to be fixed
-         * see https://github.com/webdriverio/webdriverio/issues/827
-         */
-        it.skip('should emit an error event after querying a non existing element', async () => {
+        it('should emit an error event after querying a non existing element', async () => {
             await client.url(conf.testPage.start)
 
             // click on non existing element to cause an error
