@@ -1,20 +1,18 @@
-describe('choosing a file in an <input type=file>', function() {
-    before(h.setup());
+import path from 'path'
 
-    var path = require('path');
-    var toUpload = path.join(__dirname, '..', '..', 'fixtures', 'cat-to-upload.gif');
+const toUpload = path.join(__dirname, '..', '..', 'fixtures', 'cat-to-upload.gif')
 
-    it('uploads a file and fills the form with it', function() {
-        return this.client.chooseFile('#upload-test', toUpload).catch(function(err) {
-            assert.ifError(err);
-        }).getValue('#upload-test').then(function(val) {
-            assert.ok(/cat\-to\-upload\.gif$/.test(val));
-        });
-    });
+describe('chooseFile: choosing a file in an <input type=file>', () => {
+    it('uploads a file and fills the form with it', async function () {
+        await this.client.chooseFile('#upload-test', toUpload)
+        const val = await this.client.getValue('#upload-test')
+        expect(/cat\-to\-upload\.gif$/.test(val)).to.be.equal(true)
+    })
 
-    it('errors if file does not exists', function() {
-        return this.client.chooseFile('#upload-test', '$#$#940358435').catch(function(err) {
-            assert.notEqual(err, null);
-        });
-    });
-});
+    it('errors if file does not exists', function () {
+        return this.client.chooseFile('#upload-test', '$#$#940358435').catch((err) => {
+            expect(err).not.to.be.undefined
+            expect(err).not.to.be.null
+        })
+    })
+})

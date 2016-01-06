@@ -1,45 +1,28 @@
-/* global beforeEach */
-describe('close', function() {
+import conf from '../../conf/index'
 
-    beforeEach(h.setup());
-
-    it('should close the current window', function() {
-
+describe('close', () => {
+    it('should close the current window', async function () {
         /**
          * safari doenst support `newWindow`
          */
-        if(this.client.desiredCapabilities.browserName === 'safari') {
-            return;
+        if (this.client.desiredCapabilities.browserName === 'safari') {
+            return
         }
 
-        var openTab;
+        // get current tab id
+        const openTab = (await this.client.getTabIds())[0]
 
-        return this.client
+        // open new tab
+        await this.client.newWindow(conf.testPage.subPage).pause(1000);
 
-            // get current tab id
-            .getTabIds().then(function(tabs) {
-                openTab = tabs[0];
-            })
+        // ensure that there are two tabs open
+        (await this.client.getTabIds()).should.have.length(2)
 
-            // open new tab
-            .newWindow(conf.testPage.subPage)
+        // close window
+        await this.client.close().pause(1000);
+        (await this.client.getTabIds()).should.have.length(1);
 
-            // ensure that there are two tabs open
-            .getTabIds().then(function(tabs) {
-                tabs.should.have.length(2);
-            })
-
-            // command needs to be executed within new function context
-            // to have access to the windowHandle assigned in L23
-            .call(function() {
-                return this.close(openTab);
-            })
-
-            // test if there is only one tab open
-            .windowHandle().then(function(windowHandle) {
-                windowHandle.value.should.be.exactly(openTab);
-            });
-
-    });
-
-});
+        // test if there is only one tab open
+        (await this.client.windowHandle()).value.should.be.equal(openTab)
+    })
+})

@@ -1,141 +1,133 @@
-var webdriverjs = require('../../../index.js'),
-    conf = require('../../conf/index.js'),
-    tmpConf = {
-        desiredCapabilities: {
-            browserName: 'phantomjs'
-        }
-    };
+import { remote } from '../../../index.js'
+import conf from '../../conf/index.js'
 
-describe('event handling', function() {
+const tmpConf = {
+    desiredCapabilities: {
+        browserName: 'phantomjs'
+    }
+}
 
-    describe('is able to emit and listen to driver specific events and', function() {
+describe('event handling', () => {
+    describe('is able to emit and listen to driver specific events and', () => {
+        let isCommandHandlerEmitted = false
+        let isErrorHandlerEmitted = false
+        let isInitHandlerEmitted = false
+        let isEndHandlerEmitted = false
+        let uri = null
+        let desiredCapabilties = null
+        let client
 
-        var isCommandHandlerEmitted = false,
-            isErrorHandlerEmitted = false,
-            isInitHandlerEmitted = false,
-            isEndHandlerEmitted = false,
-            uri = null,
-            desiredCapabilties = null,
-            client;
+        before(() => {
+            client = remote(tmpConf)
 
-        before(function() {
-            client = webdriverjs.remote(tmpConf);
-
-            client.on('end', function() {
-                isEndHandlerEmitted = true;
-            });
-            client.on('init', function() {
-                isInitHandlerEmitted = true;
-            });
-            client.on('error', function() {
-                isErrorHandlerEmitted = true;
-            });
-            client.on('command', function(e) {
-
+            client.on('end', () => {
+                isEndHandlerEmitted = true
+            })
+            client.on('init', () => {
+                isInitHandlerEmitted = true
+            })
+            client.on('error', () => {
+                isErrorHandlerEmitted = true
+            })
+            client.on('command', (e) => {
                 // assign variables only on first command
                 if (isCommandHandlerEmitted) {
-                    return;
+                    return
                 }
 
-                isCommandHandlerEmitted = true;
-                desiredCapabilties = e.data.desiredCapabilities.browserName;
-                uri = e.uri;
-            });
-        });
+                isCommandHandlerEmitted = true
+                desiredCapabilties = e.data.desiredCapabilities.browserName
+                uri = e.uri
+            })
+        })
 
-        it('should emit an init event after calling the init command', function() {
-            return client
-                .init()
-                .call(function() {
-                    assert.ok(isInitHandlerEmitted, 'init handler wasn\'t called');
-                    assert.strictEqual(uri.host, '127.0.0.1:4444');
-                    assert.strictEqual(desiredCapabilties, 'phantomjs');
-                });
-        });
+        it('should emit an init event after calling the init command', async () => {
+            await client.init()
+            isInitHandlerEmitted.should.be.true
+            uri.host.should.be.equal('127.0.0.1:4444')
+            desiredCapabilties.should.be.equal('phantomjs')
+        })
 
-        /**
-         * unable to catch error in testcase to test if isErrorHandlerEmitted flag got set
-         * or: client doesn't send error message without throwing within test case
-         */
-        it.skip('should emit an error event after querying a non existing element', function() {
-            return client
-                .url(conf.testPage.start)
-                // click on non existing element to cause an error
-                .click('#notExistentant')
-                .call(function() {
-                    assert.ok(isErrorHandlerEmitted, 'error handler wasn\'t called');
-                });
-        });
+        it('should emit an error event after querying a non existing element', async () => {
+            await client.url(conf.testPage.start)
 
-        it('should emit an end event after calling the end command', function() {
-            client.end();
-            client.call(function() {
-                assert.ok(isEndHandlerEmitted, 'end handler wasn\'t called');
-            });
-        });
+            // click on non existing element to cause an error
+            try {
+                await client.click('#notExistent')
+            } catch (e) {}
 
-    });
+            isErrorHandlerEmitted.should.be.true
+        })
 
-    describe('custom events', function() {
-        var iWasTriggered = false,
-            eventWasTriggeredAtLeastOnce = false;
+        it('should emit an end event after calling the end command', async () => {
+            await client.end()
+            isEndHandlerEmitted.should.be.true
+        })
 
-        before(h.setup());
+        it('should emit custom command events', async () => {
+            isErrorHandlerEmitted = false
+            client.addCommand('throwMe', () => {
+                throw new Error('uups')
+            })
 
-        beforeEach(function() {
-            iWasTriggered = false;
-            eventWasTriggeredAtLeastOnce = false;
-            this.client.removeAllListeners('testme');
-        });
+            try {
+                await client.throwMe()
+            } catch (e) {}
 
-        it('should register and fire events with on/emit', function() {
+            isErrorHandlerEmitted.should.be.true
+        })
+    })
+
+    describe('custom events', () => {
+        let iWasTriggered = false
+        let eventWasTriggeredAtLeastOnce = false
+
+        beforeEach(function () {
+            iWasTriggered = false
+            eventWasTriggeredAtLeastOnce = false
+            this.client.removeAllListeners('testme')
+        })
+
+        it('should register and fire events with on/emit', function () {
             return this.client
                 .emit('testme')
-                .on('testme', function() {
-                    assert.ok(iWasTriggered, 'event was triggered unexpected');
-                    eventWasTriggeredAtLeastOnce = true;
+                .on('testme', async function () {
+                    iWasTriggered.should.be.true
+                    eventWasTriggeredAtLeastOnce = true
                 })
-                .call(function() {
-                    iWasTriggered = true;
+                .call(function () {
+                    iWasTriggered = true
                 })
                 .emit('testme')
-                .call(function() {
-                    eventWasTriggeredAtLeastOnce.should.be.true;
-                });
+                .call(() => eventWasTriggeredAtLeastOnce.should.be.true)
+        })
 
-        });
-
-        it('should register and fire events with once/emit', function() {
+        it('should register and fire events with once/emit', function () {
             return this.client
-                .once('testme', function() {
-                    assert.ok(iWasTriggered, 'event was triggered unexpected');
-                    assert.ok(!eventWasTriggeredAtLeastOnce, 'once event got triggered twice');
-                    eventWasTriggeredAtLeastOnce = true;
+                .once('testme', async function () {
+                    iWasTriggered.should.be.true
+                    eventWasTriggeredAtLeastOnce.should.be.false
+                    eventWasTriggeredAtLeastOnce = true
                 })
-                .call(function() {
-                    iWasTriggered = true;
+                .call(function () {
+                    iWasTriggered = true
                 })
                 .emit('testme')
-                .emit('testme');
-        });
+                .emit('testme')
+        })
 
-        it('two instances should have different event handlers', function() {
-            var clientA = webdriverjs.remote(tmpConf);
-            var clientB = webdriverjs.remote(tmpConf);
+        it('two instances should have different event handlers', async function () {
+            const clientA = remote(tmpConf)
+            const clientB = remote(tmpConf)
 
-            clientA.on('testme', function(key) {
-                assert.strictEqual(key, 'A');
-            });
-            clientB.on('testme', function(key) {
-                assert.strictEqual(key, 'B');
-            });
+            clientA.on('testme', (key) => key.should.be.equal('A'))
+            clientB.on('testme', (key) => key.should.be.equal('B'))
 
-            clientA.emit('testme', 'A');
-            clientB.emit('testme', 'B');
+            clientA.emit('testme', 'A')
+            clientB.emit('testme', 'B')
 
-            return clientA.end().then(function() {
-                return clientB.end();
-            });
-        });
-    });
-});
+            await clientA.end()
+            await clientB.end()
+        })
+    })
+})

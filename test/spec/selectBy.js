@@ -1,72 +1,56 @@
-/*jshint expr: true*/
-describe('selectBy', function() {
+describe('selectBy', () => {
+    describe('VisibleText', () => {
+        it('should find element without special conditions', async function () {
+            await this.client.selectByVisibleText('#selectTest', 'seis');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue6')
+        })
 
-    before(h.setup());
+        it('should find element with spaces before and after the text', async function () {
+            await this.client.selectByVisibleText('#selectTest', 'dos');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue2')
+        })
 
-    describe('VisibleText', function() {
+        it('should find element with spaces before and after the text parameter', async function () {
+            await this.client.selectByVisibleText('#selectTest', '   cinco  ');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue5')
+        })
+    })
 
-        it('should find element without special conditions', function() {
-            return this.client.selectByVisibleText('#selectTest', 'seis').getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('someValue6');
-            });
-        });
+    describe('Index', () => {
+        it('should find element without special conditions', async function () {
+            await this.client.selectByIndex('#selectTest', 3);
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue4')
+        })
 
-        it('should find element with spaces before and after the text', function() {
-            return this.client.selectByVisibleText('#selectTest', 'dos').getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('someValue2');
-            });
-        });
+        it('should throw error if index is negative', async function () {
+            return this.client.selectByIndex('#selectTest', -2).catch((err) => {
+                expect(err).not.to.be.undefined
+                expect(err).not.to.be.null
+            })
+        })
 
-        it('should find element with spaces before and after the text parameter', function() {
-            return this.client.selectByVisibleText('#selectTest', '   cinco  ').getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('someValue5');
-            });
-        });
+        it('should throw error if index is higher than number of options', async function () {
+            return this.client.selectByIndex('#selectTest', 99).catch((err) => {
+                expect(err).not.to.be.undefined
+                expect(err).not.to.be.null
+            })
+        })
+    })
 
-    });
+    describe('Value', () => {
+        it('should find element without special conditions', async function () {
+            await this.client.selectByValue('#selectTest', 'someValue1');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue1')
+        })
 
-    describe('Index', function() {
+        it('should find element with spaces before and after the value', async function () {
+            await this.client.selectByValue('#selectTest', 'someValue3');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue3')
+        })
 
-        it('should find element without special conditions', function() {
-            return this.client.selectByIndex('#selectTest', 3).getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('someValue4');
-            });
-        });
-
-        it('should throw error if index is negative', function() {
-            return this.client.selectByIndex('#selectTest', -2).catch(function(err) {
-                assert.ifError(!!!err);
-            });
-        });
-
-        it('should throw error if index is higher than number of options', function() {
-            return this.client.selectByIndex('#selectTest', 99).catch(function(err) {
-                assert.ifError(!!!err);
-            });
-        });
-
-    });
-
-    describe('Value', function() {
-
-        it('should find element without special conditions', function() {
-            return this.client.selectByValue('#selectTest',  'someValue1').getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('someValue1');
-            });
-        });
-
-        it('should find element with spaces before and after the value', function() {
-            return this.client.selectByValue('#selectTest',  'someValue3').getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('someValue3');
-            });
-        });
-
-        it('should find element with spaces before and after the value parameter', function() {
-            return this.client.selectByValue('#selectTest', '    someValue5    ').getValue('#selectTest').then(function (value) {
-                value.should.be.exactly('someValue5');
-            });
-        });
-
-    });
-
-});
+        it('should find element with spaces before and after the value parameter', async function () {
+            await this.client.selectByValue('#selectTest', '    someValue5    ');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue5')
+        })
+    })
+})

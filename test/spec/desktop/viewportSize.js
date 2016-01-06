@@ -1,50 +1,47 @@
-describe('setViewportSize/getViewportSize', function() {
-    before(h.setup());
+describe('setViewportSize/getViewportSize', () => {
+    let windowSize = {}
 
-    beforeEach(function() {
-        return this.client.windowHandleSize({
-            width: 300,
-            height: 300
-        });
+    before(async function () {
+        windowSize = await this.client.windowHandleSize()
     })
 
-    it('should change viewport size of current window and should return the exact value', function() {
-        return this.client.setViewportSize({
-            width: 500,
-            height: 500
-        }, true)
-        .getViewportSize().then(function(size) {
-            size.width.should.be.exactly(500);
-            size.height.should.be.exactly(500);
-        });
-    });
+    beforeEach(async function () {
+        await this.client.windowHandleSize({ width: 300, height: 300 })
+    })
 
-    it('should set window size exactly when parameter \'type\' is true by default', function() {
-        return this.client.setViewportSize({
-            width: 500,
-            height: 500
-        })
-        .getViewportSize().then(function(size) {
-            size.width.should.be.exactly(500);
-            size.height.should.be.exactly(500);
-        }).windowHandleSize().then(function(res) {
-            res.value.width.should.be.greaterThan(499);
-            res.value.height.should.be.greaterThan(499);
-        });
-    });
+    it('should change viewport size of current window and should return the exact value', async function () {
+        await this.client.setViewportSize({ width: 500, height: 500 }, true)
 
-    it('should let windowHandleSize return bigger values since it includes menu and status bar heights', function() {
-        return this.client.setViewportSize({
-            width: 500,
-            height: 500
-        }, false)
-        .getViewportSize().then(function(size) {
-            size.width.should.be.lessThan(501);
-            size.height.should.be.lessThan(501);
-        }).windowHandleSize().then(function(res) {
-            res.value.width.should.be.exactly(500);
-            res.value.height.should.be.exactly(500);
-        });
-    });
+        const viewportSize = await this.client.getViewportSize()
+        viewportSize.width.should.be.equal(500)
+        viewportSize.height.should.be.equal(500)
+    })
 
-});
+    it(`should set window size equal when parameter 'type' is true by default`, async function () {
+        await this.client.setViewportSize({ width: 500, height: 500 })
+
+        const viewportSize = await this.client.getViewportSize()
+        viewportSize.width.should.be.equal(500)
+        viewportSize.height.should.be.equal(500)
+
+        const windowSize = await this.client.windowHandleSize()
+        windowSize.value.width.should.be.greaterThan(499)
+        windowSize.value.height.should.be.greaterThan(499)
+    })
+
+    it('should let windowHandleSize return bigger values since it includes menu and status bar heights', async function () {
+        await this.client.setViewportSize({ width: 500, height: 500 }, false)
+
+        const viewportSize = await this.client.getViewportSize()
+        viewportSize.width.should.be.lessThan(501)
+        viewportSize.height.should.be.lessThan(501)
+
+        const windowSize = await this.client.windowHandleSize()
+        windowSize.value.width.should.be.equal(500)
+        windowSize.value.height.should.be.equal(500)
+    })
+
+    after(async function () {
+        await this.client.windowHandleSize(windowSize.value)
+    })
+})

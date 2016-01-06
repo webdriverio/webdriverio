@@ -1,32 +1,25 @@
-/**
- * sufficient to get tested with phantomjs
- */
-describe('end', function() {
+const WebdriverIO = require('../../../')
 
-    before(h.setup({ newSession: true }));
+describe('end', () => {
+    it('should delete a session', async function () {
+        // at the beginning there is only one session
+        (await this.client.sessions()).value.should.have.length(1)
 
-    it('should delete a session', function() {
+        // create a new session
+        const testDriver = WebdriverIO.remote({
+            desiredCapabilities: {
+                browserName: 'phantomjs'
+            }
+        })
+        await testDriver.init();
 
-        var sessions;
+        // now we should have two sessions
+        (await this.client.sessions()).value.should.have.length(2)
 
-        return this.client
+        // end testDriver session
+        await testDriver.end();
 
-            // check if client has a running session
-            .sessions().then(function(res) {
-                assert.ok(res.value);
-                sessions = res.value.length;
-            })
-
-            // end session
-            .end()
-
-            // check if session was closed
-            .then(function() {
-                return this.sessions().then(function(openSessions) {
-                    openSessions.value.should.have.length(sessions - 1);
-                });
-            });
-
-    });
-
-});
+        // now there should be only one session again
+        (await this.client.sessions()).value.should.have.length(1)
+    })
+})

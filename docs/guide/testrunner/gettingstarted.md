@@ -39,7 +39,7 @@ Options:
   --baseUrl, -b         shorten url command calls by setting a base url
   --waitforTimeout, -w  Default timeout for all wait commands
   --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)
-  --reporter, -r        reporter to print out the results on stdout
+  --reporters, -r        reporters to print out the results on stdout
 ```
 
 Sweet! Now you need to define a configuration file where all information about your tests, capabilities and

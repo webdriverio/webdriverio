@@ -1,19 +1,12 @@
-/* global document */
-describe('executeAsync', function() {
+import conf from '../../conf/index.js'
 
-    before(h.setup());
-
-    it('should execute an async function', function() {
-        return this.client
-            .timeouts('script', 5000)
-            .executeAsync(function() {
-                var cb = arguments[arguments.length - 1];
-                setTimeout(function() {
-                    cb(document.title + '-async');
-                }, 500);
-            }).then(function(res) {
-                res.value.should.be.exactly(conf.testPage.title + '-async');
-            });
-    });
-
-});
+describe('executeAsync', () => {
+    it('should execute an async function', async function () {
+        await this.client.timeouts('script', 5000);
+        (await this.client.executeAsync((cb) => {
+            setTimeout(function () {
+                cb(document.title + '-async')
+            }, 500)
+        })).value.should.be.equal(conf.testPage.title + '-async')
+    })
+})

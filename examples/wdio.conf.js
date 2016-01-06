@@ -141,7 +141,7 @@ exports.config = {
     // Test reporter for stdout.
     // The following are supported: dot (default), spec and xunit
     // see also: http://webdriver.io/guide/testrunner/reporters.html
-    reporter: 'xunit',
+    reporters: ['junit'],
     //
     // Some reporter require additional information which should get defined here
     reporterOptions: {
@@ -177,11 +177,21 @@ exports.config = {
     //
     // If you are using Cucumber you need to specify where your step definitions are located.
     cucumberOpts: {
-        require: ['./examples/runner-specs/cucumber/step-definitions.js'],
-        // Enable this config to treat undefined definitions as warnings.
-        ignoreUndefinedDefinitions: false,
-        // run only certain scenarios annotated by tags
-        tags: ['foo', 'bar']
+        require: [],        // <string[]> (file/dir) require files before executing features
+        backtrace: false,   // <boolean> show full backtrace for errors
+        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+        dryRun: false,      // <boolean> invoke formatters without executing steps
+        failFast: false,    // <boolean> abort the run on first failure
+        format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
+        colors: true,       // <boolean> disable colors in formatter output
+        snippets: true,     // <boolean> hide step definition snippets for pending steps
+        source: true,       // <boolean> hide source uris
+        profile: [],        // <string[]> (name) specify the profile to use
+        require: [],        // <string[]> (file/dir) require files before executing features
+        strict: false,      // <boolean> fail if there are any undefined or pending steps
+        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+        timeout: 20000      // <number> timeout for step definitions
+        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
     // =====
@@ -242,6 +252,20 @@ exports.config = {
     //
     // Gets executed after all workers got shut down and the process is about to exit. It is not
     // possible to defer the end of the process using a promise.
-    onComplete: function(exitCode) {
+    onComplete: function (exitCode) {
+    }
+    //
+    // Cucumber specific hooks
+    beforeFeature: function (feature) {
+    },
+    beforeScenario: function (scenario) {
+    },
+    beforeStep: function (step) {
+    },
+    afterStep: function (stepResult) {
+    },
+    afterScenario: function (scenario) {
+    },
+    afterFeature: function (feature) {
     }
 };
