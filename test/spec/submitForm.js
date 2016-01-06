@@ -1,29 +1,13 @@
-/* global beforeEach */
-describe('submitForm', function() {
+describe('submitForm', () => {
+    it('should send data from form', async function () {
+        (await this.client.isExisting('.gotDataA')).should.be.equal(false);
+        (await this.client.isExisting('.gotDataB')).should.be.equal(false);
+        (await this.client.isExisting('.gotDataC')).should.be.equal(false)
 
-    beforeEach(h.setup());
+        await this.client.submitForm('.send').pause(1000);
 
-    var elementShouldBeNotExisting = function (isExisting) {
-        /**
-         * because there was no element found isExisting is false
-         */
-        isExisting.should.be.exactly(false);
-    };
-
-    var elementShouldBeExisting = function (isExisting) {
-        isExisting.should.be.exactly(true);
-    };
-
-    it('should send data from form', function () {
-        return this.client
-            .isExisting('.gotDataA').then(elementShouldBeNotExisting)
-            .isExisting('.gotDataB').then(elementShouldBeNotExisting)
-            .isExisting('.gotDataC').then(elementShouldBeNotExisting)
-            .submitForm('.send')
-            .pause(1000)
-            .isExisting('.gotDataA').then(elementShouldBeExisting)
-            .isExisting('.gotDataB').then(elementShouldBeExisting)
-            .isExisting('.gotDataC').then(elementShouldBeExisting);
-    });
-
-});
+        (await this.client.isExisting('.gotDataA')).should.be.equal(true);
+        (await this.client.isExisting('.gotDataB')).should.be.equal(true);
+        (await this.client.isExisting('.gotDataC')).should.be.equal(true)
+    })
+})

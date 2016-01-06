@@ -1,9 +1,6 @@
-describe('back', function() {
-
-    before(h.setup());
-
-    it('should be able to go backward in history', function(){
-        return this.client
+describe('back', () => {
+    it('should be able to go backward in history', async function () {
+        await this.client
             /**
              * first create a history
              */
@@ -13,13 +10,8 @@ describe('back', function() {
              * go back in history
              */
             .back()
-            .pause(3000)
-            /**
-             * did it work?
-             */
-            .getTitle().then(function(title) {
-                title.should.be.exactly('WebdriverJS Testpage');
-            });
-    });
+            .pause(3000);
 
-});
+        (await this.client.getTitle()).should.be.equal('WebdriverJS Testpage')
+    })
+})

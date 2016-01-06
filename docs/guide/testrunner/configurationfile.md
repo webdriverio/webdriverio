@@ -128,17 +128,17 @@ exports.config = {
     // The following are supported: mocha, jasmine and cucumber
     // see also: http://webdriver.io/guide/testrunner/frameworks.html
     //
-    // Make sure you have the node package for the specific framework installed before running
+    // Make sure you have the node package for the specific framework adapter installed before running
     // any tests. If not please install the following package:
-    // Mocha: `$ npm install mocha`
-    // Jasmine: `$ npm install jasmine`
-    // Cucumber: `$ npm install cucumber`
+    // Mocha: `$ npm install wdio-mocha-framework`
+    // Jasmine: `$ npm install wdio-jasmine-framework`
+    // Cucumber: `$ npm install wdio-cucumber-framework`
     framework: 'mocha',
     //
     // Test reporter for stdout.
     // The following are supported: dot (default), spec and xunit
     // see also: http://webdriver.io/guide/testrunner/reporters.html
-    reporter: 'xunit',
+    reporters: ['xunit'],
     //
     // Some reporter require additional information which should get defined here
     reporterOptions: {

@@ -34,8 +34,7 @@ or by executin `$ wdio --help` (if you have WebdriverIO installed globally).
 gulp.task('test:e2e', function() {
     return gulp.src('wdio.conf.js').pipe(webdriver({
         logLevel: 'verbose',
-        waitforTimeout: 10000,
-        reporter: 'spec'
+        waitforTimeout: 10000
     }));
 });
 ```

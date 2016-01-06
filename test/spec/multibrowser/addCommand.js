@@ -1,57 +1,46 @@
-describe('addCommand', function() {
+import conf from '../../conf/index'
 
-    before(h.setupMultibrowser());
-
-    function getUrlAndTitle() {
-
-        var result = {};
-
-        return this.url().then(function(res) {
-            result.url = res.value;
-        }).getTitle().then(function(title) {
-            result.title = title;
-        }).then(function() {
-            return result;
-        });
-
+describe('addCommand', () => {
+    async function getUrlAndTitle () {
+        return {
+            url: (await this.url()).value,
+            title: (await this.getTitle())
+        }
     }
 
-    before(function() {
+    before(function () {
+        this.client.addCommand('getUrlAndTitle', getUrlAndTitle)
+    })
 
-        this.matrix.addCommand('getUrlAndTitle', getUrlAndTitle);
+    beforeEach(async function () {
+        this.browserA.url(conf.testPage.gestureTest)
+        this.browserB.url(conf.testPage.start)
+        await this.client.sync()
+    })
 
-        this.browserA.url(conf.testPage.gestureTest);
-        this.browserB.url(conf.testPage.start);
-        return this.matrix.sync();
-    });
+    it('added a `getUrlAndTitle` command', async function () {
+        const { browserA, browserB } = await this.client.getUrlAndTitle()
+        browserA.url.should.be.equal(conf.testPage.gestureTest)
+        browserB.title.should.be.equal(conf.testPage.title)
+    })
 
-    it('added a `getUrlAndTitle` command', function() {
-        return this.matrix.getUrlAndTitle().then(function(browserA, browserB) {
-            assert.strictEqual(browserA.url, conf.testPage.gestureTest);
-            assert.strictEqual(browserB.title, conf.testPage.title);
-        });
-    });
+    it('should promisify added command', function () {
+        return this.client.getUrlAndTitle().then(function (result) {
+            result.browserA.url.should.be.equal(conf.testPage.gestureTest)
+            result.browserB.title.should.be.equal(conf.testPage.title)
+        })
+    })
 
-    it('should promisify added command', function() {
+    it('should not register that command to other instances', async function () {
+        expect(this.browserA.getUrlAndTitle).to.be.a('function')
+        expect(this.browserB.getUrlAndTitle).to.be.a('function')
+    })
 
-        return this.matrix.getUrlAndTitle().then(function(browserA, browserB) {
-            assert.strictEqual(browserA.url, conf.testPage.gestureTest);
-            assert.strictEqual(browserB.title, conf.testPage.title);
-        });
-
-    });
-
-    it('should not register that command to other instances', function() {
-        expect(this.browserA.getUrlAndTitle).to.be.a('function');
-        expect(this.browserB.getUrlAndTitle).to.be.a('function');
-    });
-
-    it('should add a namespaced getUrlAndTitle', function() {
-        this.matrix.addCommand('mynamespace', 'getUrlAndTitle', getUrlAndTitle);
-        return this.matrix.mynamespace.getUrlAndTitle().then(function(browserA, browserB) {
-            assert.strictEqual(browserA.url, conf.testPage.gestureTest);
-            assert.strictEqual(browserB.title, conf.testPage.title);
-        });
-    });
-
-});
+    it('should add a namespaced getUrlAndTitle', async function () {
+        this.client.addCommand('mynamespace', 'getUrlAndTitle', getUrlAndTitle)
+        return this.client.mynamespace.getUrlAndTitle().then(function (result) {
+            result.browserA.url.should.be.equal(conf.testPage.gestureTest)
+            result.browserB.title.should.be.equal(conf.testPage.title)
+        })
+    })
+})

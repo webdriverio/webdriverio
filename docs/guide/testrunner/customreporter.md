@@ -42,7 +42,7 @@ var CustomReporter = require('./reporter/my.custom.reporter');
 exports.config = {
     // ...
 &nbsp;
-    reporter: CustomReporter,
+    reporters: [CustomReporter],
 &nbsp;
     // ...
 };
