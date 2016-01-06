@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     baseUrl: 'http://127.0.0.1:8080',
     testPage: {
         start: 'http://127.0.0.1:8080/test/site/www/index.html',
@@ -6,4 +6,4 @@ module.exports = {
         gestureTest: 'http://127.0.0.1:8080/test/site/www/gestureTest.html',
         title: 'WebdriverJS Testpage'
     }
-};
+}

@@ -1,111 +1,64 @@
-describe('addCommand', function() {
+import conf from '../../conf/index'
 
-    before(h.setup());
-
-    function getUrlAndTitle() {
-
-        var result = {};
-
-        return this.url().then(function(url) {
-            result.url = url.value;
-        }).getTitle().then(function(title) {
-            result.title = title;
-        }).then(function() {
-            return result;
-        });
-
+describe('addCommand', () => {
+    async function getUrlAndTitle () {
+        return {
+            url: (await this.url()).value,
+            title: (await this.getTitle())
+        }
     }
 
-    describe('add regular command', function() {
+    describe('add regular command', () => {
+        before(function () {
+            this.client.addCommand('getUrlAndTitle', getUrlAndTitle)
+        })
 
-        before(function() {
-            this.client.addCommand('getUrlAndTitle', getUrlAndTitle);
-        });
+        it('added a `getUrlAndTitle` command', async function () {
+            const result = await this.client.getUrlAndTitle()
+            result.url.should.be.equal(conf.testPage.start)
+            result.title.should.be.equal(conf.testPage.title)
+        })
 
-        it('added a `getUrlAndTitle` command', function() {
-            return this.client.getUrlAndTitle().then(function(result) {
-                assert.strictEqual(result.url, conf.testPage.start);
-                assert.strictEqual(result.title, conf.testPage.title);
-            });
-        });
+        it('should promisify added command', async function () {
+            return this.client.getUrlAndTitle().then((result) => {
+                result.url.should.be.equal(conf.testPage.start)
+                result.title.should.be.equal(conf.testPage.title)
+            })
+        })
+    })
 
-        it('should promisify added command', function() {
-            return this.client.getUrlAndTitle().then(function(result) {
-                assert.strictEqual(result.url, conf.testPage.start);
-                assert.strictEqual(result.title, conf.testPage.title);
-            });
-        });
+    describe('try to add an existing command', () => {
+        it('should throw an error', function () {
+            expect(() => this.client.addCommand('shake', () => 'should fail')).to.throw()
+        })
 
-    });
+        it('should overwrite existing method if overwrite flag is given', async function () {
+            this.client.addCommand('shake', () => 'should not fail', true);
+            (await this.client.shake()).should.be.equal('should not fail')
+        })
+    })
 
-    describe('try to add an existing command', function() {
+    describe('add a namespaced command', () => {
+        it('should add a namespaced getUrlAndTitle', async function () {
+            this.client.addCommand('mynamespace', 'getUrlAndTitle', getUrlAndTitle)
+            const result = await this.client.mynamespace.getUrlAndTitle()
+            result.url.should.be.equal(conf.testPage.start)
+            result.title.should.be.equal(conf.testPage.title)
+        })
 
-        it('should throw an error', function() {
-            var self = this;
+        it('should not allow overwriting internal functions', function () {
+            expect(() => this.client.addCommand('shake', 'mycommand', () => 'should fail', true)).to.throw()
+        })
 
-            (function(){
-                self.client.addCommand('shake', function() {
-                    return 'should fail';
-                });
-            }).should.throw();
-        });
+        it('should not overwrite commands by default', function () {
+            this.client.addCommand('mynamespace', 'mycommand', getUrlAndTitle)
+            expect(() => this.client.addCommand('mynamespace', 'mycommand', () => 'should fail')).to.throw()
+        })
 
-        it('should overwrite existing method if overwrite flag is given', function() {
-            this.client.addCommand('shake', function() {
-                return 'should not fail';
-            }, true);
-
-            return this.client.shake().then(function(res) {
-                expect(res).to.be.equal('should not fail');
-            });
-        });
-
-    });
-
-    describe('add a namespaced command', function() {
-
-        it('should add a namespaced getUrlAndTitle', function() {
-            this.client.addCommand('mynamespace', 'getUrlAndTitle', getUrlAndTitle);
-            return this.client.mynamespace.getUrlAndTitle().then(function(result) {
-                assert.strictEqual(result.url, conf.testPage.start);
-                assert.strictEqual(result.title, conf.testPage.title);
-            });
-        });
-
-        it('should not allow overwriting internal functions', function() {
-            var self = this;
-
-            (function(){
-                self.client.addCommand('shake', 'mycommand', function() {
-                    return 'should fail';
-                }, true);
-            }).should.throw();
-        });
-
-        it('should not overwrite commands by default', function() {
-            this.client.addCommand('mynamespace', 'mycommand', getUrlAndTitle);
-
-            var self = this;
-
-            (function(){
-                self.client.addCommand('mynamespace', 'mycommand', function() {
-                    return 'should fail';
-                });
-            }).should.throw();
-        });
-
-        it('should overwrite existing namespaced method if overwrite flag is given', function() {
-            this.client.addCommand('mynamespace', 'mysecondcommand', getUrlAndTitle);
-
-            this.client.addCommand('mynamespace', 'mysecondcommand', function() {
-                return 'should not fail';
-            }, true);
-
-            return this.client.mynamespace.mysecondcommand().then(function(res) {
-                expect(res).to.be.equal('should not fail');
-            });
-        });
-
-    });
-
-});
+        it('should overwrite existing namespaced method if overwrite flag is given', async function () {
+            this.client.addCommand('mynamespace', 'mysecondcommand', getUrlAndTitle)
+            this.client.addCommand('mynamespace', 'mysecondcommand', () => 'should not fail', true);
+            (await this.client.mynamespace.mysecondcommand()).should.be.equal('should not fail')
+        })
+    })
+})

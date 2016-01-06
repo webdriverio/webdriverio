@@ -1,5 +1,5 @@
 Feature: Example feature
-  As a user of webdriverjs
+  As a user of WebdriverIO
   I should be able to use different commands
   to get informations about elements on the page
 
@@ -9,4 +9,4 @@ Feature: Example feature
 
   Scenario: Get title of website
     Given I go on the website "https://github.com/"
-    Then  should the title of the page be "GitHub · Build software better, together."
+    Then  should the title of the page be "GitHub · Where software is built"

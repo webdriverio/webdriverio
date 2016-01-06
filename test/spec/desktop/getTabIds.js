@@ -1,27 +1,19 @@
-/**
- * `newWindow` will also been tested here
- */
+import conf from '../../conf/index'
 
-describe('getTabIds', function() {
+describe('getTabIds', () => {
+    it('should return a single tab id', async function () {
+        const tabs = await this.client.getTabIds()
+        tabs.should.be.an.instanceOf(Array)
+        tabs.should.have.length(1)
+    })
 
-    before(h.setup());
+    it('should return two tab ids after openening a new window', async function () {
+        await this.client.newWindow(conf.testPage.subPage)
 
-    it('should return a single tab id', function() {
-        return this.client.getTabIds().then(function(tabs) {
-            tabs.should.be.an.instanceOf(Array);
-            tabs.should.have.length(1);
-        });
-    });
+        const tabs = await this.client.getTabIds()
+        tabs.should.be.an.instanceOf(Array)
+        tabs.should.have.length(2)
 
-    it('should return two tab ids after openening a new window', function() {
-        var tabsIds;
-        return this.client.newWindow(conf.testPage.subPage).getTabIds().then(function(tabs) {
-            tabsIds = tabs;
-            tabs.should.be.an.instanceOf(Array);
-            tabs.should.have.length(2);
-        }).call(function() {
-            return this.close(tabsIds[0]);
-        });
-    });
-
-});
+        await this.client.close()
+    })
+})

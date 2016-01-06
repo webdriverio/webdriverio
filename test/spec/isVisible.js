@@ -1,23 +1,13 @@
-/*jshint expr: true*/
-describe('isVisible', function() {
+describe('isVisible', () => {
+    it('should check if a single element is visible', async function () {
+        (await this.client.isVisible('.searchinput')).should.be.true;
+        (await this.client.isVisible('.invisible')).should.be.false
+    })
 
-    before(h.setup());
-
-    it('should check if a single element is visible', function() {
-        return this.client.isVisible('.searchinput').then(function (isVisible) {
-            isVisible.should.be.true;
-        })
-        .isVisible('.invisible', function(err, isVisible) {
-            isVisible.should.be.false;
-        });
-    });
-
-    it('should check multiple elements are visible', function() {
-        return this.client.isVisible('.visibletest').then(function (isVisible) {
-            isVisible.should.be.an.instanceOf(Array);
-            isVisible.should.have.length(2);
-            isVisible.should.containEql(false);
-        });
-    });
-
-});
+    it('should check multiple elements are visible', async function () {
+        const isVisible = await this.client.isVisible('.visibletest')
+        isVisible.should.be.an.instanceOf(Array)
+        isVisible.should.have.length(2)
+        isVisible.should.contain(false)
+    })
+})
