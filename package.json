@@ -30,6 +30,7 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
+    "bower-deps": "cd test/site/www ; bower install ; cd ../../..",
     "test": "node ./test/runner.js",
     "test-mobile": "_APP=safari _BROWSER=safari _PLATFORMVERSION=7.1 _APPIUMVERSION=1.2 _PLATFORMNAME=iOS _DEVICENAME=iPhone_Simulator _PORT=4723 _ENV=mobile node ./test/runner.js",
     "test-desktop": "_ENV=desktop _BROWSER=chrome node ./test/runner.js",
