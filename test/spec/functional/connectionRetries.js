@@ -22,20 +22,38 @@ describe('connection retries', function() {
             .post('/wd/hub/session')
                 .reply(200, FAKE_SUCCESS_RESPONSE);
 
-        return WebdriverIO.remote(conf).init();
+        return WebdriverIO.remote(conf).init().then(function(res) {
+            expect(res).deep.equal(FAKE_SUCCESS_RESPONSE);
+        }).catch(function(err) {
+            expect(err).to.be.null;
+        });
     });
 
-    it('should fail with ECONNREFUSED if all connection attempts failed', function () {
+    it('should retry connection 3 times if server response with 500', function () {
+        nock('http://localhost:4444')
+            .post('/wd/hub/session')
+                .twice()
+                .reply(500, '500 error')
+            .post('/wd/hub/session')
+                .reply(200, FAKE_SUCCESS_RESPONSE);
+
+        return WebdriverIO.remote(conf).init().then(function(res) {
+            expect(res).deep.equal(FAKE_SUCCESS_RESPONSE);
+        }).catch(function(err) {
+            expect(err).to.be.null;
+        });
+    });
+
+    it('should fail if all connection attempts failed', function () {
         // mock 3 request errors
         nock('http://localhost:4444')
             .post('/wd/hub/session')
-            .thrice()
-            .replyWithError('some error');
+                .thrice()
+                .replyWithError('some error');
 
         return WebdriverIO.remote(conf).init().catch(function (err) {
             expect(err).not.to.be.undefined;
-            expect(err.message).to.equal('Couldn\'t connect to selenium server');
-            expect(err.seleniumStack.type).to.equal('ECONNREFUSED');
+            expect(err.message).to.match(/some error/);
         });
     });
 
