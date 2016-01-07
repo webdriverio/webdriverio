@@ -31,7 +31,7 @@ describe.skip('waitUntil', function() {
         return this.client.waitUntil(function() {
             return defer.promise;
         }, 1000).catch(function(err) {
-            err.message.should.match(/Promise never resolved with an truthy value/);
+            err.message.should.match(/Promise was rejected with the following reason: timeout/);
         });
     });
 
@@ -45,7 +45,7 @@ describe.skip('waitUntil', function() {
         return this.client.waitUntil(function() {
             return defer.promise;
         }, 1000).catch(function(err) {
-            err.message.should.match(/Promise was fulfilled but got rejected/);
+            err.message.should.match(/Promise was rejected with the following reason: foobar/);
         });
     });
 
@@ -105,8 +105,7 @@ describe.skip('waitUntil', function() {
 
 
     it('should check a condition multiple times', function() {
-        var defer = q.defer(),
-            flag = false,
+        var flag = false,
             conditionCalledCount = 0,
             testCondition = function () {
                 conditionCalledCount += 1;
@@ -115,12 +114,39 @@ describe.skip('waitUntil', function() {
 
         setTimeout(function() {
             flag = 'foobar';
-        }, 50);
+        }, 40);
 
         return this.client.waitUntil(testCondition, 100, 20).then(function(res) {
             res.should.equal('foobar');
-            conditionCalledCount.should.equal(4);
+            conditionCalledCount.should.equal(2);
         });
+    });
+
+    it('should not check after timeout', function(done) {
+        var callCount = 0,
+            lasttime = 0,
+            failtime = 0;
+
+        this.client.waitUntil(function() {
+            lasttime = Date.now();
+            callCount += 1;
+
+            var defer = q.defer();
+            defer.resolve(0);
+            return defer.promise.then(function(value) {
+                return !!value;
+            });
+        }, 40, 20).catch(function() {
+            failtime = Date.now();
+        });
+
+        setTimeout(function() {
+            callCount.should.be.equal(2);
+            lasttime.should.be.lte(failtime);
+
+            done();
+        }, 100);
+
     });
 
 });
