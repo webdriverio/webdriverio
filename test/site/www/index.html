@@ -134,7 +134,19 @@
         <div class="onMyWay">On my way out of the document!</div>
         <div class="notInViewports notInViewport">Where am I?</div>
         <div class="notInViewports">Where am I?</div>
+
+        <div style="background:silver;">
+            <h2>staleElementTests</h2>
+            <h3>Test 1</h3>
+            <ul class="staleElementContainer1"></ul>
+            <h3>Test 2</h3>
+            <ul class="staleElementContainer2"></ul>
+        </div>
+
     </section>
+
+
+    <!-- SCRIPTS -->
 
     <script src="components/jquery/jquery.min.js"></script>
     <script src="components/hammerjs/hammer.js"></script>
@@ -209,6 +221,42 @@
             $('.onMyWay').css('visibility','hidden');
             $('.invisibleParent').removeClass('hidden');
         },2000);
+    </script>
+
+    <script>
+        function addRow(container, count) {
+            var newRow = document.createElement('li');
+            newRow.classList.add('stale-element-container-row');
+            newRow.classList.add('stale-element-container-row-' + count);
+            newRow.innerHTML = count;
+            container.appendChild(newRow);
+            return newRow;
+        }
+        function removeRow(row) {
+            if (row) row.parentNode.removeChild(row);
+        }
+        function staleElementTest1() {
+            var container = document.querySelector('.staleElementContainer1');
+            var count = 0;
+            var lastRow;
+            function loop() {
+                count++;
+                removeRow(lastRow);
+                lastRow = addRow(container, count);
+            }
+            setInterval(loop, 200);
+        }
+        function staleElementTest2() {
+            var container = document.querySelector('.staleElementContainer2');
+            var timeout = 200;
+            for (var i = 1; i <= 40; i++) {
+                timeout += 311;
+                var row = addRow(container, i);
+                setTimeout(removeRow.bind(null, row), timeout);
+            }
+        }
+        staleElementTest1();
+        staleElementTest2();
     </script>
 
 </body>
