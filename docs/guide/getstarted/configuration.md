@@ -31,12 +31,21 @@ Default: `{ browserName: 'firefox' }`<br>
 **Example:**
 
 ```js
-browserName: 'chrome',  // options: firefox, chrome, opera, safari
-version: '27.0',        // browser version
-platform: 'XP',         // OS platform
-tags: ['tag1','tag2'],  // specify some tags (e.g. if you use Sauce Labs)
-name: 'my test'         // set name for test (e.g. if you use Sauce Labs)
+browserName: 'chrome',    // options: `firefox`, `chrome`, `opera`, `safari`
+version: '27.0',          // browser version
+platform: 'XP',           // OS platform
+tags: ['tag1','tag2'],    // specify some tags (e.g. if you use Sauce Labs)
+name: 'my test'           // set name for test (e.g. if you use Sauce Labs)
+pageLoadStrategy: 'eager' // strategy for page load
 ```
+
+**Details:**
+
+`pageLoadStrategy` is implemented in Selenium [2.46.0](https://github.com/SeleniumHQ/selenium/blob/master/java/CHANGELOG#L205) and apparently it is only working on Firefox. The valid values are:
+
+ `normal` - waits for `document.readyState` to be 'complete'. This value is used by default.
+ `eager`  - will abort the wait when `document.readyState` is 'interactive' instead of waiting for 'complete'.
+ `none`   - will abort the wait immediately, without waiting for any of the page to load.
 
 ### logLevel
 Level of logging verbosity.
