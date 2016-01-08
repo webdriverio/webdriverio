@@ -19,7 +19,7 @@ you need to pass in an object that should contain the following properties:
 
 ### desiredCapabilities
 Defines the capabilities you want to run in your Selenium session. See the [Selenium documentation](https://code.google.com/p/selenium/wiki/DesiredCapabilities)
-for a list of the available `capabilities`. Also useful is Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/reference/platforms-configurator/#/)
+for a list of the available `capabilities`. Also useful is Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 that helps you to create this object by clicking together your desired capabilities.
 
 Refer to the [cloud service docs](/guide/testrunner/cloudservices.html) for further
