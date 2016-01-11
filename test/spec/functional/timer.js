@@ -22,7 +22,7 @@ describe('timer', function() {
         clock.restore();
     });
 
-    it.only('should have leading fn call', function() {
+    it('should have leading fn call', function() {
         var spy = sinon.spy(function() {
             var defer = q.defer();
             defer.resolve();
