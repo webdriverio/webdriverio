@@ -14,12 +14,24 @@ describe('timer', function() {
             var defer = q.defer();
             defer.resolve();
             return defer.promise;
-        });
+        }, false);
     });
 
     afterEach(function() {
         process.nextTick.restore();
         clock.restore();
+    });
+
+    it.only('should have leading fn call', function() {
+        var spy = sinon.spy(function() {
+            var defer = q.defer();
+            defer.resolve();
+            return defer.promise;
+        });
+        timer = new Timer(20, 100, spy, true);
+        expect(spy.calledOnce).to.be.true;
+        clock.tick(20);
+        expect(spy.calledTwice).to.be.true;
     });
 
     it('should tick once', function() {
@@ -33,7 +45,7 @@ describe('timer', function() {
         var spy = sinon.spy();
         timer.progress(spy);
         clock.tick(80);
-        expect(spy.callCount).to.be.equal(4);
+        expect(spy.callCount).to.be.equal(5);
     });
 
     it('should not tick after timeout', function() {
