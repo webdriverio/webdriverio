@@ -13,13 +13,15 @@ describe('waitFor',function() {
             return this.client.waitForEnabled('//html/body/section/input[8]', duration).then(checkTime);
         });
 
+        // .waitForValueEnabledReverse is enabled by default and will be disabled after 2 seconds
         it('(reverse) should return w/o err after element was disabled', function() {
             return this.client.waitForEnabled('.waitForValueEnabledReverse', duration, true).then(checkTime);
         });
 
-        it('should return with an error if the element never becomes visible', function() {
-            return expect(this.client.waitForEnabled('.waitForValueEnabledReverse', 10))
-            .to.be.rejectedWith('element (.waitForValueEnabledReverse) still not enabled after 10ms');
+        // .waitForValueEnabled is disabled by default and will be enabled after 2 seconds
+        it('should return with an error if the element never becomes enabled', function() {
+            return expect(this.client.waitForEnabled('.waitForValueEnabled', 10))
+            .to.be.rejectedWith('element (.waitForValueEnabled) still not enabled after 10ms');
         });
 
         it('should pass through an error from isEnabled()', function() {
@@ -48,7 +50,7 @@ describe('waitFor',function() {
 
         it('should pass through an error from isExisting()', function() {
             var client = this.client;
-            var restore = function() {client.addCommand('isExisting', require('../../lib/commands/isExisting'), true);}
+            var restore = function() {client.addCommand('isExisting', require('../../lib/commands/isExisting'), true);};
             this.client.addCommand('isExisting', function() {throw new Error("My error")}, true);
 
             return expect(this.client.waitForExist('#notExisting', duration))
@@ -71,9 +73,9 @@ describe('waitFor',function() {
             return this.client.waitForSelected('.option2', duration, true).then(checkTime);
         });
 
-        it('should return with an error if the element never becomes visible', function() {
-            return expect(this.client.waitForSelected('.option2', 10))
-            .to.be.rejectedWith('element (.option2) still not selected after 10ms');
+        it('should return with an error if the element never becomes selected', function() {
+            return expect(this.client.waitForSelected('.option3', 10))
+            .to.be.rejectedWith('element (.option3) still not selected after 10ms');
         });
 
         it('should pass through an error from isSelected()', function() {
@@ -96,8 +98,8 @@ describe('waitFor',function() {
         });
 
         it('should return with an error if the text never appears', function() {
-            return expect(this.client.waitForText('.sometext', 10))
-            .to.be.rejectedWith('element (.sometext) still without text after 10ms');
+            return expect(this.client.waitForText('.sometextlater', 10))
+            .to.be.rejectedWith('element (.sometextlater) still without text after 10ms');
         });
 
         it('should pass through an error from getText()', function() {
@@ -119,9 +121,9 @@ describe('waitFor',function() {
             return this.client.waitForValue('.waitForValueEnabled', duration, true).then(checkTime);
         });
 
-        it('should return with an error if the text never appears', function() {
-            return expect(this.client.waitForValue('.sometext', 10))
-            .to.be.rejectedWith('element (.sometext) still without a value after 10ms');
+        it('should return with an error if the value never appears', function() {
+            return expect(this.client.waitForValue('.waitForValueEnabledReverse', 10))
+            .to.be.rejectedWith('element (.waitForValueEnabledReverse) still without a value after 10ms');
         });
 
         it('should pass through an error from getValue()', function() {
