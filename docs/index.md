@@ -27,8 +27,8 @@ layout: start
 
 <aside class="features">
     <ul>
-        <li>100% <a href="https://promisesaplus.com/">Promise A+</a> compatible</li>
-        <li>supports ES6 generators (yield)</li>
+        <li>synchronous command handling</li>
+        <li>supports a variety of hooks</li>
         <li>command line interface support</li>
     </ul>
     <ul>
@@ -50,15 +50,58 @@ layout: start
 
 ## What is WebdriverIO?
 
-WebdriverIO lets you control a browser or a mobile application with just a few
-lines of code. Your test code will look simple, concise and easy to read. Creating
-automated tests is as easy as:
+<div style="overflow: hidden">
+    <article class="col2">
+        WebdriverIO lets you control a browser or a mobile application with just a few
+        lines of code. Your test code will look simple, concise and easy to read. The
+        integrated testrunner allows you to write asynchronous commands in a synchronous
+        way so that you don't need to care about how to propagate a Promise to avoid
+        racing conditions.<br>
+        <br>
+        The test runner comes also with a variety of hooks that allow you to interfere
+        into the test process in order to take screenshots if an error occurs or modify
+        the test procedure according to a previous test result.
+    </article>
 
+    <article class="runyourtests col2 last">
+```js
+var assert = require('assert');
+
+describe('webdriver.io page', function() {
+    it('should have the right title', function () {
+        browser.url('http://webdriver.io');
+        var title = browser.getTitle();
+        assert.equal(title, 'WebdriverIO - Selenium 2.0 javascript bindings for nodejs');
+    });
+});
+```
+    </article>
+</div>
+
+## WebdriverIO as standalone package
+
+<div style="overflow: hidden">
+    <article class="col2">
+        WebdriverIO was designed to be as flexible and framework agnostic as possible. It
+        can be applied in any context and serves not the purpose of testing.<br>
+        <br>
+        You can use WebdriverIO as scrapper tool to dynamically fetch website data in an
+        automated way. You also can integrate WebdriverIO in your own automation library.
+        Popular examples of that are [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
+        <div>
+            <p>
+                <a href="https://chimp.readme.io/" style="margin-right: 15px"><img src="https://www.filepicker.io/api/file/C4MBXB4jQ6Ld9gII5IkF" /></a>
+                <a href="http://codecept.io/"><img src="http://codecept.io/images/cjs-base.png" width="80" /></a>
+            </p>
+        </div>
+    </article>
+
+    <article class="runyourtests col2 last">
 ```js
 var webdriverio = require('webdriverio');
 var options = { desiredCapabilities: { browserName: 'chrome' } };
 var client = webdriverio.remote(options);
-&nbsp;
+
 client
     .init()
     .url('https://duckduckgo.com/')
@@ -70,32 +113,15 @@ client
     })
     .end();
 ```
-
-## Write your test specs with ES6 support!
-
-If you are using Node.js (>=v0.11) or io.js you can write your test specs using [`yield`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield).
-The `wdio` test runner supports ES6 generators and allows you to get rid of nasty callback code.
-
-```js
-describe('my feature', function() {
-  it('should do something', function *() {
-&nbsp;
-    yield browser
-        .url('https://duckduckgo.com/');
-        .setValue('#search_form_input_homepage', 'WebdriverIO')
-        .click('#search_button_homepage');
-&nbsp;
-    var title = yield browser.getTitle();
-    console.log(title); // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
-&nbsp;
-  });
-});
-```
+    </article>
+</div>
 
 ## Easy Test Setup
 
 The `wdio` command line interface comes with a nice configuration utility that helps you to
-create your config file in less than a minute.
+create your config file in less than a minute. It also gives and overview of all available
+3rd party packages like framework adaptions, reporter and services and installs them for you.
+
 
 <div class="cliwindow">
 ![WDIO configuration utility](/images/config-utility.gif "WDIO configuration utility")
@@ -124,7 +150,7 @@ create your config file in less than a minute.
             without any configuration in your enviroment.
         </p>
         <div>
-            <p>WebdriverIO supports services like:</p>
+            <p>WebdriverIO supports services including:</p>
             <p>
                 <a href="https://saucelabs.com">Sauce Labs</a>
                 <a href="http://www.browserstack.com/">BrowserStack</a>
