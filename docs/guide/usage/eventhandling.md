@@ -24,11 +24,11 @@ client.on('error', function(e) {
 })
 ```
 
-Use the `log()` method to log arbitrary data, which can then be logged or displayed by a reporter:
+Use the `log()` event to log arbitrary data, which can then be logged or displayed by a reporter:
 ```js
 client
     .init()
-    .log('Before my method')
+    .emit('log', 'Before my method')
     .click('h2.subheading a')
     .emit('log', 'After my method', {more: 'data'})
     .end();
