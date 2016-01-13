@@ -1,14 +1,24 @@
+import conf from '../../conf/index.js'
+
 describe('staleElementRetry', () => {
     describe('basic command', () => {
         it('does not throw staleElementReference exception when getting visibility of elements rapidly removed from DOM', async function () {
             let iterations = 100
+            await this.client.url(conf.testPage.staleTest)
+            console.log(await this.client.getTitle())
             while (iterations--) {
-                (await this.client.isVisible('.staleElementContainer1 .stale-element-container-row')).should.be.true
+                console.log(iterations)
+                expect(await this.client.isVisible('.staleElementContainer1 .stale-element-container-row')).to.be.true
+                // await this.client.isVisible('.staleElementContainer1 .stale-element-container-row')
             }
         })
     })
 
-    describe('custom command', () => {
+    describe.skip('custom command', () => {
+        before(async function() {
+            await this.client.url(conf.testPage.staleTest)
+        })
+
         it('does not throw staleElementReference exception when waiting for element to become invisible but which is removed from DOM in a custom command', async function () {
             this.client.addCommand('waitForVisibleInParallel', function async () {
                 const promises = []
