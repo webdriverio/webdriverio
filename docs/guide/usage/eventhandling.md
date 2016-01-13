@@ -30,7 +30,7 @@ client
     .init()
     .log('Before my method')
     .click('h2.subheading a')
-    .log('After my method', {more: 'data'})
+    .emit('log', 'After my method', {more: 'data'})
     .end();
 ```
 
