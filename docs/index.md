@@ -81,7 +81,7 @@ describe('my feature', function() {
   it('should do something', function *() {
 &nbsp;
     yield browser
-        .url('https://duckduckgo.com/');
+        .url('https://duckduckgo.com/')
         .setValue('#search_form_input_homepage', 'WebdriverIO')
         .click('#search_button_homepage');
 &nbsp;
