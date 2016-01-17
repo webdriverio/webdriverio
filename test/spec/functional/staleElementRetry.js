@@ -1,18 +1,19 @@
 import conf from '../../conf/index.js'
 
-describe.skip('staleElementRetry', () => {
+describe('staleElementRetry', () => {
     describe('basic command', () => {
         it('does not throw staleElementReference exception when getting visibility of elements rapidly removed from DOM', async function () {
             let iterations = 100
             await this.client.url(conf.testPage.staleTest)
             while (iterations--) {
-                console.log(iterations)
-                expect(await this.client.isVisible('.staleElementContainer1 .stale-element-container-row')).to.be.true
+                let res = await this.client.isVisible('.staleElementContainer1 .stale-element-container-row')
+                console.log(`staleElementRetry loop cnt: ${iterations}, command result: ${res}`)
+                expect(res).to.be.true
             }
         })
     })
 
-    describe('custom command', () => {
+    describe.skip('custom command', () => {
         before(async function() {
             await this.client.url(conf.testPage.staleTest)
         })
