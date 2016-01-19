@@ -131,11 +131,8 @@ exports.config = {
     // The following are supported: mocha, jasmine and cucumber
     // see also: http://webdriver.io/guide/testrunner/frameworks.html
     //
-    // Make sure you have the node package for the specific framework installed before running
-    // any tests. If not please install the following package:
-    // Mocha: `$ npm install mocha`
-    // Jasmine: `$ npm install jasmine`
-    // Cucumber: `$ npm install cucumber`
+    // Make sure you have the wdio adapter package for the specific framework
+    // installed before running any tests.
     framework: 'mocha',
     //
     // Test reporter for stdout.
