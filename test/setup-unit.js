@@ -32,13 +32,13 @@ global.mock = function (method, path, reply, post) {
     }, reply || {}))
 }
 
-before(async function () {
+global.setupInstance = async function () {
     this.client = remote({})
 
     const createSession = global.mock('post', '/session')
     await this.client.init()
     createSession.isDone().should.be.true
-})
+}
 
 after(async function () {
     nock.restore()

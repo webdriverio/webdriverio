@@ -1,6 +1,8 @@
 describe('call', () => {
     let isCalled = false
 
+    before(global.setupInstance)
+
     before(function () {
         return this.client.call(() => {
             isCalled = true
