@@ -1,4 +1,6 @@
 describe('waitUntil', () => {
+    before(global.setupInstance)
+
     it('should pass', async function () {
         (await this.client.waitUntil(
             () => new Promise((r) => setTimeout(() => r('foobar'), 500)),
