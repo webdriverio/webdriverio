@@ -94,6 +94,12 @@ Default timeout for all waitForXXX commands.
 Type: `Number`<br>
 Default: *500*
 
+### waitforInterval
+Default interval for all waitForXXX commands.
+
+Type: `Number`<br>
+Default: *250*
+
 ## Setup [Babel](https://babeljs.io/) to write tests using next generation JavaScript
 
 There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine test you just need
