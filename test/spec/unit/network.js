@@ -4,6 +4,8 @@
  * @see https://discuss.appium.io/t/adb-loses-device-connection-after-setnetworkconnection-api-is-used/561/13
  */
 describe('network connection', () => {
+    before(global.setupInstance)
+
     it('should response with assertions helper', async function () {
         mock('get', '/session/123ABC/network_connection', { value: 0 })
         let connection = await this.client.getNetworkConnection()
