@@ -32,7 +32,7 @@ client
     .getUrlAndTitle('a custom variable',function(err,result){
         assert.equal(null, err)
         assert.strictEqual(result.url,'https://github.com/');
-        assert.strictEqual(result.title,'GitHub · Build software better, together.');
+        assert.strictEqual(result.title,'GitHub · Where software is built');
     })
     .end();
 ```
