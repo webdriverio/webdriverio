@@ -25,8 +25,7 @@ describe('staleElementRetry', () => {
     })
 
     it('does not throw staleElementReference exception when waiting for element to become invisible but which is removed from DOM in a custom command', () => {
-
-        browser.addCommand('waitForInvisibleInParallel', (iterations = 20) => {
+        browser.addCommand('waitForInvisibleInParallel', function async (iterations = 20) {
             const promises = []
             for (let i = 1; i <= iterations; i++) {
                 promises.push(browser.waitForVisible('.staleElementContainer2 .stale-element-container-row-' + i, 10000, true))
