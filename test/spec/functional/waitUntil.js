@@ -43,4 +43,17 @@ describe('waitUntil', () => {
         (await this.client.waitUntil(new Promise((r) => setTimeout(() => r('foobar'), 500)), 1000))
             .should.be.equal('foobar')
     })
+
+    it('should pass fast with a short waitfor interval', async function () {
+        let res = await this.client.waitUntil(() => new Promise((r) => setTimeout(() => r('foobar'), 50)), 100, 20)
+        res.should.be.equal('foobar')
+    })
+
+    it('should timeout with a long waitfor interval', async function() {
+        try {
+            await this.client.waitUntil(() => new Promise((r) => setTimeout(() => r('foobar'), 50)), 100, 250)
+        } catch (error) {
+            error.message.should.match(/Promise never resolved with an truthy value/)
+        }
+    })
 })
