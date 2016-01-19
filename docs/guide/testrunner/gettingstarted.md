@@ -65,4 +65,4 @@ integration tests by calling:
 $ wdio wdio.conf.js
 ```
 
-That's it!
+That's it! Now, you can access to the selenium instance via global variable `browser`.
