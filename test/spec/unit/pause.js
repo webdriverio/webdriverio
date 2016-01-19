@@ -1,4 +1,6 @@
 describe('pause', () => {
+    before(global.setupInstance)
+
     it('should pause command queue', async function () {
         var time = new Date().getTime()
         await this.client.pause(1000)

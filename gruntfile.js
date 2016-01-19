@@ -87,6 +87,10 @@ module.exports = function (grunt) {
             unit: {
                 src: ['./test/setup-unit.js', 'test/spec/unit/*.js'],
                 options: mochaInstanbulOpts
+            },
+            wdio: {
+                src: ['./test/setup-unit.js', 'test/spec/wdio/*.js'],
+                options: mochaInstanbulOpts
             }
         },
         mochaTest: {
@@ -112,6 +116,10 @@ module.exports = function (grunt) {
             },
             unit: {
                 src: ['./test/setup-unit.js', 'test/spec/unit/*.js'],
+                options: mochaOpts
+            },
+            wdio: {
+                src: ['./test/setup-unit.js', 'test/spec/wdio/*.js'],
                 options: mochaOpts
             }
         },
