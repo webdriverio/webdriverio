@@ -21,7 +21,7 @@ buster.testCase('Nested setup and teardown call order', {
             })
             .getTitle(function(err, title) {
                 assert(err === undefined);
-                assert(title === 'GitHub · Build software better, together.');
+                assert(title === 'GitHub · Where software is built');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, result){
                 assert(err === undefined);
