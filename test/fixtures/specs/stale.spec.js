@@ -1,4 +1,5 @@
 import conf from '../../conf/index.js'
+import nock from 'nock'
 
 describe('staleElementRetry', () => {
     it('can run quick commands after each other', () => {
@@ -24,22 +25,39 @@ describe('staleElementRetry', () => {
         browser.staleMe(100)
     })
 
-    it('does not throw staleElementReference exception when waiting for element to become invisible but which is removed from DOM in a custom command', () => {
-        browser.addCommand('waitForInvisibleInParallel', function async (iterations = 20) {
-            const promises = []
-            for (let i = 1; i <= iterations; i++) {
-                promises.push(browser.waitForVisible('.staleElementContainer2 .stale-element-container-row-' + i, 10000, true))
-            }
+    it('catches errors if an inner command fails', () => {
+        browser.url(conf.testPage.staleTest)
 
-            return Promise.all(promises)
-            .then(function (results) {
-                results.map(function (result) {
-                    result.should.be.true
-                })
-            })
+        let sessionId = browser.requestHandler.sessionID
+        let scope = nock('http://127.0.0.1:4444', { allowUnmocked: true })
+        scope.post(`/wd/hub/session/${sessionId}/elements`).times(4).delayConnection(100).reply(200, {
+            status: 0,
+            value: [{ ELEMENT: '0' }]
         })
 
-        browser.url(conf.testPage.staleTest)
-        browser.waitForInvisibleInParallel(20)
+        /**
+         * return with StaleElementReference error three times in a row
+         */
+        scope.get(`/wd/hub/session/${sessionId}/element/0/displayed`).times(3).delayConnection(100).reply(500, {
+            status: 10,
+            type: 'StaleElementReference',
+            value: {
+                message: 'Element is no longer attached to the DOM'
+            }
+        })
+
+        /**
+         * then return a valid result
+         */
+        scope.get(`/wd/hub/session/${sessionId}/element/0/displayed`).delayConnection(100).reply(200, {
+            status: 0,
+            value: false
+        })
+
+        browser.waitForVisible('.someSelector', 2000, true)
+    })
+
+    after(() => {
+        nock.restore()
     })
 })
