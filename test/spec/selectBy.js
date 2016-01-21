@@ -14,6 +14,26 @@ describe('selectBy', () => {
             await this.client.selectByVisibleText('#selectTest', '   cinco  ');
             (await this.client.getValue('#selectTest')).should.be.equal('someValue5')
         })
+
+        it('should find element with quotes around the text', async function () {
+            await this.client.selectByVisibleText('#selectTest', '"siete"');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue7')
+        })
+
+        it('should find element with quotes in the text', async function () {
+            await this.client.selectByVisibleText('#selectTest', 'ocho "huit" (otto)');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue8')
+        })
+
+        it('should find element with a quote in the text', async function () {
+            await this.client.selectByVisibleText('#selectTest', 'nu"eve');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue9')
+        })
+
+        it('should find element with a quote at the end of the text', async function () {
+            await this.client.selectByVisibleText('#selectTest', 'diez"');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue10')
+        })
     })
 
     describe('Index', () => {
