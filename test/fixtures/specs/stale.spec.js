@@ -1,17 +1,14 @@
 import conf from '../../conf/index.js'
 import nock from 'nock'
 
-let sessionId
-let scope
-
-function goodElementRequest (times = 1) {
+function goodElementRequest (scope, sessionId, times = 1) {
     scope.post(`/wd/hub/session/${sessionId}/elements`).times(times).delayConnection(100).reply(200, {
         status: 0,
         value: [{ ELEMENT: '0' }]
     })
 }
 
-function staleElementError (times = 1) {
+function staleElementError (scope, sessionId, times = 1) {
     scope.get(`/wd/hub/session/${sessionId}/element/0/displayed`).times(times).delayConnection(100).reply(500, {
         status: 10,
         type: 'StaleElementReference',
@@ -21,7 +18,7 @@ function staleElementError (times = 1) {
     })
 }
 
-function isDisplayed (times = 1, value) {
+function isDisplayed (scope, sessionId, times = 1, value) {
     scope.get(`/wd/hub/session/${sessionId}/element/0/displayed`).times(times).delayConnection(100).reply(200, {
         status: 0,
         value
@@ -55,26 +52,28 @@ describe('staleElementRetry', () => {
     it('catches errors if an inner command fails', () => {
         browser.url(conf.testPage.staleTest)
 
-        sessionId = browser.requestHandler.sessionID
-        scope = nock('http://127.0.0.1:4444', { allowUnmocked: true })
+        let sessionId = browser.requestHandler.sessionID
+        let scope = nock('http://127.0.0.1:4444', { allowUnmocked: true })
 
         /**
          * Allow 4 succesful elements() queries for .someSelector.
          * Return a StaleElementReference error three times in a row,
          * then return a valid result (isDisplayed === false).
          */
-        goodElementRequest(4)
-        staleElementError(3)
-        isDisplayed(1, false)
+        goodElementRequest(scope, sessionId, 4)
+        staleElementError(scope, sessionId, 3)
+        isDisplayed(scope, sessionId, 1, false)
 
-        browser.waitForVisible('.someSelector', 2000, true)
+        let elementIsGone = browser.waitForVisible('.someSelector', 2000, true)
+        expect(elementIsGone).to.be.true
+        expect(scope.isDone()).to.be.true
     })
 
     it('correctly retries inside waitForVisible', () => {
         browser.url(conf.testPage.staleTest)
 
-        sessionId = browser.requestHandler.sessionID
-        scope = nock('http://127.0.0.1:4444', { allowUnmocked: true })
+        let sessionId = browser.requestHandler.sessionID
+        let scope = nock('http://127.0.0.1:4444', { allowUnmocked: true })
 
         /**
          * Allow 10 succesful elements() queries for .someSelector.
@@ -82,12 +81,12 @@ describe('staleElementRetry', () => {
          * results (isDisplayed === true), then finally (isDisplayed === false),
          * which occurs well within the 6 second total wait time.
          */
-        goodElementRequest(10)
-        isDisplayed(1, true)
-        staleElementError(1)
-        isDisplayed(2, true)
-        staleElementError(1)
-        isDisplayed(1, false)
+        goodElementRequest(scope, sessionId, 10)
+        isDisplayed(scope, sessionId, 1, true)
+        staleElementError(scope, sessionId, 1)
+        isDisplayed(scope, sessionId, 2, true)
+        staleElementError(scope, sessionId, 1)
+        isDisplayed(scope, sessionId, 1, false)
 
         let elementIsGone
         try {
@@ -98,9 +97,11 @@ describe('staleElementRetry', () => {
         }
 
         expect(elementIsGone).to.be.true
+        expect(scope.isDone()).to.be.true
     })
 
-    after(() => {
+    afterEach(() => {
+        nock.cleanAll()
         nock.restore()
     })
 })
