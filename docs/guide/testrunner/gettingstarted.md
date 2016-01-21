@@ -66,3 +66,13 @@ $ wdio wdio.conf.js
 ```
 
 That's it! Now, you can access to the selenium instance via global variable `browser`.
+
+## Organizing tests
+
+Since automation testing can be relatively time-intensive, it's important to plan how to organize your tests. It is possible to organize your tests by creating multiple configuration files: each file can define a different list of "specs" directories.
+
+Additionally, Mocha's "grep" option is exposed to the `--mochaOpts` option, so you can use it to perform pattern matching on your test descriptions:
+
+```sh
+wdio wdio.conf.js --mochaOpts.grep "search term here"
+```
