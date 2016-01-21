@@ -19,4 +19,14 @@ describe('isVisibleWithinViewport', () => {
         isVisibleWithinViewport[0].should.be.equal(false)
         isVisibleWithinViewport[1].should.be.equal(true) // this element is now within the viewport
     })
+
+    it('should check that elements just outside the viewport are hidden', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('.viewportTest')
+        isVisibleWithinViewport.should.be.an.instanceOf(Array)
+        isVisibleWithinViewport.should.have.length(4)
+        isVisibleWithinViewport[0].should.equal(false)
+        isVisibleWithinViewport[1].should.equal(false)
+        isVisibleWithinViewport[2].should.equal(false)
+        isVisibleWithinViewport[3].should.equal(false)
+    })
 })
