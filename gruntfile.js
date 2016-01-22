@@ -123,20 +123,6 @@ module.exports = function (grunt) {
                 options: mochaOpts
             }
         },
-        'start-selenium-server': {
-            dev: {
-                options: {
-                    autostop: false,
-                    downloadUrl: 'https://selenium-release.storage.googleapis.com/2.47/selenium-server-standalone-2.47.0.jar',
-                    downloadLocation: os.tmpdir(),
-                    serverOptions: {},
-                    systemProperties: {}
-                }
-            }
-        },
-        'stop-selenium-server': {
-            dev: {}
-        },
         eslint: {
             options: {
                 parser: 'babel-eslint'
@@ -207,12 +193,7 @@ module.exports = function (grunt) {
         ])
     })
 
-    grunt.registerTask('run-test', function () {
-        grunt.task.run('env', 'config', 'connect', 'start-selenium-server', 'mochaTest', 'passfail')
-    })
-
-    grunt.registerTask('test', function (env, cmd, isSeleniumServerRunning) {
-        isSeleniumServerRunning = isSeleniumServerRunning === undefined ? true : isSeleniumServerRunning
+    grunt.registerTask('test', function (env, cmd) {
         cmd = cmd || 'mochaTest'
         env = env || 'desktop'
 
@@ -236,21 +217,16 @@ module.exports = function (grunt) {
         addEnv({ _ENV: env })
         process.env._ENV = env
 
-        if (!isSeleniumServerRunning && (env === 'functional' || (env === 'desktop' && !process.env.CI))) {
-            tasks.unshift('start-selenium-server:dev')
-            tasks.push('stop-selenium-server:dev')
-        }
-
         grunt.task.run(tasks)
     })
 
-    grunt.registerTask('testcover', function (env, isSeleniumServerRunning) {
+    grunt.registerTask('testcover', function (env) {
         env = env || process.env._ENV
 
         if (typeof env !== 'string') {
             throw new Error('no proper environment specified')
         }
 
-        return grunt.task.run('test:' + env + ':mocha_istanbul:' + isSeleniumServerRunning)
+        return grunt.task.run('test:' + env + ':mocha_istanbul')
     })
 }
