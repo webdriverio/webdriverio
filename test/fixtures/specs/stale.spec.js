@@ -81,7 +81,7 @@ describe('staleElementRetry', () => {
          * results (isDisplayed === true), then finally (isDisplayed === false),
          * which occurs well within the 6 second total wait time.
          */
-        goodElementRequest(scope, sessionId, 10)
+        goodElementRequest(scope, sessionId, 6)
         isDisplayed(scope, sessionId, 1, true)
         staleElementError(scope, sessionId, 1)
         isDisplayed(scope, sessionId, 2, true)
@@ -102,6 +102,9 @@ describe('staleElementRetry', () => {
 
     afterEach(() => {
         nock.cleanAll()
+    })
+
+    after(() => {
         nock.restore()
     })
 })
