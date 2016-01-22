@@ -170,6 +170,14 @@ module.exports = function (grunt) {
                 src: 'lib/helpers/wdio.conf.ejs',
                 dest: 'build/'
             }
+        },
+        connect: {
+            testpage: {
+                options: {
+                    port: 8080,
+                    base: './test/site/www'
+                }
+            }
         }
     })
 
@@ -210,7 +218,7 @@ module.exports = function (grunt) {
             process.env._APP = __dirname + '/test/site/platforms/android/build/outputs/apk/android-debug.apk'
         }
 
-        var tasks = [cmd + ':' + env]
+        var tasks = ['connect', cmd + ':' + env]
 
         addEnv({ _ENV: env })
         process.env._ENV = env
