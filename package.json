@@ -31,7 +31,7 @@
     "test-desktop": "grunt test:desktop",
     "test-functional": "grunt test:functional",
     "test-multibrowser": "grunt test:multibrowser",
-    "coverage": "istanbul cover -x \"**/scripts/*.js\" -x \"gruntfile.js\" grunt testcover",
+    "coverage": "istanbul cover -x \"**/scripts/*.js\" -x \"gruntfile.js\" ./node_modules/.bin/grunt testcover",
     "prepublish": "npm prune && npm build"
   },
   "dependencies": {
@@ -67,6 +67,7 @@
     "eslint-plugin-standard": "^1.3.0",
     "grunt": "^0.4.5",
     "grunt-babel": "^5.0.1",
+    "grunt-cli": "^0.1.13",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-connect": "^0.11.2",
     "grunt-contrib-copy": "^0.8.2",
