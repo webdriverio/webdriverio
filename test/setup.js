@@ -10,7 +10,7 @@ global.conf = conf
 /**
  * skip desktop and mobile tests on PRs
  */
-if (process.env.TRAVIS_PULL_REQUEST) {
+if (process.env.TRAVIS_PULL_REQUEST !== 'false') {
     console.log('desktop and mobile tests are not relevant for PR tests')
     console.log('shutting down with exit code 0')
     process.exit(0)
