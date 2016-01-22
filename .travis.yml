@@ -8,12 +8,6 @@ node_js:
 
 sudo: false
 
-branches:
-  except:
-    - /^v[0-9]/
-  only:
-    - master
-
 before_script:
   - "npm install -g bower"
   - "cd test/site/www && bower install && cd ../../../"
@@ -58,19 +52,21 @@ env:
       _DEVICENAME: "iPad_Simulator"
       _VERSION: "7.1"
       _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "android"
-    #   _DEVICENAME: "Google_Nexus_7_HD_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "Android"
-    #   _DEVICENAME: "Samsung_Galaxy_Nexus_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
+    - _PLATFORM: "Linux"
+      _BROWSER: "android"
+      _DEVICENAME: "Google_Nexus_7_HD_Emulator"
+      _VERSION: "4.3"
+      _ENV: "mobile"
+    - _PLATFORM: "Linux"
+      _BROWSER: "Android"
+      _DEVICENAME: "Samsung_Galaxy_Nexus_Emulator"
+      _VERSION: "4.3"
+      _ENV: "mobile"
     - _BROWSER: "phantomjs"
       _ENV: "functional"
     - _ENV: "multibrowser"
+    - _ENV: "unit"
+    - _ENV: "wdio"
 
 notifications:
   webhooks:
