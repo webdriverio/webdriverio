@@ -12,7 +12,6 @@ before_script:
   - "npm install -g bower"
   - "cd test/site/www && bower install && cd ../../../"
   - "phantomjs --webdriver=4444 2>&1 >/dev/null &"
-  - "2>/dev/null 1>/dev/null python -m SimpleHTTPServer 8080 &"
 
 script: "sleep 5 && npm run coverage"
 
