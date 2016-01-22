@@ -1,5 +1,3 @@
-var os = require('os')
-
 module.exports = function (grunt) {
     var argv = require('optimist').argv
 
