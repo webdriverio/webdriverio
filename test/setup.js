@@ -8,6 +8,15 @@ import conf from './conf/index'
 global.conf = conf
 
 /**
+ * skip desktop and mobile tests on PRs
+ */
+if (process.env.TRAVIS_PULL_REQUEST) {
+    console.log('desktop and mobile tests are not relevant for PR tests')
+    console.log('shutting down with exit code 0')
+    process.exit(0)
+}
+
+/**
  * setup chai
  */
 chai.should()
