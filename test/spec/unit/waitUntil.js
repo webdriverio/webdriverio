@@ -15,7 +15,7 @@ describe('waitUntil', () => {
         } catch (e) {
             error = e
         } finally {
-            error.message.should.match(/Promise never resolved with an truthy value/)
+            error.message.should.be.equal('Promise was rejected with the following reason: timeout')
         }
     })
 
@@ -26,7 +26,7 @@ describe('waitUntil', () => {
         } catch (e) {
             error = e
         } finally {
-            error.message.should.match(/Promise was fulfilled but got rejected/)
+            error.message.should.match(/Promise was rejected with the following reason/)
         }
     })
 
@@ -37,7 +37,7 @@ describe('waitUntil', () => {
         } catch (e) {
             error = e
         } finally {
-            error.message.should.match(/Promise never resolved with an truthy value/)
+            error.message.should.be.equal('Promise was rejected with the following reason: timeout')
         }
     })
 
@@ -55,7 +55,7 @@ describe('waitUntil', () => {
         try {
             await this.client.waitUntil(() => new Promise((r) => setTimeout(() => r('foobar'), 50)), 100, 250)
         } catch (error) {
-            error.message.should.match(/Promise never resolved with an truthy value/)
+            error.message.should.be.equal('Promise was rejected with the following reason: timeout')
         }
     })
 })
