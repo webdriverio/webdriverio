@@ -4,6 +4,7 @@ module.exports = function (grunt) {
     var mochaInstanbulOpts = {
         scriptPath: require.resolve('isparta/bin/isparta'),
         reporter: 'spec',
+        excludes: ['**/scripts/**', '**/gruntfile.js'],
         mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '60000']
     }
 
