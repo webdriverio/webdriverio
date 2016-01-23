@@ -31,7 +31,7 @@
     "test-desktop": "grunt test:desktop",
     "test-functional": "grunt test:functional",
     "test-multibrowser": "grunt test:multibrowser",
-    "coverage": "istanbul cover -x \"**/scripts/*.js\" -x \"gruntfile.js\" ./node_modules/.bin/grunt testcover",
+    "coverage": "grunt testcover",
     "prepublish": "npm prune && npm build"
   },
   "dependencies": {
