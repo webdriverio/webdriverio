@@ -1,5 +1,5 @@
 export default {
-    port: 4723,
+    port: process.env.CI ? 4445 : 4723,
     desiredCapabilities: {
         app: process.env._APP,
         appPackage: 'io.webdriverjs.example',
