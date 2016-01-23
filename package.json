@@ -26,13 +26,15 @@
   },
   "scripts": {
     "build": "grunt build",
-    "test": "node ./test/runner.js",
+    "coverage": "grunt testcover",
+    "prepublish": "npm prune && npm build",
+    "test": "grunt test",
+    "test-wdio": "grunt test:wdio",
+    "test-unit": "grunt test:unit",
     "test-mobile": "grunt test:mobile",
     "test-desktop": "grunt test:desktop",
     "test-functional": "grunt test:functional",
-    "test-multibrowser": "grunt test:multibrowser",
-    "coverage": "grunt testcover",
-    "prepublish": "npm prune && npm build"
+    "test-multibrowser": "grunt test:multibrowser"
   },
   "dependencies": {
     "archiver": "~0.14.3",
