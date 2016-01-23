@@ -205,6 +205,13 @@ module.exports = function (grunt) {
         env = env || 'desktop'
 
         /**
+         * wdio tests don't run with mocha_istanbul
+         */
+        if (env === 'wdio') {
+            cmd = 'mochaTest'
+        }
+
+        /**
          * quick set up for dev
          */
         if (!process.env.CI && env === 'ios') {
