@@ -211,11 +211,15 @@ module.exports = function (grunt) {
             process.env._PLATFORM = 'iOS'
             process.env._VERSION = '9.2'
             process.env._DEVICENAME = 'iPhone 6'
-            process.env._APP = __dirname + '/test/site/platforms/ios/build/emulator/WebdriverJS Example Phonegap Application.app'
         } else if (!process.env.CI && env === 'android') {
             process.env._PLATFORM = 'Android'
             process.env._VERSION = '4.4'
             process.env._DEVICENAME = 'Samsung Galaxy S4 Emulator'
+        }
+
+        if (env === 'ios') {
+            process.env._APP = __dirname + '/test/site/platforms/ios/build/emulator/WebdriverJS Example Phonegap Application.app'
+        } else if (env === 'android') {
             process.env._APP = __dirname + '/test/site/platforms/android/build/outputs/apk/android-debug.apk'
         }
 
