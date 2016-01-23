@@ -5,9 +5,10 @@
   "homepage": "http://webdriver.io",
   "author": "Camilo Tapia <camilo.tapia@gmail.com>",
   "contributors": [
-    "Dan Jenkins <dan.jenkins@holidayextras.com>",
     "Christian Bromann <mail@christian-bromann.com>",
-    "Vincent Voyer <vincent@zeroload.net>"
+    "Camilo Tapia <camilo.tapia@gmail.com>",
+    "Vincent Voyer <vincent@zeroload.net>",
+    "George Crawford <george.crawford@ft.com>"
   ],
   "repository": {
     "type": "git",
