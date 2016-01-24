@@ -66,11 +66,14 @@ after(async function () {
         password: process.env.SAUCE_ACCESS_KEY
     })
 
+    let newJobStatus = {
+        passed: failures === 0,
+        public: true
+    }
+
     await new Promise((r) => {
-        account.updateJob(sessionId, {
-            passed: failures === 0,
-            public: true
-        }, r)
+        console.log(`update job status of ${sessionId}`, newJobStatus)
+        account.updateJob(sessionId, newJobStatus, r)
     })
 })
 
