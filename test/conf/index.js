@@ -7,6 +7,10 @@ let asked = require(`./${ENV}.js`)
 if (process.env._ENV && process.env._ENV.match(/(android|ios)/)) {
     const mobile = require('./mobile')
     asked = merge(asked, mobile)
+
+    delete asked.desiredCapabilities.browserName
+    delete asked.desiredCapabilities.platform
+    delete asked.desiredCapabilities.version
 }
 
 const conf = merge(defaults, asked)
