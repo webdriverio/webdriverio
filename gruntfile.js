@@ -5,7 +5,7 @@ module.exports = function (grunt) {
         scriptPath: require.resolve('isparta/bin/isparta'),
         reporter: 'spec',
         excludes: ['**/scripts/**', '**/gruntfile.js'],
-        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '60000']
+        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '120000']
     }
 
     var mochaOpts = {
@@ -203,13 +203,6 @@ module.exports = function (grunt) {
     grunt.registerTask('test', function (env, cmd) {
         cmd = cmd || 'mochaTest'
         env = env || 'desktop'
-
-        /**
-         * wdio tests don't run with mocha_istanbul
-         */
-        if (env === 'wdio') {
-            cmd = 'mochaTest'
-        }
 
         /**
          * quick set up for dev
