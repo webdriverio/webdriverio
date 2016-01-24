@@ -11,10 +11,10 @@ describe('cookie command test', () => {
         const cookies = await this.client.getCookie()
         cookies.should.be.an.instanceOf(Array)
         cookies.should.have.length(2)
-        expect(cookies).to.have.deep.property('[1].value', 'cookie saved!')
-        expect(cookies).to.have.deep.property('[0].value', 'cookie saved2!')
-        expect(cookies).to.have.deep.property('[1].name', 'test')
-        expect(cookies).to.have.deep.property('[0].name', 'test2')
+        cookies.should.contain.a.thing.with.property('name', 'test')
+        cookies.should.contain.a.thing.with.property('value', 'cookie saved!')
+        cookies.should.contain.a.thing.with.property('name', 'test2')
+        cookies.should.contain.a.thing.with.property('value', 'cookie saved2!')
     })
 
     it('getCookie should return a single cookies if name is given', async function () {

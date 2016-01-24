@@ -63,6 +63,7 @@
     "chai": "^3.4.1",
     "chai-as-promised": "^5.1.0",
     "chai-string": "^1.1.4",
+    "chai-things": "^0.2.0",
     "codeclimate-test-reporter": "^0.1.1",
     "coveralls": "~2.11.2",
     "eslint": "^1.4.1",
