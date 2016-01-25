@@ -5,6 +5,7 @@ module.exports = function (grunt) {
         scriptPath: require.resolve('isparta/bin/isparta'),
         reporter: 'spec',
         excludes: ['**/scripts/**', '**/gruntfile.js'],
+        verbose: true,
         mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '120000']
     }
 
