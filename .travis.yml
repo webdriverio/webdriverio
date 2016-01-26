@@ -42,12 +42,12 @@ env:
       _VERSION: "10"
       _ENV: "desktop"
     - _PLATFORM: "iOS"
-      _DEVICENAME: "iPhone 6"
+      _DEVICENAME: "iPhone_6"
       _VERSION: "9.2"
       _APP: http://webdriverjs.christian-bromann.com/ios.zip
       _ENV: "ios"
     - _PLATFORM: "iOS"
-      _DEVICENAME: "iPad Air"
+      _DEVICENAME: "iPad_Air"
       _VERSION: "9.2"
       _APP: http://webdriverjs.christian-bromann.com/ios.zip
       _ENV: "ios"
