@@ -3,10 +3,10 @@ module.exports = function (grunt) {
 
     var mochaInstanbulOpts = {
         scriptPath: require.resolve('isparta/bin/isparta'),
-        reporter: 'spec',
+        report: ['lcov', 'html'],
         excludes: ['**/scripts/**', '**/gruntfile.js'],
         verbose: true,
-        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '120000']
+        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '120000', '--reporter', 'spec']
     }
 
     var mochaOpts = {
@@ -203,7 +203,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('test', function (env, cmd) {
         cmd = cmd || 'mochaTest'
-        env = env || 'desktop'
+        env = env || process.env._ENV || 'desktop'
 
         /**
          * quick set up for dev
