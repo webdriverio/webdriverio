@@ -9,10 +9,10 @@ node_js:
 sudo: false
 
 before_script:
-  - "npm install -g bower"
-  - "npm run build"
-  - "cd test/site/www && bower install && cd ../../../"
-  - "phantomjs --webdriver=4444 2>&1 >/dev/null &"
+  - npm install -g bower
+  - npm run build
+  - cd test/site/www && bower install && cd ../../../
+  - phantomjs --webdriver=4444 2>&1 >/dev/null &
 
 script: "sleep 5 && npm run test"
 
@@ -44,22 +44,22 @@ env:
     - _PLATFORM: "iOS"
       _DEVICENAME: "iPhone_6"
       _VERSION: "9.2"
-      _APP: http://webdriverjs.christian-bromann.com/ios.zip
+      _APP: "http://webdriverjs.christian-bromann.com/ios.zip"
       _ENV: "ios"
     - _PLATFORM: "iOS"
       _DEVICENAME: "iPad_Air"
       _VERSION: "9.2"
-      _APP: http://webdriverjs.christian-bromann.com/ios.zip
+      _APP: "http://webdriverjs.christian-bromann.com/ios.zip"
       _ENV: "ios"
     - _PLATFORM: "Linux"
       _DEVICENAME: "Google_Nexus_7_HD_Emulator"
       _VERSION: "4.3"
-      _APP: http://webdriverjs.christian-bromann.com/android.apk.zip
+      _APP: "http://webdriverjs.christian-bromann.com/android.apk.zip"
       _ENV: "android"
     - _PLATFORM: "Android"
       _DEVICENAME: "Samsung_Galaxy_S4_Emulator"
       _VERSION: "4.4"
-      _APP: http://webdriverjs.christian-bromann.com/android.apk.zip
+      _APP: "http://webdriverjs.christian-bromann.com/android.apk.zip"
       _ENV: "android"
     - _BROWSER: "phantomjs"
       _ENV: "functional"
