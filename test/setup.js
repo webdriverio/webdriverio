@@ -29,7 +29,6 @@ global.expect = chai.expect
 
 before(async function () {
     if (process.env._ENV === 'multibrowser') {
-        console.log('init multibrowser session with', conf.capabilities)
         this.client = multiremote(conf.capabilities)
         await this.client.init()
         this.browserA = this.client.select('browserA')
@@ -37,7 +36,6 @@ before(async function () {
         return
     }
 
-    console.log('init session with', conf)
     this.client = remote(conf)
     await this.client.init()
 })
