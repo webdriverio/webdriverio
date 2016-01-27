@@ -51,7 +51,7 @@ env:
       _VERSION: "9.2"
       _APP: "http://webdriverjs.christian-bromann.com/ios.zip"
       _ENV: "ios"
-    - _PLATFORM: "Linux"
+    - _PLATFORM: "Android"
       _DEVICENAME: "Google_Nexus_7_HD_Emulator"
       _VERSION: "4.3"
       _APP: "http://webdriverjs.christian-bromann.com/android.apk.zip"
