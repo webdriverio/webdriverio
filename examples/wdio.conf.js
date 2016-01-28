@@ -49,7 +49,7 @@ exports.config = {
     // ============
     // Capabilities
     // ============
-    // Define your capabilities here. WebdriverIO can run multiple capabilties at the same
+    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
@@ -71,9 +71,9 @@ exports.config = {
     capabilities: [{
         browserName: 'chrome'
     }, {
-        // maxInsatnces can get overwritten per capability. So if you have an in house Selenium
+        // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance avaiable you can make sure that not more than
-        // one instance gets started at a time.
+        // 5 instance gets started at a time.
         maxInstances: 5,
         browserName: 'firefox',
         specs: [
@@ -194,7 +194,7 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // WedriverIO provides a several hooks you can use to intefere the test process in order to enhance
+    // WedriverIO provides a several hooks you can use to interfere the test process in order to enhance
     // it and build services around it. You can either apply a single function to it or an array of
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.

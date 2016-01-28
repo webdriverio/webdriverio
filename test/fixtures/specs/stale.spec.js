@@ -27,7 +27,7 @@ function isDisplayed (scope, sessionId, times = 1, value) {
 
 describe('staleElementRetry', () => {
     it('can run quick commands after each other', () => {
-        let iterations = 100
+        let iterations = 50
         browser.url(conf.testPage.staleTest)
         while (iterations--) {
             let res = browser.isVisible('.staleElementContainer1 .stale-element-container-row')
@@ -37,7 +37,7 @@ describe('staleElementRetry', () => {
     })
 
     it('can run quick commands in custom commands', () => {
-        browser.addCommand('staleMe', (iterations = 100) => {
+        browser.addCommand('staleMe', (iterations = 50) => {
             while (iterations--) {
                 let res = browser.isVisible('.staleElementContainer1 .stale-element-container-row')
                 console.log(`staleElementRetry loop cnt: ${iterations}, command result: ${res}`)
@@ -46,7 +46,7 @@ describe('staleElementRetry', () => {
         })
 
         browser.url(conf.testPage.staleTest)
-        browser.staleMe(100)
+        browser.staleMe(50)
     })
 
     it('catches errors if an inner command fails', () => {

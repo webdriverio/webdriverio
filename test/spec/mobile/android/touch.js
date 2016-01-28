@@ -1,4 +1,4 @@
-import labels from '../../fixtures/labels'
+import labels from '../../../fixtures/labels'
 
 describe('touch', () => {
     beforeEach(async function () {

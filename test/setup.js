@@ -2,6 +2,7 @@ import { remote, multiremote } from '../index'
 import SauceLabs from 'saucelabs'
 import chai from 'chai'
 import chaiString from 'chai-string'
+import chaiThings from 'chai-things'
 import chaiAsPromised from 'chai-as-promised'
 
 import conf from './conf/index'
@@ -21,6 +22,7 @@ if (process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST !== 'fals
  */
 chai.should()
 chai.use(chaiString)
+chai.use(chaiThings)
 chai.use(chaiAsPromised)
 global.assert = chai.assert
 global.expect = chai.expect
@@ -48,7 +50,7 @@ beforeEach(async function() {
 
 after(async function () {
     const sessionId = this.client.requestHandler.sessionID
-    await this.client[process.env._ENV.match(/(multibrowser|android)/) ? 'end' : 'endAll']()
+    await this.client[process.env._ENV.match(/(multibrowser|android)/) || process.env.CI ? 'end' : 'endAll']()
 
     /**
      * if we are not running on travis we are done here
@@ -66,11 +68,14 @@ after(async function () {
         password: process.env.SAUCE_ACCESS_KEY
     })
 
+    let newJobStatus = {
+        passed: failures === 0,
+        public: true
+    }
+
     await new Promise((r) => {
-        account.updateJob(sessionId, {
-            passed: failures === 0,
-            public: true
-        }, r)
+        console.log(`update job status of ${sessionId}`, newJobStatus)
+        account.updateJob(sessionId, newJobStatus, r)
     })
 })
 
