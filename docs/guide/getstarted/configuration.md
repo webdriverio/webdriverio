@@ -129,7 +129,7 @@ Make sure to allow generator calls to directly go through since Node >v0.10 has 
 If you run Mocha test you can use Mochas internal compiler to register Babel, e.g.:
 
 ```js
-   mochaOpts: {
+    mochaOpts: {
         ui: 'bdd',
         compilers: ['js:babel-core/register'],
         require: ['./test/helpers/common.js']
@@ -142,4 +142,25 @@ For generator support, add a file called `.babelrc` to your project root directo
 {
     "blacklist": ["regenerator"]
 }
+```
+
+## Setup [TypeScript](http://www.typescriptlang.org/)
+
+Similar to Babel setup, you can register TypeScript to compile your .ts files in your before hook of your config file.
+You will need [ts-node](https://github.com/TypeStrong/ts-node) as devDependency installed.
+
+```js
+    before(function() {
+        require('ts-node/register');
+    }),
+```
+
+Similarly for mocha:
+
+```js
+    mochaOpts: {
+        ui: 'bdd',
+        compilers: ['ts:ts-node/register'],
+        require: ['./test/helpers/common.js']
+    },
 ```
