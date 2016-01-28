@@ -1,4 +1,4 @@
-import labels from '../../fixtures/labels'
+import labels from '../../../fixtures/labels'
 
 describe('swipe', () => {
     beforeEach(async function () {

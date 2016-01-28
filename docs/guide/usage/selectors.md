@@ -50,8 +50,7 @@ client.getText('*=driver', function(err, text) {
 
 ## Element with certain text
 
-Similarly to the link text examples above you can also apply it to elements, e.g. query a level 1 heading
-with the text "Welcome to my Page":
+The same technique can be applied to elements as well, e.g. query a level 1 heading with the text "Welcome to my Page":
 
 ```html
 <h1>Welcome to my Page</h1>

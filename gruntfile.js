@@ -3,9 +3,10 @@ module.exports = function (grunt) {
 
     var mochaInstanbulOpts = {
         scriptPath: require.resolve('isparta/bin/isparta'),
-        reporter: 'spec',
+        report: ['lcov', 'html'],
         excludes: ['**/scripts/**', '**/gruntfile.js'],
-        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '60000']
+        verbose: true,
+        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '120000', '--reporter', 'spec']
     }
 
     var mochaOpts = {
@@ -202,14 +203,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('test', function (env, cmd) {
         cmd = cmd || 'mochaTest'
-        env = env || 'desktop'
-
-        /**
-         * wdio tests don't run with mocha_istanbul
-         */
-        if (env === 'wdio') {
-            cmd = 'mochaTest'
-        }
+        env = env || process.env._ENV || 'desktop'
 
         /**
          * quick set up for dev
@@ -218,15 +212,11 @@ module.exports = function (grunt) {
             process.env._PLATFORM = 'iOS'
             process.env._VERSION = '9.2'
             process.env._DEVICENAME = 'iPhone 6'
+            process.env._APP = __dirname + '/test/site/platforms/ios/build/emulator/WebdriverJS Example Phonegap Application.app'
         } else if (!process.env.CI && env === 'android') {
             process.env._PLATFORM = 'Android'
             process.env._VERSION = '4.4'
             process.env._DEVICENAME = 'Samsung Galaxy S4 Emulator'
-        }
-
-        if (env === 'ios') {
-            process.env._APP = __dirname + '/test/site/platforms/ios/build/emulator/WebdriverJS Example Phonegap Application.app'
-        } else if (env === 'android') {
             process.env._APP = __dirname + '/test/site/platforms/android/build/outputs/apk/android-debug.apk'
         }
 
