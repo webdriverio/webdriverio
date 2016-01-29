@@ -107,6 +107,11 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
+    // Per default WebdriverIO commands getting executed in a synchronous way using
+    // the wdio-sync package. If you still want to run your tests in an async way
+    // using promises you can set the sync command to false.
+    sync: true,
+    //
     // Level of logging verbosity: silent | verbose | command | data | result | error
     logLevel: 'silent',
     //
