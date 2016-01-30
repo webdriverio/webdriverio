@@ -89,8 +89,15 @@ describe('launcher', () => {
                 cap.runningInstances = 0
                 cap.availableInstances = 100
             })
-            launcher.runSpecs().should.be.ok
+            launcher.runSpecs().should.be.not.ok
             launcher.startInstance.callCount.should.be.equal(4)
+            launcher.startInstance.reset()
+            launcher.schedule.forEach((cap) => {
+                cap.runningInstances = 0
+                cap.availableInstances = 100
+            })
+            launcher.runSpecs().should.be.ok
+            launcher.startInstance.callCount.should.be.equal(0)
         })
 
         it('should respect maxInstances property of a single capabiltiy', async () => {
@@ -108,8 +115,15 @@ describe('launcher', () => {
                 cap.runningInstances = 0
                 cap.availableInstances = 100
             })
-            launcher.runSpecs().should.be.ok
+            launcher.runSpecs().should.be.not.ok
             launcher.startInstance.callCount.should.be.equal(10)
+            launcher.startInstance.reset()
+            launcher.schedule.forEach((cap) => {
+                cap.runningInstances = 0
+                cap.availableInstances = 100
+            })
+            launcher.runSpecs().should.be.ok
+            launcher.startInstance.callCount.should.be.equal(0)
         })
 
         afterEach(() => {
