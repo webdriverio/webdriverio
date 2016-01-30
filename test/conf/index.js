@@ -11,6 +11,7 @@ if (process.env._ENV && process.env._ENV.match(/(android|ios)/)) {
     delete asked.desiredCapabilities.browserName
     delete asked.desiredCapabilities.platform
     delete asked.desiredCapabilities.version
+    delete asked.desiredCapabilities.screenResolution
 }
 
 const conf = merge(defaults, asked)
