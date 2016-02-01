@@ -1,12 +1,12 @@
-var os = require('os')
-
 module.exports = function (grunt) {
     var argv = require('optimist').argv
 
     var mochaInstanbulOpts = {
         scriptPath: require.resolve('isparta/bin/isparta'),
-        reporter: 'spec',
-        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '60000']
+        report: ['lcov', 'html'],
+        excludes: ['**/scripts/**', '**/gruntfile.js'],
+        verbose: true,
+        mochaOptions: ['--compilers', 'js:babel/register', '--recursive', '-t', '120000', '--reporter', 'spec']
     }
 
     var mochaOpts = {
@@ -87,6 +87,10 @@ module.exports = function (grunt) {
             unit: {
                 src: ['./test/setup-unit.js', 'test/spec/unit/*.js'],
                 options: mochaInstanbulOpts
+            },
+            wdio: {
+                src: ['./test/setup-unit.js', 'test/spec/wdio/*.js'],
+                options: mochaInstanbulOpts
             }
         },
         mochaTest: {
@@ -113,21 +117,11 @@ module.exports = function (grunt) {
             unit: {
                 src: ['./test/setup-unit.js', 'test/spec/unit/*.js'],
                 options: mochaOpts
+            },
+            wdio: {
+                src: ['./test/setup-unit.js', 'test/spec/wdio/*.js'],
+                options: mochaOpts
             }
-        },
-        'start-selenium-server': {
-            dev: {
-                options: {
-                    autostop: false,
-                    downloadUrl: 'https://selenium-release.storage.googleapis.com/2.47/selenium-server-standalone-2.47.0.jar',
-                    downloadLocation: os.tmpdir(),
-                    serverOptions: {},
-                    systemProperties: {}
-                }
-            }
-        },
-        'stop-selenium-server': {
-            dev: {}
         },
         eslint: {
             options: {
@@ -178,6 +172,14 @@ module.exports = function (grunt) {
                 src: 'lib/helpers/wdio.conf.ejs',
                 dest: 'build/'
             }
+        },
+        connect: {
+            testpage: {
+                options: {
+                    port: 8080,
+                    base: './test/site/www'
+                }
+            }
         }
     })
 
@@ -199,14 +201,9 @@ module.exports = function (grunt) {
         ])
     })
 
-    grunt.registerTask('run-test', function () {
-        grunt.task.run('env', 'config', 'connect', 'start-selenium-server', 'mochaTest', 'passfail')
-    })
-
-    grunt.registerTask('test', function (env, cmd, isSeleniumServerRunning) {
-        isSeleniumServerRunning = isSeleniumServerRunning === undefined ? true : isSeleniumServerRunning
+    grunt.registerTask('test', function (env, cmd) {
         cmd = cmd || 'mochaTest'
-        env = env || 'desktop'
+        env = env || process.env._ENV || 'desktop'
 
         /**
          * quick set up for dev
@@ -223,26 +220,21 @@ module.exports = function (grunt) {
             process.env._APP = __dirname + '/test/site/platforms/android/build/outputs/apk/android-debug.apk'
         }
 
-        var tasks = [cmd + ':' + env]
+        var tasks = ['connect', cmd + ':' + env]
 
         addEnv({ _ENV: env })
         process.env._ENV = env
 
-        if (!isSeleniumServerRunning && (env === 'functional' || (env === 'desktop' && !process.env.CI))) {
-            tasks.unshift('start-selenium-server:dev')
-            tasks.push('stop-selenium-server:dev')
-        }
-
         grunt.task.run(tasks)
     })
 
-    grunt.registerTask('testcover', function (env, isSeleniumServerRunning) {
+    grunt.registerTask('testcover', function (env) {
         env = env || process.env._ENV
 
         if (typeof env !== 'string') {
             throw new Error('no proper environment specified')
         }
 
-        return grunt.task.run('test:' + env + ':mocha_istanbul:' + isSeleniumServerRunning)
+        return grunt.task.run('test:' + env + ':mocha_istanbul')
     })
 }

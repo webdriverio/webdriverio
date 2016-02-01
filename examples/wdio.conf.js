@@ -49,7 +49,7 @@ exports.config = {
     // ============
     // Capabilities
     // ============
-    // Define your capabilities here. WebdriverIO can run multiple capabilties at the same
+    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
@@ -71,9 +71,9 @@ exports.config = {
     capabilities: [{
         browserName: 'chrome'
     }, {
-        // maxInsatnces can get overwritten per capability. So if you have an in house Selenium
+        // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance avaiable you can make sure that not more than
-        // one instance gets started at a time.
+        // 5 instance gets started at a time.
         maxInstances: 5,
         browserName: 'firefox',
         specs: [
@@ -93,7 +93,12 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // Level of logging verbosity.
+    // Per default WebdriverIO commands getting executed in a synchronous way using
+    // the wdio-sync package. If you still want to run your tests in an async way
+    // using promises you can set the sync command to false.
+    sync: true,
+    //
+    // Level of logging verbosity: silent | verbose | command | data | result | error
     logLevel: 'silent',
     //
     // Enables colors for log output.
@@ -131,11 +136,8 @@ exports.config = {
     // The following are supported: mocha, jasmine and cucumber
     // see also: http://webdriver.io/guide/testrunner/frameworks.html
     //
-    // Make sure you have the node package for the specific framework installed before running
-    // any tests. If not please install the following package:
-    // Mocha: `$ npm install mocha`
-    // Jasmine: `$ npm install jasmine`
-    // Cucumber: `$ npm install cucumber`
+    // Make sure you have the wdio adapter package for the specific framework
+    // installed before running any tests.
     framework: 'mocha',
     //
     // Test reporter for stdout.
@@ -197,7 +199,7 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // WedriverIO provides a several hooks you can use to intefere the test process in order to enhance
+    // WedriverIO provides a several hooks you can use to interfere the test process in order to enhance
     // it and build services around it. You can either apply a single function to it or an array of
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.

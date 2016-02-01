@@ -9,7 +9,7 @@ describe('ConfigParser', () => {
         configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
         let specs = configParser.getSpecs()
         specs.should.not.include(__filename)
-        specs.should.include(__dirname + '/call.js')
+        specs.should.include(path.resolve(__dirname + '/call.js'))
     })
 
     it('should exclude/include capability excludes', () => {
@@ -20,8 +20,16 @@ describe('ConfigParser', () => {
             [__dirname + '/call.js']
         )
         specs.should.not.include(__filename)
-        specs.should.not.include(__dirname + '/call.js')
+        specs.should.not.include(path.resolve(__dirname + '/call.js'))
         specs.should.include(path.resolve(FIXTURES_PATH + '/exclude.conf.js'))
         specs.should.include(path.resolve(FIXTURES_PATH + '/exclude2.conf.js'))
+    })
+    
+    it('should include typescript files', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        let specs = configParser.getSpecs([FIXTURES_PATH + '/*.ts'])
+        specs.should.not.include(__filename)
+        specs.should.include(path.resolve(FIXTURES_PATH + '/typescript.ts'))
     })
 })

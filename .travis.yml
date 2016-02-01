@@ -8,22 +8,16 @@ node_js:
 
 sudo: false
 
-branches:
-  except:
-    - /^v[0-9]/
-  only:
-    - master
-
 before_script:
-  - "npm install -g bower"
-  - "cd test/site/www && bower install && cd ../../../"
-  - "phantomjs --webdriver=4444 2>&1 >/dev/null &"
-  - "2>/dev/null 1>/dev/null python -m SimpleHTTPServer 8080 &"
+  - npm install -g bower
+  - npm run build
+  - cd test/site/www && bower install && cd ../../../
+  - phantomjs --webdriver=4444 2>&1 >/dev/null &
 
-script: "sleep 5 && npm run coverage"
+script: "sleep 5 && npm run test"
 
-after_script:
-  - "[ -d ./coverage ] && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+# after_script:
+#   - "[ -d ./coverage ] && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
 
 addons:
   sauce_connect: true
@@ -32,6 +26,7 @@ env:
   global:
     - secure: f6+NU5WBW9GPLRV2WhtCozPOjFOAdh52hXfr0dZopxl0eqJ426fl5UCt54duUQV/abBpNEKzBm2015EsBP14wepNJ9+Q6nRwrj/h2PvI3UM8vEPqgH08hqiS7kFszA0Wy+Ki3umncQbA5WAgq6grmZs9naELWmOX5Yum40Wl9/0=
     - secure: dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w=
+    - secure: m/ExczMw9W1X38lKxdQlgtk6imyG7vqx/hldoUUL/HZ5umNB6fOSy6cIzXLrffncFF+yAgiFkxHNDGFE1wc4pCnrZRJMBp4txHNG46PICGcSQOJBmj+cnpcTL2fAisUXyrJO+nJxkOrJ+fTRKSlB0huqCIjpDTAyQWoTfUQ0w1w=
 
   matrix:
     - _BROWSER: "chrome"
@@ -46,31 +41,31 @@ env:
       _PLATFORM: "Windows_8"
       _VERSION: "10"
       _ENV: "desktop"
-    - _BROWSER: "Safari"
-      _PLATFORM: "iOS"
-      _APP: "safari"
-      _DEVICENAME: "iPhone_Simulator"
-      _VERSION: "7.1"
-      _ENV: "mobile"
-    - _BROWSER: "Safari"
-      _PLATFORM: "iOS"
-      _APP: "safari"
-      _DEVICENAME: "iPad_Simulator"
-      _VERSION: "7.1"
-      _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "android"
-    #   _DEVICENAME: "Google_Nexus_7_HD_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
-    # - _PLATFORM: "Linux"
-    #   _BROWSER: "Android"
-    #   _DEVICENAME: "Samsung_Galaxy_Nexus_Emulator"
-    #   _VERSION: "4.3"
-    #   _ENV: "mobile"
+    - _PLATFORM: "iOS"
+      _DEVICENAME: "iPhone_6"
+      _VERSION: "9.2"
+      _APP: "http://webdriverjs.christian-bromann.com/ios.zip"
+      _ENV: "ios"
+    - _PLATFORM: "iOS"
+      _DEVICENAME: "iPad_Air"
+      _VERSION: "9.2"
+      _APP: "http://webdriverjs.christian-bromann.com/ios.zip"
+      _ENV: "ios"
+    - _PLATFORM: "Android"
+      _DEVICENAME: "Google_Nexus_7_HD_Emulator"
+      _VERSION: "4.3"
+      _APP: "http://webdriverjs.christian-bromann.com/android.apk.zip"
+      _ENV: "android"
+    - _PLATFORM: "Android"
+      _DEVICENAME: "Samsung_Galaxy_S4_Emulator"
+      _VERSION: "4.4"
+      _APP: "http://webdriverjs.christian-bromann.com/android.apk.zip"
+      _ENV: "android"
     - _BROWSER: "phantomjs"
       _ENV: "functional"
     - _ENV: "multibrowser"
+    - _ENV: "unit"
+    - _ENV: "wdio"
 
 notifications:
   webhooks:

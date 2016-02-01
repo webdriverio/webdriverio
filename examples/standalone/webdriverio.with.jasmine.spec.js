@@ -22,9 +22,9 @@ describe('my webdriverio tests', function() {
     var client = {};
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 9999999;
 
-    beforeEach(function() {
+    beforeEach(function(done) {
         client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
-        client.init();
+        client.init(done);
     });
 
     it('test it', function(done) {
@@ -33,11 +33,11 @@ describe('my webdriverio tests', function() {
             .getElementSize('.header-logo-wordmark', function(err, result) {
                 expect(err).toBeFalsy();
                 expect(result.height).toBe(26);
-                expect(result.width).toBe(37);
+                expect(result.width).toBe(89);
             })
             .getTitle(function(err, title) {
                 expect(err).toBeFalsy();
-                expect(title).toBe('GitHub · Build software better, together.');
+                expect(title).toBe('GitHub · Where software is built');
             })
             .getCssProperty('a[href="/plans"]', 'color', function(err, color){
                 expect(err).toBeFalsy();

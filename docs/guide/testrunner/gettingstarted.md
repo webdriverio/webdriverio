@@ -9,7 +9,7 @@ Getting Started
 ===============
 
 Since `v3` WebdriverIO comes with its own test runner to help you getting started with integration testing
-as quick as possible. All the fiddeling around hooking up WebdriverIO with a test framework belongs to the
+as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the
 past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficient as
 possible.
 
@@ -65,4 +65,14 @@ integration tests by calling:
 $ wdio wdio.conf.js
 ```
 
-That's it!
+That's it! Now, you can access to the selenium instance via global variable `browser`.
+
+## Organizing tests
+
+Since automation testing can be relatively time-intensive, it's important to plan how to organize your tests. It is possible to organize your tests by creating multiple configuration files: each file can define a different list of "specs" directories.
+
+Additionally, Mocha's "grep" option is exposed to the `--mochaOpts` option, so you can use it to perform pattern matching on your test descriptions:
+
+```sh
+wdio wdio.conf.js --mochaOpts.grep "search term here"
+```

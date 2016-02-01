@@ -35,7 +35,7 @@ vows.describe('my github tests').addBatch({
                 },
 
                 'width is 89px': function(err,result) {
-                    assert(result.width === 37);
+                    assert(result.width === 89);
                 }
 
             },
@@ -50,8 +50,8 @@ vows.describe('my github tests').addBatch({
                     assert(err === null);
                 },
 
-                'title should be "GitHub · Build software better, together."': function(err,result) {
-                    assert(result === 'GitHub · Build software better, together.');
+                'title should be "GitHub · Where software is built"': function(err,result) {
+                    assert(result === 'GitHub · Where software is built');
                 }
 
             },

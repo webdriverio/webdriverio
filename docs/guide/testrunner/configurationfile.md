@@ -13,6 +13,7 @@ exports a JSON. Here is an example configuration with all supported properties a
 
 ```js
 exports.config = {
+
     // =====================
     // Server Configurations
     // =====================
@@ -37,7 +38,7 @@ exports.config = {
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
-    // If you are using Sauce Labs WebdriverIO takes care about updating the job information
+    // If you are using Sauce Labs, WebdriverIO takes care to update the job information
     // once the test is done. This option is set to `true` per default.
     //
     updateJob: true,
@@ -62,18 +63,32 @@ exports.config = {
     // ============
     // Capabilities
     // ============
-    // Define your capabilities here. WebdriverIO can run multiple capabilties at the same
-    // time. Depending on the number of capabilities WebdriverIO launches several test
+    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
+    // time. Depending on the number of capabilities, WebdriverIO launches several test
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
     //
-    // If you have trouble getting all important capabilities together check out Sauce Labs
-    // platform configurator. A great tool to configure your capabilities.
+    // First you can define how many instances should be started at the same time. Let's
+    // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
+    // set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
+    // files and you set maxInstances to 10, all spec files will get tested at the same time
+    // and 30 processes will get spawned. The property basically handles how many capabilities
+    // from the same test should run tests.
+    //
+    //
+    maxInstances: 10,
+    //
+    // If you have trouble getting all important capabilities together, check out the
+    // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
         browserName: 'chrome'
     }, {
+        // maxInstances can get overwritten per capability. So if you have an in house Selenium
+        // grid with only 5 firefox instance available you can make sure that not more than
+        // 5 instance gets started at a time.
+        maxInstances: 5,
         browserName: 'firefox',
         specs: [
             'test/ffOnly/*'
@@ -85,28 +100,35 @@ exports.config = {
         ]
     }],
     //
+    //
+    //
     // ===================
     // Test Configurations
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // Level of logging verbosity.
+    // Per default WebdriverIO commands getting executed in a synchronous way using
+    // the wdio-sync package. If you still want to run your tests in an async way
+    // using promises you can set the sync command to false.
+    sync: true,
+    //
+    // Level of logging verbosity: silent | verbose | command | data | result | error
     logLevel: 'silent',
     //
-    // Enables colors for log output
+    // Enables colors for log output.
     coloredLogs: true,
     //
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: 'shots',
     //
-    // Shorten url command calls by setting a base url. If your url parameter starts with "/"
-    // the base url gets prepended.
+    // Set a base URL in order to shorten url command calls. If your url parameter starts
+    //  with "/", the base url gets prepended.
     baseUrl: 'http://localhost:8080',
     //
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 1000,
     //
-    // Initialise the browser instance with a WebdriverIO plugin. The object should have the
+    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
     // plugin name as key and the desired plugin options as property. Make sure you have
     // the plugin installed before running any tests. The following plugins are currently
     // available:
@@ -128,17 +150,13 @@ exports.config = {
     // The following are supported: mocha, jasmine and cucumber
     // see also: http://webdriver.io/guide/testrunner/frameworks.html
     //
-    // Make sure you have the node package for the specific framework adapter installed before running
-    // any tests. If not please install the following package:
-    // Mocha: `$ npm install wdio-mocha-framework`
-    // Jasmine: `$ npm install wdio-jasmine-framework`
-    // Cucumber: `$ npm install wdio-cucumber-framework`
+    // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
     framework: 'mocha',
     //
     // Test reporter for stdout.
     // The following are supported: dot (default), spec and xunit
     // see also: http://webdriver.io/guide/testrunner/reporters.html
-    reporters: ['xunit'],
+    reporters: ['junit'],
     //
     // Some reporter require additional information which should get defined here
     reporterOptions: {
@@ -161,54 +179,109 @@ exports.config = {
         defaultTimeoutInterval: 5000,
         //
         // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
-        // or website depending on the result. For example it is pretty handy to take a screenshot everytime
+        // or website depending on the result. For example it is pretty handy to take a screenshot every time
         // an assertion fails.
         expectationResultHandler: function(passed, assertion) {
             // do something
         },
         //
-        // Make use of jasmine specific grep functionality
+        // Make use of Jasmine-specific grep functionality
         grep: null,
         invertGrep: null
     },
     //
     // If you are using Cucumber you need to specify where your step definitions are located.
     cucumberOpts: {
-        require: ['./examples/runner-specs/cucumber/step-definitions.js'],
-        // Enable this config to treat undefined definitions as warnings.
-        ignoreUndefinedDefinitions: false,
-        // run only certain scenarios annotated by tags
-        tags: ['foo', 'bar']
+        require: [],        // <string[]> (file/dir) require files before executing features
+        backtrace: false,   // <boolean> show full backtrace for errors
+        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+        dryRun: false,      // <boolean> invoke formatters without executing steps
+        failFast: false,    // <boolean> abort the run on first failure
+        format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
+        colors: true,       // <boolean> disable colors in formatter output
+        snippets: true,     // <boolean> hide step definition snippets for pending steps
+        source: true,       // <boolean> hide source URIs
+        profile: [],        // <string[]> (name) specify the profile to use
+        require: [],        // <string[]> (file/dir) require files before executing features
+        strict: false,      // <boolean> fail if there are any undefined or pending steps
+        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+        timeout: 20000      // <number> timeout for step definitions
+        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
     // =====
     // Hooks
     // =====
-    // Run functions before or after the test. If one of them return with a promise, WebdriverIO
-    // will wait until that promise got resolved to continue.
-    // see also: http://webdriver.io/guide/testrunner/hooks.html
+    // WedriverIO provides a several hooks you can use to interfere the test process in order to enhance
+    // it and build services around it. You can either apply a single function to it or an array of
+    // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
+    // resolved to continue.
     //
-    // Gets executed before all workers get launched.
-    onPrepare: function() {
-        console.log('let\'s go');
+    // Gets executed once before all workers get launched.
+    onPrepare: function (config, capabilities) {
     },
     //
-    // Gets executed before test execution begins. At this point you will have access to all global
+    // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
-    before: function() {
-        console.log('run the tests');
+    before: function (capabilties, specs) {
+    },
+    //
+    // Hook that gets executed before the suite starts
+    beforeSuite: function (suite) {
+    },
+    //
+    // Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
+    // beforeEach in Mocha)
+    beforeHook: function () {
+    },
+    //
+    // Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
+    // afterEach in Mocha)
+    afterHook: function () {
+    },
+    //
+    // Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
+    beforeTest: function (test) {
+    },
+    //
+    // Runs before a WebdriverIO command gets executed.
+    beforeCommand: function (commandName, args) {
+    },
+    //
+    // Runs after a WebdriverIO command gets executed
+    afterCommand: function (commandName, args, result, error) {
+    },
+    //
+    // Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
+    afterTest: function (test) {
+    },
+    //
+    // Hook that gets executed after the suite has ended
+    afterSuite: function (suite) {
     },
     //
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
-    after: function() {
-        console.log('finish up the tests');
+    after: function (capabilties, specs) {
     },
     //
     // Gets executed after all workers got shut down and the process is about to exit. It is not
     // possible to defer the end of the process using a promise.
-    onComplete: function() {
-        console.log('that\'s it');
+    onComplete: function (exitCode) {
+    }
+    //
+    // Cucumber specific hooks
+    beforeFeature: function (feature) {
+    },
+    beforeScenario: function (scenario) {
+    },
+    beforeStep: function (step) {
+    },
+    afterStep: function (stepResult) {
+    },
+    afterScenario: function (scenario) {
+    },
+    afterFeature: function (feature) {
     }
 };
 ```

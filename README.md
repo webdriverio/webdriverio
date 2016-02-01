@@ -2,7 +2,7 @@
 WebdriverIO
 ===========
 
-[![Build Status](https://travis-ci.org/webdriverio/webdriverio.png?branch=master)](https://travis-ci.org/webdriverio/webdriverio) [![Coverage Status](https://coveralls.io/repos/webdriverio/webdriverio/badge.png?branch=master&)](https://coveralls.io/r/webdriverio/webdriverio?branch=master) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/webdriverio/webdriverio.png?branch=master)](https://travis-ci.org/webdriverio/webdriverio) [![Coverage Status](https://coveralls.io/repos/webdriverio/webdriverio/badge.png?branch=master&)](https://coveralls.io/r/webdriverio/webdriverio?branch=master) [![Code Climate](https://codeclimate.com/github/webdriverio/webdriverio/badges/gpa.svg)](https://codeclimate.com/github/webdriverio/webdriverio) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 <br><br>
 [![Selenium Test Status](https://saucelabs.com/browser-matrix/webdriverio.svg)](https://saucelabs.com/u/webdriverio)
 
@@ -13,7 +13,7 @@ WebdriverIO
 This library is a [webdriver](https://w3c.github.io/webdriver/webdriver-spec.html)
 (browser automation) module for Node.JS. It makes it possible to write
 super easy [Selenium](https://en.wikipedia.org/wiki/Selenium_(software)) tests in your favorite
-BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, Browsertack or Testingbot.
+BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, BrowserStack or TestingBot.
 
 WebdriverIO is agnostic with regards to the test framework you want to use. Cucumber, Jasmine and Mocha+Chai
 are supported by the configuration wizard, and you can use other frameworks as well - for example
