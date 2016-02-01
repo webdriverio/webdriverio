@@ -55,7 +55,7 @@ after(async function () {
     /**
      * if we are not running on travis we are done here
      */
-    if (!process.env.CI || !process.env._ENV || !process.env._ENV.match(/(desktop|mobile)/)) {
+    if (!process.env.CI || !process.env._ENV || !process.env._ENV.match(/(desktop|ios|android)/)) {
         return
     }
 
