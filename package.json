@@ -1,5 +1,5 @@
 {
-  "name": "webdriverio",
+  "name": "@georgecrawfordft/webdriverio",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
   "version": "4.0.0",
   "homepage": "http://webdriver.io",
