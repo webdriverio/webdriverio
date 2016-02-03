@@ -48,7 +48,11 @@ describe('event handling', () => {
             desiredCapabilties.should.be.equal('phantomjs')
         })
 
-        it('should emit an error event after querying a non existing element', async () => {
+        /**
+         * we don't throw error events anymore since they screw up the reporter
+         * output. Use onError handlers instead
+         */
+        it.skip('should emit an error event after querying a non existing element', async () => {
             await client.url(conf.testPage.start)
 
             // click on non existing element to cause an error
@@ -64,7 +68,11 @@ describe('event handling', () => {
             isEndHandlerEmitted.should.be.true
         })
 
-        it('should emit custom command events', async () => {
+        /**
+         * we don't throw error events anymore since they screw up the reporter
+         * output. Use onError handlers instead
+         */
+        it.skip('should emit custom command events', async () => {
             isErrorHandlerEmitted = false
             client.addCommand('throwMe', () => {
                 throw new Error('uups')
