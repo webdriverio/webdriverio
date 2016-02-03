@@ -91,17 +91,16 @@ announcements check [@WebdriverIO](http://twitter.com/webdriverio) on Twitter.
 
 The [npm module](https://www.npmjs.com/package/webdriverio) for this library is maintained by:
 
-* [Camilo Tapia](http://github.com/Camme)
-* [Dan Jenkins](http://github.com/danjenkins)
 * [Christian Bromann](https://github.com/christian-bromann)
+* [George Crawford](https://github.com/georgecrawford)
 * [Vincent Voyer](https://github.com/vvo)
-
+* [Camilo Tapia](http://github.com/Camme)
 
 ## History
 
 WebdriverIO was originated by [Camilo Tapia's](https://github.com/camme) initial
 Selenium project called WebdriverJS, which was the first webdriver project on NPM.
-In 2014, the project was renamed WebdriverIO.
+In 2014, the project was renamed WebdriverIO later on.
 
 
 ### License
