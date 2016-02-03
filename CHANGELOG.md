@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## v4.0.0 (2016-02-03)
+* tbd
+
+## v3.4.0 (2015-12-23)
+* documentation improvements (#910, #925, #939, #947, #949, #943, #964, #966)
+* added selectByName command (#917)
+* bugfix: emit test:end in jasmine (#918)
+
+## v3.3.0 (2015-11-24)
+* added Unicode support (#850)
+* enable passing cli args to runner processes (#851)
+* docs improvements (#854, #853, #861, #871)
+* elminate Seleniums staleElement errors (#857)
+* fixed screenshot file names for Windows user (#868)
+* added new command `getUrl` (#877)
+* fixed isVisibleWithinViewport helper (#885, #886, #887)
+* update Sauce Labs job even when using Sauce Connect (#881)
+* fixed switchTab command (#898)
+
+## v3.2.6 (2015-10-31)
+* expose sessionId and capabilities to after() hook
+* Adds a configuration: option.waitforInterval and a parameter to waitUntil for setting the polling interval for waitUntil.
+* support for mocha's 'qunit' interface
+
+## v3.2.5 (2015-10-07)
+* make sure edge driver follows standards for querying elements (#762)
+* fixed xunit reporter bug (#797, #801)
+* fixed indention bug in spec reporter (#800)
+* Preserve mocha `this` in testrunner-wrapped generators (#813)
+* better Babel support (##816)
+
+## v3.2.4 (2015-09-16)
+* bugfixes in xunit reporter
+* removed undefined first argument in after hook
+* improved error handling in waitFor commands
+
 ## v3.2.3 (2015-09-11)
 * some minor bugfixes
 
