@@ -1,6 +1,6 @@
 {
   "name": "webdriverio",
-  "version": "4.0.2-0",
+  "version": "4.0.2-1",
   "dependencies": {
     "amdefine": {
       "version": "1.0.0",
