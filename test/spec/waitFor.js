@@ -12,7 +12,7 @@ describe('waitFor', () => {
                 .should.be.equal(true)
         })
 
-        it('should return with an error if the element never becomes visible', function () {
+        it('should return with an error if the element never becomes enabled', function () {
             return expect(this.client.waitForEnabled('.waitForValueEnabledReverse', 10))
                 .to.be.rejectedWith('element (.waitForValueEnabledReverse) still not enabled after 10ms')
         })
