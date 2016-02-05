@@ -22,7 +22,7 @@
   "scripts": {
     "build": "grunt build",
     "coverage": "grunt testcover --verbose",
-    "prepublish": "npm prune && npm run build && npm run test-unit",
+    "prepublish": "npm prune && npm run build",
     "test": "grunt test",
     "test-wdio": "grunt test:wdio",
     "test-unit": "grunt test:unit",
