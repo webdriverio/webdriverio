@@ -50,7 +50,8 @@ webdriverio
     .remote(options)
     .init()
     .url('http://www.google.com')
-    .title(function(err, res) {
+    .getTitle
+    .then(function(err, res) {
         console.log('Title was: ' + res.value);
     })
     .end();
