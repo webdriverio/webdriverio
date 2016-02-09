@@ -26,7 +26,24 @@ describe('connection retries', () => {
         await WebdriverIO.remote(conf).init()
     })
 
-    it('should fail with ECONNREFUSED if all connection attempts failed', async function () {
+    it('should retry connection 3 times if server response with 500', async function () {
+        nock('http://localhost:4444')
+            .post('/wd/hub/session')
+            .twice()
+                .reply(500, '500 error')
+            .post('/wd/hub/session')
+             .reply(200, FAKE_SUCCESS_RESPONSE)
+
+        await WebdriverIO.remote(conf).init().then((res) => {
+            expect(res).deep.equal(FAKE_SUCCESS_RESPONSE)
+        }).catch((err) => {
+            expect(err).to.be.null
+        });
+
+    });
+
+
+        it('should fail with error if all connection attempts failed', async function () {
         // mock 3 request errors
         nock('http://localhost:4444')
             .post('/wd/hub/session')
@@ -35,8 +52,7 @@ describe('connection retries', () => {
 
         await WebdriverIO.remote(conf).init().catch(err => {
             expect(err).not.to.be.undefined
-            expect(err.message).to.equal('Couldn\'t connect to selenium server')
-            expect(err.seleniumStack.type).to.equal('ECONNREFUSED')
+            expect(err.message).to.equal('some error')
         })
     })
 
