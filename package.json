@@ -1,7 +1,7 @@
 {
   "name": "@georgecrawfordft/webdriverio",
   "description": "A nodejs bindings implementation for selenium 2.0/webdriver",
-  "version": "4.0.2-7",
+  "version": "4.0.3",
   "homepage": "http://webdriver.io",
   "author": "Camilo Tapia <camilo.tapia@gmail.com>",
   "repository": {
@@ -163,7 +163,7 @@
     "Laran Evans <laran@laranevans.com>",
     "Luigi Leung <luigi@alumni.cmu.edu>",
     "Macy Abbey <macyabbey@Macy-Abbeys-MacBook-Pro.local>",
-    "sbmaxx <sbmaxx@yandex-team.ru>",
+    "Roman Rozhdestvenskiy <sbmaxx@yandex-team.ru>",
     "Igor Soarez <igorsoarez@gmail.com>",
     "sgryt <christensen.mikkel@gmail.com>",
     "Martin Hansen <martin@martinhansen.no>",
@@ -187,6 +187,7 @@
     "Denis Gorbachev <denis.d.gorbachev@gmail.com>",
     "Sakari Jokinen <sakari.jokinen@rocketpack.fi>",
     "Andrew Price <aapp116@gmail.com>",
+    "Seth Merrick <seth@strangewindstudio.com>",
     "Siva <byteshiva@users.noreply.github.com>",
     "TestingBot <info@testingbot.com>",
     "Theodore J Huff <theodorejhuff@gmail.com>",
