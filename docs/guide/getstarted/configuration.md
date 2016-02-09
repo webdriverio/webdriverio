@@ -79,6 +79,12 @@ Path to WebDriver server.
 Type: `String`<br>
 Default: */wd/hub*
 
+### gridApiPath
+If you are using Selenium Grid, add the path to the grid API endpoint (normally */grid/api*)
+
+Type: `String`<br>
+Default: */grid/api*
+
 ### baseUrl
 Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/` the base url gets prepended.
 
