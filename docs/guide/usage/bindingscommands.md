@@ -10,7 +10,7 @@ Bindings & Commands
 
 WebdriverIO differentiates between two different method types: protocol bindings and commands. Protocol bindings
 are the exact representation of the JSONWire protocol interface. They expect the same parameters as described
-in the [protocol docs](https://code.google.com/p/selenium/wiki/JsonWireProtocol#Command_Detail).
+in the [protocol docs](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#Command_Detail).
 
 ```js
 client.element().then(function(result) {
