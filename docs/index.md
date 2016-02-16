@@ -136,7 +136,7 @@ create your config file in less than a minute. It also gives and overview of all
             test framework. Even Cucumber tests are supported.
         </p>
         <p>
-            It basically sends requests to a Selenium server via the <a href="https://code.google.com/p/selenium/wiki/JsonWireProtocol#Command_Reference">WebDriver Wire Protocol</a>
+            It basically sends requests to a Selenium server via the <a href="https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#Command_Reference">WebDriver Wire Protocol</a>
             and handles its response. These requests are wrapped in useful commands, which
             provide callbacks to test several aspects of your site in an automated way.
         </p>
