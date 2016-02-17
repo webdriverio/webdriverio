@@ -25,7 +25,7 @@ it('should contain a certain text after clicking', function() {
 ```
 
 The example above shows a simple integration test where a user clicks on a "Send" button and a message
-gets send. The test checks if a status message gets displayed with a certain text. This already looks
+gets sent. The test checks if a status message gets displayed with a certain text. This already looks
 pretty straightforward but by adding an assertion library like [chai-as-promised](https://github.com/domenic/chai-as-promised/)
 we can shorten everything even more.
 
