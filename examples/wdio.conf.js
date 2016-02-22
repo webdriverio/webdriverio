@@ -56,7 +56,7 @@ exports.config = {
     //
     // First you can define how many instances should be started at the same time. Let's
     // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
-    // set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
+    // set maxInstances to 1, wdio will spawn 3 processes. Therefore if you have 10 spec
     // files and you set maxInstances to 10, all spec files will get tested at the same time
     // and 30 processes will get spawned. The property basically handles how many capabilities
     // from the same test should run tests.
@@ -71,7 +71,7 @@ exports.config = {
     capabilities: [{
         browserName: 'chrome'
     }, {
-        // maxInstances can get overwritten per capability. So if you have an in house Selenium
+        // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instance avaiable you can make sure that not more than
         // 5 instance gets started at a time.
         maxInstances: 5,
@@ -165,7 +165,7 @@ exports.config = {
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,
         //
-        // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
+        // The Jasmine framework allows to intercept each assertion in order to log the state of the application
         // or website depending on the result. For example it is pretty handy to take a screenshot everytime
         // an assertion fails.
         expectationResultHandler: function(passed, assertion) {
@@ -199,7 +199,7 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // WedriverIO provides a several hooks you can use to interfere the test process in order to enhance
+    // WedriverIO provides a several hooks you can use to interfere with the test process in order to enhance
     // it and build services around it. You can either apply a single function to it or an array of
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
@@ -210,7 +210,7 @@ exports.config = {
     //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
-    before: function (capabilties, specs) {
+    before: function (capabilities, specs) {
     },
     //
     // Hook that gets executed before the suite starts
@@ -249,7 +249,7 @@ exports.config = {
     //
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
-    after: function (capabilties, specs) {
+    after: function (capabilities, specs) {
     },
     //
     // Gets executed after all workers got shut down and the process is about to exit. It is not
