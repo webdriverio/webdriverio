@@ -36,43 +36,22 @@ a test!
 
   ```sh
   $ npm install
-  $ npm run bower-deps
+  $ cd test/site/www && bower install && cd ../../../
   ```
-
-3. Start a local server that delivers our test page to the browser. We recommend using
-[http-server](https://www.npmjs.org/package/http-server)
-
-  ```sh
-  $ cd /root/dir/of/webdriverio
-  $ http-server -p 8080
-  ```
-
-  or with python
-  ```sh
-  $ python -m SimpleHTTPServer 8080
-  ```
-
-4. Depending on your feature/fix/patch make sure it gets covered by a test. To ensure that you can run one of the following commands:
+3. Depending on your feature/fix/patch make sure it gets covered by a test. To ensure that you can run one of the following commands:
 
   ```sh
   # if your patch is browser specific
   # (e.g. upload files)
-  npm run-script test-desktop
+  grunt test:desktop
 
   # if your patch is mobile specific
   # (e.g. flick or swipe tests)
-  npm run-script test-mobile
+  grunt test:ios test:android
 
   # if your patch is functional and hasn't something to do with Selenium
   # (e.g. library specific fixes like changes within EventHandler.js)
-  npm run-script test-functional
-  ```
-
-  While developing you can run tests on specific specs by passing another
-  environment variable `_SPEC`, e.g.
-
-  ```sh
-  $ _SPEC=test/spec/YOURSPEC.js npm run-script test-desktop
+  grunt test:functional
   ```
 
 ### Syntax rules
