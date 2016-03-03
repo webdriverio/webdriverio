@@ -4,10 +4,10 @@ exports.config = {
     // Server Configurations
     // =====================
     // Host address of the running Selenium server. This information is usually obsolete as
-    // WebdriverIO automatically connects to localhost. Also if you are using one of the
-    // supported cloud services like Sauce Labs, Browserstack or Testing Bot you also don't
-    // need to define host and port information because WebdriverIO can figure that our
-    // according to your user and key information. However if you are using a private Selenium
+    // WebdriverIO automatically connects to localhost. Also, if you are using one of the
+    // supported cloud services like Sauce Labs, Browserstack, or Testing Bot you don't
+    // need to define host and port information because WebdriverIO can figure that out
+    // according to your user and key information. However, if you are using a private Selenium
     // backend you should define the host address, port, and path here.
     //
     host: '0.0.0.0',
@@ -17,7 +17,7 @@ exports.config = {
     // =================
     // Service Providers
     // =================
-    // WebdriverIO supports Sauce Labs, Browserstack and Testing Bot (other cloud providers
+    // WebdriverIO supports Sauce Labs, Browserstack, and Testing Bot (other cloud providers
     // should work too though). These services define specific user and key (or access key)
     // values you need to put in here in order to connect to these services.
     //
@@ -51,14 +51,14 @@ exports.config = {
     // ============
     // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your capabilities you can overwrite the spec and exclude option in
+    // sessions. Within your capabilities you can overwrite the spec and exclude options in
     // order to group specific specs to a specific capability.
     //
-    // First you can define how many instances should be started at the same time. Let's
-    // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
-    // set maxInstances to 1, wdio will spawn 3 processes. Therefore if you have 10 spec
-    // files and you set maxInstances to 10, all spec files will get tested at the same time
-    // and 30 processes will get spawned. The property basically handles how many capabilities
+    // First, you can define how many instances should be started at the same time. Let's
+    // say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have
+    // set maxInstances to 1, wdio will spawn 3 processes. Therefore, if you have 10 spec
+    // files and you set maxInstances to 10; all spec files will get tested at the same time
+    // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
     //
     //
@@ -108,14 +108,14 @@ exports.config = {
     screenshotPath: 'shots',
     //
     // Set a base URL in order to shorten url command calls. If your url parameter starts
-    //  with "/", the base url gets prepended.
+    //  with "/", then the base url gets prepended.
     baseUrl: 'http://localhost:8080',
     //
-    // Default timeout for all waitForXXX commands.
+    // Default timeout for all waitFor* commands.
     waitforTimeout: 1000,
     //
     // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as property. Make sure you have
+    // plugin name as key and the desired plugin options as properties. Make sure you have
     // the plugin installed before running any tests. The following plugins are currently
     // available:
     // WebdriverCSS: https://github.com/webdriverio/webdrivercss
@@ -133,7 +133,7 @@ exports.config = {
     },
     //
     // Framework you want to run your specs with.
-    // The following are supported: mocha, jasmine and cucumber
+    // The following are supported: Mocha, Jasmine, and Cucumber
     // see also: http://webdriver.io/guide/testrunner/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework
@@ -141,11 +141,11 @@ exports.config = {
     framework: 'mocha',
     //
     // Test reporter for stdout.
-    // The following are supported: dot (default), spec and xunit
+    // The following are supported: dot (default), spec, and xunit
     // see also: http://webdriver.io/guide/testrunner/reporters.html
     reporters: ['junit'],
     //
-    // Some reporter require additional information which should get defined here
+    // Some reporters require additional information which should get defined here
     reporterOptions: {
         //
         // If you are using the "xunit" reporter you should define the directory where
@@ -165,8 +165,8 @@ exports.config = {
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,
         //
-        // The Jasmine framework allows to intercept each assertion in order to log the state of the application
-        // or website depending on the result. For example it is pretty handy to take a screenshot everytime
+        // The Jasmine framework allows interception of each assertion in order to log the state of the application
+        // or website depending on the result. For example, it is pretty handy to take a screenshot every time
         // an assertion fails.
         expectationResultHandler: function(passed, assertion) {
             // do something
@@ -177,7 +177,7 @@ exports.config = {
         invertGrep: null
     },
     //
-    // If you are using Cucumber you need to specify where your step definitions are located.
+    // If you are using Cucumber you need to specify the location of your step definitions.
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
@@ -199,9 +199,9 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // WedriverIO provides a several hooks you can use to interfere with the test process in order to enhance
-    // it and build services around it. You can either apply a single function to it or an array of
-    // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
+    // WedriverIO provides several hooks you can use to interfere with the test process in order to enhance
+    // it and to build services around it. You can either apply a single function or an array of
+    // methods to it. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
     //
     // Gets executed once before all workers get launched.
@@ -209,7 +209,7 @@ exports.config = {
     },
     //
     // Gets executed before test execution begins. At this point you can access to all global
-    // variables like `browser`. It is the perfect place to define custom commands.
+    // variables, such as `browser`. It is the perfect place to define custom commands.
     before: function (capabilities, specs) {
     },
     //
