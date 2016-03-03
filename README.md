@@ -12,7 +12,7 @@ WebdriverIO
 
 ---
 
-> **_Note:_ WebdriverIO is released as beta version. Please stick with v3 until we have updated the website. Thanks!
+> _Note:_ WebdriverIO v4 is released as beta version. Please stick with v3 until we have updated the website. Thanks!
 
 ---
 
