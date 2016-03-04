@@ -1,13 +1,10 @@
 module.exports = {
-  searchGoogle: function () {
-        var searchString = arguments[0],
-        callback = arguments[arguments.length - 1];
-      this
+  searchGoogle: function (searchString) {
+      return this
         .url('http://www.google.com')
         .click('input[name="q"]')
-        .keys([searchString])
+        .keys(searchString)
         .pause(2000)
-        .keys(['Enter']) //press Enter Key
-        .call(callback);
+        .keys(['Enter']); //press Enter Key
   }
 };
