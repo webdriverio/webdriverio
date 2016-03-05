@@ -19,6 +19,12 @@ describe('selector strategies helper', () => {
         element.value.should.be.equal('searchinput')
     })
 
+    it('should find an element using "name" method with a . in the name', () => {
+        const element = findStrategy('[name="search.input"]')
+        element.using.should.be.equal('name')
+        element.value.should.be.equal('search.input')
+    })
+
     it('should find an element using "link text" method', () => {
         const element = findStrategy('=GitHub Repo')
         element.using.should.be.equal('link text')
