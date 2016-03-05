@@ -39,7 +39,7 @@ describe('Sanitize', () => {
     it.skip('should sanitize arguments')
     it.skip('should sanitize css')
 
-    describe.only('Sanitize an arbitrary variable', () => {
+    describe('Sanitize an arbitrary variable', () => {
         it('should return simple values unchanged', () => {
             expect(Sanitize.limit(undefined)).to.be.undefined
             expect(Sanitize.limit(null)).to.be.null
