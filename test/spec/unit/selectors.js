@@ -145,4 +145,24 @@ describe('selector strategies helper', () => {
         element.using.should.be.equal('accessibility id')
         element.value.should.be.equal('foo')
     })
+
+    it('should find an element by css selector with id and attribute', () => {
+        const element = findStrategy('#purplebox[data-foundBy]')
+        element.using.should.be.equal('css selector')
+    })
+
+    it('should find an element by css selector with id and immediately preceded operator', () => {
+        const element = findStrategy('#purplebox+div')
+        element.using.should.be.equal('css selector')
+    })
+
+    it('should find an element by css selector with id and preceded operator', () => {
+        const element = findStrategy('#purplebox~div')
+        element.using.should.be.equal('css selector')
+    })
+
+    it('should find an element by css selector with id and pseudo class', () => {
+        const element = findStrategy('#purplebox:before')
+        element.using.should.be.equal('css selector')
+    })
 })
