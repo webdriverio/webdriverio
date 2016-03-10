@@ -2,7 +2,19 @@ import conf from '../../conf/index'
 
 describe('windowHandleSize', () => {
     it('should change window size of current window if no handle is given', async function () {
-        await this.client.windowHandleSize({ width: 500, height: 500 })
+        const requestHandler = this.client.requestHandler
+        const origHandlerCreate = requestHandler.create
+
+        this.client.requestHandler.create = function (options, data) {
+            expect(options.path).to.match(/\/window\/current\/size$/)
+            return origHandlerCreate.call(requestHandler, ...arguments)
+        }
+
+        try {
+            await this.client.windowHandleSize({ width: 500, height: 500 })
+        } finally {
+            requestHandler.create = origHandlerCreate
+        }
 
         const windowSize = await this.client.windowHandleSize()
         windowSize.value.width.should.be.equal(500)
