@@ -58,4 +58,13 @@ describe('waitUntil', () => {
             error.message.should.be.equal('Promise was rejected with the following reason: timeout')
         }
     })
+
+    it('should bind `this` to the waitUntil function', async function() {
+        (await this.client.waitUntil(
+            function () {
+              return Promise.resolve(this.waitUntil)
+            },
+            1000
+        )).should.be.equal(this.client.waitUntil)
+    })
 })
