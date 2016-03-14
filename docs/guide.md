@@ -45,7 +45,7 @@ var options = {
         browserName: 'firefox'
     }
 };
-&nbsp;
+ 
 webdriverio
     .remote(options)
     .init()

@@ -1,7 +1,7 @@
 name: configuration
 category: getstarted
 tags: guide
-index: 2
+index: 1
 title: WebdriverIO - Configuration
 ---
 
