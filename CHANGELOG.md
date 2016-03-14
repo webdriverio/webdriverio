@@ -1,7 +1,42 @@
 # CHANGELOG
 
-## v4.0.0 (2016-02-03)
-* tbd
+## v4.0.4 (2016-02-03)
+* global changes:
+    * minimum required node version: v0.12.x
+    * complete code rewrite into ES2016 conform JavaScript (compiled using Babel)
+    * moved 3rd party integrations (reporters, services, framework) into own NPM packages
+    * introduced concept of services for the WDIO testrunner (e.g. [wdio-sauce-service](https://github.com/webdriverio/wdio-sauce-service))
+    * commands in WDIO are getting executed in a synchronous way using [Fibers](https://www.npmjs.com/package/fibers)
+    * added [Grunt](http://gruntjs.com/) as project task manager
+
+* WDIO changes:
+    * retry mechanism for failing requests to the Selenium server as well as for [stale element reference](https://w3c.github.io/webdriver/webdriver-spec.html#dfn-error-code) errors
+    * commands are running synchronous (can be disabled by setting `sync: false` in wdio.conf.js)
+    * better support for [page objects](https://github.com/webdriverio/webdriverio/tree/master/examples/pageobject) with WebdriverIO
+    * runs multiple specs per capability at a time (in v3 it was one spec per capability)
+    * elements can now be treated as first citizen (no need for selector parameter if element(s) command) was called before
+    * limit number of running instances with `maxInstances`
+    * no support for callbacks in commands anymore (as last parameter)
+    * no support generators anymore (commands are sync anyway through [Fibers](https://www.npmjs.com/package/fibers))
+    * added new hooks: beforeSuite, beforeHook, beforeTest, beforeCommand, afterCommand, afterTest, afterHook, afterSuite, onError and beforeFeature, beforeScenario, beforeStep, afterFeature, afterScenario, afterStep (Cucumber framework only)
+    * implemented small API for launcher package for better integration in 3rd party packages like grunt/gulp-webdriver
+    * new Allure reporter: [wdio-allure-reporter](https://github.com/webdriverio/wdio-allure-reporter), no spec reporter anymore (but in the making: [wdio-spec-reporter](https://github.com/webdriverio/wdio-spec-reporter))
+    * TypeScript support (#1060)
+
+* mobile changes:
+    * added uiautomator/uiautomation and accessibility id location strategy
+    * update [Appium](http://appium.io/) commands for mobile testing
+
+* API changes:
+    * added `waitUntil` interval option (#844)
+    * added `getUrl` command (#877)
+    * better support for unicode characters in setValue/addValue/keys
+    * several improvements and bugfixes
+    * added `getGridNodeDetails`, `gridProxyDetails` and `gridTestSession` to get information about the Selenium grid and their nodes
+    * added `selectByAttribute` to select options by any attribute field
+
+* Multibrowser changes:
+    * modified then arguments from having one argument per browser to having one argument as an object with browser names and their results as properties
 
 ## v3.4.0 (2015-12-23)
 * documentation improvements (#910, #925, #939, #947, #949, #943, #964, #966)
