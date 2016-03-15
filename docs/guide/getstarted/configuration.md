@@ -15,7 +15,7 @@ var webdriverio = require('webdriverio');
 var client = webdriverio.remote(options);
 ```
 
-you need to pass in an object that should contain the following properties:
+you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if your run WebdriverIO as standalone package. If you are using the wdio test runner these options belong to your `wdio.conf.js` configuration file. These are the options you can define:
 
 ### desiredCapabilities
 Defines the capabilities you want to run in your Selenium session. See the [Selenium documentation](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
