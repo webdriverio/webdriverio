@@ -36,6 +36,7 @@ before(async function () {
         return
     }
 
+    console.log('Running job with following conf:', conf)
     this.client = remote(conf)
     await this.client.init()
 })
@@ -73,10 +74,12 @@ after(async function () {
         public: true
     }
 
-    await new Promise((r) => {
+    let res = await new Promise((r) => {
         console.log(`update job status of ${sessionId}`, newJobStatus)
         account.updateJob(sessionId, newJobStatus, r)
     })
+
+    console.log('successfully updated job:', res)
 })
 
 function getFailures (suite) {
