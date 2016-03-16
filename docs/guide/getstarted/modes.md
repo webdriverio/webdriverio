@@ -34,7 +34,7 @@ Using WebdriverIO in standalone mode allows you to integrate this automation too
 
 ### The WDIO Testrunner
 
-The main purpose of WebdriverIO though is end to end testing on big scale. We therefor implemented a test runner that helps you to build a reliable test suite that is easy to read and maintain. The test runner takes care of many problems you are usually facing when working with plain automation libraries. For one it organizes your test runs and splits up test specs so your tests can be executed with maximum concurrency. It also handles session management and provides a lot of features that help you to debug problems and find errors in your tests. The test runner is an abstraction of popular test frameworks like Mocha, Jasmine or Cucumber. Different than using the standalone mode all commands that get executed by the wdio test runner are synchronous. That means that you don't use promises anymore to handle async. Here is an same example from above written as test spec and executed by wdio:
+The main purpose of WebdriverIO though is end to end testing on big scale. We therefor implemented a test runner that helps you to build a reliable test suite that is easy to read and maintain. The test runner takes care of many problems you are usually facing when working with plain automation libraries. For one it organizes your test runs and splits up test specs so your tests can be executed with maximum concurrency. It also handles session management and provides a lot of features that help you to debug problems and find errors in your tests. Here is an same example from above written as test spec and executed by wdio:
 
 ```js
 describe('DuckDuckGo search', function() {
@@ -50,4 +50,4 @@ describe('DuckDuckGo search', function() {
 });
 ```
 
-To run your tests using the wdio test runner check out the [Getting Started](/guide/testrunner/gettingstarted.html) section for more information.
+The test runner is an abstraction of popular test frameworks like Mocha, Jasmine or Cucumber. Different than using the standalone mode all commands that get executed by the wdio test runner are synchronous. That means that you don't use promises anymore to handle async code. To run your tests using the wdio test runner check out the [Getting Started](/guide/testrunner/gettingstarted.html) section for more information.
