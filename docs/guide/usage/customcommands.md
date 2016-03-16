@@ -8,37 +8,42 @@ title: WebdriverIO - Custom Commands
 Custom Commands
 ===============
 
-If you want to extend the client with your own set of commands there is a method
-called `addCommand` available from the client object. The following example shows
-how to add a new command that returns the current url and title as one result.
+If you want to extend the browser instance with your own set of commands there is a method called `addCommand` available from the browser object. You can write your command in a synchronous (default) way the same way as in your specs or asynchronous (like when using WebdriverIO in standalone mode). The following example shows how to add a new command that returns the current url and title as one result only using synchronous commands:
 
 ```js
-client.addCommand("getUrlAndTitle", function(customVar) {
-    return this.url().then(function(urlResult) {
-        return this.getTitle().then(function(titleResult) {
-            console.log(customVar); // "a custom variable"
-            return { url: urlResult.value, title: titleResult };
-        });
-    });
+browser.addCommand("getUrlAndTitle", function (customVar) {
+    return {
+        url: this.getUrl(),
+        title: this.getTitle(),
+        customVar: customVar
+    };
 });
 ```
 
-After you added a command it is available for your instance.
+Custom commands give you the opportunity to bundle a specific sequence of commands that are used frequently in a handy single command call. You can define custom commands at any point in your test suite, just make sure that the command is defined before you first use it (the before hook in your wdio.conf.js might be a good point to create them). In your spec file you can use them like this:
 
 ```js
-client
-    .init()
-    .url('http://www.github.com')
-    .getUrlAndTitle('a custom variable',function(err,result){
-        assert.equal(null, err)
-        assert.strictEqual(result.url,'https://github.com/');
-        assert.strictEqual(result.title,'GitHub · Where software is built');
-    })
-    .end();
+it('should use my custom command', function () {
+    browser.url('http://www.github.com');
+    var result = browser.getUrlAndTitle('foobar');
+
+    assert.strictEqual(result.url, 'https://github.com/');
+    assert.strictEqual(result.title, 'GitHub · Where software is built');
+    assert.strictEqual(result.customVar, 'foobar');
+});
 ```
 
-By default WebdriverIO will throw an error if you try to overwrite an existing command.
-You can bypass that behavior by passing `true` as 3rd parameter to the `addCommand`
-function.
+As mentioned earlier you can also define your command using good old promise syntax. This make sense if you work with an additional 3rd party library that supports promises or if you want to execute both commands at the same time. Here is the async example, note that the custom command callback has a function name called `async`:
 
-**Note:** the result of your custom command will be the result of the promise you return.
+```js
+client.addCommand("getUrlAndTitle", function async () {
+    return Promise.all([
+        this.getUrl(),
+        this.getTitle()
+    ]);
+});
+```
+
+Note that the result of your custom command will be the result of the promise you return. Also there is no support for synchronous commands in standalone mode therefor you always have to handle asynchronous commands using Promises.
+
+By default WebdriverIO will throw an error if you try to overwrite an existing command. You can bypass that behavior by passing `true` as 3rd parameter to the `addCommand` function.
