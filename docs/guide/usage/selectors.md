@@ -8,14 +8,12 @@ title: WebdriverIO - Selectors
 Selectors
 =========
 
-The JsonWireProtocol provides several strategies to query an element. WebdriverIO simplifies these
-to make it more familiar with the common existing selector libraries like [Sizzle](http://sizzlejs.com/).
-The following selector types are supported:
+The JsonWireProtocol provides several strategies to query an element. WebdriverIO simplifies these to make it more familiar with the common existing selector libraries like [Sizzle](http://sizzlejs.com/). The following selector types are supported:
 
 ## CSS Query Selector
 
 ```js
-client.click('h2.subheading a', function(err,res) {...})
+browser.click('h2.subheading a');
 ```
 
 ## Link Text
@@ -26,9 +24,9 @@ For example:
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
-
+<br>
 ```js
-client.getText('=WebdriverIO', function(err, text) {
+browser.getText('=WebdriverIO').then(function(text) {
     console.log(text); // outputs: "WebdriverIO"
 });
 ```
@@ -41,9 +39,9 @@ in front of the query string (e.g. `*=driver`)
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
-
+<br>
 ```js
-client.getText('*=driver', function(err, text) {
+browser.getText('*=driver').then(function(text) {
     console.log(text); // outputs: "WebdriverIO"
 });
 ```
@@ -55,9 +53,9 @@ The same technique can be applied to elements as well, e.g. query a level 1 head
 ```html
 <h1>Welcome to my Page</h1>
 ```
-
+<br>
 ```js
-client.getText('h1=Welcome to my Page', function(err, text) {
+browser.getText('h1=Welcome to my Page').then(function(text) {
     console.log(text); // outputs: "Welcome to my Page"
 });
 ```
@@ -65,7 +63,7 @@ client.getText('h1=Welcome to my Page', function(err, text) {
 or using query partial text
 
 ```js
-client.getText('h1*=Welcome', function(err, text) {
+browser.getText('h1*=Welcome').then(function(text) {
     console.log(text); // outputs: "Welcome to my Page"
 });
 ```
@@ -75,21 +73,21 @@ The same works for ids and class names:
 ```html
 <div class="someElem" id="elem">WebdriverIO is the best</a>
 ```
-
+<br>
 ```js
-client.getText('.someElem=WebdriverIO is the best', function(err, text) {
+browser.getText('.someElem=WebdriverIO is the best').then(function(text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
 
-client.getText('#elem=WebdriverIO is the best', function(err, text) {
+browser.getText('#elem=WebdriverIO is the best').then(function(text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
 
-client.getText('.someElem*=WebdriverIO', function(err, text) {
+browser.getText('.someElem*=WebdriverIO').then(function(text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
 
-client.getText('#elem*=WebdriverIO', function(err, text) {
+browser.getText('#elem*=WebdriverIO').then(function(text) {
     console.log(text); // outputs: "WebdriverIO is the best"
 });
 ```
@@ -111,6 +109,57 @@ for example `//BODY/DIV[6]/DIV[1]/SPAN[1]`
 
 In near future WebdriverIO will cover more selector features like form selector (e.g. `:password`,`:file` etc)
 or positional selectors like `:first` or `:nth`.
+
+## Mobile Selectors
+
+For (hybrid/native) mobile testing you have to use mobile strategies and use the underlying device automation technology directly. This is especially useful when a test needs some fine-grained control over finding elements.
+
+### Android UiAutomator
+
+Android’s UI Automator framework provides a number of ways to find elements. You can use the [UI Automator API](https://developer.android.com/tools/testing-support-library/index.html#uia-apis), in particular the [UiSelector class](https://developer.android.com/reference/android/support/test/uiautomator/UiSelector.html) to locate elements. In Appium you send the Java code, as a string, to the server, which executes it in the application’s environment, returning the element or elements.
+
+```js
+var selector = 'new UiSelector().text("Cancel")).className("android.widget.Button")';
+browser.click(selector);
+```
+
+### iOS UIAutomation
+
+When automating an iOS application, Apple’s [UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) can be used to find elements. This JavaScript [API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771) has methods to access to the view and everything on it.
+
+```js
+var selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
+browser.click(selector);
+```
+
+You can also use predicate searching within iOS UI Automation in Appium, to control element finding even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios_predicate.md) for details.
+
+### Accessibility ID
+
+The `accessibility id` locator strategy is designed to read a unique identifier for a UI element. This has the benefit of not changing during localization or any other process that might change text. In addition, it can be an aid in creating cross-platform tests, if elements that are functionally the same have the same accessibility id.
+
+- For iOS this is the `accessibility identifier` laid out by Apple [here](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIAccessibilityIdentification_Protocol/index.html).
+- For Android the `accessibility id` maps to the `content-description` for the element, as described [here](https://developer.android.com/training/accessibility/accessible-app.html).
+
+For both platforms getting an element, or multiple elements, by their `accessibility id` is usually the best method. It is also the preferred way, in replacement of the deprecated `name` strategy.
+
+```js
+browser.click(`~my_accessibility_identifier`);
+```
+
+### Class Name
+
+The `class name` strategy is a `string` representing a UI element on the current view.
+
+- For iOS it is the full name of a [UIAutomation class](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html), and will begin with `UIA-`, such as `UIATextField` for a text field. A full reference can be found [here](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation).
+- For Android it is the fully qualified name of a [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [class](https://developer.android.com/reference/android/widget/package-summary.html), such `android.widget.EditText` for a text field. A full reference can be found [here](https://developer.android.com/reference/android/widget/package-summary.html).
+
+```js
+// iOS example
+browser.click(`UIATextField`);
+// Android example
+browser.click(`android.widget.DatePicker`);
+```
 
 ## Chain Selectors
 
@@ -142,5 +191,5 @@ And you want to add product B to the cart it would be difficult to do that just 
 With selector chaining it gets way easier as you can narrow down the desired element step by step:
 
 ```js
-client.element('.row .entry:nth-Child(1)').click('button*=Add');
+browser.element('.row .entry:nth-Child(1)').click('button*=Add');
 ```

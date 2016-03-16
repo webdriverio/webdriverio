@@ -171,4 +171,14 @@ describe('selector strategies helper', () => {
         const element = findStrategy('#purplebox:before')
         element.using.should.be.equal('css selector')
     })
+
+    it('should find an mobile ios element class name', () => {
+        const element = findStrategy('UIATextField')
+        element.using.should.be.equal('class name')
+    })
+
+    it('should find an mobile android element class name', () => {
+        const element = findStrategy('android.widget.EditText')
+        element.using.should.be.equal('class name')
+    })
 })
