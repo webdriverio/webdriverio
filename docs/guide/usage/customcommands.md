@@ -44,6 +44,24 @@ client.addCommand("getUrlAndTitle", function async () {
 });
 ```
 
+If you use external libraries that support promises, a nice approach to easy integrate them is to wrap certain API methods within a custom commands:
+
+```js
+browser.customCommand('doExternalJob', function async (params) {
+    return externalLib.command(params);
+});
+```
+
+Then just use it in your wdio test specs synchronously:
+
+```js
+it('execute external library in a sync way', function() {
+    browser.url("...");
+    browser.doExternalJob('someParam');
+    console.log(browser.getTitle(); // returns some title
+});
+```
+
 Note that the result of your custom command will be the result of the promise you return. Also there is no support for synchronous commands in standalone mode therefor you always have to handle asynchronous commands using Promises.
 
 By default WebdriverIO will throw an error if you try to overwrite an existing command. You can bypass that behavior by passing `true` as 3rd parameter to the `addCommand` function.
