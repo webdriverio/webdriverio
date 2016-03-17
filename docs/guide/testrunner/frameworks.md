@@ -100,6 +100,17 @@ describe('my feature', function() {
 
 ###### The New Fancy Generator way
 
+You need to `npm install --save-dev co-mocha`
+Then monkey-patch mocha with a before hook:
+
+```js
+before(capabilities, specs) {
+    const mocha = require('mocha');
+    const coMocha = require('co-mocha');
+
+    coMocha(mocha);
+},
+```
 Note that you shouldn't forget the asterisks after `function`.
 
 ```js
