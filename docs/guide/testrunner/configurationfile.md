@@ -8,8 +8,7 @@ title: WebdriverIO - Test Runner Configuration File
 Configuration File
 ==================
 
-The configuration file contains all necessary information to run your test suite. It is a node module that
-exports a JSON. Here is an example configuration with all supported properties and additional information:
+The configuration file contains all necessary information to run your test suite. It is a node module that exports a JSON. Here is an example configuration with all supported properties and additional information:
 
 ```js
 exports.config = {
@@ -37,11 +36,6 @@ exports.config = {
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
-    //
-    // If you are using Sauce Labs, WebdriverIO takes care to update the job information
-    // once the test is done. This option is set to `true` per default.
-    //
-    updateJob: true,
     //
     // ==================
     // Specify Test Files
@@ -156,7 +150,7 @@ exports.config = {
     // Test reporter for stdout.
     // The following are supported: dot (default), spec and xunit
     // see also: http://webdriver.io/guide/testrunner/reporters.html
-    reporters: ['junit'],
+    reporters: ['dot', 'allure'],
     //
     // Some reporter require additional information which should get defined here
     reporterOptions: {
@@ -173,6 +167,7 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
+    // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
@@ -191,6 +186,7 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify where your step definitions are located.
+    // See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
@@ -202,7 +198,6 @@ exports.config = {
         snippets: true,     // <boolean> hide step definition snippets for pending steps
         source: true,       // <boolean> hide source URIs
         profile: [],        // <string[]> (name) specify the profile to use
-        require: [],        // <string[]> (file/dir) require files before executing features
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000      // <number> timeout for step definitions
@@ -286,4 +281,4 @@ exports.config = {
 };
 ```
 
-You can also find that file in the [example folder](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).
+You can also find that file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).

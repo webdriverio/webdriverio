@@ -24,11 +24,6 @@ exports.config = {
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
-    // If you are using Sauce Labs, WebdriverIO takes care to update the job information
-    // once the test is done. This option is set to `true` per default.
-    //
-    updateJob: true,
-    //
     // ==================
     // Specify Test Files
     // ==================
@@ -143,7 +138,7 @@ exports.config = {
     // Test reporter for stdout.
     // The following are supported: dot (default), spec, and xunit
     // see also: http://webdriver.io/guide/testrunner/reporters.html
-    reporters: ['junit'],
+    reporters: ['dot', 'allure'],
     //
     // Some reporters require additional information which should get defined here
     reporterOptions: {
@@ -160,6 +155,7 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
+    // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
@@ -178,6 +174,7 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
+    // See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
