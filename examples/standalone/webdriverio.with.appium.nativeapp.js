@@ -1,13 +1,9 @@
-var chai = require('chai');
-var expect = chai.expect;
 var webdriverio = require('webdriverio');
 
-
 var options = {
-    waitforTimeout: 5000,
     desiredCapabilities: {
     	platformName: 'android',                        // operating system
-        app: 'net.myandroidapp.test.uniapp',            // bundle id of the app
+        app: 'net.myandroidapp.test.appxyz',            // bundle id of the app
         appActivity: 'MainActivity',                    // app activity, which should be started
         avdReadyTimeout: '1000',                        // waiting time for the app to start
         udid: 'asdfasdfasdf',                           // udid of the android device
@@ -17,25 +13,22 @@ var options = {
     port: 4723                                          // port for appium
 };
 
-var client;
+var client = webdriverio.remote(options);
 
-describe('Simple cases', function() {
-      this.timeout(300000);
-      before(function(done) {
-          client = webdriverio.remote(options);
-          client.init(done);
-      });
+describe('Simple cases', function () {
+    this.timeout(300000);
 
-      after(function(done) {
-          client.end(done);
-      });
+    before(function () {
+        return client.init();
+    });
 
+    describe("Test native App", function () {
+        it("test-function", function () {
+            //insert your test here
+        });
+    });
 
-  describe("Test native App", function() {
-          it("test-function", function(done) {
-              //insert your test here
-         	 });
-  });
-
- 
+    after(function() {
+        return client.end();
+    });
 });
