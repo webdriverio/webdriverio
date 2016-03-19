@@ -7,12 +7,10 @@ title: WebdriverIO - Install
 
 # Install
 
-You will need to have [Node.js](http://nodejs.org/) and [NPM](https://www.npmjs.org/) installed on your machine.
-Check out their project websites for more instructions. If you want to have WebdriverIO integrated into your test
-suite, then install it locally with:
+You will need to have [Node.js](http://nodejs.org/) and [NPM](https://www.npmjs.org/) installed on your machine. Check out their project websites for more instructions. If you want to have WebdriverIO integrated into your test suite, then install it locally with:
 
 ```sh
-$ npm install webdriverio
+$ npm install webdriverio --save-dev
 ```
 
 The test runner is called `wdio` and should be available after the install was successful:

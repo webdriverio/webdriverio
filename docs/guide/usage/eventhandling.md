@@ -16,7 +16,7 @@ WebdriverIO events.
 ## Examples
 
 ```js
-client.on('error', function(e) {
+browser.on('error', function(e) {
     // will be executed everytime an error occured
     // e.g. when element couldn't be found
     console.log(e.body.value.class);   // -> "org.openqa.selenium.NoSuchElementException"
@@ -25,8 +25,9 @@ client.on('error', function(e) {
 ```
 
 Use the `log()` event to log arbitrary data, which can then be logged or displayed by a reporter:
+
 ```js
-client
+browser
     .init()
     .emit('log', 'Before my method')
     .click('h2.subheading a')
@@ -38,8 +39,8 @@ All commands are chainable, so you can use them while chaining your commands
 
 ```js
 var cnt;
-&nbsp;
-client
+ 
+browser
     .init()
     .once('countme', function(e) {
         console.log(e.elements.length, 'elements were found');
@@ -50,3 +51,5 @@ client
     .emit('countme', cnt)
     .end();
 ```
+
+Note that you can't execute any WebdriverIO commands or any other async operation within the listener function. Event handling comes handy when you want to log certain information but is not considered to be used to do action on certain events like taking a screenshot if an error happens. For use the `onError` hook in your wdio test runner configuration file.

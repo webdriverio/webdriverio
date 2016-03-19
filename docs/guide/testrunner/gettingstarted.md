@@ -8,31 +8,27 @@ title: WebdriverIO - Test Runner
 Getting Started
 ===============
 
-Since `v3` WebdriverIO comes with its own test runner to help you getting started with integration testing
-as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the
-past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficient as
-possible.
+WebdriverIO comes with its own test runner to help you getting started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficient as possible.
 
-First check out the [Install](/guide/getstarted/install.html) section to make sure you
-have the runner properly installed. Type the following command in your terminal to test it:
+To see the command line interface help just type the following command in your terminal:
 
 ```txt
-$ wdio --help
-&nbsp;
+$ ./node_modules/.bin/wdio --help
+
 WebdriverIO CLI runner
-&nbsp;
+
 Usage: wdio [options] [configFile]
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
-&nbsp;
+
 Options:
   --help, -h            prints WebdriverIO help menu
   --version, -v         prints WebdriverIO version
   --host                selenium server host address
   --port                selenium server port
+  --path                Selenium server path (default: /wd/hub)
   --user, -u            username if using a cloud service as Selenium backend
   --key, -k             corresponding access key to the user
-  --updateJob           if true update job properties for Sauce Labs job (default: true)
   --logLevel, -l        Level of test output verbosity
   --coloredLogs, -c     if true enables colors for log output (default: true)
   --screenshotPath, -s  saves a screenshot to a given path if a command failes
@@ -40,15 +36,16 @@ Options:
   --waitforTimeout, -w  Default timeout for all wait commands
   --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)
   --reporters, -r        reporters to print out the results on stdout
+  --suite               overwrites the specs attribute and runs the defined suite                     
+  --cucumberOpts.*      Jasmine options, see the full list options at https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
+  --jasmineOpts.*       Jasmine options, see the full list options at https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
+  --mochaOpts.*         Mocha options, see the full list options at http://mochajs.org
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities and
-settings are set. Switch over to the [Configuration File](/guide/testrunner/configurationfile.html) section
-to find out how that file should look like. With the `wdio` configuration helper it is super easy to
-generate your config file. Just run:
+Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](/guide/testrunner/configurationfile.html) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
 
 ```sh
-$ wdio config
+$ ./node_modules/.bin/wdio config
 ```
 
 and it launches the helper utility. It will ask you questions depending on the answers you give. This way
@@ -62,17 +59,7 @@ Once you have your configuration file set up you can start your
 integration tests by calling:
 
 ```sh
-$ wdio wdio.conf.js
+$ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
 That's it! Now, you can access to the selenium instance via global variable `browser`.
-
-## Organizing tests
-
-Since automation testing can be relatively time-intensive, it's important to plan how to organize your tests. It is possible to organize your tests by creating multiple configuration files: each file can define a different list of "specs" directories.
-
-Additionally, Mocha's "grep" option is exposed to the `--mochaOpts` option, so you can use it to perform pattern matching on your test descriptions:
-
-```sh
-wdio wdio.conf.js --mochaOpts.grep "search term here"
-```
