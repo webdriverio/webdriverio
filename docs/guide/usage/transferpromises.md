@@ -8,48 +8,34 @@ title: WebdriverIO - Transfer Promises
 Transfer Promises
 =================
 
-Since `v3` of WebdriverIO every command represents a promise. This allows us to introduce some neat
-testing features when adding promised based assertion libraries like [chai-as-promised](https://github.com/domenic/chai-as-promised/).
+Per default the wdio testrunner transforms all commands to act like real synchronous commands. This way you don't need to deal with promises in any way. However if you don't use the wdio test runner you or have this behavior disabled you can use neat features of promises to write expressive tests with promised based assertion libraries like [chai-as-promised](https://github.com/domenic/chai-as-promised/).
 
 ```js
-it('should contain a certain text after clicking', function() {
-    return client
-        .click('button=Send')
-        .isVisible('#status_message').then(function(isVisible) {
-            assert.ok(isVisible, 'status message is not visible');
-        })
-        .getText('#status_message').then(function(message) {
-            assert.ok(message === 'Message sent!', 'wrong status message');
-        });
+var client = require('webdriverio').remote({
+    desiredCapabilities: {
+        browserName: 'chrome'
+    }
+});
+ 
+var chai = require('chai');
+var chaiAsPromised = require('chai-as-promised');
+
+chai.Should();
+chai.use(chaiAsPromised);
+chaiAsPromised.transferPromiseness = client.transferPromiseness;
+ 
+describe('my app', function() {
+    before(function () {
+        return client.init();
+    });
+ 
+    it('should contain a certain text after clicking', function() {
+        return client
+            .click('button=Send')
+            .isVisible('#status_message').should.eventually.be.true
+            .getText('#status_message').should.eventually.be.equal('Message sent!');
+    });
 });
 ```
 
-The example above shows a simple integration test where a user clicks on a "Send" button and a message
-gets sent. The test checks if a status message gets displayed with a certain text. This already looks
-pretty straightforward but by adding an assertion library like [chai-as-promised](https://github.com/domenic/chai-as-promised/)
-we can shorten everything even more.
-
-```js
-before(function() {
-    var chai = require('chai');
-    var chaiAsPromised = require('chai-as-promised');
-&nbsp;
-    chai.Should();
-    chai.use(chaiAsPromised);
-    chaiAsPromised.transferPromiseness = client.transferPromiseness;
-});
-```
-
-Put this somewhere in your test setup (e.g. the before or onPrepare hook). It initialises [Chai](http://chaijs.com/)
-as assertion library and hooks up WebdriverIO with [chai-as-promised](https://github.com/domenic/chai-as-promised/)
-by setting the `transferPromiseness` function to the internal one of WebdriverIO. This allows us to write
-super simple assertions like:
-
-```js
-it('should contain a certain text after clicking', function() {
-    return client
-        .click('button=Send')
-        .isVisible('#status_message').should.eventually.be.true
-        .getText('#status_message').should.eventually.be.equal('Message sent!');
-});
-```
+The example above shows a simple integration test where a user clicks on a "Send" button and a message gets sent. The test checks if a status message gets displayed with a certain text. By setting the `transferPromiseness` function to the internal correspondent of WebdriverIO you can start chaining assertions together with commands.

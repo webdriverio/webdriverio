@@ -44,7 +44,7 @@ client.addCommand("getUrlAndTitle", function async () {
 });
 ```
 
-If you use external libraries that support promises, a nice approach to easy integrate them is to wrap certain API methods within a custom commands:
+If you use external libraries (e.g. to do database calls) that support promises, a nice approach to easy integrate them is to wrap certain API methods within a custom commands:
 
 ```js
 browser.customCommand('doExternalJob', function async (params) {
@@ -56,9 +56,9 @@ Then just use it in your wdio test specs synchronously:
 
 ```js
 it('execute external library in a sync way', function() {
-    browser.url("...");
+    browser.url('...');
     browser.doExternalJob('someParam');
-    console.log(browser.getTitle(); // returns some title
+    console.log(browser.getTitle()); // returns some title
 });
 ```
 
