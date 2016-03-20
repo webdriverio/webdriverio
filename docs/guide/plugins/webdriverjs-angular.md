@@ -1,5 +1,5 @@
 name: webdriverjs-angular
-category: plugins
+# category: plugins
 tags: guide
 title: WebdriverIO - webdriverjs-angular
 ---
