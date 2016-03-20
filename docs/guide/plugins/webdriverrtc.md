@@ -1,5 +1,5 @@
 name: webdriverrtc
-category: plugins
+# category: plugins
 tags: guide
 title: WebdriverRTC
 ---

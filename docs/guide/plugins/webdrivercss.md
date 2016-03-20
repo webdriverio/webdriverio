@@ -1,5 +1,5 @@
 name: webdrivercss
-category: plugins
+# category: plugins
 tags: guide
 title: WebdriverIO - WebdriverCSS
 ----

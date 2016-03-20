@@ -1,5 +1,5 @@
 name: browserevent
-category: plugins
+# category: plugins
 tags: guide
 title: WebdriverIO - Browserevent
 ---

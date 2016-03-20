@@ -1,5 +1,5 @@
 name: grunt-webdriver
-category: plugins
+# category: plugins
 tags: guide
 title: WebdriverIO - grunt-webdriver
 ---
