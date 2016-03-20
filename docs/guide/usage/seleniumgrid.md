@@ -13,7 +13,6 @@ As well as JSONWire protocol bindings, Webdriverio also offers a few utility com
 ```js
 client.getGridNodeDetails().then(function(details) {
      console.log(details);
-&nbsp;
      /**
       * returns:
       *
