@@ -10,6 +10,12 @@ Sauce Service
 
 This service helps to integrate WebdriverIO and its WDIO testrunner with the [Sauce Labs](https://saucelabs.com/) service. It automatically sets the job status for you and updates all important job properties like job name, tags, availability or custom data. Having [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect) integrated you only need some minor tweaks to your configuration to run all your tests through a secure tunnel.
 
+As stated above this service helps you to better integrate your tests with the Sauce service. One good example to show this are job annotations. These are special commands that annotate a job at a certain point of time to make it easy to find that point on the job details page.
+
+![Job Annotations](http://www.christian-bromann.com/a.png "Job Annotations")
+
+This images shows the command list on Sauce Labs job details page running [this Cucumber test](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio/runner-specs/cucumber/features/my-feature.feature). The service creates automatically job annotations to help you find commands that caused failing the test quickly.
+
 ## Installation
 
 In order to use the service you need to download it from NPM:
