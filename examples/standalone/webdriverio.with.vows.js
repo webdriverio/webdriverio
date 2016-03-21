@@ -1,6 +1,6 @@
 var vows = require('vows'),
     assert = require('assert'),
-    webdriverio = require('../../index');
+    webdriverio = require('../../build');
 
 var client;
 
@@ -11,19 +11,25 @@ vows.describe('my github tests').addBatch({
 
         topic: function () {
             client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
-            client.init(this.callback);
+            client.init()
+                .then(this.callback.bind(this, null))
+                .catch(this.callback.bind(this))
         },
 
         'starting webdriverio successfully': {
 
             topic: function () {
-                client.url('https://github.com/', this.callback);
+                client.url('https://github.com/')
+                    .then(this.callback.bind(this, null))
+                    .catch(this.callback.bind(this))
             },
 
             'check logo dimension': {
 
                 topic: function () {
-                    client.getElementSize('.header-logo-wordmark', this.callback);
+                    client.getElementSize('.header-logo-wordmark')
+                        .then(this.callback.bind(this, null))
+                        .catch(this.callback.bind(this));
                 },
 
                 'getElementSize() should cause no error': function(err) {
@@ -43,7 +49,9 @@ vows.describe('my github tests').addBatch({
             'check title': {
 
                 topic: function() {
-                    client.getTitle(this.callback);
+                    client.getTitle()
+                        .then(this.callback.bind(this, null))
+                        .catch(this.callback.bind(this))
                 },
 
                 'getTitle() should cause no error': function(err) {
@@ -59,7 +67,9 @@ vows.describe('my github tests').addBatch({
             'check color of subheading': {
 
                 topic: function() {
-                    client.getCssProperty('a[href="/plans"]', 'color', this.callback);
+                    client.getCssProperty('a[href="/plans"]', 'color')
+                        .then(this.callback.bind(this, null))
+                        .catch(this.callback.bind(this))
                 },
 
                 'getElementCssProperty() should cause no error': function(err) {
@@ -76,7 +86,9 @@ vows.describe('my github tests').addBatch({
         'end webdriverio': {
 
             topic: function() {
-                client.end(this.callback);
+                client.end()
+                    .then(this.callback.bind(this, null))
+                    .catch(this.callback.bind(this))
             },
 
             'should end successfully': function(err) {

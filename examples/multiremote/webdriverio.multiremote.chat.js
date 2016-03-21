@@ -7,7 +7,7 @@
  * $ mocha -t 9999999 examples/webdriverio.multiremote.chat.js
  */
 
-var WebdriverIO = require('../../'),
+var WebdriverIO = require('../../build'),
     matrix = WebdriverIO.multiremote({
         browserA: { desiredCapabilities: { browserName: 'chrome' } },
         browserB: { desiredCapabilities: { browserName: 'chrome' } }

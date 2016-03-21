@@ -1,6 +1,6 @@
 /* http://thenostalgiamachine.com/ */
 
-var webdriverio = require('../../index');
+var webdriverio = require('../../build/index');
 
 var options = {
     desiredCapabilities: {
@@ -8,8 +8,9 @@ var options = {
     }
 };
 
-webdriverio
-    .remote(options)
+var client = webdriverio.remote(options);
+
+client
     .init()
     .url('http://thenostalgiamachine.com/')
     .pause(2000)

@@ -1,4 +1,4 @@
-var webdriverio = require('../../index'),
+var webdriverio = require('../../build'),
     assert      = require('assert');
 
 describe('my webdriverio tests', function(){
@@ -14,17 +14,14 @@ describe('my webdriverio tests', function(){
     it('Github test',function(done) {
         client
             .url('https://github.com/')
-            .getElementSize('.header-logo-wordmark', function(err, result) {
-                assert(err === undefined);
+            .getElementSize('.header-logo-wordmark').then(function (result) {
                 assert(result.height === 26);
                 assert(result.width  === 89);
             })
-            .getTitle(function(err, title) {
-                assert(err === undefined);
+            .getTitle().then(function (title) {
                 assert(title === 'GitHub · Where software is built');
             })
-            .getCssProperty('a[href="/plans"]', 'color', function(err, result){
-                assert(err === undefined);
+            .getCssProperty('a[href="/plans"]', 'color').then(function (result) {
                 assert(result.value === 'rgba(64,120,192,1)');
             })
             .call(done);

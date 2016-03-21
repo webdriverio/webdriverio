@@ -1,4 +1,4 @@
-var webdriverio = require('../../index'),
+var webdriverio = require('../../build/index'),
     client = webdriverio.remote({
         desiredCapabilities: {
             browserName: 'chrome',
@@ -7,7 +7,7 @@ var webdriverio = require('../../index'),
             tags: ['examples'],
             name: 'This is an example test',
 
-            // If using Open Sauce (https://saucelabs.com/opensauce/), 
+            // If using Open Sauce (https://saucelabs.com/opensauce/),
             // capabilities must be tagged as "public" for the jobs's status
             // to update (failed/passed). If omitted on Open Sauce, the job's
             // status will only be marked "Finished." This property can be

@@ -1,4 +1,4 @@
-var webdriverio = require('../../index'),
+var webdriverio = require('../../build/index'),
     client = webdriverio.remote({
         desiredCapabilities: {
             browserName: 'chrome',

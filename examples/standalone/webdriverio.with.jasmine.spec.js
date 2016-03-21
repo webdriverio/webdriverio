@@ -15,7 +15,7 @@
  *
  */
 
-var webdriverio = require('../../index');
+var webdriverio = require('../../build');
 
 describe('my webdriverio tests', function() {
 
@@ -30,17 +30,14 @@ describe('my webdriverio tests', function() {
     it('test it', function(done) {
         client
             .url('https://github.com/')
-            .getElementSize('.header-logo-wordmark', function(err, result) {
-                expect(err).toBeFalsy();
+            .getElementSize('.header-logo-wordmark').then(function (result) {
                 expect(result.height).toBe(26);
                 expect(result.width).toBe(89);
             })
-            .getTitle(function(err, title) {
-                expect(err).toBeFalsy();
+            .getTitle().then(function (title) {
                 expect(title).toBe('GitHub · Where software is built');
             })
-            .getCssProperty('a[href="/plans"]', 'color', function(err, color){
-                expect(err).toBeFalsy();
+            .getCssProperty('a[href="/plans"]', 'color').then(function (color) {
                 expect(color).toBe('rgba(64,120,192,1)');
             })
             .call(done);

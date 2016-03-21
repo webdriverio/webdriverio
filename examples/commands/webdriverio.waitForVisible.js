@@ -1,4 +1,4 @@
-var webdriverio = require('../../index');
+var webdriverio = require('../../build/index');
 
 var options = {
     desiredCapabilities: {
@@ -6,8 +6,9 @@ var options = {
     }
 };
 
-webdriverio
-    .remote(options)
+var client = webdriverio.remote(options);
+
+client
     .init()
     .url('http://www.google.com/')
     .waitForVisible('//input[@type="submit"]', 5000)
