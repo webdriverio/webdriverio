@@ -30,7 +30,7 @@ client
     .end();
 ```
 
-Using WebdriverIO in standalone mode allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples of that are [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/). You can also write plain Node scripts to scrap the World Wide Web for content or anything else where a running browser is required.
+Using WebdriverIO in standalone mode allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples of that are [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/). You can also write plain Node scripts to scrape the World Wide Web for content or anything else where a running browser is required.
 
 ### The WDIO Testrunner
 
