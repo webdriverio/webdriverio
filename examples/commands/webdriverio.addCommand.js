@@ -1,4 +1,4 @@
-var webdriverio = require('../../index');
+var webdriverio = require('../../build/index');
 var helper = require('./webdriverio.externalAddCommandHelper');
 
 var options = {

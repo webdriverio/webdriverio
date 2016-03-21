@@ -1,6 +1,6 @@
 var buster = require('buster'),
     assert = buster.referee.assert,
-    webdriverio = require('../../index'),
+    webdriverio = require('../../build'),
     client;
 
 buster.testCase('Nested setup and teardown call order', {
@@ -14,16 +14,15 @@ buster.testCase('Nested setup and teardown call order', {
     'test it': function (done) {
         client
             .url('http://github.com/')
-            .getElementSize('.header-logo-wordmark', function(err, result) {
-                assert(err === undefined);
+            .getElementSize('.header-logo-wordmark').then(function (result) {
                 assert(result.height === 26);
                 assert(result.width  === 89);
             })
-            .getTitle(function(err, title) {
+            .getTitle().then(function (title) {
                 assert(err === undefined);
                 assert(title === 'GitHub · Where software is built');
             })
-            .getCssProperty('a[href="/plans"]', 'color', function(err, result){
+            .getCssProperty('a[href="/plans"]', 'color').then(function (result) {
                 assert(err === undefined);
                 assert(result.value === 'rgba(64,120,192,1)');
             })

@@ -1,4 +1,4 @@
-var WebdriverIO = require('../../'),
+var WebdriverIO = require('../../build'),
     matrix = WebdriverIO.multiremote({
         browserA: {
             desiredCapabilities: {
@@ -24,7 +24,7 @@ var WebdriverIO = require('../../'),
         }
     });
 
-var channel = Math.round(Math.random() * 100000000000);
+var channel = Math.round(Math.random() * 10e10);
 
 matrix
     .init()
