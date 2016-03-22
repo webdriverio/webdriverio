@@ -19,4 +19,9 @@ describe('remote method', () => {
         var client = remote({ path: startPath })
         client.requestHandler.startPath.should.be.equal(startPath)
     })
+
+    it('should not force firefox if browserName cap is an empty string', () => {
+        var client = remote({ desiredCapabilities: { browserName: '', app: 'xyz' } })
+        client.desiredCapabilities.browserName.should.be.equal('')
+    })
 })
