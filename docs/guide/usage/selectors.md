@@ -24,7 +24,6 @@ For example:
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
-<br>
 ```js
 browser.getText('=WebdriverIO').then(function(text) {
     console.log(text); // outputs: "WebdriverIO"
@@ -39,7 +38,6 @@ in front of the query string (e.g. `*=driver`)
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
-<br>
 ```js
 browser.getText('*=driver').then(function(text) {
     console.log(text); // outputs: "WebdriverIO"
@@ -53,7 +51,6 @@ The same technique can be applied to elements as well, e.g. query a level 1 head
 ```html
 <h1>Welcome to my Page</h1>
 ```
-<br>
 ```js
 browser.getText('h1=Welcome to my Page').then(function(text) {
     console.log(text); // outputs: "Welcome to my Page"
@@ -73,7 +70,6 @@ The same works for ids and class names:
 ```html
 <div class="someElem" id="elem">WebdriverIO is the best</a>
 ```
-<br>
 ```js
 browser.getText('.someElem=WebdriverIO is the best').then(function(text) {
     console.log(text); // outputs: "WebdriverIO is the best"

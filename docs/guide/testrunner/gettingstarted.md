@@ -35,7 +35,7 @@ Options:
   --baseUrl, -b         shorten url command calls by setting a base url
   --waitforTimeout, -w  Default timeout for all wait commands
   --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)
-  --reporters, -r        reporters to print out the results on stdout
+  --reporters, -r       reporters to print out the results on stdout
   --suite               overwrites the specs attribute and runs the defined suite
   --cucumberOpts.*      Cucumber options, see the full list options at https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
   --jasmineOpts.*       Jasmine options, see the full list options at https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
