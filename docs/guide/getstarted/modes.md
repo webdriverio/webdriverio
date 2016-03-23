@@ -1,7 +1,7 @@
 name: standalone-vs-wdio
 category: getstarted
 tags: guide
-index: 0
+index: 2
 title: WebdriverIO - How to use WebdriverIO
 ---
 
