@@ -22,7 +22,7 @@ a test!
 1. Download and install the latest Selenium [standalone server](http://selenium-release.storage.googleapis.com/index.html) and run it via
 
   ```sh
-  $ java -jar selenium-server-standalone-2.41.0.jar
+  $ java -jar selenium-server-standalone-2.53.0.jar
   ```
 
   or install it with npm package [selenium-standalone](https://github.com/vvo/selenium-standalone)
@@ -52,13 +52,23 @@ a test!
   # if your patch is functional and hasn't something to do with Selenium
   # (e.g. library specific fixes like changes within EventHandler.js)
   grunt test:functional
+
+  # changes to multibrowser functionality
+  # (e.g. actually only changes to /lib/multibrowser.js)
+  grunt test:functional
+
+  # wdio test runner changes
+  # (e.g. any changes that reflect the behavor of the test runner e.g. in lib/launcher.js)
+  grunt test:wdio
+
+  # anything else unittestable
+  # (e.g. changes to utils and classes)
+  grunt test:unit
   ```
 
 ### Syntax rules
 
-At this point you're waiting on us. We like to at least comment on, if not
-accept, pull requests within three business days (and, typically, one business
-day). We may suggest some changes or improvements or alternatives.
+At this point you're waiting on us. We like to at least comment on, if not accept, pull requests within three business days (and, typically, one business day). We may suggest some changes or improvements or alternatives.
 
 Please pay attention on the following syntax rules:
 
@@ -74,16 +84,13 @@ And in case we didn't emphasize it enough: we love tests!
 
 ## Documentation
 
-For convenience and ease of maintenance, our project's documentation pages are generated partly from markdown files in
-the `docs/` directory and partly from comments in the source code.  
+For convenience and ease of maintenance, our project's documentation pages are generated partly from markdown files in the `docs/` directory and partly from comments in the source code.  
 
 As with code contributions, your first step should be to fork the repo.
 
 ### Markdown Pages
 
-Pages in the `docs/` directory follow a common markdown syntax.  In lieu of detailed definitions of this syntax, it's
-easiest to imitate the format in the existing pages.  Some page attributes can be defined in a YAML block at the
-beginning of each document, terminated with three or more dashes (i.e. a horizontal line in markdown), for example:
+Pages in the `docs/` directory follow a common markdown syntax.  In lieu of detailed definitions of this syntax, it's easiest to imitate the format in the existing pages.  Some page attributes can be defined in a YAML block at the beginning of each document, terminated with three or more dashes (i.e. a horizontal line in markdown), for example:
 
 ```
 layout: guide
@@ -94,14 +101,7 @@ title: WebdriverIO - Developer Guide
 
 ### API Methods
 
-The source code for various API methods is located in the `lib/` folder.  To find the source of any API method listed
-on http://webdriver.io/api.html, you can find the corresponding `.js` file.  For example the
-[dragAndDrop](http://webdriver.io/api/action/dragAndDrop.html) method is defined in the `lib/commands/dragAndDrop.js`
-file.  The documentation for each method is generated from documentation blocks in each file.  The syntax relies on
-block-level comments (e.g. `/** multi-line comment */`, comment-tags for the parameters
-(e.g. `@param {String=} windowHandle the window to change focus to`), and code samples contained in example tags,
-(e.g. `<example>...</example>`).  As with the markdown pages, it's easiest to imitate the format of the existing
-documents.  For example:
+The source code for various API methods is located in the `lib/` folder.  To find the source of any API method listed on http://webdriver.io/api.html, you can find the corresponding `.js` file.  For example the [dragAndDrop](http://webdriver.io/api/action/dragAndDrop.html) method is defined in the `lib/commands/dragAndDrop.js` file.  The documentation for each method is generated from documentation blocks in each file.  The syntax relies on block-level comments (e.g. `/** multi-line comment */`, comment-tags for the parameters (e.g. `@param {String=} windowHandle the window to change focus to`), and code samples contained in example tags, (e.g. `<example>...</example>`).  As with the markdown pages, it's easiest to imitate the format of the existing documents.  For example:
 
 ```md
 /**
@@ -133,14 +133,11 @@ Here's a quick cheat-sheet:
 
 2. **Examples:** The `<example>` block omits asterisks (`*`) -- see above example.
 
-3. **File Names:** For examples that reference multiple files, infer the file name in the `<example>` block by prefixing
-its name with a colon.  See `:index.html` and `:getTagName.js` in the above example.
+3. **File Names:** For examples that reference multiple files, infer the file name in the `<example>` block by prefixing its name with a colon.  See `:index.html` and `:getTagName.js` in the above example.
 
-4. **Parameters:** Parameters should type-hint using curly braces, e.g. `{String}` or `{Number}` and may include default
-arguments following and equals sign, e.g. `{Number=42}`
+4. **Parameters:** Parameters should type-hint using curly braces, e.g. `{String}` or `{Number}` and may include default arguments following and equals sign, e.g. `{Number=42}`
 
-5. **Type:** The `@type` attribute corresponds to the sections on the API page.  Currently in use are `action`, `appium`,
-`cookie`, `mobile`, `property`, `protocol`, `state`, `utility`, `window`.  You probably will not ever need to change this.
+5. **Type:** The `@type` attribute corresponds to the sections on the API page.  Currently in use are `action`, `appium`, `cookie`, `mobile`, `property`, `protocol`, `state`, `utility`, `window`.  You probably will not ever need to change this.
 
 6. **Returns:** Identifies the data type returned and a short description.
 
