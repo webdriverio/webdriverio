@@ -78,6 +78,7 @@ describe('webdriver.io page', function() {
     </article>
 </div>
 
+<a href="/guide.html" class="button getstarted">Get Started</a>
 <div class="testimonials"></div>
 
 <div style="overflow: hidden">
