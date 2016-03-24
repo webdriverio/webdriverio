@@ -9,9 +9,7 @@ We love pull requests. Here's a quick guide:
 2. Run the tests. We only take pull requests with passing tests, and it's great
 to know that you have a clean state.
 
-3. Add a test for your change. Only refactoring and documentation changes
-require no new tests. If you are adding functionality or fixing a bug, we need
-a test!
+3. Add a test for your change. Only refactoring and documentation changes require no new tests. If you are adding functionality or fixing a bug, we need a test!
 
 4. Make the test pass.
 
@@ -103,7 +101,7 @@ title: WebdriverIO - Developer Guide
 
 The source code for various API methods is located in the `lib/` folder.  To find the source of any API method listed on http://webdriver.io/api.html, you can find the corresponding `.js` file.  For example the [dragAndDrop](http://webdriver.io/api/action/dragAndDrop.html) method is defined in the `lib/commands/dragAndDrop.js` file.  The documentation for each method is generated from documentation blocks in each file.  The syntax relies on block-level comments (e.g. `/** multi-line comment */`, comment-tags for the parameters (e.g. `@param {String=} windowHandle the window to change focus to`), and code samples contained in example tags, (e.g. `<example>...</example>`).  As with the markdown pages, it's easiest to imitate the format of the existing documents.  For example:
 
-```md
+```js
 /**
  *
  * Get tag name of a DOM-element found by given selector.
