@@ -11,7 +11,7 @@ JUnit Reporter
 The JUnit reporter helps you to create sophisticated reports for your CI server. To use it just install it from NPM:
 
 ```js
-$ npm install wdio-dot-reporter --save-dev
+$ npm install wdio-junit-reporter --save-dev
 ```
 
 Then add it to the `reportes` array in your wdio.conf.js and define the directory where the xml files should get stored:
