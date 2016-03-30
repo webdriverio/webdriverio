@@ -1,4 +1,4 @@
-name: Cloud Services
+name: cloudservices
 category: usage
 tags: guide
 index: 2

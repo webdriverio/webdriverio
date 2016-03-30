@@ -1,4 +1,4 @@
-name: standalone-vs-wdio
+name: modes
 category: getstarted
 tags: guide
 index: 2

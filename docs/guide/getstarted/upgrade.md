@@ -1,4 +1,4 @@
-name: upgrade version
+name: upgrade
 category: getstarted
 tags: guide
 index: 5
