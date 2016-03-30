@@ -1,4 +1,4 @@
-name: pageobject pattern
+name: pageobjects
 category: testrunner
 tags: guide
 index: 3

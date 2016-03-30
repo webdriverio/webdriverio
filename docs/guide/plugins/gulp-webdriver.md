@@ -1,5 +1,5 @@
 name: gulp-webdriver
-# category: plugins
+category: plugins
 tags: guide
 title: WebdriverIO - gulp-webdriver
 ---

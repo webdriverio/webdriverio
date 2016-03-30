@@ -1,4 +1,4 @@
-name: custom reporter
+name: customreporter
 category: reporters
 tags: guide
 index: 4
