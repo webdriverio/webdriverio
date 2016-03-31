@@ -89,7 +89,7 @@ exports.config = {
     framework: 'mocha',
     //
     // Test reporter for stdout.
-    // The following are supported: dot (default), spec and xunit
+    // The only one supported by default is 'dot'
     // see also: http://webdriver.io/guide/testrunner/reporters.html
     reporters: ['dot'],
 
