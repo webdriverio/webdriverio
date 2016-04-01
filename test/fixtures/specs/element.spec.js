@@ -39,4 +39,38 @@ describe('element as first class citizen', () => {
         expect((new Date().getTime()) - start).to.be.above(1500)
         expect(browser.isExisting('.goAway')).to.be.false
     })
+
+    it('should be able to execute selectBy commands', () => {
+        let element = browser.element('#selectTest')
+        element.selectByVisibleText('seis')
+        expect(element.getValue()).to.be.equal('someValue6')
+        element.selectByAttribute('value', 'someValue1')
+        expect(element.getValue()).to.be.equal('someValue1')
+        element.selectByAttribute('name', 'someName7')
+        expect(element.getValue()).to.be.equal('someValue7')
+        element.selectByIndex(3)
+        expect(element.getValue()).to.be.equal('someValue4')
+        element.selectByValue('someValue1')
+        expect(element.getValue()).to.be.equal('someValue1')
+    })
+
+    it('should work with getHTML', () => {
+        let element = browser.element('.moreNesting section')
+        expect(element.getHTML()).to.be.equal('<section><span>bar</span></section>')
+        expect(element.getHTML(false)).to.be.equal('<span>bar</span>')
+    })
+
+    it('should work with selectorExecute(Async)', () => {
+        let body = browser.element('body')
+        expect(body.selectorExecuteAsync((elems, ...args) => {
+            var cb = args.pop()
+            setTimeout(() => {
+                cb(elems[0].tagName.toLowerCase() + args.join(' '))
+            }, 2000)
+        }, ' was', 'the', 'element')).to.be.equal('body was the element')
+
+        expect(body.selectorExecute((elems, ...args) => {
+            return elems[0].tagName.toLowerCase() + ' ' + args.join(' ').trim()
+        }, 'was', 'the', 'element')).to.be.equal('body was the element')
+    })
 })
