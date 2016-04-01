@@ -3,7 +3,11 @@ var chaiString = require('chai-string')
 var chaiAsPromised = require('chai-as-promised')
 
 exports.config = {
-    specs: [__dirname + '/specs/element.spec.js'],
+    specs: [],
+    suites: {
+        elementAsFirstCitizen: [__dirname + '/specs/element.spec.js'],
+        waitForExist: [__dirname + '/specs/waitForExist.spec.js']
+    },
     capabilities: [{
         browserName: 'phantomjs'
     }],

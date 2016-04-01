@@ -23,12 +23,20 @@ describe('element as first class citizen', () => {
         expect(browser.element('.moreNesting').element('.findme').getText()).to.be.equal('MORE NESTED')
     })
 
-    it('should allow to call waitForExist on elements result', function () {
+    it('should allow to call waitForExist on elements result', () => {
         let element = browser.elements('//div[text()="Sorry, I\'m late!"]')
         let start = new Date().getTime()
         element.waitForExist(10000)
         expect((new Date().getTime()) - start).to.be.above(1500)
         expect(element.getText()).to.be.equal('Sorry, I\'m late!')
         expect(element.getTagName()).to.be.equal('div')
+    })
+
+    it('should allow to call waitForExist reverse on elements result', () => {
+        let element = browser.element('.goAway')
+        let start = new Date().getTime()
+        element.waitForExist(10000, true)
+        expect((new Date().getTime()) - start).to.be.above(1500)
+        expect(browser.isExisting('.goAway')).to.be.false
     })
 })
