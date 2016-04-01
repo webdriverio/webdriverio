@@ -132,7 +132,7 @@ describe('webdriver.io page', function() {
 The last step is to execute the test runner. To do so just run:
 
 ```sh
-$ ./node_modules/.bin/wdio wdio.config.js
+$ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
 Hurray! The test should pass and your can start writing integration tests with WebdriverIO.
