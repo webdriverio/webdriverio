@@ -207,7 +207,7 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // WedriverIO provides a several hooks you can use to interfere the test process in order to enhance
+    // WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
     // it and build services around it. You can either apply a single function to it or an array of
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
