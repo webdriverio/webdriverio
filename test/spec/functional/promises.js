@@ -167,4 +167,14 @@ describe('PromiseHandler', () => {
         return this.client.then(this.client.getTitle).then(
             (title) => title.should.be.equal(conf.testPage.title))
     })
+
+    it.only('should be able to deal with string errors', function () {
+        return this.client.url().then(() => {
+            throw 'stringerror' // eslint-disable-line no-throw-literal
+        }).then(() => {
+            throw new Error('string error wasn\'t translated to a real error')
+        }, (e) => {
+            expect(e).to.be.instanceof(Error)
+        })
+    })
 })
