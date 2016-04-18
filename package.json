@@ -7,7 +7,8 @@
   "contributors": [
     "Dan Jenkins <dan.jenkins@holidayextras.com>",
     "Christian Bromann <mail@christian-bromann.com>",
-    "Vincent Voyer <vincent@zeroload.net>"
+    "Vincent Voyer <vincent@zeroload.net>",
+    "Martin Caruso <caruso.martin@gmail.com>"
   ],
   "repository": {
     "type": "git",
@@ -36,6 +37,7 @@
     "test-desktop": "_ENV=desktop _BROWSER=chrome node ./test/runner.js",
     "test-functional": "_ENV=functional _BROWSER=phantomjs node ./test/runner.js",
     "test-multibrowser": "_ENV=multibrowser node ./test/runner.js",
+    "test-unit": "_ENV=unit node ./test/runner.js",
     "coverage": "./node_modules/.bin/istanbul cover -x \"**/helpers/_*.js\" ./test/runner.js",
     "prepublish": "npm prune"
   },

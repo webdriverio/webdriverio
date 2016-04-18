@@ -6,7 +6,7 @@ var WebdriverIO = require('../index.js'),
     glob = require('glob'),
     merge  = require('deepmerge'),
     env = process.env._ENV,
-    specDir = env.match(/^(functional|multibrowser)$/),
+    specDir = env.match(/^(functional|multibrowser|unit)$/),
     failures = 0,
     client, sessionID, specFiles, specDir, browserA, browserB;
 
