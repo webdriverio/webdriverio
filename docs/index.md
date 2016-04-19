@@ -106,7 +106,7 @@ client
         <h2 class="right-col-heading">WebdriverIO as standalone package</h2>
         <p>
           WebdriverIO was designed to be as flexible and framework agnostic as possible. It
-          can be applied in any context and serves not the purpose of testing.<br>
+          can be applied in any context and serves not only the purpose of testing.<br>
           <br>
           You can use WebdriverIO as scrapper tool to dynamically fetch website data in an
           automated way. You also can integrate WebdriverIO in your own automation library.
