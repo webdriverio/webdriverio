@@ -32,7 +32,8 @@ module.exports = {
 
 WebdriverIO will create for each instance a single report file. The XML will contain all necessary information you need to debug your test:
 
-```xml WDIO.xunit.safari.5_1.osx10_6.64814.xml
+```xml
+<!-- WDIO.xunit.safari.5_1.osx10_6.64814.xml -->
 <testsuites name="safari-osx 10_6-5_1" tests="9" failures="0" errors="0" disabled="0" time="23.385">
   <testsuite name="webdriver.io page should have the right title" tests="3" failures="0" skipped="0" disabled="0" time="17.053" timestamp="Fri Jun 26 2015 14:19:37 GMT+0200 (CEST)" id="1" file="/Users/christianbromann/Sites/projects/webdriverio/DEV/examples/runner-specs/mocha.test.js">
       <testcase name="the good old callback way" disabled="false" time="9.848" id="4" file="/Users/christianbromann/Sites/projects/webdriverio/DEV/examples/runner-specs/mocha.test.js" status="passed">
