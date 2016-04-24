@@ -4,15 +4,15 @@ var webdriverio = require('../../build'),
 describe('my webdriverio tests', function(){
 
     this.timeout(99999999);
-    var client = {};
+    var client;
 
-    before(function(done){
+    before(function(){
             client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
-            client.init(done);
+            return client.init();
     });
 
-    it('Github test',function(done) {
-        client
+    it('Github test',function() {
+        return client
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark').then(function (result) {
                 assert(result.height === 26);
@@ -23,11 +23,10 @@ describe('my webdriverio tests', function(){
             })
             .getCssProperty('a[href="/plans"]', 'color').then(function (result) {
                 assert(result.value === 'rgba(64,120,192,1)');
-            })
-            .call(done);
+            });
     });
 
-    after(function(done) {
-        client.end(done);
+    after(function() {
+        return client.end();
     });
 });
