@@ -1,7 +1,7 @@
 name: jenkins
 category: testrunner
 tags: guide
-index: 6
+index: 7
 title: WebdriverIO - Test Runner Jenkins Integration
 ---
 
