@@ -19,16 +19,16 @@ var webdriverio = require('../../build');
 
 describe('my webdriverio tests', function() {
 
-    var client = {};
+    var client;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 9999999;
 
-    beforeEach(function(done) {
+    beforeEach(function() {
         client = webdriverio.remote({ desiredCapabilities: {browserName: 'phantomjs'} });
-        client.init(done);
+        return client.init();
     });
 
-    it('test it', function(done) {
-        client
+    it('test it', function() {
+        return client
             .url('https://github.com/')
             .getElementSize('.header-logo-wordmark').then(function (result) {
                 expect(result.height).toBe(26);
@@ -39,11 +39,10 @@ describe('my webdriverio tests', function() {
             })
             .getCssProperty('a[href="/plans"]', 'color').then(function (color) {
                 expect(color).toBe('rgba(64,120,192,1)');
-            })
-            .call(done);
+            });
     });
 
     afterEach(function(done) {
-        client.end(done);
+        return client.end(  );
     });
 });

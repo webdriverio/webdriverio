@@ -5,14 +5,14 @@ var buster = require('buster'),
 
 buster.testCase('Nested setup and teardown call order', {
 
-    'setUp': function (done) {
+    'setUp': function () {
         this.timeout = 5000;
         client = webdriverio.remote({ desiredCapabilities: {browserName: 'firefox'} });
-        client.init(done);
+        return client.init();
     },
 
-    'test it': function (done) {
-        client
+    'test it': function () {
+        return client
             .url('http://github.com/')
             .getElementSize('.header-logo-wordmark').then(function (result) {
                 assert(result.height === 26);
@@ -25,11 +25,10 @@ buster.testCase('Nested setup and teardown call order', {
             .getCssProperty('a[href="/plans"]', 'color').then(function (result) {
                 assert(err === undefined);
                 assert(result.value === 'rgba(64,120,192,1)');
-            })
-            .call(done);
+            });
     },
 
-    'tearDown': function(done) {
-        client.end(done);
+    'tearDown': function() {
+        return client.end();
     }
 });
