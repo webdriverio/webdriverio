@@ -1,7 +1,7 @@
 name: pageobjects
 category: testrunner
 tags: guide
-index: 4
+index: 5
 title: WebdriverIO - Page Object Pattern
 ---
 
