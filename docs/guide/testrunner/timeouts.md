@@ -123,7 +123,7 @@ and for Cucumber:
 exports.config = {
     // ...
     framework: 'cucumber',
-    jasmineNodeOpts: {
+    cucumberOpts: {
         timeout: 20000
     },
     // ...
