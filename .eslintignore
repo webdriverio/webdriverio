@@ -1,3 +1,4 @@
 build/
 examples/
 bin/
+./*.js
