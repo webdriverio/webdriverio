@@ -84,7 +84,7 @@
     "nock": "^3.6.0",
     "saucelabs": "^1.0.1",
     "sinon": "^1.17.2",
-    "wdio-mocha-framework": "^0.2.12"
+    "wdio-mocha-framework": "#master"
   },
   "tags": [
     "web",
