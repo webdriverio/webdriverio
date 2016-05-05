@@ -4,8 +4,9 @@ var chaiAsPromised = require('chai-as-promised')
 
 const CUSTOM_COMMANDS = {
     'elementsCount': function async (selector) {
-        return new Promise((resolve, reject) => {
-            this.elements(selector).then((res) => {
+        var self = this
+        return new Promise(function (resolve, reject) {
+            self.elements(selector).then(function (res) {
                 if (!res || res.status === -1) {
                     reject()
                 }
@@ -31,8 +32,9 @@ exports.config = {
         global.assert = chai.assert
         global.expect = chai.expect
 
-        Object.keys(CUSTOM_COMMANDS).forEach((command) =>
-            browser.addCommand(command, CUSTOM_COMMANDS[command]))
+        Object.keys(CUSTOM_COMMANDS).forEach(function (command) {
+            browser.addCommand(command, CUSTOM_COMMANDS[command])
+        })
 
         chaiAsPromised.transferPromiseness = browser.transferPromiseness
     }
