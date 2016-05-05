@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## v4.0.6 (2016-05-04)
+* global changes:
+    * docs improvements
+    * removed shrinkwrap file
+
+* WDIO changes:
+    * fixed bug where onPrepare was called twice and onComplete none (#1197)
+    * allow to set services without having them on NPM (#1198)
+    * enable custom command chaining (#1218)
+    * fixed waitForXXX commands not able to interpret reverse argument (#1209)
+    * better support for element as first citizen
+    * allow modification of capabilities through services
+    * fixed `Unrecognised test [XXX] for suite [YYY]` issue (#1195)
+    * better support for log file names in windows (#1226)
+    * added testingbot service to cli configurator (#1263)
+    * fixed bug where applying user and key as cli argument didn't work (#1264)
+
+## v4.0.5 (2016-03-23)
+* global changes:
+    * added class name selector for ios and android
+    * docs improvements
+
+* multiremote:
+    * fixed capability issue (#1220)
+    * added helper method `getInstances` to get instance names
+
 ## v4.0.4 (2016-02-03)
 * global changes:
     * minimum required node version: v0.12.x
