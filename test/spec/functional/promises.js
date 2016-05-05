@@ -168,7 +168,7 @@ describe('PromiseHandler', () => {
             (title) => title.should.be.equal(conf.testPage.title))
     })
 
-    it.only('should be able to deal with string errors', function () {
+    it('should be able to deal with string errors', function () {
         return this.client.url().then(() => {
             throw 'stringerror' // eslint-disable-line no-throw-literal
         }).then(() => {
