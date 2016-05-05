@@ -84,7 +84,7 @@
     "nock": "^3.6.0",
     "saucelabs": "^1.0.1",
     "sinon": "^1.17.2",
-    "wdio-mocha-framework": "#master"
+    "wdio-mocha-framework": "https://github.com/webdriverio/wdio-mocha-framework.git#v0.2.14"
   },
   "tags": [
     "web",
