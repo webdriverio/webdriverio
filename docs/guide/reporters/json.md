@@ -1,7 +1,7 @@
 name: json
 category: reporters
 tags: guide
-index: 3
+index: 4
 title: WebdriverIO - JSON Reporter
 ---
 
