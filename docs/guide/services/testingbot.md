@@ -1,4 +1,4 @@
-name: TestingBot Service
+name: TestingBot
 category: services
 tags: guide
 index: 1
