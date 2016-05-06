@@ -218,7 +218,7 @@ exports.config = {
     //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
-    before: function (capabilties, specs) {
+    before: function (capabilities, specs) {
     },
     //
     // Hook that gets executed before the suite starts
@@ -257,7 +257,7 @@ exports.config = {
     //
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
-    after: function (capabilties, specs) {
+    after: function (capabilities, specs) {
     },
     //
     // Gets executed after all workers got shut down and the process is about to exit. It is not
