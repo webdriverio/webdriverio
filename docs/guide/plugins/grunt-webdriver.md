@@ -1,4 +1,4 @@
-name: grunt-webdriver
+name: Grunt
 category: plugins
 tags: guide
 title: WebdriverIO - Using WDIO with Grunt
