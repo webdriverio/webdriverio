@@ -1,3 +1,10 @@
+name: json
+category: reporters
+tags: guide
+index: 3
+title: WebdriverIO - JSON Reporter
+---
+
 WDIO JSON Reporter
 ===================
 
@@ -115,7 +122,3 @@ module.exports = {
   ] 
 }
 ```
-
-----
-
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
