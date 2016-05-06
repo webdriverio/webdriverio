@@ -1,12 +1,13 @@
 name: Grunt
 category: plugins
 tags: guide
-title: WebdriverIO - Using WDIO with Grunt
+index: 1
+title: WebdriverIO - WDIO with Grunt
 ---
 
-# Using WDIO with [Grunt](http://gruntjs.com/)
+# WDIO with Grunt
 
-> grunt-webdriver is a grunt plugin to run selenium tests with the [WebdriverIO](http://webdriver.io) testrunner
+`grunt-webdriver` is a [grunt plugin](http://gruntjs.com/) to run selenium tests with the [WebdriverIO](http://webdriver.io) testrunner.
 
 ## Getting Started
 

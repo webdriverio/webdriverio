@@ -1,13 +1,14 @@
 name: Gulp
 category: plugins
 tags: guide
+index: 0
 title: WebdriverIO - gulp-webdriver
 ---
 
-gulp-webdriver [![Build Status](https://travis-ci.org/webdriverio/gulp-webdriver.svg?branch=master)](https://travis-ci.org/webdriverio/gulp-webdriver) [![Join the chat at https://gitter.im/webdriverio/gulp-webdriver](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/webdriverio/gulp-webdriver?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+gulp-webdriver
 ==============
 
-> gulp-webdriver is a gulp plugin to run selenium tests with the [WebdriverIO](http://webdriver.io) testrunner
+`gulp-webdriver` is a [gulp plugin](http://gulpjs.com/) to run selenium tests with the [WebdriverIO](http://webdriver.io) testrunner.
 
 ## Install
 
