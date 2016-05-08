@@ -1,7 +1,7 @@
 name: allure
 category: reporters
 tags: guide
-index: 2
+index: 3
 title: WebdriverIO - Allure Reporter
 ---
 
