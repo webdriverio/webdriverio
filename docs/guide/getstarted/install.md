@@ -28,7 +28,12 @@ server and browser driver separately.
 
 The simplest way to get started is to use one of the NPM selenium standalone
 packages like: [vvo/selenium-standalone](https://github.com/vvo/selenium-standalone). After installing
-it (globally) you can run your server by executing:
+it (globally), install the default driver:
+```sh
+$  selenium-standalone install
+```
+
+and then you can run your server by executing:
 
 ```sh
 $  selenium-standalone start
