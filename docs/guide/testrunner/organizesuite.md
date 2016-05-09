@@ -1,14 +1,14 @@
-name: organize suite
+name: organizing suites
 category: testrunner
 tags: guide
 index: 4
 title: WebdriverIO - Organize Test Suite
 ---
 
-Organize Test Suite
+Organizing Test Suites
 ===================
 
-While your project is growing you will add more and more integration tests. This will increase your build time and will also slow down your productivity. To prevent this you should start to run your tests in parallel. You might have already recognised that WebdriverIO creates for each spec (or feature file in cucumber) a single Selenium session. In general you should try to test a single feature in your app in one spec file. Try to not have too many or too less tests in one file. However there is no golden rule about that.
+While your project is growing you will inevitably add more and more integration tests. This will increase your build time and will also slow down your productivity. To prevent this you should start to run your tests in parallel. You might have already recognised that WebdriverIO creates for each spec (or feature file in cucumber) a single Selenium session. In general, you should try to test a single feature in your app in one spec file. Try to not have too many or too less tests in one file. However, there is no golden rule about that.
 
 Once you get more and more spec files you should start running them concurrently. To do so you can adjust the [`maxInstances`](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L52-L60) property in your config file. WebdriverIO allows you to run your tests with maximum concurrency meaning that no matter how many files and tests you have, they could run all in parallel. Though there are certain limits (computer CPU, concurrency restrictions).
 
@@ -37,7 +37,7 @@ exports.config = {
 
 ## Inherit From Main Config File
 
-If you run your test suite in multiple environments (e.g. dev and integration) it could be helpful to have multiple configuration files to keep them easy manageable. Similar to the [page object concept](/guide/testrunner/pageobjects.html) you first create a main config file. It contains all configuration you share across environments. Then you create for each environment an own file and enhance the information from the main config file with environment specific ones:
+If you run your test suite in multiple environments (e.g. dev and integration) it could be helpful to have multiple configuration files to keep them easy manageable. Similar to the [page object concept](/guide/testrunner/pageobjects.html) you first create a main config file. It contains all configurations you share across environments. Then for each environment you can create a file and supplement the information from the main config file with environment specific ones:
 
 ```js
 // wdio.dev.config.js

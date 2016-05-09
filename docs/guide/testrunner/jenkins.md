@@ -10,7 +10,7 @@ Jenkins Integration
 
 WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org/). With the [junit reporter](https://github.com/webdriverio/wdio-junit-reporter) you can easily debug your tests as well as keep track of your test results. The integration is pretty easy. There is a [demo project](https://github.com/christian-bromann/wdio-demo) we used in this tutorial to demonstrate how to integrate a WebdriverIO testsuite with Jenkins.
 
-First we need to define `junit` as test reporter. Also make sure you have it installed (`$ npm install --save-dev wdio-junit-reporter`) and that we save our xunit results at a place where Jenkins can pick them up. Therefor we define our reporter in our config as follows:
+First we need to define `junit` as test reporter. Also make sure you have it installed (`$ npm install --save-dev wdio-junit-reporter`) and that we save our xunit results at a place where Jenkins can pick them up. Therefore we define our reporter in our config as follows:
 
 ```js
 // wdio.conf.js
