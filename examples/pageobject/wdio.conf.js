@@ -16,7 +16,7 @@ exports.config = {
     // ============
     // Capabilities
     // ============
-    // Define your capabilities here. WebdriverIO can run multiple capabilties at the same
+    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
@@ -114,7 +114,7 @@ exports.config = {
     //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
-    // before: function (capabilties, specs) {
+    // before: function (capabilities, specs) {
     // },
     //
     // Hook that gets executed before the suite starts
@@ -153,7 +153,7 @@ exports.config = {
     //
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
-    // after: function (capabilties, specs) {
+    // after: function (result, capabilities, specs) {
     // },
     //
     // Gets executed after all workers got shut down and the process is about to exit. It is not
