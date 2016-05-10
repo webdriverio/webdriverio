@@ -32,7 +32,16 @@ Instructions on how to install `WebdriverIO` can be found [here.](http://webdriv
 
 ## Configuration
 
-By default, Google Chrome, Firefox and PhantomJS are available when installed on the host system.
+By default, Google Chrome, Firefox and PhantomJS are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
+
+```js
+// wdio.conf.js
+export.config = {
+  // ...
+  services: ['selenium-standalone'],
+  // ...
+};
+```
 
 ## Options
 
