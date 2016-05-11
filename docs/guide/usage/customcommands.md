@@ -44,10 +44,12 @@ client.addCommand("getUrlAndTitle", function async () {
 });
 ```
 
+## Integrate 3rd party libraries
+
 If you use external libraries (e.g. to do database calls) that support promises, a nice approach to easily integrate them is to wrap certain API methods within a custom commands:
 
 ```js
-browser.customCommand('doExternalJob', function async (params) {
+browser.addCommand('doExternalJob', function async (params) {
     return externalLib.command(params);
 });
 ```
