@@ -110,9 +110,11 @@ client
           <br>
           You can use WebdriverIO as scrapper tool to dynamically fetch website data in an
           automated way. You also can integrate WebdriverIO in your own automation library.
-          Popular examples of that are [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
+          Popular examples of that are [Spectron](http://electron.atom.io/spectron/),
+          [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
           <div>
               <p>
+                  <a href="http://electron.atom.io/spectron/" style="margin-right: 15px"><img src="http://electron.atom.io/images/spectron-icon.svg" width="75" /></a>
                   <a href="https://chimp.readme.io/" style="margin-right: 15px"><img src="https://www.filepicker.io/api/file/C4MBXB4jQ6Ld9gII5IkF" /></a>
                   <a href="http://codecept.io/"><img src="http://codecept.io/images/cjs-base.png" width="80" /></a>
               </p>
