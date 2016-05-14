@@ -8,7 +8,7 @@ title: WebdriverIO - Transfer Promises
 Transfer Promises
 =================
 
-Per default the wdio testrunner transforms all commands to act like real synchronous commands. This way you don't need to deal with promises in any way. However if you don't use the wdio test runner you or have this behavior disabled you can use neat features of promises to write expressive tests with promised based assertion libraries like [chai-as-promised](https://github.com/domenic/chai-as-promised/).
+Per default the wdio testrunner transforms all commands to act like real synchronous commands. This way you don't need to deal with promises in any way. However if you don't use the wdio test runner or you have this behavior disabled you can use neat features of promises to write expressive tests with promised based assertion libraries like [chai-as-promised](https://github.com/domenic/chai-as-promised/).
 
 ```js
 var client = require('webdriverio').remote({
