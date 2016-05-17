@@ -19,6 +19,7 @@ import WebdriverIO from './lib/webdriverio'
 import Multibrowser from './lib/multibrowser'
 import ErrorHandler from './lib/utils/ErrorHandler'
 import getImplementedCommands from './lib/helpers/getImplementedCommands'
+import Launcher from './lib/launcher'
 import pkg from './package.json'
 
 const IMPLEMENTED_COMMANDS = getImplementedCommands()
@@ -55,4 +56,4 @@ let multiremote = function (options) {
     return remote(options, multibrowser.getModifier())
 }
 
-export { remote, multiremote, VERSION, ErrorHandler }
+export { remote, multiremote, VERSION, ErrorHandler, Launcher }
