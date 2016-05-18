@@ -76,4 +76,11 @@ describe('ConfigParser', () => {
         config.host.should.be.equal('172.168.0.1')
         config.port.should.be.equal(4445)
     })
+
+    it('should parse beforeSession hook from config file', () => {
+        let configParser = new ConfigParser()
+        configParser.getConfig().beforeSession.should.be.an('array').and.be.empty
+        configParser.addConfigFile(FIXTURES_PATH + '/hooks.wdio.conf.js')
+        configParser.getConfig().beforeSession.should.be.an('array').and.have.a.lengthOf(1)
+    })
 })
