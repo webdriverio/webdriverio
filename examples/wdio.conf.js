@@ -205,6 +205,10 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     //
+    // Gets executed just before initialising webdriver session
+    beforeSession: function (config, capabilities, specs) {
+    },
+    //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables, such as `browser`. It is the perfect place to define custom commands.
     before: function (capabilities, specs) {
