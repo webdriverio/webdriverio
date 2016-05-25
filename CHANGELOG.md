@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v4.0.8 (2016-05-25)
+* global changes:
+    * introduced new error type for waitForXXX timeouts (#1281)
+    * doc improvements (wording/content)
+    * don't set firefox as default browser if mobile capabilities are detected
+    * add offset coords to left/middle/rightclick (#1335)
+* WDIO changes:
+    * export Launcher API to Webdriver object (#1311)
+
 ## v4.0.6 (2016-05-04)
 * global changes:
     * docs improvements
