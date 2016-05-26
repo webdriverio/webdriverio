@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v4.0.9 (2016-05-26)
+* WDIO changes:
+    * enabled debugging by passing argv to child process (thanks @kurtharriger #1345)
+
 ## v4.0.8 (2016-05-25)
 * global changes:
     * introduced new error type for waitForXXX timeouts (#1281)
