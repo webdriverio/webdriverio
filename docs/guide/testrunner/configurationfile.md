@@ -62,6 +62,7 @@ exports.config = {
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
     //
+    //
     // First you can define how many instances should be started at the same time. Let's
     // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
     // set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
@@ -94,6 +95,16 @@ exports.config = {
         ]
     }],
     //
+    // When enabled opens a debug port for node-inspector and pauses execution
+    // on `debugger` statements. The node-inspector can be attached with:
+    // `node-inspector --debug-port 5859 --no-preload`
+    // When debugging it is also recommended to change the timeout interval of
+    // test runner (eg. jasmineNodeOpts.defaultTimeoutInterval) to a very high
+    // value and setting maxInstances to 1.
+    debug: false
+    //
+    // Additional list node arguments to use when starting child processes
+    execArgv: null
     //
     //
     // ===================

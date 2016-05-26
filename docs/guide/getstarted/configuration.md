@@ -109,6 +109,18 @@ Default interval for all waitForXXX commands.
 Type: `Number`<br>
 Default: *250*
 
+## debug
+Enables node debugging
+
+Type: `Boolean`<br>
+Default: *false*
+
+## execArgv
+Node arguments to specify when launching child processes
+
+Type: `Array of String`<br>
+Default: *null*
+
 ## Setup [Babel](https://babeljs.io/) to write tests using next generation JavaScript
 
 There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine test you just need
