@@ -16,7 +16,7 @@ The new version (v4) of WebdriverIO was designed with Page Object Pattern suppor
 
 The goal behind page objects is to abstract any page information away from the actual tests. Ideally you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
 
-First of we need a main page object that we call `Page`. It will contain general selectors or methods all page objects will inherit from. Apart from all other page objects this one is created using the prototype model:
+First off we need a main page object that we call `Page`. It will contain general selectors or methods all page objects will inherit from. Apart from all child page objects `Page` is created using the prototype model:
 
 ```js
 function Page () {
@@ -30,7 +30,7 @@ Page.prototype.open = function (path) {
 module.exports = new Page()
 ```
 
-We will always export an instance of a page object and never create that instance in the test. Since we are writing end to end tests we always see the page as a stateless construct the same way as each http request is a stateless construct. Sure, the browser can carry session information and therefor can display different pages based on different sessions but this shouldn't be reflected within a page object. These state changes should emerge from your actual tests.
+We will always export an instance of a page object and never create that instance in the test. Since we are writing end to end tests we always see the page as a stateless construct the same way as each http request is a stateless construct. Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These state changes should emerge from your actual tests.
 
 Let's start testing the first page. For demo purposes we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com/) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login). First step is to write all important selectors that are required in our `login.page` object as getter functions. As mentioned above we are using the `Object.create` method to inherit the prototype of our main page:
 
@@ -89,7 +89,7 @@ or
 browser.setValue('#username', 'Max Mustermann');
 ```
 
-After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to reuqire it and that's it. The `Object.create` method returns already an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
+After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to reuqire it and that's it. The `Object.create` method returns an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
 
 ```js
 // login.spec.js
