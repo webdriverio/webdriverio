@@ -57,4 +57,4 @@ module.exports = function () {
     // ...
 ```
 
-Reruns can only be defined in your step definitions file and not in your feature file. To use this you have to have the [wdio-cucumber-framework](https://github.com/webdriverio/wdio-cucumber-framework) adapter installed with `v0.2.0` or greater.
+Reruns can only be defined in your step definitions file and not in your feature file. To use this you have to have the [wdio-cucumber-framework](https://github.com/webdriverio/wdio-cucumber-framework) adapter installed with `v0.1.0` or greater.
