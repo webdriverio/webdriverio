@@ -24,4 +24,17 @@ describe('remote method', () => {
         var client = remote({ desiredCapabilities: { browserName: '', app: 'xyz' } })
         client.desiredCapabilities.browserName.should.be.equal('')
     })
+
+    it('should default to firefox if caps are empty', () => {
+        var client = remote({ desiredCapabilities: { } })
+        client.desiredCapabilities.browserName.should.be.equal('firefox')
+    })
+
+    // This allows testing a native Android app via appium using an
+    // already-installed app rather than uploading and installing from an apk.
+    it('should not force firefox when app is undefined but appPackage is not', () => {
+        var client = remote({ desiredCapabilities: {browserName: '', appPackage: 'com.example' } })
+        client.desiredCapabilities.browserName.should.be.equal('')
+    })
+
 })
