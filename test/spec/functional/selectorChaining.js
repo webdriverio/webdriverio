@@ -43,4 +43,16 @@ describe('selectorChaining', () => {
             })
         })
     })
+
+    it('should select cell with element as first citizen approach', function () {
+        return this.client.element('tr').getText('td=2015-03-01').then((text) => {
+            text.should.be.equal('2015-03-01')
+        })
+    })
+
+    it('should not find td in other row', function () {
+        return this.client.element('tr').isExisting('td=2015-03-02').then((isExisting) => {
+            expect(isExisting).to.be.equal(false)
+        })
+    })
 })
