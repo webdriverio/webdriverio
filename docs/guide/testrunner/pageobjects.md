@@ -89,7 +89,7 @@ or
 browser.setValue('#username', 'Max Mustermann');
 ```
 
-After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to reuqire it and that's it. The `Object.create` method returns an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
+After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to require it and that's it. The `Object.create` method returns an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
 
 ```js
 // login.spec.js
