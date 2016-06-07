@@ -89,7 +89,7 @@ __Q: Shall I install the framework adapter for you?__<br>
 A: _Yes_ (just press enter)<br>
 <br>
 __Q: Where are your test specs located?__<br>
-A: _./test/specs/**/*.js_ (just press enter)<br>
+A: _./test/specs/***/*.js_ (just press enter)<br>
 <br>
 __Q: Which reporter do you want to use?__<br>
 A: _dot_ (just press space and enter)<br>
