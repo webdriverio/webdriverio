@@ -14,7 +14,7 @@ The Allure Reporter creates [Allure](http://allure.qatools.ru/) test reports whi
 $ npm install wdio-allure-reporter --save-dev
 ```
 
-Then add `allure` to the `reporters` arry in your wdio.conf.js and define the output directory of the allure reports:
+Then add `allure` to the `reporters` array in your wdio.conf.js and define the output directory of the allure reports:
 
 ```js
 // wdio.conf.js
