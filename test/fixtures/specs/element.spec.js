@@ -73,4 +73,37 @@ describe('element as first class citizen', () => {
             return elems[0].tagName.toLowerCase() + ' ' + args.join(' ').trim()
         }, 'was', 'the', 'element')).to.be.equal('body was the element')
     })
+
+    describe('can be used with waitFor commands without throwing an error while querying it', () => {
+        it('can query an element without throwing an error', () => {
+            let res = browser.element('#notExisting')
+            expect(res.value).to.be.equal(null)
+            expect(res.selector).to.be.equal('#notExisting')
+            expect(res._status).to.be.equal(7)
+        })
+
+        it('can use waitForExist', () => {
+            let elem = browser.element('//div[text()="Sorry, I\'m late!"]')
+            elem.waitForExist(10000)
+        })
+
+        it('can use waitForVisible', () => {
+            let elem = browser.element('//*[contains(@class, "notVisible")]')
+            elem.waitForExist(10000)
+        })
+
+        it('can not use waitForText because it requires and existing element', () => {
+            let elem = browser.element('#notExisting')
+            let error
+
+            try {
+                elem.waitForText(10000)
+            } catch (e) {
+                error = e
+            }
+
+            expect(error).to.be.not.equal(undefined)
+            expect(error.message).to.be.equal(`Promise was rejected with the following reason: Error: An element could not be located on the page using the given search parameters.`)
+        })
+    })
 })
