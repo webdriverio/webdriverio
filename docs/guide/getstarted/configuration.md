@@ -7,7 +7,7 @@ title: WebdriverIO - Configuration
 
 # Configuration
 
-If you create a WebdriverIO instance you need to define couple of options in order to set the proper
+If you create a WebdriverIO instance, you need to define some options in order to set the proper
 capabilities and settings. When calling the `remote` method like:
 
 ```js
@@ -15,7 +15,7 @@ var webdriverio = require('webdriverio');
 var client = webdriverio.remote(options);
 ```
 
-you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if your run WebdriverIO as standalone package. If you are using the wdio test runner these options belong to your `wdio.conf.js` configuration file. These are the options you can define:
+you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if you run WebdriverIO as a standalone package. If you are using the wdio test runner, these options belong in your `wdio.conf.js` configuration file. These are the options you can define:
 
 ### desiredCapabilities
 Defines the capabilities you want to run in your Selenium session. See the [Selenium documentation](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
@@ -41,7 +41,7 @@ pageLoadStrategy: 'eager' // strategy for page load
 
 **Details:**
 
-`pageLoadStrategy` is implemented in Selenium [2.46.0](https://github.com/SeleniumHQ/selenium/blob/master/java/CHANGELOG#L205) and apparently it is only working on Firefox. The valid values are:
+`pageLoadStrategy` is implemented in Selenium [2.46.0](https://github.com/SeleniumHQ/selenium/blob/master/java/CHANGELOG#L205), and apparently, it is only working on Firefox. The valid values are:
 
  `normal` - waits for `document.readyState` to be 'complete'. This value is used by default.
  `eager`  - will abort the wait when `document.readyState` is 'interactive' instead of waiting for 'complete'.
@@ -55,8 +55,8 @@ Default: *silent*<br>
 Options: *verbose* | *silent* | *command* | *data* | *result*
 
 ### logOutput
-Pipe WebdriverIO logs into a file. You can define either a directory and WebdriverIO generates a filename for the log file
-or you can pass in writeable stream and everything gets redirected to that (last one doesn't work yet with the wdio runner).
+Pipe WebdriverIO logs into a file. You can either define a directory, and WebdriverIO generates a filename for the log file
+or you can pass in a writeable stream, and everything gets redirected to that (last one doesn't work yet with the wdio runner).
 
 Type: `String|writeable stream`<br>
 Default: *null*
@@ -80,7 +80,7 @@ Type: `String`<br>
 Default: */wd/hub*
 
 ### baseUrl
-Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/` the base url gets prepended.
+Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/`, the base url gets prepended.
 
 Type: `String`<br>
 Default: *null*
@@ -92,7 +92,7 @@ Type: `Boolean`<br>
 Default: *true*
 
 ### screenshotPath
-Saves a screenshot to a given path if Selenium driver crashes
+Saves a screenshot to a given path if the Selenium driver crashes
 
 Type: `String`|`null`<br>
 Default: *null*
@@ -123,7 +123,7 @@ Default: *null*
 
 ## Setup [Babel](https://babeljs.io/) to write tests using next generation JavaScript
 
-There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine test you just need
+There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need
 to register Babel in the before hook of your config file
 
 ```js
@@ -138,7 +138,7 @@ to register Babel in the before hook of your config file
 
 Make sure to allow generator calls to directly go through since Node >v0.10 has sufficient generator support.
 
-If you run Mocha test you can use Mochas internal compiler to register Babel, e.g.:
+If you run Mocha tests, you can use Mocha's internal compiler to register Babel, e.g.:
 
 ```js
     mochaOpts: {
@@ -159,7 +159,7 @@ For generator support, add a file called `.babelrc` to your project root directo
 ## Setup [TypeScript](http://www.typescriptlang.org/)
 
 Similar to Babel setup, you can register TypeScript to compile your .ts files in your before hook of your config file.
-You will need [ts-node](https://github.com/TypeStrong/ts-node) as devDependency installed.
+You will need [ts-node](https://github.com/TypeStrong/ts-node) as an installed devDependency.
 
 ```js
     before(function() {
