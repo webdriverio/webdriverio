@@ -116,7 +116,7 @@ Android’s UI Automator framework provides a number of ways to find elements. Y
 
 ```js
 var selector = 'new UiSelector().text("Cancel")).className("android.widget.Button")';
-browser.click(selector);
+browser.click('android=' + selector);
 ```
 
 ### iOS UIAutomation
@@ -125,7 +125,7 @@ When automating an iOS application, Apple’s [UI Automation framework](https://
 
 ```js
 var selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
-browser.click(selector);
+browser.click('ios=' + selector);
 ```
 
 You can also use predicate searching within iOS UI Automation in Appium, to control element finding even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios_predicate.md) for details.
