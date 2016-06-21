@@ -90,3 +90,9 @@ If you now want to run a single suite only you can pass the suite name as cli ar
 ```sh
 $ wdio wdio.conf.js --suite login
 ```
+
+or run multiple suites at once
+
+```sh
+$ wdio wdio.conf.js --suite login,otherFeature
+```
