@@ -25,6 +25,41 @@ describe('ConfigParser', () => {
         specs.should.include(path.resolve(FIXTURES_PATH + '/exclude2.conf.js'))
     })
 
+    it('should allow to specify a single suite', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.merge({ suite: 'mobile' })
+        let specs = configParser.getSpecs()
+        specs.should.not.include(path.resolve(__dirname + '/configparser.js'))
+        specs.should.not.include(path.resolve(__dirname + '/pause.js'))
+        specs.should.not.include(path.resolve(__dirname + '/../functional/selectorExecute.js'))
+        specs.should.not.include(path.resolve(__dirname + '/../functional/promises.js'))
+        specs.should.not.include(path.resolve(__dirname + '/../mobile/context.js'))
+        specs.should.include(path.resolve(__dirname + '/../mobile/orientation.js'))
+        specs.should.include(path.resolve(__dirname + '/../mobile/settings.js'))
+    })
+
+    it('should allow to specify multiple suites', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.merge({ suite: 'unit,functional,mobile' })
+        let specs = configParser.getSpecs()
+        specs.should.not.include(path.resolve(__dirname + '/configparser.js'))
+        specs.should.not.include(path.resolve(__dirname + '/../functional/selectorExecute.js'))
+        specs.should.not.include(path.resolve(__dirname + '/../mobile/context.js'))
+        specs.should.include(path.resolve(__dirname + '/network.js'))
+        specs.should.include(path.resolve(__dirname + '/../mobile/orientation.js'))
+        specs.should.include(path.resolve(__dirname + '/../functional/end.js'))
+    })
+
+    it('should run nothing if a wrong suite was defined', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.merge({ suite: 'foo,bar' })
+        let specs = configParser.getSpecs()
+        specs.should.have.length(0)
+    })
+
     it('should include typescript files', () => {
         let configParser = new ConfigParser()
         configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
