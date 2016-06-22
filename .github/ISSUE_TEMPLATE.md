@@ -1,6 +1,6 @@
 ## The problem
 
-Briefly describe the issue you are experiencing (or the feature you want to see added to WebdriverIO). Tell us what you were trying to do and what happened instead. Remember, this is _not_ a place to ask questions. For that, join the Gitter chat romm ([![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge))!
+Briefly describe the issue you are experiencing (or the feature you want to see added to WebdriverIO). Tell us what you were trying to do and what happened instead. Remember, this is _not_ a place to ask questions. For that, join the Gitter chat room ([![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge))!
 
 ## Environment
 
