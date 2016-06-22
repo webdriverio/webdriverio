@@ -4,7 +4,7 @@ describe('isVisibleWithinViewport', () => {
         (await this.client.isVisibleWithinViewport('.notInViewport')).should.be.false
     })
 
-    it('should check multiple elements are not within the current viewport', async function () {
+    it.skip('should check multiple elements are not within the current viewport', async function () {
         const isVisibleWithinViewport = await this.client.isVisibleWithinViewport('.notInViewports')
         isVisibleWithinViewport.should.be.an.instanceOf(Array)
         isVisibleWithinViewport.should.have.length(2)
