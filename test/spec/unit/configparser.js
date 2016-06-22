@@ -52,14 +52,6 @@ describe('ConfigParser', () => {
         specs.should.include(path.resolve(__dirname + '/../functional/end.js'))
     })
 
-    it('should run nothing if a wrong suite was defined', () => {
-        let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
-        configParser.merge({ suite: 'foo,bar' })
-        let specs = configParser.getSpecs()
-        specs.should.have.length(0)
-    })
-
     it('should include typescript files', () => {
         let configParser = new ConfigParser()
         configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
