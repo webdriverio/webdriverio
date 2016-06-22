@@ -33,6 +33,18 @@ describe('launcher', () => {
         })
     })
 
+    it('should assign proper runner ids using getRunnerId', () => {
+        let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
+        expect(launcher.getRunnerId(0)).to.be.equal('0a')
+        expect(launcher.getRunnerId(0)).to.be.equal('0b')
+        expect(launcher.getRunnerId(0)).to.be.equal('0c')
+        expect(launcher.getRunnerId(0)).to.be.equal('0d')
+        expect(launcher.getRunnerId(5)).to.be.equal('5a')
+        expect(launcher.getRunnerId(5)).to.be.equal('5b')
+        expect(launcher.getRunnerId(5)).to.be.equal('5c')
+        expect(launcher.getRunnerId(5)).to.be.equal('5d')
+    })
+
     describe('runSpec', () => {
         let launcher
         let caps = [{
