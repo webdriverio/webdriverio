@@ -153,8 +153,8 @@ create your config file in less than a minute. It also gives and overview of all
         <h2>Run your tests in the cloud</h2>
         <p>
             Services like Sauce Labs or BrowserStack provide selenium testing on remote hosts.
-            Be able to run tests on a wide collection of plattforms, devices and browser combinations
-            without any configuration in your enviroment.
+            Be able to run tests on a wide collection of platforms, devices and browser combinations
+            without any configuration in your environment.
         </p>
         <div>
             <p>WebdriverIO supports services including:</p>

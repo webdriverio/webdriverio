@@ -56,7 +56,7 @@ to know that you have a clean state.
   grunt test:functional
 
   # wdio test runner changes
-  # (e.g. any changes that reflect the behavor of the test runner e.g. in lib/launcher.js)
+  # (e.g. any changes that reflect the behavior of the test runner e.g. in lib/launcher.js)
   grunt test:wdio
 
   # anything else unittestable

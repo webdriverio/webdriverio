@@ -94,7 +94,7 @@ To query an element with a specific tag name use `<tag>` or `<tag />`
 
 ## Name Attribute
 
-For querying elements with a specific name attribute you can eather use a normal CSS3 selector or the
+For querying elements with a specific name attribute you can either use a normal CSS3 selector or the
 provided name strategy from the JsonWireProtocol by passing something like `[name="some-name"]` as
 selector parameter
 

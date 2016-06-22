@@ -61,7 +61,7 @@ The `no-preload` option defers loading source file until needed, this helps perf
 ## Dynamic configuration
 
 
-Note that `wdio.conf` can contain javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the commanedline using an environment variable. This can used to dynamically change the configuration:
+Note that `wdio.conf` can contain javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable. This can used to dynamically change the configuration:
 
 ```
 var debug = process.env.DEBUG;
