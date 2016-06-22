@@ -75,7 +75,7 @@ Browserstack is also supported easily.
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
 
-You can also pass in any optional [supported capabilites](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
+You can also pass in any optional [supported capabilities](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
 
 ### [Local Testing](https://www.browserstack.com/local-testing#command-line)
 
@@ -115,7 +115,7 @@ build: 'myApp #' + process.env.TRAVIS_BUILD_NUMBER + '.' + process.env.TRAVIS_JO
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your TestingBot username and secret key.
 
-You can also pass in any optional [supported capabilites](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
+You can also pass in any optional [supported capabilities](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
 
 ### [Local Testing](https://testingbot.com/support/other/tunnel)
 

@@ -31,7 +31,7 @@ Options:
   --key, -k             corresponding access key to the user
   --logLevel, -l        Level of test output verbosity
   --coloredLogs, -c     if true enables colors for log output (default: true)
-  --screenshotPath, -s  saves a screenshot to a given path if a command failes
+  --screenshotPath, -s  saves a screenshot to a given path if a command fails
   --baseUrl, -b         shorten url command calls by setting a base url
   --waitforTimeout, -w  Default timeout for all wait commands
   --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)

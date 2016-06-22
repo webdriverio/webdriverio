@@ -87,7 +87,7 @@ jasmineNodeOpts: {
 
 Please note that you can't stop the test execution to do something async. It might happen that
 the command takes too much time and the website state has changed. Though usually after 2 another
-commands the screenshot got taken which gives you still valueable information about the error.
+commands the screenshot got taken which gives you still valuable information about the error.
 
 ## Using Cucumber
 

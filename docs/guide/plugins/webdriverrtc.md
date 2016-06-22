@@ -100,7 +100,7 @@ Start with WebRTC analyzing.
 #### options
 __instance__ (*String*):<br>instance name of a specific multibrowser instance you want to use for your analyzing<br><br>
 __interval__ (*Number*):<br>defines the interval on which `getStats` will get called<br><br>
-__selectorMethod__ (*Function*):<br>if you want to take stats of a specific RTCPeerConnection object you can use this function to return that object. Also necessary if your app creates an object immediatelly after the page got loaded.<br>
+__selectorMethod__ (*Function*):<br>if you want to take stats of a specific RTCPeerConnection object you can use this function to return that object. Also necessary if your app creates an object immediately after the page got loaded.<br>
 
 Example:
 
@@ -147,7 +147,7 @@ Returns all stats within given duration in different formats.
 #### duration
 You can specify a specific time frame in which you want to receive the stats. If you pass in a number
 you will receive stats within the last x (your number) ms. You can also be more specific and pass in
-an object with `from` and `to` attribues and desired timestamps as value respectively. If you pass in
+an object with `from` and `to` attributes and desired timestamps as value respectively. If you pass in
 null, you will receive the last taken stat trace.
 
 Type: *Number|Object*<br>
