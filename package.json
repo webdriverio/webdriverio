@@ -85,7 +85,7 @@
     "phantomjs-prebuilt": "^2.1.7",
     "saucelabs": "^1.0.1",
     "sinon": "^1.17.2",
-    "wdio-mocha-framework": "^0.3.3"
+    "wdio-mocha-framework": "^0.3.4"
   },
   "tags": [
     "web",
