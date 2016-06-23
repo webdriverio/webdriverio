@@ -97,7 +97,7 @@ describe('element as first class citizen', () => {
             let error
 
             try {
-                elem.waitForText(10000)
+                elem.waitForText(2000)
             } catch (e) {
                 error = e
             }
