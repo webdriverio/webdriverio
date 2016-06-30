@@ -151,10 +151,10 @@ available:
   define a fixed height for your screenshot
 
 * **x** `Number`<br>
-  take screenshot at an exact xy postion (requires width/height option)
+  take screenshot at an exact xy position (requires width/height option)
 
 * **y** `Number`<br>
-  take screenshot at an exact xy postion (requires width/height option)
+  take screenshot at an exact xy position (requires width/height option)
 
 * **exclude** `String[]|Object[]`<br>
   exclude frequently changing parts of your screenshot, you can either pass all kinds of different [WebdriverIO selector strategies](http://webdriver.io/guide/usage/selectors.html)

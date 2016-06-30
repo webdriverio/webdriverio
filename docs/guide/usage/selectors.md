@@ -94,7 +94,7 @@ To query an element with a specific tag name use `<tag>` or `<tag />`
 
 ## Name Attribute
 
-For querying elements with a specific name attribute you can eather use a normal CSS3 selector or the
+For querying elements with a specific name attribute you can either use a normal CSS3 selector or the
 provided name strategy from the JsonWireProtocol by passing something like `[name="some-name"]` as
 selector parameter
 
@@ -116,7 +116,7 @@ Android’s UI Automator framework provides a number of ways to find elements. Y
 
 ```js
 var selector = 'new UiSelector().text("Cancel")).className("android.widget.Button")';
-browser.click(selector);
+browser.click('android=' + selector);
 ```
 
 ### iOS UIAutomation
@@ -125,7 +125,7 @@ When automating an iOS application, Apple’s [UI Automation framework](https://
 
 ```js
 var selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
-browser.click(selector);
+browser.click('ios=' + selector);
 ```
 
 You can also use predicate searching within iOS UI Automation in Appium, to control element finding even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios_predicate.md) for details.

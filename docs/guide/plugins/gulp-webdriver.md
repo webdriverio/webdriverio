@@ -29,7 +29,7 @@ gulp.task('test:e2e', function() {
 gulp-webdriver makes the wdio testrunner easy accessible and allows you to run multiple config files
 sequentially. If desired you can pass additional arguments to the wdio command to specify your test.
 You can find all available options [here](http://webdriver.io/guide/testrunner/gettingstarted.html)
-or by executin `$ wdio --help` (if you have WebdriverIO installed globally).
+or by executing `$ wdio --help` (if you have WebdriverIO installed globally).
 
 ```js
 gulp.task('test:e2e', function() {

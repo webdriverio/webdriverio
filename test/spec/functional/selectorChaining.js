@@ -38,8 +38,8 @@ describe('selectorChaining', () => {
             return Promise.all(foundRows).then((rows) => {
                 rows.should.be.an.instanceOf(Array)
                 rows.should.have.length(2)
-                rows.should.contain(true)
-                rows.should.contain(false)
+                rows[0].should.be.equal(true)
+                rows[1].should.be.equal(true)
             })
         })
     })

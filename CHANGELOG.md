@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v4.1.0 (2016-06-22)
+* global changes:
+    * several bug fixes and documentation improvements
+    * new command: hasFocus (#1369)
+    * waitUntil improvements
+    * don't fail if element command can't find element
+
+* WDIO changes:
+    * allow to specify multiple suites at once
+
 ## v4.0.9 (2016-05-26)
 * WDIO changes:
     * enabled debugging by passing argv to child process (thanks @kurtharriger #1345)
