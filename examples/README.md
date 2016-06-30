@@ -2,7 +2,7 @@ WebdriverIO Examples
 ====================
 
 Welcome to the WebdriverIO example repository. Here you can find a lot of stuff that helps you to understand
-how WebdriverIO works. It is seperated in different topics. The best way to start is to clone the WebdriverIO
+how WebdriverIO works. It is separated into different topics. The best way to start is to clone the WebdriverIO
 repository and install its dependencies:
 
 ```sh
@@ -16,7 +16,7 @@ Then just follow the instructions and test it out. Have fun!
 ## Cloudservices
 
 Shows you how to use WebdriverIO using Sauce Labs, Browserstack or Testingbot. To run those tests make sure
-you have your credentials stored in your enviroment. If so just execute the file using node:
+you have your credentials stored in your environment. If so just execute the file using node:
 
 #### webdriverio.saucelabs.js
 
@@ -57,7 +57,7 @@ Both browser will connect to each other and will have a two seconds long call.
 
 #### webdriverio.multiremote.chat.js
 
-This example demonstrates how you could test a chat system. Both browser will connet to a text based chat. One browser will input something whereas the other browser reads the message, interprets it and returns with a proper response message. You can execute the test using Mocha. Make sure you pass a high timeout as argument to make the test work properly.
+This example demonstrates how you could test a chat system. Both browsers will connect to a text-based chat. One browser will input something whereas the other browser reads the message, interprets it and returns with a proper response message. You can execute the test using Mocha. Make sure you pass a high timeout as argument to make the test work properly.
 
 ```sh
 ./node_modules/.bin/mocha ./examples/multiremote/webdriverio.multiremote.chat.js --timeout 9999999

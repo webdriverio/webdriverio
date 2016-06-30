@@ -60,7 +60,7 @@ describe('event handling', () => {
             try {
                 await matrix.click('#notExistentant')
             } catch (err) {
-                expect(err.message).to.be.equal('Unable to find element with id \'notExistentant\'')
+                expect(err.message).to.be.equal('An element could not be located on the page using the given search parameters.')
             } finally {
                 isErrorHandlerEmitted.should.be.true
             }

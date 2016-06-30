@@ -172,6 +172,20 @@ describe('selector strategies helper', () => {
         element.using.should.be.equal('css selector')
     })
 
+    it('should find an element by android accessibility id', () => {
+        const selector = 'new UiSelector().text("Cancel")).className("android.widget.Button")'
+        const element = findStrategy('android=' + selector)
+        element.using.should.be.equal('-android uiautomator')
+        element.value.should.be.equal(selector)
+    })
+
+    it('should find an element by ios accessibility id', () => {
+        const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
+        const element = findStrategy('ios=' + selector)
+        element.using.should.be.equal('-ios uiautomation')
+        element.value.should.be.equal(selector)
+    })
+
     it('should find an mobile ios element class name', () => {
         const element = findStrategy('UIATextField')
         element.using.should.be.equal('class name')

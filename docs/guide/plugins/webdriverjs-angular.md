@@ -61,7 +61,7 @@ command.
 You will not find any `elementByNgBinding`, `addMockModule`,
 `hasElementByNgRepeaterRow` or any other specific, angularJS-related methods.
 
-We think your functionnal tests should be as framework-agnostic as possible.
+We think your functional tests should be as framework-agnostic as possible.
 
 If you need `elementByNgBinding`, just use regular
 [WebdriverIO](http://webdriver.io)

@@ -17,7 +17,7 @@ WebdriverIO events.
 
 ```js
 browser.on('error', function(e) {
-    // will be executed everytime an error occured
+    // will be executed everytime an error occurred
     // e.g. when element couldn't be found
     console.log(e.body.value.class);   // -> "org.openqa.selenium.NoSuchElementException"
     console.log(e.body.value.message); // -> "no such element ..."
@@ -39,7 +39,7 @@ All commands are chainable, so you can use them while chaining your commands
 
 ```js
 var cnt;
- 
+
 browser
     .init()
     .once('countme', function(e) {
