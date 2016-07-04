@@ -29,7 +29,8 @@
     "test-mobile": "grunt test:mobile",
     "test-desktop": "grunt test:desktop",
     "test-functional": "grunt test:functional",
-    "test-multibrowser": "grunt test:multibrowser"
+    "test-multibrowser": "grunt test:multibrowser",
+    "test-snyk": "snyk test"
   },
   "dependencies": {
     "archiver": "0.15.0",
@@ -85,6 +86,7 @@
     "phantomjs-prebuilt": "^2.1.7",
     "saucelabs": "^1.0.1",
     "sinon": "^1.17.2",
+    "snyk": "1.16.0",
     "wdio-mocha-framework": "^0.3.4"
   },
   "tags": [
