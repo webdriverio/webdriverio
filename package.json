@@ -32,7 +32,7 @@
     "test-multibrowser": "grunt test:multibrowser"
   },
   "dependencies": {
-    "archiver": "~0.14.3",
+    "archiver": "0.15.0",
     "babel-runtime": "^5.8.25",
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
@@ -45,7 +45,7 @@
     "npm-install-package": "^1.0.2",
     "optimist": "^0.6.1",
     "q": "~1.3.0",
-    "request": "2.49.0",
+    "request": "2.68.0",
     "rgb2hex": "~0.1.0",
     "supports-color": "^1.3.1",
     "url": "~0.10.3",
