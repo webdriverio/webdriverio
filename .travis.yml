@@ -14,7 +14,7 @@ before_script:
   - cd test/site/www && bower install && cd ../../../
   - phantomjs --webdriver=4444 2>&1 >/dev/null &
 
-script: "sleep 5 && npm run test"
+script: "sleep 5 && npm run test-snyk && npm run test"
 
 # after_script:
 #   - "[ -d ./coverage ] && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
