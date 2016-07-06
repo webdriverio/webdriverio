@@ -1,7 +1,7 @@
 name: junit
 category: reporters
 tags: guide
-index: 1
+index: 2
 title: WebdriverIO - JUnit Reporter
 ---
 
