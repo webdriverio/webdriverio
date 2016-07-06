@@ -1,7 +1,7 @@
 name: json
 category: reporters
 tags: guide
-index: 4
+index: 5
 title: WebdriverIO - JSON Reporter
 ---
 
@@ -119,6 +119,6 @@ module.exports = {
         }
       ]
     }  
-  ] 
+  ]
 }
 ```
