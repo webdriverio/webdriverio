@@ -173,6 +173,6 @@ Similarly for mocha:
     mochaOpts: {
         ui: 'bdd',
         compilers: ['ts:ts-node/register'],
-        require: ['./test/helpers/common.js']
+        requires: ['./test/helpers/common.js']
     },
 ```
