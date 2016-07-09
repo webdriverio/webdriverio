@@ -127,7 +127,7 @@ module.exports = function (grunt) {
             options: {
                 parser: 'babel-eslint'
             },
-            target: ['lib/**/*.js', '!lib/scripts/*', '!test/spec', '!test/conf']
+            target: ['lib/**/*.js', '!test/spec', '!test/conf']
         },
         contributors: {
             options: {
@@ -156,7 +156,7 @@ module.exports = function (grunt) {
                 }
             },
             core: {
-                files: ['lib/*.js', 'lib/helpers/*.js', 'lib/utils/*.js', 'index.js'],
+                files: ['lib/*.js', 'lib/helpers/*.js', 'lib/scripts/*.js', 'lib/utils/*.js', 'index.js'],
                 tasks: ['babel:core'],
                 options: {
                     spawn: false
