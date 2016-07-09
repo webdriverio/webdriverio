@@ -3,7 +3,7 @@ describe('refresh', () => {
         const oldSessionId = this.client.requestHandler.sessionID
 
         // refresh session
-        await this.client.refresh()
+        await this.client.reload()
 
         const newSessionId = this.client.requestHandler.sessionID
         newSessionId.should.be.not.equal(oldSessionId)
