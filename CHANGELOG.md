@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v4.2.1 (2016-07-09)
+* global changes:
+    * docs improvements
+* WDIO changes:
+    * fixed bug in reporting
+
 ## v4.2.0 (2016-07-08)
 * global changes
     * docs improvements
