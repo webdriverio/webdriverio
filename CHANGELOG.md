@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v4.2.2 (2016-07-12)
+* global changes:
+    * make sure waitUntil conditions get executed at least once
+    * implemented first polyfills for safaridriver interaction API
+    * fixed refresh/reload renaming bugs (#1445, #1446)
+
 ## v4.2.1 (2016-07-09)
 * global changes:
     * docs improvements
@@ -16,7 +22,7 @@
     * improve reporting of failed tests (#1361)
     * allow launcher services to overwrite host/config (#1421)
 * API changes:
-    * added new command `refresh` to clear browser session
+    * added new command `reload` to clear browser session
 * multiremote:
     * fixed bug that spawned additional instance (#1434)
 
