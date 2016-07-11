@@ -1,8 +1,8 @@
-describe('refresh', () => {
-    it('should refresh a session', async function () {
+describe('reload', () => {
+    it('should reload a session', async function () {
         const oldSessionId = this.client.requestHandler.sessionID
 
-        // refresh session
+        // reload session
         await this.client.reload()
 
         const newSessionId = this.client.requestHandler.sessionID
