@@ -3,6 +3,7 @@ import nock from 'nock'
 import chai from 'chai'
 import merge from 'deepmerge'
 import chaiString from 'chai-string'
+import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 
 /**
@@ -10,6 +11,7 @@ import sinon from 'sinon'
  */
 chai.should()
 chai.use(chaiString)
+chai.use(chaiAsPromised)
 global.assert = chai.assert
 global.expect = chai.expect
 
