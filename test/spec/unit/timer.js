@@ -33,6 +33,20 @@ describe('timer', () => {
         })
     })
 
+    it('should execute condition at least once', () => {
+        let wasExecuted = false
+        let timer = new Timer(100, 200, () => new Promise((r) =>
+            setTimeout(() => {
+                wasExecuted = true
+                r(true)
+            }, 500)
+        ))
+
+        return timer.then(() => {
+            assert.ok(wasExecuted)
+        }, assert.fail)
+    })
+
     it('should have leading fn call', () => {
         let spy = sinon.spy(() => Promise.resolve(true))
         let timer = new Timer(100, 100, spy, true)

@@ -32,13 +32,27 @@ describe('waitUntil', () => {
 
     it('should timeout', async function () {
         let error
+        let cnt = 0
         try {
-            await this.client.waitUntil(() => new Promise((r) => setTimeout(() => r('foobar'), 1000)), 500)
+            await this.client.waitUntil(() => new Promise((r) => setTimeout(() => {
+                if (!cnt) {
+                    cnt++
+                    return r(false)
+                }
+                r('foobar')
+            }, 1000)), 1500)
         } catch (e) {
             error = e
         } finally {
             error.message.should.be.equal('Promise was rejected with the following reason: timeout')
         }
+    })
+
+    it('should execute condition at least once', async function () {
+        (await this.client.waitUntil(
+            () => new Promise((r) => setTimeout(() => r('foobar'), 1000)),
+            500
+        )).should.be.equal('foobar')
     })
 
     it('should allow a promise condition', async function () {
