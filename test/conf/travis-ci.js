@@ -7,7 +7,7 @@ export default {
         browserName: (process.env._BROWSER || '').replace(/_/g, ' '),
         platform: (process.env._PLATFORM || '').replace(/_/g, ' '),
         version: process.env._VERSION,
-        screenResolution: '1280x1024',
+        screenResolution: process.env._BROWSER === 'safari' ? '1280x960' : '1280x1024',
         'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
         'idle-timeout': 900,
         tags: ['webdriverio', process.env._ENV || 'desktop', process.env._BROWSER || process.env._DEVICENAME, process.env._PLATFORM, process.env._VERSION],

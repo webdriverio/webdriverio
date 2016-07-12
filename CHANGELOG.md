@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## v4.2.2 (2016-07-12)
+* global changes:
+    * make sure waitUntil conditions get executed at least once
+    * implemented first polyfills for safaridriver interaction API
+    * fixed refresh/reload renaming bugs (#1445, #1446)
+
+## v4.2.1 (2016-07-09)
+* global changes:
+    * docs improvements
+* WDIO changes:
+    * fixed bug in reporting
+
+## v4.2.0 (2016-07-08)
+* global changes
+    * docs improvements
+    * better autocompletion with WebStorm IDE (#1399)
+    * added snyk dependency check
+* WDIO changes:
+    * fixed config wizard (#1428)
+    * improve reporting of failed tests (#1361)
+    * allow launcher services to overwrite host/config (#1421)
+* API changes:
+    * added new command `reload` to clear browser session
+* multiremote:
+    * fixed bug that spawned additional instance (#1434)
+
+## v4.1.1 (2016-06-24)
+* WDIO changes:
+    * expose the process number to the child processes
+    * improved waitForXXX usage when used with element as first citizen
+
 ## v4.1.0 (2016-06-22)
 * global changes:
     * several bug fixes and documentation improvements
