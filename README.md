@@ -2,7 +2,14 @@
 WebdriverIO
 ===========
 
-[![Build Status](https://travis-ci.org/webdriverio/webdriverio.png?branch=master)](https://travis-ci.org/webdriverio/webdriverio) [![Coverage Status](https://coveralls.io/repos/webdriverio/webdriverio/badge.png?branch=master&)](https://coveralls.io/r/webdriverio/webdriverio?branch=master) [![Code Climate](https://codeclimate.com/github/webdriverio/webdriverio/badges/gpa.svg)](https://codeclimate.com/github/webdriverio/webdriverio) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/webdriverio/webdriverio.svg?branch=master)](https://travis-ci.org/webdriverio/webdriverio)
+[![NPM version](https://badge.fury.io/js/webdriverio.svg)](http://badge.fury.io/js/webdriverio)
+[![Dependency Status](https://img.shields.io/david/webdriverio/webdriverio.svg)](https://david-dm.org/webdriverio/webdriverio)
+[![npm](https://img.shields.io/npm/dm/thepiratebay.svg?maxAge=2592000)]()
+[![Coveralls](https://img.shields.io/coveralls/webdriverio/webdriverio/master.svg?maxAge=2592000)]()
+[![Gitter](https://badges.gitter.im/webdriverio/webdriverio.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Selenium Test Status](https://saucelabs.com/browser-matrix/webdriverio.svg)](https://saucelabs.com/u/webdriverio)
+[![Code Climate](https://img.shields.io/codeclimate/coverage/github/webdriverio/webdriverio.svg?maxAge=2592000)]()
 <br><br>
 [![Selenium Test Status](https://saucelabs.com/browser-matrix/webdriverio.svg)](https://saucelabs.com/u/webdriverio)
 
