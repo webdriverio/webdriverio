@@ -9,10 +9,8 @@ WebdriverIO
 [![Coveralls](https://img.shields.io/coveralls/webdriverio/webdriverio/master.svg?maxAge=2592000)]()
 [![Gitter](https://badges.gitter.im/webdriverio/webdriverio.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Selenium Test Status](https://saucelabs.com/browser-matrix/webdriverio.svg)](https://saucelabs.com/u/webdriverio)
-[![Code Climate](https://img.shields.io/codeclimate/coverage/github/webdriverio/webdriverio.svg?maxAge=2592000)]()
 <br><br>
-[![Selenium Test Status](https://saucelabs.com/browser-matrix/webdriverio.svg)](https://saucelabs.com/u/webdriverio)
-
+[![Code Climate](https://img.shields.io/codeclimate/coverage/github/webdriverio/webdriverio.svg?maxAge=2592000)]()
 ***
 
 #### [Homepage](http://webdriver.io) | [Developer Guide](http://webdriver.io/guide.html) | [API Reference](http://webdriver.io/api.html) | [Contribute](http://webdriver.io/contribute.html)
