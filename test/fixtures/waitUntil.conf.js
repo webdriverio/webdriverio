@@ -1,16 +1,18 @@
+var path = require('path')
+
 var chai = require('chai')
 
 exports.config = {
     specs: [],
     suites: {
-        sync: [__dirname + '/specs/waitUntil.spec.js'],
-        async: [__dirname + '/specs/waitUntil.async.spec.js']
+        sync: [path.join(__dirname, '/specs/waitUntil.spec.js')],
+        async: [path.join(__dirname, '/specs/waitUntil.async.spec.js')]
     },
     capabilities: [{
         browserName: 'phantomjs'
     }],
     mochaOpts: {
-        compilers: ['js:babel/register'],
+        compilers: ['js:babel-register'],
         timeout: 60000
     },
     before: function () {

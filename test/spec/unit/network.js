@@ -68,7 +68,7 @@ describe('network connection', () => {
         } catch (e) {
             error = e.message
         } finally {
-            expect(error.match(/invalid value/)).not.to.be.null
+            expect(error.match(/Invalid value/)).not.to.be.null
         }
 
         try {
@@ -76,7 +76,7 @@ describe('network connection', () => {
         } catch (e) {
             error = e.message
         } finally {
-            expect(error.match(/invalid value/)).not.to.be.null
+            expect(error.match(/Invalid value/)).not.to.be.null
         }
     })
 })
