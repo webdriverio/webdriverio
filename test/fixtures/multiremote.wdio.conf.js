@@ -1,3 +1,5 @@
+var path = require('path')
+
 var chai = require('chai')
 var chaiString = require('chai-string')
 var chaiAsPromised = require('chai-as-promised')
@@ -13,9 +15,9 @@ exports.config = {
         }
     },
     framework: 'mocha',
-    specs: [__dirname + '/specs/multiremote.spec.js'],
+    specs: [path.join(__dirname, '/specs/multiremote.spec.js')],
     mochaOpts: {
-        compilers: ['js:babel/register'],
+        compilers: ['js:babel-register'],
         timeout: 60000
     },
     before: function () {

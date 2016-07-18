@@ -128,7 +128,7 @@ to register Babel in the before hook of your config file
 
 ```js
     before(function() {
-        require('babel/register')({
+        require('babel-register')({
             blacklist: [
                 'regenerator'
             ]
@@ -143,7 +143,7 @@ If you run Mocha tests, you can use Mocha's internal compiler to register Babel,
 ```js
     mochaOpts: {
         ui: 'bdd',
-        compilers: ['js:babel-core/register'],
+        compilers: ['js:babel-register'],
         require: ['./test/helpers/common.js']
     },
 ```

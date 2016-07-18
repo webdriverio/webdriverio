@@ -2,7 +2,8 @@
   "extends": "standard",
   "parser": "babel-eslint",
   "rules": {
-    "indent": [2, 4]
+    "indent": [2, 4],
+    "generator-star-spacing": 0
   },
   "globals": {
     "expect": true,

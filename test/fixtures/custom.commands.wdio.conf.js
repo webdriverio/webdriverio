@@ -1,3 +1,5 @@
+var path = require('path')
+
 var chai = require('chai')
 var chaiString = require('chai-string')
 var chaiAsPromised = require('chai-as-promised')
@@ -17,12 +19,12 @@ const CUSTOM_COMMANDS = {
 }
 
 exports.config = {
-    specs: [__dirname + '/specs/custom.commands.spec.js'],
+    specs: [path.join(__dirname, '/specs/custom.commands.spec.js')],
     capabilities: [{
         browserName: 'phantomjs'
     }],
     mochaOpts: {
-        compilers: ['js:babel/register'],
+        compilers: ['js:babel-register'],
         timeout: 60000
     },
     before: function () {
