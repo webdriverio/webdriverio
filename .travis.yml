@@ -16,13 +16,6 @@ before_script:
 
 script: "sleep 5 && npm run test-snyk && npm run test"
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-4.8
-
 # after_script:
 #   - "[ -d ./coverage ] && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
 
@@ -30,8 +23,9 @@ addons:
   sauce_connect: true
 
 env:
+  - CXX=g++-4.8
+
   global:
-    - CXX: g++-4.8
     - pm_config_engine_strict: false
     - secure: f6+NU5WBW9GPLRV2WhtCozPOjFOAdh52hXfr0dZopxl0eqJ426fl5UCt54duUQV/abBpNEKzBm2015EsBP14wepNJ9+Q6nRwrj/h2PvI3UM8vEPqgH08hqiS7kFszA0Wy+Ki3umncQbA5WAgq6grmZs9naELWmOX5Yum40Wl9/0=
     - secure: dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w=
@@ -75,6 +69,13 @@ env:
     - _ENV: "multibrowser"
     - _ENV: "unit"
     - _ENV: "wdio"
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
 
 notifications:
   webhooks:
