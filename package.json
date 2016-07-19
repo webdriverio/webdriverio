@@ -52,7 +52,7 @@
     "url": "^0.11.0",
     "validator": "^5.4.0",
     "wdio-dot-reporter": "^0.0.6",
-    "wgxpath": "~1.2.0"
+    "wgxpath": "~1.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.10.1",
