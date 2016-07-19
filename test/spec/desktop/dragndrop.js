@@ -1,10 +1,10 @@
 describe('drag&drop command test', () => {
     it('should drag and drop an element', async function () {
         /**
-         * skip for ie
+         * skip for ie and ff
          * not working anymore
          */
-        if (process.env._BROWSER === 'internet_explorer') {
+        if (process.env._BROWSER.match(/(internet_explorer|firefox)/)) {
             return
         }
 
