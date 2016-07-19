@@ -13,8 +13,8 @@ describe('waitFor', () => {
         })
 
         it('should return with an error if the element never becomes enabled', function () {
-            return expect(this.client.waitForEnabled('.waitForValueEnabledReverse', 10))
-                .to.be.rejectedWith('element (.waitForValueEnabledReverse) still not enabled after 10ms')
+            return expect(this.client.waitForEnabled('.waitForValueEnabled', 10))
+                .to.be.rejectedWith('Error: element (.waitForValueEnabled) still not enabled after 10ms')
         })
 
         it('should pass through an error from isEnabled()', function () {
@@ -36,7 +36,7 @@ describe('waitFor', () => {
 
         it('should return with an error if the element never exists', function () {
             return expect(this.client.waitForExist('#notExisting', 10))
-                .to.be.rejectedWith('element (#notExisting) still not existing after 10ms')
+                .to.be.rejectedWith('Error: element (#notExisting) still not existing after 10ms')
         })
 
         it('should pass through an error from isExisting()', function () {
@@ -66,8 +66,8 @@ describe('waitFor', () => {
         })
 
         it('should return with an error if the element never becomes visible', async function () {
-            return expect(this.client.waitForSelected('.option2', 10))
-                .to.be.rejectedWith('element (.option2) still not selected after 10ms')
+            return expect(this.client.waitForSelected('.option3', 10))
+                .to.be.rejectedWith('Error: element (.option3) still not selected after 10ms')
         })
 
         it('should pass through an error from isSelected()', async function () {
@@ -88,8 +88,8 @@ describe('waitFor', () => {
         })
 
         it('should return with an error if the text never appears', function () {
-            return expect(this.client.waitForText('.sometext', 10))
-                .to.be.rejectedWith('element (.sometext) still without text after 10ms')
+            return expect(this.client.waitForText('.sometextlater', 10))
+                .to.be.rejectedWith('Error: element (.sometextlater) still without text after 10ms')
         })
 
         it('should pass through an error from getText()', function () {
@@ -110,8 +110,8 @@ describe('waitFor', () => {
         })
 
         it('should return with an error if the text never appears', function () {
-            return expect(this.client.waitForValue('.sometext', 10))
-                .to.be.rejectedWith('element (.sometext) still without a value after 10ms')
+            return expect(this.client.waitForValue('.waitForValueEnabledReverse', 10))
+                .to.be.rejectedWith('Error: element (.waitForValueEnabledReverse) still without a value after 10ms')
         })
 
         it('should pass through an error from getValue()', function () {
@@ -133,7 +133,7 @@ describe('waitFor', () => {
 
         it('should return with an error if the element never becomes visible', function () {
             return expect(this.client.waitForVisible('#notExisting', 10))
-                .to.be.rejectedWith('element (#notExisting) still not visible after 10ms')
+                .to.be.rejectedWith('Error: element (#notExisting) still not visible after 10ms')
         })
 
         it('should pass through an error from isVisible()', function () {

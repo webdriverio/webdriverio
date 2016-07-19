@@ -3,6 +3,7 @@ import SauceLabs from 'saucelabs'
 import chai from 'chai'
 import chaiString from 'chai-string'
 import chaiThings from 'chai-things'
+import chaiAsPromised from 'chai-as-promised'
 
 import conf from './conf/index'
 global.conf = conf
@@ -22,6 +23,7 @@ if (process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST !== 'fals
 chai.should()
 chai.use(chaiString)
 chai.use(chaiThings)
+chai.use(chaiAsPromised)
 global.assert = chai.assert
 global.expect = chai.expect
 
