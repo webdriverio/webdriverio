@@ -8,12 +8,17 @@ module.exports = function (grunt) {
         report: ['lcov', 'html'],
         excludes: ['**/scripts/**', '**/gruntfile.js'],
         verbose: true,
-        mochaOptions: ['--compilers', 'js:babel-register', '--recursive', '-t', '120000', '--reporter', 'spec']
+        mochaOptions: [
+            '--compilers', 'js:babel-register',
+            '--recursive',
+            '--timeout', '120000',
+            '--reporter', 'dot'
+        ]
     }
 
     var mochaOpts = {
         reporter: 'spec',
-        require: ['babel-register', 'babel-polyfill'],
+        require: ['babel-register'],
         grep: argv.grep,
         invert: argv.invert,
         bail: argv.bail,
