@@ -12,7 +12,7 @@ let config = {
 }
 
 if (config.desiredCapabilities.browserName === 'phantomjs') {
-    config.desiredCapabilities['phantomjs.binary.path'] = phantomjs.path;
+    config.desiredCapabilities['phantomjs.binary.path'] = phantomjs.path
 }
 
 if (process.env._ENV === 'multibrowser') {

@@ -3,6 +3,7 @@
     "plugins": [
         "syntax-async-functions",
         "transform-regenerator",
-        "transform-runtime"
+        "transform-runtime",
+        "add-module-exports"
     ]
 }

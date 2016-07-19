@@ -35,7 +35,7 @@ let remote = function (options = {}, modifier) {
      * build prototype: commands
      */
     for (let commandName of Object.keys(IMPLEMENTED_COMMANDS)) {
-        wdio.lift(commandName, IMPLEMENTED_COMMANDS[commandName].default)
+        wdio.lift(commandName, IMPLEMENTED_COMMANDS[commandName])
     }
 
     let prototype = wdio()
