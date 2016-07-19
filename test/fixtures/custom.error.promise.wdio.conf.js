@@ -22,8 +22,8 @@ exports.config = {
     },
     onError: function (e) {
         browser.lastError = e
-        return new Promise(function (r) {
-            setTimeout(r, 2000)
+        return new Promise(function (resolve) {
+            setTimeout(resolve, 2000)
         })
     }
 }
