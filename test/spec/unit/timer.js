@@ -35,10 +35,10 @@ describe('timer', () => {
 
     it('should execute condition at least once', () => {
         let wasExecuted = false
-        let timer = new Timer(100, 200, () => new Promise((r) =>
+        let timer = new Timer(100, 200, () => new Promise((resolve) =>
             setTimeout(() => {
                 wasExecuted = true
-                r(true)
+                resolve(true)
             }, 500)
         ))
 
