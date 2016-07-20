@@ -27,9 +27,7 @@ describe('launcher', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 suite: 'foo'
             })
-            let specs = launcher.configParser.getSpecs()
-            specs.should.have.length(1)
-            specs[0].should.endWith('index.js')
+            expect(() => launcher.configParser.getSpecs()).to.throw(/The suite\(s\) "foo" you specified don't exist/)
         })
 
         it('should allow to pass spec as cli argument to run only once test file', () => {
