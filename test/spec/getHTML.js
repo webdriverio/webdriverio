@@ -1,5 +1,4 @@
 describe('getHTML', () => {
-
     it('should return html of given selector including the selector element', async function () {
         const html = await this.client.getHTML('.moreNesting section')
         html.should.be.equal('<section><span>bar</span></section>')

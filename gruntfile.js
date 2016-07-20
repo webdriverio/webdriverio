@@ -131,7 +131,7 @@ module.exports = function (grunt) {
             options: {
                 parser: 'babel-eslint'
             },
-            target: ['lib/**/*.js', '!test/spec', '!test/conf']
+            target: ['lib/**/*.js', 'test/spec', '!test/conf']
         },
         contributors: {
             options: {

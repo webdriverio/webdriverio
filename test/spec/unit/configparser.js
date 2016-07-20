@@ -1,68 +1,68 @@
 import path from 'path'
 import ConfigParser from '../../../lib/utils/ConfigParser'
 
-const FIXTURES_PATH = __dirname + '/../../fixtures'
+const FIXTURES_PATH = path.resolve(__dirname, '..', '..', 'fixtures')
 
 describe('ConfigParser', () => {
     it('should exclude files', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
         let specs = configParser.getSpecs()
         specs.should.not.include(__filename)
-        specs.should.include(path.resolve(__dirname + '/call.js'))
+        specs.should.include(path.resolve(__dirname, 'call.js'))
     })
 
     it('should exclude/include capability excludes', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude2.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude2.conf.js'))
         let specs = configParser.getSpecs(
-            [FIXTURES_PATH + '/exclude*'],
-            [__dirname + '/call.js']
+            [path.resolve(FIXTURES_PATH, 'exclude*')],
+            [path.resolve(__dirname, 'call.js')]
         )
         specs.should.not.include(__filename)
-        specs.should.not.include(path.resolve(__dirname + '/call.js'))
-        specs.should.include(path.resolve(FIXTURES_PATH + '/exclude.conf.js'))
-        specs.should.include(path.resolve(FIXTURES_PATH + '/exclude2.conf.js'))
+        specs.should.not.include(path.resolve(__dirname, 'call.js'))
+        specs.should.include(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
+        specs.should.include(path.resolve(FIXTURES_PATH, 'exclude2.conf.js'))
     })
 
     it('should allow to specify a single suite', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
         configParser.merge({ suite: 'mobile' })
         let specs = configParser.getSpecs()
-        specs.should.not.include(path.resolve(__dirname + '/configparser.js'))
-        specs.should.not.include(path.resolve(__dirname + '/pause.js'))
-        specs.should.not.include(path.resolve(__dirname + '/../functional/selectorExecute.js'))
-        specs.should.not.include(path.resolve(__dirname + '/../functional/promises.js'))
-        specs.should.not.include(path.resolve(__dirname + '/../mobile/context.js'))
-        specs.should.include(path.resolve(__dirname + '/../mobile/orientation.js'))
-        specs.should.include(path.resolve(__dirname + '/../mobile/settings.js'))
+        specs.should.not.include(path.resolve(__dirname, 'configparser.js'))
+        specs.should.not.include(path.resolve(__dirname, 'pause.js'))
+        specs.should.not.include(path.resolve(__dirname, '..', 'functional/selectorExecute.js'))
+        specs.should.not.include(path.resolve(__dirname, '..', 'functional/promises.js'))
+        specs.should.not.include(path.resolve(__dirname, '..', 'mobile/context.js'))
+        specs.should.include(path.resolve(__dirname, '..', 'mobile/orientation.js'))
+        specs.should.include(path.resolve(__dirname, '..', 'mobile/settings.js'))
     })
 
     it('should allow to specify multiple suites', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
         configParser.merge({ suite: 'unit,functional,mobile' })
         let specs = configParser.getSpecs()
-        specs.should.not.include(path.resolve(__dirname + '/configparser.js'))
-        specs.should.not.include(path.resolve(__dirname + '/../functional/selectorExecute.js'))
-        specs.should.not.include(path.resolve(__dirname + '/../mobile/context.js'))
-        specs.should.include(path.resolve(__dirname + '/network.js'))
-        specs.should.include(path.resolve(__dirname + '/../mobile/orientation.js'))
-        specs.should.include(path.resolve(__dirname + '/../functional/end.js'))
+        specs.should.not.include(path.resolve(__dirname, 'configparser.js'))
+        specs.should.not.include(path.resolve(__dirname, '..', 'functional/selectorExecute.js'))
+        specs.should.not.include(path.resolve(__dirname, '..', 'mobile/context.js'))
+        specs.should.include(path.resolve(__dirname, 'network.js'))
+        specs.should.include(path.resolve(__dirname, '..', 'mobile/orientation.js'))
+        specs.should.include(path.resolve(__dirname, '..', 'functional/end.js'))
     })
 
     it('should include typescript files', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
-        let specs = configParser.getSpecs([FIXTURES_PATH + '/*.ts'])
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
+        let specs = configParser.getSpecs([path.resolve(FIXTURES_PATH, '*.ts')])
         specs.should.not.include(__filename)
-        specs.should.include(path.resolve(FIXTURES_PATH + '/typescript.ts'))
+        specs.should.include(path.resolve(path.resolve(FIXTURES_PATH, 'typescript.ts')))
     })
 
     it('should set proper host and port to local selenium if no user and key is specified', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
         configParser.merge({ foo: 'bar' })
 
         let config = configParser.getConfig()
@@ -73,7 +73,7 @@ describe('ConfigParser', () => {
 
     it('should set proper host and port to local selenium if user and key is specified', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/remote.wdio.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'remote.wdio.conf.js'))
 
         let config = configParser.getConfig()
         config.host.should.be.equal('ondemand.saucelabs.com')
@@ -84,7 +84,7 @@ describe('ConfigParser', () => {
 
     it('should overwrite host and port if key are set as cli arguments', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
         configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
         let config = configParser.getConfig()
@@ -96,7 +96,7 @@ describe('ConfigParser', () => {
 
     it('should not overwrite host and port if specified in host file', () => {
         let configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_PATH + '/exclude2.conf.js')
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude2.conf.js'))
         configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
         let config = configParser.getConfig()

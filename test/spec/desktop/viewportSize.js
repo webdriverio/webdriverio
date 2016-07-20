@@ -17,7 +17,7 @@ describe('setViewportSize/getViewportSize', () => {
         viewportSize.height.should.be.equal(500)
     })
 
-    it(`should set window size equal when parameter 'type' is true by default`, async function () {
+    it('should set window size equal when parameter \'type\' is true by default', async function () {
         await this.client.setViewportSize({ width: 500, height: 500 })
 
         const viewportSize = await this.client.getViewportSize()
