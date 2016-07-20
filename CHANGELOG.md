@@ -2,9 +2,13 @@
 
 ## v4.2.2 (2016-07-12)
 * global changes:
+    * updated dependencies
     * make sure waitUntil conditions get executed at least once
     * implemented first polyfills for safaridriver interaction API
     * fixed refresh/reload renaming bugs (#1445, #1446)
+* WDIO changes:
+    * allow to run single specs using `--spec` cli argument
+    * throw an error if suite was not found
 
 ## v4.2.1 (2016-07-09)
 * global changes:
