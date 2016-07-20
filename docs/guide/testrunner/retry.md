@@ -40,7 +40,7 @@ describe('my flaky app', function () {
 });
 ```
 
-It is __not__ possible to rerun whole suites, only hooks or test blocks. To use this you have to have the [wdio-mocha-framework](https://github.com/webdriverio/wdio-mocha-framework) adapter installed with `v0.2.0` or greater or the [wdio-jasmine-framework](https://github.com/webdriverio/wdio-jasmine-framework) adapter with `v0.3.0` or greater.
+It is __not__ possible to rerun whole suites, only hooks or test blocks. To use this you have to have the [wdio-mocha-framework](https://github.com/webdriverio/wdio-mocha-framework) adapter installed with `v0.3.0` or greater or the [wdio-jasmine-framework](https://github.com/webdriverio/wdio-jasmine-framework) adapter with `v0.2.0` or greater.
 
 ## Rerun Step Definitions in Cucumber
 
