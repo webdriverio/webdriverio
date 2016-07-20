@@ -52,6 +52,20 @@ describe('ConfigParser', () => {
         specs.should.include(path.resolve(__dirname, '..', 'functional/end.js'))
     })
 
+    it('should throw when suite is not defined', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
+        configParser.merge({ suite: 'blabla' })
+        expect(() => configParser.getSpecs()).to.throw(/The suite\(s\) "blabla" you specified don't exist/)
+    })
+
+    it('should throw when multiple suites are not defined', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
+        configParser.merge({ suite: 'blabla,lala' })
+        expect(() => configParser.getSpecs()).to.throw(/The suite\(s\) "blabla", "lala" you specified don't exist/)
+    })
+
     it('should include typescript files', () => {
         let configParser = new ConfigParser()
         configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
