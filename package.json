@@ -95,7 +95,7 @@
     "saucelabs": "^1.0.1",
     "sinon": "^1.17.2",
     "snyk": "1.16.0",
-    "wdio-mocha-framework": "^0.3.7"
+    "wdio-mocha-framework": "^0.3.10"
   },
   "tags": [
     "web",
