@@ -123,20 +123,21 @@ Default: *null*
 
 ## Setup [Babel](https://babeljs.io/) to write tests using next generation JavaScript
 
+**Note: these instructions are for Babel 6.  Using Babel 5 is not recommended.**
+
+First, install babel dependencies:
+```
+npm install --save-dev babel-core babel-preset-es2015
+```
+
 There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need
 to register Babel in the before hook of your config file
 
 ```js
     before(function() {
-        require('babel-register')({
-            blacklist: [
-                'regenerator'
-            ]
-        });
+        require('babel-register');
     }),
 ```
-
-Make sure to allow generator calls to directly go through since Node >v0.10 has sufficient generator support.
 
 If you run Mocha tests, you can use Mocha's internal compiler to register Babel, e.g.:
 
@@ -148,11 +149,37 @@ If you run Mocha tests, you can use Mocha's internal compiler to register Babel,
     },
 ```
 
-For generator support, add a file called `.babelrc` to your project root directory with the following content:
+### `.babelrc` settings
 
+Using `babel-polyfill` is not recommended with `webdriverio`; if you need such features, use [`babel-runtime`](https://babeljs.io/docs/plugins/transform-runtime/) instead by running
 ```
+npm install --save-dev babel-plugin-transform-runtime babel-runtime
+```
+and including the following in your `.babelrc`:
+```json
 {
-    "blacklist": ["regenerator"]
+  "presets": ["es2015"],
+  "plugins": [
+    ["transform-runtime", {
+      "polyfill": false
+    }]
+  ]
+}
+```
+
+Instead of `babel-preset-es2015`, you may use `babel-preset-es2015-nodeX`, where `X` is your Node major version, to avoid unnecessary polyfills like generators:
+```
+npm install --save-dev babel-preset-es2015-node6
+```
+```json
+{
+  "presets": ["es2015-node6"],
+  "plugins": [
+    ["transform-runtime", {
+      "polyfill": false,
+      "regenerator": false
+    }]
+  ]
 }
 ```
 
