@@ -127,7 +127,7 @@ Default: *null*
 
 First, install babel dependencies:
 ```
-npm install --save-dev babel-core babel-preset-es2015
+npm install --save-dev babel-register babel-preset-es2015
 ```
 
 There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need
