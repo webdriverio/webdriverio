@@ -20,14 +20,14 @@ Then let's download the current [selenium standalone server](http://docs.seleniu
 
 ** 2. Download selenium standalone server**
 ```sh
-$ curl -O http://selenium-release.storage.googleapis.com/2.53/selenium-server-standalone-2.53.0.jar
+$ curl -O http://selenium-release.storage.googleapis.com/2.53/selenium-server-standalone-2.53.1.jar
 ```
 
 Start the server by executing the following:
 
 ** 3. Start selenium standalone server**
 ```sh
-$ java -jar selenium-server-standalone-2.53.0.jar
+$ java -jar selenium-server-standalone-2.53.1.jar
 ```
 
 Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
