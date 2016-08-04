@@ -7,6 +7,7 @@
   },
   "globals": {
     "expect": true,
+    "assert": true,
     "describe": true,
     "before": true,
     "beforeEach": true,
@@ -16,6 +17,7 @@
     "should": true,
     "browser": true,
     "browserA": true,
-    "mock": true
+    "mock": true,
+    "sinon": true
   }
 }
