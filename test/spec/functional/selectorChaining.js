@@ -23,6 +23,11 @@ describe('selectorChaining', () => {
             (elements) => elements.should.be.equal('MORE NESTED'))
     })
 
+    it('should find deeply nested element using selector chaining', function () {
+        return this.client.element('.nested').element('span=nested span').getText().then(
+            (elements) => elements.should.be.equal('NESTED SPAN'))
+    })
+
     it('should select cell using context of row', function () {
         return this.client.elements('tr').then((rows) => {
             var foundRows = []
