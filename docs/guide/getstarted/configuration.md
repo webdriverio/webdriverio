@@ -97,6 +97,14 @@ Saves a screenshot to a given path if the Selenium driver crashes
 Type: `String`|`null`<br>
 Default: *null*
 
+### screenshotOnReject
+Attaches a screenshot of a current page to the error if the Selenium driver crashes
+
+Type: `Boolean`<br>
+Default: *false*
+
+**Note**: Attaching screenshot to the error uses extra time to get screenshot and extra memory to store it. So for the sake of performance it is disabled by default.
+
 ### waitforTimeout
 Default timeout for all waitForXXX commands.
 
