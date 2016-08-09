@@ -117,13 +117,25 @@ describe('remote method', () => {
                 })
         })
 
-        it('should not take screenshot again if first attempt failed', () => {
+        it('should try to take screenshot only once ', () => {
             var client = remote({screenshotOnReject: true})
 
             var takeScreenshot = RequestHandler.prototype.create.withArgs('/session/:sessionId/screenshot')
             takeScreenshot.returns(q.reject(new Error('some-error')))
 
             return client.getUrl()
+                .catch(err => assert.calledOnce(takeScreenshot)) // eslint-disable-line handle-callback-err
+        })
+
+        it('should try to take screenshot only once on assert inside `then`', () => {
+            var client = remote({screenshotOnReject: true})
+
+            var takeScreenshot = RequestHandler.prototype.create.withArgs('/session/:sessionId/screenshot')
+            takeScreenshot.throws(new Error())
+
+            return client
+                .init()
+                .then(() => q.reject(new Error()))
                 .catch(err => assert.calledOnce(takeScreenshot)) // eslint-disable-line handle-callback-err
         })
 
