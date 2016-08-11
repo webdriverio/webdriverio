@@ -1,6 +1,10 @@
 # CHANGELOG
 
 ## v4.2.4 (2016-08-11)
+* WDIO changes
+    * allow spec as wdio argument
+
+## v4.2.4 (2016-08-11)
 * global changes:
     * docs improvements
     * updated request package dependency
