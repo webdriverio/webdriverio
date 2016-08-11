@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v4.2.4 (2016-08-11)
+* global changes:
+    * docs improvements
+    * updated request package dependency
+    * fixed moveTo bug always sitting at (0, 0)
+    * improved screenshot capturing after command errors
+    * id selector regex fix
+* multiremote:
+    * ensure onComplete to run after test
+
 ## v4.2.2 (2016-07-12)
 * global changes:
     * updated dependencies
