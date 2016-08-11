@@ -134,6 +134,12 @@ describe('selector strategies helper', () => {
         element.value.should.be.equal('//*[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others")]')
     })
 
+    it('should find an element by id + similar content see #1494', () => {
+        const element = findStrategy('#What-is-WebdriverIO*=What')
+        element.using.should.be.equal('xpath')
+        element.value.should.be.equal('//*[contains(@id, "What-is-WebdriverIO") and contains(., "What")]')
+    })
+
     it('should find an element by ui automator strategy (android only)', () => {
         const element = findStrategy('android=foo')
         element.using.should.be.equal('-android uiautomator')
