@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## v4.2.4 (2016-08-11)
+## v4.2.6 (2016-08-17)
+* global changes:
+    * restrict files uploaded to NPM
+    * added screenshot event to internal events
+
+## v4.2.5 (2016-08-11)
 * WDIO changes
     * allow spec as wdio argument
 
