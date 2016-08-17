@@ -32,6 +32,12 @@
     "test-multibrowser": "grunt test:multibrowser",
     "test-snyk": "snyk test"
   },
+  "files": [
+    "bin",
+    "build",
+    "package.json",
+    "README.md"
+  ],
   "dependencies": {
     "archiver": "1.0.0",
     "babel-runtime": "^6.9.2",
