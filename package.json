@@ -35,8 +35,6 @@
   "files": [
     "bin",
     "build",
-    "lib",
-    "index.js",
     "package.json",
     "README.md"
   ],
