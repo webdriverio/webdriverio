@@ -123,7 +123,6 @@ describe('ConfigParser', () => {
         configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'multiHook.conf.js'))
 
         let config = configParser.getConfig()
-        console.log(config);
         config.beforeHook[0]().should.be.equal('beforeHook: I executed properly')
         config.before[0]().should.be.equal('before: I executed properly')
         config.after[0]().should.be.equal('after: I executed properly')
