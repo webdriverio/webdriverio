@@ -1,7 +1,11 @@
-!bin
-!build
 .*
 *.js
 docs
 examples
 test
+lib
+
+!bin
+!build
+!build/lib
+!build/**/*.js
