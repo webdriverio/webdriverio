@@ -1,0 +1,7 @@
+!bin
+!build
+.*
+*.js
+docs
+examples
+test
