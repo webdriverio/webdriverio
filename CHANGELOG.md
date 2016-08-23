@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v4.2.7 (2016-08-23)
+* global changes:
+    * allow to specify selector strategies directly when using the format:
+      "<selector strategy>:<selector>"
+
 ## v4.2.6 (2016-08-17)
 * global changes:
     * restrict files uploaded to NPM
