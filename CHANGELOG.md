@@ -1,9 +1,12 @@
 # CHANGELOG
 
-## v4.2.7 (2016-08-23)
+## v4.2.8 (2016-08-23)
 * global changes:
     * allow to specify selector strategies directly when using the format:
       "<selector strategy>:<selector>"
+
+## v4.2.7 (2016-08-17)
+* fixes broken v4.2.6
 
 ## v4.2.6 (2016-08-17)
 * global changes:
