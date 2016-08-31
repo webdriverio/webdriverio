@@ -1,9 +1,9 @@
 .*
 *.js
-*.ejs
 examples
 test
 lib
+lib/**/*.ejs
 
 !bin
 !build
