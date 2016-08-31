@@ -57,14 +57,6 @@ Specified optional will be passed down to BrowserstackLocal. See [this list](htt
 Type: `Object`<br>
 Default: `{}`
 
-----
-
 ## Known Issues
 
-- It's more of how webdriverio desigend the multi-process model. It is extremely hard if not impossible to reliable transfer localIdentifier to child-processes. We recommend to use it without the identifier at this moment, which will create an account-wide local tunnel.
-
-## Credits
-
-- [wdio-sauce-service](https://github.com/webdriverio/wdio-sauce-service)
-- [browserstack-local](https://github.com/browserstack/browserstack-local-nodejs)
-- ... and all other dependencies
+It's more of how webdriverio desigend the multi-process model. It is extremely hard if not impossible to reliable transfer localIdentifier to child-processes. We recommend to use it without the identifier at this moment, which will create an account-wide local tunnel.
