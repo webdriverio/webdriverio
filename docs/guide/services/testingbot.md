@@ -1,7 +1,7 @@
 name: TestingBot
 category: services
 tags: guide
-index: 1
+index: 2
 title: WebdriverIO - TestingBot Service
 ---
 

@@ -1,7 +1,7 @@
 name: phantomjs
 category: services
 tags: guide
-index: 5
+index: 6
 title: WebdriverIO - PhantomJS Service
 ---
 

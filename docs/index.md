@@ -76,6 +76,8 @@ describe('webdriver.io page', function() {
 });
 ```
     </article>
+
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/XGrHJ4rKV5w" frameborder="0" allowfullscreen></iframe>
 </div>
 
 <a href="/guide.html" class="button getstarted">Get Started</a>
