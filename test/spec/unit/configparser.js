@@ -117,4 +117,15 @@ describe('ConfigParser', () => {
         config.host.should.be.equal('172.168.0.1')
         config.port.should.be.equal(4445)
     })
+
+    it('should allow an array of methods for hooks', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'multiHook.conf.js'))
+
+        let config = configParser.getConfig()
+        config.beforeHook[0]().should.be.equal('beforeHook: I executed properly')
+        config.before[0]().should.be.equal('before: I executed properly')
+        config.after[0]().should.be.equal('after: I executed properly')
+        config.after[1]().should.be.equal('anonymous: I executed properly')
+    })
 })
