@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v4.2.10 (2016-08-31)
+* global changes:
+    * keep command files in package to be able to generate docs
 
 ## v4.2.9 (2016-08-31)
 * global changes:
