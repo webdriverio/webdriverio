@@ -1,7 +1,7 @@
 name: selenium-standalone
 category: services
 tags: guide
-index: 2
+index: 4
 title: WebdriverIO - Selenium Standalone Service
 ---
 

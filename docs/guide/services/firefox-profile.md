@@ -1,7 +1,7 @@
 name: firefox profile
 category: services
 tags: guide
-index: 3
+index: 5
 title: WebdriverIO - Firefox Profile Service
 ---
 
