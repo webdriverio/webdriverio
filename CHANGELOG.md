@@ -1,5 +1,13 @@
 # CHANGELOG
 
+
+## v4.2.9 (2016-08-31)
+* global changes:
+    * docs improvements
+    * bug fixes
+* WDIO changes:
+    * Split hooks into their own collection instead of grouping with tests (#1561)
+
 ## v4.2.8 (2016-08-23)
 * global changes:
     * allow to specify selector strategies directly when using the format:
