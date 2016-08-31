@@ -1,4 +1,4 @@
-name: sauce
+name: Browserstack
 category: services
 tags: guide
 index: 1

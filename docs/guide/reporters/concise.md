@@ -9,9 +9,8 @@ title: WebdriverIO - Concise Reporter
 WDIO Concise Reporter
 =====================
 
-A concise reporter for WebdriverIO
+A concise reporter for WebdriverIO. This project is derived from [WDIO-Json-Reporter](https://github.com/fijijavis/wdio-json-reporter).
 
-> This project is derived from [WDIO-Json-Reporter](https://github.com/fijijavis/wdio-json-reporter)
 ![WDIO Concise Reporter error](https://github.com/FloValence/wdio-concise-reporter/blob/master/example_error.png?raw=true)
 ![WDIO Concise Reporter success](https://github.com/FloValence/wdio-concise-reporter/blob/master/example_success.png?raw=true)
 
