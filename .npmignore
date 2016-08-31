@@ -1,5 +1,6 @@
 .*
 *.js
+*.ejs
 examples
 test
 lib
@@ -8,3 +9,6 @@ lib
 !build
 !build/lib
 !build/**/*.js
+
+!lib/commands/*.js
+!lib/protocol/*.js
