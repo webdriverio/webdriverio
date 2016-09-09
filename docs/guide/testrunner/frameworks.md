@@ -79,8 +79,7 @@ jasmineNodeOpts: {
             return;
         }
 
-        var title = assertion.message.replace(/\s/g, '-');
-        browser.saveScreenshot(('assertionError_' + title + '.png'));
+        browser.saveScreenshot('assertionError_' + assertion.error.message + '.png');
     }
 },
 ```
