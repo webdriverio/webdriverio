@@ -5,8 +5,8 @@ Feature: Example feature
 
   Scenario: Get size of an element
     Given I go on the website "https://github.com/"
-    Then  should the element ".header-logo-wordmark" be 37px wide and 26px high
+    Then  should the element ".header-logo-invertocat" be 32px wide and 32px high
 
   Scenario: Get title of website
     Given I go on the website "https://github.com/"
-    Then  should the title of the page be "GitHub · Where software is built"
+    Then  should the title of the page be "How people build software · GitHub"
