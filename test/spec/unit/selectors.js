@@ -236,5 +236,9 @@ describe('selector strategies helper', () => {
         element = findStrategy('accessibility id:foobar accessibility id')
         element.using.should.be.equal('accessibility id')
         element.value.should.be.equal('foobar accessibility id')
+
+        element = findStrategy('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
+        element.using.should.be.equal('css selector')
+        element.value.should.be.equal('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
     })
 })
