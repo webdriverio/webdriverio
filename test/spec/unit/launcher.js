@@ -39,6 +39,16 @@ describe('launcher', () => {
             specs[0].should.endWith('/test/spec/unit/launcher.js')
         })
 
+        it('should allow to pass mutliple specs as cli argument to run only these test files', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                spec: './test/spec/unit/launcher.js,./lib/webdriverio.js'
+            })
+            let specs = launcher.configParser.getSpecs()
+            specs.should.have.length(2)
+            specs[0].should.endWith('/test/spec/unit/launcher.js')
+            specs[1].should.endWith('/lib/webdriverio.js')
+        })
+
         it('should throw if specified spec file doesnt exist', () => {
             expect(() => new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 spec: './foobar.js'
