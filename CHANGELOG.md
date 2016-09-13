@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v4.2.15 (2016-09-13)
+* fixed broken chaining behavior
+
 ## v4.2.14 (2016-09-13)
 * WDIO changes:
     * enhanced payload of start and end event
