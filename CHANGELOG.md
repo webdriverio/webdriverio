@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## v4.2.14 (2016-09-13)
+* WDIO changes:
+    * enhanced payload of start and end event
+
+## v4.2.13 (2016-09-13)
+* global changes:
+    * bugfix (#1589)
+
+## v4.2.12 (2016-09-09)
+* global changes:
+    * docs improvements
+    * selector improvements
+* WDIO changes:
+    * allow multiple files in spec cli argument (#1579)
+
+## v4.2.11 (2016-08-31)
+* fixed broken v4.2.10
+
 ## v4.2.10 (2016-08-31)
 * global changes:
     * keep command files in package to be able to generate docs
