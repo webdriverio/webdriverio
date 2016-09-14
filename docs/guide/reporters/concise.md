@@ -16,7 +16,7 @@ A concise reporter for WebdriverIO. This project is derived from [WDIO-Json-Repo
 
 ## Installation
 
-The easiest way is to keep `wdio-json-reporter` as a devDependency in your `package.json`.
+The easiest way is to keep `wdio-concise-reporter` as a devDependency in your `package.json`.
 
 ```json
 {
