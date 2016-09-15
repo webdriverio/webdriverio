@@ -29,6 +29,23 @@ Page.prototype.open = function (path) {
 
 module.exports = new Page()
 ```
+Or, using ES6 class:
+```js
+"use strict";
+
+class Page {
+
+	constructor() {
+		this.title = 'My Page';
+	}
+
+	open(path) {
+		browser.url('/' + path);
+	}
+
+}
+module.exports = Page;
+```
 
 We will always export an instance of a page object and never create that instance in the test. Since we are writing end to end tests we always see the page as a stateless construct the same way as each http request is a stateless construct. Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These state changes should emerge from your actual tests.
 
@@ -61,7 +78,32 @@ var LoginPage = Object.create(Page, {
 
 module.exports = LoginPage
 ```
+OR, when using ES6 class:
 
+```js
+// login.page.js
+"use strict";
+
+var Page = require('./page')
+
+class LoginPage extends Page {
+
+    get username()  { return browser.element('#username'); }
+    get password()  { return browser.element('#password'); }
+    get form()      { return browser.element('#login'); }
+    get flash()     { return browser.element('#flash'); }
+    
+    open() {
+        super.open('login');
+    }
+    
+    submit() {
+        this.form.submitForm();
+    }
+    
+}
+module.exports = LoginPage;
+```
 Defining selectors in getter functions might look a bit verbose but it is really useful. These functions get evaluated when you actually access the property and not when you generate the object. With that you always request the element before you do an action on it.
 
 WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
@@ -113,6 +155,34 @@ describe('login form', function () {
         LoginPage.submit();
 
         expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!');
+    });
+});
+```
+Or, when using the ES6 class implementation:
+
+```js
+// login.spec.js
+var expect = require('chai').expect;
+var LoginPage = require('../pageobjects/login.page');
+var loginPage = new LoginPage();
+
+describe('login form', function () {
+    it('should deny access with wrong creds', function () {
+        loginPage.open();
+        loginPage.username.setValue('foo');
+        loginPage.password.setValue('bar');
+        loginPage.submit();
+
+        expect(loginPage.flash.getText()).to.contain('Your username is invalid!');
+    });
+
+    it('should allow access with correct creds', function () {
+        loginPage.open();
+        loginPage.username.setValue('tomsmith');
+        loginPage.password.setValue('SuperSecretPassword!');
+        loginPage.submit();
+
+        expect(loginPage.flash.getText()).to.contain('You logged into a secure area!');
     });
 });
 ```
