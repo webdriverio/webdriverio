@@ -20,7 +20,7 @@ Then add it to the `reporters` array in your wdio.conf.js and define the directo
 // wdio.conf.js
 module.exports = {
     // ...
-    reporters: ['dot', 'junit'],
+    reporters: ['spec', 'junit'],
     reporterOptions: {
         junit: {
             outputDir: './'
