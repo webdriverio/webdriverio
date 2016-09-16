@@ -46,6 +46,15 @@ Jenkins will then offer a link to the results from the build status page:
 
 ![Allure Link](https://github.com/webdriverio/wdio-allure-reporter/raw/master/docs/images/jenkins-results.png "Allure Link")
 
+If you open a report at the first time you probably will notice that Jenkins won't serve the assets due to security restrictions. If that is the case go to Jenkins script console (`http://<your_jenkins_instance>/script`) and put in these security settings:
+
+```
+System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';")
+System.setProperty("jenkins.model.DirectoryBrowserSupport.CSP", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';")
+```
+
+Apply and restart the Jenkins server. All assets should now be served correctly.
+
 ### Command-line
 
 Install the [Allure command-line tool](https://www.npmjs.com/package/allure-commandline), and process the results directory:
