@@ -18,4 +18,11 @@ describe('waitUntil', () => {
         })
         expect(await launcher.run()).to.be.equal(0, 'wdio command failed unexpected')
     })
+
+    it('should show selector in error message if using page objects', async function () {
+        let launcher = new Launcher(path.join(FIXTURE_ROOT, 'waitUntil.conf'), {
+            suite: 'po'
+        })
+        expect(await launcher.run()).to.be.equal(0, 'wdio command failed unexpected')
+    })
 })

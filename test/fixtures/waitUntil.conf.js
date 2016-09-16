@@ -8,7 +8,8 @@ exports.config = {
     specs: [],
     suites: {
         sync: [path.join(__dirname, '/specs/waitUntil.spec.js')],
-        async: [path.join(__dirname, '/specs/waitUntil.async.spec.js')]
+        async: [path.join(__dirname, '/specs/waitUntil.async.spec.js')],
+        po: [path.join(__dirname, '/specs/waitfor.spec.js')]
     },
     capabilities: [{
         browserName: 'phantomjs'
