@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v4.2.16 (2016-09-16)
+* global changes:
+    * docs improvements
+* WDIO changes:
+    * display proper selector in waitForXXX error messages (#1596)
+
 ## v4.2.15 (2016-09-13)
 * fixed broken chaining behavior
 
