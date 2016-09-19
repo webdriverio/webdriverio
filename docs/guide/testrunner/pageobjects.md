@@ -102,7 +102,7 @@ class LoginPage extends Page {
     }
     
 }
-module.exports = LoginPage;
+module.exports = new LoginPage();
 ```
 Defining selectors in getter functions might look a bit verbose but it is really useful. These functions get evaluated when you actually access the property and not when you generate the object. With that you always request the element before you do an action on it.
 
@@ -155,34 +155,6 @@ describe('login form', function () {
         LoginPage.submit();
 
         expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!');
-    });
-});
-```
-Or, when using the ES6 class implementation:
-
-```js
-// login.spec.js
-var expect = require('chai').expect;
-var LoginPage = require('../pageobjects/login.page');
-var loginPage = new LoginPage();
-
-describe('login form', function () {
-    it('should deny access with wrong creds', function () {
-        loginPage.open();
-        loginPage.username.setValue('foo');
-        loginPage.password.setValue('bar');
-        loginPage.submit();
-
-        expect(loginPage.flash.getText()).to.contain('Your username is invalid!');
-    });
-
-    it('should allow access with correct creds', function () {
-        loginPage.open();
-        loginPage.username.setValue('tomsmith');
-        loginPage.password.setValue('SuperSecretPassword!');
-        loginPage.submit();
-
-        expect(loginPage.flash.getText()).to.contain('You logged into a secure area!');
     });
 });
 ```
