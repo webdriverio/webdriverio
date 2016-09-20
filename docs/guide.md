@@ -71,7 +71,7 @@ Yay, Congratulations! You've just run your first Selenium script with WebdriverI
 
 ## Let's get serious
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot useful features that makes your life easier. The first step is to create a config file. To do that just run the configuration utility:
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that make your life easier. The first step is to create a config file. To do that just run the configuration utility:
 
 ```sh
 $ ./node_modules/.bin/wdio config
