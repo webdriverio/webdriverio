@@ -74,6 +74,34 @@ describe('element as first class citizen', () => {
         }, 'was', 'the', 'element')).to.be.equal('body was the element')
     })
 
+    it('should add selector when returning error with errorCode 7', () => {
+        const Page = Object.create({}, {
+            elem: { get: () => browser.element('span=notExisting') },
+            elems: { get: () => browser.elements('span=notExisting') }
+        })
+
+        // normal usage
+        try {
+            browser.getValue('span=notExisting')
+        } catch (e) {
+            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
+        }
+
+        // po usage
+        try {
+            Page.elem.getValue()
+        } catch (e) {
+            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
+        }
+
+        // pos usage with multiple elements
+        try {
+            Page.elems.getValue()
+        } catch (e) {
+            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
+        }
+    })
+
     describe('can be used with waitFor commands without throwing an error while querying it', () => {
         it('can query an element without throwing an error', () => {
             let res = browser.element('#notExisting')
@@ -103,7 +131,9 @@ describe('element as first class citizen', () => {
             }
 
             expect(error).to.be.not.equal(undefined)
-            expect(error.message).to.be.equal(`Promise was rejected with the following reason: Error: An element could not be located on the page using the given search parameters.`)
+            expect(error.message).to.be.equal('Promise was rejected with the following reason: Error: ' +
+                'An element could not be located on the page using the given search parameters ' +
+                '("#notExisting").')
         })
     })
 })
