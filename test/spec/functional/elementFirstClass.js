@@ -18,4 +18,12 @@ describe('element as first class citizen', () => {
         let result = await this.client.element('.nested').getAttribute('style')
         expect(result).to.be.equal('text-transform: uppercase;')
     })
+
+    it('should add selector when returning error with errorCode 7', async function () {
+        try {
+            await this.client.element('span=notExisting').getValue()
+        } catch (e) {
+            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
+        }
+    })
 })
