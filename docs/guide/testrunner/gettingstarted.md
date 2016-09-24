@@ -8,7 +8,7 @@ title: WebdriverIO - Test Runner
 Getting Started
 ===============
 
-WebdriverIO comes with its own test runner to help you getting started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficient as possible.
+WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
 
 To see the command line interface help just type the following command in your terminal:
 
@@ -63,4 +63,4 @@ integration tests by calling:
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-That's it! Now, you can access to the selenium instance via global variable `browser`.
+That's it! Now, you can access to the selenium instance via the global variable `browser`.
