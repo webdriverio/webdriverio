@@ -1,10 +1,6 @@
 import conf from '../../conf/index.js'
 
-/**
- * stale element retry is not working in standalone mode
- * ToDo #1469: broke with dependency update to babel6
- */
-describe.skip('staleElementRetry', () => {
+describe('staleElementRetry', () => {
     it('should not throw stale element error in standalone mode', async function () {
         let iterations = 50
         await this.client.url(conf.testPage.staleTest)
