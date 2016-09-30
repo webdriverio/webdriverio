@@ -4,7 +4,7 @@ var dynamicPage = Object.create(page, {
     /**
      * define elements
      */
-    btnStart:   { get: function () { return browser.elements('button=Start'); } },
+    btnStart:   { get: function () { return browser.element('button=Start'); } },
     loadedPage: { get: function () { return browser.elements('#finish'); } },
 
     /**
