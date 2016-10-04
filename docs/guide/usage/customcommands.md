@@ -8,7 +8,7 @@ title: WebdriverIO - Custom Commands
 Custom Commands
 ===============
 
-If you want to extend the browser instance with your own set of commands there is a method called `addCommand` available from the browser object. You can write your command in an synchronous (default) way the same way as in your specs or asynchronous (like when using WebdriverIO in standalone mode). The following example shows how to add a new command that returns the current url and title as one result only using synchronous commands:
+If you want to extend the browser instance with your own set of commands there is a method called `addCommand` available from the browser object. You can write your command in a synchronous (default) way the same way as in your specs or asynchronous (like when using WebdriverIO in standalone mode). The following example shows how to add a new command that returns the current url and title as one result only using synchronous commands:
 
 ```js
 browser.addCommand("getUrlAndTitle", function (customVar) {
@@ -46,7 +46,7 @@ client.addCommand("getUrlAndTitle", function async () {
 
 ## Integrate 3rd party libraries
 
-If you use external libraries (e.g. to do database calls) that support promises, a nice approach to easily integrate them is to wrap certain API methods within a custom commands:
+If you use external libraries (e.g. to do database calls) that support promises, a nice approach to easily integrate them is to wrap certain API methods within a custom command:
 
 ```js
 browser.addCommand('doExternalJob', function async (params) {
