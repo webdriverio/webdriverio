@@ -187,5 +187,5 @@ And you want to add product B to the cart it would be difficult to do that just 
 With selector chaining it gets way easier as you can narrow down the desired element step by step:
 
 ```js
-browser.element('.row .entry:nth-Child(1)').click('button*=Add');
+browser.element('.row .entry:nth-child(1)').click('button*=Add');
 ```
