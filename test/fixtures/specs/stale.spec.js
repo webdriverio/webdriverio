@@ -56,6 +56,13 @@ describe('staleElementRetry', () => {
         browser.staleMe(50)
     })
 
+    it('reruns command if element got staled after page was reloaded', () => {
+        const body = browser.element('body')
+        expect(body.getTagName()).to.be.equal('body')
+        browser.refresh()
+        expect(body.getTagName()).to.be.equal('body')
+    })
+
     it('catches errors if an inner command fails', () => {
         browser.url(conf.testPage.staleTest)
 
