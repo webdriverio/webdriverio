@@ -22,7 +22,7 @@ Defines the capabilities you want to run in your Selenium session. See the [Sele
 for a list of the available `capabilities`. Also useful is Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 that helps you to create this object by clicking together your desired capabilities.
 
-Refer to the [cloud service docs](/guide/testrunner/cloudservices.html) for further
+Refer to the [cloud service docs](/guide/usage/cloudservices.html) for further
 service specific options.
 
 Type: `Object`<br>
