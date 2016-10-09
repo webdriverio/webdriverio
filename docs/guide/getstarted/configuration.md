@@ -43,12 +43,18 @@ pageLoadStrategy: 'eager' // strategy for page load
 
 `pageLoadStrategy` is implemented in Selenium [2.46.0](https://github.com/SeleniumHQ/selenium/blob/master/java/CHANGELOG#L205), and apparently, it is only working on Firefox. The valid values are:
 
- `normal` - waits for `document.readyState` to be 'complete'. This value is used by default.
- `eager`  - will abort the wait when `document.readyState` is 'interactive' instead of waiting for 'complete'.
+ `normal` - waits for `document.readyState` to be 'complete'. This value is used by default.<br>
+ `eager`  - will abort the wait when `document.readyState` is 'interactive' instead of waiting for 'complete'.<br>
  `none`   - will abort the wait immediately, without waiting for any of the page to load.
 
 ### logLevel
 Level of logging verbosity.
+
+__verbose:__ everything gets logged<br>
+__silent:__ nothing gets logged<br>
+__command:__ url to Selenium server gets logged (e.g. `[15:28:00]  COMMAND     GET      "/wd/hub/session/dddef9eb-82a9-4f6c-ab5e-e5934aecc32a/title"`)<br>
+__data:__ payload of the request gets logged (e.g. `[15:28:00]  DATA                {}`)<br>
+__result:__ result from the Selenium server gets logged (e.g. `[15:28:00]  RESULT              "Google"`)
 
 Type: `String`<br>
 Default: *silent*<br>
