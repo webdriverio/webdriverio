@@ -1,4 +1,5 @@
-var ROOT = __dirname + '/../..'
+var path = require('path')
+var ROOT = path.join(__dirname, '..', '..')
 
 exports.config = {
     specs: [ROOT + '/test/spec/unit/*'],
