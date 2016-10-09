@@ -1,4 +1,5 @@
-var ROOT = __dirname + '/../..'
+var path = require('path')
+var ROOT = path.join(__dirname, '..', '..')
 
 exports.config = {
     host: '172.168.0.1',

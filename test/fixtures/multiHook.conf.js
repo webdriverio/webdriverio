@@ -1,5 +1,3 @@
-var ROOT = __dirname + '/../..'
-
 function beforeHook () {
     return 'beforeHook: I executed properly'
 }
