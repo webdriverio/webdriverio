@@ -141,3 +141,25 @@ Here's a quick cheat-sheet:
 
 
 When you have completed your updates to the documentation, push to your fork and submit a pull request.
+
+
+### Adding new framework, services or reporters
+
+If you've created a plugin for WebdriverIO please add your documentation to our docs section so we can deploy this to the website. There are three different types of plugins in WebdriverIO: framework adapters, services and reporters.
+
+If you published a new (well tested) framework adapter, please add some decent information about it to `/docs/guide/testrunner/frameworks.md`. It should explain how to write tests and what kind of options it supports (if not already documented in the actual framework).
+
+For reporters or services please create a new markdown file in `/docs/guide/(services|reporters)` that has the name of the plugin and contains the information of the project readme. The file should be introduced with a header section that looks like this:
+
+```
+name: <plugin-name>
+category: <services|reporter>
+tags: guide
+index: <a new index number>
+title: WebdriverIO - <plugin title>
+---
+```
+
+Make sure you apply a new index property to it so we can keep a sane ordering. Checkout other markdown pages for reporter or services to get a better idea of how this looks like.
+
+Last but not least make sure you've added the plugin to our cli configurator. For that open `/lib/cli.js` and add your plugin to the dedicated list of frameworks, reporters or services. Please apply the same structure as other plugins.
