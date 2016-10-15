@@ -1,3 +1,10 @@
+name: selenium-standalone
+category: services
+tags: guide
+index: 7
+title: WebdriverIO - Selenium Standalone Service
+---
+
 # Static Server Service
 
 Some projects are front-end assets only and don't run on more than a static server. [This service](https://github.com/LeadPages/wdio-static-server-service) helps you to run a static file server during testing.
