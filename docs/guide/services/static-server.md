@@ -1,8 +1,8 @@
-name: selenium-standalone
-category: services
+name: static-server
+category: static-server
 tags: guide
 index: 7
-title: WebdriverIO - Selenium Standalone Service
+title: WebdriverIO - Static Server Service
 ---
 
 # Static Server Service
