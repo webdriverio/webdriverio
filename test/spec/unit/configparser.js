@@ -91,7 +91,7 @@ describe('ConfigParser', () => {
 
         let config = configParser.getConfig()
         config.host.should.be.equal('ondemand.saucelabs.com')
-        config.port.should.be.equal(80)
+        config.port.should.be.equal(443)
         config.user.should.be.equal('foobar')
         config.key.should.be.equal('50fa142c-3121-4gb0-9p07-8q326vvbq7b0')
     })
@@ -103,7 +103,7 @@ describe('ConfigParser', () => {
 
         let config = configParser.getConfig()
         config.host.should.be.equal('ondemand.saucelabs.com')
-        config.port.should.be.equal(80)
+        config.port.should.be.equal(443)
         config.user.should.be.equal('barfoo')
         config.key.should.be.equal('50fa1411-3121-4gb0-9p07-8q326vvbq7b0')
     })
