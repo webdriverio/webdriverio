@@ -14,15 +14,15 @@ describe('my webdriverio tests', function(){
     it('Github test',function() {
         return client
             .url('https://github.com/')
-            .getElementSize('.header-logo-wordmark').then(function (result) {
-                assert(result.height === 26);
-                assert(result.width  === 89);
+            .getElementSize('.header-logo-invertocat .octicon.octicon-mark-github').then(function (result) {
+                assert(result.height === 32);
+                assert(result.width  === 32);
             })
             .getTitle().then(function (title) {
-                assert(title === 'GitHub · Where software is built');
+                assert(title === 'How people build software · GitHub');
             })
-            .getCssProperty('a[href="/plans"]', 'color').then(function (result) {
-                assert(result.value === 'rgba(64,120,192,1)');
+            .getCssProperty('a[href="/pricing"]', 'color').then(function (result) {
+                assert(result.value === 'rgba(60,65,70,1)');
             });
     });
 
