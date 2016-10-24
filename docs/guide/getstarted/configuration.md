@@ -15,7 +15,7 @@ var webdriverio = require('webdriverio');
 var client = webdriverio.remote(options);
 ```
 
-you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if you run WebdriverIO as a standalone package. If you are using the wdio test runner, these options belong in your `wdio.conf.js` configuration file. These are the options you can define:
+you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if you run WebdriverIO as a standalone package. If you are using the wdio test runner, these options belong in your `wdio.conf.js` configuration file. The following options can be defined:
 
 ### desiredCapabilities
 Defines the capabilities you want to run in your Selenium session. See the [Selenium documentation](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
@@ -66,6 +66,12 @@ or you can pass in a writeable stream, and everything gets redirected to that (l
 
 Type: `String|writeable stream`<br>
 Default: *null*
+
+### protocol
+Protocol to use when communicating with the Selenium standalone server (or driver).
+
+Type: `String`<br>
+Default: *http*
 
 ### host
 Host of your WebDriver server.

@@ -1,7 +1,7 @@
 name: modes
 category: getstarted
 tags: guide
-index: 2
+index: 3
 title: WebdriverIO - How to use WebdriverIO
 ---
 

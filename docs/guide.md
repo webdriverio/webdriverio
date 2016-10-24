@@ -16,18 +16,18 @@ Let's suppose you have [Node.js](http://nodejs.org/) and Java already installed.
 $ mkdir webdriverio-test && cd webdriverio-test
 ```
 
-Then let's download the current [selenium standalone server](http://docs.seleniumhq.org/download/) version:
+Then let's download the latest [selenium standalone server](http://docs.seleniumhq.org/download/) version:
 
-** 2. Download selenium standalone server**
+** 2. Download latest selenium standalone server**
 ```sh
-$ curl -O http://selenium-release.storage.googleapis.com/2.53/selenium-server-standalone-2.53.1.jar
+$ curl -O http://selenium-release.storage.googleapis.com/3.0/selenium-server-standalone-3.0.1.jar
 ```
 
 Start the server by executing the following:
 
 ** 3. Start selenium standalone server**
 ```sh
-$ java -jar selenium-server-standalone-2.53.1.jar
+$ java -jar selenium-server-standalone-3.0.1.jar
 ```
 
 Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
@@ -45,7 +45,7 @@ var options = {
         browserName: 'firefox'
     }
 };
- 
+
 webdriverio
     .remote(options)
     .init()
@@ -67,11 +67,11 @@ this should output the following:
 Title was: Google
 ```
 
-Yay, Congratulations! You've just run your first Selenium script with WebdriverIO. Let's step it up a notch.
+Yay, Congratulations! You've just run your first automation script with WebdriverIO. Let's step it up a notch and create a real test.
 
 ## Let's get serious
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that make your life easier. The first step is to create a config file. To do that just run the configuration utility:
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. The first step is to create a config file. To do that just run the configuration utility:
 
 ```sh
 $ ./node_modules/.bin/wdio config
@@ -109,7 +109,7 @@ A: _./errorShots/_ (just press enter)<br>
 __Q: What is the base url?__<br>
 A: _http://localhost_ (just press enter)<br>
 
-That's it! The configurator now installs all required packages for you and creates a spec file with the name `wdio.conf.js`. Next step is to create your first spec file (test file). For that create a test folder like this:
+That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. Next step is to create your first spec file (test file). For that create a test folder like this:
 
 ```sh
 $ mkdir -p ./test/specs
@@ -135,4 +135,4 @@ The last step is to execute the test runner. To do so just run:
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-Hurray! The test should pass and your can start writing integration tests with WebdriverIO.
+Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](http://learn.webdriver.io/). Also our community has collected a lot of [boilerplate projects](/guide/getstarted/configuration.html) that can help you to get started.
