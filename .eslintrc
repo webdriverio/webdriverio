@@ -3,21 +3,8 @@
   "parser": "babel-eslint",
   "rules": {
     "indent": [2, 4],
-    "generator-star-spacing": 0
-  },
-  "globals": {
-    "expect": true,
-    "assert": true,
-    "describe": true,
-    "before": true,
-    "beforeEach": true,
-    "after": true,
-    "afterEach": true,
-    "it": true,
-    "should": true,
-    "browser": true,
-    "browserA": true,
-    "mock": true,
-    "sinon": true
+
+    /* Atom fix */
+    "generator-star-spacing": 0,
   }
 }

@@ -72,6 +72,8 @@
     "codeclimate-test-reporter": "^0.1.1",
     "coveralls": "~2.11.2",
     "eslint-config-standard": "^5.3.5",
+    "eslint-plugin-chai-expect": "^1.1.1",
+    "eslint-plugin-mocha": "^4.7.0",
     "eslint-plugin-promise": "^2.0.0",
     "eslint-plugin-standard": "^2.0.0",
     "grunt": "^0.4.5",
