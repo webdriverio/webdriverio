@@ -30,15 +30,15 @@ describe('my webdriverio tests', function() {
     it('test it', function() {
         return client
             .url('https://github.com/')
-            .getElementSize('.header-logo-wordmark').then(function (result) {
-                expect(result.height).toBe(26);
-                expect(result.width).toBe(89);
+            .getElementSize('.header-logo-invertocat .octicon.octicon-mark-github').then(function (result) {
+                expect(result.height).toBe(32);
+                expect(result.width).toBe(32);
             })
             .getTitle().then(function (title) {
-                expect(title).toBe('GitHub · Where software is built');
+                expect(title).toBe('How people build software · GitHub');
             })
-            .getCssProperty('a[href="/plans"]', 'color').then(function (color) {
-                expect(color).toBe('rgba(64,120,192,1)');
+            .getCssProperty('a[href="/pricing"]', 'color').then(function (color) {
+                expect(color).toBe('rgba(60,65,70,1)');
             });
     });
 
