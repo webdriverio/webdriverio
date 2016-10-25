@@ -27,7 +27,7 @@ vows.describe('my github tests').addBatch({
             'check logo dimension': {
 
                 topic: function () {
-                    client.getElementSize('.header-logo-wordmark')
+                    client.getElementSize('.header-logo-invertocat .octicon.octicon-mark-github')
                         .then(this.callback.bind(this, null))
                         .catch(this.callback.bind(this));
                 },
@@ -37,11 +37,11 @@ vows.describe('my github tests').addBatch({
                 },
 
                 'height is 32px': function(err,result) {
-                    assert(result.height === 26);
+                    assert(result.height === 32);
                 },
 
                 'width is 89px': function(err,result) {
-                    assert(result.width === 89);
+                    assert(result.width === 32);
                 }
 
             },
@@ -58,8 +58,8 @@ vows.describe('my github tests').addBatch({
                     assert(err === null);
                 },
 
-                'title should be "GitHub · Where software is built"': function(err,result) {
-                    assert(result === 'GitHub · Where software is built');
+                'title should be "How people build software · GitHub"': function(err,result) {
+                    assert(result === 'How people build software · GitHub');
                 }
 
             },
@@ -67,7 +67,7 @@ vows.describe('my github tests').addBatch({
             'check color of subheading': {
 
                 topic: function() {
-                    client.getCssProperty('a[href="/plans"]', 'color')
+                    client.getCssProperty('a[href="/pricing"]', 'color')
                         .then(this.callback.bind(this, null))
                         .catch(this.callback.bind(this))
                 },
@@ -76,8 +76,8 @@ vows.describe('my github tests').addBatch({
                     assert(err === null);
                 },
 
-                'color should be rgba(64,120,192,1)': function(err,result) {
-                    assert(result.value === 'rgba(64,120,192,1)');
+                'color should be rgba(60,65,70,1)': function(err,result) {
+                    assert(result.value === 'rgba(60,65,70,1)');
                 }
 
             }
