@@ -8,10 +8,10 @@ exports.config = {
     baseUrl: 'http://127.0.0.1:8080',
     capabilities: {
         browserA: {
-            browserName: 'phantomjs'
+            desiredCapabilities: { browserName: 'phantomjs' }
         },
         browserB: {
-            browserName: 'phantomjs'
+            desiredCapabilities: { browserName: 'phantomjs' }
         }
     },
     framework: 'mocha',
