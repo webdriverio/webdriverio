@@ -20,8 +20,7 @@ super easy [Selenium](https://en.wikipedia.org/wiki/Selenium_(software)) tests i
 BDD/TDD test framework, that will run locally or in the cloud using Sauce Labs, BrowserStack or TestingBot.
 
 WebdriverIO is agnostic with regards to the test framework you want to use. Cucumber, Jasmine and Mocha+Chai
-are supported by the configuration wizard, and you can use other frameworks as well - for example
-[Yadda](https://github.com/webdriverio/cucumber-boilerplate).
+are supported by the configuration wizard.
 
 ## Installation
 
