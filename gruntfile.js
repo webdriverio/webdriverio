@@ -31,7 +31,12 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         pkgFile: 'package.json',
-        clean: ['build'],
+        clean: {
+            build: ['build'],
+            cordova: ['test/site/platforms'],
+            ios: ['test/site/platforms/ios'],
+            android: ['test/site/platforms/android']
+        },
         babel: {
             commands: {
                 files: [{
@@ -184,19 +189,46 @@ module.exports = function (grunt) {
                     base: './test/site/www'
                 }
             }
+        },
+        cordovacli: {
+            options: {
+                command: ['create', 'platform', 'plugin', 'build'],
+                platforms: ['ios', 'android'],
+                path: 'test/site/www',
+                id: 'io.webdriverio.example',
+                name: 'WebdriverIOGuineaPig'
+            },
+            add_platforms: {
+                options: {
+                    command: 'platform',
+                    action: 'add',
+                    platforms: ['ios', 'android']
+                }
+            },
+            build_ios: {
+                options: {
+                    command: 'build',
+                    platforms: ['ios']
+                }
+            },
+            build_android: {
+                options: {
+                    command: 'build',
+                    platforms: ['android']
+                }
+            }
         }
     })
 
     require('load-grunt-tasks')(grunt)
     grunt.registerTask('default', ['build'])
-    grunt.registerTask('build', 'Build wdio-mocha', function () {
-        grunt.task.run([
-            'eslint',
-            'clean',
-            'babel',
-            'copy'
-        ])
-    })
+    grunt.registerTask('build', 'Build wdio-mocha', ['eslint', 'clean', 'babel', 'copy'])
+    grunt.registerTask('buildGuineaPig', [
+        'clean:cordova',
+        'cordovacli:add_platforms',
+        'cordovacli:build_ios',
+        'cordovacli:build_android'
+    ])
     grunt.registerTask('release', 'Bump and tag version', function (type) {
         grunt.task.run([
             'build',
