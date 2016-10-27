@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
     <widget xmlns   = "http://www.w3.org/ns/widgets"
         xmlns:gap   = "http://phonegap.com/ns/1.0"
-        id          = "io.webdriverjs.example"
-        versionCode = "10" 
+        id          = "io.webdriverio.example"
+        versionCode = "10"
         version     = "1.0.0" >
 
     <!-- versionCode is optional and Android only -->
 
-    <name>WebdriverJS Example Phonegap Application</name>
+    <name>WebdriverIO Guinea Pig</name>
 
     <description>
         Example site only for testing purposes.
