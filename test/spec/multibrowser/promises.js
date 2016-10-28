@@ -18,8 +18,8 @@ describe('promise support', () => {
 
     it('should propagate results to then', function () {
         return this.client.getTitle().then(function (title) {
-            title.browserA.should.be.equal('WebdriverJS Testpage')
-            title.browserB.should.be.equal('WebdriverJS Testpage')
+            title.browserA.should.be.equal('WebdriverIO Testpage')
+            title.browserB.should.be.equal('WebdriverIO Testpage')
             return this.url()
         }).then((url) => {
             url.browserA.value.should.be.equal(conf.testPage.start)

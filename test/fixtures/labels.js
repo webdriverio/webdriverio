@@ -6,7 +6,7 @@ let labels = {
 
 if (process.env._ENV === 'android') {
     labels = merge(labels, {
-        WEBVIEW_CONTEXT: 'WEBVIEW_io.webdriverjs.example',
+        WEBVIEW_CONTEXT: 'WEBVIEW_io.webdriverio.example',
         ACTIVITY: '.MainActivity',
         HITAREA: '//android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.webkit.WebView[1]/android.webkit.WebView[1]/android.view.View[2]'
     })

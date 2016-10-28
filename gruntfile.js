@@ -248,7 +248,7 @@ module.exports = function (grunt) {
             process.env._PLATFORM = 'iOS'
             process.env._VERSION = '9.2'
             process.env._DEVICENAME = 'iPhone 6'
-            process.env._APP = path.join(__dirname, '/test/site/platforms/ios/build/emulator/WebdriverJS Example Phonegap Application.app')
+            process.env._APP = path.join(__dirname, '/test/site/platforms/ios/build/emulator/WebdriverIO Guinea Pig.app')
         } else if (!process.env.CI && env === 'android') {
             process.env._PLATFORM = 'Android'
             process.env._VERSION = '4.4'

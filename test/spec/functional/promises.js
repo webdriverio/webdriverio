@@ -35,7 +35,7 @@ describe('PromiseHandler', () => {
 
     it('should propagate results to then', function () {
         return this.client.getTitle().then(function (title) {
-            title.should.be.equal('WebdriverJS Testpage')
+            title.should.be.equal('WebdriverIO Testpage')
             return this.url()
         }).then((url) => {
             url.value.should.be.equal(conf.testPage.start)
