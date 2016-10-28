@@ -4,6 +4,6 @@ config['My tests'] = {
     rootPath: '../',
     environment: 'node', // or 'browser'
     tests: [
-        'examples/webdriverjs.with.buster.js'
+        'examples/webdriverio.with.buster.js'
     ]
 };

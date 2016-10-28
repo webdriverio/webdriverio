@@ -12,6 +12,6 @@ describe('back', () => {
             .back()
             .pause(3000);
 
-        (await this.client.getTitle()).should.be.equal('WebdriverJS Testpage')
+        (await this.client.getTitle()).should.be.equal('WebdriverIO Testpage')
     })
 })

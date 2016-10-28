@@ -7,7 +7,7 @@ describe('promised based async handling', () => {
 
     it('should pass a promise test', () => {
         return browser.url('/').getTitle().then((result) => {
-            expect(result).to.be.equal('WebdriverJS Testpage')
+            expect(result).to.be.equal('WebdriverIO Testpage')
         })
     })
 

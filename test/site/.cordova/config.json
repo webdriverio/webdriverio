@@ -1,10 +1,10 @@
 {
-    "id": "com.webdriverjs.example",
+    "id": "com.webdriverio.example",
     "lib": {
         "www": {
             "id": "phonegap",
             "version": "3.2.0"
         }
     },
-    "name": "WebdriverJSExample"
+    "name": "WebdriverIOExample"
 }
