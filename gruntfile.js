@@ -222,7 +222,7 @@ module.exports = function (grunt) {
 
     require('load-grunt-tasks')(grunt)
     grunt.registerTask('default', ['build'])
-    grunt.registerTask('build', 'Build wdio-mocha', ['eslint', 'clean', 'babel', 'copy'])
+    grunt.registerTask('build', 'Build wdio-mocha', ['eslint', 'clean:build', 'babel', 'copy'])
     grunt.registerTask('buildGuineaPig', [
         'clean:cordova',
         'cordovacli:add_platforms',
