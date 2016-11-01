@@ -86,9 +86,9 @@ describe('touchAction', () => {
         })
 
         it('should handle multiple actions as strings properly', async () => {
-            await touchAction.call(scope, ['press', 'release'])
+            await touchAction.call(scope, ['wait', 'release'])
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
-                actions: [{ action: 'press' }, { action: 'release' }]
+                actions: [{ action: 'wait' }, { action: 'release' }]
             })
             expect(elementCalls).to.be.equal(0)
         })
@@ -328,6 +328,30 @@ describe('touchAction', () => {
             expect(hasThrownAnError, 'expected error wasn\'t thrown').to.be.ok
         })
 
+        it('should throw if command doesnt has position information if needed', async () => {
+            let hasThrownAnError = false
+            try {
+                await touchAction.call(scope, { action: 'press' })
+            } catch (e) {
+                expect(e.message).to.be.equal('Touch actions like "press" need at least some kind of position information like "selector", "x" or "y" options, you\'ve none given.')
+                hasThrownAnError = true
+            }
+
+            expect(hasThrownAnError, 'expected error wasn\'t thrown').to.be.ok
+        })
+
+        it('should throw if command doesnt has position information if needed when given as string', async () => {
+            let hasThrownAnError = false
+            try {
+                await touchAction.call(scope, 'moveTo')
+            } catch (e) {
+                expect(e.message).to.be.equal('Touch action "moveTo" doesn\'t have proper options. Make sure certain actions like press, longPress, tap, moveTo have position options like "selector", "x" or "y".')
+                hasThrownAnError = true
+            }
+
+            expect(hasThrownAnError, 'expected error wasn\'t thrown').to.be.ok
+        })
+
         it('should ignore unknown options', async () => {
             await touchAction.call(scope, '//FooBar', { action: 'moveTo', x: 123, foobar: 123, y: 345 })
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
@@ -337,6 +361,16 @@ describe('touchAction', () => {
                 }]
             })
             expect(elementCalls).to.be.equal(1)
+        })
+
+        it('should not ignore 0 (zero) x or y options', async () => {
+            await touchAction.call(scope, {
+                action: 'moveTo', x: 0, y: 0
+            })
+            expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
+                actions: [{ action: 'moveTo', options: { x: 0, y: 0 } }]
+            })
+            expect(elementCalls).to.be.equal(0)
         })
     })
 
