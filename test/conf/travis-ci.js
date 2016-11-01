@@ -1,4 +1,6 @@
 export default {
+    user: process.env.SAUCE_USERNAME,
+    key: process.env.SAUCE_ACCESS_KEY,
     port: 4445,
     logLevel: 'command',
     waitforTimeout: 1000,
@@ -12,8 +14,6 @@ export default {
         'idle-timeout': 900,
         tags: ['webdriverio', process.env._ENV || 'desktop', process.env._BROWSER || process.env._DEVICENAME, process.env._PLATFORM, process.env._VERSION],
         name: 'webdriverio test',
-        build: process.env.TRAVIS_BUILD_NUMBER,
-        username: process.env.SAUCE_USERNAME,
-        accessKey: process.env.SAUCE_ACCESS_KEY
+        build: process.env.TRAVIS_BUILD_NUMBER
     }
 }
