@@ -19,7 +19,7 @@ describe('close', () => {
         (await this.client.getTabIds()).should.have.length(2)
 
         // close window
-        await this.client.close().pause(1000);
+        await this.client.close().pause(2000);
         (await this.client.getTabIds()).should.have.length(1);
 
         // test if there is only one tab open
