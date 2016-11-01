@@ -6,7 +6,7 @@ describe('chooseFile: choosing a file in an <input type=file>', () => {
     it('uploads a file and fills the form with it', async function () {
         await this.client.chooseFile('#upload-test', toUpload)
         const val = await this.client.getValue('#upload-test')
-        expect(/cat\-to\-upload\.gif$/.test(val)).to.be.equal(true)
+        expect(/cat-to-upload\.gif$/.test(val)).to.be.equal(true)
     })
 
     it('errors if file does not exists', function () {

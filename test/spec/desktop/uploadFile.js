@@ -7,6 +7,6 @@ describe('uploadFile', () => {
         const uploadedFile = await this.client.uploadFile(toUpload)
         expect(uploadedFile).not.to.be.undefined
         expect(uploadedFile).not.to.be.null;
-        (/cat\-to\-upload\.gif$/).test(uploadedFile.value).should.be.true
+        (/cat-to-upload\.gif$/).test(uploadedFile.value).should.be.true
     })
 })
