@@ -84,7 +84,6 @@
     "grunt-contrib-connect": "^0.11.2",
     "grunt-contrib-copy": "^0.8.2",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-cordovacli": "^1.0.1",
     "grunt-eslint": "^19.0.0",
     "grunt-mocha-istanbul": "^5.0.1",
     "grunt-mocha-test": "^0.12.7",
