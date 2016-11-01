@@ -44,7 +44,6 @@ module.exports.arcAction = function(start, end) {
     }
 
     actions.push('release');
-    console.log(actions);
     return actions;
 }
 

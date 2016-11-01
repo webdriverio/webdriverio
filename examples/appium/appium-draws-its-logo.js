@@ -40,6 +40,6 @@ client
         helper.innerArcAction(2*Math.PI / 3*3 + Math.PI / 3, 2*Math.PI / 3*3 + Math.PI + Math.PI / 8 + Math.PI / 3)
     ])
     .end().catch(function (e) {
-        console.error(e);
+        console.error(e.stack);
         return client.end();
     });
