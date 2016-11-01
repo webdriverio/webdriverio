@@ -55,7 +55,30 @@ describe('touchAction', () => {
                 y: 2
             })
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
-                actions: [{ action: 'press', options: { element: 'element-//FooBar', x: 1, y: 2 } }]
+                actions: [{ action: 'press', options: { x: 1, y: 2 } }]
+            })
+            expect(elementCalls).to.be.equal(0)
+        })
+
+        it('should transform object into array with selector and resolve selector if given', async () => {
+            await touchAction.call(scope, '//FooBar', {
+                action: 'press',
+                x: 1,
+                y: 2,
+                selector: '//FooBar'
+            })
+            expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
+                actions: [{ action: 'press', options: { x: 1, y: 2, element: 'element-//FooBar' } }]
+            })
+            expect(elementCalls).to.be.equal(1)
+        })
+
+        it('should transform object into array with selector if no x and y options are given', async () => {
+            await touchAction.call(scope, '//FooBar', {
+                action: 'press'
+            })
+            expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
+                actions: [{ action: 'press', options: { element: 'element-//FooBar' } }]
             })
             expect(elementCalls).to.be.equal(1)
         })
@@ -68,7 +91,18 @@ describe('touchAction', () => {
                 y: 2
             })
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
-                actions: [{ action: 'press', options: { element: 'element-//FooBar', x: 1, y: 2 } }]
+                actions: [{ action: 'press', options: { x: 1, y: 2 } }]
+            })
+            expect(elementCalls).to.be.equal(0)
+        })
+
+        it('should transform object into array using element as first citizen with no x and y', async () => {
+            scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
+            await touchAction.call(scope, {
+                action: 'press'
+            })
+            expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
+                actions: [{ action: 'press', options: { element: 'element-//FooBar' } }]
             })
             expect(elementCalls).to.be.equal(0)
         })
@@ -98,9 +132,18 @@ describe('touchAction', () => {
                 action: 'press',
                 x: 1,
                 y: 2
+            }, 'press', {
+                action: 'press',
+                x: 3,
+                y: 4,
+                selector: '//FooBar'
             }])
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
-                actions: [{ action: 'press', options: { element: 'element-//FooBar', x: 1, y: 2 } }]
+                actions: [
+                    { action: 'press', options: { x: 1, y: 2 } },
+                    { action: 'press', options: { element: 'element-//FooBar' } },
+                    { action: 'press', options: { element: 'element-//FooBar', x: 3, y: 4 } }
+                ]
             })
             expect(elementCalls).to.be.equal(1)
         })
@@ -111,9 +154,18 @@ describe('touchAction', () => {
                 action: 'press',
                 x: 1,
                 y: 2
+            }, 'press', {
+                action: 'press',
+                x: 3,
+                y: 4,
+                element: 'element-//FooBar2'
             }])
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
-                actions: [{ action: 'press', options: { element: 'element-//FooBar', x: 1, y: 2 } }]
+                actions: [
+                    { action: 'press', options: { x: 1, y: 2 } },
+                    { action: 'press', options: { element: 'element-//FooBar' } },
+                    { action: 'press', options: { element: 'element-//FooBar2', x: 3, y: 4 } }
+                ]
             })
             expect(elementCalls).to.be.equal(0)
         })
@@ -357,10 +409,10 @@ describe('touchAction', () => {
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
                 actions: [{
                     action: 'moveTo',
-                    options: { x: 123, y: 345, element: 'element-//FooBar' }
+                    options: { x: 123, y: 345 }
                 }]
             })
-            expect(elementCalls).to.be.equal(1)
+            expect(elementCalls).to.be.equal(0)
         })
 
         it('should not ignore 0 (zero) x or y options', async () => {
@@ -423,14 +475,12 @@ describe('touchAction', () => {
                 x: 1,
                 y: 2
             }], [{
-                action: 'tap',
-                x: 3,
-                y: 4
+                action: 'tap'
             }]])
             expect(performMultiAction.getCall(0).args[0]).to.be.deep.equal({
                 actions: [
-                    [{ action: 'press', options: { element: 'element-//FooBar', x: 1, y: 2 } }],
-                    [{ action: 'tap', options: { element: 'element-//FooBar', x: 3, y: 4 } }]
+                    [{ action: 'press', options: { x: 1, y: 2 } }],
+                    [{ action: 'tap', options: { element: 'element-//FooBar' } }]
                 ]
             })
             expect(elementCalls).to.be.equal(1)
@@ -438,19 +488,15 @@ describe('touchAction', () => {
 
         it('should transform object into array using element as first citizen', async () => {
             scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
-            await touchAction.call(scope, [[{
-                action: 'press',
-                x: 1,
-                y: 2
-            }], [{
+            await touchAction.call(scope, [['press'], [{
                 action: 'tap',
                 x: 3,
                 y: 4
             }]])
             expect(performMultiAction.getCall(0).args[0]).to.be.deep.equal({
                 actions: [
-                    [{ action: 'press', options: { element: 'element-//FooBar', x: 1, y: 2 } }],
-                    [{ action: 'tap', options: { element: 'element-//FooBar', x: 3, y: 4 } }]
+                    [{ action: 'press', options: { element: 'element-//FooBar' } }],
+                    [{ action: 'tap', options: { x: 3, y: 4 } }]
                 ]
             })
             expect(elementCalls).to.be.equal(0)
@@ -485,19 +531,18 @@ describe('touchAction', () => {
                 x: 1,
                 y: 2
             }], [{
-                action: 'longPress',
-                x: 3,
-                y: 4
+                action: 'longPress'
             }, {
                 action: 'tap',
+                selector: '//FooBar',
                 x: 5,
                 y: 6
             }]])
             expect(performMultiAction.getCall(0).args[0]).to.be.deep.equal({
                 actions: [
-                    [{ action: 'press', options: { element: 'element-//FooBar', x: 1, y: 2 } }],
+                    [{ action: 'press', options: { x: 1, y: 2 } }],
                     [
-                        { action: 'longPress', options: { element: 'element-//FooBar', x: 3, y: 4 } },
+                        { action: 'longPress', options: { element: 'element-//FooBar' } },
                         { action: 'tap', options: { element: 'element-//FooBar', x: 5, y: 6 } }
                     ]
                 ]
@@ -526,11 +571,11 @@ describe('touchAction', () => {
                     [{ action: 'press', options: { element: 'test123', x: 1, y: 2 } }],
                     [
                         { action: 'longPress', options: { element: 'element-//UIText', x: 3, y: 4 } },
-                        { action: 'tap', options: { element: 'element-//FooBar', x: 5, y: 6 } }
+                        { action: 'tap', options: { x: 5, y: 6 } }
                     ]
                 ]
             })
-            expect(elementCalls).to.be.equal(2)
+            expect(elementCalls).to.be.equal(1)
         })
     })
 })
