@@ -23,6 +23,6 @@ describe('context', () => {
 
     it('should be able to switch to native context', async function () {
         await this.client.context(labels.NATIVE_APP_CONTEXT);
-        (await this.client.context()).value.should.contain(labels.WEBVIEW_CONTEXT)
+        (await this.client.context()).value.should.contain(labels.NATIVE_APP_CONTEXT)
     })
 })

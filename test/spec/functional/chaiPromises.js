@@ -10,13 +10,13 @@ describe('chai-as-promised', () => {
     })
 
     it('should handle a single promise', function () {
-        return this.client.getTitle().should.eventually.equal('WebdriverJS Testpage')
+        return this.client.getTitle().should.eventually.equal('WebdriverIO Testpage')
     })
 
     it('should allow chaining of further promises', function () {
         return this.client
             .isVisible('body').should.eventually.be.true
-            .getTitle().should.eventually.equal('WebdriverJS Testpage')
+            .getTitle().should.eventually.equal('WebdriverIO Testpage')
     })
 
     it('should handle failed assertions', function () {
