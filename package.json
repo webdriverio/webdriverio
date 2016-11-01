@@ -70,7 +70,6 @@
     "chai-string": "^1.1.4",
     "chai-things": "^0.2.0",
     "codeclimate-test-reporter": "^0.1.1",
-    "cordova": "^6.4.0",
     "coveralls": "~2.11.2",
     "eslint-config-standard": "^5.3.5",
     "eslint-plugin-chai-expect": "^1.1.1",
