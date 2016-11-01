@@ -4,6 +4,13 @@ let WEBVIEW_CONTEXT
 
 describe('touchAction', () => {
     before(async function () {
+        /**
+         * it takes a while for android to initialise webview
+         */
+        if (this.client.isAndroid) {
+            await new Promise((resolve) => setTimeout(resolve, 5000))
+        }
+
         const contexts = await this.client.contexts()
         WEBVIEW_CONTEXT = contexts.value.filter((c) => c.indexOf('WEBVIEW') > -1)[0]
         await this.client.context(WEBVIEW_CONTEXT)

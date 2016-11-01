@@ -1,5 +1,3 @@
-import phantomjs from 'phantomjs-prebuilt'
-
 let config = {
     host: 'localhost',
     port: process.env._PORT || 4444,
@@ -9,10 +7,6 @@ let config = {
     desiredCapabilities: {
         browserName: process.env._BROWSER || 'phantomjs'
     }
-}
-
-if (config.desiredCapabilities.browserName === 'phantomjs') {
-    config.desiredCapabilities['phantomjs.binary.path'] = phantomjs.path
 }
 
 if (process.env._ENV === 'multibrowser') {

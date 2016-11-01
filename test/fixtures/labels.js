@@ -12,7 +12,7 @@ if (process.env._ENV === 'android') {
     })
 } else if (process.env._ENV === 'ios') {
     labels = merge(labels, {
-        WEBVIEW_CONTEXT: 'WEBVIEW_',
+        WEBVIEW_CONTEXT: 'WEBVIEW_1',
         HITAREA: '//UIAApplication[1]/UIAWindow[1]/UIAScrollView[1]/UIAWebView[1]/UIAStaticText[9]'
     })
 }
