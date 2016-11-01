@@ -95,7 +95,6 @@
     "load-grunt-tasks": "^3.2.0",
     "mocha": "^2.3.4",
     "nock": "8.0.0",
-    "phantomjs-prebuilt": "^2.1.7",
     "saucelabs": "^1.0.1",
     "sinon": "^1.17.2",
     "snyk": "1.16.0",
