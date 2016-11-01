@@ -7,7 +7,6 @@ sudo: false
 
 before_script:
   - npm install -g bower
-  - npm run build
   - cd test/site/www && bower install && cd ../../../
   - phantomjs --webdriver=4444 2>&1 >/dev/null &
 
