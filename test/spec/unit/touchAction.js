@@ -13,7 +13,7 @@ describe('touchAction', () => {
             performTouchAction,
             element: (selector) => new Promise((resolve) => {
                 elementCalls++
-                setTimeout(() => resolve({ value: `element-${selector}`, selector: selector }), 10)
+                setTimeout(() => resolve({ value: { ELEMENT: `element-${selector}` }, selector: selector }), 10)
             })
         }
     })
@@ -28,7 +28,7 @@ describe('touchAction', () => {
         })
 
         it('should transform to array using element as first citizen', async () => {
-            scope.lastResult = { value: 'element-//FooBar' }
+            scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
             await touchAction.call(scope, 'press')
             expect(performTouchAction.getCall(0).args[0]).to.be.deep.equal({
                 actions: [{ action: 'press', options: { element: 'element-//FooBar' } }]
@@ -61,7 +61,7 @@ describe('touchAction', () => {
         })
 
         it('should transform object into array using element as first citizen', async () => {
-            scope.lastResult = { value: 'element-//FooBar' }
+            scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
             await touchAction.call(scope, {
                 action: 'press',
                 x: 1,
@@ -106,7 +106,7 @@ describe('touchAction', () => {
         })
 
         it('should transform array correctly using element as first citizen', async () => {
-            scope.lastResult = { value: 'element-//FooBar' }
+            scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
             await touchAction.call(scope, [{
                 action: 'press',
                 x: 1,
@@ -165,7 +165,7 @@ describe('touchAction', () => {
         })
 
         it('should not use element as first citizen if action contains element id', async () => {
-            scope.lastResult = { value: 'element-//FooBar' }
+            scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
             await touchAction.call(scope, {
                 action: 'press',
                 element: 'element-//UIText'
@@ -243,7 +243,7 @@ describe('touchAction', () => {
         })
 
         it('should propagate selector but prefer selectors/elements in action with element as first citizen', async () => {
-            scope.lastResult = { value: 'element-//UIText' }
+            scope.lastResult = { value: { ELEMENT: 'element-//UIText' } }
             await touchAction.call(scope, [{
                 action: 'press'
             }, {
@@ -387,7 +387,7 @@ describe('touchAction', () => {
         })
 
         it('should transform to array using element as first citizen', async () => {
-            scope.lastResult = { value: 'element-//FooBar' }
+            scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
             await touchAction.call(scope, [['press'], ['release']])
             expect(performMultiAction.getCall(0).args[0]).to.be.deep.equal({
                 actions: [
@@ -437,7 +437,7 @@ describe('touchAction', () => {
         })
 
         it('should transform object into array using element as first citizen', async () => {
-            scope.lastResult = { value: 'element-//FooBar' }
+            scope.lastResult = { value: { ELEMENT: 'element-//FooBar' } }
             await touchAction.call(scope, [[{
                 action: 'press',
                 x: 1,
