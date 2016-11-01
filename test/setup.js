@@ -36,8 +36,11 @@ before(async function () {
         return
     }
 
-    console.log('Running job with following conf:', conf)
     this.client = remote(conf)
+
+    delete conf.key
+    console.log('Running job with following conf:', conf)
+
     await this.client.init()
 })
 
@@ -74,9 +77,9 @@ after(async function () {
         public: true
     }
 
-    let res = await new Promise((r) => {
+    let res = await new Promise((resolve) => {
         console.log(`update job status of ${sessionId}`, newJobStatus)
-        account.updateJob(sessionId, newJobStatus, r)
+        account.updateJob(sessionId, newJobStatus, resolve)
     })
 
     console.log('successfully updated job:', res)
