@@ -1,5 +1,5 @@
-name: static-server
-category: static-server
+name: Static Server
+category: services
 tags: guide
 index: 7
 title: WebdriverIO - Static Server Service
