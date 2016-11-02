@@ -13,7 +13,7 @@ export default {
         tags: ['webdriverio', process.env._ENV || 'desktop', process.env._BROWSER || process.env._DEVICENAME, process.env._PLATFORM, process.env._VERSION],
         name: 'webdriverio test',
         build: process.env.TRAVIS_BUILD_NUMBER,
-        user: process.env.SAUCE_USERNAME,
-        key: process.env.SAUCE_ACCESS_KEY
+        username: process.env.SAUCE_USERNAME,
+        accessKey: process.env.SAUCE_ACCESS_KEY
     }
 }
