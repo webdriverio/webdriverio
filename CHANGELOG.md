@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v4.3.0 (2016-11-02)
+* global changes:
+    * docs improvements (removed all async examples, wdio ftw!)
+* global changes:
+    * fixed stale element reference error in standalone (#1614) - thx @Templum
+    * improved stale element catch - now works after reusing elements after reloading the page
+    * removed compatibility checks for mobile commands (#1633)
+    * run Sauce Labs test over secured SSL connection only
+    * bug fixes (#1628, #1649, #1344, #1670)
+    * add `touchAction` command for easier touch actions with Appium
+* WDIO changes:
+    * improved mechanism of killing child processes when ctrl+c was triggered
+
 ## v4.2.16 (2016-09-16)
 * global changes:
     * docs improvements
