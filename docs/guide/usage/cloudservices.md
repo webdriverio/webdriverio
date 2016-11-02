@@ -85,6 +85,8 @@ It is out of the scope of WebdriverIO to support this, so you must start it by y
 
 If you do use local, you should set `browserstack.local` to `true` in your capabilities.
 
+If you are using the WDIO testrunner download and configure the [`wdio-browserstack-service`](https://github.com/itszero/wdio-browserstack-service) in your `wdio.conf.js`. It helps getting BrowserStack running and comes with additional features that better integrate your tests into the BrowserStack service.
+
 ### With Travis CI
 
 If you want to add Local Testing in Travis you have to start it by yourself.
@@ -122,3 +124,5 @@ You can also pass in any optional [supported capabilities](https://testingbot.co
 If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. TestingBot provides a JAVA based tunnel to allow you to test websites not accessible from the internet.
 
 Their tunnel support page contains the information necessary to get this up and running.
+
+If you are using the WDIO testrunner download and configure the [`wdio-testingbot-service`](https://github.com/testingbot/wdio-testingbot-service) in your `wdio.conf.js`. It helps getting TestingBot running and comes with additional features that better integrate your tests into the TestingBot service.

@@ -24,10 +24,10 @@ For example:
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
+
 ```js
-browser.getText('=WebdriverIO').then(function(text) {
-    console.log(text); // outputs: "WebdriverIO"
-});
+console.log(browser.getText('=WebdriverIO')); // outputs: "WebdriverIO"
+console.log(browser.getAttribute('=WebdriverIO', 'href')); // outputs: "http://webdriver.io"
 ```
 
 ## Partial Link Text
@@ -38,10 +38,9 @@ in front of the query string (e.g. `*=driver`)
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
+
 ```js
-browser.getText('*=driver').then(function(text) {
-    console.log(text); // outputs: "WebdriverIO"
-});
+console.log(browser.getText('*=driver')); // outputs: "WebdriverIO"
 ```
 
 ## Element with certain text
@@ -51,18 +50,16 @@ The same technique can be applied to elements as well, e.g. query a level 1 head
 ```html
 <h1>Welcome to my Page</h1>
 ```
+
 ```js
-browser.getText('h1=Welcome to my Page').then(function(text) {
-    console.log(text); // outputs: "Welcome to my Page"
-});
+console.log(browser.getText('h1=Welcome to my Page')); // outputs: "Welcome to my Page"
+console.log(browser.getTagName('h1=Welcome to my Page')); // outputs: "h1"
 ```
 
 or using query partial text
 
 ```js
-browser.getText('h1*=Welcome').then(function(text) {
-    console.log(text); // outputs: "Welcome to my Page"
-});
+console.log(browser.getText('h1*=Welcome')); // outputs: "Welcome to my Page"
 ```
 
 The same works for ids and class names:
@@ -71,21 +68,10 @@ The same works for ids and class names:
 <div class="someElem" id="elem">WebdriverIO is the best</a>
 ```
 ```js
-browser.getText('.someElem=WebdriverIO is the best').then(function(text) {
-    console.log(text); // outputs: "WebdriverIO is the best"
-});
-
-browser.getText('#elem=WebdriverIO is the best').then(function(text) {
-    console.log(text); // outputs: "WebdriverIO is the best"
-});
-
-browser.getText('.someElem*=WebdriverIO').then(function(text) {
-    console.log(text); // outputs: "WebdriverIO is the best"
-});
-
-browser.getText('#elem*=WebdriverIO').then(function(text) {
-    console.log(text); // outputs: "WebdriverIO is the best"
-});
+console.log(browser.getText('.someElem=WebdriverIO is the best')); // outputs: "WebdriverIO is the best"
+console.log(browser.getText('#elem=WebdriverIO is the best')); // outputs: "WebdriverIO is the best"
+console.log(browser.getText('.someElem*=WebdriverIO')); // outputs: "WebdriverIO is the best"
+console.log(browser.getText('#elem*=WebdriverIO')); // outputs: "WebdriverIO is the best"
 ```
 
 ## Tag Name

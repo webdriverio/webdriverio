@@ -60,7 +60,6 @@ The `no-preload` option defers loading source file until needed, this helps perf
 
 ## Dynamic configuration
 
-
 Note that `wdio.conf` can contain javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable. This can used to dynamically change the configuration:
 
 ```
@@ -85,3 +84,7 @@ You can then prefix the `wdio` command with your desired values:
 ```
 DEBUG=true SPEC=myspec ./node_modules/.bin/wdio wdio.conf
 ```
+
+## Dynamic Repl with Atom
+
+If you are an [Atom](https://atom.io/) hacker you can try [wdio-repl](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) Youtube video to see a demo.

@@ -54,6 +54,16 @@ suite('my awesome website', function() {
 
 If you want to define specific Mocha settings you can do that by adding `mochaOpts` to your configuration file. A list of all options can be found on the [project website](http://mochajs.org/).
 
+Note that since all commands are running synchronously there is no need to have async mode in Mocha enabled. Therefor you can't use the `done` callback:
+
+```js
+it('should test something', function () {
+    done(); // throws "done is not a function"
+})
+```
+
+If you want to run something asynchronously you can either use the [`call`](/api/utility/call.html) command or [custom commands](/guide/usage/customcommands.html).
+
 ## Using Jasmine
 
 First you need to install the adapter package from NPM:
@@ -99,3 +109,5 @@ npm install wdio-cucumber-framework --save-dev
 If you want to use Cucumber set the `framework` property to cucumber, either by adding `framework: 'cucumber'` to the [config file](/guide/testrunner/configurationfile.html) or by adding `-f cucumber` to the command line.
 
 Options for Cucumber can be given in the config file with cucumberOpts. Check out the whole list of options [here](https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options).
+
+To get up and running quickly with Cucumber have a look on our [cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all step definition you will probably need and allows you to start writing feature files ride away.
