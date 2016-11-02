@@ -38,7 +38,7 @@ before(async function () {
 
     this.client = remote(conf)
 
-    delete conf.key
+    delete conf.desiredCapabilities.accessKey
     console.log('Running job with following conf:', conf)
 
     await this.client.init()
