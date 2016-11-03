@@ -1,6 +1,7 @@
 import path from 'path'
 import sinon from 'sinon'
 import Launcher from '../../../build/lib/launcher'
+import mock from 'mock-require'
 
 const FIXTURE_ROOT = path.join(__dirname, '..', '..', 'fixtures')
 
@@ -163,6 +164,26 @@ describe('launcher', () => {
 
         afterEach(() => {
             launcher.startInstance.reset()
+        })
+    })
+
+    describe('loads launch services', () => {
+        it('should throw if a service launcher fails', () => {
+            const launcher = path.join(FIXTURE_ROOT, 'services', 'wdio-launcher-failure-service', 'launcher')
+            mock('wdio-launcher-failure-service/launcher', launcher)
+            expect(() => {
+                Launcher.prototype.getLauncher({ services: ['launcher-failure'] })
+            }).to.throw(/Cannot find module 'some-missing-module'/)
+        })
+
+        it('should proceed if the service launcher doesn\'t exist', () => {
+            expect(() => {
+                Launcher.prototype.getLauncher({ services: ['launcher-missing'] })
+            }).to.not.throw(/Cannot find module/)
+        })
+
+        after(() => {
+            mock.stop('wdio-launcher-failure-service/launcher')
         })
     })
 })
