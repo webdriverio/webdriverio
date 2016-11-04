@@ -18,6 +18,8 @@
     "chai-expect/no-inner-compare": [2]
   },
   "globals": {
+    "$": true,
+    "$$": true,
     "browser": false,
     "browserA": false,
     "browserB": false,
