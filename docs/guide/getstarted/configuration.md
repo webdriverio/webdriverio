@@ -41,7 +41,7 @@ pageLoadStrategy: 'eager' // strategy for page load
 
 **Details:**
 
-`pageLoadStrategy` is implemented in Selenium [2.46.0](https://github.com/SeleniumHQ/selenium/blob/master/java/CHANGELOG#L205), and apparently, it is only working on Firefox. The valid values are:
+`pageLoadStrategy` is implemented in Selenium [2.46.0](https://github.com/SeleniumHQ/selenium/blob/master/java/CHANGELOG#L494), and apparently, it is only working on Firefox. The valid values are:
 
  `normal` - waits for `document.readyState` to be 'complete'. This value is used by default.<br>
  `eager`  - will abort the wait when `document.readyState` is 'interactive' instead of waiting for 'complete'.<br>
