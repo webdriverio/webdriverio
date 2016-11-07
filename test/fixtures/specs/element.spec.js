@@ -149,5 +149,9 @@ describe('element as first class citizen', () => {
             $$('.box').forEach((box, i) => expect(box.getCssProperty('background').parsed.hex).to.be.equal(colors[i]))
             expect(browser.elements('.box').getCssProperty('background').map((c) => c.parsed.hex)).to.be.deep.equal(colors)
         })
+
+        it('should be able to chain $ and $$', () => {
+            expect($('body').$$('select')[1].$$('option')[3].getText()).to.be.equal('cuatro')
+        })
     })
 })
