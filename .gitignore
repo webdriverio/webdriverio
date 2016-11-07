@@ -7,3 +7,5 @@ test/site.zip
 coverage
 .idea
 build
+
+/*.js
