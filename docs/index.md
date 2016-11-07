@@ -55,23 +55,38 @@ layout: start
         WebdriverIO lets you control a browser or a mobile application with just a few
         lines of code. Your test code will look simple, concise and easy to read. The
         integrated testrunner allows you to write asynchronous commands in a synchronous
-        way so that you don't need to care about how to propagate a Promise to avoid
+        way so that you don't need to care about how to handle a Promise to avoid
         racing conditions.<br>
         <br>
+        Working with elements on a page has never been easier due to its synchronous nature.
+        When fetching or looping over elements you can use just native JavaScript functions.
+        <br>
         The test runner comes also with a variety of hooks that allow you to interfere
-        into the test process in order to take screenshots if an error occurs or modify
+        into the test process in order to e.g. take screenshots if an error occurs or modify
         the test procedure according to a previous test result.
     </article>
 
     <article class="runyourtests col2 last">
 ```js
-var assert = require('assert');
+var expect = require('chai').expect;
+describe('webdriver.io api page', function() {
+    it('should have a link to the API', function () {
+        browser.url('http://webdriver.io/api.html');
 
-describe('webdriver.io page', function() {
-    it('should have the right title', function () {
-        browser.url('http://webdriver.io');
-        var title = browser.getTitle();
-        assert.equal(title, 'WebdriverIO - Selenium 2.0 javascript bindings for nodejs');
+        // filtering property commands
+        $('.searchbar input').setValue('getT');
+
+        // get all results that are displayed
+        var results = $$('.commands.property a').filter(function (link) {
+            return link.isVisible();
+        });
+
+        // assert number of results
+        expect(results.length).to.be.equal(3);
+
+        // check out second result
+        results[1].click();
+        expect($('.doc h1').getText()).to.be.equal('GETTEXT');
     });
 });
 ```
