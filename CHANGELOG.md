@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v4.4.0 (2016-11-08)
+* global changes / WDIO changes:
+    * introduced `$` and `$$` API commands as shortcuts to fetch elements
+
 ## v4.3.0 (2016-11-02)
 * global changes:
     * docs improvements (removed all async examples, wdio ftw!)
