@@ -52,25 +52,18 @@ layout: start
 
 <div style="overflow: hidden">
     <article class="col2">
-        WebdriverIO lets you control a browser or a mobile application with just a few
-        lines of code. Your test code will look simple, concise and easy to read. The
-        integrated testrunner allows you to write asynchronous commands in a synchronous
-        way so that you don't need to care about how to handle a Promise to avoid
-        racing conditions.<br>
+        WebdriverIO lets you control a browser or a mobile application with just a few lines of code. Your test code will look simple, concise and easy to read. The integrated test runner let you write asynchronous commands in a synchronous way so that you don't need to care about how to handle a Promise to avoid racing conditions. Additionally it takes away all the cumbersome setup work and manages the Selenium session for you.<br>
         <br>
-        Working with elements on a page has never been easier due to its synchronous nature.
-        When fetching or looping over elements you can use just native JavaScript functions.
+        Working with elements on a page has never been easier due to its synchronous nature. When fetching or looping over elements you can use just native JavaScript functions. With the `$` and `$$` functions WebdriverIO provides useful shortcuts which can also be chained in order to move deeper in the DOM tree without using complex xPath selectors.<br>
         <br>
-        The test runner comes also with a variety of hooks that allow you to interfere
-        into the test process in order to e.g. take screenshots if an error occurs or modify
-        the test procedure according to a previous test result.
+        The test runner also comes with a variety of hooks that allow you to interfere into the test process in order to e.g. take screenshots if an error occurs or modify the test procedure according to a previous test result. This is used by WebdriverIOs [services](/guide/services/appium.html) to integrate your tests with 3rd party tools like [Appium](http://appium.io/).
     </article>
 
     <article class="runyourtests col2 last">
 ```js
 var expect = require('chai').expect;
 describe('webdriver.io api page', function() {
-    it('should have a link to the API', function () {
+    it('should be able to filter for commands', function () {
         browser.url('http://webdriver.io/api.html');
 
         // filtering property commands
@@ -120,20 +113,16 @@ client
     <article class="col2 last">
         <h2 class="right-col-heading">WebdriverIO as standalone package</h2>
         <p>
-          WebdriverIO was designed to be as flexible and framework agnostic as possible. It
-          can be applied in any context and serves not only the purpose of testing.<br>
-          <br>
-          You can use WebdriverIO as scrapper tool to dynamically fetch website data in an
-          automated way. You also can integrate WebdriverIO in your own automation library.
-          Popular examples of that are [Spectron](http://electron.atom.io/spectron/),
-          [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
-          <div>
-              <p>
-                  <a href="http://electron.atom.io/spectron/" style="margin-right: 15px"><img src="http://electron.atom.io/images/spectron-icon.svg" width="75" /></a>
-                  <a href="https://chimp.readme.io/" style="margin-right: 15px"><img src="https://www.filepicker.io/api/file/C4MBXB4jQ6Ld9gII5IkF" /></a>
-                  <a href="http://codecept.io/"><img src="http://codecept.io/images/cjs-base.png" width="80" /></a>
-              </p>
-          </div>
+            WebdriverIO was designed to be as flexible and framework agnostic as possible. It can be applied in any context and serves not only the purpose of testing.<br>
+            <br>
+            You can use it as scrapper tool to dynamically fetch website data in an automated way or integrate it in your own automation library. Popular examples of that are [Spectron](http://electron.atom.io/spectron/), [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
+            <div>
+                <p>
+                    <a href="http://electron.atom.io/spectron/" style="margin-right: 15px"><img src="http://electron.atom.io/images/spectron-icon.svg" width="75" /></a>
+                    <a href="https://chimp.readme.io/" style="margin-right: 15px"><img src="https://www.filepicker.io/api/file/C4MBXB4jQ6Ld9gII5IkF" /></a>
+                    <a href="http://codecept.io/"><img src="http://codecept.io/images/cjs-base.png" width="80" /></a>
+                </p>
+            </div>
         </p>
     </article>
 </div>
@@ -153,23 +142,17 @@ create your config file in less than a minute. It also gives and overview of all
     <article class="col2">
         <h2>How does it work?</h2>
         <p>
-            WebdriverIO is an open source testing utility for nodejs. It makes it possible
-            to write super easy selenium tests with Javascript in your favorite BDD or TDD
-            test framework. Even Cucumber tests are supported.
+            WebdriverIO is an open source testing utility for nodejs. It makes it possible to write super easy selenium tests with Javascript in your favorite BDD or TDD test framework.
         </p>
         <p>
-            It basically sends requests to a Selenium server via the <a href="https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#Command_Reference">WebDriver Wire Protocol</a>
-            and handles its response. These requests are wrapped in useful commands, which
-            provide callbacks to test several aspects of your site in an automated way.
+            It basically sends requests to a Selenium server via the <a href="https://www.w3.org/TR/webdriver/">WebDriver Protocol</a> and handles its response. These requests are wrapped in useful commands and can be used to test several aspects of your site in an automated way.
         </p>
     </article>
 
     <article class="runyourtests col2 last">
         <h2>Run your tests in the cloud</h2>
         <p>
-            Services like Sauce Labs or BrowserStack provide selenium testing on remote hosts.
-            Be able to run tests on a wide collection of platforms, devices and browser combinations
-            without any configuration in your environment.
+            Services like Sauce Labs or BrowserStack provide selenium testing on remote hosts. Be able to run tests on a wide collection of platforms, devices and browser combinations without any configuration in your environment.
         </p>
         <div>
             <p>WebdriverIO supports services including:</p>
