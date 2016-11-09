@@ -97,6 +97,18 @@ Shorten `url` command calls by setting a base url. If your `url` parameter start
 Type: `String`<br>
 Default: *null*
 
+### connectionRetryTimeout
+Timeout for any request to the Selenium server
+
+Type: `Number`<br>
+Default: *90000*
+
+### connectionRetryCount
+Count of request retries to the Selenium server
+
+Type: `Number`<br>
+Default: *3*
+
 ### coloredLogs
 Enables colors for log output
 
