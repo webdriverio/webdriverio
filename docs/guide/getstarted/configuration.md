@@ -122,12 +122,26 @@ Type: `String`|`null`<br>
 Default: *null*
 
 ### screenshotOnReject
-Attaches a screenshot of a current page to the error if the Selenium driver crashes
+Attaches a screenshot of a current page to the error if the Selenium driver crashes.
+Can be specified as object to set the timeout and count of retries on the attempt to take screenshot.
 
-Type: `Boolean`<br>
+Type: `Boolean`|`Object`<br>
 Default: *false*
 
 **Note**: Attaching screenshot to the error uses extra time to get screenshot and extra memory to store it. So for the sake of performance it is disabled by default.
+
+**Example:**
+
+```js
+// take screenshot on reject
+screenshotOnReject: true
+
+// take screenshot on reject and set some options
+screenshotOnReject: {
+    connectionRetryTimeout: 30000,
+    connectionRetryCount: 0
+}
+```
 
 ### waitforTimeout
 Default timeout for all waitForXXX commands.
