@@ -102,6 +102,17 @@ describe('element as first class citizen', () => {
         }
     })
 
+    it('element calls within wait commands should not influence following action calls', () => {
+        browser.waitUntil(() => browser.element('body'))
+        let hasThrown = false
+        try {
+            browser.getTagName()
+        } catch (e) {
+            hasThrown = true
+        }
+        expect(hasThrown).to.be.ok
+    })
+
     describe('can be used with waitFor commands without throwing an error while querying it', () => {
         it('can query an element without throwing an error', () => {
             let res = browser.element('#notExisting')
