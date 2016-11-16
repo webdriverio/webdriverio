@@ -70,10 +70,10 @@ That's it! Now, you can access to the selenium instance via the global variable 
 Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the launcher module (in `/node_modules/webdriverio/build/launcher`) the following way:
 
 ```js
-var Launcher = require(path.join(path.dirname(resolve.sync('webdriverio')), 'lib/launcher'));
+var Launcher = require('webdriverio').Launcher;
 ```
 
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and accepts [certain](https://github.com/webdriverio/webdriverio/blob/master/lib/cli.js#L47-L49) parameters that will overwrites the value in the config.
+After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and accepts [certain](https://github.com/webdriverio/webdriverio/blob/master/lib/cli.js#L47-L51) parameters that will overwrite the value in the config.
 
 ```js
 var wdio = new Launcher(opts.configFile, opts);
