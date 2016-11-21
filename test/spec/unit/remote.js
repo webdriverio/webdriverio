@@ -157,5 +157,66 @@ describe('remote method', () => {
 
             return assert.isRejected(client.getUrl(), /some-error/)
         })
+
+        describe('connection retry options', () => {
+            var mkRequest_ = (client) => {
+                var requestOpts
+
+                RequestHandler.prototype.create.restore()
+                sandbox.stub(RequestHandler.prototype, 'create', function () {
+                    requestOpts = this.defaultOptions
+                })
+
+                return client.getUrl()
+                    .catch(() => requestOpts)
+            }
+
+            it('should take screenshot with default connection retry options', () => {
+                var client = remote({
+                    connectionRetryTimeout: 100500,
+                    connectionRetryCount: 10,
+                    screenshotOnReject: true
+                })
+
+                return mkRequest_(client)
+                    .then((requestOpts) => {
+                        assert.equal(requestOpts.connectionRetryTimeout, 100500)
+                        assert.equal(requestOpts.connectionRetryCount, 10)
+                    })
+            })
+
+            it('should take screenshot with specified connection retry options', () => {
+                var client = remote({
+                    connectionRetryTimeout: 100500,
+                    connectionRetryCount: 10,
+                    screenshotOnReject: {
+                        connectionRetryTimeout: 5000,
+                        connectionRetryCount: 0
+                    }
+                })
+
+                return mkRequest_(client)
+                    .then((requestOpts) => {
+                        assert.equal(requestOpts.connectionRetryTimeout, 5000)
+                        assert.equal(requestOpts.connectionRetryCount, 0)
+                    })
+            })
+
+            it('should use default connection retry option for not specified options', () => {
+                var client = remote({
+                    connectionRetryTimeout: 100500,
+                    connectionRetryCount: 10,
+                    screenshotOnReject: {
+                        connectionRetryCount: 0
+                    }
+                })
+
+                return mkRequest_(client)
+                    .then((requestOpts) => {
+                        assert.equal(requestOpts.connectionRetryTimeout, 100500)
+                        assert.equal(requestOpts.connectionRetryCount, 0)
+                    })
+            })
+        })
     })
 })
