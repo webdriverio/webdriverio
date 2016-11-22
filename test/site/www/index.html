@@ -111,6 +111,9 @@
         <div class="sometext">some text</div>
         <div class="sometextlater"></div>
         <div class="opacity">Hello! I am not visible anyway</div>
+
+        <div class="moveIntoViewport" style="position:absolute; right: 0; top: -100px; height:50px;">I'm moving into the viewport</div>
+
         <script>
         if (qry('a') === 'a') {
             document.write('<div class="gotDataA">got data from input[name="a"]</div>')
@@ -222,6 +225,12 @@
             $('.invisibleParent').removeClass('hidden');
         },2000);
 
+        setTimeout(function() {
+            $('.moveIntoViewport').css({
+                'position': 'fixed',
+                'top': '10px'
+            });
+        }, 500);
     </script>
 
 </body>

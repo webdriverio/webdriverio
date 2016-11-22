@@ -151,6 +151,33 @@ describe('waitFor', () => {
         })
     })
 
+    describe('VisibleWithinViewport', () => {
+        it('should return with an error if the element never becomes visible within the viewport', function () {
+            return expect(this.client.waitForVisibleWithinViewport('.notInViewports', 10))
+                .to.be.rejectedWith('Error: element (.notInViewports) still not visible within the viewport after 10ms')
+        })
+
+        it('should return with an error if the element never exists', function () {
+            return expect(this.client.waitForVisibleWithinViewport('#notExisting', 10))
+                .to.be.rejectedWith('Error: element (#notExisting) still not visible within the viewport after 10ms')
+        })
+
+        it('should return with true if the element becomes visible within the viewport', async function () {
+            (await this.client.waitForVisibleWithinViewport('.moveIntoViewport', duration))
+                .should.be.equal(true)
+        })
+
+        it('(reverse) should return w/o err after element left document bounderies', async function () {
+            (await this.client.waitForVisibleWithinViewport('.onMyWay', duration, true))
+                .should.be.equal(true)
+        })
+
+        it('(reverse) should return with true if the element never becomes visible', async function () {
+            (await this.client.waitForVisibleWithinViewport('#notExisting', 10, true))
+                .should.be.equal(true)
+        })
+    })
+
     describe('timeout', () => {
         it('should use specified timeout', function (done) {
             var startTime = Date.now()
