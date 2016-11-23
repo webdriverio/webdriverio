@@ -55,5 +55,5 @@ This project is an example of how to get started with WebdriverIO for Selenium t
 - Framework: Cucumber
 - Features:
     - detailed documentation
-    - runs tests in a [Docket](https://www.docker.com/) container
+    - runs tests in a [Docker](https://www.docker.com/) container
     - Babel setup
