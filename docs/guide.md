@@ -56,7 +56,11 @@ webdriverio
     .end();
 ```
 
-** 6. Run your test file**
+** 6. Install browser and appropriate driver**
+
+In the example above FireFox is specified as the desired browser, but may not be currently installed on the testing system. The choice is to either install FireFox or download [Third Party Drivers](http://docs.seleniumhq.org/download/#thirdPartyDrivers) and place them in the same directory as the selenium standalone server.
+
+** 7. Run your test file**
 ```sh
 $ node test.js
 ```
