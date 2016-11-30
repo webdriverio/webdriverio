@@ -42,7 +42,8 @@ $ npm install webdriverio
 var webdriverio = require('webdriverio');
 var options = {
     desiredCapabilities: {
-        browserName: 'firefox'
+        browserName: 'firefox',
+        marionette: false
     }
 };
 
