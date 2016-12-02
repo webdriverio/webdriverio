@@ -1,4 +1,3 @@
-import conf from '../../../conf/index'
 import labels from '../../../fixtures/labels'
 
 describe('native context execute', () => {
@@ -12,7 +11,7 @@ describe('native context execute', () => {
 
     it('should be able to execute strings', async function () {
         (await this.client.execute('return 3 + 2')).value.should.be.equal(5)
-	})
+    })
 })
 
 describe('webview context execute', () => {
@@ -26,5 +25,5 @@ describe('webview context execute', () => {
 
     it('should be able to execute strings', async function () {
         (await this.client.execute('return 3 + 2')).value.should.be.equal(5)
-	})
+    })
 })
