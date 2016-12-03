@@ -113,6 +113,16 @@ describe('element as first class citizen', () => {
         expect(hasThrown).to.be.ok
     })
 
+    it('propagates lastResult for custom commands', () => {
+        browser.addCommand('myTagStructure', function () {
+            const content = this.getText()
+            const tagName = this.getTagName()
+            return `<${tagName}>${content}</${tagName}>`
+        })
+        const header = $('header h1')
+        expect(header.myTagStructure()).to.be.equal('<h1>WebdriverIO Testpage</h1>')
+    })
+
     describe('can be used with waitFor commands without throwing an error while querying it', () => {
         it('can query an element without throwing an error', () => {
             let res = browser.element('#notExisting')
