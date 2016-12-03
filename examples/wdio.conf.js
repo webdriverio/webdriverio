@@ -205,7 +205,8 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     //
-    // Gets executed just before initialising webdriver session
+    // Gets executed just before initialising the webdriver session and before initialising the
+    // test framework. It allows you to manipulate configurations depending on the capability.
     beforeSession: function (config, capabilities, specs) {
     },
     //
@@ -251,6 +252,10 @@ exports.config = {
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
     after: function (result, capabilities, specs) {
+    },
+    //
+    // Gets executed just before terminating the webdriver session.
+    afterSession: function (config, capabilities, specs) {
     },
     //
     // Gets executed after all workers got shut down and the process is about to exit. It is not
