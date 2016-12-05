@@ -128,4 +128,13 @@ describe('ConfigParser', () => {
         config.after[0]().should.be.equal('after: I executed properly')
         config.after[1]().should.be.equal('anonymous: I executed properly')
     })
+
+    it('should parse beforeSession hook from config file', () => {
+        let configParser = new ConfigParser()
+        configParser.getConfig().beforeSession.should.be.an('array').and.be.empty
+        configParser.getConfig().afterSession.should.be.an('array').and.be.empty
+        configParser.addConfigFile(FIXTURES_PATH + '/hooks.wdio.conf.js')
+        configParser.getConfig().beforeSession.should.be.an('array').and.have.a.lengthOf(1)
+        configParser.getConfig().afterSession.should.be.an('array').and.have.a.lengthOf(1)
+    })
 })
