@@ -227,8 +227,8 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     //
-    // Gets executed just before initialising the webdriver session and before initialising the
-    // test framework. It allows you to manipulate configurations depending on the capability.
+    // Gets executed just before initialising the webdriver session and test framework. It allows you
+    // to manipulate configurations depending on the capability or spec.
     beforeSession: function (config, capabilities, specs) {
     },
     //
@@ -276,7 +276,7 @@ exports.config = {
     after: function (result, capabilities, specs) {
     },
     //
-    // Gets executed just before terminating the webdriver session.
+    // Gets executed right after terminating the webdriver session.
     afterSession: function (config, capabilities, specs) {
     },
     //
