@@ -23,21 +23,39 @@ Then let's download the latest [selenium standalone server](http://docs.selenium
 $ curl -O http://selenium-release.storage.googleapis.com/3.0/selenium-server-standalone-3.0.1.jar
 ```
 
+** 3. Download the latest version geckdriver for your environment and unpack it in your project directory**
+
+Linux 64 bit
+
+```sh
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz | tar xz
+```
+
+OSX
+
+```sh
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-macos.tar.gz | tar xz
+```
+
+Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases).
+
 Start the server by executing the following:
 
-** 3. Start selenium standalone server**
+** 4. Start selenium standalone server**
 ```sh
-$ java -jar selenium-server-standalone-3.0.1.jar
+$ java -jar -Dwebdriver.geckodriver.driver=./geckodriver selenium-server-standalone-3.0.1.jar
 ```
+
+Note that this command sets webdriver path variable so that Selenium uses the geckdriver binary that was added to the project directory and also starts Selenium standalone server.
 
 Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
 
-** 4. Download WebdriverIO**
+** 5. Download WebdriverIO**
 ```sh
 $ npm install webdriverio
 ```
 
-** 5. Create a test file (test.js) with the following content**
+** 6. Create a test file (test.js) with the following content**
 ```js
 var webdriverio = require('webdriverio');
 var options = {
@@ -56,7 +74,7 @@ webdriverio
     .end();
 ```
 
-** 6. Run your test file**
+** 7. Run your test file**
 ```sh
 $ node test.js
 ```
