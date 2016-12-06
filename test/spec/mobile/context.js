@@ -9,20 +9,22 @@ describe('context', () => {
         return
     }
 
-    it('should return all available context modes', async function () {
-        const contexts = await this.client.contexts()
-        contexts.value.should.have.length(2)
-        expect(contexts.value[0]).to.equal(labels.NATIVE_APP_CONTEXT)
-        expect(contexts.value[1]).to.contain(labels.WEBVIEW_CONTEXT)
-    })
+    let contexts
 
-    it('should return the current context mode', async function () {
-        await this.client.context(labels.WEBVIEW_CONTEXT);
-        (await this.client.context()).value.should.be.equal(labels.WEBVIEW_CONTEXT)
+    it('should return all available context modes', async function () {
+        contexts = (await this.client.contexts()).value
+        contexts.should.have.length(2)
+        expect(contexts[0]).to.contain(labels.NATIVE_APP_CONTEXT)
+        expect(contexts[1]).to.contain(labels.WEBVIEW_CONTEXT)
     })
 
     it('should be able to switch to native context', async function () {
-        await this.client.context(labels.NATIVE_APP_CONTEXT);
-        (await this.client.context()).value.should.contain(labels.NATIVE_APP_CONTEXT)
+        await this.client.context(contexts[0]);
+        (await this.client.context()).value.should.contain(contexts[0])
+    })
+
+    it('should be able to switch to web context', async function () {
+        await this.client.context(contexts[1]);
+        (await this.client.context()).value.should.be.equal(contexts[1])
     })
 })
