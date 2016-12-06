@@ -9,3 +9,5 @@ coverage
 build
 
 /*.js
+!gruntfile.js
+!index.js
