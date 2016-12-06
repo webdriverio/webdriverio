@@ -1,4 +1,4 @@
-describe.only('execute', () => {
+describe('execute', () => {
     let contexts
 
     before(async function () {
