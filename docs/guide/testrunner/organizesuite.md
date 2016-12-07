@@ -106,3 +106,7 @@ $ wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
 Note that each test file is running in a single test runner process. Since we don't scan files in advance you _can't_ use for example `describe.only` at the top of your spec file to say Mocha to only run that suite. This feature will help you though to do that in the same way.
+
+## Stop testing after failure
+
+With the `bail` option you can specify when WebdriverIO should stop the test run after test failures. This can be helpful when you have a big test suite and want to avoid long test runs when you already know that your build will break. The option expects a number that specifies after how many spec failures it should stop the whole test run. The default is `0` meaning that it always runs all tests specs it can find.

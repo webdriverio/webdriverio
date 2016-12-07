@@ -103,8 +103,12 @@ exports.config = {
     screenshotPath: 'shots',
     //
     // Set a base URL in order to shorten url command calls. If your url parameter starts
-    //  with "/", then the base url gets prepended.
+    // with "/", then the base url gets prepended.
     baseUrl: 'http://localhost:8080',
+    //
+    // If you only want to run your tests until a specific amount of tests have failed use
+    // bail (default is 0 - don't bail, run all tests).
+    bail: 0,
     //
     // Default timeout for all waitFor* commands.
     waitforTimeout: 1000,

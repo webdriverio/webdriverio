@@ -162,6 +162,35 @@ describe('launcher', () => {
             launcher.startInstance.callCount.should.be.equal(0)
         })
 
+        it('should stop launching runners after bail number is reached', async () => {
+            launcher = getLauncer({
+                maxInstances: 1,
+                bail: 2
+            }, 5)
+            setTimeout(() => launcher.resolve(0), 10)
+
+            await launcher.run()
+            launcher.startInstance.callCount.should.be.equal(1)
+            launcher.schedule.forEach((cap) => {
+                cap.runningInstances = 0
+                cap.availableInstances = 1
+            })
+
+            launcher.runSpecs().should.be.not.ok
+            launcher.runnerFailed++
+            launcher.schedule.forEach((cap) => {
+                cap.runningInstances = 0
+                cap.availableInstances = 1
+            })
+            launcher.runSpecs().should.be.not.ok
+            launcher.runnerFailed++
+            launcher.schedule.forEach((cap) => {
+                cap.runningInstances = 0
+                cap.availableInstances = 1
+            })
+            launcher.runSpecs().should.be.ok
+        })
+
         afterEach(() => {
             launcher.startInstance.reset()
         })
