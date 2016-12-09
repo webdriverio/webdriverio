@@ -19,6 +19,15 @@ Our very own boilerplate for Cucumber test suites. We created over 150 predefine
     - integration of WebdriverIO's Multiremote functionality
     - own demo app
 
+## [saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium](https://github.com/saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium)
+
+Simple boilerplate project that runs multiple browser on [SauceLabs](https://saucelabs.com/) in parallel.
+
+- Framework: Mocha
+- Features:
+    - Page Object usage
+    - Integration with [SauceLabs](https://saucelabs.com/)
+
 ## [jonyet/webdriverio-boilerplate](https://github.com/jonyet/webdriverio-boilerplate)
 
 Designed to be quick to get you started without getting terribly complex, as well as to share examples of how one can leverage external node modules to work in conjunction with wdio specs.
