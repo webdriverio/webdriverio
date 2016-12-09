@@ -19,8 +19,7 @@ layout: start
     <div class="teaserbox">
         <h3>Feature-Rich</h3>
         <p>
-            Most of the Selenium WebDriver Wire Protocol is already implemented and wrapped in
-            **useful commands**
+            It implements all Webdriver protocol commands and provides **useful integrations** with other tools.
         </p>
     </div>
 </aside>
@@ -32,7 +31,7 @@ layout: start
         <li>command line interface support</li>
     </ul>
     <ul>
-        <li>Visual Regression Test Integration</li>
+        <li><a href="https://twitter.com/webdriverio/status/806911722682544128" target="_blank">REPL interface</a></li>
         <li><a href="http://gulpjs.com/">Gulp</a> and <a href="http://gruntjs.com/">Grunt</a> support</li>
         <li>selector chaining</li>
     </ul>
@@ -42,6 +41,7 @@ layout: start
     <h2 class="text-align">One Tool To Rule Them All:</h2>
     <a href="https://github.com/webdriverio/grunt-webdriver"><img src="/images/plugins/grunt.png" alt="Grunt Integration"></a>
     <a href="https://github.com/webdriverio/gulp-webdriver"><img src="/images/plugins/gulp.png" alt="Gulp Integration"></a>
+    <a href="https://atom.io/packages/webdriverio-snippets"><img src="http://webdriver.io/images/plugins/atom.png" alt="Atom snippets for WebdriverIO API"></a>
     <a href="https://packagecontrol.io/packages/WebdriverIO"><img src="/images/plugins/sublime.png" alt="Sublime Text Plugin"></a>
     <a href="https://github.com/webdriverio/webdrivercss#applitools-eyes-support"><img src="/images/plugins/applitools.png" alt="Visual Regression Testing with Applitools Eyes"></a>
     <a href="https://github.com/webdriverio/webdriverrtc"><img src="/images/plugins/webrtc.png" alt="WebRTC Analytics Plugin"></a>
