@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v4.5.0 (2016-12-12)
+* global changes:
+    * bugfixes (standalone & wdio testrunner)
+    * docs improvements
+    * fix `removeApp` command
+    * introduce [REPL interface](https://twitter.com/webdriverio/status/806911722682544128)
+* wdio changes:
+    * enable `--reporters` cli parameter
+    * improved Mocha timeout error messages
+    * introduce beforeSession / afterSession hooks
+    * identify tests by uid and not just by title (fixes couple of bug reports) - thx @wvankuipers
+
 ## v4.4.0 (2016-11-08)
 * global changes / WDIO changes:
     * introduced `$` and `$$` API commands as shortcuts to fetch elements
