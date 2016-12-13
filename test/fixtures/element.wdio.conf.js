@@ -8,7 +8,8 @@ exports.config = {
     specs: [],
     suites: {
         elementAsFirstCitizen: [path.join(__dirname, '/specs/element.spec.js')],
-        waitForExist: [path.join(__dirname, '/specs/waitForExist.spec.js')]
+        waitForExist: [path.join(__dirname, '/specs/waitForExist.spec.js')],
+        call: [path.join(__dirname, '/specs/call.spec.js')]
     },
     capabilities: [{
         browserName: 'phantomjs'
