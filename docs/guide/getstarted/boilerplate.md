@@ -66,3 +66,13 @@ This project is an example of how to get started with WebdriverIO for Selenium t
     - detailed documentation
     - runs tests in a [Docker](https://www.docker.com/) container
     - Babel setup
+
+## [WillLuce/WebdriverIO_Typescript](https://github.com/WillLuce/WebdriverIO_Typescript)
+
+This directory contains the WebdriverIO page object example written using TypeScript.
+
+- Framework: Mocha
+- Features:
+    - examples of Page Object Model implemenetation
+    - Intellisence
+
