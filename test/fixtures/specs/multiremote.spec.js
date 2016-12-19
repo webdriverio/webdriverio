@@ -5,7 +5,8 @@ describe('multiremote', () => {
         browser.url('/')
         browserA.url('/two.html')
 
-        let title = browser.sync().getTitle()
+        browser.sync()
+        let title = browser.getTitle()
         expect(title.browserA).to.be.equal('two')
         expect(title.browserB).to.be.equal(conf.testPage.title)
     })
