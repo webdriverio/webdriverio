@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v4.5.1 (2016-12-19)
+* global changes:
+    * bug fixes
+    * docs improvements
+
 ## v4.5.0 (2016-12-12)
 * global changes:
     * bugfixes (standalone & wdio testrunner)
