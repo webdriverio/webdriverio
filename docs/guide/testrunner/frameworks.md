@@ -47,7 +47,7 @@ WebdriverIO supports Mochas `BDD` (default), `TDD` and `QUnit` [interface](https
 suite('my awesome website', function() {
     test('should do some chai assertions', function() {
         browser.url('http://webdriver.io');
-        browser.getTitle().should.be.equal('WebdriverIO');
+        browser.getTitle().should.be.equal('WebdriverIO - Selenium 2.0 javascript bindings for nodejs');
     });
 });
 ```
