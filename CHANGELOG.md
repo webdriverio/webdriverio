@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v4.5.2 (2016-12-22)
+* global changes:
+    * docs improvements
+    * minor improvements to REPL interface
+* wdio improvements:
+    * bugfixes (#1460)
+
 ## v4.5.1 (2016-12-19)
 * global changes:
     * bug fixes
