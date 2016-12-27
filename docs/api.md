@@ -53,7 +53,7 @@ it('should use elements as first citizen', function () {
 });
 ```
 
-Each command that takes a selector as first argument can be executed without passing along the selector again and again. This not just looks nice it also avoids querying the element over and over again. The same works in standalone mode:
+Each command that takes a selector as first argument can be executed without passing along the selector again and again. This not only looks nice, it also avoids querying the same element over and over again. The same works in standalone mode:
 
 ```js
 it('should use elements as first citizen in standalone mode', function () {
