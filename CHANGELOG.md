@@ -1,17 +1,22 @@
 # CHANGELOG
 
+## v4.6.1 (2017-01-05)
+* wdio changes:
+    * fixed wording for log in watch mode
+    * added more supported services to cli
+
 ## v4.6.0 (2017-01-05)
 * global changes:
     * docs improvements
     * bug fixes
-* wdio improvements:
+* wdio changes:
     * add watch mode (accessible via `--watch` argument) to wdio testrunner
 
 ## v4.5.2 (2016-12-22)
 * global changes:
     * docs improvements
     * minor improvements to REPL interface
-* wdio improvements:
+* wdio changes:
     * bugfixes (#1460)
 
 ## v4.5.1 (2016-12-19)
