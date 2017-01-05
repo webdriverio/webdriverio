@@ -24,20 +24,22 @@ The [options] object will override values from the config file.
 Options:
   --help, -h            prints WebdriverIO help menu
   --version, -v         prints WebdriverIO version
-  --host                selenium server host address
-  --port                selenium server port
+  --host                Selenium server host address
+  --port                Selenium server port
   --path                Selenium server path (default: /wd/hub)
   --user, -u            username if using a cloud service as Selenium backend
   --key, -k             corresponding access key to the user
-  --logLevel, -l        Level of test output verbosity
+  --watch               watch specs for changes
+  --logLevel, -l        level of logging verbosity (default: silent)
   --coloredLogs, -c     if true enables colors for log output (default: true)
+  --bail                stop test runner after specific amount of tests have failed (default: 0 - don't bail)
   --screenshotPath, -s  saves a screenshot to a given path if a command fails
   --baseUrl, -b         shorten url command calls by setting a base url
-  --waitforTimeout, -w  Default timeout for all wait commands
+  --waitforTimeout, -w  timeout for all waitForXXX commands (default: 500ms)
   --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)
   --reporters, -r       reporters to print out the results on stdout
   --suite               overwrites the specs attribute and runs the defined suite
-  --spec                Run only a certain spec file
+  --spec                run only a certain spec file
   --cucumberOpts.*      Cucumber options, see the full list options at https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
   --jasmineOpts.*       Jasmine options, see the full list options at https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
   --mochaOpts.*         Mocha options, see the full list options at http://mochajs.org

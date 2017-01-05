@@ -20,7 +20,8 @@ specs: ['**/myspec.spec.js'],
 capabilities: [{browserName: 'firefox'}]
 ```
 
-In many cases, you can use `browser.debug()` to pause your test and inspect the browser.
+In many cases, you can use [`browser.debug()`](/api/utility/debug.html) to pause your test and inspect the browser. Your command line interface will also switch into a REPL mode that allows you to fiddle around with commands and elements on the page. In REPL mode you can access the browser object or `$` and `$$` functions like you can in your tests.
+
 When using `browser.debug()` you will likely need to increase the timeout of the test runner to prevent the test runner from failing the test for taking to long.  For example:
 
 In `wdio.conf`:
@@ -30,9 +31,21 @@ jasmineNodeOpts: {
 }
 ```
 
+See [timeouts](/guide/testrunner/timeouts.html) for more information on how to do that using other frameworks.
+
+## Watch files
+
+With `v4.6.0` WebdriverIO introduced a watch argument that can help you to run certain specs when they get updated. To enable it just run the wdio command with the watch flag like:
+
+```sh
+wdio wdio.conf.js --watch
+```
+
+It will initialize the desired Selenium sessions defined in your config and will wait until a file that was defined via the `specs` option has changed. This works regardless you run your tests on a local grid or on cloud services like [SauceLabs](https://saucelabs.com/).
+
 ## Node Inspector
 
-For a more comprehensive debugging experience you can enable debug flag to start the test runner processes with an open debugger port.  
+For a more comprehensive debugging experience you can enable debug flag to start the test runner processes with an open debugger port.
 
 This will allow attaching the node-inspector and pausing test execution with `debugger`.  Each child process will be assigned a new debugging port starting at `5859`.
 
@@ -56,7 +69,7 @@ And attach to the process with:
 node-inspector --debug-port 5859 --no-preload
 ```
 
-The `no-preload` option defers loading source file until needed, this helps performance significantly when project contains a large number of node_modules, but you may need to remove this if you need to navigate your source and add additional breakpoints after attaching the debugger.  
+The `no-preload` option defers loading source file until needed, this helps performance significantly when project contains a large number of node_modules, but you may need to remove this if you need to navigate your source and add additional breakpoints after attaching the debugger.
 
 ## Dynamic configuration
 
