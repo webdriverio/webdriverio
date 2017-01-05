@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v4.6.0 (2017-01-05)
+* global changes:
+    * docs improvements
+    * bug fixes
+* wdio improvements:
+    * add watch mode (accessible via `--watch` argument) to wdio testrunner
+
 ## v4.5.2 (2016-12-22)
 * global changes:
     * docs improvements
