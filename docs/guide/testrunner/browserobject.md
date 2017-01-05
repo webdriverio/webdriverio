@@ -69,7 +69,7 @@ var client = require('webdriverio').remote({
     	platformName: 'iOS',
         app: 'net.company.SafariLauncher',
         udid: '123123123123abc',
-		deviceName: 'iPhone',
+        deviceName: 'iPhone',
     }
 });
 
