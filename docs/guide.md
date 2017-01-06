@@ -5,7 +5,9 @@ title: WebdriverIO - Developer Guide
 
 # Developer Guide
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
+Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
+
+The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
 
 ## Taking the first step
 
@@ -15,6 +17,8 @@ Let's suppose you have [Node.js](http://nodejs.org/) and Java already installed.
 ```sh
 $ mkdir webdriverio-test && cd webdriverio-test
 ```
+
+*While still in this test folder:*
 
 Then let's download the latest [selenium standalone server](http://docs.seleniumhq.org/download/) version:
 
@@ -88,6 +92,8 @@ Title was: Google
 Yay, Congratulations! You've just run your first automation script with WebdriverIO. Let's step it up a notch and create a real test.
 
 ## Let's get serious
+
+*(If you haven't already, navigate back to the project root directory)*
 
 This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. The first step is to create a config file. To do that just run the configuration utility:
 
