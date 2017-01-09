@@ -54,10 +54,9 @@ With all that done, have a look at the many [examples](examples/).
 ## Syntax example
 
 ```js
-client
-    .url('http://google.com')
-    .setValue('#q', 'webdriver')
-    .click('#btnG')
+browser.url('http://google.com');
+$('#q').setValue('webdriver');
+$('#btnG').click();
 ```
 
 Notice how this is far simpler than with the original [selenium-webdriverjs](https://github.com/SeleniumHQ/selenium/wiki/WebDriverJs),
@@ -80,7 +79,7 @@ browser
 ```
 
 For more details on the comparison between WebdriverIO, selenium-webdriverjs and WD.js,
-read [this discussion](https://github.com/webdriverio/webdriverio/issues/138).
+read [this discussion](https://github.com/webdriverio/webdriverio/issues/138). Also see more WebdriverIO examples in the [example folder](https://github.com/webdriverio/webdriverio/tree/master/examples).
 
 ## Need help?
 
