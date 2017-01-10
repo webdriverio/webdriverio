@@ -101,10 +101,10 @@ exports.config = {
     // When debugging it is also recommended to change the timeout interval of
     // test runner (eg. jasmineNodeOpts.defaultTimeoutInterval) to a very high
     // value and setting maxInstances to 1.
-    debug: false
+    debug: false,
     //
     // Additional list node arguments to use when starting child processes
-    execArgv: null
+    execArgv: null,
     //
     //
     // ===================
@@ -164,7 +164,7 @@ exports.config = {
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/guide/testrunner/reporters.html
+    // see also: http://webdriver.io/guide.html and click on "Reporters" in left column
     reporters: ['dot', 'allure'],
     //
     // Some reporter require additional information which should get defined here
@@ -215,7 +215,7 @@ exports.config = {
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000      // <number> timeout for step definitions
+        timeout: 20000,      // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
