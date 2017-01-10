@@ -164,7 +164,7 @@ exports.config = {
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/guide/testrunner/reporters.html
+    // see also: http://webdriver.io/guide.html and click on "Reporters" in left column
     reporters: ['dot', 'allure'],
     //
     // Some reporter require additional information which should get defined here
