@@ -101,10 +101,10 @@ exports.config = {
     // When debugging it is also recommended to change the timeout interval of
     // test runner (eg. jasmineNodeOpts.defaultTimeoutInterval) to a very high
     // value and setting maxInstances to 1.
-    debug: false
+    debug: false,
     //
     // Additional list node arguments to use when starting child processes
-    execArgv: null
+    execArgv: null,
     //
     //
     // ===================
