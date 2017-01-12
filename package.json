@@ -47,7 +47,7 @@
     "npm-install-package": "^1.0.2",
     "optimist": "^0.6.1",
     "q": "~1.4.1",
-    "request": "2.74.0",
+    "request": "2.79.0",
     "rgb2hex": "~0.1.0",
     "supports-color": "^3.1.2",
     "url": "^0.11.0",
