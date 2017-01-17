@@ -75,7 +75,7 @@ Instead of calling the wdio command you can also include the test runner as modu
 var Launcher = require('webdriverio').Launcher;
 ```
 
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and accepts [certain](https://github.com/webdriverio/webdriverio/blob/master/lib/cli.js#L47-L51) parameters that will overwrite the value in the config.
+After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and accepts [certain](https://github.com/webdriverio/webdriverio/blob/973f23d8949dae8168e96b1b709e5b19241a373b/lib/cli.js#L51-L55) parameters that will overwrite the value in the config.
 
 ```js
 var wdio = new Launcher(opts.configFile, opts);
