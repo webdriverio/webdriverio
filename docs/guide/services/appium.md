@@ -10,6 +10,24 @@ Webdriver.io service plugin for Appium
 
 [webdriver.io](http://webdriver.io/) service plugin for [Appium](http://appium.io/).  With this service installed, you need not to run Appium manually.
 
+## Installation
+
+The easiest way is to keep `wdio-appium-service` as a devDependency in your `package.json`.
+
+```json
+{
+  "devDependencies": {
+    "wdio-appium-service": "~0.2.2"
+  }
+}
+```
+
+You can this simply by adding it with:
+
+```bash
+npm install wdio-appium-service --save-dev
+```
+
 ## How to Use
 
 Please register this package as service plugin and specify command line arguments in [wdio.conf](http://webdriver.io/guide/getstarted/configuration.html).  `'appium'` is used for command.  If `command` key is provided in the configuration, it will be used.
