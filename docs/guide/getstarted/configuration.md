@@ -186,9 +186,9 @@ There are multiple ways to setup Babel using the wdio testrunner. If you are run
 to register Babel in the before hook of your config file
 
 ```js
-    before(function() {
+    before: function() {
         require('babel-register');
-    }),
+    },
 ```
 
 If you run Mocha tests, you can use Mocha's internal compiler to register Babel, e.g.:
