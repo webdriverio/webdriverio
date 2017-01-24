@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v4.6.2 (2017-01-24)
+* global changes:
+    * docs improvements
+    * update dependencies
+
 ## v4.6.1 (2017-01-05)
 * wdio changes:
     * fixed wording for log in watch mode
