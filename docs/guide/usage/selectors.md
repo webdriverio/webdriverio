@@ -65,7 +65,7 @@ console.log(browser.getText('h1*=Welcome')); // outputs: "Welcome to my Page"
 The same works for ids and class names:
 
 ```html
-<div class="someElem" id="elem">WebdriverIO is the best</a>
+<div class="someElem" id="elem"><a href="http://webdriver.io/">WebdriverIO is the best</a></div>
 ```
 ```js
 console.log(browser.getText('.someElem=WebdriverIO is the best')); // outputs: "WebdriverIO is the best"
