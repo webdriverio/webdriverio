@@ -309,7 +309,7 @@ exports.config = {
      * the test.
      * @param {Number} result 0 - test pass, 1 - test fail
      * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {Array.<String>} specs List of spec file paths that ran
      */
     after: function (result, capabilities, specs) {
     },
@@ -317,7 +317,7 @@ exports.config = {
      * Gets executed right after terminating the webdriver session.
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {Array.<String>} specs List of spec file paths that ran
      */
     afterSession: function (config, capabilities, specs) {
     },
