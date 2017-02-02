@@ -17,7 +17,7 @@ describe('touch', () => {
             .pause(3000)
     })
 
-    it('should do a long touch', async function() {
+    it('should do a long touch', async function () {
         await this.client.touch(labels.HITAREA, true)
         await this.client.context(labels.WEBVIEW_CONTEXT);
 
