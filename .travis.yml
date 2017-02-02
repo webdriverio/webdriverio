@@ -26,7 +26,7 @@ env:
     - pm_config_engine_strict=false
     - secure: "f6+NU5WBW9GPLRV2WhtCozPOjFOAdh52hXfr0dZopxl0eqJ426fl5UCt54duUQV/abBpNEKzBm2015EsBP14wepNJ9+Q6nRwrj/h2PvI3UM8vEPqgH08hqiS7kFszA0Wy+Ki3umncQbA5WAgq6grmZs9naELWmOX5Yum40Wl9/0="
     - secure: "dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w="
-    - secure: "m/ExczMw9W1X38lKxdQlgtk6imyG7vqx/hldoUUL/HZ5umNB6fOSy6cIzXLrffncFF+yAgiFkxHNDGFE1wc4pCnrZRJMBp4txHNG46PICGcSQOJBmj+cnpcTL2fAisUXyrJO+nJxkOrJ+fTRKSlB0huqCIjpDTAyQWoTfUQ0w1w="
+    - secure: "UWjWigAceyuTv0Mk9b17encANmKBXL/TUqokmGVe6Rs4vzHzz4b43qcUn18enmzz63ozqkRsUVYICWrYgaeDyK3yrlVklDvUlO6ssWMP+qaaCD/sSpp4h/Y7N3flSCPYtoQGVGYq7Q6mo9ksrBtfUHEaQ/+iUKpQ+BgqNJqlOJw="
 
   matrix:
     - _BROWSER=chrome  _PLATFORM=Windows_8 _VERSION=42 _ENV=desktop
