@@ -30,7 +30,7 @@
     "test-desktop": "grunt test:desktop",
     "test-functional": "grunt test:functional",
     "test-multibrowser": "grunt test:multibrowser",
-    "test-snyk": "snyk test"
+    "test-snyk": "snyk auth $SNYK_AUTH_TOKEN && snyk test"
   },
   "dependencies": {
     "archiver": "~1.3.0",
