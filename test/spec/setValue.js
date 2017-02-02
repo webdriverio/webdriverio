@@ -41,21 +41,17 @@ describe('setValue', () => {
         // As of 2015-11-01, on its version 2.20, "ChromeDriver only supports characters in the BMP".
         // TODO: Move down or remove this return as ChromeDriver supports more planes
         // other browser also failed here
-        if (true) {
-            return
-        }
-
-        it('supports SMP', async function () {
+        it.skip('supports SMP', async function () {
             await this.client.setValue(input, '😱'); // For SMP plane, try 1F631 character
             (await this.client.getValue(input)).should.be.equal('😱')
         })
 
-        it('supports SIP', async function () {
+        it.skip('supports SIP', async function () {
             await this.client.setValue(input, '鬒'); // For SIP, try 2FA0
             (await this.client.getValue(input)).should.be.equal('鬒')
         })
 
-        it('supports PUA', async function () {
+        it.skip('supports PUA', async function () {
             await this.client.setValue(input, '󴺜'); // For PUA, try F4E9C
             (await this.client.getValue(input)).should.be.equal('󴺜')
         })

@@ -38,13 +38,13 @@ describe('network connection', () => {
         connection.hasData.should.be.true
     })
 
-    it('should set connection data properly', async function() {
+    it('should set connection data properly', async function () {
         const r = mock('post', '/session/123ABC/network_connection', null, { type: 4 })
         await this.client.setNetworkConnection(4)
         r.isDone().should.be.true
     })
 
-    it('should throw if network value is invalid', async function() {
+    it('should throw if network value is invalid', async function () {
         let error
 
         try {

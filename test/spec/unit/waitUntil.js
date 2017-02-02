@@ -65,7 +65,7 @@ describe('waitUntil', () => {
         res.should.be.equal('foobar')
     })
 
-    it('should timeout with a long waitfor interval', async function() {
+    it('should timeout with a long waitfor interval', async function () {
         try {
             await this.client.waitUntil(() => new Promise((resolve) => setTimeout(() => resolve('foobar'), 50)), 100, 250)
         } catch (error) {
@@ -73,7 +73,7 @@ describe('waitUntil', () => {
         }
     })
 
-    it('should bind `this` to the waitUntil function', async function() {
+    it('should bind `this` to the waitUntil function', async function () {
         (await this.client.waitUntil(
             function () {
                 return Promise.resolve(this.waitUntil)

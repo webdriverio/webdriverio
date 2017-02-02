@@ -2,7 +2,7 @@ import { remote } from '../../../index'
 import { tmpdir } from 'os'
 
 describe('rejection', () => {
-    before(async function() {
+    before(async function () {
         this.client = remote({
             screenshotPath: tmpdir()
         })
