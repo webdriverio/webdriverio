@@ -27,7 +27,7 @@ Then let's download the latest [selenium standalone server](http://docs.selenium
 $ curl -O http://selenium-release.storage.googleapis.com/3.0/selenium-server-standalone-3.0.1.jar
 ```
 
-** 3. Download the latest version geckdriver for your environment and unpack it in your project directory**
+** 3. Download the latest version geckodriver for your environment and unpack it in your project directory**
 
 Linux 64 bit
 
