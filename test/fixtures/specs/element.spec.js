@@ -123,6 +123,19 @@ describe('element as first class citizen', () => {
         expect(header.myTagStructure()).to.be.equal('<h1>WebdriverIO Testpage</h1>')
     })
 
+    it('throws an error if user attempts to call an action on a not found element', () => {
+        let result = 'not found'
+        try {
+            result = $('.nested').$('h1').getText()
+        } catch (e) {
+            result = e.message
+        }
+
+        expect(result).to.be.equal(
+            'An element ("h1") could not be located on the page using the given search parameters.'
+        )
+    })
+
     describe('can be used with waitFor commands without throwing an error while querying it', () => {
         it('can query an element without throwing an error', () => {
             let res = browser.element('#notExisting')
