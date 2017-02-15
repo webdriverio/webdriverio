@@ -110,4 +110,4 @@ If you want to use Cucumber set the `framework` property to cucumber, either by 
 
 Options for Cucumber can be given in the config file with cucumberOpts. Check out the whole list of options [here](https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options).
 
-To get up and running quickly with Cucumber have a look on our [cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all step definition you will probably need and allows you to start writing feature files ride away.
+To get up and running quickly with Cucumber have a look on our [cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all step definition you will probably need and allows you to start writing feature files right away.
