@@ -37,7 +37,7 @@ describe('launcher', () => {
             })
             let specs = launcher.configParser.getSpecs()
             specs.should.have.length(1)
-            specs[0].should.endWith('/test/spec/unit/launcher.js')
+            specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
         })
 
         it('should allow to pass mutliple specs as cli argument to run only these test files', () => {
@@ -46,8 +46,8 @@ describe('launcher', () => {
             })
             let specs = launcher.configParser.getSpecs()
             specs.should.have.length(2)
-            specs[0].should.endWith('/test/spec/unit/launcher.js')
-            specs[1].should.endWith('/lib/webdriverio.js')
+            specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
+            specs[1].should.endWith(path.resolve('lib', 'webdriverio.js'))
         })
 
         it('should throw if specified spec file doesnt exist', () => {
