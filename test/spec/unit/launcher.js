@@ -3,7 +3,6 @@ import sinon from 'sinon'
 import Launcher from '../../../build/lib/launcher'
 
 const FIXTURE_ROOT = path.join(__dirname, '..', '..', 'fixtures')
-const IS_WIN_PLATFORM = /^win/.test(process.platform)
 
 describe('launcher', () => {
     describe('allows to define run specific suites', () => {
@@ -37,7 +36,7 @@ describe('launcher', () => {
             })
             let specs = launcher.configParser.getSpecs()
             specs.should.have.length(1)
-            specs[0].should.endWith(IS_WIN_PLATFORM ? '\\test\\spec\\unit\\launcher.js' : '/test/spec/unit/launcher.js')
+            specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
         })
 
         it('should allow to pass mutliple specs as cli argument to run only these test files', () => {
@@ -46,8 +45,8 @@ describe('launcher', () => {
             })
             let specs = launcher.configParser.getSpecs()
             specs.should.have.length(2)
-            specs[0].should.endWith(IS_WIN_PLATFORM ? '\\test\\spec\\unit\\launcher.js' : '/test/spec/unit/launcher.js')
-            specs[1].should.endWith(IS_WIN_PLATFORM ? '\\lib\\webdriverio.js' : '/lib/webdriverio.js')
+            specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
+            specs[1].should.endWith(path.resolve('lib', 'webdriverio.js'))
         })
 
         it('should throw if specified spec file doesnt exist', () => {
