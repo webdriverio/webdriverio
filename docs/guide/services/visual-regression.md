@@ -39,8 +39,9 @@ function getScreenshotName(basePath) {
     var testName = context.test.title;
     var browserVersion = parseInt(context.browser.version, 10);
     var browserName = context.browser.name;
+    var browserWidth = context.meta.width;
 
-    return path.join(basePath, `${testName}_${type}_${browserName}_v${browserVersion}.png`);
+    return path.join(basePath, `${testName}_${type}_${browserName}_v${browserVersion}_${browserWidth}.png`);
   };
 }
 
