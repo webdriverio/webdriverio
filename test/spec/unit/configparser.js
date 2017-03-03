@@ -139,7 +139,7 @@ describe('ConfigParser', () => {
         configParser.getConfig().afterSession.should.be.an('array').and.have.a.lengthOf(1)
     })
 
-    it('Should handle a config as a object', () => {
+    it('Should allow config as an object', () => {
         let configParser = new ConfigParser()
         configParser.addConfigFile({
             specs: [path.resolve(__dirname, '*')],
