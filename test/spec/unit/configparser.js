@@ -8,6 +8,7 @@ describe('ConfigParser', () => {
         let configParser = new ConfigParser()
         configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
         let specs = configParser.getSpecs()
+        console.log(specs)
         specs.should.not.include(__filename)
         specs.should.include(path.resolve(__dirname, 'call.js'))
     })
@@ -136,5 +137,20 @@ describe('ConfigParser', () => {
         configParser.addConfigFile(FIXTURES_PATH + '/hooks.wdio.conf.js')
         configParser.getConfig().beforeSession.should.be.an('array').and.have.a.lengthOf(1)
         configParser.getConfig().afterSession.should.be.an('array').and.have.a.lengthOf(1)
+    })
+
+    it('Should handle a config as a object', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile({
+            specs: [path.resolve(__dirname, '*')],
+            exclude: [path.resolve(__dirname, 'configparser.js')],
+            capabilities: {
+                browserName: 'chrome'
+            }
+        })
+        let specs = configParser.getSpecs()
+        console.log('SPEC', specs)
+        specs.should.not.include(path.resolve(__dirname, 'configparser.js'))
+        specs.should.include(path.resolve(__dirname, 'call.js'))
     })
 })
