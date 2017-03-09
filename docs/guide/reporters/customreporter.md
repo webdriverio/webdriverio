@@ -1,7 +1,7 @@
 name: customreporter
 category: reporters
 tags: guide
-index: 7
+index: 8
 title: WebdriverIO - Custom Reporter
 ---
 
