@@ -8,7 +8,7 @@ title: WebdriverIO - PhantomJS Service
 PhantomJS Service
 ===========================
 
-[This service](https://github.com/cognitom/wdio-phantomjs-service) helps you to run PhantomJS seamlessly when running tests with the [WDIO testrunner](http://webdriver.io/guide/testrunner/gettingstarted.html). It uses [phantom-prebuilt](https://www.npmjs.com/package/phantom-prebuilt) NPM package.
+[This service](https://github.com/cognitom/wdio-phantomjs-service) helps you to run PhantomJS seamlessly when running tests with the [WDIO testrunner](http://webdriver.io/guide/testrunner/gettingstarted.html). It uses [phantomjs-prebuilt](https://www.npmjs.com/package/phantomjs-prebuilt) NPM package.
 
 ## Installation
 
