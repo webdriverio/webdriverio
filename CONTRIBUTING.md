@@ -25,7 +25,7 @@ to know that you have a clean state.
 
   or install it with npm package [selenium-standalone](https://github.com/vvo/selenium-standalone)
   ```sh
-  $ npm install -g selenium-standalone phantomjs
+  $ npm install -g selenium-standalone phantomjs-prebuilt
   $ selenium-standalone install
   $ selenium-standalone start
   ```
