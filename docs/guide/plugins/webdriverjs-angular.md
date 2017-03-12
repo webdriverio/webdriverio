@@ -75,7 +75,7 @@ See [test/spec](test/spec).
 # you need multiple terminal window
 
 # start a standalone selenium server
-npm install selenium-standalone phantomjs -g
+npm install selenium-standalone phantomjs-prebuilt -g
 start-selenium
 
 # start web server
