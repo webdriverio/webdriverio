@@ -35,7 +35,7 @@ Options:
   --bail                stop test runner after specific amount of tests have failed (default: 0 - don't bail)
   --screenshotPath, -s  saves a screenshot to a given path if a command fails
   --baseUrl, -b         shorten url command calls by setting a base url
-  --waitforTimeout, -w  timeout for all waitForXXX commands (default: 500ms)
+  --waitforTimeout, -w  timeout for all waitForXXX commands (default: 1000ms)
   --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)
   --reporters, -r       reporters to print out the results on stdout
   --suite               overwrites the specs attribute and runs the defined suite
