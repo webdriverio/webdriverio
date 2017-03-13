@@ -44,7 +44,7 @@ browser.timeouts('implicit', 5000);
 
 ### WaitForXXX timeout
 
-WebdriverIO provides multiple commands to wait on elements to reach a certain state (e.g. enabled, visible, existing). These commands take a selector argument and a timeout number which declares how long the instance should wait for that element to reach the state. The `waitforTimeout` option allows you to set the global timeout for all waitFor commands so you don't need to set the same timeout over and over again:
+WebdriverIO provides multiple commands to wait on elements to reach a certain state (e.g. enabled, visible, existing). These commands take a selector argument and a timeout number which declares how long the instance should wait for that element to reach the state. The `waitforTimeout` option allows you to set the global timeout for all waitFor commands so you don't need to set the same timeout over and over again. Note the lowercase `f`.
 
 ```js
 // wdio.conf.js
