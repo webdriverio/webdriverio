@@ -150,7 +150,7 @@ screenshotOnReject: {
 ```
 
 ### waitforTimeout
-Default timeout for all waitForXXX commands.
+Default timeout for all waitForXXX commands. Note the lowercase `f`.
 
 Type: `Number`<br>
 Default: *1000*
