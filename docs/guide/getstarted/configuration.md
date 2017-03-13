@@ -153,13 +153,13 @@ screenshotOnReject: {
 Default timeout for all waitForXXX commands.
 
 Type: `Number`<br>
-Default: *500*
+Default: *1000*
 
 ### waitforInterval
 Default interval for all waitForXXX commands.
 
 Type: `Number`<br>
-Default: *250*
+Default: *500*
 
 ## debug
 Enables node debugging
