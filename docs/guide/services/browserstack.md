@@ -20,7 +20,7 @@ npm install --save-dev wdio-browserstack-service
 
 ## Configuration
 
-WebdriverIO has Browserstack support out of the box. You should simply set `user` and `key` in your `wdio.conf.js` file. This service plugin provdies supports for [Browserstack Tunnel](https://wiki.saucelabs.com/display/DOCS/Using+Sauce+Connect+for+Testing+Behind+the+Firewall+or+on+Localhost). Set `browserstackLocal: true` also to activate this feature.
+WebdriverIO has Browserstack support out of the box. You should simply set `user` and `key` in your `wdio.conf.js` file. This service plugin provdies supports for [Browserstack Tunnel](https://www.browserstack.com/automate/node#setting-local-tunnel). Set `browserstackLocal: true` also to activate this feature.
 
 ```js
 // wdio.conf.js
