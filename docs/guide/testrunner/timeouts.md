@@ -29,8 +29,10 @@ browser.executeAsync(function (done) {
 A session has an associated session page load timeout that specifies a time to wait for the page loading to complete. Unless stated otherwise it is 300,000 milliseconds. You can set this timeout via:
 
 ```js
-browser.timeouts('page load', 10000);
+browser.timeouts('pageload', 10000);
 ```
+
+> The `pageLoad` keyword is a part of the official WebDriver [specification](https://www.w3.org/TR/webdriver/#set-timeouts), but might not be [supported](https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/687) for your browser (the previous name is `page load`).
 
 ### Session Implicit Wait Timeout
 
