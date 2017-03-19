@@ -10,7 +10,10 @@ before_script:
   - cd test/site/www && bower install && cd ../../../
   - phantomjs --webdriver=4444 2>&1 >/dev/null &
 
-script: "sleep 5 && npm run test-snyk && npm run test"
+script:
+    - sleep 5
+    - 'if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test-snyk; fi'
+    - npm run test
 
 addons:
   sauce_connect: true
