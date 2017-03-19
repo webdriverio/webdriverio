@@ -27,7 +27,7 @@ client
     .setValue('*[name="q"]','webdriverio')
     .click('*[name="btnG"]')
     .pause(1000)
-    .getTitle(function(err,title) {
+    .getTitle().then(function(title) {
         console.log(title);
     })
     .end();
