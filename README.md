@@ -2,6 +2,8 @@
 WebdriverIO
 ===========
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/webdriverio/webdriverio.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/webdriverio/webdriverio.svg?branch=master)](https://travis-ci.org/webdriverio/webdriverio)
 [![NPM version](https://badge.fury.io/js/webdriverio.svg)](http://badge.fury.io/js/webdriverio)
 [![Dependency Status](https://www.versioneye.com/user/projects/58932ea4b166b50039982a32/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/58932ea4b166b50039982a32)
