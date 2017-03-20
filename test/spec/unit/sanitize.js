@@ -14,6 +14,26 @@ const SHORT_OBJECT = fillObject(3)
 const LONG_OBJECT = fillObject(20)
 const OBJECT_OF_LONG_STRINGS = fillObject(3, LONG_STRING)
 
+const MOBILE_CAPS = {
+    deviceName: 'iPhone 7',
+    platformName: 'iOS',
+    platformVersion: '10.2',
+    app: 'my.ipa'
+}
+
+const DESKTOP_CAPS = {
+    browserName: 'Chrome',
+    version: '57',
+    platform: 'Windows 10'
+}
+
+const ARGS = [
+    ['foo', 'bar'],
+    'test',
+    () => {},
+    {a: true}
+]
+
 function fillArray (length, val) {
     return Array.apply(0, Array(length)).map((val, i) => val || i)
 }
@@ -35,9 +55,27 @@ function compare (expected, actual) {
 }
 
 describe('Sanitize', () => {
-    it.skip('should sanitize capabilities')
-    it.skip('should sanitize arguments')
-    it.skip('should sanitize css')
+    it('should sanitize capabilities', () => {
+        expect(Sanitize.caps(undefined)).to.be.equal('')
+        expect(Sanitize.caps(null)).to.be.equal('')
+        expect(Sanitize.caps({})).to.be.equal('')
+        expect(Sanitize.caps(MOBILE_CAPS)).to.be.equal('iphone7.ios.10_2.my_ipa')
+        expect(Sanitize.caps(DESKTOP_CAPS)).to.be.equal('chrome.57.windows10')
+    })
+
+    it('should sanitize arguments', () => {
+        expect(Sanitize.args(undefined)).to.be.equal('')
+        expect(Sanitize.args(null)).to.be.equal('')
+        expect(Sanitize.args({})).to.be.equal('')
+        expect(Sanitize.args([])).to.be.equal('')
+        expect(Sanitize.args(ARGS)).to.be.equal('foo, bar, "test", <Function>, [object Object]')
+    })
+
+    it('should sanitize css', () => {
+        expect(Sanitize.css(undefined)).to.be.undefined
+        expect(Sanitize.css(null)).to.be.null
+        expect(Sanitize.css('"TEST"\'  ')).to.be.equal('test')
+    })
 
     describe('Sanitize an arbitrary variable', () => {
         it('should return simple values unchanged', () => {
