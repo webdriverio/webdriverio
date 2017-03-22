@@ -4,8 +4,7 @@ tags: guide
 index: 3
 title: Chai-WebdriverIO
 ---
-# chai-webdriverio ![Travis badge](https://travis-ci.org/marcodejongh/chai-webdriverio.svg?branch=master) [![Greenkeeper badge](https://badges.greenkeeper.io/marcodejongh/chai-webdriverio.svg)](https://greenkeeper.io/)
-
+# chai-webdriverio
 
 
 Provides [webdriverio](https://npmjs.org/package/webdriverio) sugar for the [Chai](http://chaijs.com/) assertion library. Allows you to create expressive integration tests:
