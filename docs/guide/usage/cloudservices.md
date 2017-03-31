@@ -34,7 +34,7 @@ The only requirement is to set the `user` and `key` in your config (either expo
 
 You can also pass in any optional [test configuration option](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) as a key/value in the capabilities for any browser.
 
-### [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect)
+### [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
 
 If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Sauce Connect.
 
