@@ -161,7 +161,23 @@ Default interval for all waitForXXX commands.
 Type: `Number`<br>
 Default: *500*
 
+### queryParams
+A key-value store of query parameters to be added to every request send by webdriverio.
+Type: `Object`<br>
+Default: None
+
+**Example:**
+
+```js
+queryParams: {
+  specialKey: 'd2ViZHJpdmVyaW8='
+}
+
+//Every request will end with "?specialKey=d2ViZHJpdmVyaW8="
+```
+
 ## debug
+
 Enables node debugging
 
 Type: `Boolean`<br>
