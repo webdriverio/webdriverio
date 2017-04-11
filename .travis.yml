@@ -14,7 +14,6 @@ script:
     - npm run test:ci
 
 addons:
-  sauce_connect: true
   apt:
     sources:
       - ubuntu-toolchain-r-test
