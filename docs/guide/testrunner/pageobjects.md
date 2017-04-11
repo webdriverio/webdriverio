@@ -76,7 +76,7 @@ var LoginPage = Object.create(Page, {
     } }
 });
 
-module.exports = new LoginPage();
+module.exports = LoginPage;
 ```
 OR, when using ES6 class:
 
