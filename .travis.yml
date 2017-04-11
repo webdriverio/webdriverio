@@ -31,14 +31,14 @@ env:
     - secure: "DAgs9EY8eU53ibMmB9ywWFcbwUZLDctn+byYf3+uTbWPUZnGCiRngkSS7+VYLw4ZM5iHj/TNcngCdJn5dDOFzUkfRyS4hT88v1I2qv0P3dbJcfHyZARmK6qnMGuNe7iud2uV2VODE3mvcI/kNvO7oUQGsB/g0R+Qqzkh072sGVQ="
 
   matrix:
-    - _ENV=desktop_BROWSER=chrome  _PLATFORM=Windows_8 _VERSION=42
-    - _ENV=desktop_BROWSER=firefox _PLATFORM=Windows_8 _VERSION=42
-    - _ENV=desktop_BROWSER=internet_explorer _PLATFORM=Windows_8 _VERSION=10
+    - _ENV=desktop _BROWSER=chrome  _PLATFORM=Windows_8 _VERSION=42
+    - _ENV=desktop _BROWSER=firefox _PLATFORM=Windows_8 _VERSION=42
+    - _ENV=desktop _BROWSER=internet_explorer _PLATFORM=Windows_8 _VERSION=10
     # - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPhone_6 _VERSION=9.2 _APP=http://webdriverjs.christian-bromann.com/ios.zip
     # - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPad_Air _VERSION=9.2 _APP=http://webdriverjs.christian-bromann.com/ios.zip
     # - _ENV=android _PLATFORM=Android _DEVICENAME=Google_Nexus_7_HD_Emulator _VERSION=4.3 _APP=http://webdriverjs.christian-bromann.com/android.apk.zip
     # - _ENV=android _PLATFORM=Android _DEVICENAME=Samsung_Galaxy_S4_Emulator _VERSION=4.4 _APP=http://webdriverjs.christian-bromann.com/android.apk.zip
-    - _ENV=functional_BROWSER=phantomjs
+    - _ENV=functional _BROWSER=phantomjs
     # - _ENV=multibrowser
     - _ENV=unit
     # - _ENV=wdio

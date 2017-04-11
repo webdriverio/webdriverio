@@ -43,7 +43,7 @@
     "test:unit": "mocha test/setup-unit.js test/spec/unit/*.js",
     "test:functional": "mocha test/setup.js test/spec/functional/**/*.js",
     "test:desktop": "mocha test/setup.js test/spec/*.js test/spec/desktop/*.js",
-    "test:multibrowser": "_ENV=multibrowser mocha test/setup.js test/spec/multibrowser/**/*.js",
+    "test:multibrowser": "mocha test/setup.js test/spec/multibrowser/**/*.js",
     "test:cover": "babel-node ./node_modules/.bin/isparta cover --include 'lib/*.js' _mocha",
     "test:snyk": "snyk auth $SNYK_AUTH_TOKEN && snyk test",
     "prepublish": "npm prune",
