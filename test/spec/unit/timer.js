@@ -28,7 +28,8 @@ describe('timer', () => {
             let timer = new Timer(20, 30, () => Promise.reject(new Error('err')))
 
             return timer.then(assert.fail).catch((msg) => {
-                expect(msg).to.be.equal('err')
+                expect(msg).to.be.instanceof(Error)
+                expect(msg.message).to.be.equal('err')
             })
         })
     })
