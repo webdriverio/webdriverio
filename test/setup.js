@@ -60,6 +60,7 @@ before(async function () {
     }
 
     if (SC_REQUIRED_BUILDS.indexOf(process.env.npm_lifecycle_event) && process.env.TRAVIS_JOB_NUMBER) {
+        console.log('==> Trying to start Sauce Connect')
         await new Promise((resolve, reject) => {
             SauceConnectLauncher({
                 user: process.env.SAUCE_USERNAME,
@@ -67,9 +68,11 @@ before(async function () {
                 tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
             }, (err, process) => {
                 if (err) {
+                    console.error('==> Couldn\'t start Sauce Connect due to:', err.message)
                     return reject(err)
                 }
 
+                console.log('==> Started Sauce Connect with tunnel-identifier', process.env.TRAVIS_JOB_NUMBER)
                 scProcess = process
             })
         })

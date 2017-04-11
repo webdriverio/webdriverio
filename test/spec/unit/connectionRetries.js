@@ -1,6 +1,6 @@
 import merge from 'deepmerge'
 import nock from 'nock'
-import conf from '../../conf/index.js'
+import conf from '../../conf/local.js'
 
 const WebdriverIO = require('../../../')
 
