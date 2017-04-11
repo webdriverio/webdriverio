@@ -23,7 +23,9 @@ describe('element as first class citizen', () => {
         try {
             await this.client.element('span=notExisting').getValue()
         } catch (e) {
-            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
+            expect(e.message).to.be.equal(
+                'An element ("span=notExisting") could not be located on the page using the given search parameters.'
+            )
         }
     })
 })

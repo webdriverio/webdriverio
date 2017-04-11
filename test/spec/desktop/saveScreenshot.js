@@ -3,6 +3,9 @@ import path from 'path'
 
 const screenshotPath = path.join(__dirname, '..', '..', '..', 'test.png')
 
+/**
+ * can't be executed due to borked automation extension
+ */
 describe('saveScreenshot', () => {
     it('should take a screenshot and output it on a desired location', async function () {
         await this.client.saveScreenshot(screenshotPath)

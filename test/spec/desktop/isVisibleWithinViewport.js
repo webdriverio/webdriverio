@@ -1,5 +1,5 @@
 describe('isVisibleWithinViewport', () => {
-    it('should check if a single element is visible', async function () {
+    it.skip('should check if a single element is visible', async function () {
         (await this.client.isVisibleWithinViewport('.nested')).should.be.true;
         (await this.client.isVisibleWithinViewport('.notInViewport')).should.be.false
     })
