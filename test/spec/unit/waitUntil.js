@@ -22,7 +22,12 @@ describe('waitUntil', () => {
     it('should get rejected', async function () {
         let error
         try {
-            await this.client.waitUntil(() => new Promise((resolve, reject) => setTimeout(() => reject('foobar'), 500)), 1000)
+            await this.client.waitUntil(() =>
+                new Promise((resolve, reject) =>
+                    setTimeout(
+                        () => reject(new Error('foobar')),
+                        500)
+                    ), 1000)
         } catch (e) {
             error = e
         } finally {

@@ -28,7 +28,7 @@ describe('waitUntil async', () => {
 
     it('should allow to define own error message', () => {
         const errorMsg = 'my own error message'
-        return browser.waitUntil(() => Promise.reject(), 100, errorMsg).catch((e) => {
+        return browser.waitUntil(() => Promise.reject(new Error('buu')), 100, errorMsg).catch((e) => {
             expect(e.message).to.be.equal(errorMsg)
 
         /**

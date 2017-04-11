@@ -10,7 +10,7 @@ const CUSTOM_COMMANDS = {
         return new Promise(function (resolve, reject) {
             self.elements(selector).then(function (res) {
                 if (!res || res.status === -1) {
-                    reject()
+                    return reject(new Error('no element found'))
                 }
                 resolve(res.value.length)
             })
