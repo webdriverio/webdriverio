@@ -23,15 +23,6 @@ if (BUILD_ENV === 'desktop' && !process.env._BROWSER) {
 global.conf = conf
 
 /**
- * skip desktop and mobile tests on PRs
- */
-if (process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST !== 'false') {
-    console.log('desktop and mobile tests are not relevant for PR tests')
-    console.log('shutting down with exit code 0')
-    process.exit(0)
-}
-
-/**
  * setup chai
  */
 chai.should()
@@ -83,7 +74,7 @@ before(async function () {
     this.client = remote(conf)
 
     delete conf.desiredCapabilities.accessKey
-    console.log('Running job with following conf:', conf, '\n\n')
+    console.log('1Running job with following conf:', conf, '\n\n')
 
     await this.client.init()
 })
