@@ -44,7 +44,7 @@ before(async function () {
     await this.client.init()
 })
 
-beforeEach(async function() {
+beforeEach(async function () {
     if (process.env._ENV && process.env._ENV.match(/(android|ios)/)) {
         return
     }
@@ -54,7 +54,7 @@ beforeEach(async function() {
 
 after(async function () {
     const sessionId = this.client.requestHandler.sessionID
-    await this.client[process.env._ENV && process.env._ENV.match(/(multibrowser|android)/) || process.env.CI ? 'end' : 'endAll']()
+    await this.client[(process.env._ENV && process.env._ENV.match(/(multibrowser|android)/)) || process.env.CI ? 'end' : 'endAll']()
 
     /**
      * if we are not running on travis we are done here

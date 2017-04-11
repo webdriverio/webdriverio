@@ -25,7 +25,7 @@ describe('timer', () => {
         })
 
         it('should be rejected', () => {
-            let timer = new Timer(20, 30, () => Promise.reject('err'))
+            let timer = new Timer(20, 30, () => Promise.reject(new Error('err')))
 
             return timer.then(assert.fail).catch((msg) => {
                 expect(msg).to.be.equal('err')

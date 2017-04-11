@@ -8,6 +8,8 @@
     "chai-expect"
   ],
   "rules": {
+    "no-unused-expressions": 0,
+
     "mocha/no-exclusive-tests": [2],
     "mocha/no-pending-tests": [2],
     "mocha/handle-done-callback": [2],
