@@ -6,10 +6,13 @@ import chai from 'chai'
 import chaiString from 'chai-string'
 import chaiThings from 'chai-things'
 import chaiAsPromised from 'chai-as-promised'
+import SauceConnectLauncher from 'sauce-connect-launcher'
 import { Server } from 'node-static'
 
 import conf from './conf/index'
 import { remote, multiremote } from '../index'
+
+const SC_REQUIRED_BUILDS = ['test:desktop', 'test:ios', 'test:android']
 
 if (process.env.npm_lifecycle_event === 'test:desktop' && !process.env._BROWSER) {
     process.env._BROWSER = 'chrome'
@@ -37,6 +40,7 @@ global.assert = chai.assert
 global.expect = chai.expect
 
 let server
+let scProcess
 
 before(async function () {
     /**
@@ -53,6 +57,22 @@ before(async function () {
         this.browserA = this.client.select('browserA')
         this.browserB = this.client.select('browserB')
         return
+    }
+
+    if (SC_REQUIRED_BUILDS.indexOf(process.env.npm_lifecycle_event) && process.env.TRAVIS_JOB_NUMBER) {
+        await new Promise((resolve, reject) => {
+            SauceConnectLauncher({
+                user: process.env.SAUCE_USERNAME,
+                key: process.env.SAUCE_ACCESS_KEY,
+                tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
+            }, (err, process) => {
+                if (err) {
+                    return reject(err)
+                }
+
+                scProcess = process
+            })
+        })
     }
 
     this.client = remote(conf)
@@ -75,8 +95,18 @@ after(async function () {
     const sessionId = this.client.requestHandler.sessionID
     await this.client[(process.env._ENV && process.env._ENV.match(/(multibrowser|android)/)) || process.env.CI ? 'end' : 'endAll']()
 
+    /**
+     * shut down static server
+     */
     if (server) {
         server.close()
+    }
+
+    /**
+     * shut down sauce connect
+     */
+    if (scProcess) {
+        scProcess.close()
     }
 
     /**
