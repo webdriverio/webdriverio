@@ -12,9 +12,11 @@ import { Server } from 'node-static'
 import conf from './conf/index'
 import { remote, multiremote } from '../index'
 
-const SC_REQUIRED_BUILDS = ['test:desktop', 'test:ios', 'test:android']
+const SC_REQUIRED_BUILDS = ['desktop', 'ios', 'android']
+const BUILD_ENV = (process.env.npm_lifecycle_event || '').split(':').pop()
+console.log('==> Build environment', BUILD_ENV)
 
-if (process.env.npm_lifecycle_event === 'test:desktop' && !process.env._BROWSER) {
+if (BUILD_ENV === 'desktop' && !process.env._BROWSER) {
     process.env._BROWSER = 'chrome'
 }
 
@@ -51,7 +53,7 @@ before(async function () {
         request.addListener('end', () => file.serve(request, response)).resume()
     ).listen(8080)
 
-    if (process.env.npm_lifecycle_event === 'test:multibrowser') {
+    if (BUILD_ENV === 'multibrowser') {
         this.client = multiremote(conf.capabilities)
         await this.client.init()
         this.browserA = this.client.select('browserA')
@@ -59,7 +61,7 @@ before(async function () {
         return
     }
 
-    if (SC_REQUIRED_BUILDS.indexOf(process.env.npm_lifecycle_event) && process.env.TRAVIS_JOB_NUMBER) {
+    if (SC_REQUIRED_BUILDS.indexOf(BUILD_ENV) > -1 && process.env.TRAVIS_JOB_NUMBER) {
         console.log('==> Trying to start Sauce Connect')
         await new Promise((resolve, reject) => {
             SauceConnectLauncher({
