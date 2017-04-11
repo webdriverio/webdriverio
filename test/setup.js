@@ -59,14 +59,14 @@ before(async function () {
                 user: process.env.SAUCE_USERNAME,
                 key: process.env.SAUCE_ACCESS_KEY,
                 tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
-            }, (err, process) => {
+            }, (err, p) => {
                 if (err) {
                     console.error('==> Couldn\'t start Sauce Connect due to:', err.message)
                     return reject(err)
                 }
 
                 console.log('==> Started Sauce Connect with tunnel-identifier', process.env.TRAVIS_JOB_NUMBER)
-                scProcess = process
+                scProcess = p
             })
         })
     }
@@ -74,13 +74,13 @@ before(async function () {
     this.client = remote(conf)
 
     delete conf.desiredCapabilities.accessKey
-    console.log('1Running job with following conf:', conf, '\n\n')
+    console.log('Running job with following conf:', conf, '\n\n')
 
     await this.client.init()
 })
 
 beforeEach(async function () {
-    if (process.env._ENV && process.env._ENV.match(/(android|ios)/)) {
+    if (BUILD_ENV && BUILD_ENV.match(/(android|ios)/)) {
         return
     }
 
@@ -89,7 +89,7 @@ beforeEach(async function () {
 
 after(async function () {
     const sessionId = this.client.requestHandler.sessionID
-    await this.client[(process.env._ENV && process.env._ENV.match(/(multibrowser|android)/)) || process.env.CI ? 'end' : 'endAll']()
+    await this.client[(BUILD_ENV && BUILD_ENV.match(/(multibrowser|android)/)) || process.env.CI ? 'end' : 'endAll']()
 
     /**
      * shut down static server
@@ -108,7 +108,14 @@ after(async function () {
     /**
      * if we are not running on travis we are done here
      */
-    if (!process.env.CI || !process.env._ENV || !process.env._ENV.match(/(desktop|ios|android)/)) {
+    if (!process.env.CI || !BUILD_ENV || !BUILD_ENV.match(/(desktop|ios|android)/)) {
+        return
+    }
+
+    /**
+     * return early if no suites were run
+     */
+    if (!this._runnable.parent.suites || !this._runnable.parent.suites.length) {
         return
     }
 
