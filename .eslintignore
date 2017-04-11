@@ -1,3 +1,6 @@
 build/
 examples/
 bin/
+node_modules/
+test/site/platforms/
+test/site/www/components/

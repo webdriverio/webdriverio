@@ -3,6 +3,7 @@
   "parser": "babel-eslint",
   "rules": {
     "indent": [2, 4],
+    "standard/no-callback-literal": 0,
 
     /* Atom fix */
     "generator-star-spacing": 0,
