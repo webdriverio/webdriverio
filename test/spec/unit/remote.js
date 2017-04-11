@@ -39,6 +39,11 @@ describe('remote method', () => {
         client.desiredCapabilities.browserName.should.be.equal('')
     })
 
+    it('should append query parameters to remote calls', () => {
+        var client = remote({queryParams: {testKey: 'testValue'}})
+        client.requestHandler.createOptions({ path: startPath }, {}).uri.href.should.contain('?testKey=testValue')
+    })
+
     describe('on reject', () => {
         const sandbox = sinon.sandbox.create()
 
