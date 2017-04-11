@@ -10,7 +10,7 @@ before_script:
 
 script:
     - sleep 5
-    - 'if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test-snyk; fi'
+    - 'if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test:snyk; fi'
     - npm run test:ci
 
 addons:
