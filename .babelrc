@@ -1,9 +1,14 @@
 {
-    "presets": ["es2015", "stage-0"],
-    "plugins": [
-        "syntax-async-functions",
-        "transform-regenerator",
-        "transform-runtime",
-        "add-module-exports"
-    ]
+  "presets": [
+    ["env", {
+      "targets": {
+        "node": "0.12"
+      }
+    }],
+    "stage-0"
+  ],
+  "plugins": [
+    "transform-runtime",
+    "add-module-exports"
+  ]
 }
