@@ -162,7 +162,7 @@ Type: `Number`<br>
 Default: *500*
 
 ### queryParams
-A key-value store of query parameters to be added to every request send by webdriverio.
+A key-value store of query parameters to be added to every selenium request.
 Type: `Object`<br>
 Default: None
 
@@ -173,7 +173,8 @@ queryParams: {
   specialKey: 'd2ViZHJpdmVyaW8='
 }
 
-//Every request will end with "?specialKey=d2ViZHJpdmVyaW8="
+// Selenium request would look like:
+// http://127.0.0.1:4444/v1/session/a4ef025c69524902b77af5339017fd44/window/current/size?specialKey=d2ViZHJpdmVyaW8%3D
 ```
 
 ## debug
