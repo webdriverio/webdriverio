@@ -41,7 +41,7 @@ describe('remote method', () => {
 
     it('should append query parameters to remote calls', () => {
         var client = remote({queryParams: {testKey: 'testValue'}})
-        client.requestHandler.createOptions({ path: startPath }, {}).uri.href.should.contain('?testKey=testValue')
+        client.requestHandler.createOptions({ path: startPath }, {}).qs.should.include({testKey: 'testValue'})
     })
 
     describe('on reject', () => {
