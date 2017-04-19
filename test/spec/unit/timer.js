@@ -7,8 +7,8 @@ describe('timer', () => {
         it('should be rejected by timeout', () => {
             let timer = new Timer(20, 30, () => Promise.resolve(false))
 
-            return timer.then(assert.fail, (msg) => {
-                expect(msg).to.be.equal('timeout')
+            return timer.then(assert.fail, (e) => {
+                expect(e.message).to.be.equal('timeout')
             })
         })
 
