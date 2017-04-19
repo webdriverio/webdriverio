@@ -2,6 +2,7 @@ node_modules
 *.log
 .DS_Store
 test/site/platforms/*
+test/site/plugins/*
 test/site/www/components/
 test/site.zip
 coverage

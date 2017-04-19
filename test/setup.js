@@ -16,10 +16,6 @@ const SC_REQUIRED_BUILDS = ['desktop', 'ios', 'android']
 const BUILD_ENV = (process.env.npm_lifecycle_event || '').split(':').pop()
 console.log('==> Build environment', BUILD_ENV)
 
-if (BUILD_ENV === 'desktop' && !process.env._BROWSER) {
-    process.env._BROWSER = 'chrome'
-}
-
 global.conf = conf
 
 /**
@@ -32,15 +28,12 @@ chai.use(chaiAsPromised)
 global.assert = chai.assert
 global.expect = chai.expect
 
-let server
-let scProcess
-
 before(async function () {
     /**
      * start static service
      */
     const file = new Server(path.resolve(__dirname, 'site', 'www'))
-    server = http.createServer((request, response) =>
+    this.server = http.createServer((request, response) =>
         request.addListener('end', () => file.serve(request, response)).resume()
     ).listen(8080)
 
@@ -54,7 +47,7 @@ before(async function () {
 
     if (SC_REQUIRED_BUILDS.indexOf(BUILD_ENV) > -1 && process.env.TRAVIS_JOB_NUMBER) {
         console.log('==> Trying to start Sauce Connect')
-        scProcess = await new Promise((resolve, reject) => {
+        this.scProcess = await new Promise((resolve, reject) => {
             SauceConnectLauncher({
                 user: process.env.SAUCE_USERNAME,
                 key: process.env.SAUCE_ACCESS_KEY,
@@ -94,15 +87,15 @@ after(async function () {
     /**
      * shut down static server
      */
-    if (server) {
-        server.close()
+    if (this.server) {
+        this.server.close()
     }
 
     /**
      * shut down sauce connect
      */
-    if (scProcess) {
-        scProcess.close()
+    if (this.scProcess) {
+        this.scProcess.close()
     }
 
     /**

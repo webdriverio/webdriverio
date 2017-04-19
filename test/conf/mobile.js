@@ -3,7 +3,7 @@ export default {
     logLevel: 'verbose',
     desiredCapabilities: {
         app: process.env._APP,
-        appPackage: 'io.webdriverio.example',
+        appPackage: 'io.webdriver.guineapig',
         appActivity: '.MainActivity',
         platformName: (process.env._PLATFORM || '').replace(/_/g, ' '),
         platformVersion: (process.env._VERSION || ''),

@@ -5,7 +5,7 @@ describe('context', () => {
      * failing on android
      * ToDo fix this
      */
-    if (process.env._ENV === 'android') {
+    if (labels.BUILD_ENV === 'android') {
         return
     }
 
