@@ -23,9 +23,19 @@ describe('element as first class citizen', () => {
         try {
             await this.client.element('span=notExisting').getValue()
         } catch (e) {
-            expect(e.message).to.be.equal(
-                'An element ("span=notExisting") could not be located on the page using the given search parameters.'
-            )
+            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
         }
+    })
+
+    it('should keep scope if element call is nested', async function () {
+        let errorMessage
+
+        try {
+            await this.client.element('=two').waitForExist('.page')
+        } catch (e) {
+            errorMessage = e.message
+        }
+
+        expect(errorMessage).to.be.equal('element (".page") still not existing after 1000ms')
     })
 })
