@@ -1,10 +1,16 @@
-import { remote } from '../index'
+import path from 'path'
 import nock from 'nock'
 import chai from 'chai'
 import merge from 'deepmerge'
 import chaiString from 'chai-string'
 import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
+import http from 'http'
+import { Server } from 'node-static'
+
+import { remote } from '../index'
+
+const BUILD_ENV = (process.env.npm_lifecycle_event || '').split(':').pop()
 
 /**
  * setup chai
@@ -47,6 +53,24 @@ global.setupInstance = async function () {
     createSession.isDone().should.be.true
 }
 
+/**
+ * start static service only for wdio build
+ */
+before(async function () {
+    if (process.env.CI && BUILD_ENV !== 'wdio') {
+        return
+    }
+
+    const file = new Server(path.resolve(__dirname, 'site', 'www'))
+    this.server = http.createServer((request, response) =>
+        request.addListener('end', () => file.serve(request, response)).resume()
+    ).listen(8080)
+})
+
 after(async function () {
+    if (this.server) {
+        this.server.close()
+    }
+
     nock.restore()
 })
