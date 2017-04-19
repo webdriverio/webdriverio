@@ -9,7 +9,8 @@ let config = {
     }
 }
 
-if (process.env._ENV === 'multibrowser') {
+const BUILD_ENV = process.env._ENV || (process.env.npm_lifecycle_event || '').split(':').pop()
+if (BUILD_ENV === 'multibrowser') {
     let multibrowserConfig = {
         capabilities: {
             browserA: Object.assign({}, config),
