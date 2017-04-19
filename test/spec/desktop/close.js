@@ -9,6 +9,13 @@ describe('close', () => {
             return
         }
 
+        /**
+         * ie is very flaky here
+         */
+        if (this.client.desiredCapabilities.browserName === 'internet explorer') {
+            this.retries(2)
+        }
+
         // get current tab id
         const openTab = (await this.client.getTabIds())[0]
 
