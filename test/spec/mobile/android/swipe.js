@@ -1,13 +1,10 @@
 import labels from '../../../fixtures/labels'
 
+/**
+ * can't find hit area for gestures
+ * ToDo: fix it
+ */
 describe.skip('swipe', () => {
-    /**
-     * not working in CI
-     */
-    if (process.env.CI) {
-        return
-    }
-
     beforeEach(async function () {
         await this.client
             .pause(3000)
