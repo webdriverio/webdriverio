@@ -39,7 +39,7 @@ env:
     # - _ENV=android _PLATFORM=Android _DEVICENAME=Google_Nexus_7_HD_Emulator _VERSION=4.3 _APP=http://webdriverjs.christian-bromann.com/android.apk.zip
     # - _ENV=android _PLATFORM=Android _DEVICENAME=Samsung_Galaxy_S4_Emulator _VERSION=4.4 _APP=http://webdriverjs.christian-bromann.com/android.apk.zip
     - _ENV=functional _BROWSER=phantomjs
-    # - _ENV=multibrowser
+    - _ENV=multibrowser
     - _ENV=unit
     # - _ENV=wdio
 
