@@ -43,7 +43,7 @@ env:
     - _ENV=functional _BROWSER=phantomjs
     - _ENV=multibrowser
     - _ENV=unit
-    # - _ENV=wdio
+    - _ENV=wdio
 
 notifications:
   email: false

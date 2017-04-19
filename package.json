@@ -52,6 +52,7 @@
     "test:multibrowser": "mocha test/setup.js test/spec/multibrowser/**/*.js",
     "test:snyk": "snyk auth $SNYK_AUTH_TOKEN && snyk test",
     "test:unit": "mocha test/setup-unit.js test/spec/unit/*.js",
+    "test:wdio": "mocha test/setup-unit.js test/spec/wdio/*.js",
     "prepublish": "npm prune",
     "watch": "npm run compile:lib -- --watch"
   },
