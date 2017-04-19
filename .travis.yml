@@ -20,6 +20,8 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
+  jwt:
+    secure: cqMeCuMuW8j6nXSJ+SDq5Eh5xiW3tvmpD753aeYyFHb7HbtFfATTPkAb+EZcVbfEyWnrYto0XTajGKv910qD225vghI9UPyzaHRvOxNbaNnt0XiQfZemsoaCjkDWJgXt4Gu6xnmGU+g+xJ6OyGig7+JRFV/TfKWwlnFTRCmsHQA=
 
 env:
   global:
