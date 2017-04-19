@@ -28,7 +28,7 @@ if (!process.env.CI && BUILD_ENV === 'ios') {
     process.env._APP = path.join(PLATFORMS_DIR, 'android', 'build', 'outputs', 'apk', 'android-debug.apk')
 }
 
-const ENV = process.env.TRAVIS && BUILD_ENV !== 'phantomjs' && BUILD_ENV !== 'multibrowser' ? 'travis-ci' : 'local'
+const ENV = process.env.TRAVIS && BUILD_ENV !== 'functional' && BUILD_ENV !== 'multibrowser' ? 'travis-ci' : 'local'
 let asked = require(`./${ENV}.js`)
 
 if (BUILD_ENV.match(/(android|ios)/)) {
