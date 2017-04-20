@@ -151,6 +151,30 @@ exports.config = {
     // afterSuite: function (suite) {
     // },
     //
+    // Runs before a Cucumber Feature
+    // beforeFeature: function (feature) {
+    // },
+    //
+    // Runs after a Cucumber Feature
+    // afterFeature: function (feature) {
+    // }
+    //
+    // Runs before a Cucumber Scenario
+    // beforeScenario: function (scenario) {
+    // },
+    //
+    // Runs after a Cucumber Scenario
+    // afterScenario: function (scenario) {
+    // },
+    //
+    // Runs before a Cucumber Step
+    // beforeStep: function (step) {
+    // },
+    //
+    // Runs after a Cucumber Step
+    // afterStep: function (stepResult) {
+    // },
+    //
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
     // after: function (result, capabilities, specs) {
