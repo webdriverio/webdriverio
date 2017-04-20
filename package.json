@@ -110,6 +110,7 @@
     "mock-require": "^2.0.2",
     "nock": "^9.0.13",
     "node-static": "^0.7.9",
+    "np": "2.13.2",
     "npm-run-all": "^4.0.2",
     "sauce-connect-launcher": "^1.2.1",
     "saucelabs": "^1.4.0",
