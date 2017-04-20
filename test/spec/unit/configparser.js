@@ -133,7 +133,7 @@ describe('ConfigParser', () => {
         let configParser = new ConfigParser()
         configParser.getConfig().beforeSession.should.be.an('array').and.be.empty
         configParser.getConfig().afterSession.should.be.an('array').and.be.empty
-        configParser.addConfigFile(FIXTURES_PATH + '/hooks.wdio.conf.js')
+        configParser.addConfigFile(FIXTURES_PATH + '/empty.conf.js')
         configParser.getConfig().beforeSession.should.be.an('array').and.have.a.lengthOf(1)
         configParser.getConfig().afterSession.should.be.an('array').and.have.a.lengthOf(1)
     })
