@@ -8,6 +8,6 @@ describe('wdio provides hooks', () => {
         const start = Date.now()
         let launcher = new Launcher(path.join(FIXTURE_ROOT, 'sessionHooks.conf.js'), {})
         expect(await launcher.run()).to.be.equal(0, 'wdio command failed unexpected')
-        expect(Date.now() - start).to.be.greaterThan(7000)
+        expect(Date.now() - start).to.be.greaterThan(6000)
     })
 })

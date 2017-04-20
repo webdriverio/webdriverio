@@ -21,7 +21,7 @@ exports.config = {
     },
     afterSession: [
         () => {
-            return new Promise((resolve) => setTimeout(resolve, 3000))
+            return new Promise((resolve) => setTimeout(resolve, 5000))
         },
         () => {
             throw new Error('nothing should happen')
