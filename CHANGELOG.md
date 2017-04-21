@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v4.7.1 (2017-04-21)
+* global changes:
+    * fix bug where isExisting fails when calling it on a lazy loaded element (#2003)
+
 ## v4.7.0 (2017-04-20)
 * global changes:
     * added [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/master/CONDUCT.md)
