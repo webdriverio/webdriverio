@@ -23,6 +23,23 @@ describe('element as first class citizen', () => {
         expect(browser.element('.moreNesting').element('.findme').getText()).to.be.equal('MORE NESTED')
     })
 
+    it('can lazy load elements but does not fail for isExisting and isVisible', () => {
+        const elem = $('#notExisting')
+        expect(elem.isExisting()).to.be.equal(false)
+        expect(elem.isVisible()).to.be.equal(false)
+
+        let message
+        try {
+            elem.click()
+        } catch (e) {
+            message = e.message
+        }
+
+        expect(message).to.be.equal(
+            'An element could not be located on the page using the given search parameters ("#notExisting").'
+        )
+    })
+
     it('should allow to call waitForExist on elements result', () => {
         let element = browser.elements('//div[text()="Sorry, I\'m late!"]')
         let start = new Date().getTime()
