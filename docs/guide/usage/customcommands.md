@@ -20,7 +20,7 @@ browser.addCommand("getUrlAndTitle", function (customVar) {
 });
 ```
 
-Custom commands give you the opportunity to bundle a specific sequence of commands that are used frequently in a handy single command call. You can define custom commands at any point in your test suite, just make sure that the command is defined before you first use it (the before hook in your wdio.conf.js might be a good point to create them). In your spec file you can use them like this:
+Custom commands give you the opportunity to bundle a specific sequence of commands that are used frequently in a handy single command call. You can define custom commands at any point in your test suite, just make sure that the command is defined before you first use it (the before hook in your wdio.conf.js might be a good point to create them). Also to note: custom commands can only be called inside of test hooks or it blocks. In your spec file you can use them like this:
 
 ```js
 it('should use my custom command', function () {
