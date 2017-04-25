@@ -302,8 +302,10 @@ exports.config = {
     /**
      * Gets executed after all workers got shut down and the process is about to exit.
      * @param {Object} exitCode 0 - success, 1 - fail
+     * @param {Object} config wdio configuration object
+     * @param {Array.<Object>} capabilities list of capabilities details
      */
-    onComplete: function (exitCode) {
+    onComplete: function (exitCode, config, capabilities) {
     },
     //
     // Cucumber specific hooks
