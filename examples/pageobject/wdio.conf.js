@@ -180,8 +180,7 @@ exports.config = {
     // after: function (result, capabilities, specs) {
     // },
     //
-    // Gets executed after all workers got shut down and the process is about to exit. It is not
-    // possible to defer the end of the process using a promise.
+    // Gets executed after all workers got shut down and the process is about to exit.
     // onComplete: function(exitCode) {
     // }
 }
