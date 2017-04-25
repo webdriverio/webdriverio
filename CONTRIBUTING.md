@@ -117,8 +117,8 @@ The source code for various API methods is located in the `lib/` folder.  To fin
  * </example>
  *
  * @param   {String}           selector   element with requested tag name
- * @returns {String|String[]}             the element's tag name, as a lowercase string
- *
+ * @return {String|String[]}             the element's tag name, as a lowercase string
+ * 
  * @uses protocol/elements, protocol/elementIdName
  * @type property
  *
@@ -137,7 +137,9 @@ Here's a quick cheat-sheet:
 
 5. **Type:** The `@type` attribute corresponds to the sections on the API page.  Currently in use are `action`, `appium`, `cookie`, `mobile`, `property`, `protocol`, `state`, `utility`, `window`.  You probably will not ever need to change this.
 
-6. **Returns:** Identifies the data type returned and a short description.
+6. **Return:** Identifies the data type returned and a short description.
+
+7. **Throws:** Identifies common exceptions that may be thrown.
 
 
 When you have completed your updates to the documentation, push to your fork and submit a pull request.
