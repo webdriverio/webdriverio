@@ -71,6 +71,33 @@ node-inspector --debug-port 5859 --no-preload
 
 The `no-preload` option defers loading source file until needed, this helps performance significantly when project contains a large number of node_modules, but you may need to remove this if you need to navigate your source and add additional breakpoints after attaching the debugger.
 
+## Node built-in debugging with chrome-devtools
+
+Chrome devtool debugging looks like it's going to be the accepted replacement for node-inspector. This quote is from the node-inspector github README:
+
+> Since version 6.3, Node.js provides a buit-in DevTools-based debugger which mostly deprecates Node Inspector, see e.g. this blog post to get started. The built-in debugger is developed directly by the V8/Chromium team and provides certain advanced features (e.g. long/async stack traces) that are too difficult to implement in Node Inspector.
+
+To get it working, you need to pass the `--inspect` flag down to the node process running tests like this:
+
+In `wdio.conf`:
+```
+execArgv: ['--inspect']
+```
+
+You should see a message something like this in console:
+```
+Debugger listening on port 9229.
+Warning: This is an experimental feature and could change at any time.
+To start debugging, open the following URL in Chrome:
+    chrome-devtools://devtools/remote/serve_file/@60cd6e859b9f557d2312f5bf532...
+```
+You'll want to open that url, which will attach the debugger.
+
+Tests will pause at `debugger` statements, but ONLY once dev-tools has been opened and the debugger attached. That can be a little awkward if you're trying to debug something close to the start of a test.
+You can get around that by adding a `browser.debug()` to pause long enough.
+
+Once execution has finished, the test doesn't actually finish until the devtools is closed. You'll need to do that yourself.
+
 ## Dynamic configuration
 
 Note that `wdio.conf` can contain javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable. This can used to dynamically change the configuration:
