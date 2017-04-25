@@ -300,8 +300,7 @@ exports.config = {
     afterSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed after all workers got shut down and the process is about to exit. It is not
-     * possible to defer the end of the process using a promise.
+     * Gets executed after all workers got shut down and the process is about to exit.
      * @param {Object} exitCode 0 - success, 1 - fail
      */
     onComplete: function (exitCode) {
