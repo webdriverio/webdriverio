@@ -12,6 +12,11 @@ describe('element as first class citizen', () => {
         expect(header.getLocation('y')).to.be.equal(20)
     })
 
+    it('should be able to use hasFocus on element', () => {
+        let login = browser.element('[name=login]')
+        expect(login.hasFocus()).to.be.true
+    })
+
     it('should be able to play with multiple element variables', () => {
         let textarea = browser.element('textarea')
         let headings = browser.elements('.findme')
