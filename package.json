@@ -49,6 +49,7 @@
     "test:desktop": "mocha test/setup.js test/spec/*.js test/spec/desktop/*.js",
     "test:functional": "mocha test/setup.js test/spec/functional/**/*.js",
     "test:ios": "mocha test/setup.js test/spec/mobile/*.js test/spec/mobile/ios/*.js",
+    "test:mobile": "run-s test:ios test:android",
     "test:multibrowser": "mocha test/setup.js test/spec/multibrowser/**/*.js",
     "test:snyk": "snyk auth $SNYK_AUTH_TOKEN && snyk test",
     "test:unit": "mocha test/setup-unit.js test/spec/unit/*.js",

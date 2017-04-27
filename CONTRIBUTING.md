@@ -20,7 +20,7 @@ to know that you have a clean state.
 1. Download and install the latest Selenium [standalone server](http://selenium-release.storage.googleapis.com/index.html) and run it via
 
   ```sh
-  $ java -jar selenium-server-standalone-2.53.0.jar
+  $ java -jar selenium-server-standalone-3.4.0.jar
   ```
 
   or install it with npm package [selenium-standalone](https://github.com/vvo/selenium-standalone)
@@ -41,27 +41,31 @@ to know that you have a clean state.
   ```sh
   # if your patch is browser specific
   # (e.g. upload files)
-  grunt test:desktop
+  npm run test:desktop
 
   # if your patch is mobile specific
   # (e.g. flick or swipe tests)
-  grunt test:ios test:android
+  npm run test:mobile
+  # or to run each individually
+  npm run test:ios
+  npm run test:android
+  
 
   # if your patch is functional and hasn't something to do with Selenium
   # (e.g. library specific fixes like changes within EventHandler.js)
-  grunt test:functional
+  npm run test:functional
 
   # changes to multibrowser functionality
   # (e.g. actually only changes to /lib/multibrowser.js)
-  grunt test:functional
+  npm run test:multibrowser
 
   # wdio test runner changes
   # (e.g. any changes that reflect the behavior of the test runner e.g. in lib/launcher.js)
-  grunt test:wdio
+  npm run test:wdio
 
   # anything else unittestable
   # (e.g. changes to utils and classes)
-  grunt test:unit
+  npm run test:unit
   ```
 
 ### Syntax rules
