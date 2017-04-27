@@ -10,9 +10,9 @@ before_script:
   - phantomjs --webdriver=4444 2>&1 >/dev/null &
 
 script:
-    - sleep 5
-    - 'if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test:snyk; fi'
-    - npm run test:ci
+  - sleep 5
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test:snyk; fi
+  - npm run test:ci
 
 addons:
   apt:
@@ -21,17 +21,16 @@ addons:
     packages:
       - g++-4.8
   jwt:
-    secure: cqMeCuMuW8j6nXSJ+SDq5Eh5xiW3tvmpD753aeYyFHb7HbtFfATTPkAb+EZcVbfEyWnrYto0XTajGKv910qD225vghI9UPyzaHRvOxNbaNnt0XiQfZemsoaCjkDWJgXt4Gu6xnmGU+g+xJ6OyGig7+JRFV/TfKWwlnFTRCmsHQA=
+    secure: jhvCEouKgKlV793OFfVcUlGb64Y5c8sgQHVFRPZ+ez9tYf7j3LpOIb+8v6WsNhhQcm95VI48dd1muFRhkwyzBTsVu/a93b2VcEK9ye8RuZPCVn91HjsvQ9FwISRKiTYm3JlvTXM1IMewss3JDWEGtIujXyOtX6fPwquxL+7XmsQ=
 
 env:
   global:
     - CXX=g++-4.8
     - pm_config_engine_strict=false
-    - secure: "f6+NU5WBW9GPLRV2WhtCozPOjFOAdh52hXfr0dZopxl0eqJ426fl5UCt54duUQV/abBpNEKzBm2015EsBP14wepNJ9+Q6nRwrj/h2PvI3UM8vEPqgH08hqiS7kFszA0Wy+Ki3umncQbA5WAgq6grmZs9naELWmOX5Yum40Wl9/0="
-    - secure: "dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w="
-    - secure: "UWjWigAceyuTv0Mk9b17encANmKBXL/TUqokmGVe6Rs4vzHzz4b43qcUn18enmzz63ozqkRsUVYICWrYgaeDyK3yrlVklDvUlO6ssWMP+qaaCD/sSpp4h/Y7N3flSCPYtoQGVGYq7Q6mo9ksrBtfUHEaQ/+iUKpQ+BgqNJqlOJw="
-    - secure: "DAgs9EY8eU53ibMmB9ywWFcbwUZLDctn+byYf3+uTbWPUZnGCiRngkSS7+VYLw4ZM5iHj/TNcngCdJn5dDOFzUkfRyS4hT88v1I2qv0P3dbJcfHyZARmK6qnMGuNe7iud2uV2VODE3mvcI/kNvO7oUQGsB/g0R+Qqzkh072sGVQ="
-
+    - secure: f6+NU5WBW9GPLRV2WhtCozPOjFOAdh52hXfr0dZopxl0eqJ426fl5UCt54duUQV/abBpNEKzBm2015EsBP14wepNJ9+Q6nRwrj/h2PvI3UM8vEPqgH08hqiS7kFszA0Wy+Ki3umncQbA5WAgq6grmZs9naELWmOX5Yum40Wl9/0=
+    - secure: dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w=
+    - secure: UWjWigAceyuTv0Mk9b17encANmKBXL/TUqokmGVe6Rs4vzHzz4b43qcUn18enmzz63ozqkRsUVYICWrYgaeDyK3yrlVklDvUlO6ssWMP+qaaCD/sSpp4h/Y7N3flSCPYtoQGVGYq7Q6mo9ksrBtfUHEaQ/+iUKpQ+BgqNJqlOJw=
+    - secure: DAgs9EY8eU53ibMmB9ywWFcbwUZLDctn+byYf3+uTbWPUZnGCiRngkSS7+VYLw4ZM5iHj/TNcngCdJn5dDOFzUkfRyS4hT88v1I2qv0P3dbJcfHyZARmK6qnMGuNe7iud2uV2VODE3mvcI/kNvO7oUQGsB/g0R+Qqzkh072sGVQ=
   matrix:
     - _ENV=desktop _BROWSER=chrome  _PLATFORM=Windows_8 _VERSION=42
     - _ENV=desktop _BROWSER=firefox _PLATFORM=Windows_8 _VERSION=42
