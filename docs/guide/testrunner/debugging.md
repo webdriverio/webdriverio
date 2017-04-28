@@ -45,6 +45,8 @@ It will initialize the desired Selenium sessions defined in your config and will
 
 ## Node Inspector
 
+**n.b. If you are using Node v6.3 and above, you should use Node's built-in debugger, instead. [See below](#node_debugger)**
+
 For a more comprehensive debugging experience you can enable debug flag to start the test runner processes with an open debugger port.
 
 This will allow attaching the node-inspector and pausing test execution with `debugger`.  Each child process will be assigned a new debugging port starting at `5859`.
@@ -71,7 +73,7 @@ node-inspector --debug-port 5859 --no-preload
 
 The `no-preload` option defers loading source file until needed, this helps performance significantly when project contains a large number of node_modules, but you may need to remove this if you need to navigate your source and add additional breakpoints after attaching the debugger.
 
-## Node built-in debugging with chrome-devtools
+## Node built-in debugging with chrome-devtools<a id="node_debugger"></a>
 
 Chrome devtool debugging looks like it's going to be the accepted replacement for node-inspector. This quote is from the node-inspector github README:
 
