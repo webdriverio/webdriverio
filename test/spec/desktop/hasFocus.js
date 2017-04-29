@@ -23,8 +23,8 @@ describe('hasFocus', () => {
         (await this.client.elements('input').hasFocus()).should.be.true
     })
 
-    it('should return true when one of the elements collection is active and is using `element()`', async function () {
-        (await this.client.element('input').hasFocus()).should.be.true
+    it('should return false when using `element()` with non-matching result', async function () {
+        (await this.client.element('input').hasFocus()).should.be.false
     })
 
     it('should return true when body has focus', async function () {
