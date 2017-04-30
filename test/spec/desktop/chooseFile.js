@@ -4,6 +4,13 @@ const toUpload = path.join(__dirname, '..', '..', 'fixtures', 'cat-to-upload.gif
 
 describe('chooseFile: choosing a file in an <input type=file>', () => {
     it('uploads a file and fills the form with it', async function () {
+        /**
+         * not supported in edge
+         */
+        if (this.client.desiredCapabilities.browserName === 'MicrosoftEdge') {
+            return
+        }
+
         await this.client.chooseFile('#upload-test', toUpload)
         const val = await this.client.getValue('#upload-test')
         expect(/cat-to-upload\.gif$/.test(val)).to.be.equal(true)
