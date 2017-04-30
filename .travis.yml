@@ -21,7 +21,8 @@ addons:
     packages:
       - g++-4.8
   jwt:
-    secure: jhvCEouKgKlV793OFfVcUlGb64Y5c8sgQHVFRPZ+ez9tYf7j3LpOIb+8v6WsNhhQcm95VI48dd1muFRhkwyzBTsVu/a93b2VcEK9ye8RuZPCVn91HjsvQ9FwISRKiTYm3JlvTXM1IMewss3JDWEGtIujXyOtX6fPwquxL+7XmsQ=
+    - secure: NioZyYzmwyfDpIskhO/ks8szmXXYUqSKd6URniZWnxFye5vrLfr6K9vHXbpMM9Ufqf35Xg6DcRO4zfWSyE2j38Bd5/DtrVY1p9F99c94B5/gkIpjd6ieiD6VPRKpX7uXoVoPLQ6SuGuKeDuEsa4zuz0yFJaATHpN88+St5foXMk=
+    - secure: B5js98TnCNlrhZreobFRu25yOTcLuTXPvHSPWJNBKn/jg03vGUb27Pc1fGMTytA2jEw6YlQdNVJcCjDuR3CK0Y5bE1oN5gHAib2OSIvvtiS8f3aKyxEzCvlQh/FKq8inu0ULZF3hQoZ63QbmvhmTY/RBRGlz7i6jYw4XbOGgr5g=
 
 env:
   global:
