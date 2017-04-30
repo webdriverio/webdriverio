@@ -33,14 +33,14 @@ sinon.assert.expose(chai.assert, {prefix: ''})
 const NOCK_HOST = 'http://127.0.0.1:4444'
 nock.disableNetConnect()
 
-global.mock = function (method, path, reply, post) {
+global.mock = function (method, path, reply, post, status = 200) {
     if (post) {
         post = { parameters: post }
     }
 
-    return nock(NOCK_HOST)[method]('/wd/hub' + path, post).reply(200, merge({
+    return nock(NOCK_HOST)[method]('/wd/hub' + path, post).reply(status, merge({
         sessionId: '123ABC',
-        status: 0,
+        status: status === 200 ? 0 : status,
         value: {}
     }, reply || {}))
 }
