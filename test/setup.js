@@ -47,6 +47,11 @@ before(async function () {
 
     if (SC_REQUIRED_BUILDS.indexOf(BUILD_ENV) > -1 && process.env.TRAVIS_JOB_NUMBER) {
         console.log('==> Trying to start Sauce Connect')
+
+        if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
+            throw new Error('Sauce credentials missing')
+        }
+
         this.scProcess = await new Promise((resolve, reject) => {
             SauceConnectLauncher({
                 user: process.env.SAUCE_USERNAME,
