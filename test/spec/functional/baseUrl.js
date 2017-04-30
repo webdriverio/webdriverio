@@ -1,4 +1,4 @@
-describe.only('baseUrl', () => {
+describe('baseUrl', () => {
     let origBaseUrl
 
     before(function () {
