@@ -1,6 +1,6 @@
 {
   "name": "webdriverio",
-  "description": "A Node.js bindings implementation for the W3C Webdriver protocol",
+  "description": "A Node.js bindings implementation for the W3C WebDriver protocol",
   "version": "4.7.1",
   "homepage": "http://webdriver.io",
   "author": "Camilo Tapia <camilo.tapia@gmail.com>",
