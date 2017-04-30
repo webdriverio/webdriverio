@@ -33,7 +33,7 @@ describe('connection retries', () => {
 
         await WebdriverIO.remote(conf).init().catch(err => {
             expect(err).not.to.be.undefined
-            expect(err.message).to.equal('Couldn\'t connect to selenium server')
+            expect(err.message).to.equal('some error')
             expect(err.seleniumStack.type).to.equal('ECONNREFUSED')
         })
     })
@@ -49,7 +49,7 @@ describe('connection retries', () => {
 
         await WebdriverIO.remote(localConf).init().catch(err => {
             expect(err).not.to.be.undefined
-            expect(err.message).to.equal('Couldn\'t connect to selenium server')
+            expect(err.message).to.equal('some error')
             expect(err.seleniumStack.type).to.equal('ECONNREFUSED')
         })
     })
