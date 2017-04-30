@@ -177,7 +177,8 @@ describe('element as first class citizen', () => {
             let res = browser.element('#notExisting')
             expect(res.value).to.be.equal(null)
             expect(res.selector).to.be.equal('#notExisting')
-            expect(res._status).to.be.equal(7)
+            expect(res._status).to.be.equal(404)
+            expect(res.state).to.be.equal('failure')
         })
 
         it('can use waitForExist', () => {
