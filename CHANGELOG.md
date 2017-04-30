@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v4.8.0 (2017-04-30)
+* global changes:
+    * docs improvements (#2006, #2001, #2010, #2011, #2013, #2016, #2017, #2032)
+    * make API compliant to [Webdriver candidate recommendation](https://www.w3.org/TR/2017/CR-webdriver-20170330/)
+    * bug fixes (#2024)
+    * make url act like url.resolve (#1946)
+    * more generic error when failing to connect to Selenium server
+    * add deprecation warnings to all commands that aren't part of the Webdriver spec and will be removed with the next major version update
+
 ## v4.7.1 (2017-04-21)
 * global changes:
     * fix bug where isExisting fails when calling it on a lazy loaded element (#2003)
