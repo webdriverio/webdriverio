@@ -67,12 +67,6 @@ or you can pass in a writeable stream, and everything gets redirected to that (l
 Type: `String|writeable stream`<br>
 Default: *null*
 
-### suppressReporterStats
-Significantly reduces the level of detail stored in the Reporter Stats for each command. Useful for large test suites that require less details around each step but use lots of RAM.
-
-Type: `Boolean`<br>
-Default: *false*
-
 ### protocol
 Protocol to use when communicating with the Selenium standalone server (or driver).
 

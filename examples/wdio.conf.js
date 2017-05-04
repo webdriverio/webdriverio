@@ -99,9 +99,6 @@ exports.config = {
     // Enables colors for log output.
     coloredLogs: true,
     //
-    // Reduces the level of detail captured by the Reporter Stats if true.
-    suppressReporterStats: false,
-    //
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: 'shots',
     //
