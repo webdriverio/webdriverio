@@ -33,6 +33,7 @@ exports.config = {
      */
     logLevel: 'silent',
     coloredLogs: true,
+    deprecationWarnings: true,
     screenshotPath: 'shots',
     baseUrl: 'http://webdriver.io',
     waitforTimeout: 10000,
@@ -56,5 +57,5 @@ exports.config = {
     onComplete: function() {
         console.log('that\'s it');
     }
-
+    
 };

@@ -115,6 +115,12 @@ Enables colors for log output
 Type: `Boolean`<br>
 Default: *true*
 
+### deprecationWarnings
+Warns when a deprecated command is used
+
+Type: `Boolean`<br>
+Default: *true*
+
 ### bail
 If you only want to run your tests until a specific amount of tests have failed use bail (default is 0 - don't bail, run all tests).
 
