@@ -99,6 +99,9 @@ exports.config = {
     // Enables colors for log output.
     coloredLogs: true,
     //
+    // Warns when a deprecated command is used
+    deprecationWarnings: true,
+    //
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: 'shots',
     //
