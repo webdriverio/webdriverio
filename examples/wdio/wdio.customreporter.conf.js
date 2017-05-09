@@ -31,7 +31,6 @@ exports.config = {
      */
     logLevel: 'silent',
     coloredLogs: true,
-    deprecationWarnings: true,
     screenshotPath: 'shots',
     baseUrl: 'http://webdriver.io',
     waitforTimeout: 10000,

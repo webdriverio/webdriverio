@@ -33,7 +33,6 @@ exports.config = {
      */
     logLevel: 'silent',
     coloredLogs: true,
-    deprecationWarnings: true,
     screenshotPath: 'shots',
     waitforTimeout: 10000,
     framework: 'cucumber',
