@@ -32,7 +32,6 @@ Options:
   --watch               watch specs for changes
   --logLevel, -l        level of logging verbosity (default: silent)
   --coloredLogs, -c     if true enables colors for log output (default: true)
-  --deprecationWarnings if true use of deprecated commands will output a warning (default: true)
   --bail                stop test runner after specific amount of tests have failed (default: 0 - don't bail)
   --screenshotPath, -s  saves a screenshot to a given path if a command fails
   --baseUrl, -b         shorten url command calls by setting a base url
