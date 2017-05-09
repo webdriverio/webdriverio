@@ -38,7 +38,6 @@ exports.config = {
      */
     logLevel: 'silent',
     coloredLogs: true,
-    deprecationWarnings: true,
     screenshotPath: 'shots',
     baseUrl: 'http://chat.socket.io',
     waitforTimeout: 10000,
