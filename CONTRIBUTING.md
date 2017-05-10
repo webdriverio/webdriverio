@@ -33,7 +33,7 @@ to know that you have a clean state.
 2. Make sure you have all the dependencies installed
 
   ```sh
-  $ npm install
+  $ npm install && npm run build
   $ cd test/site/www && bower install && cd ../../../
   ```
 3. Depending on your feature/fix/patch make sure it gets covered by a test. To ensure that you can run one of the following commands:
