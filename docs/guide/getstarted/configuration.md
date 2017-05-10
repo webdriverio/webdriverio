@@ -92,7 +92,7 @@ Type: `String`<br>
 Default: */wd/hub*
 
 ### baseUrl
-Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/`, the base url gets prepended.
+Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/`, the base url gets prepended, not including the path portion of your baseUrl. If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url gets prepended directly.
 
 Type: `String`<br>
 Default: *null*
