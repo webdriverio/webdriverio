@@ -43,8 +43,10 @@ exports.config = {
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: './errorShots/',
     //
-    // Set a base URL in order to shorten url command calls. If your url parameter starts
-    // with "/", the base url gets prepended.
+    // Set a base URL in order to shorten url command calls. If your `url` parameter starts
+    // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
+    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
+    // gets prepended directly.
     baseUrl: 'http://the-internet.herokuapp.com',
     //
     // Default timeout for all waitForXXX commands.

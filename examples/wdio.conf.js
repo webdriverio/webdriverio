@@ -102,8 +102,10 @@ exports.config = {
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: 'shots',
     //
-    // Set a base URL in order to shorten url command calls. If your url parameter starts
-    // with "/", then the base url gets prepended.
+    // Set a base URL in order to shorten url command calls. If your `url` parameter starts
+    // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
+    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
+    // gets prepended directly.
     baseUrl: 'http://localhost:8080',
     //
     // If you only want to run your tests until a specific amount of tests have failed use
