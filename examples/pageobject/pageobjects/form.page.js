@@ -6,7 +6,9 @@ var formPage = Object.create(page, {
      */
     username: { get: function () { return $('#username'); } },
     password: { get: function () { return $('#password'); } },
-    form:     { get: function () { return $('#login'); } },
+    submitButton: {
+      get: function () { return $('#login button[type=submit]'); }
+    },
     flash:    { get: function () { return $('#flash'); } },
 
     /**
@@ -17,7 +19,7 @@ var formPage = Object.create(page, {
     } },
 
     submit: { value: function() {
-        this.form.submitForm();
+        this.submitButton.click();
     } }
 });
 
