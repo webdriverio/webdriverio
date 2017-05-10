@@ -1,11 +1,11 @@
-var page = require('./page')
+var page = require('./page');
 
 var dynamicPage = Object.create(page, {
     /**
      * define elements
      */
-    btnStart:   { get: function () { return browser.element('button=Start'); } },
-    loadedPage: { get: function () { return browser.elements('#finish'); } },
+    btnStart:   { get: function () { return $('button=Start'); } },
+    loadedPage: { get: function () { return $('#finish'); } },
 
     /**
      * define or overwrite page methods
@@ -15,4 +15,4 @@ var dynamicPage = Object.create(page, {
     } }
 });
 
-module.exports = dynamicPage
+module.exports = dynamicPage;
