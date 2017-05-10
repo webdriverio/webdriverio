@@ -1,4 +1,4 @@
-var page = require('./page')
+var page = require('./page');
 
 var formPage = Object.create(page, {
     /**
@@ -21,4 +21,4 @@ var formPage = Object.create(page, {
     } }
 });
 
-module.exports = formPage
+module.exports = formPage;

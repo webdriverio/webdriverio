@@ -1,4 +1,4 @@
-var page = require('./page')
+var page = require('./page');
 
 var dynamicPage = Object.create(page, {
     /**
@@ -15,4 +15,4 @@ var dynamicPage = Object.create(page, {
     } }
 });
 
-module.exports = dynamicPage
+module.exports = dynamicPage;

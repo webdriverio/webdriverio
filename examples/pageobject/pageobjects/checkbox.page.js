@@ -1,4 +1,4 @@
-var page = require('./page')
+var page = require('./page');
 
 var checkboxPage = Object.create(page, {
     /**
@@ -15,4 +15,4 @@ var checkboxPage = Object.create(page, {
     } }
 });
 
-module.exports = checkboxPage
+module.exports = checkboxPage;

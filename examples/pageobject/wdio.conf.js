@@ -183,4 +183,4 @@ exports.config = {
     // Gets executed after all workers got shut down and the process is about to exit.
     // onComplete: function(exitCode, config, capabilities) {
     // }
-}
+};
