@@ -56,5 +56,4 @@ exports.config = {
     onComplete: function() {
         console.log('that\'s it');
     }
-    
 };
