@@ -1,6 +1,7 @@
 ![WebdriverIO](http://www.christian-bromann.com/wdio.png)
 WebdriverIO
 ===========
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Build Status](https://travis-ci.org/webdriverio/webdriverio.svg?branch=master)](https://travis-ci.org/webdriverio/webdriverio) [![NPM version](https://badge.fury.io/js/webdriverio.svg)](http://badge.fury.io/js/webdriverio) [![Dependency Status](https://www.versioneye.com/user/projects/58932ea4b166b50039982a32/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/58932ea4b166b50039982a32) [![npm](https://img.shields.io/npm/dm/webdriverio.svg?maxAge=2592000)]() [![Coveralls](https://img.shields.io/coveralls/webdriverio/webdriverio/master.svg?maxAge=2592000)]() [![Gitter](https://badges.gitter.im/webdriverio/webdriverio.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 <br><br>
