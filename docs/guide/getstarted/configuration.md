@@ -17,7 +17,7 @@ var client = webdriverio.remote(options);
 
 you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if you run WebdriverIO as a standalone package. If you are using the wdio test runner, these options belong in your `wdio.conf.js` configuration file. The following options can be defined:
 
-### desiredCapabilities
+### capabilities
 Defines the capabilities you want to run in your Selenium session. See the [Selenium documentation](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
 for a list of the available `capabilities`. Also useful is Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 that helps you to create this object by clicking together your desired capabilities.
