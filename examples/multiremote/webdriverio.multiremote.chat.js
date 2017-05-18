@@ -7,7 +7,7 @@
  * $ mocha -t 9999999 examples/webdriverio.multiremote.chat.js
  */
 
-var WebdriverIO = require('../../build'),
+const WebdriverIO = require('../../build'),
     matrix = WebdriverIO.multiremote({
         browserA: { desiredCapabilities: { browserName: 'chrome' } },
         browserB: { desiredCapabilities: { browserName: 'chrome' } }
@@ -17,16 +17,14 @@ var WebdriverIO = require('../../build'),
 
 describe('multiremote example', function() {
 
-    this.timeout = 99999999;
-
     it('should open chat application', function() {
-        return matrix.init().url('http://chat.socket.io/');
+        return matrix.init().url('https://socketio-chat.now.sh/');
     });
 
     it('should login the browser', function(done) {
         browserA.setValue('.usernameInput', 'Browser A');
         browserB.setValue('.usernameInput', 'Browser B');
-        return matrix.sync().call(done);
+        matrix.sync().call(done);
     });
 
     it('should submit the login form', function() {
@@ -41,7 +39,7 @@ describe('multiremote example', function() {
 
     it('should read the message in browserB', function() {
         return browserB
-            .pause(200)
+            .pause(1000)
             .getText('.messageBody*=My name is').then(function(message) {
                 var name = message.slice(11);
                 return browserB.setValue('.inputMessage', 'Hello ' + name + '! How are you today?').keys('Enter');
