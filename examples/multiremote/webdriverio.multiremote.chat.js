@@ -25,6 +25,7 @@ describe('multiremote example', function() {
         browserA.setValue('.usernameInput', 'Browser A');
         browserB.setValue('.usernameInput', 'Browser B');
         matrix.sync().call(done);
+        return Promise.resolve();
     });
 
     it('should submit the login form', function() {
