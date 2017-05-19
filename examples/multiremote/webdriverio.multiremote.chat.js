@@ -21,11 +21,10 @@ describe('multiremote example', function() {
         return matrix.init().url('https://socketio-chat.now.sh/');
     });
 
-    it('should login the browser', function(done) {
+    it('should login the browser', function() {
         browserA.setValue('.usernameInput', 'Browser A');
         browserB.setValue('.usernameInput', 'Browser B');
-        matrix.sync().call(done);
-        return Promise.resolve();
+        return matrix.sync();
     });
 
     it('should submit the login form', function() {
@@ -40,7 +39,7 @@ describe('multiremote example', function() {
 
     it('should read the message in browserB', function() {
         return browserB
-            .pause(1000)
+            .pause(200)
             .getText('.messageBody*=My name is').then(function(message) {
                 var name = message.slice(11);
                 return browserB.setValue('.inputMessage', 'Hello ' + name + '! How are you today?').keys('Enter');
