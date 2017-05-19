@@ -36,7 +36,7 @@ describe('selectBy', () => {
         })
         
         it('should find element with non-breaking spaces before and after the text', async function () {
-            await this.client.selectByVisibleText('#selectTest', 'duno');
+            await this.client.selectByVisibleText('#selectTest', 'dunno');
             (await this.client.getValue('#selectTest')).should.be.equal('someValue7.1')
         })
     })
