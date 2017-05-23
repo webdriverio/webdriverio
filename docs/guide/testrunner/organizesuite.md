@@ -105,7 +105,7 @@ If you are working on your WebdriverIO tests you don't want to execute your whol
 $ wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
-Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to the wdio) you _can't_ use for example `describe.only` at the top of your spec file to say Mocha to only run that suite. This feature will help you though to do that in the same way.
+Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`) you _can't_ use for example `describe.only` at the top of your spec file to say Mocha to only run that suite. This feature will help you though to do that in the same way.
 
 ## Run Multiple, Specific Test Specs
 
