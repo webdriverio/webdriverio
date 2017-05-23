@@ -20,6 +20,7 @@ WebdriverIO CLI runner
 Usage: wdio [options] [configFile]
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
+An optional list of spec files can be piped to wdio that will override configured specs.
 
 Options:
   --help, -h            prints WebdriverIO help menu
@@ -39,7 +40,7 @@ Options:
   --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)
   --reporters, -r       reporters to print out the results on stdout
   --suite               overwrites the specs attribute and runs the defined suite
-  --spec                run only a certain spec file
+  --spec                run only a certain spec file - overrides specs piped from stdin
   --cucumberOpts.*      Cucumber options, see the full list options at https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
   --jasmineOpts.*       Jasmine options, see the full list options at https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
   --mochaOpts.*         Mocha options, see the full list options at http://mochajs.org
