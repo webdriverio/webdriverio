@@ -10,6 +10,8 @@ Getting Started
 
 WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
 
+** Some instructions regarding which node package needs to be installed(globally or locally) would help here. I am having troubles figuring out whether or not wdio needs to be install via NPM globally first, or if I should install wdio to my node project, etc.
+
 To see the command line interface help just type the following command in your terminal:
 
 ```txt
