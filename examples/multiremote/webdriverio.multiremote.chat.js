@@ -40,6 +40,7 @@ describe('multiremote example', function() {
     it('should read the message in browserB', function() {
         return browserB
             .pause(200)
+            .waitForExist('.messageBody*=My name is')
             .getText('.messageBody*=My name is').then(function(message) {
                 var name = message.slice(11);
                 return browserB.setValue('.inputMessage', 'Hello ' + name + '! How are you today?').keys('Enter');
