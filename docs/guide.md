@@ -47,7 +47,7 @@ Start the server by executing the following:
 
 ** 4. Start selenium standalone server**
 ```sh
-$ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.0.1.jar
+$ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.4.0.jar
 ```
 
 Note that this command sets webdriver path variable so that Selenium uses the geckdriver binary that was added to the project directory and also starts Selenium standalone server.
