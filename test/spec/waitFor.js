@@ -1,3 +1,5 @@
+import conf from '../conf'
+
 describe('waitFor', () => {
     const duration = 10000
 
@@ -172,6 +174,23 @@ describe('waitFor', () => {
                 delta.should.be.above(2000)
                 done()
             })
+        })
+    })
+
+    describe('Url', () => {
+        it('should return w/o err after url got a value', async function () {
+            (await this.client.waitForUrl(conf.testPage.start, duration))
+                .should.be.equal(true)
+        })
+
+        it('(reverse) should return w/o err after url lost its value', async function () {
+            (await this.client.waitForUrl(conf.testPage.start, duration, true))
+                .should.be.equal(false)
+        })
+
+        it('should return with an error if the url never appears', function () {
+            return expect(this.client.waitForUrl(conf.testPage.start, 1))
+                .to.be.rejectedWith(`url (${conf.testPage.start}) still without expected value after 1ms`)
         })
     })
 })
