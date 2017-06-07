@@ -62,6 +62,23 @@ describe('selectBy', () => {
         })
     })
 
+    describe('Name', () => {
+        it('should find element without special conditions', async function () {
+            await this.client.selectByName('#selectTest',  'someName7');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue7')
+        })
+
+        it('should find element with spaces before and after the name', async function () {
+            await this.client.selectByName('#selectTest',  'someName9');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue9')
+        })
+
+        it('should find element with spaces before and after the name parameter', async function () {
+            await this.client.selectByName('#selectTest', '    someName8    ');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue8')
+        })
+    })
+
     describe('Value', () => {
         it('should find element without special conditions', async function () {
             await this.client.selectByValue('#selectTest', 'someValue1');
