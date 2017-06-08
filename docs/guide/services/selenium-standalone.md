@@ -40,6 +40,9 @@ export.config = {
   // ...
   services: ['selenium-standalone'],
   // ...
+  // Options are set here as well
+  seleniumLogs: './logs',
+  //...
 };
 ```
 
