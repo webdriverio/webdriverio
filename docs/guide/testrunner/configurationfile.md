@@ -78,7 +78,12 @@ exports.config = {
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
-        browserName: 'chrome'
+        browserName: 'chrome',
+        // to run chrome headless you can use the --headless flag
+        chromeOptions: {
+        // to run in headless mode:
+        // args: ['--headless'],
+        }        
     }, {
         // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance available you can make sure that not more than
