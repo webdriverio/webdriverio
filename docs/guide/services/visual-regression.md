@@ -69,7 +69,7 @@ exports.config = {
 Under the key `visualRegression` in your wdio.config.js you can pass a configuration object with the following structure:
 
 * **compare** `Object` <br>
-screenshot compare method, see [Compare Methods](#compare-methods)
+screenshot compare method, see [Compare Methods](#Compare-Methods)
 
 * **viewportChangePause**  `Number`  ( default: 100 ) <br>
 wait x milliseconds after viewport change. It can take a while for the browser to re-paint. This could lead to rendering issues and produces inconsistent results between runs.
