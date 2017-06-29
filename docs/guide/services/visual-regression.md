@@ -1,7 +1,7 @@
 name: Visual Regression
 category: services
 tags: guide
-index: 8
+index: 11
 title: WebdriverIO - Visual Regression Service
 ---
 
