@@ -1,9 +1,7 @@
-import chai from 'chai'
 import merge from 'deepmerge'
 import nock from 'nock'
-import conf from '../../conf/index.js'
+import conf from '../../conf/local.js'
 
-const expect = chai.expect
 const WebdriverIO = require('../../../')
 
 const FAKE_SUCCESS_RESPONSE = {
@@ -35,7 +33,7 @@ describe('connection retries', () => {
 
         await WebdriverIO.remote(conf).init().catch(err => {
             expect(err).not.to.be.undefined
-            expect(err.message).to.equal('Couldn\'t connect to selenium server')
+            expect(err.message).to.equal('some error')
             expect(err.seleniumStack.type).to.equal('ECONNREFUSED')
         })
     })
@@ -51,7 +49,7 @@ describe('connection retries', () => {
 
         await WebdriverIO.remote(localConf).init().catch(err => {
             expect(err).not.to.be.undefined
-            expect(err.message).to.equal('Couldn\'t connect to selenium server')
+            expect(err.message).to.equal('some error')
             expect(err.seleniumStack.type).to.equal('ECONNREFUSED')
         })
     })
@@ -71,7 +69,7 @@ describe('connection retries', () => {
         await WebdriverIO.remote(localConf).init()
     })
 
-    it('should use connectionRetryTimeout option in requests retrying', async function () {
+    it.skip('should use connectionRetryTimeout option in requests retrying', async function () {
         // mock 1 slow request and 1 successful one
         nock('http://localhost:4444')
             .post('/wd/hub/session')
@@ -82,7 +80,9 @@ describe('connection retries', () => {
 
         const start = Date.now()
 
-        const localConf = merge({}, conf)
+        const localConf = merge({
+            logLevel: 'verbose'
+        }, conf)
         localConf.connectionRetryTimeout = 3000
 
         await WebdriverIO.remote(localConf).init().then(() => {

@@ -1,43 +1,47 @@
+dist: trusty
 language: node_js
 
 node_js:
-  - 4
-
-sudo: false
+  - '6.10'
 
 before_script:
   - npm install -g bower
   - cd test/site/www && bower install && cd ../../../
   - phantomjs --webdriver=4444 2>&1 >/dev/null &
 
-script: "sleep 5 && npm run test-snyk && npm run test"
+script:
+  - sleep 5
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test:snyk; fi
+  - npm run test:ci
 
 addons:
-  sauce_connect: true
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
+  jwt:
+    - secure: NioZyYzmwyfDpIskhO/ks8szmXXYUqSKd6URniZWnxFye5vrLfr6K9vHXbpMM9Ufqf35Xg6DcRO4zfWSyE2j38Bd5/DtrVY1p9F99c94B5/gkIpjd6ieiD6VPRKpX7uXoVoPLQ6SuGuKeDuEsa4zuz0yFJaATHpN88+St5foXMk=
+    - secure: B5js98TnCNlrhZreobFRu25yOTcLuTXPvHSPWJNBKn/jg03vGUb27Pc1fGMTytA2jEw6YlQdNVJcCjDuR3CK0Y5bE1oN5gHAib2OSIvvtiS8f3aKyxEzCvlQh/FKq8inu0ULZF3hQoZ63QbmvhmTY/RBRGlz7i6jYw4XbOGgr5g=
 
 env:
   global:
     - CXX=g++-4.8
     - pm_config_engine_strict=false
-    - secure: "f6+NU5WBW9GPLRV2WhtCozPOjFOAdh52hXfr0dZopxl0eqJ426fl5UCt54duUQV/abBpNEKzBm2015EsBP14wepNJ9+Q6nRwrj/h2PvI3UM8vEPqgH08hqiS7kFszA0Wy+Ki3umncQbA5WAgq6grmZs9naELWmOX5Yum40Wl9/0="
-    - secure: "dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w="
-    - secure: "UWjWigAceyuTv0Mk9b17encANmKBXL/TUqokmGVe6Rs4vzHzz4b43qcUn18enmzz63ozqkRsUVYICWrYgaeDyK3yrlVklDvUlO6ssWMP+qaaCD/sSpp4h/Y7N3flSCPYtoQGVGYq7Q6mo9ksrBtfUHEaQ/+iUKpQ+BgqNJqlOJw="
-    - secure: "DAgs9EY8eU53ibMmB9ywWFcbwUZLDctn+byYf3+uTbWPUZnGCiRngkSS7+VYLw4ZM5iHj/TNcngCdJn5dDOFzUkfRyS4hT88v1I2qv0P3dbJcfHyZARmK6qnMGuNe7iud2uV2VODE3mvcI/kNvO7oUQGsB/g0R+Qqzkh072sGVQ="
-
+    - secure: f6+NU5WBW9GPLRV2WhtCozPOjFOAdh52hXfr0dZopxl0eqJ426fl5UCt54duUQV/abBpNEKzBm2015EsBP14wepNJ9+Q6nRwrj/h2PvI3UM8vEPqgH08hqiS7kFszA0Wy+Ki3umncQbA5WAgq6grmZs9naELWmOX5Yum40Wl9/0=
+    - secure: dMTVz/kDqs+qBMqB6CZEHrvSYIkqxCTa0fnVPNH1vyiJ02a66yQrZhdxH6PrZjk8iYW8CAh8mLjrYlaOAPG6UL3gjecYVCegyMKIU3GI6CgBYOQOaU4xo2ypK7COqHkRYPJ+G5fyQfcZrB97iccpC1CUy88R0pGq/sb3teKTV7w=
+    - secure: UWjWigAceyuTv0Mk9b17encANmKBXL/TUqokmGVe6Rs4vzHzz4b43qcUn18enmzz63ozqkRsUVYICWrYgaeDyK3yrlVklDvUlO6ssWMP+qaaCD/sSpp4h/Y7N3flSCPYtoQGVGYq7Q6mo9ksrBtfUHEaQ/+iUKpQ+BgqNJqlOJw=
+    - secure: DAgs9EY8eU53ibMmB9ywWFcbwUZLDctn+byYf3+uTbWPUZnGCiRngkSS7+VYLw4ZM5iHj/TNcngCdJn5dDOFzUkfRyS4hT88v1I2qv0P3dbJcfHyZARmK6qnMGuNe7iud2uV2VODE3mvcI/kNvO7oUQGsB/g0R+Qqzkh072sGVQ=
   matrix:
-    - _BROWSER=chrome  _PLATFORM=Windows_8 _VERSION=42 _ENV=desktop
-    - _BROWSER=firefox _PLATFORM=Windows_8 _VERSION=42 _ENV=desktop
-    - _BROWSER=internet_explorer _PLATFORM=Windows_8 _VERSION=10 _ENV=desktop
-    - _PLATFORM=iOS _DEVICENAME=iPhone_6 _VERSION=9.2 _APP=http://webdriverjs.christian-bromann.com/ios.zip _ENV=ios
-    - _PLATFORM=iOS _DEVICENAME=iPad_Air _VERSION=9.2 _APP=http://webdriverjs.christian-bromann.com/ios.zip _ENV=ios
-    - _PLATFORM=Android _DEVICENAME=Google_Nexus_7_HD_Emulator _VERSION=4.3 _APP=http://webdriverjs.christian-bromann.com/android.apk.zip _ENV=android
-    - _PLATFORM=Android _DEVICENAME=Samsung_Galaxy_S4_Emulator _VERSION=4.4 _APP=http://webdriverjs.christian-bromann.com/android.apk.zip _ENV=android
-    - _BROWSER=phantomjs _ENV=functional
+    - _ENV=desktop _BROWSER=chrome  _PLATFORM=Windows_8 _VERSION=57
+    - _ENV=desktop _BROWSER=firefox _PLATFORM=Windows_8 _VERSION=42
+    - _ENV=desktop _BROWSER=internet_explorer _PLATFORM=Windows_8 _VERSION=10
+    - _ENV=desktop _BROWSER=MicrosoftEdge _PLATFORM=Windows_10 _VERSION=14.14393
+    - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPhone_6 _VERSION=9.2 _APP=http://webdriver.io/ios.zip
+    - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPad_Air _VERSION=9.2 _APP=http://webdriver.io/ios.zip
+    - _ENV=android _PLATFORM=Android _DEVICENAME=Google_Nexus_7C_Emulator _VERSION=4.4 _APP=http://webdriver.io/android.apk.zip
+    - _ENV=android _PLATFORM=Android _DEVICENAME=Samsung_Galaxy_S4_Emulator _VERSION=4.4 _APP=http://webdriver.io/android.apk.zip
+    - _ENV=functional _BROWSER=phantomjs
     - _ENV=multibrowser
     - _ENV=unit
     - _ENV=wdio

@@ -1,21 +1,22 @@
-import { remote, multiremote } from '../index'
+import http from 'http'
+import path from 'path'
+
 import SauceLabs from 'saucelabs'
 import chai from 'chai'
 import chaiString from 'chai-string'
 import chaiThings from 'chai-things'
 import chaiAsPromised from 'chai-as-promised'
+import SauceConnectLauncher from 'sauce-connect-launcher'
+import { Server } from 'node-static'
 
 import conf from './conf/index'
-global.conf = conf
+import { remote, multiremote } from '../index'
 
-/**
- * skip desktop and mobile tests on PRs
- */
-if (process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_PULL_REQUEST !== 'false') {
-    console.log('desktop and mobile tests are not relevant for PR tests')
-    console.log('shutting down with exit code 0')
-    process.exit(0)
-}
+const SC_REQUIRED_BUILDS = ['desktop', 'ios', 'android']
+const BUILD_ENV = (process.env.npm_lifecycle_event || '').split(':').pop()
+console.log('==> Build environment', BUILD_ENV)
+
+global.conf = conf
 
 /**
  * setup chai
@@ -28,7 +29,15 @@ global.assert = chai.assert
 global.expect = chai.expect
 
 before(async function () {
-    if (process.env._ENV === 'multibrowser') {
+    /**
+     * start static service
+     */
+    const file = new Server(path.resolve(__dirname, 'site', 'www'))
+    this.server = http.createServer((request, response) =>
+        request.addListener('end', () => file.serve(request, response)).resume()
+    ).listen(8080)
+
+    if (BUILD_ENV === 'multibrowser') {
         this.client = multiremote(conf.capabilities)
         await this.client.init()
         this.browserA = this.client.select('browserA')
@@ -36,16 +45,36 @@ before(async function () {
         return
     }
 
+    if (SC_REQUIRED_BUILDS.indexOf(BUILD_ENV) > -1 && process.env.TRAVIS_JOB_NUMBER) {
+        console.log('==> Trying to start Sauce Connect')
+
+        this.scProcess = await new Promise((resolve, reject) => {
+            SauceConnectLauncher({
+                user: process.env.SAUCE_USERNAME,
+                key: process.env.SAUCE_ACCESS_KEY,
+                tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
+            }, (err, p) => {
+                if (err) {
+                    console.error('==> Couldn\'t start Sauce Connect due to:', err.message)
+                    return reject(err)
+                }
+
+                console.log('==> Started Sauce Connect with tunnel-identifier', process.env.TRAVIS_JOB_NUMBER)
+                resolve(p)
+            })
+        })
+    }
+
     this.client = remote(conf)
 
     delete conf.desiredCapabilities.accessKey
-    console.log('Running job with following conf:', conf)
+    console.log('Running job with following conf:', conf, '\n\n')
 
     await this.client.init()
 })
 
-beforeEach(async function() {
-    if (process.env._ENV && process.env._ENV.match(/(android|ios)/)) {
+beforeEach(async function () {
+    if (BUILD_ENV && BUILD_ENV.match(/(android|ios)/)) {
         return
     }
 
@@ -54,12 +83,33 @@ beforeEach(async function() {
 
 after(async function () {
     const sessionId = this.client.requestHandler.sessionID
-    await this.client[process.env._ENV && process.env._ENV.match(/(multibrowser|android)/) || process.env.CI ? 'end' : 'endAll']()
+    await this.client[(BUILD_ENV && BUILD_ENV.match(/(multibrowser|android)/)) || process.env.CI ? 'end' : 'endAll']()
+
+    /**
+     * shut down static server
+     */
+    if (this.server) {
+        this.server.close()
+    }
+
+    /**
+     * shut down sauce connect
+     */
+    if (this.scProcess) {
+        this.scProcess.close()
+    }
 
     /**
      * if we are not running on travis we are done here
      */
-    if (!process.env.CI || !process.env._ENV || !process.env._ENV.match(/(desktop|ios|android)/)) {
+    if (!process.env.CI || !BUILD_ENV || !BUILD_ENV.match(/(desktop|ios|android)/)) {
+        return
+    }
+
+    /**
+     * return early if no suites were run
+     */
+    if (!this._runnable.parent.suites || !this._runnable.parent.suites.length) {
         return
     }
 

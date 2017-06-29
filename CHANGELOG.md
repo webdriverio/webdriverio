@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## v4.8.0 (2017-04-30)
+* global changes:
+    * docs improvements (#2006, #2001, #2010, #2011, #2013, #2016, #2017, #2032)
+    * make API compliant to [Webdriver candidate recommendation](https://www.w3.org/TR/2017/CR-webdriver-20170330/)
+    * bug fixes (#2024)
+    * make url act like url.resolve (#1946)
+    * more generic error when failing to connect to Selenium server
+    * add deprecation warnings to all commands that aren't part of the Webdriver spec and will be removed with the next major version update
+
+## v4.7.1 (2017-04-21)
+* global changes:
+    * fix bug where isExisting fails when calling it on a lazy loaded element (#2003)
+
+## v4.7.0 (2017-04-20)
+* global changes:
+    * added [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/master/CONDUCT.md)
+    * bugfixes (#1855, #1869, #1931)
+    * docs improvements (#1979, #1977, #1905, #1975, #1971, #1972, #1952, #1952, #1948, #1943, #1905, #1940, #1936, #1934, #1930, #1920, #1926, #1919, #1916, #1915, #1904, #1899, #1897, #1887, #1889, #1876, #1850, #1845)
+    * better error messages when element was not found (#1862)
+    * added timestamp to getCommandHistory results (#1873)
+    * added toggleTouchIdEnrollment command (#1951)
+    * don't trim string results anymore (#1885)
+    * (internal) replaced grunt task runner with npm scripts
+    * (internal) updated all dependencies
+* wdio changes:
+    * added the ability to send your own events for runner's reporters (#1893)
+    * resolved memory leak in reporter - thanks @jankcat 👏 (#1993)
+    * make session hooks to respect promises (#1958)
+    * exit launcher when no spec was found (#1998)
+
 ## v4.6.2 (2017-01-24)
 * global changes:
     * docs improvements

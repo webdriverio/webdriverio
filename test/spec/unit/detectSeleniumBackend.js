@@ -6,12 +6,22 @@ describe('WebdriverIO detects Selenium backend', () => {
             host: '0.0.0.0',
             port: 1234
         }
-        detectSeleniumBackend(caps).should.be.deep.equal({})
+        detectSeleniumBackend(caps).should.be.deep.equal(caps)
     })
 
     it('should default to local selenium server', () => {
         const caps = detectSeleniumBackend({})
         caps.host.should.be.deep.equal('127.0.0.1')
+        caps.port.should.be.deep.equal(4444)
+    })
+
+    it('should default if host or port is not given', () => {
+        let caps = detectSeleniumBackend({ port: 1234 })
+        caps.host.should.be.deep.equal('127.0.0.1')
+        caps.port.should.be.deep.equal(1234)
+
+        caps = detectSeleniumBackend({ host: 'foobar' })
+        caps.host.should.be.deep.equal('foobar')
         caps.port.should.be.deep.equal(4444)
     })
 

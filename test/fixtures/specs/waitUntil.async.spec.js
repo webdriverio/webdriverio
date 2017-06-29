@@ -27,8 +27,26 @@ describe('waitUntil async', () => {
     })
 
     it('should allow to define own error message', () => {
-        const errorMsg = 'my own error message'
-        return browser.waitUntil(() => Promise.reject(), 100, errorMsg).catch((e) => {
+        const errorMsg = `my own error message`
+        return browser.waitUntil(
+            () => new Promise((resolve) => setTimeout(resolve, 200)),
+            100,
+            errorMsg
+        ).catch((e) => {
+            expect(e.message).to.be.equal(errorMsg)
+
+        /**
+         * second catch required here to not let the test fail
+         * ToDo fix promise bug
+         */
+        }).catch((e) => {
+            expect(e.message).to.be.equal(errorMsg)
+        })
+    })
+
+    it('should not use own error message if error occured', () => {
+        const errorMsg = `Promise was rejected with the following reason: buu`
+        return browser.waitUntil(() => Promise.reject(new Error('buu')), 100, 'foobar').catch((e) => {
             expect(e.message).to.be.equal(errorMsg)
 
         /**

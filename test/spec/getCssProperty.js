@@ -1,7 +1,13 @@
 describe('getCssProperty', () => {
     it('should return a color attribute to test with properly', async function () {
         const bgColor = await this.client.getCssProperty('.red', 'background-color')
-        bgColor.value.should.be.equal('rgba(255,0,0,1)')
+
+        /**
+         * edge driver seem to not support rgba
+         */
+        const browser = this.client.desiredCapabilities.browserName
+        const color = browser === 'MicrosoftEdge' ? 'rgb(255,0,0)' : 'rgba(255,0,0,1)'
+        bgColor.value.should.be.equal(color)
         bgColor.parsed.hex.should.be.equal('#ff0000')
         bgColor.parsed.alpha.should.be.equal(1)
         bgColor.parsed.type.should.be.equal('color')

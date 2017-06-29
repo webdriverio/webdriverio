@@ -13,7 +13,7 @@ describe('rejection', () => {
     })
 
     it('should not take screenshot if rejection handler is provided', function () {
-        mock('post', '/session/123ABC/element', { status: 7 })
+        mock('post', '/session/123ABC/element', { value: { error: 'no such element' } }, undefined, 404)
 
         let screenshot
         this.client.on('screenshot', data => {

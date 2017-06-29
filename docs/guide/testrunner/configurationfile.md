@@ -123,6 +123,9 @@ exports.config = {
     // Enables colors for log output.
     coloredLogs: true,
     //
+    // Warns when a deprecated command is used
+    deprecationWarnings: true,
+    //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
     bail: 0,
@@ -130,8 +133,10 @@ exports.config = {
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: 'shots',
     //
-    // Set a base URL in order to shorten url command calls. If your url parameter starts
-    //  with "/", the base url gets prepended.
+    // Set a base URL in order to shorten url command calls. If your `url` parameter starts 
+    // with `/`, the base url gets prepended, not including the path portion of your baseUrl. 
+    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url 
+    // gets prepended directly.
     baseUrl: 'http://localhost:8080',
     //
     // Default timeout for all waitForXXX commands.
@@ -322,11 +327,12 @@ exports.config = {
     afterSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed after all workers got shut down and the process is about to exit. It is not
-     * possible to defer the end of the process using a promise.
+     * Gets executed after all workers got shut down and the process is about to exit.
      * @param {Object} exitCode 0 - success, 1 - fail
+     * @param {Object} config wdio configuration object
+     * @param {Array.<Object>} capabilities list of capabilities details
      */
-    onComplete: function (exitCode) {
+    onComplete: function (exitCode, config, capabilities) {
     },
     //
     // Cucumber specific hooks

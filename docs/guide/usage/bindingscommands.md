@@ -63,7 +63,7 @@ browser.click('#elem1').click('#elem2');
 It also enables the ability to call commands on element results. The browser instance remembers the last result of each command and can propagate it as a parameter for the next command. This way you can call commands directly on element results:
 
 ```html
-<div id="elem1" onClick="document.elementById('elem').innerHTML = 'some new text'">some text</div>
+<div id="elem1" onClick="document.getElementById('elem1').innerHTML = 'some new text'">some text</div>
 ```
 
 ```js

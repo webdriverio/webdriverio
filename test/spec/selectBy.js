@@ -34,6 +34,11 @@ describe('selectBy', () => {
             await this.client.selectByVisibleText('#selectTest', 'diez"');
             (await this.client.getValue('#selectTest')).should.be.equal('someValue10')
         })
+
+        it('should find element with non-breaking spaces before and after the text', async function () {
+            await this.client.selectByVisibleText('#selectTest', 'dunno');
+            (await this.client.getValue('#selectTest')).should.be.equal('someValue7.1')
+        })
     })
 
     describe('Index', () => {
@@ -65,7 +70,7 @@ describe('selectBy', () => {
 
         it('should find element with spaces before and after the value', async function () {
             await this.client.selectByValue('#selectTest', 'someValue3');
-            (await this.client.getValue('#selectTest')).should.be.equal('someValue3')
+            (await this.client.getValue('#selectTest')).should.be.equal('   someValue3  ')
         })
 
         it('should find element with spaces before and after the value parameter', async function () {
@@ -83,7 +88,7 @@ describe('selectBy', () => {
 
             it('should find element with spaces before and after the value', async function () {
                 await this.client.selectByAttribute('#selectTest', 'value', 'someValue3');
-                (await this.client.getValue('#selectTest')).should.be.equal('someValue3')
+                (await this.client.getValue('#selectTest')).should.be.equal('   someValue3  ')
             })
 
             it('should find element with spaces before and after the value parameter', async function () {

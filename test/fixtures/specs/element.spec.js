@@ -12,6 +12,11 @@ describe('element as first class citizen', () => {
         expect(header.getLocation('y')).to.be.equal(20)
     })
 
+    it('should be able to use hasFocus on element', () => {
+        let login = browser.element('[name=login]')
+        expect(login.hasFocus()).to.be.true
+    })
+
     it('should be able to play with multiple element variables', () => {
         let textarea = browser.element('textarea')
         let headings = browser.elements('.findme')
@@ -21,6 +26,23 @@ describe('element as first class citizen', () => {
 
     it('should be able to deal with nested element calls', () => {
         expect(browser.element('.moreNesting').element('.findme').getText()).to.be.equal('MORE NESTED')
+    })
+
+    it('can lazy load elements but does not fail for isExisting and isVisible', () => {
+        const elem = $('#notExisting')
+        expect(elem.isExisting()).to.be.equal(false)
+        expect(elem.isVisible()).to.be.equal(false)
+
+        let message
+        try {
+            elem.click()
+        } catch (e) {
+            message = e.message
+        }
+
+        expect(message).to.be.equal(
+            'An element could not be located on the page using the given search parameters ("#notExisting").'
+        )
     })
 
     it('should allow to call waitForExist on elements result', () => {
@@ -74,32 +96,46 @@ describe('element as first class citizen', () => {
         }, 'was', 'the', 'element')).to.be.equal('body was the element')
     })
 
-    it('should add selector when returning error with errorCode 7', () => {
+    describe('error code 7 messages always contain the selector', () => {
         const Page = Object.create({}, {
             elem: { get: () => browser.element('span=notExisting') },
             elems: { get: () => browser.elements('span=notExisting') }
         })
 
-        // normal usage
-        try {
-            browser.getValue('span=notExisting')
-        } catch (e) {
-            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
-        }
+        const expectedError = 'An element could not be located on the page using the given search parameters ("span=notExisting").'
+        let givenError = null
 
-        // po usage
-        try {
-            Page.elem.getValue()
-        } catch (e) {
-            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
-        }
+        beforeEach(() => (givenError = null))
 
-        // pos usage with multiple elements
-        try {
-            Page.elems.getValue()
-        } catch (e) {
-            expect(e.message).to.be.contain('given search parameters ("span=notExisting").')
-        }
+        it('fetching elements the standard way', () => {
+            try {
+                browser.getValue('span=notExisting')
+            } catch (e) {
+                givenError = e.message
+            }
+
+            expect(givenError).to.be.equal(expectedError)
+        })
+
+        it('fetching element using PO pattern', () => {
+            try {
+                Page.elem.getValue()
+            } catch (e) {
+                givenError = e.message
+            }
+
+            expect(givenError).to.be.equal(expectedError)
+        })
+
+        it('fetching element using PO pattern', () => {
+            try {
+                Page.elems.getValue()
+            } catch (e) {
+                givenError = e.message
+            }
+
+            expect(givenError).to.be.equal(expectedError)
+        })
     })
 
     it('element calls within wait commands should not influence following action calls', () => {
@@ -124,7 +160,7 @@ describe('element as first class citizen', () => {
     })
 
     it('throws an error if user attempts to call an action on a not found element', () => {
-        let result = 'not found'
+        let result
         try {
             result = $('.nested').$('h1').getText()
         } catch (e) {
@@ -132,7 +168,7 @@ describe('element as first class citizen', () => {
         }
 
         expect(result).to.be.equal(
-            'An element ("h1") could not be located on the page using the given search parameters.'
+            'An element could not be located on the page using the given search parameters ("h1").'
         )
     })
 
@@ -142,6 +178,7 @@ describe('element as first class citizen', () => {
             expect(res.value).to.be.equal(null)
             expect(res.selector).to.be.equal('#notExisting')
             expect(res._status).to.be.equal(7)
+            expect(res.state).to.be.equal('failure')
         })
 
         it('can use waitForExist', () => {
@@ -165,9 +202,9 @@ describe('element as first class citizen', () => {
             }
 
             expect(error).to.be.not.equal(undefined)
-            expect(error.message).to.be.equal('Promise was rejected with the following reason: Error: ' +
-                'An element could not be located on the page using the given search parameters ' +
-                '("#notExisting").')
+            expect(error.message).to.be.equal(
+                'An element could not be located on the page using the given search parameters ("#notExisting").'
+            )
         })
     })
 

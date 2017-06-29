@@ -20,6 +20,7 @@ function staleElementError (scope, sessionId, times = 1) {
         status: 10,
         type: 'StaleElementReference',
         value: {
+            error: 'stale element reference',
             message: 'Element is no longer attached to the DOM'
         }
     })

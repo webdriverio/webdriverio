@@ -24,7 +24,7 @@ Then let's download the latest [selenium standalone server](http://docs.selenium
 
 ** 2. Download latest selenium standalone server**
 ```sh
-$ curl -O http://selenium-release.storage.googleapis.com/3.0/selenium-server-standalone-3.0.1.jar
+$ curl -O http://selenium-release.storage.googleapis.com/3.4/selenium-server-standalone-3.4.0.jar
 ```
 
 ** 3. Download the latest version geckodriver for your environment and unpack it in your project directory**
@@ -32,13 +32,13 @@ $ curl -O http://selenium-release.storage.googleapis.com/3.0/selenium-server-sta
 Linux 64 bit
 
 ```sh
-$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz | tar xz
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.16.0/geckodriver-v0.16.0-linux64.tar.gz | tar xz
 ```
 
 OSX
 
 ```sh
-$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-macos.tar.gz | tar xz
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.16.0/geckodriver-v0.16.0-macos.tar.gz | tar xz
 ```
 
 Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases).
@@ -47,7 +47,7 @@ Start the server by executing the following:
 
 ** 4. Start selenium standalone server**
 ```sh
-$ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.0.1.jar
+$ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.4.0.jar
 ```
 
 Note that this command sets webdriver path variable so that Selenium uses the geckdriver binary that was added to the project directory and also starts Selenium standalone server.
@@ -148,7 +148,7 @@ describe('webdriver.io page', function() {
     it('should have the right title - the fancy generator way', function () {
         browser.url('http://webdriver.io');
         var title = browser.getTitle();
-        assert.equal(title, 'WebdriverIO - Selenium 2.0 javascript bindings for nodejs');
+        assert.equal(title, 'WebdriverIO - WebDriver bindings for Node.js');
     });
 });
 ```

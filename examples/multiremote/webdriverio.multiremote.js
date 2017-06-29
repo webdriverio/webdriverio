@@ -31,4 +31,8 @@ matrix
     .url('https://apprtc.appspot.com/r/' + channel)
     .click('#confirm-join-button')
     .pause(5000)
-    .end();
+    .end()
+    .then(
+        () => console.log('Multiremote script ran successfully'),
+        (e) => console.log(e)
+    );

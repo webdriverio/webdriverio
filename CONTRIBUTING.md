@@ -20,7 +20,7 @@ to know that you have a clean state.
 1. Download and install the latest Selenium [standalone server](http://selenium-release.storage.googleapis.com/index.html) and run it via
 
   ```sh
-  $ java -jar selenium-server-standalone-2.53.0.jar
+  $ java -jar selenium-server-standalone-3.4.0.jar
   ```
 
   or install it with npm package [selenium-standalone](https://github.com/vvo/selenium-standalone)
@@ -33,7 +33,7 @@ to know that you have a clean state.
 2. Make sure you have all the dependencies installed
 
   ```sh
-  $ npm install
+  $ npm install && npm run build
   $ cd test/site/www && bower install && cd ../../../
   ```
 3. Depending on your feature/fix/patch make sure it gets covered by a test. To ensure that you can run one of the following commands:
@@ -41,27 +41,31 @@ to know that you have a clean state.
   ```sh
   # if your patch is browser specific
   # (e.g. upload files)
-  grunt test:desktop
+  npm run test:desktop
 
   # if your patch is mobile specific
   # (e.g. flick or swipe tests)
-  grunt test:ios test:android
+  npm run test:mobile
+  # or to run each individually
+  npm run test:ios
+  npm run test:android
+  
 
   # if your patch is functional and hasn't something to do with Selenium
   # (e.g. library specific fixes like changes within EventHandler.js)
-  grunt test:functional
+  npm run test:functional
 
   # changes to multibrowser functionality
   # (e.g. actually only changes to /lib/multibrowser.js)
-  grunt test:functional
+  npm run test:multibrowser
 
   # wdio test runner changes
   # (e.g. any changes that reflect the behavior of the test runner e.g. in lib/launcher.js)
-  grunt test:wdio
+  npm run test:wdio
 
   # anything else unittestable
   # (e.g. changes to utils and classes)
-  grunt test:unit
+  npm run test:unit
   ```
 
 ### Syntax rules
@@ -117,8 +121,8 @@ The source code for various API methods is located in the `lib/` folder.  To fin
  * </example>
  *
  * @param   {String}           selector   element with requested tag name
- * @returns {String|String[]}             the element's tag name, as a lowercase string
- *
+ * @return {String|String[]}             the element's tag name, as a lowercase string
+ * 
  * @uses protocol/elements, protocol/elementIdName
  * @type property
  *
@@ -137,7 +141,9 @@ Here's a quick cheat-sheet:
 
 5. **Type:** The `@type` attribute corresponds to the sections on the API page.  Currently in use are `action`, `appium`, `cookie`, `mobile`, `property`, `protocol`, `state`, `utility`, `window`.  You probably will not ever need to change this.
 
-6. **Returns:** Identifies the data type returned and a short description.
+6. **Return:** Identifies the data type returned and a short description.
+
+7. **Throws:** Identifies common exceptions that may be thrown.
 
 
 When you have completed your updates to the documentation, push to your fork and submit a pull request.

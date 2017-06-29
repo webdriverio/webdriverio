@@ -23,11 +23,12 @@ var webdriverio = require('../../build/index'),
     }).init();
 
 client
-    .url('http://google.com')
-    .setValue('*[name="q"]','webdriverio')
-    .click('*[name="btnG"]')
+    .url('http://webdriver.io')
+    .setValue('.ds-input', 'click')
+    .click('.algolia-docsearch-suggestion--title')
     .pause(1000)
-    .getTitle(function(err,title) {
-        console.log(title);
+    .getTitle().then((title) => {
+        console.log(title); // should return "WebdriverIO - click"
     })
-    .end();
+    .end()
+    .catch((e) => console.log(e));

@@ -12,4 +12,10 @@ describe('getValue', () => {
         values.should.contain('c')
         values.should.contain('d')
     })
+
+    it('should not trim results', async function () {
+        const value = ' -.- '
+        await this.client.setValue('[name="a"]', value);
+        (await this.client.getValue('[name="a"]')).should.be.equal(value)
+    })
 })

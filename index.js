@@ -1,6 +1,6 @@
 /**
  * webdriverio
- * https://github.com/Camme/webdriverio
+ * https://github.com/webdriverio/webdriverio
  *
  * A WebDriver module for nodejs. Either use the super easy help commands or use the base
  * Webdriver wire protocol commands. Its totally inspired by jellyfishs webdriver, but the

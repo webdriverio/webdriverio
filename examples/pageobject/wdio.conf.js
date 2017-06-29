@@ -10,7 +10,7 @@ exports.config = {
     // directory is where your package.json resides, so `wdio` will be called from there.
     //
     specs: [
-        './specs/*.spec.js'
+        __dirname + '/specs/*.spec.js'
     ],
     //
     // ============
@@ -43,8 +43,10 @@ exports.config = {
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: './errorShots/',
     //
-    // Set a base URL in order to shorten url command calls. If your url parameter starts
-    // with "/", the base url gets prepended.
+    // Set a base URL in order to shorten url command calls. If your `url` parameter starts
+    // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
+    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
+    // gets prepended directly.
     baseUrl: 'http://the-internet.herokuapp.com',
     //
     // Default timeout for all waitForXXX commands.
@@ -97,7 +99,8 @@ exports.config = {
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        ui: 'bdd'
+        ui: 'bdd',
+        timeout: 30000
     },
     //
     // =====
@@ -151,13 +154,36 @@ exports.config = {
     // afterSuite: function (suite) {
     // },
     //
+    // Runs before a Cucumber Feature
+    // beforeFeature: function (feature) {
+    // },
+    //
+    // Runs after a Cucumber Feature
+    // afterFeature: function (feature) {
+    // }
+    //
+    // Runs before a Cucumber Scenario
+    // beforeScenario: function (scenario) {
+    // },
+    //
+    // Runs after a Cucumber Scenario
+    // afterScenario: function (scenario) {
+    // },
+    //
+    // Runs before a Cucumber Step
+    // beforeStep: function (step) {
+    // },
+    //
+    // Runs after a Cucumber Step
+    // afterStep: function (stepResult) {
+    // },
+    //
     // Gets executed after all tests are done. You still have access to all global variables from
     // the test.
     // after: function (result, capabilities, specs) {
     // },
     //
-    // Gets executed after all workers got shut down and the process is about to exit. It is not
-    // possible to defer the end of the process using a promise.
-    // onComplete: function(exitCode) {
+    // Gets executed after all workers got shut down and the process is about to exit.
+    // onComplete: function(exitCode, config, capabilities) {
     // }
-}
+};

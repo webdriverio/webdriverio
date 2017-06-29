@@ -92,7 +92,7 @@ Type: `String`<br>
 Default: */wd/hub*
 
 ### baseUrl
-Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/`, the base url gets prepended.
+Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/`, the base url gets prepended, not including the path portion of your baseUrl. If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url gets prepended directly.
 
 Type: `String`<br>
 Default: *null*
@@ -111,6 +111,12 @@ Default: *3*
 
 ### coloredLogs
 Enables colors for log output
+
+Type: `Boolean`<br>
+Default: *true*
+
+### deprecationWarnings
+Warns when a deprecated command is used
 
 Type: `Boolean`<br>
 Default: *true*
@@ -161,7 +167,24 @@ Default interval for all waitForXXX commands.
 Type: `Number`<br>
 Default: *500*
 
+### queryParams
+A key-value store of query parameters to be added to every selenium request.
+Type: `Object`<br>
+Default: None
+
+**Example:**
+
+```js
+queryParams: {
+  specialKey: 'd2ViZHJpdmVyaW8='
+}
+
+// Selenium request would look like:
+// http://127.0.0.1:4444/v1/session/a4ef025c69524902b77af5339017fd44/window/current/size?specialKey=d2ViZHJpdmVyaW8%3D
+```
+
 ## debug
+
 Enables node debugging
 
 Type: `Boolean`<br>

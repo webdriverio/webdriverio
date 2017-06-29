@@ -57,6 +57,13 @@ describe('launcher', () => {
         })
     })
 
+    it('should exit if no spec was found', () => {
+        const launcher = new Launcher(path.join(FIXTURE_ROOT, 'empty.conf.js'), {})
+        return launcher.run().then((exitCode) => {
+            expect(exitCode).to.be.equal(0)
+        })
+    })
+
     it('should assign proper runner ids using getRunnerId', () => {
         let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
         expect(launcher.getRunnerId(0)).to.be.equal('0-0')

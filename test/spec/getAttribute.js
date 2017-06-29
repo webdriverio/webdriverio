@@ -1,7 +1,8 @@
 describe('getAttribute', () => {
     it('should get the attribute of a single element', async function () {
-        (await this.client.getAttribute('.nested', 'style'))
-            .should.be.equal('text-transform: uppercase;')
+        const browser = this.client.desiredCapabilities.browserName
+        const attr = browser === 'MicrosoftEdge' ? 'text-transform: uppercase' : 'text-transform: uppercase;';
+        (await this.client.getAttribute('.nested', 'style')).should.be.equal(attr)
     })
 
     it('should get the attribute of multiple elements', async function () {
