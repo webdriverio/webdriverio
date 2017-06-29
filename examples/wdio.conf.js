@@ -195,7 +195,6 @@ exports.config = {
         snippets: true,     // <boolean> hide step definition snippets for pending steps
         source: true,       // <boolean> hide source uris
         profile: [],        // <string[]> (name) specify the profile to use
-        require: [],        // <string[]> (file/dir) require files before executing features
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,      // <number> timeout for step definitions
