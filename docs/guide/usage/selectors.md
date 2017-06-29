@@ -48,7 +48,7 @@ console.log(browser.getText('*=driver')); // outputs: "WebdriverIO"
 The same technique can be applied to elements as well, e.g. query a level 1 heading with the text "Welcome to my Page":
 
 ```html
-<h1>Welcome to my Page</h1>
+<h1 alt="welcome-to-my-page">Welcome to my Page</h1>
 ```
 
 ```js
@@ -60,6 +60,7 @@ or using query partial text
 
 ```js
 console.log(browser.getText('h1*=Welcome')); // outputs: "Welcome to my Page"
+console.log(browser.getText('h1[alt*="welcome"]')); // outputs: "Welcome to my Page"
 ```
 
 The same works for ids and class names:
