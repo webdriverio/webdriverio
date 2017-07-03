@@ -11,7 +11,7 @@ Page Object Pattern
 The new version (v4) of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first citizen" principle it is now possible to build up large test suites using this pattern. There are no additional packages required to create page objects. It turns out that `Object.create` provides all necessary features we need:
 
 - inheritance between page objects
-- lazy loading of elements and
+- lazy loading of elements
 - encapsulation of methods and actions
 
 The goal behind page objects is to abstract any page information away from the actual tests. Ideally you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
