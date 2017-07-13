@@ -10,6 +10,7 @@ if (BUILD_ENV === 'android') {
     labels = merge(labels, {
         WEBVIEW_CONTEXT: 'WEBVIEW_io.webdriver.guineapig',
         ACTIVITY: '.MainActivity',
+        PACKAGE: 'io.webdriver.guineapig',
         HITAREA: '//android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.webkit.WebView[1]/android.webkit.WebView[1]/android.widget.ListView[1]'
     })
 }
