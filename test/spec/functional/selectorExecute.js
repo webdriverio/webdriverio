@@ -57,6 +57,13 @@ describe('selectorExecute', () => {
         )).should.be.equal('githubRepo with an argument')
     })
 
+    it('should be able to contain JS single-line comments', async function () {
+        (await this.client.selectorExecute('[class="sometext"]', (arr) => {
+            return arr[0].innerHTML
+            // comment test
+        })).should.be.equal('some text')
+    })
+
     it('should be able to accept multiple selectors', async function () {
         (await this.client.selectorExecute(['*=GitHub ', '//*[@class="sometext"]'], (links, divs, arg) => {
             var returnStr = 'Returning '
