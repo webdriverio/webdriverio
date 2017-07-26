@@ -81,7 +81,7 @@ exports.config = {
         browserName: 'chrome',
         chromeOptions: {
         // to run chrome headless:
-        // --disable-gpu is also required for headless,
+        // --disable-gpu is required for headless,
         // see https://developers.google.com/web/updates/2017/04/headless-chrome
         // args: ['--headless', '--disable-gpu'],       
         }        
