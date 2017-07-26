@@ -79,10 +79,11 @@ exports.config = {
     //
     capabilities: [{
         browserName: 'chrome',
-        // to run chrome headless you can use the --headless flag
+        // to run chrome headless you can use the --headless flag, --disable-gpu is also required for now.
         chromeOptions: {
         // to run in headless mode:
-        // args: ['--headless'],
+        // See https://developers.google.com/web/updates/2017/04/headless-chrome
+        // args: ['--headless', '--disable-gpu'],       
         }        
     }, {
         // maxInstances can get overwritten per capability. So if you have an in house Selenium
