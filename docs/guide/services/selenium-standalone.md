@@ -40,6 +40,9 @@ export.config = {
   // ...
   services: ['selenium-standalone'],
   // ...
+  // Options are set here as well
+  seleniumLogs: './logs',
+  //...
 };
 ```
 
@@ -55,3 +58,9 @@ Array of arguments for the Selenium server, passed directly to `child_process.sp
 
 Type: `String[]`<br>
 Default: `[]`
+
+### seleniumInstallArgs
+Object configuration for selenium-standalone.install().
+
+Type: `Object`<br>
+Default: `{}`

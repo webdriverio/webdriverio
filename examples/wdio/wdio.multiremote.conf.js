@@ -39,7 +39,7 @@ exports.config = {
     logLevel: 'silent',
     coloredLogs: true,
     screenshotPath: 'shots',
-    baseUrl: 'http://chat.socket.io',
+    baseUrl: 'https://socketio-chat.now.sh',
     waitforTimeout: 10000,
     framework: 'mocha',
 

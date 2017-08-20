@@ -49,6 +49,8 @@ var CustomReporter = function(options) {
     });
 };
 
+CustomReporter.reporterName = 'CustomReporter';
+
 /**
  * Inherit from EventEmitter
  */
