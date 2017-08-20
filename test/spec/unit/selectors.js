@@ -173,9 +173,10 @@ describe('selector strategies helper', () => {
         element.using.should.be.equal('css selector')
     })
 
-    it('should find an element by css selector with id and pseudo class', () => {
-        const element = findStrategy('#purplebox:before')
-        element.using.should.be.equal('css selector')
+    it('should find an element by selector with id in Android style', () => {
+        const element = findStrategy('#awesome.android.selector:id/button')
+        element.using.should.be.equal('id')
+        element.value.should.be.equal('awesome.android.selector:id/button')
     })
 
     it('should find an element by android accessibility id', () => {
