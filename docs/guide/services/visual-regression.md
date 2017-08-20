@@ -58,7 +58,7 @@ exports.config = {
       misMatchTolerance: 0.01,
     }),
     viewportChangePause: 300,
-    widths: [320, 480, 640, 1024],
+    viewports: [{ width: 320, height: 480 }, { width: 480, height: 320 }, { width: 1024, height: 768 }],    
     orientations: ['landscape', 'portrait'],
   },
   // ...
