@@ -44,7 +44,7 @@ class Page {
 	}
 
 }
-module.exports = new Page();
+module.exports = Page;
 ```
 
 We will always export an instance of a page object and never create that instance in the test. Since we are writing end to end tests we always see the page as a stateless construct the same way as each http request is a stateless construct. Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These state changes should emerge from your actual tests.
