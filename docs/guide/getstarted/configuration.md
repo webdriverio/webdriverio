@@ -183,15 +183,19 @@ queryParams: {
 // http://127.0.0.1:4444/v1/session/a4ef025c69524902b77af5339017fd44/window/current/size?specialKey=d2ViZHJpdmVyaW8%3D
 ```
 
-### authorization
-A string to be used as a custom Authorization header when making requests to selenium.
-Type: `String`<br>
+### headers
+A key-value store of headers to be added to every selenium request. Values must be strings.
+Type: `Object`<br>
 Default: None
 
 **Example**
 
 ```js
-authorization: 'Basic dGVzdEtleTp0ZXN0VmFsdWU='
+headers: {
+  Authorization: 'Basic dGVzdEtleTp0ZXN0VmFsdWU='
+}
+// This adds headers based on the key
+// This would result in a header named 'Authorization' with a value of 'Basic dGVzdEtleTp0ZXN0VmFsdWU='
 ```
 
 ## debug
