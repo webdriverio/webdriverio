@@ -183,6 +183,17 @@ queryParams: {
 // http://127.0.0.1:4444/v1/session/a4ef025c69524902b77af5339017fd44/window/current/size?specialKey=d2ViZHJpdmVyaW8%3D
 ```
 
+### authorization
+A string to be used as a custom Authorization header when making requests to selenium.
+Type: `String`<br>
+Default: None
+
+**Example**
+
+```js
+authorization: 'Basic dGVzdEtleTp0ZXN0VmFsdWU='
+```
+
 ## debug
 
 Enables node debugging

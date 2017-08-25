@@ -44,6 +44,11 @@ describe('remote method', () => {
         client.requestHandler.createOptions({ path: startPath }, {}).qs.should.include({testKey: 'testValue'})
     })
 
+    it('should add authorization header if specified', () => {
+        var client = remote({authorization: 'testValue'})
+        client.requestHandler.createOptions({ path: startPath }, {}).headers.should.include({'Authorization': 'testValue'})
+    })
+
     describe('on reject', () => {
         const sandbox = sinon.sandbox.create()
 
