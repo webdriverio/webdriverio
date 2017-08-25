@@ -45,17 +45,12 @@ describe('remote method', () => {
     })
 
     it('should add authorization header if specified', () => {
-        var client = remote({authorization: 'testValue'})
+        var client = remote({headers: {Authorization: 'testValue'}})
         client.requestHandler.createOptions({ path: startPath }, {}).headers.should.include({'Authorization': 'testValue'})
     })
 
     it('should not add authorization header if not a string', () => {
-        var client = remote({authorization: ['testValue']})
-        Object.keys(client.requestHandler.createOptions({ path: startPath }, {}).headers).should.not.include('Authorization')
-    })
-
-    it('should not add authorization header if not present', () => {
-        var client = remote()
+        var client = remote({headers: {Authorization: ['testValue']}})
         Object.keys(client.requestHandler.createOptions({ path: startPath }, {}).headers).should.not.include('Authorization')
     })
 
