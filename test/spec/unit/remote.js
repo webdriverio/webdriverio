@@ -54,6 +54,11 @@ describe('remote method', () => {
         Object.keys(client.requestHandler.createOptions({ path: startPath }, {}).headers).should.not.include('Authorization')
     })
 
+    it('should not add authorization header if not present', () => {
+        var client = remote()
+        Object.keys(client.requestHandler.createOptions({ path: startPath }, {}).headers).should.not.include('Authorization')
+    })
+
     describe('on reject', () => {
         const sandbox = sinon.sandbox.create()
 
