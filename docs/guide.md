@@ -159,4 +159,4 @@ The last step is to execute the test runner. To do so just run:
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](http://learn.webdriver.io/). Also our community has collected a lot of [boilerplate projects](/guide/getstarted/boilerplate.html) that can help you to get started.
+Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](/guide/getstarted/boilerplate.html) that can help you to get started.
