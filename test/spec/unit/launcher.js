@@ -203,7 +203,7 @@ describe('launcher', () => {
         })
     })
 
-    describe.only('loads launch services', () => {
+    describe('loads launch services', () => {
         it('should load a launcher service', () => {
             const launcher = path.join(FIXTURE_ROOT, 'services', 'wdio-awesome-service', 'launcher')
             mock('wdio-awesome-service/launcher', launcher)
