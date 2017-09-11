@@ -71,6 +71,7 @@
     "mkdirp": "~0.5.1",
     "npm-install-package": "~2.1.0",
     "optimist": "~0.6.1",
+    "proxyquire": "^1.8.0",
     "q": "~1.5.0",
     "request": "~2.81.0",
     "rgb2hex": "~0.1.0",
