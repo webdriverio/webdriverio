@@ -7,7 +7,7 @@ title: WebdriverIO - Boilerplate Projects
 
 # Boilerplate Projects
 
-Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up the own test suite.
+Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite.
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
