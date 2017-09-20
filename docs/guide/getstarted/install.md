@@ -41,7 +41,7 @@ If you are using the wdio testrunner you might be interested in the [Selenium St
 You can also run the selenium server separately from your test setup. To do so you need to get the newest version of the selenium standalone server [here](http://docs.seleniumhq.org/download/). Just download the jar file somewhere on your system. After that start your terminal and execute the file via
 
 ```sh
-$ java -jar /your/download/directory/selenium-server-standalone-3.0.1.jar
+$ java -jar /your/download/directory/selenium-server-standalone-3.5.3.jar
 ```
 
 With the latest version of Selenium most of the drivers for the browser come with an external driver that has to be downloaded and setup.
