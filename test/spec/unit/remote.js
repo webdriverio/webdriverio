@@ -178,7 +178,7 @@ describe('remote method', () => {
                 var requestOpts
 
                 RequestHandler.prototype.create.restore()
-                sandbox.stub(RequestHandler.prototype, 'create', function () {
+                sandbox.stub(RequestHandler.prototype, 'create').callsFake(function () {
                     requestOpts = this.defaultOptions
                 })
 
