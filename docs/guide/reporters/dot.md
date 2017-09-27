@@ -19,6 +19,6 @@ module.exports = {
 };
 ```
 
-The dot reporter prints for each test spec a dot. If colors are enabled on your machine you will see three different colors for dots. Yellow dots mean that at least one browser has executed that spec. A green dot means all browser passed that spec and a red to means that at least one browser failed that spec.
+The dot reporter prints a dot for each test spec. If colors are enabled on your machine, you will see three different colors for dots. A yellow dot means that at least one browser has executed that spec. A green dot means that all browsers have passed that spec. A red dot means that at least one browser has failed that spec.
 
 ![Dot Reporter](/images/dot.png "Dot Reporter")
