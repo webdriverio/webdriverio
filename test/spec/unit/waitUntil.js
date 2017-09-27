@@ -24,10 +24,8 @@ describe('waitUntil', () => {
         try {
             await this.client.waitUntil(() =>
                 new Promise((resolve, reject) =>
-                    setTimeout(
-                        () => reject(new Error('foobar')),
-                        500)
-                    ), 1000)
+                    setTimeout(() => reject(new Error('foobar')), 500)
+                ), 1000)
         } catch (e) {
             error = e
         } finally {
