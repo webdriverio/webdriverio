@@ -72,7 +72,7 @@
     "npm-install-package": "~2.1.0",
     "optimist": "~0.6.1",
     "q": "~1.5.0",
-    "request": "~2.81.0",
+    "request": "~2.82.0",
     "rgb2hex": "~0.1.0",
     "safe-buffer": "~5.0.1",
     "supports-color": "~3.2.3",
