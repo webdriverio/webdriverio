@@ -76,8 +76,7 @@ describe('PromiseHandler', () => {
             result = false
         }, () => {
             result = true
-        })
-        .call(() => {
+        }).call(() => {
             result.should.be.equal(true)
         })
     })

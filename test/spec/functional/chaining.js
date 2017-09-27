@@ -48,22 +48,18 @@ describe('Chaining', () => {
                                 result += 'b'
                             })
                         })
-                    })
-                    .click('.btn1').then(function () {
+                    }).click('.btn1').then(function () {
                         result += 'c'
-                    })
-                    .call(function () {
+                    }).call(function () {
                         result += 'd'
 
                         return client.isVisible('.btn1').then(function () {
                             result += 'e'
                         })
                     })
-                })
-                .click('.btn1').then(function () {
+                }).click('.btn1').then(function () {
                     result += 'f'
-                })
-                .call(function () {
+                }).call(function () {
                     result.should.be.equal('1234567890bcdef')
                     done()
                 })

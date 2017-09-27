@@ -47,22 +47,18 @@ describe('chaining', () => {
                                 result += 'b'
                             })
                         })
-                    })
-                    .click('.btn1').then(() => {
+                    }).click('.btn1').then(() => {
                         result += 'c'
-                    })
-                    .call(() => {
+                    }).call(() => {
                         result += 'd'
 
                         return this.browserA.isVisible('.btn1').then(() => {
                             result += 'e'
                         })
                     })
-                })
-                .click('.btn1').then(() => {
+                }).click('.btn1').then(() => {
                     result += 'f'
-                })
-                .call(() => {
+                }).call(() => {
                     result.should.be.equal('1234567890bcdef')
                     done()
                 })
