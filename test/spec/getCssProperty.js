@@ -1,4 +1,4 @@
-describe('getCssProperty', () => {
+describe.only('getCssProperty', () => {
     it('should return a color attribute to test with properly', async function () {
         const bgColor = await this.client.getCssProperty('.red', 'background-color')
 
@@ -37,8 +37,8 @@ describe('getCssProperty', () => {
         const display = await this.client.getCssProperty('.box', 'display')
         display.should.be.an.instanceOf(Array)
         display.should.have.length(5)
-        expect(display).to.have.deep.property('[0].property', 'display')
-        expect(display).to.have.deep.property('[0].value', 'block')
-        expect(display).to.have.deep.property('[0].parsed.string', 'block')
+        expect(display[0].property).to.be.equal('display')
+        expect(display[0].value).to.be.equal('block')
+        expect(display[0].parsed.string).to.be.equal('block')
     })
 })
