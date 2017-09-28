@@ -1,4 +1,4 @@
-describe.only('getCssProperty', () => {
+describe('getCssProperty', () => {
     it('should return a color attribute to test with properly', async function () {
         const bgColor = await this.client.getCssProperty('.red', 'background-color')
 
