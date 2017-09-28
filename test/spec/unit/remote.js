@@ -1,3 +1,4 @@
+import http from 'http'
 import { remote } from '../../../index.js'
 import RequestHandler from '../../../lib/utils/RequestHandler'
 import q from 'q'
@@ -37,6 +38,12 @@ describe('remote method', () => {
     it('should not force firefox when app is undefined but appPackage is not', () => {
         var client = remote({ desiredCapabilities: { browserName: '', appPackage: 'com.example' } })
         client.desiredCapabilities.browserName.should.be.equal('')
+    })
+
+    it('should create http.Agent with keep-alive enabled', () => {
+        var options = remote().requestHandler.createOptions({ path: startPath }, {})
+        options.agent.should.be.an.instanceof(http.Agent)
+        options.agent.keepAlive.should.be.equal(true)
     })
 
     it('should append query parameters to remote calls', () => {
