@@ -115,7 +115,7 @@ client
         <p>
             WebdriverIO was designed to be as flexible and framework agnostic as possible. It can be applied in any context and serves not only the purpose of testing.<br>
             <br>
-            You can use it as scrapper tool to dynamically fetch website data in an automated way or integrate it in your own automation library. Popular examples of that are [Spectron](http://electron.atom.io/spectron/), [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
+            You can use it as scraper tool to dynamically fetch website data in an automated way or integrate it in your own automation library. Popular examples of that are [Spectron](http://electron.atom.io/spectron/), [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
             <div>
                 <p>
                     <a href="http://electron.atom.io/spectron/" style="margin-right: 15px"><img src="http://electron.atom.io/images/spectron-icon.svg" width="75" /></a>
