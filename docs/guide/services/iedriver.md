@@ -15,7 +15,7 @@ WDIO IEDriver Service
 This service helps you to run IEDriver seamlessly when running tests with the [WDIO testrunner](http://webdriver.io/guide/testrunner/gettingstarted.html). It uses the [IEdriver](https://www.npmjs.com/package/iedriver) NPM package that wraps the IEDriver for you.
 
 Note - this service does not require a Selenium server, but uses IEDriver to communicate with the browser directly.
-Obvisously, it only supports:
+Obviously, it only supports:
 
 ```js
 capabilities: [{

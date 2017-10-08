@@ -15,7 +15,7 @@ WDIO ChromeDriver Service
 This service helps you to run ChromeDriver seamlessly when running tests with the [WDIO testrunner](http://webdriver.io/guide/testrunner/gettingstarted.html). It uses the [chromedriver](https://www.npmjs.com/package/chromedriver) NPM package that wraps the ChromeDriver for you.
 
 Note - this service does not require a Selenium server, but uses ChromeDriver to communicate with the browser directly.
-Obvisously, it only supports:
+Obviously, it only supports:
 
 ```js
 capabilities: [{

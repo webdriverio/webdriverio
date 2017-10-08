@@ -12,7 +12,7 @@ Visual Regression Service
 
 ## Installation
 
-wdio-visual-regression-service uses [wdio-screenshot](https://github.com/zinserjan/wdio-screenshot) for capturing screenhots.
+wdio-visual-regression-service uses [wdio-screenshot](https://github.com/zinserjan/wdio-screenshot) for capturing screenshots.
 
 You can install wdio-visual-regression-service via NPM as usual:
 
@@ -102,7 +102,7 @@ pass in a function that returns the filename for the diff screenshot. Function r
 * **misMatchTolerance** `Number`  ( default: 0.01 ) <br>
 number between 0 and 100 that defines the degree of mismatch to consider two images as identical, increasing this value will decrease test coverage.
 
-For an example of generating screenshot filesnames dependent on the current test name, have a look at the sample code of [Configuration](#configuration).
+For an example of generating screenshot filenames dependent on the current test name, have a look at the sample code of [Configuration](#configuration).
 
 #### VisualRegressionCompare.SaveScreenshot
 This method is a stripped variant of `VisualRegressionCompare.LocalCompare` to capture only screenshots. This is quite useful when you just want to create reference screenshots and overwrite the previous one without diffing.
