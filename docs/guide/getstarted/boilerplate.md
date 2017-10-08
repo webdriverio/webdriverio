@@ -73,8 +73,8 @@ This directory contains the WebdriverIO page object example written using TypeSc
 
 - Framework: Mocha
 - Features:
-    - examples of Page Object Model implemenetation
-    - Intellisence
+    - examples of Page Object Model implementation
+    - Intellisense
 
 ## [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
 
