@@ -15,11 +15,8 @@ describe('connection retries', () => {
     it('should retry connection 3 times if network error occurs', async function () {
         // mock 3 request errors and 4th successful
         nock('http://localhost:4444')
-            .post('/wd/hub/session')
-                .thrice()
-                .replyWithError('some error')
-            .post('/wd/hub/session')
-                .reply(200, FAKE_SUCCESS_RESPONSE)
+            .post('/wd/hub/session').thrice().replyWithError('some error')
+            .post('/wd/hub/session').reply(200, FAKE_SUCCESS_RESPONSE)
 
         await WebdriverIO.remote(conf).init()
     })
@@ -57,11 +54,8 @@ describe('connection retries', () => {
     it('should use connectionRetryCount option in requests retrying', async function () {
         // mock 12 request errors
         nock('http://localhost:4444')
-            .post('/wd/hub/session')
-                .times(12)
-                .replyWithError('some error')
-            .post('/wd/hub/session')
-                .reply(200, FAKE_SUCCESS_RESPONSE)
+            .post('/wd/hub/session').times(12).replyWithError('some error')
+            .post('/wd/hub/session').reply(200, FAKE_SUCCESS_RESPONSE)
 
         const localConf = merge({}, conf)
         localConf.connectionRetryCount = 15
@@ -72,11 +66,8 @@ describe('connection retries', () => {
     it.skip('should use connectionRetryTimeout option in requests retrying', async function () {
         // mock 1 slow request and 1 successful one
         nock('http://localhost:4444')
-            .post('/wd/hub/session')
-                .delayConnection(5000)
-                .reply(200, 'some response')
-            .post('/wd/hub/session')
-                .reply(200, FAKE_SUCCESS_RESPONSE)
+            .post('/wd/hub/session').delayConnection(5000).reply(200, 'some response')
+            .post('/wd/hub/session').reply(200, FAKE_SUCCESS_RESPONSE)
 
         const start = Date.now()
 

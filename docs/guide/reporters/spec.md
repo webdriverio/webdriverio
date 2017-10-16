@@ -24,7 +24,7 @@ The easiest way is to keep `wdio-spec-reporter` as a devDependency in your `pack
 }
 ```
 
-You can simple do it by:
+You can simply do it by:
 
 ```bash
 npm install wdio-spec-reporter --save-dev

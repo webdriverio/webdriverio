@@ -39,12 +39,12 @@ it('can handle commands using async/await', async function () {
 
 However it is recommended to use the testrunner to scale up your test suite as it comes with a lot of useful add ons like the [Sauce Service](http://webdriver.io/guide/services/sauce.html) that helps you to avoid writing a lot of boilerplate code by yourself.
 
-## Element as first citizen
+## Element as first class citizen
 
-To make the code more readable and easier to write we handle element calls as first citizen objects. This means that if you call the [`element`](/api/protocol/element.html) to query an element, WebdriverIO propagates its prototype to the result so you can chain another command to it. This is useful when writing tests with the [Page Object Pattern](http://martinfowler.com/bliki/PageObject.html) where you want to store your page elements in a page object to access them in the test. Simplified this can look like:
+To make the code more readable and easier to write we handle element calls as first class citizen objects. This means that if you call the [`element`](/api/protocol/element.html) to query an element, WebdriverIO propagates its prototype to the result so you can chain another command to it. This is useful when writing tests with the [Page Object Pattern](http://martinfowler.com/bliki/PageObject.html) where you want to store your page elements in a page object to access them in the test. Simplified this can look like:
 
 ```js
-it('should use elements as first citizen', function () {
+it('should use elements as first class citizen', function () {
     var input = browser.element('.someInput');
 
     input.setValue('some text');
@@ -56,7 +56,7 @@ it('should use elements as first citizen', function () {
 Each command that takes a selector as first argument can be executed without passing along the selector again and again. This not only looks nice, it also avoids querying the same element over and over again. The same works in standalone mode:
 
 ```js
-it('should use elements as first citizen in standalone mode', function () {
+it('should use elements as first class citizen in standalone mode', function () {
     return browser.element('.someInput').setValue('some text');
 });
 ```

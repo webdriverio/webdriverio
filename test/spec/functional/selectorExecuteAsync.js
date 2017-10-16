@@ -72,6 +72,16 @@ describe('selectorExecuteAsync', () => {
         )).should.be.equal('githubRepo with an argument')
     })
 
+    it('should be able to contain JS single-line comments', async function () {
+        (await this.client.selectorExecuteAsync(
+            '[class="sometext"]',
+            (arr, cb) => {
+                setTimeout(() => cb(arr[0].innerHTML), 100)
+                // comment test
+            }
+        )).should.be.equal('some text')
+    })
+
     it('should be able to accept multiple selectors', async function () {
         (await this.client.selectorExecuteAsync(
             ['*=GitHub ', '//html/body/section/h1'],

@@ -1,7 +1,6 @@
 # Cloudservices
 
-Shows you how to use WebdriverIO using Sauce Labs, Browserstack or Testingbot. To run those tests make sure
-you have your credentials stored in your environment. If so just execute the file using node:
+Shows you how to use WebdriverIO using Sauce Labs, Browserstack or Testingbot. To run those tests make sure you have your credentials stored in your environment. If so just execute the file using node:
 
 ## webdriverio.saucelabs.js
 

@@ -9,4 +9,4 @@ Feature: Example feature
 
   Scenario: Get title of website
     Given I go on the website "https://github.com/"
-    Then  should the title of the page be "How people build software · GitHub"
+    Then  should the title of the page be "The world's leading software development platform · GitHub"

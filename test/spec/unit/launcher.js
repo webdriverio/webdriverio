@@ -204,22 +204,37 @@ describe('launcher', () => {
     })
 
     describe('loads launch services', () => {
+        it('should load a launcher service', () => {
+            const launcher = path.join(FIXTURE_ROOT, 'services', 'wdio-awesome-service', 'launcher')
+            mock('wdio-awesome-service/launcher', launcher)
+            expect(
+                Launcher.prototype.getLauncher({ services: ['awesome'] })
+            ).to.have.lengthOf(1)
+            mock.stop('wdio-awesome-service/launcher')
+        })
+
+        it('should allow to load scoped packages', () => {
+            const launcher = path.join(FIXTURE_ROOT, 'services', 'wdio-awesome-service', 'launcher')
+            mock('@scope/wdio-awesome-service/launcher', launcher)
+            expect(
+                Launcher.prototype.getLauncher({ services: ['@scope/wdio-awesome-service'] })
+            ).to.have.lengthOf(1)
+            mock.stop('@scope/wdio-awesome-service/launcher')
+        })
+
         it('should throw if a service launcher fails', () => {
             const launcher = path.join(FIXTURE_ROOT, 'services', 'wdio-launcher-failure-service', 'launcher')
             mock('wdio-launcher-failure-service/launcher', launcher)
             expect(() => {
                 Launcher.prototype.getLauncher({ services: ['launcher-failure'] })
             }).to.throw(/Cannot find module 'some-missing-module'/)
+            mock.stop('wdio-launcher-failure-service/launcher')
         })
 
         it('should proceed if the service launcher doesn\'t exist', () => {
             expect(() => {
                 Launcher.prototype.getLauncher({ services: ['launcher-missing'] })
             }).to.not.throw(/Cannot find module/)
-        })
-
-        after(() => {
-            mock.stop('wdio-launcher-failure-service/launcher')
         })
     })
 })

@@ -73,6 +73,21 @@ This directory contains the WebdriverIO page object example written using TypeSc
 
 - Framework: Mocha
 - Features:
-    - examples of Page Object Model implemenetation
-    - Intellisence
+    - examples of Page Object Model implementation
+    - Intellisense
 
+## [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
+
+Boilerplate repo for quick set up of WebdriverIO test scripts with TravisCI, Sauce Labs and Visual Regression Testing
+
+- Framework: Mocha, Chai
+- Features:
+    - Login & Registration Tests, with Page Objects
+    - Mocha
+    - Chai with expect global
+    - Chai WebdriverIO
+    - Sauce Labs integration
+    - Visual Regression Tests
+    - Local notifications
+    - ESLint using Semistandard style
+    - WebdriverIO tuned Gitignore file

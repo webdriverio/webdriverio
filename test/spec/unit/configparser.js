@@ -137,4 +137,21 @@ describe('ConfigParser', () => {
         configParser.getConfig().beforeSession.should.be.an('array').and.have.a.lengthOf(1)
         configParser.getConfig().afterSession.should.be.an('array').and.have.a.lengthOf(1)
     })
+
+    describe('merge', () => {
+        it('should update capabilities based on merged config', () => {
+            let configParser = new ConfigParser()
+            configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
+            configParser.merge({
+                capabilities: {
+                    someNewCapability: 'I should be included in ConfigParser capabilities!'
+                }
+            })
+
+            configParser.getCapabilities().should.have.property('browserName', 'chrome')
+            configParser.getCapabilities().should.have.property('someNewCapability',
+                'I should be included in ConfigParser capabilities!'
+            )
+        })
+    })
 })

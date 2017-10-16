@@ -1,7 +1,7 @@
 name: Visual Regression
 category: services
 tags: guide
-index: 8
+index: 11
 title: WebdriverIO - Visual Regression Service
 ---
 
@@ -12,7 +12,7 @@ Visual Regression Service
 
 ## Installation
 
-wdio-visual-regression-service uses [wdio-screenshot](https://github.com/zinserjan/wdio-screenshot) for capturing screenhots.
+wdio-visual-regression-service uses [wdio-screenshot](https://github.com/zinserjan/wdio-screenshot) for capturing screenshots.
 
 You can install wdio-visual-regression-service via NPM as usual:
 
@@ -39,9 +39,11 @@ function getScreenshotName(basePath) {
     var testName = context.test.title;
     var browserVersion = parseInt(context.browser.version, 10);
     var browserName = context.browser.name;
-    var browserWidth = context.meta.width;
+    var browserViewport = context.meta.viewport;
+    var browserWidth = browserViewport.width;
+    var browserHeight = browserViewport.height;
 
-    return path.join(basePath, `${testName}_${type}_${browserName}_v${browserVersion}_${browserWidth}.png`);
+    return path.join(basePath, `${testName}_${type}_${browserName}_v${browserVersion}_${browserWidth}x${browserHeight}.png`);
   };
 }
 
@@ -58,7 +60,7 @@ exports.config = {
       misMatchTolerance: 0.01,
     }),
     viewportChangePause: 300,
-    widths: [320, 480, 640, 1024],
+    viewports: [{ width: 320, height: 480 }, { width: 480, height: 320 }, { width: 1024, height: 768 }],
     orientations: ['landscape', 'portrait'],
   },
   // ...
@@ -74,8 +76,8 @@ screenshot compare method, see [Compare Methods](#compare-methods)
 * **viewportChangePause**  `Number`  ( default: 100 ) <br>
 wait x milliseconds after viewport change. It can take a while for the browser to re-paint. This could lead to rendering issues and produces inconsistent results between runs.
 
-* **widths** `Number[]`  ( default: *[current-width]* ) (**desktop only**)<br>
-   all screenshots will be taken in different screen widths (e.g. for responsive design tests)
+* **viewports** `Object[{ width: Number, height: Number }]`  ( default: *[current-viewport]* ) (**desktop only**)<br>
+   all screenshots will be taken in different viewport dimensions (e.g. for responsive design tests)
 
 * **orientations** `String[] {landscape, portrait}`  ( default: *[current-orientation]* ) (**mobile only**)<br>
     all screenshots will be taken in different screen orientations (e.g. for responsive design tests)
@@ -100,7 +102,7 @@ pass in a function that returns the filename for the diff screenshot. Function r
 * **misMatchTolerance** `Number`  ( default: 0.01 ) <br>
 number between 0 and 100 that defines the degree of mismatch to consider two images as identical, increasing this value will decrease test coverage.
 
-For an example of generating screenshot filesnames dependent on the current test name, have a look at the sample code of [Configuration](#configuration).
+For an example of generating screenshot filenames dependent on the current test name, have a look at the sample code of [Configuration](#configuration).
 
 #### VisualRegressionCompare.SaveScreenshot
 This method is a stripped variant of `VisualRegressionCompare.LocalCompare` to capture only screenshots. This is quite useful when you just want to create reference screenshots and overwrite the previous one without diffing.
@@ -131,8 +133,8 @@ available:
 * **remove** `String[]`<br>
   removes all elements queried by all kinds of different [WebdriverIO selector strategies](http://webdriver.io/guide/usage/selectors.html) (via `display: none`)
 
-* **widths** `Number[]` (**desktop only**)<br>
-     Overrides the global *widths* value for this command. All screenshots will be taken in different screen widths (e.g. for responsive design tests)
+* **viewports** `Object[{ width: Number, height: Number }]` (**desktop only**)<br>
+     Overrides the global *viewports* value for this command. All screenshots will be taken in different viewport dimensions (e.g. for responsive design tests)
 
 * **orientations** `String[] {landscape, portrait}` (**mobile only**)<br>
     Overrides the global *orientations* value for this command. All screenshots will be taken in different screen orientations (e.g. for responsive design tests)
