@@ -55,4 +55,40 @@ describe('mobileDetector helper', () => {
         expect(isIOS).to.be.false
         expect(isAndroid).to.be.true
     })
+
+    it('should detect phone for deviceName iPhone', function () {
+        const {isPhone, isTablet} = mobileDetector({deviceName: 'iPhone X Simulator'})
+        expect(isPhone).to.be.true
+        expect(isTablet).to.be.false
+    })
+
+    it('should detect phone for device-type phone', function () {
+        const {isPhone, isTablet} = mobileDetector({'device-type': 'phone'})
+        expect(isPhone).to.be.true
+        expect(isTablet).to.be.false
+    })
+
+    it('should detect phone for deviceType phone', function () {
+        const {isPhone, isTablet} = mobileDetector({deviceType: 'phone'})
+        expect(isPhone).to.be.true
+        expect(isTablet).to.be.false
+    })
+
+    it('should detect tablet for deviceName iPad', function () {
+        const {isPhone, isTablet} = mobileDetector({deviceName: 'iPad Pro (9.7 inch) Simulator'})
+        expect(isPhone).to.be.false
+        expect(isTablet).to.be.true
+    })
+
+    it('should detect tablet for device-type tablet', function () {
+        const {isPhone, isTablet} = mobileDetector({'device-type': 'tablet'})
+        expect(isPhone).to.be.false
+        expect(isTablet).to.be.true
+    })
+
+    it('should detect phone for deviceType tablet', function () {
+        const {isPhone, isTablet} = mobileDetector({deviceType: 'tablet'})
+        expect(isPhone).to.be.false
+        expect(isTablet).to.be.true
+    })
 })
