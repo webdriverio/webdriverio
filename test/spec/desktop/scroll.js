@@ -17,9 +17,7 @@ describe('scroll', () => {
             }
         })
 
-        const browser = this.client.desiredCapabilities.browserName
-        const scrollX = browser === 'chrome' ? 0 : 100
-        scrollPos.value.x.should.be.equal(scrollX)
+        scrollPos.value.x.should.be.equal(100)
         scrollPos.value.y.should.be.equal(100)
     })
 
