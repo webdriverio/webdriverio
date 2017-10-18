@@ -75,7 +75,10 @@ webdriverio
     .getTitle().then(function(title) {
         console.log('Title was: ' + title);
     })
-    .end();
+    .end()
+    .catch(function(err) {
+        console.log(err);
+    });
 ```
 
 ** 7. Run your test file**
