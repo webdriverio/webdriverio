@@ -36,7 +36,11 @@ to know that you have a clean state.
   $ npm install && npm run build
   $ cd test/site/www && bower install && cd ../../../
   ```
-3. Depending on your feature/fix/patch make sure it gets covered by a test. To ensure that you can run one of the following commands:
+3. In order to run the tests, you must [install the latest ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads),
+which can also be installed via `brew install chromedriver` or
+`npm -g install chromedriver`.
+
+4. Depending on your feature/fix/patch make sure it gets covered by a test. To ensure that you can run one of the following commands:
 
   ```sh
   # if your patch is browser specific
@@ -49,7 +53,7 @@ to know that you have a clean state.
   # or to run each individually
   npm run test:ios
   npm run test:android
-  
+
 
   # if your patch is functional and doesn't have anything to do with Selenium
   # (e.g. library specific fixes like changes within EventHandler.js)
@@ -122,7 +126,7 @@ The source code for various API methods is located in the `lib/` folder.  To fin
  *
  * @param   {String}           selector   element with requested tag name
  * @return {String|String[]}             the element's tag name, as a lowercase string
- * 
+ *
  * @uses protocol/elements, protocol/elementIdName
  * @type property
  *
