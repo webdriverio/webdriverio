@@ -40,7 +40,7 @@ describe('launcher', () => {
             specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
         })
 
-        it('should allow to pass mutliple specs as cli argument to run only these test files', () => {
+        it('should allow to pass multiple specs as cli argument to run only these test files', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 spec: './test/spec/unit/launcher.js,./lib/webdriverio.js'
             })
