@@ -78,7 +78,7 @@ exports.config = {
     // },
     //
     // Test runner services
-    // Services take over a specfic job you don't want to take care of. They enhance
+    // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no self effort. Unlike plugins they don't add new
     // commands but hook themself up into the test process.
     // services: [],//
