@@ -51,7 +51,7 @@ to know that you have a clean state.
   npm run test:android
   
 
-  # if your patch is functional and hasn't something to do with Selenium
+  # if your patch is functional and doesn't have anything to do with Selenium
   # (e.g. library specific fixes like changes within EventHandler.js)
   npm run test:functional
 
