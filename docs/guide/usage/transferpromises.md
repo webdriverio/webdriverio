@@ -35,6 +35,15 @@ describe('my app', function() {
             .isVisible('#status_message').should.eventually.be.true
             .getText('#status_message').should.eventually.be.equal('Message sent!');
     });
+    
+    it('should return an async function call', function() {
+        return browser.executeAsync(function(done) {
+          setTimeout(function() {
+            done(true);
+          }, 5000);
+        })
+      ).should.eventually.have.property('value', true);
+    });
 });
 ```
 
