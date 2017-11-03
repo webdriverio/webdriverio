@@ -58,11 +58,6 @@ describe('waitUntil', () => {
         )).should.be.equal('foobar')
     })
 
-    it('should allow a promise condition', async function () {
-        (await this.client.waitUntil(new Promise((resolve) => setTimeout(() => resolve('foobar'), 500)), 1000))
-            .should.be.equal('foobar')
-    })
-
     it('should pass fast with a short waitfor interval', async function () {
         let res = await this.client.waitUntil(() => new Promise((resolve) => setTimeout(() => resolve('foobar'), 50)), 100, 20)
         res.should.be.equal('foobar')
