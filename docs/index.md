@@ -56,7 +56,7 @@ layout: start
         <br>
         Working with elements on a page has never been easier due to its synchronous nature. When fetching or looping over elements you can use just native JavaScript functions. With the `$` and `$$` functions WebdriverIO provides useful shortcuts which can also be chained in order to move deeper in the DOM tree without using complex xPath selectors.<br>
         <br>
-        The test runner also comes with a variety of hooks that allow you to interfere into the test process in order to e.g. take screenshots if an error occurs or modify the test procedure according to a previous test result. This is used by WebdriverIOs [services](/guide/services/appium.html) to integrate your tests with 3rd party tools like [Appium](http://appium.io/).
+        The test runner also comes with a variety of hooks that allow you to interrupt the test process in order to e.g. take screenshots if an error occurs or modify the test procedure according to a previous test result. This is used by WebdriverIOs [services](/guide/services/appium.html) to integrate your tests with 3rd party tools like [Appium](http://appium.io/).
     </article>
 
     <article class="runyourtests col2 last">
