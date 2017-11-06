@@ -9,6 +9,14 @@ title: WebdriverIO - Boilerplate Projects
 
 Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite.
 
+## [amiya-pattnaik/ngtaf4js-boilerplate-cucumber](https://github.com/amiya-pattnaik/ngtaf4js-boilerplate-cucumber)
+
+ngtaf4js-cucumber...This repository contains a collection of sample webdriverIO (Selenium - Node.js/JavaScript) projects and libraries that demonstrate how to use the tool and develop automation script using Cucumber BDD framework. It support ES6 (via babel-register) and uses Grunt to manage tasks. It generate Spec, JUNIT (html view on local machine through junit-viewer), Allure, JSON reporters as well.
+
+## [amiya-pattnaik/ngtaf4js-boilerplate-jasmine](https://github.com/amiya-pattnaik/ngtaf4js-boilerplate-jasmine)
+
+ngtaf4js-jasmine…This repository contains a collection of sample webdriverIO (Selenium - Node.js/JavaScript) projects and libraries that demonstrate how to use the tool and develop automation script using Jasmine BDD framework. It support ES6 (via babel-register) and uses Grunt to manage tasks. It generate Spec, JUNIT (html view on local machine through junit-viewer), Allure, JSON reporters as well.
+
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
 Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you so that you can start write feature files for your project right away.
