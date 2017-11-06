@@ -25,4 +25,16 @@ describe('ErrorHandler', () => {
         error.name.should.be.equal('Error')
         error.message.should.be.equal('Some error in runtime')
     })
+
+    it('should have full stacktrace in error', () => {
+        const error = new ErrorHandler('some-error')
+
+        error.stack.should.match(new RegExp(process.cwd()))
+    })
+
+    it('should capture stacktrace after message modifying', () => {
+        const error = new RuntimeError(1)
+
+        error.stack.should.match(/An unknown server-side error occurred while processing the command/)
+    })
 })

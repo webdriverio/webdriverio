@@ -38,9 +38,7 @@ describe('rejection', () => {
 
         return this.client.click('.missing')
             .then(() => { throw new Error('Unexpected success') })
-            .catch(e => {
-                expect(screenshot).to.be.defined
-            })
+            .catch(e => expect(screenshot).not.to.be.undefined)
     })
 
     it('should prevent infinite loop when screenhot attempt has failed', function () {

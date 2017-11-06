@@ -24,10 +24,8 @@ describe('waitUntil', () => {
         try {
             await this.client.waitUntil(() =>
                 new Promise((resolve, reject) =>
-                    setTimeout(
-                        () => reject(new Error('foobar')),
-                        500)
-                    ), 1000)
+                    setTimeout(() => reject(new Error('foobar')), 500)
+                ), 1000)
         } catch (e) {
             error = e
         } finally {
@@ -58,11 +56,6 @@ describe('waitUntil', () => {
             () => new Promise((resolve) => setTimeout(() => resolve('foobar'), 1000)),
             500
         )).should.be.equal('foobar')
-    })
-
-    it('should allow a promise condition', async function () {
-        (await this.client.waitUntil(new Promise((resolve) => setTimeout(() => resolve('foobar'), 500)), 1000))
-            .should.be.equal('foobar')
     })
 
     it('should pass fast with a short waitfor interval', async function () {

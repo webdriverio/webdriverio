@@ -24,7 +24,7 @@ Then let's download the latest [selenium standalone server](http://docs.selenium
 
 ** 2. Download latest selenium standalone server**
 ```sh
-$ curl -O http://selenium-release.storage.googleapis.com/3.4/selenium-server-standalone-3.4.0.jar
+$ curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
 ```
 
 ** 3. Download the latest version geckodriver for your environment and unpack it in your project directory**
@@ -47,7 +47,7 @@ Start the server by executing the following:
 
 ** 4. Start selenium standalone server**
 ```sh
-$ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.4.0.jar
+$ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.5.3.jar
 ```
 
 Note that this command sets webdriver path variable so that Selenium uses the geckdriver binary that was added to the project directory and also starts Selenium standalone server.
@@ -75,7 +75,10 @@ webdriverio
     .getTitle().then(function(title) {
         console.log('Title was: ' + title);
     })
-    .end();
+    .end()
+    .catch(function(err) {
+        console.log(err);
+    });
 ```
 
 ** 7. Run your test file**
@@ -159,4 +162,4 @@ The last step is to execute the test runner. To do so just run:
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](http://learn.webdriver.io/). Also our community has collected a lot of [boilerplate projects](/guide/getstarted/boilerplate.html) that can help you to get started.
+Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](/guide/getstarted/boilerplate.html) that can help you to get started.

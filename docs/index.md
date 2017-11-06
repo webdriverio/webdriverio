@@ -56,7 +56,7 @@ layout: start
         <br>
         Working with elements on a page has never been easier due to its synchronous nature. When fetching or looping over elements you can use just native JavaScript functions. With the `$` and `$$` functions WebdriverIO provides useful shortcuts which can also be chained in order to move deeper in the DOM tree without using complex xPath selectors.<br>
         <br>
-        The test runner also comes with a variety of hooks that allow you to interfere into the test process in order to e.g. take screenshots if an error occurs or modify the test procedure according to a previous test result. This is used by WebdriverIOs [services](/guide/services/appium.html) to integrate your tests with 3rd party tools like [Appium](http://appium.io/).
+        The test runner also comes with a variety of hooks that allow you to interrupt the test process in order to e.g. take screenshots if an error occurs or modify the test procedure according to a previous test result. This is used by WebdriverIOs [services](/guide/services/appium.html) to integrate your tests with 3rd party tools like [Appium](http://appium.io/).
     </article>
 
     <article class="runyourtests col2 last">
@@ -115,7 +115,7 @@ client
         <p>
             WebdriverIO was designed to be as flexible and framework agnostic as possible. It can be applied in any context and serves not only the purpose of testing.<br>
             <br>
-            You can use it as scrapper tool to dynamically fetch website data in an automated way or integrate it in your own automation library. Popular examples of that are [Spectron](http://electron.atom.io/spectron/), [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
+            You can use it as scraper tool to dynamically fetch website data in an automated way or integrate it in your own automation library. Popular examples of that are [Spectron](http://electron.atom.io/spectron/), [Chimp](https://chimp.readme.io/) or [CodeceptJS](http://codecept.io/).
             <div>
                 <p>
                     <a href="http://electron.atom.io/spectron/" style="margin-right: 15px"><img src="http://electron.atom.io/images/spectron-icon.svg" width="75" /></a>

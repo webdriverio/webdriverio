@@ -11,7 +11,7 @@ var webdriverio = require('../../build/index'),
             // capabilities must be tagged as "public" for the jobs's status
             // to update (failed/passed). If omitted on Open Sauce, the job's
             // status will only be marked "Finished." This property can be
-            // be omitted for commerical (private) Sauce Labs accounts.
+            // be omitted for commercial (private) Sauce Labs accounts.
             // Also see https://support.saucelabs.com/customer/portal/articles/2005331-why-do-my-tests-say-%22finished%22-instead-of-%22passed%22-or-%22failed%22-how-do-i-set-the-status-
             'public': true
         },

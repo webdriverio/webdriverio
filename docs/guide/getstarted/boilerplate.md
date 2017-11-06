@@ -7,7 +7,36 @@ title: WebdriverIO - Boilerplate Projects
 
 # Boilerplate Projects
 
-Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up the own test suite.
+Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite.
+
+## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
+
+- Framework: Cucumber (v 3.0.0)
+- Features:
+    - Page Objects Model uses with ES6 style class base approach and fully ES6 support through Babel
+    - Integration with headless browser - PhantomJS and Chrome
+    - Integration with BrowserStack
+    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
+    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
+    - Multiple reporting (Spec, Junit, Allure, JSON) and local view of Junit report in .html format
+    - Task manage through Grunt
+    - Appium specific .config file for easy playback on mobile devices. For one click Appium setup [refer here](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX) 
+
+## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
+
+This repository contains a collection of sample webdriverIO (Selenium - Node.js/JavaScript) projects and libraries that demonstrate how to use the tool and develop automation script using the Jasmine BDD framework.
+
+- Framework: Jasmine
+- Features:
+    - Page Objects Model uses with ES6 style class base approach and fully ES6 support through Babel
+    - Integration with headless browser - PhantomJS and Chrome
+    - Integration with BrowserStack
+    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
+    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
+    - Multiple reporting (Spec, Junit, Allure, JSON) and local view of Junit report in .html format
+    - Task manage through Grunt
+    - Examples with demo app (http://www.phptravels.net)
+    - Appium specific .config file for easy playback on mobile devices. For one click Appium setup [refer here](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
@@ -73,8 +102,8 @@ This directory contains the WebdriverIO page object example written using TypeSc
 
 - Framework: Mocha
 - Features:
-    - examples of Page Object Model implemenetation
-    - Intellisence
+    - examples of Page Object Model implementation
+    - Intellisense
 
 ## [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
 

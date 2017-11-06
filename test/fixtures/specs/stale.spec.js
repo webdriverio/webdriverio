@@ -71,7 +71,7 @@ describe('staleElementRetry', () => {
         let scope = nock('http://127.0.0.1:4444', { allowUnmocked: true })
 
         /**
-         * Allow 4 succesful elements() queries for .someSelector.
+         * Allow 4 successful elements() queries for .someSelector.
          * Return a StaleElementReference error three times in a row,
          * then return a valid result (isDisplayed === false).
          */
@@ -91,7 +91,7 @@ describe('staleElementRetry', () => {
         let scope = nock('http://127.0.0.1:4444', { allowUnmocked: true })
 
         /**
-         * Allow 10 succesful elements() queries for .someSelector.
+         * Allow 10 successful elements() queries for .someSelector.
          * Return a mixture of StaleElementReference exceptions and valid
          * results (isDisplayed === true), then finally (isDisplayed === false),
          * which occurs well within the 6 second total wait time.
