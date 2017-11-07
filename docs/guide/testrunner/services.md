@@ -1,7 +1,7 @@
-name: customservice
-category: services
+name: Custom Service
+category: testrunner
 tags: guide
-index: 13
+index: 11
 title: WebdriverIO - Custom Service
 ---
 
