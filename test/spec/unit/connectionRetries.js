@@ -6,7 +6,7 @@ const WebdriverIO = require('../../../')
 
 const FAKE_SUCCESS_RESPONSE = {
     sessionId: '31571f3a-4824-4378-b352-65de24952903',
-    status: 0
+    value: 'some value'
 }
 
 describe('connection retries', () => {
@@ -76,11 +76,10 @@ describe('connection retries', () => {
         }, conf)
         localConf.connectionRetryTimeout = 3000
 
-        await WebdriverIO.remote(localConf).init().then(() => {
-            const connectionTime = Date.now() - start
+        await WebdriverIO.remote(localConf).init()
+        const connectionTime = Date.now() - start
 
-            expect(connectionTime).to.be.above(3000)
-            expect(connectionTime).to.be.below(4000)
-        })
+        expect(connectionTime).to.be.above(3000)
+        expect(connectionTime).to.be.below(4000)
     })
 })
