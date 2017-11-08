@@ -58,7 +58,7 @@
     "watch": "npm run compile:lib -- --watch"
   },
   "dependencies": {
-    "archiver": "~2.0.3",
+    "archiver": "~2.1.0",
     "babel-runtime": "~6.26.0",
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
@@ -75,9 +75,9 @@
     "request": "~2.83.0",
     "rgb2hex": "~0.1.0",
     "safe-buffer": "~5.1.1",
-    "supports-color": "~4.4.0",
+    "supports-color": "~5.0.0",
     "url": "~0.11.0",
-    "validator": "~8.2.0",
+    "validator": "~9.1.1",
     "wdio-dot-reporter": "~0.0.8",
     "wgxpath": "~1.0.0"
   },
@@ -96,7 +96,7 @@
     "chai-things": "^0.2.0",
     "codeclimate-test-reporter": "^0.5.0",
     "cordova": "^7.0.1",
-    "coveralls": "^2.13.0",
+    "coveralls": "^3.0.0",
     "eslint": "^4.7.2",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-chai-expect": "^1.1.1",
