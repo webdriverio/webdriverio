@@ -42,7 +42,7 @@ describe('utilities', () => {
         it('should pass otherwise', () => {
             expect(isSuccessfulResponse({
                 value: null
-            })).to.be.equal(false)
+            })).to.be.equal(true)
 
             expect(isSuccessfulResponse({
                 value: false
