@@ -36,7 +36,7 @@ it('should use my custom command', function () {
 As mentioned earlier, you can define your command using good old promise syntax. This makes sense if you work with an additional 3rd party library that supports promises or if you want to execute both commands at the same time. Here is the async example, note that the custom command callback has a function name called `async`:
 
 ```js
-client.addCommand("getUrlAndTitle", function async () {
+client.addCommand("getUrlAndTitle", async function() {
     return Promise.all([
         this.getUrl(),
         this.getTitle()
@@ -49,7 +49,7 @@ client.addCommand("getUrlAndTitle", function async () {
 If you use external libraries (e.g. to do database calls) that support promises, a nice approach to easily integrate them is to wrap certain API methods within a custom command:
 
 ```js
-browser.addCommand('doExternalJob', function async (params) {
+browser.addCommand('doExternalJob', async function(params) {
     return externalLib.command(params);
 });
 ```
