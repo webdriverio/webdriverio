@@ -41,6 +41,10 @@ describe('utilities', () => {
 
         it('should pass otherwise', () => {
             expect(isSuccessfulResponse({
+                value: null
+            })).to.be.equal(false)
+
+            expect(isSuccessfulResponse({
                 value: false
             })).to.be.equal(true)
         })
