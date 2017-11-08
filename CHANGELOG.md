@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## v4.9.0 (2017-11-08)
+* global changes:
+    * W3C WebDriver compatibility improvements (#2039, #2364)
+    * docs improvements (#2055, #2062, #2070, #2078, #2095, #2096, #2100, #2101, #2116, #2121, #2135, #2151, #2132, #2148, #2163, #2193, #2196, #2142, #2217, #2237, #2222, #2263, #2268, #2269, #2270, #2271, #2276, #2277, #2278, #2282, #2284, #2285, #2288, #2290, #2292, #2296, #2309, #2304, #2306. #2323, #2324, #2336, #2340, #2341, #2342, #2347, #2353, #2354, #2355, #2356, #2374, #2376, #2378, #2395, #2396, #2405)
+    * examples improvements (#2086, #2089, #2162, #2183, #2184, #2402)
+    * depcrecation warnings more meaningful and defeatable (#2061)
+    * enhanced details on errors (#2229, #2247, #2283)
+    * allow setting custom headers for WebDriver requests (#2258)
+    * keep connections alive (#2327)
+* wdio changes:
+    * Performance improvements (#2043)
+    * Allow to pipe files into the wdio command (#2098)
+* bugfixes:
+    * fix handling of cucumber tags when given through CLI (#2049)
+    * better handling of text in options when selecting (#2057)
+    * better support for Android selectors (#2161)
+    * allow comments in functions passed to execute/executeAsync (#2207)
+    * fix merge capabilities when using launcher (#2109)
+* mobile:
+    * add `appWaitPackage` and `appWaitActivity` parameters to `startActivity` command (#2214)
+
 ## v4.8.0 (2017-04-30)
 * global changes:
     * docs improvements (#2006, #2001, #2010, #2011, #2013, #2016, #2017, #2032)
