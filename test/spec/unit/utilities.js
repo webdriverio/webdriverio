@@ -1,4 +1,4 @@
-import { isSuccessfulResponse } from '../../../lib/helpers/utilities'
+import { isSuccessfulResponse, isUnknownCommand } from '../../../lib/helpers/utilities'
 
 describe('utilities', () => {
     describe('isSuccessfulResponse', () => {
@@ -46,6 +46,32 @@ describe('utilities', () => {
 
             expect(isSuccessfulResponse({
                 value: false
+            })).to.be.equal(true)
+        })
+    })
+
+    describe('isUnknownCommand', () => {
+        it('no valid error', () => {
+            expect(isUnknownCommand()).to.be.equal(false)
+            expect(isUnknownCommand('foobar')).to.be.equal(false)
+        })
+
+        it('should recognise unknown command when using driver', () => {
+            expect(isUnknownCommand({
+                message: 'unknown command'
+            })).to.be.equal(true)
+
+            expect(isUnknownCommand({
+                message: 'POST /session/foobar/keys did not match a known command'
+            })).to.be.equal(true)
+        })
+
+        it('should recognise unknown command when using selenium standalone', () => {
+            expect(isUnknownCommand({
+                message: 'foobar',
+                seleniumStack: {
+                    type: 'UnknownCommand'
+                }
             })).to.be.equal(true)
         })
     })
