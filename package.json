@@ -54,7 +54,7 @@
     "test:snyk": "snyk auth $SNYK_AUTH_TOKEN && snyk test",
     "test:unit": "mocha test/setup-unit.js test/spec/unit/*.js",
     "test:wdio": "mocha test/setup-unit.js test/spec/wdio/*.js",
-    "preversion": "run-s build",
+    "postversion": "run-s build",
     "prepare": "npm prune",
     "watch": "npm run compile:lib -- --watch"
   },
