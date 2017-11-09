@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v4.9.5 (2017-11-09)
+* bugfixes
+    * Use https Agent when protocol is https (#2424)
+    * revert change on Android selector (#2422)
+
 ## v4.9.4 (2017-11-09)
 * global changes:
     * better fallback handling of unknown commands
