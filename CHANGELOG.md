@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v4.9.3 (2017-11-09)
+* global changes:
+    * added fallback to keys command to use W3C WebDriver action API if command not known
+
 ## v4.9.0 (2017-11-08)
 * global changes:
     * W3C WebDriver compatibility improvements (#2039, #2364)
