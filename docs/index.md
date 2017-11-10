@@ -83,6 +83,8 @@ describe('webdriver.io api page', function() {
     });
 });
 ```
+    <a href="http://try.learnwebdriverio.com" class="button tryit icon-circle-arrow-right" target="_blank">Try It Out
+</a>
     </article>
 </div>
 
