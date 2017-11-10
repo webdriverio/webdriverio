@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v4.9.6 (2017-11-10)
+* bugfixes
+    * don't clone objects in config (#2428)
+
 ## v4.9.5 (2017-11-09)
 * bugfixes
     * Use https Agent when protocol is https (#2424)
