@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "archiver": "~2.1.0",
+    "babel-runtime": "^6.26.0",
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
     "deepmerge": "~2.0.1",

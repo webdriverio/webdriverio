@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v4.9.8 (2017-11-13)
+* bugfixes:
+    * add missing babel-runtime dependency
+
 ## v4.9.7 (2017-11-13)
 * bugfixes:
     * polyfill Array.includes to support Node v4
