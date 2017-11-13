@@ -1,11 +1,17 @@
 # CHANGELOG
 
+## v4.9.7 (2017-11-13)
+* bugfixes:
+    * polyfill Array.includes to support Node v4
+* global changes:
+    * add "try it out" button to example code on main page
+
 ## v4.9.6 (2017-11-10)
-* bugfixes
+* bugfixes:
     * don't clone objects in config (#2428)
 
 ## v4.9.5 (2017-11-09)
-* bugfixes
+* bugfixes:
     * Use https Agent when protocol is https (#2424)
     * revert change on Android selector (#2422)
 
