@@ -1,4 +1,5 @@
 import http from 'http'
+import https from 'https'
 import { remote } from '../../../index.js'
 import RequestHandler from '../../../lib/utils/RequestHandler'
 import q from 'q'
@@ -44,6 +45,16 @@ describe('remote method', () => {
         var options = remote().requestHandler.createOptions({ path: startPath }, {})
         options.agent.should.be.an.instanceof(http.Agent)
         options.agent.keepAlive.should.be.equal(true)
+    })
+
+    it('should create https.Agent with keep-alive enabled if protocol is https', () => {
+        var options = remote({ protocol: 'https' }).requestHandler.createOptions({ path: startPath }, {})
+        options.agent.should.be.an.instanceof(https.Agent)
+        options.agent.keepAlive.should.be.equal(true)
+    })
+
+    it('should fail when trying to create request handler options with a bad protocol', () => {
+        expect(() => remote({ protocol: 'foo' }).requestHandler.createOptions({ path: startPath }, {})).to.throw()
     })
 
     it('should append query parameters to remote calls', () => {

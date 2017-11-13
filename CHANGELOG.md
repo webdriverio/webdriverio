@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## v4.9.8 (2017-11-13)
+* bugfixes:
+    * add missing babel-runtime dependency
+
+## v4.9.7 (2017-11-13)
+* bugfixes:
+    * polyfill Array.includes to support Node v4
+* global changes:
+    * add "try it out" button to example code on main page
+
+## v4.9.6 (2017-11-10)
+* bugfixes:
+    * don't clone objects in config (#2428)
+
+## v4.9.5 (2017-11-09)
+* bugfixes:
+    * Use https Agent when protocol is https (#2424)
+    * revert change on Android selector (#2422)
+
+## v4.9.4 (2017-11-09)
+* global changes:
+    * better fallback handling of unknown commands
+
+## v4.9.3 (2017-11-09)
+* global changes:
+    * added fallback to keys command to use W3C WebDriver action API if command not known
+
 ## v4.9.0 (2017-11-08)
 * global changes:
     * W3C WebDriver compatibility improvements (#2039, #2364)

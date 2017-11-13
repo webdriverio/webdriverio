@@ -55,7 +55,7 @@ exports.config = merge(wdioConf.config, {
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
     services: ['sauce']
-});
+}, { clone: false });
 
 // add an additional reporter
 exports.config.reporters.push('allure');

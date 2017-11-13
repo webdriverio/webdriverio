@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "A Node.js bindings implementation for the W3C WebDriver protocol",
-  "version": "4.8.0",
+  "version": "4.9.8",
   "homepage": "http://webdriver.io",
   "author": "Camilo Tapia <camilo.tapia@gmail.com>",
   "repository": {
@@ -54,12 +54,13 @@
     "test:snyk": "snyk auth $SNYK_AUTH_TOKEN && snyk test",
     "test:unit": "mocha test/setup-unit.js test/spec/unit/*.js",
     "test:wdio": "mocha test/setup-unit.js test/spec/wdio/*.js",
+    "postversion": "run-s build",
     "prepare": "npm prune",
     "watch": "npm run compile:lib -- --watch"
   },
   "dependencies": {
     "archiver": "~2.1.0",
-    "babel-runtime": "~6.26.0",
+    "babel-runtime": "^6.26.0",
     "css-parse": "~2.0.0",
     "css-value": "~0.0.1",
     "deepmerge": "~2.0.1",
@@ -86,6 +87,7 @@
     "babel-core": "^6.24.1",
     "babel-eslint": "^8.0.1",
     "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-array-includes": "^2.0.3",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.3.3",
     "babel-preset-stage-0": "^6.24.1",
