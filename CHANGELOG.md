@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v4.9.9 (2017-11-20)
+* bugfixes:
+    * fix touchId command (#2455)
+    * enable support for both --inspect and --debug (#2418)
+* global changes:
+    * docs improvements (#2452, #2449, #2440)
+
 ## v4.9.8 (2017-11-13)
 * bugfixes:
     * add missing babel-runtime dependency
