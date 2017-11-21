@@ -2,8 +2,8 @@ import { isSuccessfulResponse, isUnknownCommand } from '../../../lib/helpers/uti
 
 describe('utilities', () => {
     describe('isSuccessfulResponse', () => {
-        it('should fail when there is no error', () => {
-            expect(isSuccessfulResponse()).to.be.equal(false)
+        it('should not fail when there is no error', () => {
+            expect(isSuccessfulResponse()).to.be.equal(true)
         })
 
         it('should fail when status is not 0', () => {
