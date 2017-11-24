@@ -3,19 +3,20 @@ WebdriverIO Examples
 
 Welcome to the WebdriverIO example repository. Here you can find a lot of stuff that helps you to understand
 how WebdriverIO works. It is separated into different topics. The best way to start is to clone the WebdriverIO
-repository and install its dependencies:
+repository, install its dependencies, and build it:
 
 ```sh
 git clone git@github.com:webdriverio/webdriverio.git
 cd ./webdriverio
 npm install
+npm run build
 ```
 
 Then just follow the instructions and test it out. Have fun!
 
 ## Cloudservices
 
-Shows you how to use WebdriverIO using Sauce Labs, Browserstack or Testingbot. To run those tests make sure
+Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure
 you have your credentials stored in your environment. If so just execute the file using node:
 
 #### webdriverio.saucelabs.js
@@ -40,6 +41,12 @@ node ./examples/cloudservices/webdriverio.browserstack.js
 export TESTINGBOT_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export TESTINGBOT_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 node ./examples/cloudservices/webdriverio.testingbot.js
+```
+#### webdriverio.kobiton.js
+```sh
+export KOBITON_USERNAME="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+export KOBITON_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+node ./examples/cloudservices/webdriverio.kobiton.js
 ```
 
 ## Commands
