@@ -26,7 +26,7 @@ export TESTINGBOT_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 node ./examples/cloudservices/webdriverio.testingbot.js
 ```
 
-#### webdriverio.kobiton.js
+## webdriverio.kobiton.js
 ```sh
 export KOBITON_USERNAME="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export KOBITON_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
