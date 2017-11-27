@@ -4,7 +4,7 @@
 * bugfixes:
     * fix launcher run by node script as child process (#2477)
     * check status code for WebDriver responses
-    * allow usage of element as 1st citizen for getHTML, scroll and isVisibleWithinViewport
+    * allow usage of element as 1st citizen for getHTML and isVisibleWithinViewport
 * global changes:
     * docs improvements (#2472)
 
