@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v4.9.10 (2017-11-27)
+* bugfixes:
+    * fix launcher run by node script as child process (#2477)
+    * check status code for WebDriver responses
+    * allow usage of element as 1st citizen for getHTML, scroll and isVisibleWithinViewport
+* global changes:
+    * docs improvements (#2472)
+
 ## v4.9.9 (2017-11-20)
 * bugfixes:
     * fix touchId command (#2455)
