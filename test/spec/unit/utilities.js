@@ -6,46 +6,64 @@ describe('utilities', () => {
             expect(isSuccessfulResponse()).to.be.equal(false)
         })
 
+        it('should pass if status code is 200', () => {
+            expect(isSuccessfulResponse({ statusCode: 200 })).to.be.equal(true)
+        })
+
         it('should fail when status is not 0', () => {
             expect(isSuccessfulResponse({
-                status: 7,
-                value: 'foobar'
+                body: {
+                    status: 7,
+                    value: 'foobar'
+                }
             })).to.be.equal(false)
         })
 
         it('should fail when there is no value', () => {
             expect(isSuccessfulResponse({
-                error: true
+                body: {
+                    error: true
+                }
             })).to.be.equal(false)
         })
 
         it('should fail if value has an error', () => {
             expect(isSuccessfulResponse({
-                value: {
-                    error: 'foobar'
+                body: {
+                    value: {
+                        error: 'foobar'
+                    }
                 }
             })).to.be.equal(false)
 
             expect(isSuccessfulResponse({
-                value: {
-                    stacktrace: 'foobar'
+                body: {
+                    value: {
+                        stacktrace: 'foobar'
+                    }
                 }
             })).to.be.equal(false)
 
             expect(isSuccessfulResponse({
-                value: {
-                    stackTrace: 'foobar'
+                body: {
+                    value: {
+                        stackTrace: 'foobar'
+                    }
                 }
             })).to.be.equal(false)
         })
 
         it('should pass otherwise', () => {
             expect(isSuccessfulResponse({
-                value: null
+                body: {
+                    value: null
+                }
             })).to.be.equal(true)
 
             expect(isSuccessfulResponse({
-                value: false
+                body: {
+                    value: false
+                }
             })).to.be.equal(true)
         })
     })
