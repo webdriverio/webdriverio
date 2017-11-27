@@ -6,6 +6,13 @@ describe('utilities', () => {
             expect(isSuccessfulResponse()).to.be.equal(false)
         })
 
+        it('should pass if status is 0', () => {
+            expect(isSuccessfulResponse({
+                status: 0,
+                value: {error: 'some-string'}
+            })).to.be.equal(true)
+        })
+
         it('should fail when status is not 0', () => {
             expect(isSuccessfulResponse({
                 status: 7,
