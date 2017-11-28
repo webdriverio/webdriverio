@@ -6,8 +6,13 @@ describe('utilities', () => {
             expect(isSuccessfulResponse()).to.be.equal(false)
         })
 
-        it('should pass if status code is 200', () => {
-            expect(isSuccessfulResponse({ statusCode: 200 })).to.be.equal(true)
+        it('should pass if code is 200 and status is 0', () => {
+            expect(isSuccessfulResponse({
+                body: {
+                    status: 0
+                },
+                statusCode: 200
+            })).to.be.equal(true)
         })
 
         it('should fail when status is not 0', () => {
@@ -23,17 +28,19 @@ describe('utilities', () => {
             expect(isSuccessfulResponse({
                 body: {
                     error: true
-                }
+                },
+                statusCode : 200
             })).to.be.equal(false)
         })
 
-        it('should fail if value has an error', () => {
+        it('should fail if value has an error and code is not 200', () => {
             expect(isSuccessfulResponse({
                 body: {
                     value: {
                         error: 'foobar'
                     }
-                }
+                },
+                statusCode: 203
             })).to.be.equal(false)
 
             expect(isSuccessfulResponse({
@@ -41,15 +48,8 @@ describe('utilities', () => {
                     value: {
                         stacktrace: 'foobar'
                     }
-                }
-            })).to.be.equal(false)
-
-            expect(isSuccessfulResponse({
-                body: {
-                    value: {
-                        stackTrace: 'foobar'
-                    }
-                }
+                },
+                statusCode: 203
             })).to.be.equal(false)
         })
 
