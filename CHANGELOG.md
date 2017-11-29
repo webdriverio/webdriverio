@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v4.9.11 (2017-11-29)
+* bugfixes:
+    * better handling of failures in before hooks placed before any describe block (#2259)
+    * fix waitForVisible handling (#2486)
+* docs:
+    * add Mochawesome reporter
+
 ## v4.9.10 (2017-11-27)
 * bugfixes:
     * fix launcher run by node script as child process (#2477)
