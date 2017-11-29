@@ -6,10 +6,11 @@ describe('utilities', () => {
             expect(isSuccessfulResponse()).to.be.equal(false)
         })
 
-        it('should pass if code is 200 and status is 0', () => {
+        it('should pass if code is 200, status is 0 and value is defined', () => {
             expect(isSuccessfulResponse({
                 body: {
-                    status: 0
+                    status: 0,
+                    value: {}
                 },
                 statusCode: 200
             })).to.be.equal(true)
