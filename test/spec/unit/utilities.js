@@ -30,7 +30,7 @@ describe('utilities', () => {
                 body: {
                     error: true
                 },
-                statusCode : 200
+                statusCode: 200
             })).to.be.equal(false)
         })
 
