@@ -10,7 +10,17 @@
     "node": ">= 4.8.5"
   },
   "scripts": {
-    "test": "jest"
+    "build": "run-s clean compile",
+    "clean": "rm -rf ./build ./coverage",
+    "compile": "babel src/ -d build/",
+    "lint": "eslint src test",
+    "release": "npm run release:patch",
+    "release:patch": "np patch",
+    "release:minor": "np minor",
+    "release:major": "np major",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "watch": "npm run compile:lib -- --watch"
   },
   "repository": {
     "type": "git",
