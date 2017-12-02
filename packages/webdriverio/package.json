@@ -27,7 +27,7 @@
     "release:major": "np major",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "watch": "npm run compile:lib -- --watch"
+    "watch": "npm run compile -- --watch"
   },
   "dependencies": {},
   "devDependencies": {},
