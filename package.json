@@ -1,0 +1,10 @@
+{
+    "private": true,
+    "scripts": {
+        "test": ""
+    },
+    "devDependencies": {
+		"lerna": "^2.5.1"
+	},
+    "jest": {}
+}
