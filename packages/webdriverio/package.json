@@ -1,0 +1,50 @@
+{
+  "name": "webdriverio",
+  "description": "Next-gen WebDriver test automation framework for Node.js",
+  "version": "5.0.0",
+  "homepage": "http://webdriver.io",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "license": "MIT",
+  "main": "./build/index.js",
+  "engines": {
+    "node": ">= 4.8.5"
+  },
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {},
+  "tags": [
+    "webdriver",
+    "selenium",
+    "test",
+    "automation",
+    "browser",
+    "javascript",
+    "node"
+  ],
+  "keywords": [
+    "webdriverio",
+    "webdriver",
+    "selenium",
+    "appium",
+    "saucelabs",
+    "sauce",
+    "labs",
+    "mocha",
+    "nodeUnit",
+    "buster",
+    "phantomjs",
+    "chai",
+    "vows",
+    "jasmine",
+    "assert",
+    "cucumber",
+    "testingbot"
+  ]
+}

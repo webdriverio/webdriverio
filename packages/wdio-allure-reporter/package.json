@@ -1,0 +1,29 @@
+{
+  "name": "wdio-allure-reporter",
+  "version": "0.1.2",
+  "description": "A WebdriverIO reporter plugin to create Allure Test Reports",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-allure-reporter",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">= 4.8.5"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-reporter"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+  }
+}

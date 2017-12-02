@@ -1,0 +1,29 @@
+{
+  "name": "wdio-xml-reporter",
+  "version": "0.3.1",
+  "description": "A WebdriverIO reporter that creates test results in XML format",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-xml-reporter",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">= 4.8.5"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-reporter"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+  }
+}
