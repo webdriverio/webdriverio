@@ -33,5 +33,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "deepmerge": "^2.0.1",
+    "request": "^2.83.0"
   }
 }
