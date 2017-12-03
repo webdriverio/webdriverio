@@ -11,8 +11,29 @@ const COLORS = {
 }
 
 const SERIALIZERS = [{
+    /**
+     * display error stack
+     */
     matches: (err) => err instanceof Error,
     serialize: (err) => err.stack
+}, {
+    /**
+     * color commands blue
+     */
+    matches: (log) => log === 'COMMAND',
+    serialize: (log) => chalk.magenta(log)
+}, {
+    /**
+     * color data yellow
+     */
+    matches: (log) => log === 'DATA',
+    serialize: (log) => chalk.yellow(log)
+}, {
+    /**
+     * color result cyan
+     */
+    matches: (log) => log === 'RESULT',
+    serialize: (log) => chalk.cyan(log)
 }]
 
 prefix.apply(log, {
@@ -32,12 +53,12 @@ export default function getLogger (name) {
                     if (s.matches(arg)) {
                         return s.serialize(arg)
                     }
-                    return arg
                 }
+                return arg
             })
             rawMethod(...args)
         };
     };
-    log.setLevel(log.getLevel())
+    log.setLevel('info')
     return log.getLogger(name)
 }
