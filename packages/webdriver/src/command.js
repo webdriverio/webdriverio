@@ -1,4 +1,4 @@
-import request from './request'
+import WebDriverRequest from './request'
 
 export default function (method, endpoint, commandInfo) {
     const { command, ref, parameters } = commandInfo
@@ -40,6 +40,7 @@ export default function (method, endpoint, commandInfo) {
             body[parameters[i].name] = arg
         }
 
-        return request(method, endpoint, body)
+        const request = new WebDriverRequest(method, endpoint, body)
+        return request.makeRequest(this.options, this.sessionId)
     }
 }
