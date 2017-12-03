@@ -1,0 +1,488 @@
+{
+  "/session": {
+    "POST": {
+      "command": "newSession",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-creating-a-new-session",
+      "parameters": [{
+        "name": "capabilities",
+        "type": "object",
+        "description": "a JSON object, the set of capabilities that was ultimately merged and matched in the capability processing algorithm",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId": {
+    "DELETE": {
+      "command": "deleteSession",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-delete-session",
+      "parameters": []
+    }
+  },
+  "/status": {
+    "GET": {
+      "command": "status",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-status",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/timeouts": {
+    "GET": {
+      "command": "getTimeouts",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-timeouts",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setTimeout",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-timeouts",
+      "parameters": [{
+        "name": "script",
+        "type": "number",
+        "description": "integer in ms for session script timeout",
+        "optional": false
+      }, {
+        "name": "pageLoad",
+        "type": "number",
+        "description": "integer in ms for session page load timeout",
+        "optional": false
+      }, {
+        "name": "implicit",
+        "type": "number",
+        "description": "integer in ms for session implicit wait timeout",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/url": {
+    "GET": {
+      "command": "getCurrentUrl",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-current-url",
+      "parameters": []
+    },
+    "POST": {
+      "command": "navigateTo",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-navigate-to",
+      "parameters": [{
+        "name": "url",
+        "type": "string",
+        "description": "string representing an absolute URL (beginning with http(s)), possibly including a fragment (#...), could also be a local scheme (about: etc)",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/back": {
+    "POST": {
+      "command": "back",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-back",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/forward": {
+    "POST": {
+      "command": "forward",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-forward",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/refresh": {
+    "POST": {
+      "command": "refresh",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-refresh",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/title": {
+    "GET": {
+      "command": "getTitle",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-title",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window": {
+    "GET": {
+      "command": "getWindowHandle",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-window-handle",
+      "parameters": []
+    },
+    "DELETE": {
+      "command": "closeWindow",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-close-window",
+      "parameters": []
+    },
+    "POST": {
+      "command": "switchToWindow",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-switch-to-window",
+      "parameters": [{
+        "name": "handle",
+        "type": "string",
+        "description": "a string representing a window handle, should be one of the strings that was returned in a call to getWindowHandles",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/window/handles": {
+    "GET": {
+      "command": "getWindowHandles",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-window-handles",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/frame": {
+    "POST": {
+      "command": "switchToFrame",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-switch-to-frame",
+      "parameters": [{
+        "name": "id",
+        "type": "(number|string|object)",
+        "description": "one of three possible types: null: this represents the top-level browsing context (i.e., not an iframe), a Number, representing the index of the window object corresponding to a frame, a string representing an element id. The element must be the frame or iframe to be selected",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/frame/parent": {
+    "POST": {
+      "command": "switchToParentFrame",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-switch-to-parent-frame",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window/rect": {
+    "GET": {
+      "command": "getWindowRect",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-window-rect",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setWindowRect",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-set-window-rect",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "the screenX attribute of the window object",
+        "optional": true
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "the screenY attribute of the window object",
+        "optional": true
+      }, {
+        "name": "width",
+        "type": "number",
+        "description": "the width of the outer dimensions of the top-level browsing context, including browser chrome etc...",
+        "optional": true
+      }, {
+        "name": "height",
+        "type": "number",
+        "description": "the height of the outer dimensions of the top-level browsing context, including browser chrome etc...",
+        "optional": true
+      }]
+    }
+  },
+  "/session/:sessionId/window/maximize": {
+    "POST": {
+      "command": "maximizeWindow",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-maximize-window",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window/minimize": {
+    "POST": {
+      "command": "minimizeWindow",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-minimize-window",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window/fullscreen": {
+    "POST": {
+      "command": "fullscreenWindow",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-fullscreen-window",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element": {
+    "POST": {
+      "command": "findElement",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element",
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "a valid element location strategy",
+        "optional": false
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the actual selector that will be used to find an element",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/elements": {
+    "POST": {
+      "command": "findElements",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-elements",
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "a valid element location strategy",
+        "optional": false
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the actual selector that will be used to find an element",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/element/:elementId/element": {
+    "POST": {
+      "command": "findElementFromElement",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element",
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "a valid element location strategy",
+        "optional": false
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the actual selector that will be used to find an element",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/element/:elementId/elements": {
+    "POST": {
+      "command": "findElementsFromElement",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-elements-from-element",
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "a valid element location strategy",
+        "optional": false
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the actual selector that will be used to find an element",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/element/active": {
+    "POST": {
+      "command": "getActiveElement",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-active-element",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/selected": {
+    "GET": {
+      "command": "isElementSelected",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-is-element-selected",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/attribute/:name": {
+    "GET": {
+      "command": "getElementAttribute",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-attribute",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/property/:name": {
+    "GET": {
+      "command": "getElementProperty",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-property",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/css/:propertyName": {
+    "GET": {
+      "command": "getElementCSSValue",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-css-value",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/text": {
+    "GET": {
+      "command": "getActiveElement",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-text",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/name": {
+    "GET": {
+      "command": "getElementTagName",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-tag-name",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/rect": {
+    "GET": {
+      "command": "getElementRect",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-rect",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/enabled": {
+    "GET": {
+      "command": "getElementEnabled",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-is-element-enabled",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/click": {
+    "POST": {
+      "command": "elementClick",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-element-click",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/clear": {
+    "POST": {
+      "command": "elementClear",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-element-clear",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/value": {
+    "POST": {
+      "command": "elementSendKeys",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-element-send-keys",
+      "parameters": [{
+        "name": "text",
+        "value": "string",
+        "description": "string to send as keystrokes to the element",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/source": {
+    "GET": {
+      "command": "getPageSource",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-page-source",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/execute/sync": {
+    "POST": {
+      "command": "executeScript",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-execute-script",
+      "parameters": [{
+        "name": "script",
+        "type": "string",
+        "description": "a string, the Javascript function body you want executed",
+        "optional": false
+      }, {
+        "name": "args",
+        "type": "(string|object|number)[]",
+        "description": "an array of JSON values which will be deserialized and passed as arguments to your function",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/execute/async": {
+    "POST": {
+      "command": "executeAsyncScript",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-execute-async-script",
+      "parameters": [{
+        "name": "script",
+        "type": "string",
+        "description": "a string, the Javascript function body you want executed",
+        "optional": false
+      }, {
+        "name": "args",
+        "type": "(string|object|number)[]",
+        "description": "an array of JSON values which will be deserialized and passed as arguments to your function",
+        "optional": false
+      }]
+    }
+  },
+  "/session/:sessionId/cookie": {
+    "GET": {
+      "command": "getAllCookies",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-all-cookies",
+      "parameters": []
+    },
+    "POST": {
+      "command": "addCookie",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-adding-a-cookie",
+      "parameters": [{
+        "name": "cookie",
+        "type": "object",
+        "description": "A JSON object representing a cookie. It must have at least the name and value fields and could have more, including expiry-time and so on",
+        "optional": false
+      }]
+    },
+    "DELETE": {
+      "command": "deleteAllCookies",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-delete-all-cookies",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/cookie/:name": {
+    "GET": {
+      "command": "getNamedCookie",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-named-cookie",
+      "parameters": []
+    },
+    "DELETE": {
+      "command": "deleteCookie",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-delete-cookie",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/actions": {
+    "POST": {
+      "command": "performActions",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-perform-actions",
+      "parameters": [{
+        "name": "actions",
+        "type": "object[]",
+        "description": "a list of objects, each of which represents an input source and its associated actions",
+        "optional": false
+      }]
+    },
+    "DELETE": {
+      "command": "releaseActions",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-release-actions",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/alert/dismiss": {
+    "POST": {
+      "command": "dismissAlert",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-dismiss-alert"
+    }
+  },
+  "/session/:sessionId/alert/accept": {
+    "POST": {
+      "command": "acceptAlert",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-accept-alert"
+    }
+  },
+  "/session/:sessionId/alert/text": {
+    "GET": {
+      "command": "getAlertText",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-alert-text",
+      "parameters": []
+    },
+    "POST": {
+      "command": "sendAlertText",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-send-alert-text",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/screenshot": {
+    "GET": {
+      "command": "takeScreenshot",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-take-screenshot",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/screenshot": {
+    "GET": {
+      "command": "takeElementScreenshot",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-take-element-screenshot",
+      "parameters": []
+    }
+  }
+}
