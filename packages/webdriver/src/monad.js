@@ -1,5 +1,8 @@
+import logger from 'wdio-logger'
+
 export default function WebDriver (sessionId, options, modifier) {
     const prototype = Object.create(Object.prototype)
+    const log = logger('webdriver')
 
     /**
      * WebDriver monad
@@ -19,6 +22,7 @@ export default function WebDriver (sessionId, options, modifier) {
     unit.lift = function (name, func) {
         prototype[name] = function (...args) {
             const client = unit()
+            log.info('COMMAND', `${name}(${args.join(', ')})`)
             return func.apply(client, args)
         }
     }

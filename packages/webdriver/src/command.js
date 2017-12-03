@@ -1,4 +1,7 @@
+import logger from 'wdio-logger'
 import WebDriverRequest from './request'
+
+const log = logger('webdriver')
 
 export default function (method, endpoint, commandInfo) {
     const { command, ref, parameters } = commandInfo
@@ -41,6 +44,12 @@ export default function (method, endpoint, commandInfo) {
         }
 
         const request = new WebDriverRequest(method, endpoint, body)
-        return request.makeRequest(this.options, this.sessionId)
+        return request.makeRequest(this.options, this.sessionId).then((result) => {
+            if (result.value) {
+                log.info('RESULT', result.value)
+            }
+
+            return result.value
+        })
     }
 }

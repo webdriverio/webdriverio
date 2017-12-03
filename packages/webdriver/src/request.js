@@ -2,10 +2,12 @@ import url from 'url'
 import http from 'http'
 import https from 'https'
 import request from 'request'
+import logger from 'wdio-logger'
 
 import { isSuccessfulResponse } from './utils'
 import pkg from '../package.json'
 
+const log = logger('webdriver')
 const agents = {
     http: new http.Agent({ keepAlive: true }),
     https: new https.Agent({ keepAlive: true })
@@ -30,10 +32,7 @@ export default class WebDriverRequest {
 
     makeRequest (options, sessionId) {
         const fullRequestOptions = Object.assign(this.defaultOptions, this._createOptions(options, sessionId))
-        return this._request(fullRequestOptions, options.connectionRetryCount).then(({ body }) => {
-            const sessionId = body.sessionId || body.value.sessionId
-            return { body, sessionId }
-        })
+        return this._request(fullRequestOptions, options.connectionRetryCount)
     }
 
     _createOptions (options, sessionId) {
@@ -81,13 +80,15 @@ export default class WebDriverRequest {
     }
 
     _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
+        log.debug(`REQUEST ${fullRequestOptions.uri.path}`)
         return new Promise((resolve, reject) => {
+
             request(fullRequestOptions, (err, response, body) => {
                 /**
                  * Resolve only if successful response
                  */
                 if (!err && isSuccessfulResponse(response)) {
-                    return resolve({body, response})
+                    return resolve(body)
                 }
 
                 if (retryCount >= totalRetryCount) {
