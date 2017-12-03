@@ -6,18 +6,20 @@ import request from 'request'
 import { isSuccessfulResponse } from './utils'
 import pkg from '../package.json'
 
-const httpAgent = new http.Agent({ keepAlive: true })
-const httpsAgent = new https.Agent({ keepAlive: true })
+const agents = {
+    http: new http.Agent({ keepAlive: true }),
+    https: new https.Agent({ keepAlive: true })
+}
 
 export default class WebDriverRequest {
     constructor (method, endpoint, body) {
         this.method = method
         this.endpoint = endpoint
-        this.body = body
         this.defaultOptions = {
             method,
-            json: true,
+            body,
             followAllRedirects: true,
+            json: true,
             headers: {
                 'Connection': 'keep-alive',
                 'Accept': 'application/json',
@@ -27,7 +29,7 @@ export default class WebDriverRequest {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = this._createOptions(options, sessionId)
+        const fullRequestOptions = Object.assign(this.defaultOptions, this._createOptions(options, sessionId))
         return this._request(fullRequestOptions, options.connectionRetryCount).then(({ body }) => {
             const sessionId = body.sessionId || body.value.sessionId
             return { body, sessionId }
@@ -35,7 +37,9 @@ export default class WebDriverRequest {
     }
 
     _createOptions (options, sessionId) {
-        const requestOptions = {}
+        const requestOptions = {
+            agent: agents[options.protocol]
+        }
 
         /**
          * if we don't have a session id we set it here, unless we call commands that don't require session ids, for
@@ -51,14 +55,6 @@ export default class WebDriverRequest {
             `${options.hostname}:${options.port}` +
             `${options.path}${this.endpoint.replace(':sessionId', sessionId)}`
         )
-
-        if (options.protocol === 'http') {
-            requestOptions.agent = httpAgent
-        } else if (options.protocol === 'https') {
-            requestOptions.agent = httpsAgent
-        } else {
-            throw new Error(`Unsupported protocol, must be http or https: ${options.protocol}`)
-        }
 
         /**
          * Check for custom authorization header
@@ -81,14 +77,10 @@ export default class WebDriverRequest {
             requestOptions.auth = this.auth
         }
 
-        if (this.method === 'POST') {
-            requestOptions.json = this.body
-        }
-
         return requestOptions
     }
 
-    _request (fullRequestOptions, totalRetryCount, retryCount = 0) {
+    _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
         return new Promise((resolve, reject) => {
             request(fullRequestOptions, (err, response, body) => {
                 /**

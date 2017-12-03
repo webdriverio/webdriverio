@@ -1,6 +1,5 @@
-export default function WebDriver (args, modifier) {
+export default function WebDriver (sessionId, options, modifier) {
     const prototype = Object.create(Object.prototype)
-    const options = Object.assign({}, args)
 
     /**
      * WebDriver monad
@@ -8,6 +7,7 @@ export default function WebDriver (args, modifier) {
     function unit () {
         let client = Object.create(prototype)
         client.options = options
+        client.sessionId = sessionId
 
         if (typeof modifier === 'function') {
             client = modifier(client, options)
