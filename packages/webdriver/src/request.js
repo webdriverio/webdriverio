@@ -80,7 +80,12 @@ export default class WebDriverRequest {
     }
 
     _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
-        log.debug(`REQUEST ${fullRequestOptions.uri.path}`)
+        log.debug(`REQUEST ${fullRequestOptions.uri.href}`)
+
+        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
+            log.debug('DATA', fullRequestOptions.body)
+        }
+
         return new Promise((resolve, reject) => {
 
             request(fullRequestOptions, (err, response, body) => {
