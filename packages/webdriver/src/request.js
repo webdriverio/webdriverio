@@ -1,5 +1,6 @@
 import url from 'url'
 import http from 'http'
+import path from 'path'
 import https from 'https'
 import request from 'request'
 import logger from 'wdio-logger'
@@ -52,7 +53,7 @@ export default class WebDriverRequest {
         requestOptions.uri = url.parse(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            `${options.path}${this.endpoint.replace(':sessionId', sessionId)}`
+            path.resolve(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
         )
 
         /**
@@ -98,7 +99,7 @@ export default class WebDriverRequest {
 
                 if (retryCount >= totalRetryCount) {
                     // ToDo make proper request error
-                    return reject(new Error('request failed'))
+                    return reject(new Error(err || body.value.error))
                 }
 
                 this._request(fullRequestOptions, totalRetryCount, ++retryCount)

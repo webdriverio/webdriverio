@@ -46,7 +46,7 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
      * that has no error property (Appium only)
      */
     if (hasErrorResponse) {
-        log.debug('request failed due to response error')
+        log.debug('request failed due to response error:', body.value.error)
         return false
     }
 

@@ -152,7 +152,7 @@ const DEFAULTS = {
     /**
      * capability of WebDriver session
      */
-    desiredCapabilities: {
+    capabilities: {
         type: 'object',
         required: true
     },
