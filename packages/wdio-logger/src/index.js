@@ -2,11 +2,12 @@ import log from 'loglevel'
 import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 
+const DEFAULT_LEVEL = 5 // silent
 const COLORS = {
     error: 'red',
     warn: 'yellow',
     info: 'cyanBright',
-    debug: 'magenta',
+    debug: 'green',
     trace: 'cyan'
 }
 
@@ -43,7 +44,16 @@ prefix.apply(log, {
     nameFormatter: function (name) { return chalk.whiteBright(name || 'global') }
 });
 
+const loggers = {}
+
 export default function getLogger (name) {
+    /**
+     * check if logger was already initiated
+     */
+    if (loggers[name]) {
+        return loggers[name]
+    }
+
     const originalFactory = log.methodFactory;
     log.methodFactory = function (methodName, logLevel, loggerName) {
         const rawMethod = originalFactory(methodName, logLevel, loggerName);
@@ -59,6 +69,12 @@ export default function getLogger (name) {
             rawMethod(...args)
         };
     };
-    log.setLevel('info')
-    return log.getLogger(name)
+
+    loggers[name] = log.getLogger(name)
+    loggers[name].setLevel(DEFAULT_LEVEL)
+    return loggers[name]
+}
+
+getLogger.setLevel = function (name, level) {
+    loggers[name].setLevel(level)
 }
