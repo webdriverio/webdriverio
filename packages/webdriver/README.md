@@ -10,7 +10,7 @@ There are [tons](https://github.com/christian-bromann/awesome-selenium#javascrip
 The following example demonstrates a simple Google Search scenario:
 
 ```js
-var WebDriver = require('./packages/webdriver')
+import WebDriver from 'webdriver'
 
 ;(async () => {
     const client = await WebDriver.newSession({
