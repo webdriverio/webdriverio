@@ -73,7 +73,7 @@ module.exports = function () {
     /**
      * step definition that runs max 3 times (1 actual run + 2 reruns)
      */
-    this.Given(/^some step definition$/, { retry: 2 }, () => {
+    this.Given(/^some step definition$/, { wrapperOptions: { retry: 2 } }, () => {
         // ...
     })
     // ...
