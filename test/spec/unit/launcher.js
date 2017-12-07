@@ -14,7 +14,7 @@ describe('launcher', () => {
             specs[0].should.contain('index.js')
         })
 
-        it('should overwrite spec property if suite param exists', () => {
+        it('should get suite specs', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 suite: 'suiteA'
             })
@@ -22,6 +22,18 @@ describe('launcher', () => {
             specs.should.have.length(2)
             specs[0].should.endWith('setup-unit.js')
             specs[1].should.endWith('setup.js')
+        })
+
+        it('should get suite specs and individual specs', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                suite: 'suiteA',
+                spec: 'index.js'
+            })
+            let specs = launcher.configParser.getSpecs()
+            specs.should.have.length(3)
+            specs[0].should.endWith('index.js')
+            specs[1].should.endWith('setup-unit.js')
+            specs[2].should.endWith('setup.js')
         })
 
         it('should not overwrite spec property if suite is not defined', () => {
