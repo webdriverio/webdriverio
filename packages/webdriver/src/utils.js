@@ -52,3 +52,42 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
 
     return true
 }
+
+/**
+ * checks if command argument is valid according to specificiation
+ *
+ * @param  {*}       arg           command argument
+ * @param  {Object}  commandParam  corresponding parameter description
+ * @return {Boolean}               true if argument is valid
+ */
+export function isValidParameter (arg, commandParam) {
+    let shouldBeArray = false
+    let expectedType = commandParam.type
+
+    if (expectedType.slice(-2) === '[]') {
+        expectedType = expectedType.slice(0, -2)
+        shouldBeArray = true
+    }
+
+    /**
+     * check type of each individual array element
+     */
+    if (shouldBeArray) {
+        if (!Array.isArray(arg)) {
+            return false
+        }
+    } else {
+        /**
+         * transform to array to have a unified check
+         */
+        arg = [arg]
+    }
+
+    for (const argEntity of arg) {
+        if (!(typeof argEntity).match(expectedType)) {
+            return false
+        }
+    }
+
+    return true
+}
