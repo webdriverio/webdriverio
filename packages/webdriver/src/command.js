@@ -1,5 +1,6 @@
 import logger from 'wdio-logger'
 import WebDriverRequest from './request'
+import { isValidParameter } from './utils'
 
 const log = logger('webdriver')
 
@@ -39,10 +40,12 @@ export default function (method, endpoint, commandInfo) {
          * parameter type check
          */
         for (const [i, arg] of Object.entries(args)) {
-            if (!(typeof arg).match(commandParams[i].type)) {
+            const commandParam = commandParams[i]
+
+            if (!isValidParameter(arg, commandParam)) {
                 throw new Error(
-                    `Malformed type for "${commandParams[i].name}" parameter of command ${command}\n` +
-                    `Expected: ${commandParams[i].type}\n` +
+                    `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
+                    `Expected: ${commandParam.type}\n` +
                     `Actual: ${typeof arg}` +
                     moreInfo
                 )
