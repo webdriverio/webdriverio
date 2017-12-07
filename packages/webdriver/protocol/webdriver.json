@@ -7,7 +7,7 @@
         "name": "capabilities",
         "type": "object",
         "description": "a JSON object, the set of capabilities that was ultimately merged and matched in the capability processing algorithm",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -38,17 +38,17 @@
         "name": "script",
         "type": "number",
         "description": "integer in ms for session script timeout",
-        "optional": false
+        "required": true
       }, {
         "name": "pageLoad",
         "type": "number",
         "description": "integer in ms for session page load timeout",
-        "optional": false
+        "required": true
       }, {
         "name": "implicit",
         "type": "number",
         "description": "integer in ms for session implicit wait timeout",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -65,7 +65,7 @@
         "name": "url",
         "type": "string",
         "description": "string representing an absolute URL (beginning with http(s)), possibly including a fragment (#...), could also be a local scheme (about: etc)",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -115,7 +115,7 @@
         "name": "handle",
         "type": "string",
         "description": "a string representing a window handle, should be one of the strings that was returned in a call to getWindowHandles",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -134,7 +134,7 @@
         "name": "id",
         "type": "(number|string|object)",
         "description": "one of three possible types: null: this represents the top-level browsing context (i.e., not an iframe), a Number, representing the index of the window object corresponding to a frame, a string representing an element id. The element must be the frame or iframe to be selected",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -158,22 +158,22 @@
         "name": "x",
         "type": "number",
         "description": "the screenX attribute of the window object",
-        "optional": true
+        "required": true
       }, {
         "name": "y",
         "type": "number",
         "description": "the screenY attribute of the window object",
-        "optional": true
+        "required": true
       }, {
         "name": "width",
         "type": "number",
         "description": "the width of the outer dimensions of the top-level browsing context, including browser chrome etc...",
-        "optional": true
+        "required": true
       }, {
         "name": "height",
         "type": "number",
         "description": "the height of the outer dimensions of the top-level browsing context, including browser chrome etc...",
-        "optional": true
+        "required": true
       }]
     }
   },
@@ -206,12 +206,12 @@
         "name": "using",
         "type": "string",
         "description": "a valid element location strategy",
-        "optional": false
+        "required": true
       }, {
         "name": "value",
         "type": "string",
         "description": "the actual selector that will be used to find an element",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -223,12 +223,12 @@
         "name": "using",
         "type": "string",
         "description": "a valid element location strategy",
-        "optional": false
+        "required": true
       }, {
         "name": "value",
         "type": "string",
         "description": "the actual selector that will be used to find an element",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -244,12 +244,12 @@
         "name": "using",
         "type": "string",
         "description": "a valid element location strategy",
-        "optional": false
+        "required": true
       }, {
         "name": "value",
         "type": "string",
         "description": "the actual selector that will be used to find an element",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -265,12 +265,12 @@
         "name": "using",
         "type": "string",
         "description": "a valid element location strategy",
-        "optional": false
+        "required": true
       }, {
         "name": "value",
         "type": "string",
         "description": "the actual selector that will be used to find an element",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -406,9 +406,9 @@
       }],
       "parameters": [{
         "name": "text",
-        "value": "string",
+        "type": "string",
         "description": "string to send as keystrokes to the element",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -427,12 +427,12 @@
         "name": "script",
         "type": "string",
         "description": "a string, the Javascript function body you want executed",
-        "optional": false
+        "required": true
       }, {
         "name": "args",
         "type": "(string|object|number)[]",
         "description": "an array of JSON values which will be deserialized and passed as arguments to your function",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -444,12 +444,12 @@
         "name": "script",
         "type": "string",
         "description": "a string, the Javascript function body you want executed",
-        "optional": false
+        "required": true
       }, {
         "name": "args",
         "type": "(string|object|number)[]",
         "description": "an array of JSON values which will be deserialized and passed as arguments to your function",
-        "optional": false
+        "required": true
       }]
     }
   },
@@ -466,7 +466,7 @@
         "name": "cookie",
         "type": "object",
         "description": "A JSON object representing a cookie. It must have at least the name and value fields and could have more, including expiry-time and so on",
-        "optional": false
+        "required": true
       }]
     },
     "DELETE": {
@@ -503,7 +503,7 @@
         "name": "actions",
         "type": "object[]",
         "description": "a list of objects, each of which represents an input source and its associated actions",
-        "optional": false
+        "required": true
       }]
     },
     "DELETE": {

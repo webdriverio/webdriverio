@@ -1,0 +1,622 @@
+{
+  "/session/:sessionId/appium/device/shake": {
+    "POST": {
+      "command": "shake",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/interactions/shake.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/lock": {
+    "POST": {
+      "command": "lock",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/interactions/lock.md",
+      "parameters": [{
+        "name": "seconds",
+        "type": "number",
+        "description": "how long to lock the screen (iOS only)"
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/unlock": {
+    "POST": {
+      "command": "unlock",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/interactions/unlock.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/is_locked": {
+    "POST": {
+      "command": "isLocked",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/interactions/is-locked.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/start_recording_screen": {
+    "POST": {
+      "command": "startRecordingScreen",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": [{
+        "name": "filePath",
+        "type": "string",
+        "description": "path to save video file",
+        "required": true
+      }, {
+        "name": "videoSize",
+        "type": "number",
+        "description": "max amount of bytes the video file should get",
+        "required": true
+      }, {
+        "name": "timeLimit",
+        "type": "number",
+        "description": "max time length of video",
+        "required": true
+      }, {
+        "name": "bitRate",
+        "type": "number",
+        "description": "bit rate of video",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/stop_recording_screen": {
+    "POST": {
+      "command": "stopRecordingScreen",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/performanceData/types": {
+    "POST": {
+      "command": "getPerformanceDataTypes",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/performance-data/performance-data-types.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/getPerformanceData": {
+    "POST": {
+      "command": "getPerformanceDataTypes",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/performance-data/get-performance-data.md",
+      "parameters": [{
+        "name": "packageName",
+        "type": "string",
+        "description": "the package name of the application",
+        "required": true
+      }, {
+        "name": "dataType",
+        "type": "string",
+        "description": "the type of system state which wants to read. It should be one of the supported performance data types",
+        "required": true
+      }, {
+        "name": "dataReadTimeout",
+        "type": "number",
+        "description": "the number of attempts to read",
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/press_keycode": {
+    "POST": {
+      "command": "pressKeyCode",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/keys/press-keycode.md",
+      "parameters": [{
+        "name": "keycode",
+        "type": "string",
+        "description": "keycode to press",
+        "required": true
+      }, {
+        "name": "metastate",
+        "type": "string",
+        "description": "meta state to press the keycode with",
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/long_press_keycode": {
+    "POST": {
+      "command": "longPressKeyCode",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/keys/long-press-keycode.md",
+      "parameters": [{
+        "name": "keycode",
+        "type": "string",
+        "description": "keycode to press on the device",
+        "required": true
+      }, {
+        "name": "metastate",
+        "type": "string",
+        "description": "metastate for the keypress",
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/keyevent": {
+    "POST": {
+      "command": "keyevent",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": [{
+        "name": "keycode",
+        "type": "string",
+        "description": "keycode to press",
+        "required": true
+      }, {
+        "name": "metastate",
+        "type": "string",
+        "description": "meta state to press the keycode with",
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/rotate": {
+    "POST": {
+      "command": "getPerformanceDataTypes",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/interactions/rotate.md",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "x offset to use for the center of the rotate gesture",
+        "default": 0
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "y offset to use for the center of the rotate gesture",
+        "default": 0
+      }, {
+        "name": "radius",
+        "type": "number",
+        "description": "the distance in points from the center to the edge of the circular path",
+        "default": 0
+      }, {
+        "name": "rotation",
+        "type": "number",
+        "description": "the length of rotation in radians",
+        "default": 3.14159265359
+      }, {
+        "name": "touchCount",
+        "type": "number",
+        "description": "the number of touches to use in the specified gesture",
+        "default": 2
+      }, {
+        "name": "duration",
+        "type": "number",
+        "description": "the length of hold time for the specified gesture, in seconds",
+        "default": 1
+      }, {
+        "name": "element",
+        "type": "string",
+        "description": "the id of an element returned in a previous call to execute the rotation on"
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/current_activity": {
+    "POST": {
+      "command": "getCurrentActivity",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/activity/current-activity.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/current_package": {
+    "GET": {
+      "command": "getCurrentPackage",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/activity/current-package.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/install_app": {
+    "POST": {
+      "command": "installApp",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": [{
+        "name": "appPath",
+        "type": "string",
+        "description": "path to application .apk file",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/remove_app": {
+    "POST": {
+      "command": "removeApp",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/remove-app.md",
+      "parameters": [{
+        "name": "appId",
+        "type": "string[]",
+        "description": "id of applications to remove",
+        "required": true
+      }, {
+        "name": "bundleId",
+        "type": "string[]",
+        "description": "id of bundles to remove"
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/app_installed": {
+    "POST": {
+      "command": "isAppInstalled",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/is-app-installed.md",
+      "parameters": [{
+        "name": "bundleId",
+        "type": "string",
+        "description": "id of bundle to check if installed",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/hide_keyboard": {
+    "POST": {
+      "command": "hideKeyboard",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/keys/hide-keyboard.md",
+      "parameters": [{
+        "name": "strategy",
+        "type": "string",
+        "description": "hide keyboard strategy (UIAutomation only), available strategies - 'press', 'pressKey', 'swipeDown', 'tapOut', 'tapOutside', 'default'"
+      }, {
+        "name": "key",
+        "type": "string",
+        "description": "key value if strategy is 'pressKey'"
+      }, {
+        "name": "keyCode",
+        "type": "string",
+        "description": "key code if strategy is 'pressKey'"
+      }, {
+        "name": "keyName",
+        "type": "string",
+        "description": "key name if strategy is 'pressKey'"
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/is_keyboard_shown": {
+    "GET": {
+      "command": "isKeyboardShown",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/keys/is-keyboard-shown.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/push_file": {
+    "POST": {
+      "command": "pushFile",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/files/push-file.md",
+      "parameters": [{
+        "name": "path",
+        "type": "string",
+        "description": "path to install the data to",
+        "required": true
+      }, {
+        "name": "data",
+        "type": "string",
+        "description": "contents of file in base64",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/pull_file": {
+    "POST": {
+      "command": "pullFile",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/files/pull-file.md",
+      "parameters": [{
+        "name": "path",
+        "type": "string",
+        "description": "path on the device to pull file from",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/pull_folder": {
+    "POST": {
+      "command": "pullFolder",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/files/pull-folder.md",
+      "parameters": [{
+        "name": "path",
+        "type": "string",
+        "description": "path to an entire folder on the device",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/toggle_airplane_mode": {
+    "POST": {
+      "command": "toggleFlightMode",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/toggle-airplane-mode.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/toggle_data": {
+    "POST": {
+      "command": "toggleData",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/toggle-data.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/toggle_wifi": {
+    "POST": {
+      "command": "toggleWiFi",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/toggle-wifi.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/toggle_location_services": {
+    "POST": {
+      "command": "toggleLocationServices",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/toggle-location-services.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/open_notifications": {
+    "POST": {
+      "command": "openNotifications",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/system/open-notifications.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/start_activity": {
+    "POST": {
+      "command": "startActivity",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/activity/start-activity.md",
+      "parameters": [{
+        "name": "appPackage",
+        "type": "string",
+        "description": "name of app",
+        "required": true
+      }, {
+        "name": "appActivity",
+        "type": "string",
+        "description": "name of activity",
+        "required": true
+      }, {
+        "name": "appWaitPackage",
+        "type": "string",
+        "description": "name of app to wait for",
+      }, {
+        "name": "appWaitActivity",
+        "type": "string",
+        "description": "name of activity to wait for",
+      }, {
+        "name": "intentAction",
+        "type": "string",
+        "description": "intent action which will be used to start activity",
+        "default": "android.intent.action.MAIN"
+      }, {
+        "name": "intentCategory",
+        "type": "string",
+        "description": "intent category which will be used to start activity",
+        "default": "android.intent.category.LAUNCHER"
+      }, {
+        "name": "intentFlags",
+        "type": "string",
+        "description": "flags that will be used to start activity",
+        "default": "0x10200000"
+      }, {
+        "name": "optionalIntentArguments",
+        "type": "string",
+        "description": "additional intent arguments that will be used to start activity",
+      }, {
+        "name": "dontStopAppOnReset",
+        "type": "string",
+        "description": "doesn’t stop the process of the app under test, before starting the app using adb"
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/system_bars": {
+    "GET": {
+      "command": "getSystemBars",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/system/system-bars.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/system_time": {
+    "GET": {
+      "command": "getDeviceTime",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/system/system-time.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/device/display_density": {
+    "GET": {
+      "command": "getDisplayDensity",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/simulator/touch_id": {
+    "POST": {
+      "command": "touchId",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/simulator/touch-id.md",
+      "parameters": [{
+        "name": "match",
+        "type": "boolean",
+        "description": "are we simulating a successful touch (true) or a failed touch (false)",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/simulator/toggle_touch_id_enrollment": {
+    "POST": {
+      "command": "toggleEnrollTouchId",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/simulator/toggle-touch-id-enrollment.md",
+      "parameters": [{
+        "name": "enabled",
+        "type": "boolean",
+        "description": "equals to true if TouchID enrollment should be enabled",
+        "default": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/app/launch": {
+    "POST": {
+      "command": "launchApp",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/launch-app.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/app/close": {
+    "POST": {
+      "command": "closeApp",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/close-app.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/app/reset": {
+    "POST": {
+      "command": "reset",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/reset-app.md",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/appium/app/background": {
+    "POST": {
+      "command": "background",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/background-app.md",
+      "parameters": [{
+        "name": "duration",
+        "type": "number",
+        "description": "timeout to restore app, if 'null' app won't be restored",
+        "default": "null"
+      }]
+    }
+  },
+  "/session/:sessionId/appium/app/end_test_coverage": {
+    "POST": {
+      "command": "endCoverage",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/end-test-coverage.md",
+      "parameters": [{
+        "name": "intent",
+        "type": "string",
+        "description": "intent to broadcast",
+        "required": true
+      }, {
+        "name": "path",
+        "type": "string",
+        "description": "path to .ec file",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/app/strings": {
+    "POST": {
+      "command": "getStrings",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/app/get-app-strings.md",
+      "parameters": [{
+        "name": "language",
+        "type": "string",
+        "description": "language code"
+      }, {
+        "name": "stringFile",
+        "type": "string",
+        "description": "path to the string file"
+      }]
+    }
+  },
+  "/session/:sessionId/appium/element/:elementId/value": {
+    "POST": {
+      "command": "setValueImmediate",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": [{
+        "name": "value",
+        "type": "string",
+        "description": "value to set on element",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/element/:elementId/replace_value": {
+    "POST": {
+      "command": "replaceValue",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": [{
+        "name": "value",
+        "type": "string",
+        "description": "value to replace on element",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/settings": {
+    "GET": {
+      "command": "getSettings",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": []
+    },
+    "POST": {
+      "command": "updateSettings",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": [{
+        "name": "settings",
+        "type": "object",
+        "description": "key/value object with settings to update",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/receive_async_response": {
+    "POST": {
+      "command": "receiveAsyncResponse",
+      "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
+      "parameters": [{
+        "name": "response",
+        "type": "object",
+        "description": "response to receive on device",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/gsm_call": {
+    "POST": {
+      "command": "gsmCall",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/gsm-call.md",
+      "parameters": [{
+        "name": "phoneNumber",
+        "type": "string",
+        "description": "the phone number to call to",
+        "required": true
+      }, {
+        "name": "action",
+        "type": "string",
+        "description": "The action - 'call', 'accept', 'cancel', 'hold'",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/gsm_call": {
+    "POST": {
+      "command": "gsmSignal",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/gsm-signal.md",
+      "parameters": [{
+        "name": "signalStrengh",
+        "type": "string",
+        "description": "signal strength in the range [0, 4]",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/gsm_voice": {
+    "POST": {
+      "command": "gsmVoice",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/gsm-voice.md",
+      "parameters": [{
+        "name": "state",
+        "type": "string",
+        "description": "state of GSM voice - 'unregistered', 'home', 'roaming', 'searching', 'denied', 'off', 'on'",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/appium/device/gsm_voice": {
+    "POST": {
+      "command": "sendSms",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/send-sms.md",
+      "parameters": [{
+        "name": "phoneNumber",
+        "type": "string",
+        "description": "the phone number to send the SMS too",
+        "required": true
+      }, {
+        "name": "message",
+        "type": "string",
+        "description": "the SMS message",
+        "required": true
+      }]
+    }
+  }
+}
