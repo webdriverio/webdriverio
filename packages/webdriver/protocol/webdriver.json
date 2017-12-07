@@ -236,6 +236,10 @@
     "POST": {
       "command": "findElementFromElement",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": [{
         "name": "using",
         "type": "string",
@@ -253,6 +257,10 @@
     "POST": {
       "command": "findElementsFromElement",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-elements-from-element",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": [{
         "name": "using",
         "type": "string",
@@ -277,6 +285,10 @@
     "GET": {
       "command": "isElementSelected",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-is-element-selected",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   },
@@ -284,6 +296,13 @@
     "GET": {
       "command": "getElementAttribute",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-attribute",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }, {
+        "name": "name",
+        "description": "name of the attribute value to retrieve"
+      }],
       "parameters": []
     }
   },
@@ -291,6 +310,13 @@
     "GET": {
       "command": "getElementProperty",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-property",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }, {
+        "name": "name",
+        "description": "name of the attribute property to retrieve"
+      }],
       "parameters": []
     }
   },
@@ -298,6 +324,13 @@
     "GET": {
       "command": "getElementCSSValue",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-css-value",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }, {
+        "name": "propertyName",
+        "description": "name of the CSS property to retrieve"
+      }],
       "parameters": []
     }
   },
@@ -312,6 +345,10 @@
     "GET": {
       "command": "getElementTagName",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-tag-name",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   },
@@ -319,6 +356,10 @@
     "GET": {
       "command": "getElementRect",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-rect",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   },
@@ -326,6 +367,10 @@
     "GET": {
       "command": "getElementEnabled",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-is-element-enabled",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   },
@@ -333,6 +378,10 @@
     "POST": {
       "command": "elementClick",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-element-click",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   },
@@ -340,6 +389,10 @@
     "POST": {
       "command": "elementClear",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-element-clear",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   },
@@ -347,6 +400,10 @@
     "POST": {
       "command": "elementSendKeys",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-element-send-keys",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": [{
         "name": "text",
         "value": "string",
@@ -422,11 +479,19 @@
     "GET": {
       "command": "getNamedCookie",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-named-cookie",
+      "variables": [{
+        "name": "name",
+        "description": "name of the cookie to retrieve"
+      }],
       "parameters": []
     },
     "DELETE": {
       "command": "deleteCookie",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-delete-cookie",
+      "variables": [{
+        "name": "name",
+        "description": "name of the cookie to retrieve"
+      }],
       "parameters": []
     }
   },
@@ -482,6 +547,10 @@
     "GET": {
       "command": "takeElementScreenshot",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-take-element-screenshot",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   }
