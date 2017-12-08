@@ -4,32 +4,25 @@ const DEFAULT_PORT = 4444
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export default function detectBackend (options) {
-    /**
-     * don't detect anything if host or port is given
-     */
-    if (options.host && options.port) {
-        return Object.assign(options, {
-            host: options.host,
-            port: options.port
-        })
-    }
+export default function detectBackend (options = {}) {
+    const { port, host, key } = options
 
     /**
-     * local Selenium server
+     * don't detect anything if host or port is given or
+     * if no creds are given default to local WebDriver server
      */
-    if (!options.user && !options.key) {
-        return Object.assign(options, {
+    if (host || port || (!options.user && !options.key)) {
+        return Object.assign({
             host: DEFAULT_HOST,
             port: DEFAULT_PORT
-        })
+        }, options)
     }
 
     /**
      * browserstack
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
-    if (options.key.length === 20) {
+    if (key.length === 20) {
         return Object.assign(options, {
             host: 'hub.browserstack.com',
             port: 80
@@ -40,7 +33,7 @@ export default function detectBackend (options) {
      * testingbot
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
-    if (options.key.length === 32) {
+    if (key.length === 32) {
         return Object.assign(options, {
             host: 'hub.testingbot.com',
             port: 80
