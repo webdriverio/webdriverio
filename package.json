@@ -1,7 +1,9 @@
 {
   "private": true,
   "scripts": {
-    "test": ""
+    "lint": "eslint packages",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -16,8 +18,18 @@
     "babel-register": "^6.24.1",
     "eslint": "^4.7.2",
     "eslint-plugin-import": "^2.8.0",
+    "jest": "^21.2.1",
     "lerna": "^2.5.1",
     "npm-run-all": "^4.0.2"
   },
-  "jest": {}
+  "jest": {
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
+  }
 }
