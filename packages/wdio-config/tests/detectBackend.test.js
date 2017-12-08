@@ -1,6 +1,6 @@
 import detectBackend from '../src/detectBackend'
 
-describe('WebdriverIO detects Selenium backend', () => {
+describe('detectBackend', () => {
     it('should not set anything if host is set in caps', () => {
         const caps = {
             host: '0.0.0.0',
