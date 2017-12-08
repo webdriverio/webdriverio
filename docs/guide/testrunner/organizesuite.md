@@ -97,7 +97,7 @@ or run multiple suites at once
 $ wdio wdio.conf.js --suite login,otherFeature
 ```
 
-## Run Single Test Suites
+## Run Single Test Specs
 
 If you are working on your WebdriverIO tests you don't want to execute your whole suite everytime you added an assertion or any other code. With the `--spec` parameter you can specify which suite (Mocha, Jasmine) or feature (Cucumber) should be run. For example if you only want to run your login test, do:
 
@@ -105,7 +105,21 @@ If you are working on your WebdriverIO tests you don't want to execute your whol
 $ wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
+or run multiple specs at once
+
+```sh
+$ wdio wdio.conf.js --spec ./test/specs/signup.js,./test/specs/forgot-password.js
+```
+
 Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`) you _can't_ use for example `describe.only` at the top of your spec file to say Mocha to only run that suite. This feature will help you though to do that in the same way.
+
+## Run Suites and Test Specs
+
+This will allow you to run an entire suite along with individual spec's.
+
+```sh
+$ wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
+```
 
 ## Run Multiple, Specific Test Specs
 
