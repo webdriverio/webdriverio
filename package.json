@@ -4,7 +4,7 @@
     "clean": "run-p clean:*",
     "clean:build": "rm -r ./packages/*/build",
     "clean:build": "rm -r ./packages/*/node_modules",
-    "bootstrap": "npm run clean && lerna bootstrap",
+    "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- touch ./.git",
     "build": "lerna run build",
     "lint": "eslint packages",
     "test": "jest",
