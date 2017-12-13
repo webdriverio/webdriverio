@@ -33,6 +33,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "babel-runtime": "^6.26.0",
     "deepmerge": "^2.0.1",
     "request": "^2.83.0",
     "wdio-config": "^0.1.0",
