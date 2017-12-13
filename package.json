@@ -5,7 +5,7 @@
     "clean:build": "rm -fr ./packages/*/build",
     "clean:build": "rm -fr ./packages/*/node_modules",
     "clean:fakegit": "rm -fr ./packages/*/.git",
-    "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- ln -s ../../.git ./",
+    "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git",
     "build": "lerna run build",
     "lint": "eslint packages",
     "test": "jest",
