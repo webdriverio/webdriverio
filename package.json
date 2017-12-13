@@ -2,8 +2,9 @@
   "private": true,
   "scripts": {
     "clean": "run-p clean:*",
-    "clean:build": "rm -r ./packages/*/build",
-    "clean:build": "rm -r ./packages/*/node_modules",
+    "clean:build": "rm -fr ./packages/*/build",
+    "clean:build": "rm -fr ./packages/*/node_modules",
+    "clean:fakegit": "rm -fr ./packages/*/.git",
     "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- ln -s ../../.git ./",
     "build": "lerna run build",
     "lint": "eslint packages",
