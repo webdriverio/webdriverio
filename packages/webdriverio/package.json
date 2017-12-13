@@ -22,9 +22,9 @@
     "compile": "babel src/ -d build/",
     "lint": "eslint src test",
     "release": "npm run release:patch",
-    "release:patch": "np patch",
-    "release:minor": "np minor",
-    "release:major": "np major",
+    "release:patch": "np patch --no-cleanup",
+    "release:minor": "np minor --no-cleanup",
+    "release:major": "np major --no-cleanup",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "watch": "npm run compile -- --watch"
