@@ -21,6 +21,7 @@
     "clean": "rm -rf ./build ./coverage",
     "compile": "babel src/ -d build/",
     "lint": "eslint src test",
+    "postversion": "git tag -d $(git tag -l)",
     "release": "npm run release:patch",
     "release:patch": "np patch --no-cleanup",
     "release:minor": "np minor --no-cleanup",

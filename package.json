@@ -8,7 +8,6 @@
     "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git",
     "build": "lerna run build",
     "lint": "eslint packages",
-    "postversion": "git tag -d $(git tag -l)",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },
