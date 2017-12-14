@@ -2,6 +2,10 @@ dist: trusty
 language: node_js
 
 node_js:
-  - '8'
+  - 8
 
-script: npm run ci
+before_script:
+  - npm run bootstrap
+
+script:
+  - npm run ci
