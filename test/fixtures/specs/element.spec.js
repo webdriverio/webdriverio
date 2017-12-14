@@ -45,6 +45,17 @@ describe('element as first class citizen', () => {
         )
     })
 
+    it('can lazy load chained elements but does respect not found elements for isExisting and isVisible', () => {
+        const elem = $('#notExisting')
+        expect(elem.$('div').isExisting()).to.be.equal(false)
+        expect(elem.$('div').isVisible()).to.be.equal(false)
+    })
+
+    it('can lazy load chained elements but does respect not found elements with $$ for isExisting and isVisible', () => {
+        const elem = $('#notExisting')
+        expect(elem.$$('div').length).to.be.equal(0)
+    })
+
     it('should allow to call waitForExist on elements result', () => {
         let element = browser.elements('//div[text()="Sorry, I\'m late!"]')
         let start = new Date().getTime()
