@@ -60,3 +60,4 @@ typings/
 **/build
 /*.js
 !.eslintrc.js
+package-lock.json
