@@ -1,0 +1,41 @@
+{
+  "name": "wdio-cli",
+  "version": "0.0.1",
+  "description": "WebdriverIO testrunner command line interface",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-cli",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">= 4.8.5"
+  },
+  "scripts": {
+    "build": "run-s clean compile",
+    "clean": "rm -rf ./build ./coverage",
+    "compile": "babel src/ -d build/",
+    "lint": "eslint src test",
+    "postversion": "git tag -d $(git tag -l)",
+    "release": "npm run release:patch",
+    "release:patch": "np patch --no-cleanup",
+    "release:minor": "np minor --no-cleanup",
+    "release:major": "np major --no-cleanup",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "watch": "npm run compile -- --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "webdriverio",
+    "wdio",
+    "wdio-cli"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+  }
+}
