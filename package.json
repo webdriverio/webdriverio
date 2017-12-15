@@ -8,8 +8,8 @@
     "clean:fakegit": "rm -fr ./packages/*/.git",
     "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git",
     "build": "lerna run build",
-    "lint": "eslint packages",
-    "test": "jest",
+    "test": "run-s test:*",
+    "test:eslint": "eslint packages",
     "test:coverage": "jest --coverage"
   },
   "devDependencies": {
