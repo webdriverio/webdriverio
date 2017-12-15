@@ -1,6 +1,6 @@
 {
   "name": "wdio-cli",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-cli",
@@ -10,9 +10,10 @@
     "node": ">= 4.8.5"
   },
   "scripts": {
-    "build": "run-s clean compile",
+    "build": "run-s clean compile copy",
     "clean": "rm -rf ./build",
     "compile": "babel src/ -d build/",
+    "copy": "cp -r src/templates build/",
     "postversion": "npm run build && git tag -d $(git tag -l)",
     "release": "npm run release:patch",
     "release:patch": "np patch --no-cleanup",
@@ -36,5 +37,10 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "ejs": "^2.5.7",
+    "inquirer": "^4.0.1",
+    "npm-install-package": "^2.1.0",
+    "wdio-config": "^0.1.0",
+    "yargs": "^10.0.3"
   }
 }
