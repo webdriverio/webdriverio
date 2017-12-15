@@ -8,8 +8,5 @@ before_script:
   - npm run bootstrap
   - npm run build
 
-script:
-  - npm run ci
-
 after_script:
   - ./node_modules/.bin/codecov

@@ -1,7 +1,6 @@
 {
   "private": true,
   "scripts": {
-    "ci": "run-s lint test:coverage",
     "clean": "run-p clean:*",
     "clean:build": "rm -fr ./packages/*/build",
     "clean:node_modules": "rm -fr ./packages/*/node_modules",
