@@ -43,7 +43,7 @@ describe('launcher', () => {
             expect(() => launcher.configParser.getSpecs()).to.throw(/The suite\(s\) "foo" you specified don't exist/)
         })
 
-        it('should allow to pass spec as cli argument to run only once test file', () => {
+        it('should allow to pass spec as cli argument to run only one test file', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 spec: './test/spec/unit/launcher.js'
             })
@@ -60,6 +60,15 @@ describe('launcher', () => {
             specs.should.have.length(2)
             specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
             specs[1].should.endWith(path.resolve('lib', 'webdriverio.js'))
+        })
+
+        it('should filter specs with spec as a cli argument', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                spec: 'index'
+            })
+            let specs = launcher.configParser.getSpecs()
+            specs.should.have.length(1)
+            specs[0].should.contain('index.js')
         })
 
         it('should throw if specified spec file doesnt exist', () => {
