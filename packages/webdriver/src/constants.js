@@ -171,12 +171,6 @@ const DEFAULTS = {
         type: (param) => typeof param === 'string' || param instanceof Writable
     },
     /**
-     * Shorten navigateTo command calls by setting a base url
-     */
-    baseUrl: {
-        type: 'string'
-    },
-    /**
      * Timeout for any request to the Selenium server
      */
     connectionRetryTimeout: {
