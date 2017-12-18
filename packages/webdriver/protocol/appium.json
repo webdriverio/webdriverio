@@ -89,7 +89,7 @@
       }, {
         "name": "dataReadTimeout",
         "type": "number",
-        "description": "the number of attempts to read",
+        "description": "the number of attempts to read"
       }]
     }
   },
@@ -105,7 +105,7 @@
       }, {
         "name": "metastate",
         "type": "string",
-        "description": "meta state to press the keycode with",
+        "description": "meta state to press the keycode with"
       }]
     }
   },
@@ -121,7 +121,7 @@
       }, {
         "name": "metastate",
         "type": "string",
-        "description": "metastate for the keypress",
+        "description": "metastate for the keypress"
       }]
     }
   },
@@ -137,7 +137,7 @@
       }, {
         "name": "metastate",
         "type": "string",
-        "description": "meta state to press the keycode with",
+        "description": "meta state to press the keycode with"
       }]
     }
   },
@@ -359,11 +359,11 @@
       }, {
         "name": "appWaitPackage",
         "type": "string",
-        "description": "name of app to wait for",
+        "description": "name of app to wait for"
       }, {
         "name": "appWaitActivity",
         "type": "string",
-        "description": "name of activity to wait for",
+        "description": "name of activity to wait for"
       }, {
         "name": "intentAction",
         "type": "string",
@@ -382,7 +382,7 @@
       }, {
         "name": "optionalIntentArguments",
         "type": "string",
-        "description": "additional intent arguments that will be used to start activity",
+        "description": "additional intent arguments that will be used to start activity"
       }, {
         "name": "dontStopAppOnReset",
         "type": "string",
@@ -578,7 +578,7 @@
       }]
     }
   },
-  "/session/:sessionId/appium/device/gsm_call": {
+  "/session/:sessionId/appium/device/gsm_signal": {
     "POST": {
       "command": "gsmSignal",
       "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/device/network/gsm-signal.md",
