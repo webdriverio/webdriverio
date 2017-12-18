@@ -71,7 +71,7 @@
       }, {
         "name": "elementId",
         "type": "object[]",
-        "description": "the id of an element returned in a previous call to Find Element(s)",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
       }]
     }
   },
