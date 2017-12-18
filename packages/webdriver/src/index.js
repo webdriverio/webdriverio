@@ -5,7 +5,12 @@ import webdriverMonad from './monad'
 import command from './command'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
+
 import WebDriverProtocol from '../protocol/webdriver.json'
+import MJsonWProtocol from '../protocol/mjsonwp.json'
+import AppiumProtocol from '../protocol/appium.json'
+
+const ProtocolCommands = Object.assign(WebDriverProtocol, MJsonWProtocol, AppiumProtocol)
 
 export default class WebDriver {
     static async newSession (options = {}, modifier) {
@@ -19,16 +24,38 @@ export default class WebDriver {
         )
 
         const { value: { sessionId, capabilities } } = await sessionRequest.makeRequest(params)
-        options.capabilities = capabilities
-        const monad = webdriverMonad(sessionId, params, modifier)
+        params.capabilities = capabilities
+        const monad = webdriverMonad(params, modifier)
 
-        for (const [endpoint, methods] of Object.entries(WebDriverProtocol)) {
+        for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
             for (const [method, commandData] of Object.entries(methods)) {
                 monad.lift(commandData.command, command(method, endpoint, commandData))
             }
         }
 
-        const prototype = monad()
+        const prototype = monad(sessionId)
         return prototype
+    }
+
+    static get WebDriver () {
+        return WebDriver
+    }
+    static get DEFAULTS () {
+        return DEFAULTS
+    }
+    static get WebDriverProtocol () {
+        return WebDriverProtocol
+    }
+    static get MJsonWProtocol () {
+        return MJsonWProtocol
+    }
+    static get AppiumProtocol () {
+        return AppiumProtocol
+    }
+    static get webdriverMonad () {
+        return webdriverMonad
+    }
+    static get command () {
+        return command
     }
 }
