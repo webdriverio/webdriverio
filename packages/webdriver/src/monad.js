@@ -16,6 +16,10 @@ export default function WebDriver (sessionId, options, modifier) {
             client = modifier(client, options)
         }
 
+        client.addCommand = function (name, func) {
+            unit.lift(name, func)
+        }
+
         return client
     }
 
