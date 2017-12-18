@@ -98,10 +98,13 @@ export default class WebDriverRequest {
                 }
 
                 if (retryCount >= totalRetryCount) {
-                    // ToDo make proper request error
-                    return reject(new Error(err || body.value.error))
+                    const error = new Error(err || body.value.error)
+                    log.error('Request failed after retry due to', error)
+                    return reject(error)
                 }
 
+                log.warn('Request failed due to', err.message)
+                log.info(`Retrying ${retryCount + 1}/${totalRetryCount}`)
                 this._request(fullRequestOptions, totalRetryCount, ++retryCount)
                     .then(resolve)
                     .catch(reject)
