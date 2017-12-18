@@ -14,10 +14,16 @@ You can write your own custom reporter for the wdio test runner that fits your n
 var util = require('util'),
     events = require('events');
 
-var CustomReporter = function(options) {
-    // you can access reporter options via
-    // `options.reporterOptions`
-    // ...
+var CustomReporter = function(baseReporter, config, options) {
+    // you can access reporter options via reporterOptions object againts your custom reporter
+    // For example,  in your configuration file you have:
+    // reporterOptions: {
+    //     CustomReporter: {
+    //         outputDir: './custom_report'
+    //     }
+    // },
+    // 
+    // then in your custom reporter, you can acess: options.outputDir
 };
 
 /**
