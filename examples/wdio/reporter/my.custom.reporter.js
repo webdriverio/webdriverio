@@ -1,8 +1,8 @@
 var util = require('util'),
     events = require('events');
 
-var CustomReporter = function(options) {
-    console.log('initialised custom reporter with the following reporter options:', options.reporterOptions);
+var CustomReporter = function(baseReporter, config, options) {
+    console.log('initialised custom reporter with the following reporter options:', options);
 
     this.on('start', function() {
         console.log('start');
