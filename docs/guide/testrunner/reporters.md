@@ -15,7 +15,7 @@ var util = require('util'),
     events = require('events');
 
 var CustomReporter = function(baseReporter, config, options) {
-    // you can access reporter options via reporterOptions object againts your custom reporter
+    // you can access reporter options via reporterOptions object against your custom reporter
     // For example,  in your configuration file you have:
     // reporterOptions: {
     //     CustomReporter: {
