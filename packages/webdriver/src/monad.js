@@ -1,13 +1,13 @@
 import logger from 'wdio-logger'
 
-export default function WebDriver (sessionId, options, modifier) {
+export default function WebDriver (options, modifier) {
     const prototype = Object.create(Object.prototype)
     const log = logger('webdriver')
 
     /**
      * WebDriver monad
      */
-    function unit () {
+    function unit (sessionId) {
         let client = Object.create(prototype)
         client.options = options
         client.sessionId = sessionId
