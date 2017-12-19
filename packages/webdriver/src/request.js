@@ -90,6 +90,8 @@ export default class WebDriverRequest {
         return new Promise((resolve, reject) => {
 
             request(fullRequestOptions, (err, response, body) => {
+                const error = new Error(err || body.value.message)
+
                 /**
                  * Resolve only if successful response
                  */
@@ -98,12 +100,11 @@ export default class WebDriverRequest {
                 }
 
                 if (retryCount >= totalRetryCount) {
-                    const error = new Error(err || body.value.error)
                     log.error('Request failed after retry due to', error)
                     return reject(error)
                 }
 
-                log.warn('Request failed due to', err.message)
+                log.warn('Request failed due to', error.message)
                 log.info(`Retrying ${retryCount + 1}/${totalRetryCount}`)
                 this._request(fullRequestOptions, totalRetryCount, ++retryCount)
                     .then(resolve)
