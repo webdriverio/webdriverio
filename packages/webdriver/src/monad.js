@@ -24,9 +24,16 @@ export default function WebDriver (options, modifier) {
     }
 
     unit.lift = function (name, func) {
-        prototype[name] = function (...args) {
+        prototype[name] = function next (...args) {
             const client = unit(this.sessionId)
             log.info('COMMAND', `${name}(${args.join(', ')})`)
+
+            /**
+             * set name of function for better error stack
+             */
+            Object.defineProperty(func, 'name', { writable: true })
+            func.name = name
+
             return func.apply(client, args)
         }
     }
