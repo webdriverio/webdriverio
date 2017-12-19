@@ -84,7 +84,7 @@ export default class WebDriverRequest {
         log.debug(`REQUEST ${fullRequestOptions.uri.href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.debug('DATA', fullRequestOptions.body)
+            log.info('DATA', fullRequestOptions.body)
         }
 
         return new Promise((resolve, reject) => {
