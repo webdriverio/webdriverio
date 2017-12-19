@@ -25,7 +25,7 @@ export default function WebDriver (options, modifier) {
 
     unit.lift = function (name, func) {
         prototype[name] = function (...args) {
-            const client = unit()
+            const client = unit(this.sessionId)
             log.info('COMMAND', `${name}(${args.join(', ')})`)
             return func.apply(client, args)
         }
