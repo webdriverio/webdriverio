@@ -44,5 +44,5 @@ export default function url (path) {
         path = nodeUrl.resolve(this.options.baseUrl, path)
     }
 
-    return this.navigateTo({ url: path })
+    return this.navigateTo(path)
 }
