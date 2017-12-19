@@ -3,6 +3,7 @@ const HOOK_DEFINITION = {
     type: (param) => Array.isArray(param),
     default: []
 }
+export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 export const WDIO_DEFAULTS = {
     /**

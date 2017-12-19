@@ -36,39 +36,35 @@ import path from 'path'
 import { webdriverMonad, WebDriverProtocol, MJsonWProtocol, AppiumProtocol, command } from 'webdriver'
 
 import { findStrategy } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
 
-const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
-
-let $ = function (selector) {
+export default async function $ (selector) {
     const { using, value } = findStrategy(selector)
-    return this.findElement(using, value).then((res) => {
-        const element = webdriverMonad(this.options, (client) => {
-            client.elementId = res[ELEMENT_KEY]
-            return client
-        })
-
-        /**
-         * register protocol commands
-         */
-        const ProtocolCommands = Object.assign(WebDriverProtocol, MJsonWProtocol, AppiumProtocol)
-        for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
-            for (const [method, commandData] of Object.entries(methods)) {
-                element.lift(commandData.command, command(method, endpoint, commandData))
-            }
-        }
-
-        /**
-         * register action commands
-         */
-        const dir = path.resolve(__dirname, '..', 'element')
-        const files = fs.readdirSync(dir)
-        for (let filename of files) {
-            const commandName = filename.slice(0, -3)
-            element.lift(commandName, require(path.join(dir, commandName)))
-        }
-
-        return element(this.sessionId)
+    const res = await this.findElement(using, value)
+    const element = webdriverMonad(this.options, (client) => {
+        client.elementId = res[ELEMENT_KEY]
+        return client
     })
-}
 
-export default $
+    /**
+     * register protocol commands
+     */
+    const ProtocolCommands = Object.assign(WebDriverProtocol, MJsonWProtocol, AppiumProtocol)
+    for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
+        for (const [method, commandData] of Object.entries(methods)) {
+            element.lift(commandData.command, command(method, endpoint, commandData))
+        }
+    }
+
+    /**
+     * register action commands
+     */
+    const dir = path.resolve(__dirname, '..', 'element')
+    const files = fs.readdirSync(dir)
+    for (let filename of files) {
+        const commandName = filename.slice(0, -3)
+        element.lift(commandName, require(path.join(dir, commandName)))
+    }
+
+    return element(this.sessionId)
+}
