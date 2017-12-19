@@ -2,24 +2,20 @@ import fs from 'fs'
 import path from 'path'
 
 import validateConfig from 'wdio-config'
-import { WebDriverProtocol, MJsonWProtocol, AppiumProtocol, webdriverMonad, command } from 'webdriver'
+import WebDriver from 'webdriver'
 
 import { WDIO_DEFAULTS } from './constants'
 
-const ProtocolCommands = [...WebDriverProtocol, ...MJsonWProtocol, ...AppiumProtocol]
+const remote = async function (params = {}, modifier) {
+    const client = await WebDriver.newSession(params, (client, options) => {
+        options = Object.assign(options, validateConfig(WDIO_DEFAULTS, params))
 
-const remote = function (options = {}, modifier) {
-    const params = validateConfig(WDIO_DEFAULTS, options)
-    const monad = webdriverMonad(params, modifier)
-
-    /**
-     * register protcol commands
-     */
-    for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
-        for (const [method, commandData] of Object.entries(methods)) {
-            monad.lift(commandData.command, command(method, endpoint, commandData))
+        if (typeof modifier === 'function') {
+            client = modifier(client, options)
         }
-    }
+
+        return client
+    })
 
     /**
      * register action commands
@@ -28,11 +24,10 @@ const remote = function (options = {}, modifier) {
     const files = fs.readdirSync(dir)
     for (let filename of files) {
         const commandName = filename.slice(0, -3)
-        monad.lift(commandName, require(path.join(dir, commandName)))
+        client.addCommand(commandName, require(path.join(dir, commandName)))
     }
 
-    const prototype = monad()
-    return prototype
+    return client
 }
 
 const multiremote = function () {
