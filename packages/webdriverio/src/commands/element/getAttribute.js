@@ -33,12 +33,5 @@
  */
 
 export default function getAttribute (attributeName) {
-    /*!
-     * parameter check
-     */
-    if (typeof attributeName !== 'string') {
-        throw new Error('number or type of arguments don\'t agree with getAttribute command')
-    }
-
     return this.getElementAttribute(this.elementId, attributeName)
 }
