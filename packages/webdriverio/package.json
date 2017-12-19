@@ -61,7 +61,7 @@
     "test:unit": "jest"
   },
   "dependencies": {
-    "wdio-cli": "^0.0.1",
+    "wdio-cli": "^0.0.5",
     "wdio-config": "^0.1.0",
     "wdio-logger": "^0.1.0",
     "webdriver": "^0.0.4"
