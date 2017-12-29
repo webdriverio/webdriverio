@@ -1,6 +1,29 @@
 const DEFAULT_TEST_TIMEOUT = 30000
 const HOOK_DEFINITION = {
-    type: (param) => Array.isArray(param),
+    type: (param) => {
+        /**
+         * option must be an array
+         */
+        if (!Array.isArray(param)) {
+            return false
+        }
+
+        /**
+         * array elements must be functions
+         */
+        for (const option of param) {
+            /**
+             * either a string
+             */
+            if (typeof option === 'function') {
+                continue
+            }
+
+            return false
+        }
+
+        return true
+    },
     default: []
 }
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
