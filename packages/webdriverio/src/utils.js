@@ -1,3 +1,7 @@
+import fs from 'fs'
+import path from 'path'
+import { WebDriverProtocol, MJsonWProtocol, AppiumProtocol, command } from 'webdriver'
+
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
 
@@ -138,4 +142,29 @@ const findStrategy = function (...args) {
     return { using, value }
 }
 
-export { findStrategy }
+/**
+ * enhances objects with element commands
+ */
+const liftElement = (scope) => {
+    /**
+     * register protocol commands
+     */
+    const ProtocolCommands = Object.assign(WebDriverProtocol, MJsonWProtocol, AppiumProtocol)
+    for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
+        for (const [method, commandData] of Object.entries(methods)) {
+            scope.lift(commandData.command, command(method, endpoint, commandData))
+        }
+    }
+
+    /**
+     * register action commands
+     */
+    const dir = path.resolve(__dirname, 'commands', 'element')
+    const files = fs.readdirSync(dir)
+    for (let filename of files) {
+        const commandName = filename.slice(0, -3)
+        scope.lift(commandName, require(path.join(dir, commandName)))
+    }
+}
+
+export { findStrategy, liftElement }
