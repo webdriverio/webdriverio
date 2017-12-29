@@ -34,6 +34,7 @@ const multiremote = function () {
     /**
      * ToDo implement multiremote here
      */
+    return 'NYI'
 }
 
 export { remote, multiremote }
