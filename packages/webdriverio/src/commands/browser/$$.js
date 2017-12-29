@@ -1,8 +1,8 @@
 /**
- * The `$` command is a short way to call the [`element`](/api/protocol/element.html) command in order
- * to fetch a single element on the page. It returns an object that with an extended prototype to call
- * action commands without passing in a selector. However if you still pass in a selector it will look
- * for that element first and call the action on that element.
+ * The `$$` command is a short way to call the [`elements`](/api/protocol/elements.html) command in order
+ * to fetch multiple elements on the page. It returns an array with element results that will have an
+ * extended prototype to call action commands without passing in a selector. However if you still pass
+ * in a selector it will look for that element first and call the action on that element.
  *
  * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
  *
@@ -25,8 +25,8 @@
     });
  * </example>
  *
- * @alias $
- * @param {String} selector  selector to fetch a certain element
+ * @alias $$
+ * @param {String} selector  selector to fetch multiple elements
  * @type utility
  *
  */
@@ -37,12 +37,17 @@ import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
     const { using, value } = findStrategy(selector)
-    const res = await this.findElement(using, value)
-    const element = webdriverMonad(this.options, (client) => {
-        client.elementId = res[ELEMENT_KEY]
-        return client
+    const res = await this.findElements(using, value)
+
+    const elements = res.map((res) => {
+        const element = webdriverMonad(this.options, (client) => {
+            client.elementId = res[ELEMENT_KEY]
+            return client
+        })
+
+        liftElement(element)
+        return element(this.sessionId)
     })
 
-    liftElement(element)
-    return element(this.sessionId)
+    return elements
 }

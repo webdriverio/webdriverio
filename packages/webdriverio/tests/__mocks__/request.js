@@ -17,6 +17,14 @@ const request = jest.fn().mockImplementation((params, cb) => {
         value = {
             [ELEMENT_KEY]: 'some-elem-123'
         }
+        break;
+    case `/wd/hub/session/${sessionId}/elements`:
+        value = [
+            { [ELEMENT_KEY]: 'some-elem-123' },
+            { [ELEMENT_KEY]: 'some-elem-456' },
+            { [ELEMENT_KEY]: 'some-elem-789' },
+        ]
+        break;
     }
 
     cb(null, {
