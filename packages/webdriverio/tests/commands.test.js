@@ -62,7 +62,7 @@ describe('commands test', () => {
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/foo')
         })
 
-        it('should check if element is selected', async () => {
+        it('should allow to check if element is selected', async () => {
             await elem.isSelected();
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/selected')
         });
