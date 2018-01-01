@@ -30,5 +30,5 @@
  */
 
 export default function isSelected() {
-    return this.isElementSelected(this.elementId);
+    return this.isElementSelected(this.elementId)
 }
