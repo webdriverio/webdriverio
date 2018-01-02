@@ -76,6 +76,11 @@ describe('commands test', () => {
             await elem.getText()
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/text')
         })
+
+        it('should allow to clear an input element', async () => {
+            await elem.clearElement()
+            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/clear')
+        })
     })
 
     describe('elements commands', () => {

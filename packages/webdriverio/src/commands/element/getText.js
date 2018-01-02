@@ -39,6 +39,6 @@
  *
  */
 
-export default function getAttribute () {
+export default function getText () {
     return this.getElementText(this.elementId)
 }

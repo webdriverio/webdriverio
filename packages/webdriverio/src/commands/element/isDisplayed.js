@@ -33,6 +33,6 @@
  *
  */
 
-export default function isVisible() {
+export default function isDisplayed() {
     return this.isElementDisplayed(this.elementId)
 }
