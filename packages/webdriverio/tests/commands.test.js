@@ -71,6 +71,11 @@ describe('commands test', () => {
             await elem.isDisplayed()
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
         })
+
+        it('should allow to get the text of an element', async () => {
+            await elem.getText()
+            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/text')
+        })
     })
 
     describe('elements commands', () => {
