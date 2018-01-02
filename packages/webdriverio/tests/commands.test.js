@@ -92,8 +92,14 @@ describe('commands test', () => {
             expect(elems).toHaveLength(3)
 
             expect(elems[0].elementId).toBe('some-elem-123')
+            expect(elems[0].selector).toBe('.foo')
+            expect(elems[0].index).toBe(0)
             expect(elems[1].elementId).toBe('some-elem-456')
+            expect(elems[1].selector).toBe('.foo')
+            expect(elems[1].index).toBe(1)
             expect(elems[2].elementId).toBe('some-elem-789')
+            expect(elems[2].selector).toBe('.foo')
+            expect(elems[2].index).toBe(2)
         })
     })
 
