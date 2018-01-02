@@ -38,9 +38,11 @@ export default async function $ (selector) {
     const { using, value } = findStrategy(selector)
     const res = await this.findElements(using, value)
 
-    const elements = res.map((res) => {
+    const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
             client.elementId = getElementFromResponse(res)
+            client.selector = selector
+            client.index = i
             return client
         })
 
