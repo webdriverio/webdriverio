@@ -20,11 +20,14 @@ export default class WebDriver {
         const sessionRequest = new WebDriverRequest(
             'POST',
             '/session',
-            { capabilities: params.capabilities }
+            {
+                capabilities: params.capabilities, // W3C compliant
+                desiredCapabilities: params.capabilities // JSONWP compliant
+            }
         )
 
-        const { value: { sessionId, capabilities } } = await sessionRequest.makeRequest(params)
-        params.capabilities = capabilities
+        const response = await sessionRequest.makeRequest(params)
+        params.capabilities = response.value.capabilities || response.value
         const monad = webdriverMonad(params, modifier)
 
         for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
@@ -33,7 +36,7 @@ export default class WebDriver {
             }
         }
 
-        const prototype = monad(sessionId)
+        const prototype = monad(response.value.sessionId || response.sessionId)
         return prototype
     }
 

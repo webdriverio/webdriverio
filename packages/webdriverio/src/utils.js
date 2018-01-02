@@ -2,6 +2,8 @@ import fs from 'fs'
 import path from 'path'
 import { WebDriverProtocol, MJsonWProtocol, AppiumProtocol, command } from 'webdriver'
 
+import { ELEMENT_KEY } from './constants'
+
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
 
@@ -167,4 +169,25 @@ const liftElement = (scope) => {
     }
 }
 
-export { findStrategy, liftElement }
+const getElementFromResponse = (res) => {
+    /**
+     * depcrecated JSONWireProtocol response
+     */
+    if (res.ELEMENT) {
+        return res.ELEMENT
+    }
+
+    /**
+     * W3C WebDriver response
+     */
+    if (res[ELEMENT_KEY]) {
+        return res[ELEMENT_KEY]
+    }
+
+    /**
+     * throw if nothing was found
+     */
+    throw new Error(`Element couldn't found in given response: ${JSON.stringify(res)}`)
+}
+
+export { findStrategy, liftElement, getElementFromResponse }

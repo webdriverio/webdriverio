@@ -1,4 +1,4 @@
-import { findStrategy } from '../src/utils'
+import { findStrategy, getElementFromResponse } from '../src/utils'
 
 describe('utils', () => {
     describe('selector strategies helper', () => {
@@ -252,6 +252,20 @@ describe('utils', () => {
             element = findStrategy('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
             expect(element.using).toBe('css selector')
             expect(element.value).toBe('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
+        })
+    })
+
+    describe('getElementFromResponse', () => {
+        it('should find element from JSONWireProtocol response', () => {
+            expect(getElementFromResponse({ ELEMENT: 'foobar' })).toBe('foobar')
+        })
+
+        it('should find element from W3C response', () => {
+            expect(getElementFromResponse({ 'element-6066-11e4-a52e-4f735466cecf': 'barfoo' })).toBe('barfoo')
+        })
+
+        it('should throw otherwise', () => {
+            expect(() => getElementFromResponse({ invalid: 'response '})).toThrow()
         })
     })
 })
