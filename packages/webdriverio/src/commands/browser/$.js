@@ -32,14 +32,13 @@
  */
 import { webdriverMonad } from 'webdriver'
 
-import { findStrategy, liftElement } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
+import { findStrategy, liftElement, getElementFromResponse } from '../../utils'
 
 export default async function $ (selector) {
     const { using, value } = findStrategy(selector)
     const res = await this.findElement(using, value)
     const element = webdriverMonad(this.options, (client) => {
-        client.elementId = res[ELEMENT_KEY]
+        client.elementId = getElementFromResponse(res)
         return client
     })
 

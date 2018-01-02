@@ -90,7 +90,7 @@ export default class WebDriverRequest {
         return new Promise((resolve, reject) => {
 
             request(fullRequestOptions, (err, response, body) => {
-                const error = new Error(err || body.value.message)
+                const error = new Error(err || (body.value ? body.value.message : body))
 
                 /**
                  * Resolve only if successful response
