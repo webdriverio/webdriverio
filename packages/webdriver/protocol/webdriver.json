@@ -345,10 +345,14 @@
       "parameters": []
     }
   },
-  "/session/:sessionId/element/text": {
+  "/session/:sessionId/element/:elementId/text": {
     "GET": {
-      "command": "getActiveElement",
+      "command": "getElementText",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-text",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
       "parameters": []
     }
   },
