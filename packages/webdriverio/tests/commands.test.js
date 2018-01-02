@@ -81,6 +81,11 @@ describe('commands test', () => {
             await elem.clearElement()
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/clear')
         })
+
+        it('should allow to the the tag name of an element', async () => {
+            await elem.getTagName()
+            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/name')
+        })
     })
 
     describe('elements commands', () => {
