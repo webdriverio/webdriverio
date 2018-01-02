@@ -292,6 +292,17 @@
       "parameters": []
     }
   },
+  "/session/:sessionId/element/:elementId/displayed": {
+    "GET": {
+      "command": "isElementDisplayed",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#c-element-displayedness",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": []
+    }
+  },
   "/session/:sessionId/element/:elementId/attribute/:name": {
     "GET": {
       "command": "getElementAttribute",
