@@ -61,7 +61,7 @@
   },
   "/session/:sessionId/touch/multi/perform": {
     "GET": {
-      "command": "touchPerform",
+      "command": "multiTouchPerform",
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#touch-gestures",
       "parameters": [{
         "name": "actions",
