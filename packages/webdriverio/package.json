@@ -6,9 +6,6 @@
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
   "main": "./build/index.js",
-  "bin": {
-    "wdio": "./bin/wdio.js"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"

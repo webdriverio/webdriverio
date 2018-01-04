@@ -6,6 +6,9 @@
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-cli",
   "license": "MIT",
   "main": "./build/index",
+  "bin": {
+    "wdio": "./bin/wdio.js"
+  },
   "engines": {
     "node": ">= 4.8.5"
   },
