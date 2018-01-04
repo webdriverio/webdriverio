@@ -350,6 +350,7 @@ class Launcher {
             execArgv
         })
 
+        runner.run()
         this.runner.push(runner)
 
         runner
