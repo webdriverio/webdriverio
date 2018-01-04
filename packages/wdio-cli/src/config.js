@@ -148,6 +148,11 @@ export const QUESTIONNAIRE = [{
     message: 'Where should your tests be launched',
     choices: SUPPORTED_LAUNCHERS
 }, {
+    type: 'confirm',
+    name: 'installLauncher',
+    message: 'Shall I install the launcher plugin for you?',
+    default: true
+}, {
     type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',

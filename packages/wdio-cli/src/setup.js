@@ -10,6 +10,9 @@ export default function setup () {
     console.log(CONFIG_HELPER_INTRO) // eslint-disable-line no-console
     inquirer.prompt(QUESTIONNAIRE).then((answers) => {
         let packagesToInstall = []
+        if (answers.installLauncher) {
+            packagesToInstall.push(`wdio-${answers.launcher}-launcher`)
+        }
         if (answers.installFramework) {
             packagesToInstall.push(`wdio-${answers.framework}-framework`)
         }
