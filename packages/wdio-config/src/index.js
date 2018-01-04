@@ -1,3 +1,5 @@
+import detectBackend from './detectBackend'
+
 export default function validateConfig (defaults, options) {
     const params = {}
 
@@ -32,3 +34,5 @@ export default function validateConfig (defaults, options) {
 
     return params
 }
+
+export { validateConfig, detectBackend }
