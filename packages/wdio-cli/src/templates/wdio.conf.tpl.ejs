@@ -1,4 +1,11 @@
 exports.config = {
+    // ======================
+    // Launcher Configuration
+    // ======================
+    // WebdriverIO allows it to launch your tests in arbitrary locations (e.g. locally) or
+    // on a remote machine.
+    launcher: '<%= answers.launcher %>',
+    //
     <% if(answers.host && answers.port) { %>//
     // =====================
     // Server Configurations

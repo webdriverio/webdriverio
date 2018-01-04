@@ -5,31 +5,35 @@ export const SUPPORTED_FRAMEWORKS = [
 ]
 
 export const SUPPORTED_REPORTER = [
-    ' dot - https://github.com/webdriverio/wdio-dot-reporter',
-    ' spec - https://github.com/webdriverio/wdio-spec-reporter',
-    ' junit - https://github.com/webdriverio/wdio-junit-reporter',
-    ' allure - https://github.com/webdriverio/wdio-allure-reporter',
-    ' teamcity - https://github.com/sullenor/wdio-teamcity-reporter',
-    ' json - https://github.com/fijijavis/wdio-json-reporter',
-    ' concise - https://github.com/FloValence/wdio-concise-reporter',
-    ' testrail - https://github.com/oxynade/wdio-testrail-reporter',
-    ' mochawesome - https://github.com/fijijavis/wdio-mochawesome-reporter'
+    ' dot - https://www.npmjs.com/package/wdio-dot-reporter',
+    ' spec - https://www.npmjs.com/package/wdio-spec-reporter',
+    ' junit - https://www.npmjs.com/package/wdio-junit-reporter',
+    ' allure - https://www.npmjs.com/package/wdio-allure-reporter',
+    ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
+    ' json - https://www.npmjs.com/package/wdio-json-reporter',
+    ' concise - https://www.npmjs.com/package/wdio-concise-reporter',
+    ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
-    ' sauce - https://github.com/webdriverio/wdio-sauce-service',
-    ' browserstack - https://github.com/itszero/wdio-browserstack-service',
-    ' testingbot - https://github.com/testingbot/wdio-testingbot-service',
-    ' appium - https://github.com/rhysd/wdio-appium-service',
-    ' firefox-profile - https://github.com/webdriverio/wdio-firefox-profile-service',
-    ' selenium-standalone - https://github.com/webdriverio/wdio-selenium-standalone-service',
-    ' phantomjs - https://github.com/cognitom/wdio-phantomjs-service',
-    ' static-server - https://github.com/LeadPages/wdio-static-server-service',
-    ' visual-regression - https://github.com/zinserjan/wdio-visual-regression-service',
-    ' webpack - https://github.com/leadpages/wdio-webpack-service',
-    ' webpack-dev-server - https://gitlab.com/Vinnl/wdio-webpack-dev-server-service',
-    ' chromedriver - https://github.com/atti187/wdio-chromedriver-service',
-    ' iedriver - https://github.com/atti187/wdio-iedriver-service'
+    ' sauce - https://www.npmjs.com/package/wdio-sauce-service',
+    ' browserstack - https://www.npmjs.com/package/wdio-browserstack-service',
+    ' testingbot - https://www.npmjs.com/package/wdio-testingbot-service',
+    ' appium - https://www.npmjs.com/package/wdio-appium-service',
+    ' firefox-profile - https://www.npmjs.com/package/wdio-firefox-profile-service',
+    ' selenium-standalone - https://www.npmjs.com/package/wdio-selenium-standalone-service',
+    ' phantomjs - https://www.npmjs.com/package/wdio-phantomjs-service',
+    ' static-server - https://www.npmjs.com/package/wdio-static-server-service',
+    ' visual-regression - https://www.npmjs.com/package/wdio-visual-regression-service',
+    ' webpack - https://www.npmjs.com/package/wdio-webpack-service',
+    ' webpack-dev-server - https://www.npmjs.com/package/wdio-webpack-dev-server-service',
+    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
+    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service'
+]
+
+export const SUPPORTED_LAUNCHERS = [
+    ' locally - https://www.npmjs.com/package/wdio-local-launcher'
 ]
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
@@ -140,8 +144,13 @@ export const CLI_PARAMS = [{
 
 export const QUESTIONNAIRE = [{
     type: 'list',
+    name: 'launcher',
+    message: 'Where should your tests be launched',
+    choices: SUPPORTED_LAUNCHERS
+}, {
+    type: 'list',
     name: 'backend',
-    message: 'Where do you want to execute your tests?',
+    message: 'Where is your automation backend located?',
     choices: [
         'On my local machine',
         'In the cloud using Sauce Labs, Browserstack or Testingbot',
