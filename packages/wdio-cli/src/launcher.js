@@ -1,5 +1,3 @@
-import path from 'path'
-import child from 'child_process'
 import logger from 'wdio-logger'
 
 import ConfigParser from './lib/ConfigParser'
@@ -21,10 +19,10 @@ class Launcher {
         this.exitCode = 0
         this.hasTriggeredExitRoutine = false
         this.hasStartedAnyProcess = false
-        this.processes = []
+        this.runner = []
         this.schedule = []
         this.rid = []
-        this.processesStarted = 0
+        this.runnerStarted = 0
         this.runnerFailed = 0
     }
 
@@ -296,10 +294,10 @@ class Launcher {
      * @param  {Array} specs  Specs to run
      * @param  {Number} cid  Capabilities ID
      */
-    startInstance (specs, caps, cid, server) {
+    startInstance (spec, caps, cid, server) {
         let config = this.configParser.getConfig()
         cid = this.getRunnerId(cid)
-        let processNumber = this.processesStarted + 1
+        let processNumber = this.runnerStarted + 1
 
         // process.debugPort defaults to 5858 and is set even when process
         // is not being debugged.
@@ -337,30 +335,28 @@ class Launcher {
         // If an arg appears multiple times the last occurrence is used
         let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
 
-        let childProcess = child.fork(path.join(__dirname, '/runner.js'), process.argv.slice(2), {
-            cwd: process.cwd(),
-            execArgv
-        })
-
-        this.processes.push(childProcess)
-
-        childProcess
-            .on('message', this.messageHandler.bind(this, cid))
-            .on('exit', this.endHandler.bind(this, cid))
-
-        childProcess.send({
+        // prefer launcher settings in capabilities over general launcher
+        const Launcher = caps.launcher || config.launcher
+        const runner = new Launcher({
             cid,
             command: 'run',
             configFile: this.configFile,
             argv: this.argv,
             caps,
             processNumber,
-            specs,
+            spec,
             server,
-            isMultiremote: this.isMultiremote()
+            isMultiremote: this.isMultiremote(),
+            execArgv
         })
 
-        this.processesStarted++
+        this.runner.push(runner)
+
+        runner
+            .on('message', this.messageHandler.bind(this, cid))
+            .on('exit', this.endHandler.bind(this, cid))
+
+        this.runnerStarted++
     }
 
     /**
@@ -447,12 +443,10 @@ class Launcher {
             // SIGINT will not be forwarded to childs.
             // Thus for the child to exit cleanly, we must force send SIGINT
             if (!process.stdin.isTTY) {
-                this.processes.forEach(p => p.kill('SIGINT'))
+                this.runner.forEach(r => r.kill('SIGINT'))
             }
 
-            /**
-             * finish with exit code 1
-             */
+            // finish with exit code 1
             return this.resolve(1)
         }
 
@@ -460,7 +454,7 @@ class Launcher {
         // SIGINT will not be forwarded to childs.
         // Thus for the child to exit cleanly, we must force send SIGINT
         if (!process.stdin.isTTY) {
-            this.processes.forEach(p => p.kill('SIGINT'))
+            this.runner.forEach(r => r.kill('SIGINT'))
         }
 
         log.log(`
