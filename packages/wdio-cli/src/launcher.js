@@ -1,7 +1,7 @@
 import logger from 'wdio-logger'
 
 import ConfigParser from './lib/ConfigParser'
-import { getLauncher, initReporters, runServiceHook } from './utils'
+import { getLauncher, initReporters, runServiceHook, initialisePlugin } from './utils'
 
 const log = logger('wdio-cli:Launcher')
 
@@ -245,7 +245,7 @@ class Launcher {
         let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
 
         // prefer launcher settings in capabilities over general launcher
-        const Launcher = caps.launcher || config.launcher
+        const Launcher = initialisePlugin(caps.launcher || config.launcher, 'launcher')
         const runner = new Launcher({
             cid,
             command: 'run',

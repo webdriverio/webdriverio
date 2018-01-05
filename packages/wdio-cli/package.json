@@ -43,6 +43,7 @@
     "deepmerge": "^2.0.1",
     "ejs": "^2.5.7",
     "inquirer": "^4.0.1",
+    "lodash.pickby": "^4.6.0",
     "npm-install-package": "^2.1.0",
     "wdio-config": "^0.1.0",
     "wdio-logger": "^0.1.0",

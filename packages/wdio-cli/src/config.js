@@ -33,7 +33,7 @@ export const SUPPORTED_SERVICES = [
 ]
 
 export const SUPPORTED_LAUNCHERS = [
-    ' locally - https://www.npmjs.com/package/wdio-local-launcher'
+    ' local - https://www.npmjs.com/package/wdio-local-launcher'
 ]
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
@@ -146,7 +146,8 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'launcher',
     message: 'Where should your tests be launched',
-    choices: SUPPORTED_LAUNCHERS
+    choices: SUPPORTED_LAUNCHERS,
+    filter: (launcher) => launcher.map((l) => `wdio-${l.split(/-/)[0].trim()}-launcher`)
 }, {
     type: 'confirm',
     name: 'installLauncher',

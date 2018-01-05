@@ -1,5 +1,7 @@
 import fs from 'fs'
+import path from 'path'
 import yargs from 'yargs'
+import pickBy from 'lodash.pickby'
 
 import { CLI_PARAMS, USAGE } from './config'
 import run from './run'
@@ -16,8 +18,9 @@ for (const param of CLI_PARAMS) {
     argv = argv.option(param.name, param)
 }
 
-const params = argv.argv
-let wdioConf = params._[0] || (fs.existsSync('./wdio.conf.js') ? 'wdio.conf.js' : null)
+const params = pickBy(argv.argv)
+const localConf = path.join(process.cwd(), 'wdio.conf.js')
+const wdioConf = params._[0] || (fs.existsSync(localConf) ? localConf : null)
 
 /**
  * use wdio.conf.js default file name if no config was specified
