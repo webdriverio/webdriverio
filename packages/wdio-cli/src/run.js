@@ -1,3 +1,9 @@
+import logger from 'wdio-logger'
+
+import Launcher from './launcher.js'
+
+const log = logger('wdio-cli:utils')
+
 export default function run (wdioConf, params) {
     let stdinData = ''
 
@@ -30,9 +36,9 @@ export default function run (wdioConf, params) {
 }
 
 function launch (wdioConf, params) {
-    console.log('Run suite with config', wdioConf, 'and params', params) // eslint-disable-line no-console
-    // let launcher = new Launcher(wdioConf, params)
-    // launcher.run().then(
-    //     (code) => process.exit(code),
-    //     (e) => process.nextTick(() => { throw e }))
+    log.debug('Run suite with config', wdioConf, 'and params', params) // eslint-disable-line no-console
+    let launcher = new Launcher(wdioConf, params)
+    launcher.run().then(
+        (code) => process.exit(code),
+        (e) => process.nextTick(() => { throw e }))
 }

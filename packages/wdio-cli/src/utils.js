@@ -50,14 +50,6 @@ export function getLauncher (config) {
 export function initReporters (config) {
     let reporter = new BaseReporter()
 
-    /**
-     * if no reporter is set or config property is in a wrong format
-     * just use the dot reporter
-     */
-    if (!config.reporters || !Array.isArray(config.reporters) || !config.reporters.length) {
-        config.reporters = ['dot']
-    }
-
     const reporters = {}
 
     for (let reporterName of config.reporters) {
@@ -110,6 +102,26 @@ export function initReporters (config) {
     }
 
     return reporter
+}
+
+/**
+ * initialise WebdriverIO compliant plugins
+ */
+export function initialisePlugin (name, type) {
+    const pkgName = `wdio-${name}-${type}`
+
+    try {
+        return require(pkgName)
+    } catch (e) {
+        if (!e.message.match(`Cannot find module '${pkgName}'`)) {
+            throw new Error(`Couldn't initialise ${type} "${name}".\n${e.stack}`)
+        }
+
+        throw new Error(
+            `Couldn't find plugin "${pkgName}". You need to install it ` +
+            `with \`$ npm install ${pkgName}\`!\n${e.stack}`
+        )
+    }
 }
 
 /**

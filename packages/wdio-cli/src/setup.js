@@ -41,7 +41,7 @@ export default function setup () {
 }
 
 function renderConfigurationFile (answers) {
-    let tpl = fs.readFileSync(path.join(__dirname, '/templates/wdio.conf.ejs'), 'utf8')
+    let tpl = fs.readFileSync(path.join(__dirname, '/templates/wdio.conf.tpl.ejs'), 'utf8')
     let renderedTpl = ejs.render(tpl, { answers })
     fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
     console.log(CONFIG_HELPER_SUCCESS_MESSAGE) // eslint-disable-line no-console
