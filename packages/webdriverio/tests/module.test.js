@@ -13,7 +13,10 @@ jest.mock('webdriver', () => {
 })
 
 jest.mock('wdio-config', () => {
-    const validateConfigMock = jest.fn()
+    const validateConfigMock = {
+        validateConfig: jest.fn(),
+        detectBackend: jest.fn()
+    }
     return validateConfigMock
 })
 

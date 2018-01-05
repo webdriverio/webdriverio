@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
-import validateConfig from 'wdio-config'
 import WebDriver from 'webdriver'
+import { validateConfig } from 'wdio-config'
 
 import { WDIO_DEFAULTS } from './constants'
 
