@@ -1,7 +1,7 @@
 import logger from 'wdio-logger'
 
 import ConfigParser from './lib/ConfigParser'
-import BaseReporter from './lib/BaseReporter'
+import { getLauncher, initReporters, runServiceHook } from './utils'
 
 const log = logger('wdio-cli:Launcher')
 
@@ -11,7 +11,8 @@ class Launcher {
         this.configParser.addConfigFile(configFile)
         this.configParser.merge(argv)
 
-        this.reporters = this.initReporters()
+        this.reporters = initReporters(this.configParser.getConfig())
+        this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
 
         this.argv = argv
         this.configFile = configFile
@@ -27,93 +28,16 @@ class Launcher {
     }
 
     /**
-     * check if multiremote or wdio test
-     */
-    isMultiremote () {
-        let caps = this.configParser.getCapabilities()
-        return !Array.isArray(caps)
-    }
-
-    /**
-     * initialise reporters
-     */
-    initReporters () {
-        let reporter = new BaseReporter()
-        let config = this.configParser.getConfig()
-
-        /**
-         * if no reporter is set or config property is in a wrong format
-         * just use the dot reporter
-         */
-        if (!config.reporters || !Array.isArray(config.reporters) || !config.reporters.length) {
-            config.reporters = ['dot']
-        }
-
-        const reporters = {}
-
-        for (let reporterName of config.reporters) {
-            let Reporter
-            if (typeof reporterName === 'function') {
-                Reporter = reporterName
-                if (!Reporter.reporterName) {
-                    throw new Error('Custom reporters must export a unique \'reporterName\' property')
-                }
-                reporters[Reporter.reporterName] = Reporter
-            } else if (typeof reporterName === 'string') {
-                try {
-                    const pkgName = reporterName.startsWith('@') ? reporterName : `wdio-${reporterName}-reporter`
-                    Reporter = require(pkgName)
-                } catch (e) {
-                    throw new Error(`reporter "wdio-${reporterName}-reporter" is not installed. Error: ${e.stack}`)
-                }
-                reporters[reporterName] = Reporter
-            }
-            if (!Reporter) {
-                throw new Error(`config.reporters must be an array of strings or functions, but got '${typeof reporterName}': ${reporterName}`)
-            }
-        }
-
-        /**
-         * if no reporter options are set or property is in a wrong format default to
-         * empty object
-         */
-        if (!config.reporterOptions || typeof config.reporterOptions !== 'object') {
-            config.reporterOptions = {}
-        }
-
-        for (let reporterName in reporters) {
-            const Reporter = reporters[reporterName]
-            let reporterOptions = {}
-            for (let option of Object.keys(config.reporterOptions)) {
-                if (option === reporterName && typeof config.reporterOptions[reporterName] === 'object') {
-                    // Copy over options specifically for this reporter type
-                    reporterOptions = Object.assign(reporterOptions, config.reporterOptions[reporterName])
-                } else if (reporters[option]) {
-                    // Don't copy options for other reporters
-                    continue
-                } else {
-                    // Copy over generic options
-                    reporterOptions[option] = config.reporterOptions[option]
-                }
-            }
-
-            reporter.add(new Reporter(reporter, config, reporterOptions))
-        }
-
-        return reporter
-    }
-
-    /**
      * run sequence
      * @return  {Promise} that only gets resolves with either an exitCode or an error
      */
     async run () {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
-        let launcher = this.getLauncher(config)
+        let launcher = getLauncher(config)
 
         this.reporters.handleEvent('start', {
-            isMultiremote: this.isMultiremote(),
+            isMultiremote: this.isMultiremote,
             capabilities: caps,
             config
         })
@@ -122,12 +46,12 @@ class Launcher {
          * run onPrepare hook
          */
         await config.onPrepare(config, caps)
-        await this.runServiceHook(launcher, 'onPrepare', config, caps)
+        await runServiceHook(launcher, 'onPrepare', config, caps)
 
         /**
          * if it is an object run multiremote test
          */
-        if (this.isMultiremote()) {
+        if (this.isMultiremote) {
             let exitCode = await new Promise((resolve) => {
                 this.resolve = resolve
                 this.startInstance(this.configParser.getSpecs(), caps, 0)
@@ -136,7 +60,7 @@ class Launcher {
             /**
              * run onComplete hook for multiremote
              */
-            await this.runServiceHook(launcher, 'onComplete', exitCode, config, caps)
+            await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
             await config.onComplete(exitCode, config, caps)
 
             return exitCode
@@ -183,25 +107,10 @@ class Launcher {
         /**
          * run onComplete hook
          */
-        await this.runServiceHook(launcher, 'onComplete', exitCode, config, caps)
+        await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
         await config.onComplete(exitCode, config, caps)
 
         return exitCode
-    }
-
-    /**
-     * run service launch sequences
-     */
-    async runServiceHook (launcher, hookName, ...args) {
-        try {
-            return await Promise.all(launcher.map((service) => {
-                if (typeof service[hookName] === 'function') {
-                    return service[hookName](...args)
-                }
-            }))
-        } catch (e) {
-            log.error(`A service failed in the '${hookName}' hook\n${e.stack}\n\nContinue...`)
-        }
     }
 
     /**
@@ -346,7 +255,7 @@ class Launcher {
             processNumber,
             spec,
             server,
-            isMultiremote: this.isMultiremote(),
+            isMultiremote: this.isMultiremote,
             execArgv
         })
 
@@ -401,7 +310,7 @@ class Launcher {
         this.runnerFailed += childProcessExitCode !== 0 ? 1 : 0
 
         // Update schedule now this process has ended
-        if (!this.isMultiremote()) {
+        if (!this.isMultiremote) {
             // get cid (capability id) from rid (runner id)
             cid = parseInt(cid, 10)
 
@@ -409,14 +318,14 @@ class Launcher {
             this.schedule[cid].runningInstances--
         }
 
-        if (!this.isMultiremote() && !this.runSpecs()) {
+        if (!this.isMultiremote && !this.runSpecs()) {
             return
         }
 
         this.reporters.handleEvent('end', {
             sigint: this.hasTriggeredExitRoutine,
             exitCode: this.exitCode,
-            isMultiremote: this.isMultiremote(),
+            isMultiremote: this.isMultiremote,
             capabilities: this.configParser.getCapabilities(),
             config: this.configParser.getConfig()
         })
@@ -465,46 +374,6 @@ End selenium sessions properly ...
 `)
 
         this.hasTriggeredExitRoutine = true
-    }
-
-    /**
-     * loads launch services
-     */
-    getLauncher (config) {
-        let launchServices = []
-
-        if (!Array.isArray(config.services)) {
-            return launchServices
-        }
-
-        for (let serviceName of config.services) {
-            let service
-
-            /**
-             * allow custom services
-             */
-            if (typeof serviceName === 'object') {
-                launchServices.push(serviceName)
-                continue
-            }
-
-            try {
-                const pkgName = serviceName.startsWith('@')
-                    ? `${serviceName}/launcher`
-                    : `wdio-${serviceName}-service/launcher`
-                service = require(pkgName)
-            } catch (e) {
-                if (!e.message.match(`Cannot find module 'wdio-${serviceName}-service/launcher'`)) {
-                    throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
-                }
-            }
-
-            if (service && (typeof service.onPrepare === 'function' || typeof service.onComplete === 'function')) {
-                launchServices.push(service)
-            }
-        }
-
-        return launchServices
     }
 }
 

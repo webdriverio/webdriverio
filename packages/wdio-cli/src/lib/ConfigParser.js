@@ -6,79 +6,10 @@ import merge from 'deepmerge'
 import logger from 'wdio-logger'
 import { detectBackend } from 'wdio-config'
 
+import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
+
 const log = logger('wdio-cli:ConfigParser')
-
-const HOOKS = [
-    'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
-    'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
-    'beforeFeature', 'beforeScenario', 'beforeStep', 'afterFeature',
-    'afterScenario', 'afterStep', 'onError', 'onReload'
-]
 const MERGE_OPTIONS = { clone: false }
-const DEFAULT_TIMEOUT = 10000
-const NOOP = function () {}
-const DEFAULT_CONFIGS = {
-    sync: true,
-    specs: [],
-    suites: {},
-    exclude: [],
-    logLevel: 'silent',
-    coloredLogs: true,
-    deprecationWarnings: true,
-    baseUrl: null,
-    bail: 0,
-    waitforInterval: 500,
-    waitforTimeout: 1000,
-    framework: 'mocha',
-    reporters: [],
-    reporterOptions: {},
-    maxInstances: 100,
-    maxInstancesPerCapability: 100,
-    connectionRetryTimeout: 90000,
-    connectionRetryCount: 3,
-    debug: false,
-    execArgv: null,
-
-    /**
-     * framework defaults
-     */
-    mochaOpts: {
-        timeout: DEFAULT_TIMEOUT
-    },
-    jasmineNodeOpts: {
-        defaultTimeoutInterval: DEFAULT_TIMEOUT
-    },
-
-    /**
-     * hooks
-     */
-    onPrepare: NOOP,
-    before: [],
-    beforeSession: [],
-    beforeSuite: [],
-    beforeHook: [],
-    beforeTest: [],
-    beforeCommand: [],
-    afterCommand: [],
-    afterTest: [],
-    afterHook: [],
-    afterSuite: [],
-    afterSession: [],
-    after: [],
-    onComplete: NOOP,
-    onError: [],
-    onReload: [],
-
-    /**
-     * cucumber specific hooks
-     */
-    beforeFeature: [],
-    beforeScenario: [],
-    beforeStep: [],
-    afterFeature: [],
-    afterScenario: [],
-    afterStep: []
-}
 
 export default class ConfigParser {
     constructor () {
@@ -118,7 +49,7 @@ export default class ConfigParser {
              * add service hooks and remove them from config
              */
             this.addService(fileConfig)
-            for (let hookName of HOOKS) {
+            for (let hookName of SUPPORTED_HOOKS) {
                 delete fileConfig[hookName]
             }
 
@@ -193,7 +124,7 @@ export default class ConfigParser {
      * @param {Object} service  a service is basically an object that contains hook methods
      */
     addService (service) {
-        for (let hookName of HOOKS) {
+        for (let hookName of SUPPORTED_HOOKS) {
             if (!service[hookName]) {
                 continue
             } else if (typeof service[hookName] === 'function') {
