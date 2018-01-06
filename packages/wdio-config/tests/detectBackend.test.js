@@ -1,4 +1,4 @@
-import detectBackend from '../src/detectBackend'
+import { detectBackend } from '../src'
 
 describe('detectBackend', () => {
     it('should not set anything if host is set in caps', () => {
