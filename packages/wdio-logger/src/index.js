@@ -2,7 +2,7 @@ import log from 'loglevel'
 import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 
-const DEFAULT_LEVEL = 5 // silent
+const DEFAULT_LEVEL = process.env.DEBUG ? 0 : 5 // silent
 const COLORS = {
     error: 'red',
     warn: 'yellow',
