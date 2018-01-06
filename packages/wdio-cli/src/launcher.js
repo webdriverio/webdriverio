@@ -245,8 +245,8 @@ class Launcher {
         let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
 
         // prefer launcher settings in capabilities over general launcher
-        const Launcher = initialisePlugin(caps.launcher || config.launcher, 'launcher')
-        const runner = new Launcher({
+        const Runner = initialisePlugin(caps.runner || config.runner, 'runner')
+        const runner = new Runner({
             cid,
             command: 'run',
             configFile: this.configFile,
