@@ -2,7 +2,7 @@ import path from 'path'
 import child from 'child_process'
 import EventEmitter from 'events'
 
-export default class LocalLauncher extends EventEmitter {
+export default class LocalRunner extends EventEmitter {
     constructor (config) {
         super()
         this.config = config

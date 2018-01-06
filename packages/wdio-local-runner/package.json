@@ -1,9 +1,9 @@
 {
-  "name": "wdio-local-launcher",
+  "name": "wdio-local-runner",
   "version": "0.0.1",
-  "description": "A WebdriverIO launcher to run tests locally",
+  "description": "A WebdriverIO runner to run tests locally",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-local-launcher",
+  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-local-runner",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
@@ -30,7 +30,7 @@
     "webdriver",
     "webdriverio",
     "wdio",
-    "wdio-launcher"
+    "wdio-runner"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"

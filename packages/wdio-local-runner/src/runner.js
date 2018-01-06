@@ -1,6 +1,6 @@
 import logger from 'wdio-logger'
 
-const log = logger('wdio-local-launcher')
+const log = logger('wdio-local-runner')
 
 export default class Runner {
     constructor () {

@@ -32,8 +32,9 @@ export const SUPPORTED_SERVICES = [
     ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service'
 ]
 
-export const SUPPORTED_LAUNCHERS = [
-    ' local - https://www.npmjs.com/package/wdio-local-launcher'
+export const SUPPORTED_RUNNERS = [
+    ' local - https://www.npmjs.com/package/wdio-local-runner',
+    ' lambda - https://www.npmjs.com/package/wdio-lambda-runner'
 ]
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
@@ -144,14 +145,14 @@ export const CLI_PARAMS = [{
 
 export const QUESTIONNAIRE = [{
     type: 'list',
-    name: 'launcher',
+    name: 'runner',
     message: 'Where should your tests be launched',
-    choices: SUPPORTED_LAUNCHERS,
-    filter: (launcher) => launcher.map((l) => `wdio-${l.split(/-/)[0].trim()}-launcher`)
+    choices: SUPPORTED_RUNNERS,
+    filter: (runner) => runner.map((r) => `wdio-${r.split(/-/)[0].trim()}-runner`)
 }, {
     type: 'confirm',
-    name: 'installLauncher',
-    message: 'Shall I install the launcher plugin for you?',
+    name: 'installRunner',
+    message: 'Shall I install the runner plugin for you?',
     default: true
 }, {
     type: 'list',
