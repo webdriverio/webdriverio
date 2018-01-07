@@ -36,6 +36,27 @@ describe('commands test', () => {
                 expect(e.message).toContain('command needs to be type of string')
             }
         })
+
+        describe('waitUntil', () => {
+            //https://facebook.github.io/jest/docs/en/expect.html#tothrowerror
+            it('Should throw an error if an invalid condition is used', () => {    
+                function waitUntil() {
+                    browser.waitUntil('foo',1000,'Timed Out',500)
+                }
+
+                expect(waitUntil).toThrowError('Condition is not a function')
+            })
+
+            it('Should throw an error when the waitUntil times out', () => {
+                function waitUntil() {
+                    browser.waitUntil(function(){
+                        return false===true
+                    } ,1000,'Timed Out',500)
+                }
+
+                expect(waitUntil).toThrowError('Timed Out')
+            })
+        })
     })
 
     describe('element commands', () => {
