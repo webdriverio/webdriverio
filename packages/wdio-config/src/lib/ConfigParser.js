@@ -5,7 +5,7 @@ import merge from 'deepmerge'
 
 import logger from 'wdio-logger'
 
-import detectBackend from '../detectBackend'
+import { detectBackend } from '../'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
 
@@ -34,10 +34,6 @@ export default class ConfigParser {
              * clone the original config
              */
             var fileConfig = merge(require(filePath).config, {}, MERGE_OPTIONS)
-
-            if (typeof fileConfig !== 'object') {
-                throw new Error('configuration file exports no config object')
-            }
 
             /**
              * merge capabilities
@@ -128,7 +124,9 @@ export default class ConfigParser {
         for (let hookName of SUPPORTED_HOOKS) {
             if (!service[hookName]) {
                 continue
-            } else if (typeof service[hookName] === 'function') {
+            }
+
+            if (typeof service[hookName] === 'function') {
                 this._config[hookName].push(service[hookName].bind(service))
             } else if (Array.isArray(service[hookName])) {
                 for (let hook of service[hookName]) {
@@ -166,12 +164,13 @@ export default class ConfigParser {
                                 'in your config file or doesn\'t contain any files!')
             }
 
-            specs = typeof this._config.spec === `string` ? [...specs, ...suiteSpecs] : suiteSpecs
+            return typeof this._config.spec === `string` ? [...specs, ...suiteSpecs] : suiteSpecs
         }
 
         if (Array.isArray(capSpecs)) {
             specs = specs.concat(ConfigParser.getFilePaths(capSpecs))
         }
+
         if (Array.isArray(capExclude)) {
             exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
         }

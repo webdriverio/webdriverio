@@ -1,4 +1,6 @@
 const DEFAULT_TIMEOUT = 10000
+
+/* istanbul ignore next */
 const NOOP = function () {}
 
 export const DEFAULT_CONFIGS = {

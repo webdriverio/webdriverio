@@ -1,3 +1,5 @@
+import pickBy from 'lodash.pickby'
+
 import ConfigParser from './lib/ConfigParser'
 
 const DEFAULT_HOST = '127.0.0.1'
@@ -17,7 +19,7 @@ function detectBackend (options = {}) {
         return Object.assign({
             host: DEFAULT_HOST,
             port: DEFAULT_PORT
-        }, options)
+        }, pickBy({ host, port }))
     }
 
     /**
@@ -25,7 +27,7 @@ function detectBackend (options = {}) {
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
     if (key.length === 20) {
-        return Object.assign(options, {
+        return Object.assign(pickBy({ host, port }), {
             host: 'hub.browserstack.com',
             port: 80
         })
@@ -36,7 +38,7 @@ function detectBackend (options = {}) {
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
     if (key.length === 32) {
-        return Object.assign(options, {
+        return Object.assign(pickBy({ host, port }), {
             host: 'hub.testingbot.com',
             port: 80
         })
@@ -46,7 +48,7 @@ function detectBackend (options = {}) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    return Object.assign(options, {
+    return Object.assign(pickBy({ host, port }), {
         protocol: 'https',
         host: 'ondemand.saucelabs.com',
         port: 443
