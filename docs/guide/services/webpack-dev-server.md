@@ -12,7 +12,7 @@ This allows you to run a local server with your built static assets using Webpac
 
 ## Installation
 
-``bash
+```bash
 npm install wdio-webpack-dev-server-service --save-dev
 ```
 
