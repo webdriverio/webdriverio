@@ -34,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "dependencies": {}
+  "dependencies": {
+    "deepmerge": "^2.0.1",
+    "wdio-logger": "^0.1.0"
+  }
 }
