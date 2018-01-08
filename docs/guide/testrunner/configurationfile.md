@@ -285,7 +285,7 @@ exports.config = {
     afterHook: function () {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
+     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
      * @param {Object} test test details
      */
     beforeTest: function (test) {
