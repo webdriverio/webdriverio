@@ -105,26 +105,6 @@ export function initReporters (config) {
 }
 
 /**
- * initialise WebdriverIO compliant plugins
- */
-export function initialisePlugin (name, type) {
-    const pkgName = `wdio-${name}-${type}`
-
-    try {
-        return require(pkgName)
-    } catch (e) {
-        if (!e.message.match(`Cannot find module '${pkgName}'`)) {
-            throw new Error(`Couldn't initialise ${type} "${name}".\n${e.stack}`)
-        }
-
-        throw new Error(
-            `Couldn't find plugin "${pkgName}". You need to install it ` +
-            `with \`$ npm install ${pkgName}\`!\n${e.stack}`
-        )
-    }
-}
-
-/**
  * run service launch sequences
  */
 export async function runServiceHook (launcher, hookName, ...args) {
