@@ -67,11 +67,6 @@ export default function (condition, timeout, timeoutMsg, interval) {
             throw new Error(timeoutMsg)
         }
 
-        if (e.type === 'NoSuchElement') {
-            // TODO - Reimplement these when ErrorHandler has been ported
-            // throw new WaitUntilTimeoutError(e.message)
-            throw new Error(e.message)
-        }
         // TODO - Reimplement these when ErrorHandler has been ported
         // throw new WaitUntilTimeoutError(`Promise was rejected with the following reason: ${e.message}`)
         throw new Error(`Promise was rejected with the following reason: ${e}`)

@@ -39,22 +39,98 @@ describe('commands test', () => {
 
         describe('waitUntil', () => {
             //https://facebook.github.io/jest/docs/en/expect.html#tothrowerror
-            it('Should throw an error if an invalid condition is used', () => {    
+            it('Should throw an error if an invalid condition is used', async () => {  
+                expect.assertions(1)  
                 function waitUntil() {
-                    browser.waitUntil('foo',1000,'Timed Out',500)
+                    browser.waitUntil('foo',500,'Timed Out',200)
                 }
 
-                expect(waitUntil).toThrowError('Condition is not a function')
+                await expect(waitUntil).toThrowError('Condition is not a function')
             })
 
-            it('Should throw an error when the waitUntil times out', () => {
-                function waitUntil() {
-                    browser.waitUntil(function(){
-                        return false===true
-                    } ,1000,'Timed Out',500)
+            it('Should throw an error when the waitUntil times out', async () => {
+                let error
+                expect.assertions(1)
+                try {
+                    await browser.waitUntil(() => 
+                        new Promise((resolve) => 
+                            setTimeout(
+                                () => resolve(false), 
+                                200)),
+                    500,'Timed Out',200)
+                } catch(e) {
+                    error = e
+                } finally{
+                    expect(error.message).toBe('Timed Out')
                 }
+            })
 
-                expect(waitUntil).toThrowError('Timed Out')
+            it('Should throw an error when the promise is rejected', async () => {
+                let error
+                expect.assertions(1)
+                try {
+                    await browser.waitUntil(() => 
+                        new Promise((resolve,reject) => 
+                            setTimeout(
+                                () => reject(new Error('foobar')), 
+                                200,400)),
+                    500,'Timed Out',200)
+                } catch(e) {
+                    error = e
+                } finally{
+                    expect(error.message).toBe('Promise was rejected with the following reason: Error: foobar')
+                }
+            })
+
+            it('Should use default timeout setting from config if passed in value is not a number', async () => {
+                let error
+                expect.assertions(1)
+                try {
+                    await browser.waitUntil(() => 
+                        new Promise((resolve) => 
+                            setTimeout(
+                                () => resolve(false), 
+                                500)),
+                    'blah','Timed Out',200)
+                } catch(e) {
+                    error = e
+                } finally{
+                    expect(error.message).toBe('Timed Out')
+                }
+            })
+
+            it('Should use default interval setting from config if passed in value is not a number', async () => {
+                let error
+                expect.assertions(1)
+                try {
+                    await browser.waitUntil(() => 
+                        new Promise((resolve) => 
+                            setTimeout(
+                                () => resolve(false), 
+                                500)),
+                    1000,'Timed Out','blah')
+                } catch(e) {
+                    error = e
+                } finally{
+                    expect(error.message).toBe('Timed Out')
+                }
+            })
+            
+            it('Should pass', async() => {
+                let error
+                expect.assertions(1)
+                try {
+                    await browser.waitUntil(() => 
+                        new Promise((resolve) => 
+                            setTimeout(
+                                () => resolve(true), 
+                                200)),
+                    500,'Timed Out',200)
+                } catch(e) {
+                    error = e
+                } finally{
+                    expect(error).toBeUndefined()
+                }
             })
         })
     })
