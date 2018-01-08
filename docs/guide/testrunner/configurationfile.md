@@ -307,7 +307,7 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
+     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
      * @param {Object} test test details
      */
     afterTest: function (test) {
