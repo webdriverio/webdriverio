@@ -279,13 +279,13 @@ exports.config = {
     beforeHook: function () {
     },
     /**
-     * Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
+     * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha)
      */
     afterHook: function () {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
+     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
      * @param {Object} test test details
      */
     beforeTest: function (test) {
