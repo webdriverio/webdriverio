@@ -1,7 +1,7 @@
 import logger from 'wdio-logger'
+import { ConfigParser, initialisePlugin } from 'wdio-config'
 
-import ConfigParser from './lib/ConfigParser'
-import { getLauncher, initReporters, runServiceHook, initialisePlugin } from './utils'
+import { getLauncher, initReporters, runServiceHook } from './utils'
 
 const log = logger('wdio-cli:Launcher')
 
