@@ -1,4 +1,4 @@
-import { validateConfig } from '../src'
+import { validateConfig } from '../src/utils'
 
 describe('validateConfig', () => {
     it('should throw if required config is missing', () => {

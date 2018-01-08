@@ -5,7 +5,7 @@ import merge from 'deepmerge'
 
 import logger from 'wdio-logger'
 
-import { detectBackend } from '../'
+import { detectBackend } from '../utils'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
 

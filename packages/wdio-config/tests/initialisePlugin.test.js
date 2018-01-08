@@ -1,4 +1,4 @@
-import { initialisePlugin } from '../src'
+import { initialisePlugin } from '../src/utils'
 
 describe('initialisePlugin', () => {
     it('should allow to load a service plugin', () => {
