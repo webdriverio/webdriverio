@@ -1,0 +1,19 @@
+service: wdio-lambda-runner
+custom: ${file(./runner-config.json)}
+
+provider:
+    name: aws
+    runtime: nodejs${self:custom.nodeVersion}
+    environment: ${self:custom.environment}
+
+functions:
+    run:
+        handler: handler.run
+        events: # All events associated with this function
+            - http:
+                path: run
+                method: post
+
+package:
+    include: ${self:custom.package.include}
+    exclude: ${self:custom.package.exclude}

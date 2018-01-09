@@ -37,5 +37,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "shelljs": "^0.7.8",
+    "tmp": "^0.0.33"
   }
 }
