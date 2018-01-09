@@ -11,8 +11,16 @@ class Launcher {
         this.configParser.addConfigFile(configFile)
         this.configParser.merge(argv)
 
-        this.reporters = initReporters(this.configParser.getConfig())
-        this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
+        const config = this.configParser.getConfig()
+        const capabilities = this.configParser.getCapabilities()
+        const specs = this.configParser.getSpecs()
+
+        const Runner = initialisePlugin(config.runner, 'runner')
+        this.runner = new Runner(config, capabilities, specs)
+        this.runner.on('end', ::this.endHandler)
+
+        this.reporters = initReporters(config)
+        this.isMultiremote = !Array.isArray(capabilities)
 
         this.argv = argv
         this.configFile = configFile
@@ -20,7 +28,6 @@ class Launcher {
         this.exitCode = 0
         this.hasTriggeredExitRoutine = false
         this.hasStartedAnyProcess = false
-        this.runner = []
         this.schedule = []
         this.rid = []
         this.runnerStarted = 0
@@ -245,8 +252,7 @@ class Launcher {
         let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
 
         // prefer launcher settings in capabilities over general launcher
-        const Runner = initialisePlugin(caps.runner || config.runner, 'runner')
-        const runner = new Runner({
+        this.runner.run({
             cid,
             command: 'run',
             configFile: this.configFile,
@@ -258,13 +264,6 @@ class Launcher {
             isMultiremote: this.isMultiremote,
             execArgv
         })
-
-        runner.run()
-        this.runner.push(runner)
-
-        runner
-            .on('message', this.messageHandler.bind(this, cid))
-            .on('exit', this.endHandler.bind(this, cid))
 
         this.runnerStarted++
     }
@@ -279,25 +278,6 @@ class Launcher {
             this.rid[cid] = 0
         }
         return `${cid}-${this.rid[cid]++}`
-    }
-
-    /**
-     * emit event from child process to reporter
-     * @param  {String} cid
-     * @param  {Object} m event object
-     */
-    messageHandler (cid, m) {
-        this.hasStartedAnyProcess = true
-
-        if (!m.cid) {
-            m.cid = cid
-        }
-
-        if (m.event === 'runner:error') {
-            this.reporters.handleEvent('error', m)
-        }
-
-        this.reporters.handleEvent(m.event, m)
     }
 
     /**
@@ -353,7 +333,7 @@ class Launcher {
             // SIGINT will not be forwarded to childs.
             // Thus for the child to exit cleanly, we must force send SIGINT
             if (!process.stdin.isTTY) {
-                this.runner.forEach(r => r.kill('SIGINT'))
+                this.runner.kill()
             }
 
             // finish with exit code 1
@@ -364,7 +344,7 @@ class Launcher {
         // SIGINT will not be forwarded to childs.
         // Thus for the child to exit cleanly, we must force send SIGINT
         if (!process.stdin.isTTY) {
-            this.runner.forEach(r => r.kill('SIGINT'))
+            this.runner.kill()
         }
 
         log.log(`
