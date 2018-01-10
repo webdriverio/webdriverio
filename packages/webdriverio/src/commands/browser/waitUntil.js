@@ -34,14 +34,10 @@
  *
  */
 
-// TODO - Reimplement these when ErrorHandler has been ported
-// import { WaitUntilTimeoutError, CommandError } from '../utils/ErrorHandler'
 import Timer from '../../utils/Timer'
 
 export default function (condition, timeout, timeoutMsg, interval) {
     if (typeof condition !== 'function') {
-        // TODO - Reimplement these when ErrorHandler has been ported
-        // throw new CommandError('invalid argument')
         throw new Error('Condition is not a function')
     }
 
@@ -62,13 +58,9 @@ export default function (condition, timeout, timeoutMsg, interval) {
 
     return timer.catch((e) => {
         if (e.message === 'timeout' && typeof timeoutMsg === 'string') {
-            // TODO - Reimplement these when ErrorHandler has been ported
-            // throw new WaitUntilTimeoutError(timeoutMsg)
             throw new Error(timeoutMsg)
         }
 
-        // TODO - Reimplement these when ErrorHandler has been ported
-        // throw new WaitUntilTimeoutError(`Promise was rejected with the following reason: ${e.message}`)
         throw new Error(`Promise was rejected with the following reason: ${e}`)
     })
 }

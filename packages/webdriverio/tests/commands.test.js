@@ -38,7 +38,6 @@ describe('commands test', () => {
         })
 
         describe('waitUntil', () => {
-            //https://facebook.github.io/jest/docs/en/expect.html#tothrowerror
             it('Should throw an error if an invalid condition is used', async () => {  
                 expect.assertions(1)  
                 function waitUntil() {
