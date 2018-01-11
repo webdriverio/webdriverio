@@ -40,6 +40,8 @@
     "find-node-modules": "^1.0.4",
     "shelljs": "^0.7.8",
     "tmp": "^0.0.33",
-    "wdio-logger": "^0.1.0"
+    "wdio-local-runner": "^0.0.1",
+    "wdio-logger": "^0.1.0",
+    "wdio-runner": "^0.0.0"
   }
 }
