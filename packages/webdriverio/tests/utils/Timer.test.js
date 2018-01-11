@@ -41,4 +41,10 @@ describe('timer', () => {
         await expect(wasExecuted).toBeTruthy
     })
 
+    it('should execute synchronously',async () => {
+        global.wdioSync = jest.fn(() => Promise.resolve(true))
+
+        let timer = new Timer(20, 30, () => Promise.resolve(true),() => {return true},true)
+        await expect(timer).resolves
+    })
 })
