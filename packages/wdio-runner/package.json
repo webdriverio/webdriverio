@@ -1,0 +1,44 @@
+{
+  "name": "wdio-runner",
+  "version": "0.0.0",
+  "description": "A WebdriverIO service that runs tests in arbitrary environments",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-runner",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">= 4.8.5"
+  },
+  "scripts": {
+    "build": "run-s clean compile",
+    "clean": "rm -rf ./build",
+    "compile": "babel src/ -d build/",
+    "postversion": "npm run build && git tag -d $(git tag -l)",
+    "release": "npm run release:patch",
+    "release:patch": "np patch --no-cleanup",
+    "release:minor": "np minor --no-cleanup",
+    "release:major": "np major --no-cleanup",
+    "test": "run-s test:*",
+    "test:eslint": "eslint src test",
+    "test:unit": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-reporter"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "deepmerge": "^2.0.1",
+    "gaze": "^1.1.2",
+    "wdio-config": "^0.1.0",
+    "wdio-logger": "^0.1.0",
+    "webdriverio": "^5.0.0"
+  }
+}
