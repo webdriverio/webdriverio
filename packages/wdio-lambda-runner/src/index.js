@@ -3,6 +3,7 @@ import tmp from 'tmp'
 import path from 'path'
 import shell from 'shelljs'
 import EventEmitter from 'events'
+import findNodeModules from 'find-node-modules'
 
 import logger from 'wdio-logger'
 import { DEFAULT_CONFIG } from './constants'
@@ -22,7 +23,7 @@ export default class AWSLambdaRunner extends EventEmitter {
         this.config = config
         this.capabilities = capabilities
         this.specs = specs
-        this.nodeModulesDir = `${process.cwd()}/node_modules/**`
+        this.nodeModulesDir = path.resolve(findNodeModules()[0])
 
         /**
          * generate temp dir for AWS service
