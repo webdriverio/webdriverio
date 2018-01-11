@@ -37,6 +37,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "find-node-modules": "^1.0.4",
     "shelljs": "^0.7.8",
     "tmp": "^0.0.33",
     "wdio-logger": "^0.1.0"
