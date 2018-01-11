@@ -14,7 +14,7 @@ export default class LocalRunner extends EventEmitter {
             specs, server, isMultiremote
         } = this.config
 
-        this.childProcess = child.fork(path.join(__dirname, '/runner.js'), process.argv.slice(2), {
+        this.childProcess = child.fork(path.join(__dirname, '/run.js'), process.argv.slice(2), {
             cwd: process.cwd(),
             execArgv: this.config.execArgv
         })
