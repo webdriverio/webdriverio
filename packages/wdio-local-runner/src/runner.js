@@ -44,6 +44,11 @@ export default class Runner {
         this.addCommandHooks(config)
         this.initialiseServices(config)
 
+        // this.reporters.handleEvent('start', {
+        //     isMultiremote: this.isMultiremote,
+        //     capabilities: caps,
+        //     config
+        // })
         await runHook('beforeSession', config, this.caps, this.specs)
 
         this.framework = initialisePlugin(config.framework, 'framework').adapterFactory
@@ -232,6 +237,14 @@ export default class Runner {
             cid: this.cid,
             specs: this.specs
         })
+
+        // this.reporters.handleEvent('end', {
+        //     sigint: this.hasTriggeredExitRoutine,
+        //     exitCode: this.exitCode,
+        //     isMultiremote: this.isMultiremote,
+        //     capabilities: this.configParser.getCapabilities(),
+        //     config: this.configParser.getConfig()
+        // })
     }
 
     /**
