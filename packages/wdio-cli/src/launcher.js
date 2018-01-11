@@ -20,11 +20,10 @@ class Launcher {
         this.runner.on('end', ::this.endHandler)
 
         this.reporters = initReporters(config)
-        this.isMultiremote = !Array.isArray(capabilities)
-
         this.argv = argv
         this.configFile = configFile
 
+        this.isMultiremote = !Array.isArray(capabilities)
         this.exitCode = 0
         this.hasTriggeredExitRoutine = false
         this.hasStartedAnyProcess = false
@@ -42,12 +41,6 @@ class Launcher {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
         let launcher = getLauncher(config)
-
-        this.reporters.handleEvent('start', {
-            isMultiremote: this.isMultiremote,
-            capabilities: caps,
-            config
-        })
 
         /**
          * run onPrepare hook
@@ -301,14 +294,6 @@ class Launcher {
         if (!this.isMultiremote && !this.runSpecs()) {
             return
         }
-
-        this.reporters.handleEvent('end', {
-            sigint: this.hasTriggeredExitRoutine,
-            exitCode: this.exitCode,
-            isMultiremote: this.isMultiremote,
-            capabilities: this.configParser.getCapabilities(),
-            config: this.configParser.getConfig()
-        })
 
         if (this.exitCode === 0) {
             return this.resolve(this.exitCode)
