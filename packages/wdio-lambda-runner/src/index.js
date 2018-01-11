@@ -3,11 +3,13 @@ import tmp from 'tmp'
 import path from 'path'
 import shell from 'shelljs'
 import EventEmitter from 'events'
+import omit from 'lodash.omit'
 
 import logger from 'wdio-logger'
 import { DEFAULT_CONFIG } from './constants'
 
 const log = logger('wdio-lambda-runner')
+const OMITTED_ENVIRONMENT_KEYS = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_KEY', 'AWS_ACCESS_KEY']
 
 export default class AWSLambdaRunner extends EventEmitter {
     constructor (config, capabilities, specs) {
@@ -39,7 +41,7 @@ export default class AWSLambdaRunner extends EventEmitter {
          */
         const runnerConfig = Object.assign(DEFAULT_CONFIG, {
             nodeVersion: process.version.slice(1),
-            environment: process.env,
+            environment: config.runnerConfig.environment,
             package: {
                 include: [this.nodeModulesDir, ...this.specs],
                 exclude: []

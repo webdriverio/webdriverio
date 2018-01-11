@@ -3,7 +3,7 @@ custom: ${file(./runner-config.json)}
 
 provider:
     name: aws
-    runtime: nodejs${self:custom.nodeVersion}
+    runtime: nodejs6.10
     environment: ${self:custom.environment}
 
 functions:
