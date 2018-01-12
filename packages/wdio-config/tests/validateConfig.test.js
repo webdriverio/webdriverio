@@ -31,18 +31,21 @@ describe('validateConfig', () => {
     })
 
     it('should check for types as function', () => {
-        expect(() => validateConfig({
-            foobar: {
-                type: (type) => type instanceof Error
+        const errorCheck = (type) => {
+            if (type instanceof Error) {
+                return
             }
+            throw new Error('not an error')
+        }
+
+        expect(() => validateConfig({
+            foobar: { type: errorCheck }
         }, {
             foobar: { message: 'foobar', stack: 'barfoo' }
-        })).toThrowError(/failed type check/)
+        })).toThrowError(/Type check for option "foobar" failed: not an error/)
 
         expect(validateConfig({
-            foobar: {
-                type: (type) => type instanceof Error
-            }
+            foobar: { type: errorCheck }
         }, {
             foobar: new Error('foobar')
         }).hasOwnProperty('foobar')).toBe(true)
