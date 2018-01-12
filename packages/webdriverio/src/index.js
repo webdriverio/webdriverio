@@ -7,8 +7,9 @@ import { validateConfig } from 'wdio-config'
 import { WDIO_DEFAULTS } from './constants'
 
 const remote = async function (params = {}, modifier) {
+    const config = validateConfig(WDIO_DEFAULTS, params)
     const client = await WebDriver.newSession(params, (client, options) => {
-        options = Object.assign(options, validateConfig(WDIO_DEFAULTS, params))
+        options = Object.assign(options, config)
 
         if (typeof modifier === 'function') {
             client = modifier(client, options)
