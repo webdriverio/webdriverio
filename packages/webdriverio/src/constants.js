@@ -1,3 +1,4 @@
+const NOOP = () => {}
 const DEFAULT_TEST_TIMEOUT = 30000
 const HOOK_DEFINITION = {
     type: (param) => {
@@ -183,7 +184,10 @@ export const WDIO_DEFAULTS = {
     /**
      * hooks
      */
-    onPrepare: HOOK_DEFINITION,
+    onPrepare: {
+        type: 'function',
+        default: NOOP
+    },
     before: HOOK_DEFINITION,
     beforeSession: HOOK_DEFINITION,
     beforeSuite: HOOK_DEFINITION,
@@ -196,7 +200,10 @@ export const WDIO_DEFAULTS = {
     afterSuite: HOOK_DEFINITION,
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
-    onComplete: HOOK_DEFINITION,
+    onComplete: {
+        type: 'function',
+        default: NOOP
+    },
     onError: HOOK_DEFINITION,
     onReload: HOOK_DEFINITION,
 
