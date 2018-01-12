@@ -1,7 +1,7 @@
-import logger from 'wdio-logger'
+// import logger from 'wdio-logger'
 import Runner from 'wdio-runner'
 
-const log = logger('wdio-lambda-runner')
+// const log = logger('wdio-lambda-runner')
 
 module.exports.run = (event, context, callback) => {
     const runner = new Runner()
@@ -9,8 +9,10 @@ module.exports.run = (event, context, callback) => {
     /**
      * run test
      */
-    log.info('Run test with payload', event.data)
-    runner.run(event.data)
-
-    callback(null, 'run me')
+    runner.run(event)
+    runner.on('message', (data) => {
+        if (data.event === 'end') {
+            callback(null, data)
+        }
+    })
 }
