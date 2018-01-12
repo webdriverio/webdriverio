@@ -203,7 +203,7 @@ class Launcher {
      * @param  {Array} specs  Specs to run
      * @param  {Number} cid  Capabilities ID
      */
-    startInstance (spec, caps, cid, server) {
+    startInstance (specs, caps, cid, server) {
         let config = this.configParser.getConfig()
         cid = this.getRunnerId(cid)
         let processNumber = this.runnerStarted + 1
@@ -252,7 +252,7 @@ class Launcher {
             argv: this.argv,
             caps,
             processNumber,
-            spec,
+            specs,
             server,
             isMultiremote: this.isMultiremote,
             execArgv
