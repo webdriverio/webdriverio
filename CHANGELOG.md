@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## v4.10.1 (2018-01-10)
+## v4.10.1 (2018-01-12)
+* bugfixes:
+    * fallback to old JSONWireProtocol commands when running Chromedriver
+
+## v4.10.0 (2018-01-10)
 * bugfixes:
     * Fix for error handling on before/after hooks (#2497)
     * fix debug functionality when using launcher programmatically (#2492)
