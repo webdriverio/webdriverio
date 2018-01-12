@@ -7,20 +7,6 @@ const runner = new Runner()
 process.on('message', (m) => {
     runner[m.command](m).catch((e) => {
         log.error(`Failed launching test session:`, e)
-
-        /**
-         * custom exit code to propagate initialisation error
-         */
-        process.send({
-            event: 'runner:error',
-            error: {
-                message: e.message,
-                stack: e.stack
-            },
-            capabilities: runner.configParser.getCapabilities(runner.cid),
-            cid: runner.cid,
-            specs: runner.specs
-        })
         process.exit(1)
     })
 })

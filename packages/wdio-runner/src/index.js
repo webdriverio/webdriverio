@@ -5,7 +5,7 @@ import logger from 'wdio-logger'
 import { ConfigParser, initialisePlugin } from 'wdio-config'
 import { remote, multiremote } from 'webdriverio'
 
-import { runHook } from './utils'
+// import { runHook } from './utils'
 
 const log = logger('wdio-runner')
 const WATCH_NOTIFICATION = '\nWDIO is now in watch mode and is waiting for a change...'
@@ -49,116 +49,116 @@ export default class Runner {
         //     capabilities: caps,
         //     config
         // })
-        await runHook('beforeSession', config, this.caps, this.specs)
+        // await runHook('beforeSession', config, this.caps, this.specs)
 
         this.framework = initialisePlugin(config.framework, 'framework').adapterFactory
-        global.browser = this.initialiseInstance(m.isMultiremote, this.caps)
+        global.browser = await this.initialiseInstance(m.isMultiremote, this.caps)
 
         /**
          * store end method before it gets fiberised by wdio-sync
          */
-        this.endSession = global.browser.end.bind(global.browser)
+        this.endSession = ::global.browser.deleteSession
 
         /**
          * initialisation successful, send start message
          */
-        process.send({
-            event: 'runner:start',
-            cid: m.cid,
-            specs: m.specs,
-            capabilities: this.caps,
-            config
-        })
+        // process.send({
+        //     event: 'runner:start',
+        //     cid: m.cid,
+        //     specs: m.specs,
+        //     capabilities: this.caps,
+        //     config
+        // })
 
         /**
          * register runner events
          */
-        global.browser.on('init', (payload) => {
-            process.send({
-                event: 'runner:init',
-                cid: m.cid,
-                specs: this.specs,
-                sessionID: payload.sessionID,
-                options: payload.options,
-                desiredCapabilities: payload.desiredCapabilities
-            })
+        // global.browser.on('init', (payload) => {
+        //     process.send({
+        //         event: 'runner:init',
+        //         cid: m.cid,
+        //         specs: this.specs,
+        //         sessionID: payload.sessionID,
+        //         options: payload.options,
+        //         desiredCapabilities: payload.desiredCapabilities
+        //     })
+        //
+        //     this.hasSessionID = true
+        // })
 
-            this.hasSessionID = true
-        })
+        // global.browser.on('command', (payload) => {
+        //     const command = {
+        //         event: 'runner:command',
+        //         cid: m.cid,
+        //         specs: this.specs,
+        //         method: payload.method,
+        //         uri: payload.uri,
+        //         data: payload.data
+        //     }
+        //     process.send(this.addTestDetails(command))
+        // })
 
-        global.browser.on('command', (payload) => {
-            const command = {
-                event: 'runner:command',
-                cid: m.cid,
-                specs: this.specs,
-                method: payload.method,
-                uri: payload.uri,
-                data: payload.data
-            }
-            process.send(this.addTestDetails(command))
-        })
+        // global.browser.on('result', (payload) => {
+        //     const result = {
+        //         event: 'runner:result',
+        //         cid: m.cid,
+        //         specs: this.specs,
+        //         body: payload.body // ToDo figure out if this slows down the execution time
+        //     }
+        //
+        //     /**
+        //      * multiremote doesn't send request data and options
+        //      */
+        //     if (!global.browser.isMultiremote) {
+        //         const { uri, method, headers, timeout } = payload.requestOptions
+        //         result.requestOptions = { uri, method, headers, timeout }
+        //         result.requestData = payload.requestData
+        //     }
+        //
+        //     process.send(this.addTestDetails(result))
+        //
+        //     /**
+        //      * update sessionId property
+        //      */
+        //     if (payload.requestOptions && payload.requestOptions.method === 'POST' && payload.requestOptions.uri.path.match(/\/session$/)) {
+        //         global.browser.sessionId = payload.body.sessionId
+        //     }
+        // })
 
-        global.browser.on('result', (payload) => {
-            const result = {
-                event: 'runner:result',
-                cid: m.cid,
-                specs: this.specs,
-                body: payload.body // ToDo figure out if this slows down the execution time
-            }
+        // global.browser.on('screenshot', (payload) => {
+        //     const details = {
+        //         event: 'runner:screenshot',
+        //         cid: m.cid,
+        //         specs: this.specs,
+        //         filename: payload.filename,
+        //         data: payload.data
+        //     }
+        //     process.send(this.addTestDetails(details))
+        // })
 
-            /**
-             * multiremote doesn't send request data and options
-             */
-            if (!global.browser.isMultiremote) {
-                const { uri, method, headers, timeout } = payload.requestOptions
-                result.requestOptions = { uri, method, headers, timeout }
-                result.requestData = payload.requestData
-            }
+        // global.browser.on('log', (...data) => {
+        //     const details = {
+        //         event: 'runner:log',
+        //         cid: m.cid,
+        //         specs: this.specs,
+        //         data
+        //     }
+        //     process.send(this.addTestDetails(details))
+        // })
 
-            process.send(this.addTestDetails(result))
+        // process.on('test:start', (test) => {
+        //     this.currentTest = test
+        // })
 
-            /**
-             * update sessionId property
-             */
-            if (payload.requestOptions && payload.requestOptions.method === 'POST' && payload.requestOptions.uri.path.match(/\/session$/)) {
-                global.browser.sessionId = payload.body.sessionId
-            }
-        })
-
-        global.browser.on('screenshot', (payload) => {
-            const details = {
-                event: 'runner:screenshot',
-                cid: m.cid,
-                specs: this.specs,
-                filename: payload.filename,
-                data: payload.data
-            }
-            process.send(this.addTestDetails(details))
-        })
-
-        global.browser.on('log', (...data) => {
-            const details = {
-                event: 'runner:log',
-                cid: m.cid,
-                specs: this.specs,
-                data
-            }
-            process.send(this.addTestDetails(details))
-        })
-
-        process.on('test:start', (test) => {
-            this.currentTest = test
-        })
-
-        global.browser.on('error', (payload) => {
-            process.send({
-                event: 'runner:error',
-                cid: m.cid,
-                specs: this.specs,
-                error: payload,
-                capabilities: this.caps
-            })
-        })
+        // global.browser.on('error', (payload) => {
+        //     process.send({
+        //         event: 'runner:error',
+        //         cid: m.cid,
+        //         specs: this.specs,
+        //         error: payload,
+        //         capabilities: this.caps
+        //     })
+        // })
 
         this.haltSIGINT = true
         this.inWatchMode = Boolean(config.watch)
@@ -170,14 +170,7 @@ export default class Runner {
         global.$$ = ::global.browser.$$
 
         try {
-            let res = await global.browser.init()
-            global.browser.sessionId = res.sessionId
             this.haltSIGINT = false
-
-            /**
-             * make sure init and end can't get called again
-             */
-            global.browser.options.isWDIO = true
 
             /**
              * kill session of SIGINT signal showed up while trying to
@@ -197,19 +190,19 @@ export default class Runner {
             this.failures = await this.framework.run(m.cid, config, m.specs, this.caps)
             await this.end(this.failures)
 
-            await runHook('afterSession', config, this.caps, this.specs)
+            // await runHook('afterSession', config, this.caps, this.specs)
             process.exit(this.failures === 0 ? 0 : 1)
         } catch (e) {
-            process.send({
-                event: 'error',
-                cid: this.cid,
-                specs: this.specs,
-                capabilities: this.caps,
-                error: {
-                    message: e.message,
-                    stack: e.stack
-                }
-            })
+            // process.send({
+            //     event: 'error',
+            //     cid: this.cid,
+            //     specs: this.specs,
+            //     capabilities: this.caps,
+            //     error: {
+            //         message: e.message,
+            //         stack: e.stack
+            //     }
+            // })
 
             await this.end(1)
             process.removeAllListeners()
@@ -222,17 +215,20 @@ export default class Runner {
      * end test runner instance and exit process
      */
     async end (failures = 0, inWatchMode = this.inWatchMode, sendProcessEvent = true) {
-        if (this.hasSessionID && !inWatchMode) {
+        if (!inWatchMode) {
             global.browser.options.isWDIO = false
             await this.endSession()
         }
 
+        /**
+         * don't end it when it watch mode
+         */
         if (!sendProcessEvent) {
             return
         }
 
         process.send({
-            event: 'runner:end',
+            event: 'end',
             failures: failures,
             cid: this.cid,
             specs: this.specs
@@ -348,7 +344,7 @@ export default class Runner {
         let config = this.configParser.getConfig()
 
         if (!isMultiremote) {
-            config.desiredCapabilities = capabilities
+            config.capabilities = capabilities
             return remote(config)
         }
 

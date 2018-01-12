@@ -96,13 +96,13 @@ class MochaAdapter {
             Object.keys(EVENTS).forEach((e) =>
                 this.runner.on(e, this.emit.bind(this, EVENTS[e])))
 
-            this.runner.suite.beforeAll(this.wrapHook('beforeSuite'))
-            this.runner.suite.beforeEach(this.wrapHook('beforeTest'))
-            this.runner.suite.afterEach(this.wrapHook('afterTest'))
-            this.runner.suite.afterAll(this.wrapHook('afterSuite'))
+            // this.runner.suite.beforeAll(this.wrapHook('beforeSuite'))
+            // this.runner.suite.beforeEach(this.wrapHook('beforeTest'))
+            // this.runner.suite.afterEach(this.wrapHook('afterTest'))
+            // this.runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
         // await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
-        await this.waitUntilSettled()
+        // await this.waitUntilSettled()
 
         return result
     }
