@@ -3,31 +3,34 @@ import { WDIO_DEFAULTS } from '../src/constants'
 describe('constants', () => {
     describe('WDIO_DEFAULTS', () => {
         it('should expect specs to be an array', () => {
-            expect(WDIO_DEFAULTS.specs.type('foobar')).toBe(false)
-            expect(WDIO_DEFAULTS.specs.type([])).toBe(true)
+            WDIO_DEFAULTS.specs.type([])
+            expect(() => WDIO_DEFAULTS.specs.type('foobar')).toThrow()
         })
 
         it('should expect exclude to be an array', () => {
-            expect(WDIO_DEFAULTS.exclude.type('foobar')).toBe(false)
-            expect(WDIO_DEFAULTS.exclude.type([])).toBe(true)
+            WDIO_DEFAULTS.exclude.type([])
+            expect(() => WDIO_DEFAULTS.exclude.type('foobar')).toThrow()
         })
 
         it('should validate reporters correctly', () => {
-            expect(WDIO_DEFAULTS.reporters.type('foobar')).toBe(false)
-            expect(WDIO_DEFAULTS.reporters.type([false, 'string'])).toBe(false)
-            expect(WDIO_DEFAULTS.reporters.type(['string'])).toBe(true)
-            expect(WDIO_DEFAULTS.reporters.type([{}])).toBe(false)
-            expect(WDIO_DEFAULTS.reporters.type([{ name: 'foobar' }])).toBe(true)
+            WDIO_DEFAULTS.reporters.type(['string'])
+            WDIO_DEFAULTS.reporters.type([{ name: 'foobar' }])
+
+            expect(() => WDIO_DEFAULTS.reporters.type('foobar')).toThrow()
+            expect(() => WDIO_DEFAULTS.reporters.type([false, 'string'])).toThrow()
+            expect(() => WDIO_DEFAULTS.reporters.type([{}])).toThrow()
+
         })
     })
 
     describe('HOOK_DEFINITION', () => {
         it('should only accept arrays of functions', () => {
-            expect(WDIO_DEFAULTS.onPrepare.type()).toBe(false)
-            expect(WDIO_DEFAULTS.onPrepare.type([])).toBe(true)
-            expect(WDIO_DEFAULTS.onPrepare.type(['foobar'])).toBe(false)
-            expect(WDIO_DEFAULTS.onPrepare.type([() => {}])).toBe(true)
-            expect(WDIO_DEFAULTS.onPrepare.type([() => {}, 'foobar'])).toBe(false)
+            WDIO_DEFAULTS.onPrepare.type([])
+            WDIO_DEFAULTS.onPrepare.type([() => {}])
+
+            expect(() => WDIO_DEFAULTS.onPrepare.type()).toThrow()
+            expect(() => WDIO_DEFAULTS.onPrepare.type(['foobar'])).toThrow()
+            expect(() => WDIO_DEFAULTS.onPrepare.type([() => {}, 'foobar'])).toThrow()
         })
     })
 })

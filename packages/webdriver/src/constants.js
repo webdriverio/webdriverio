@@ -168,7 +168,13 @@ const DEFAULTS = {
      * logOutput as file path or writeable stream
      */
     logOutput: {
-        type: (param) => typeof param === 'string' || param instanceof Writable
+        type: (param) => {
+            if (typeof param === 'string' || param instanceof Writable) {
+                return
+            }
+
+            throw new Error(`logOutput needs to be a string or a writeable stream`)
+        }
     },
     /**
      * Timeout for any request to the Selenium server

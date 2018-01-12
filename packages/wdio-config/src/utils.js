@@ -96,8 +96,12 @@ export function validateConfig (defaults, options) {
                 throw new Error(`Expected option "${name}" to be type of ${expectedOption.type} but was ${typeof options[name]}`)
             }
 
-            if (typeof expectedOption.type === 'function' && !expectedOption.type(options[name])) {
-                throw new Error(`Option "${name}" failed type check ${expectedOption.type}`)
+            if (typeof expectedOption.type === 'function') {
+                try {
+                    expectedOption.type(options[name])
+                } catch (e) {
+                    throw new Error(`Type check for option "${name}" failed: ${e.message}`)
+                }
             }
 
             if (expectedOption.match && !options[name].match(expectedOption.match)) {
