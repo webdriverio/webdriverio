@@ -1,4 +1,6 @@
+/* istanbul ignore next */
 const NOOP = () => {}
+
 const DEFAULT_TEST_TIMEOUT = 30000
 const HOOK_DEFINITION = {
     type: (param) => {
