@@ -8,11 +8,11 @@ export default class LocalRunner extends EventEmitter {
         this.config = config
     }
 
-    run () {
+    run (options) {
         const {
             cid, command, configFile, argv, caps, processNumber,
             specs, server, isMultiremote
-        } = this.config
+        } = options
 
         this.childProcess = child.fork(path.join(__dirname, '/run.js'), process.argv.slice(2), {
             cwd: process.cwd(),

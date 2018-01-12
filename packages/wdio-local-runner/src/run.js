@@ -1,8 +1,13 @@
 import Runner from 'wdio-runner'
+import logger from 'wdio-logger'
+
+const log = logger('wdio-local-runner')
 
 const runner = new Runner()
 process.on('message', (m) => {
     runner[m.command](m).catch((e) => {
+        log.error(`Failed launching test session:`, e)
+
         /**
          * custom exit code to propagate initialisation error
          */
