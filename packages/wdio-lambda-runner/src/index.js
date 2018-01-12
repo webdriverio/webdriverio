@@ -25,6 +25,9 @@ export default class AWSLambdaRunner extends EventEmitter {
         this.specs = specs
         this.nodeModulesDir = path.resolve(findNodeModules()[0])
 
+        this.pwd = shell.pwd().stdout
+        this.serverlessBinPath = path.resolve(require.resolve('serverless'), '..', '..', 'bin', 'serverless')
+
         /**
          * generate temp dir for AWS service
          */
@@ -64,26 +67,10 @@ export default class AWSLambdaRunner extends EventEmitter {
         shell.cp(path.resolve(__dirname, '..', 'config', 'serverless.yml'), path.resolve(this.serviceDir.name, 'serverless.yml'))
         shell.cp(path.resolve(__dirname, 'handler.js'), path.resolve(this.serviceDir.name, 'handler.js'))
         fs.writeFileSync(path.resolve(this.serviceDir.name, 'runner-config.json'), JSON.stringify(runnerConfig, null, 4))
-    }
 
-    /**
-     * initialise runner environment
-     * create lambda service and deploy it to AWS
-     */
-    async initialise () {
-        /**
-         * create temporary service dir
-         */
-
-        /**
-         * copy over files
-         */
-        // shell.cp(this.nodeModulesDir, path.resolve(serviceDir, 'packages'))
-        // this.specs.forEach(
-        //     (specFile) => shell.cp(specFile, path.resolve(serviceDir, 'specs', path.basename(specFile)))
-        // )
-
-
+        shell.cd(this.serviceDir.name)
+        shell.exec(`${this.serverlessBinPath} deploy -v`)
+        shell.cd(this.pwd)
     }
 
     /**
@@ -92,9 +79,9 @@ export default class AWSLambdaRunner extends EventEmitter {
     kill () {
     }
 
-    run (/*options*/) {
-        // console.log(options)
-        // console.log(this.nodeModulesDir)
-        // console.log(process.version);
+    run (options) {
+        shell.cd(this.serviceDir.name)
+        shell.exec(`${this.serverlessBinPath} invoke -f run --data '${JSON.stringify(options)}'`)
+        shell.cd(this.pwd)
     }
 }
