@@ -93,5 +93,11 @@ describe('utilities', () => {
                 }
             })).to.be.equal(true)
         })
+
+        it('should recognise unknown command when using chromedriver', () => {
+            expect(isUnknownCommand({
+                message: 'did not map to a valid resource'
+            })).to.be.equal(true)
+        })
     })
 })
