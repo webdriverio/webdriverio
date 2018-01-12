@@ -25,12 +25,12 @@ describe('constants', () => {
 
     describe('HOOK_DEFINITION', () => {
         it('should only accept arrays of functions', () => {
-            WDIO_DEFAULTS.onPrepare.type([])
-            WDIO_DEFAULTS.onPrepare.type([() => {}])
+            WDIO_DEFAULTS.before.type([])
+            WDIO_DEFAULTS.before.type([() => {}])
 
-            expect(() => WDIO_DEFAULTS.onPrepare.type()).toThrow()
-            expect(() => WDIO_DEFAULTS.onPrepare.type(['foobar'])).toThrow()
-            expect(() => WDIO_DEFAULTS.onPrepare.type([() => {}, 'foobar'])).toThrow()
+            expect(() => WDIO_DEFAULTS.before.type()).toThrow()
+            expect(() => WDIO_DEFAULTS.before.type(['foobar'])).toThrow()
+            expect(() => WDIO_DEFAULTS.before.type([() => {}, 'foobar'])).toThrow()
         })
     })
 })
