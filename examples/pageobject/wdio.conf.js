@@ -129,7 +129,7 @@ exports.config = {
     // beforeHook: function () {
     // },
     //
-    // Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
+    // Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
     // afterEach in Mocha)
     // afterHook: function () {
     // },
@@ -146,7 +146,7 @@ exports.config = {
     // afterCommand: function (commandName, args, result, error) {
     // },
     //
-    // Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
+    // Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
     // afterTest: function (test) {
     // },
     //
