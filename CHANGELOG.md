@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v4.10.1 (2018-01-12)
+* bugfixes:
+    * fallback to old JSONWireProtocol commands when running Chromedriver
+
+## v4.10.0 (2018-01-10)
+* bugfixes:
+    * Fix for error handling on before/after hooks (#2497)
+    * fix debug functionality when using launcher programmatically (#2492)
+    * Fix issue when terminal doesn't support colors (#2496)
+* global changes:
+    * docs improvements
+    * fallbacks for depcrecated JsonWireProtocol commands (#2493)
+* wdio changes
+    * Add ability to specify a spec and suite (#2505)
+    * Add support for filtering specs #2520
+
 ## v4.9.11 (2017-11-29)
 * bugfixes:
     * better handling of failures in before hooks placed before any describe block (#2259)
