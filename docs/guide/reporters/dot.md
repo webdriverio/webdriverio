@@ -8,7 +8,7 @@ title: WebdriverIO - Dot Reporter
 Dot Reporter
 ============
 
-The dot reporter is the default reporter for the WDIO test runner. It's therefor a dependency of WebdriverIO and doesn't need to get downloaded. To use the dot reporter just add `'dot'` to the `reporters` array:
+The dot reporter is the default reporter for the WDIO test runner. It's therefore a dependency of WebdriverIO and doesn't need to get downloaded. To use the dot reporter just add `'dot'` to the `reporters` array:
 
 ```js
 // wdio.conf.js
