@@ -150,14 +150,58 @@
     <div class="viewportTest outTopRight"></div>
     <div class="viewportTest outBottomLeft"></div>
     <div class="viewportTest outBottomRight"></div>
-    <div id="noPosition">
-        <div id="positionAbsolute" style="top: 0;
+    <div class="noPosition np-default">
+        <div class="positionAbsolute" style="top: 0;
         left: 0;
         right: 0;
         bottom: 0;
         width: 10px; height: 10px;
         position: absolute;">
-            <div style="width: 10px; height: 10px">positionAbsolute</div>
+            <div style="width: 10px; height: 10px">.</div>
+        </div>
+    </div>
+
+    <div class="noPosition np-static" style="position: static;">
+        <div class="positionAbsolute" style="top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 10px; height: 10px;
+        position: absolute;">
+            <div style="width: 10px; height: 10px">.</div>
+        </div>
+    </div>
+
+    <div class="noPosition np-display-none" style="position: static; display: none">
+        <div class="positionAbsolute" style="top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 10px; height: 10px;
+        position: absolute;">
+            <div style="width: 10px; height: 10px">.</div>
+        </div>
+    </div>
+
+    <div class="noPosition np-visibility-hidden" style="position: static; visibility: hidden">
+        <div class="positionAbsolute" style="top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 10px; height: 10px;
+        position: absolute;">
+            <div style="width: 10px; height: 10px">.</div>
+        </div>
+    </div>
+
+    <div class="noPosition np-opacity-zero" style="position: static; opacity: 0">
+        <div class="positionAbsolute" style="top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 10px; height: 10px;
+        position: absolute;">
+            <div style="width: 10px; height: 10px">.</div>
         </div>
     </div>
 
