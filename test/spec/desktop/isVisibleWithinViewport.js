@@ -42,4 +42,9 @@ describe('isVisibleWithinViewport', () => {
         const isVisibleWithinViewport = await this.client.isVisibleWithinViewport('#doesNotExist')
         isVisibleWithinViewport.should.be.equal(false)
     })
+    
+    it('should ignore dimension of element with position: static', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('#positionAbsolute')
+        isVisibleWithinViewport.should.equal(true)
+    })
 })
