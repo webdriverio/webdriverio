@@ -56,6 +56,7 @@ You can register event handler for several events which get triggered during the
 
 ```txt
 'start'
+'runner:start'
 'suite:start'
 'hook:start'
 'hook:end'
@@ -65,6 +66,7 @@ You can register event handler for several events which get triggered during the
 'test:fail'
 'test:pending'
 'suite:end'
+'runner:end'
 'end'
 ```
 
