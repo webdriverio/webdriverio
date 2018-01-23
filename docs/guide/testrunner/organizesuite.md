@@ -140,3 +140,5 @@ _**Note:** This will_ not _override the `--spec` flag for running a single spec.
 ## Stop testing after failure
 
 With the `bail` option you can specify when WebdriverIO should stop the test run after test failures. This can be helpful when you have a big test suite and want to avoid long test runs when you already know that your build will break. The option expects a number that specifies after how many spec failures it should stop the whole test run. The default is `0` meaning that it always runs all tests specs it can find.
+
+Please see http://webdriver.io/guide/getstarted/configuration.html#bail for additional information on the bail configuration.
