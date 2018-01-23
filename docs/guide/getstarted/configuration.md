@@ -122,7 +122,7 @@ Type: `Boolean`<br>
 Default: *true*
 
 ### bail
-If you only want to run your tests until a specific amount of tests have failed use bail (default is 0 - don't bail, run all tests).
+If you only want to run your tests until a specific amount of tests have failed use bail (default is 0 - don't bail, run all tests). _Note_: Please be aware that when using a third party test runner such as Mocha, additional configuration might be required.
 
 Type: `Number`<br>
 Default: *0* (don't bail, run all tests)
