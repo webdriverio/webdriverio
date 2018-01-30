@@ -189,6 +189,18 @@ const DEFAULTS = {
     connectionRetryCount: {
         type: 'number',
         default: 2
+    },
+    /**
+     * cloud user if applicable
+     */
+    user: {
+        type: 'string'
+    },
+    /**
+     * access key to user
+     */
+    key: {
+        type: 'string'
     }
 }
 
