@@ -73,8 +73,11 @@ export default class WebDriverRequest {
         /**
          * send authentication credentials only when creating new session
          */
-        if (this.endpoint === '/session' && options.auth) {
-            requestOptions.auth = this.auth
+        if (this.endpoint === '/session' && options.user && options.key) {
+            requestOptions.auth = {
+                user: options.user,
+                pass: options.key
+            }
         }
 
         return requestOptions
