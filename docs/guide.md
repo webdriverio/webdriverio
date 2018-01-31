@@ -43,9 +43,10 @@ $ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.16.0/gecko
 
 Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases).
 
+** 4. Start selenium standalone server**
+
 Start the server by executing the following:
 
-** 4. Start selenium standalone server**
 ```sh
 $ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.5.3.jar
 ```
