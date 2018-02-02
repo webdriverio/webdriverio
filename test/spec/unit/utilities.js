@@ -81,6 +81,10 @@ describe('utilities', () => {
             })).to.be.equal(true)
 
             expect(isUnknownCommand({
+                message: 'Method has not yet been implemented'
+            })).to.be.equal(true)
+
+            expect(isUnknownCommand({
                 message: 'POST /session/foobar/keys did not match a known command'
             })).to.be.equal(true)
         })
