@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v4.10.2 (2018-02-02)
+* global changes:
+    * docs improvements
+* bugfixes:
+    * better unknown command detection (#2580)
+
 ## v4.10.1 (2018-01-12)
 * bugfixes:
     * fallback to old JSONWireProtocol commands when running Chromedriver
