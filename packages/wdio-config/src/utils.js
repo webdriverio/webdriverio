@@ -26,7 +26,7 @@ export function detectBackend (options = {}) {
      */
     if (key.length === 20) {
         return Object.assign(pickBy({ host, port }), {
-            host: 'hub.browserstack.com',
+            hostname: 'hub.browserstack.com',
             port: 80
         })
     }
@@ -37,7 +37,7 @@ export function detectBackend (options = {}) {
      */
     if (key.length === 32) {
         return Object.assign(pickBy({ host, port }), {
-            host: 'hub.testingbot.com',
+            hostname: 'hub.testingbot.com',
             port: 80
         })
     }
@@ -48,7 +48,7 @@ export function detectBackend (options = {}) {
      */
     return Object.assign(pickBy({ host, port }), {
         protocol: 'https',
-        host: 'ondemand.saucelabs.com',
+        hostname: 'ondemand.saucelabs.com',
         port: 443
     })
 }

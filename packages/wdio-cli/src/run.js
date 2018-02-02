@@ -2,7 +2,7 @@ import logger from 'wdio-logger'
 
 import Launcher from './launcher.js'
 
-const log = logger('wdio-cli:utils')
+const log = logger('wdio-cli:run')
 
 export default function run (wdioConf, params) {
     let stdinData = ''
