@@ -16,7 +16,7 @@ class Launcher {
         const specs = this.configParser.getSpecs()
 
         const Runner = initialisePlugin(config.runner, 'runner')
-        this.runner = new Runner(config, capabilities, specs)
+        this.runner = new Runner(configFile, config, capabilities, specs)
         this.runner.on('end', ::this.endHandler)
 
         this.reporters = initReporters(config)
@@ -41,6 +41,8 @@ class Launcher {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
         let launcher = getLauncher(config)
+
+        await this.runner.initialise()
 
         /**
          * run onPrepare hook

@@ -5,6 +5,7 @@ provider:
     name: aws
     runtime: nodejs6.10
     environment: ${self:custom.environment}
+    timeout: 300
 
 functions:
     run:
