@@ -3,7 +3,7 @@ import { detectBackend } from '../src/utils'
 describe('detectBackend', () => {
     it('should not set anything if host is set in caps', () => {
         const caps = {
-            host: '0.0.0.0',
+            hostname: '0.0.0.0',
             port: 1234
         }
         expect(detectBackend(caps)).toEqual(caps)
@@ -24,7 +24,7 @@ describe('detectBackend', () => {
         expect(caps.host).toBe('127.0.0.1')
         expect(caps.port).toBe(1234)
 
-        caps = detectBackend({ host: 'foobar' })
+        caps = detectBackend({ hostname: 'foobar' })
         expect(caps.host).toBe('foobar')
         expect(caps.port).toBe(4444)
     })
