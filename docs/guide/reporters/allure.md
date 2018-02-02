@@ -60,7 +60,7 @@ Apply and restart the Jenkins server. All assets should now be served correctly.
 Install the [Allure command-line tool](https://www.npmjs.com/package/allure-commandline), and process the results directory:
 
 ```sh
-$ allure generate [allure_output_dir] && allure report open
+$ allure generate [allure_output_dir] && allure open
 ```
 
 This will generate a report (by default in `./allure-report`), and open it in your browser:
