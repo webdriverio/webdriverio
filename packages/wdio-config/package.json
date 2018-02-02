@@ -14,10 +14,6 @@
     "clean": "rm -rf ./build",
     "compile": "babel src/ -d build/",
     "postversion": "npm run build && git tag -d $(git tag -l)",
-    "release": "npm run release:patch",
-    "release:patch": "np patch --no-cleanup",
-    "release:minor": "np minor --no-cleanup",
-    "release:major": "np major --no-cleanup",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"

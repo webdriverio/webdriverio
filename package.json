@@ -1,15 +1,20 @@
 {
   "private": true,
   "scripts": {
+    "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git",
+    "build": "lerna run build",
     "clean": "run-p clean:*",
     "clean:build": "rm -fr ./packages/*/build",
     "clean:node_modules": "rm -fr ./packages/*/node_modules",
     "clean:fakegit": "rm -fr ./packages/*/.git",
-    "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git",
-    "build": "lerna run build",
+    "release": "npm run release:minor",
+    "release:patch": "lerna run release:patch --scope",
+    "release:minor": "lerna run release:minor --scope",
+    "release:minor": "lerna run release:major --scope",
     "test": "run-s test:*",
     "test:eslint": "eslint packages",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "watch": "lerna exec 'npm run compile -- --watch' --scope"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
