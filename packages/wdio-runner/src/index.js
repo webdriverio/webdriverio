@@ -61,11 +61,12 @@ export default class Runner extends EventEmitter {
             }
 
             this.failures = await this.framework.run(m.cid, config, m.specs, this.caps)
-            await this.end(this.failures)
+            await global.browser.deleteSession()
 
             await runHook('afterSession', config, this.caps, this.specs)
             process.exit(this.failures === 0 ? 0 : 1)
         } catch (e) {
+            log.error(e)
             return this.kill()
         }
     }
