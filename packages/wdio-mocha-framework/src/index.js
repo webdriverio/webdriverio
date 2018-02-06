@@ -319,7 +319,6 @@ class MochaAdapter {
     load (name, context) {
         try {
             module.context = context
-
             require(name)
         } catch (e) {
             throw new Error(`Module ${name} can't get loaded. Are you sure you have installed it?\n` +
