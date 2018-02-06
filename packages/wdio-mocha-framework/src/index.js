@@ -1,7 +1,10 @@
 import path from 'path'
 import Mocha from 'mocha'
 
-// import { runInFiberContext, wrapCommands, executeHooksWithArgs } from 'wdio-sync'
+import logger from 'wdio-logger'
+import { runInFiberContext, wrapCommands, executeHooksWithArgs } from 'wdio-config'
+
+const log = logger('wdio-mocha-framework')
 
 const INTERFACES = {
     bdd: ['before', 'beforeEach', 'it', 'after', 'afterEach'],
@@ -70,23 +73,23 @@ class MochaAdapter {
         mocha.fullTrace()
         this.specs.forEach((spec) => mocha.addFile(spec))
 
-        // wrapCommands(global.browser, this.config.beforeCommand, this.config.afterCommand)
+        wrapCommands(global.browser, this.config.beforeCommand, this.config.afterCommand)
 
         mocha.suite.on('pre-require', (context, file, mocha) => {
             this.options(mochaOpts, {
                 context, file, mocha, options: mochaOpts
             })
 
-            // INTERFACES[mochaOpts.ui].forEach((fnName) => {
-            // let testCommand = INTERFACES[mochaOpts.ui][2]
+            INTERFACES[mochaOpts.ui].forEach((fnName) => {
+                let testCommand = INTERFACES[mochaOpts.ui][2]
 
-            // runInFiberContext(
-            //     [testCommand, testCommand + '.only'],
-            //     this.config.beforeHook,
-            //     this.config.afterHook,
-            //     fnName
-            // )
-            // })
+                runInFiberContext(
+                    [testCommand, testCommand + '.only'],
+                    this.config.beforeHook,
+                    this.config.afterHook,
+                    fnName
+                )
+            })
         })
 
         // await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
@@ -96,13 +99,13 @@ class MochaAdapter {
             Object.keys(EVENTS).forEach((e) =>
                 this.runner.on(e, this.emit.bind(this, EVENTS[e])))
 
-            // this.runner.suite.beforeAll(this.wrapHook('beforeSuite'))
-            // this.runner.suite.beforeEach(this.wrapHook('beforeTest'))
-            // this.runner.suite.afterEach(this.wrapHook('afterTest'))
-            // this.runner.suite.afterAll(this.wrapHook('afterSuite'))
+            this.runner.suite.beforeAll(this.wrapHook('beforeSuite'))
+            this.runner.suite.beforeEach(this.wrapHook('beforeTest'))
+            this.runner.suite.afterEach(this.wrapHook('afterTest'))
+            this.runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        // await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
-        // await this.waitUntilSettled()
+        await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
+        await this.waitUntilSettled()
 
         return result
     }
@@ -110,13 +113,13 @@ class MochaAdapter {
     /**
      * Hooks which are added as true Mocha hooks need to call done() to notify async
      */
-    wrapHook (/*hookName*/) {
-        // return () => executeHooksWithArgs(
-        //     this.config[hookName],
-        //     this.prepareMessage(hookName)
-        // ).catch((e) => {
-        //     console.log(`Error in ${hookName} hook`, e.stack)
-        // })
+    wrapHook (hookName) {
+        return () => executeHooksWithArgs(
+            this.config[hookName],
+            this.prepareMessage(hookName)
+        ).catch((e) => {
+            log.error(`Error in ${hookName} hook (ignoring)`, e.stack)
+        })
     }
 
     prepareMessage (hookName) {

@@ -31,6 +31,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "mocha": "^5.0.0"
+    "mocha": "^5.0.0",
+    "wdio-config": "^0.1.0",
+    "wdio-logger": "^0.1.0"
   }
 }
