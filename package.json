@@ -10,11 +10,11 @@
     "release": "npm run release:minor",
     "release:patch": "lerna run release:patch --scope",
     "release:minor": "lerna run release:minor --scope",
-    "release:minor": "lerna run release:major --scope",
+    "release:major": "lerna run release:major --scope",
     "test": "run-s test:*",
     "test:eslint": "eslint packages",
     "test:coverage": "jest --coverage",
-    "watch": "lerna exec 'npm run compile -- --watch' --scope"
+    "watch": "node ./scripts/watch"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -33,7 +33,8 @@
     "jest": "^21.2.1",
     "lerna": "^2.5.1",
     "np": "^2.18.2",
-    "npm-run-all": "^4.0.2"
+    "npm-run-all": "^4.0.2",
+    "shelljs": "^0.8.1"
   },
   "jest": {
     "coverageDirectory": "./coverage/",
