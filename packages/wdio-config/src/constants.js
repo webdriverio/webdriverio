@@ -24,6 +24,7 @@ export const DEFAULT_CONFIGS = {
     connectionRetryCount: 3,
     debug: false,
     execArgv: null,
+    runner: 'local',
 
     /**
      * framework defaults

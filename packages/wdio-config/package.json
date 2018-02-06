@@ -32,7 +32,6 @@
   },
   "dependencies": {
     "deepmerge": "^2.0.1",
-    "lodash.pickby": "^4.6.0",
     "wdio-logger": "^0.1.0"
   }
 }
