@@ -2,6 +2,10 @@ import path from 'path'
 import child from 'child_process'
 import EventEmitter from 'events'
 
+import logger from 'wdio-logger'
+
+const log = logger('wdio-local-runner')
+
 export default class LocalRunner extends EventEmitter {
     constructor (config) {
         super()
@@ -21,9 +25,11 @@ export default class LocalRunner extends EventEmitter {
             execArgv: this.config.execArgv
         })
 
-        childProcess
-            .on('message', this.emit.bind(this, this.cid))
-            .on('exit', this.emit.bind(this, this.cid))
+        childProcess.on('message', this.emit.bind(this, this.cid))
+        childProcess.on('exit', (code) => {
+            log.debug(`Runner ${cid} finished with exit code ${code}`)
+            this.emit(this.cid, code)
+        })
 
         childProcess.send({
             cid, command, configFile, argv, caps,
