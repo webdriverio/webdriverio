@@ -105,8 +105,6 @@ class MochaAdapter {
             this.runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
         await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
-        await this.waitUntilSettled()
-
         return result
     }
 
@@ -229,6 +227,7 @@ class MochaAdapter {
         //     this.sendInternal(event, message)
         // }
 
+        console.log(message);
         // this.send(message, null, {}, () => ++this.receivedMessages)
         this.sentMessages++
     }
@@ -302,22 +301,6 @@ class MochaAdapter {
     // send (...args) {
     //     return process.send.apply(process, args)
     // }
-
-    /**
-     * wait until all messages were sent to parent
-     */
-    waitUntilSettled () {
-        return new Promise((resolve) => {
-            const start = (new Date()).getTime()
-            const interval = setInterval(() => {
-                const now = (new Date()).getTime()
-
-                if (this.sentMessages !== this.receivedMessages && now - start < SETTLE_TIMEOUT) return
-                clearInterval(interval)
-                resolve()
-            }, 100)
-        })
-    }
 
     load (name, context) {
         try {
