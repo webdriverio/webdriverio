@@ -1,9 +1,9 @@
 {
-  "name": "wdio-config",
-  "version": "0.1.0",
-  "description": "A helper utility to parse and validate WebdriverIO options",
+  "name": "wdio-interface",
+  "version": "0.0.0",
+  "description": "A WDIO helper utility to provide a cli interface for the testrunner",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-config",
+  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-interface",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
@@ -25,13 +25,14 @@
   "keywords": [
     "webdriver",
     "wdio",
-    "wdio-utility"
+    "wdio-reporter"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "deepmerge": "^2.0.1",
-    "wdio-logger": "^0.1.0"
+    "blessed": "^0.1.81",
+    "pty.js": "^0.3.1",
+    "term.js": "^0.0.7"
   }
 }
