@@ -5,6 +5,7 @@ import logger from 'wdio-logger'
 import { ConfigParser, initialisePlugin } from 'wdio-config'
 import { remote, multiremote } from 'webdriverio'
 
+import BaseReporter from './reporter'
 import { runHook } from './utils'
 
 const log = logger('wdio-runner')
@@ -39,6 +40,7 @@ export default class Runner extends EventEmitter {
         this.initialiseServices(config)
 
         this.framework = initialisePlugin(config.framework, 'framework').adapterFactory
+        this.reporter = new BaseReporter(config.reporters, config.reporterOptions)
         this.inWatchMode = Boolean(config.watch)
 
         try {
@@ -60,7 +62,7 @@ export default class Runner extends EventEmitter {
                 return this.kill()
             }
 
-            this.failures = await this.framework.run(m.cid, config, m.specs, this.caps)
+            this.failures = await this.framework.run(m.cid, config, m.specs, this.caps, this.reporter)
             await global.browser.deleteSession()
 
             await runHook('afterSession', config, this.caps, this.specs)
