@@ -15,7 +15,7 @@ class DotReporter extends WDIOReporter {
     /**
      * pending tests
      */
-    onTestPending () {
+    onTestSkip () {
         process.stdout.write(chalk.cyanBright('.'))
     }
 
