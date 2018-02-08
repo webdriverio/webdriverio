@@ -1,6 +1,6 @@
 # Contributing
 
-This repository contains all necessary packages to use the WebdriverIO test framework. These packages have individual descriptions in their README files (`/packages/<package>/README.md`). Even though the build commands might differ from package to package the way to work with these is the same. This project uses [Lerna](https://lernajs.io/) to manage all its subprojects in this monolith repository.
+This repository contains all necessary packages of the WebdriverIO project (excluding plugins that were contributed by 3rd party developers). These packages have individual descriptions in their README files (`/packages/<package>/README.md`) providing information about their scope and responsibilities. Even though the build commands might differ from package to package the way to work with these is the same. This project uses [Lerna](https://lernajs.io/) to manage all its subprojects in this monolith repository.
 
 We are trying to make contributing to this project as easy and transparent as possible. If there is any information missing that prevents you from sending in a pull request, please let us know. We treat these kind of issues like actual bugs.
 
@@ -17,7 +17,7 @@ In order to set up this project and start contributing follow this step by step 
     $ git clone git@github.com:<your-username>/v5.git
     ```
 
-    _Note_: this is currently a dev repository to keep making releasing in the [original](https://github.com/webdriverio/webdriverio) project. Once we are at a state where this can be release we will force push to master.
+    _Note_: this is currently a dev repository to keep making releases in the [original](https://github.com/webdriverio/webdriverio) project. Once we are at a state where this can be released we will force push this master branch to the webdriverio/webdriverio#master branch.
 
 3. Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
 4. Install Dependencies
@@ -49,9 +49,26 @@ It should give you a passing result.
 
 ## Work On Packages
 
-If you start making changes to specific packages, make sure you listen on file changes and transpile the code everytime you press safe. For that it is recommended to use [Lernas exec](https://github.com/lerna/lerna#exec) command to run the watch task on a specific package:
+If you start making changes to specific packages, make sure you listen on file changes and transpile the code everytime you press save. To do that for all packages, run:
 
 ```sh
-# e.g. run watch task on changes for `/packages/webdriver` package
-lerna exec 'npm run compile -- --watch' --scope=webdriver
+$ npm run watch
 ```
+
+If you only work on a single package you can watch only for that one by calling:
+
+```sh
+# e.g. `$ npm run watch:pkg wdio-runner`
+$ npm run watch:pkg <package-name>
+```
+
+## Commit Messages Convention
+
+In order to better identify which changes have been made to which package please add the package name in front of every commit, e.g.:
+
+```sh
+# e.g. `$ git commit -m "wdio-runner: some changes"`
+git commit -m "<package-name>: some changes"
+```
+
+Commits that affect all packages or are not related to any (e.g. changes to NPM scripts or docs) don't need to follow this convention.

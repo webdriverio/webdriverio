@@ -14,7 +14,8 @@
     "test": "run-s test:*",
     "test:eslint": "eslint packages",
     "test:coverage": "jest --coverage",
-    "watch": "node ./scripts/watch"
+    "watch": "node ./scripts/watch",
+    "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
