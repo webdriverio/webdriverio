@@ -1,0 +1,55 @@
+/**
+ * replaces whitespaces with underscore and removes dots
+ * @param  {String} str  variable to sanitize
+ * @return {String}      sanitized variable
+ */
+function sanitizeString (str) {
+    if (!str) {
+        return ''
+    }
+
+    return String(str)
+        .replace(/^.*\/([^/]+)\/?$/, '$1')
+        .replace(/\./g, '_')
+        .replace(/\s/g, '')
+        .toLowerCase()
+}
+
+/**
+ * formats capability object into sanitized string for e.g.filenames
+ * @param {Object} caps  Selenium capabilities
+ */
+function sanitizeCaps (caps) {
+    if (!caps) {
+        return ''
+    }
+
+    let result
+
+    /**
+     * mobile caps
+     */
+    if (caps.deviceName) {
+        result = [
+            sanitizeString(caps.deviceName),
+            sanitizeString(caps.platformName),
+            sanitizeString(caps.platformVersion),
+            sanitizeString(caps.app)
+        ]
+    } else {
+        result = [
+            sanitizeString(caps.browserName),
+            sanitizeString(caps.version || caps.browserVersion),
+            sanitizeString(caps.platform || caps.platformName),
+            sanitizeString(caps.app)
+        ]
+    }
+
+    result = result.filter(n => n !== undefined && n !== '')
+    return result.join('.')
+}
+
+export default {
+    string: sanitizeString,
+    caps: sanitizeCaps
+}
