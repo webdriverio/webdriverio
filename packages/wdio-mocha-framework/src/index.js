@@ -12,6 +12,9 @@ const INTERFACES = {
     qunit: ['before', 'beforeEach', 'test', 'after', 'afterEach']
 }
 
+/**
+ * to map Mocha events to WDIO events
+ */
 const EVENTS = {
     'suite': 'suite:start',
     'suite end': 'suite:end',
@@ -25,23 +28,21 @@ const EVENTS = {
 }
 
 const NOOP = function () {}
-const SETTLE_TIMEOUT = 5000
 
 /**
  * Mocha runner
  */
 class MochaAdapter {
-    constructor (cid, config, specs, capabilities) {
+    constructor (cid, config, specs, capabilities, reporter) {
         this.cid = cid
         this.capabilities = capabilities
+        this.reporter = reporter
         this.specs = specs
         this.config = Object.assign({
             mochaOpts: {}
         }, config)
         this.runner = {}
 
-        this.sentMessages = 0 // number of messages sent to the parent
-        this.receivedMessages = 0 // number of messages received by the parent
         this.messageCounter = 0
         this.messageUIDs = {
             suite: {},
@@ -167,10 +168,11 @@ class MochaAdapter {
 
             message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
             message.pending = params.payload.pending || false
-            message.file = params.payload.file
 
-            // Add the current test title to the payload for cases where it helps to
-            // identify the test, e.g. when running inside a beforeEach hook
+            /**
+             * Add the current test title to the payload for cases where it helps to
+             * identify the test, e.g. when running inside a beforeEach hook
+             */
             if (params.payload.ctx && params.payload.ctx.currentTest) {
                 message.currentTest = params.payload.ctx.currentTest.title
             }
@@ -201,15 +203,16 @@ class MochaAdapter {
     }
 
     emit (event, payload, err) {
-        // For some reason, Mocha fires a second 'suite:end' event for the root suite,
-        // with no matching 'suite:start', so this can be ignored.
+        /**
+         * For some reason, Mocha fires a second 'suite:end' event for the root suite,
+         * with no matching 'suite:start', so this can be ignored.
+         */
         if (payload.root) return
 
         let message = this.formatMessage({type: event, payload, err})
 
         message.cid = this.cid
         message.specs = this.specs
-        message.event = event
         message.runner = {}
         message.runner[this.cid] = this.capabilities
 
@@ -217,19 +220,11 @@ class MochaAdapter {
             this.runner.lastError = err
         }
 
-        let {uid, parentUid} = this.generateUID(message)
+        let { uid, parentUid } = this.generateUID(message)
         message.uid = uid
         message.parentUid = parentUid
 
-        // When starting a new test, propagate the details to the test runner so that
-        // commands, results, screenshots and hooks can be associated with this test
-        // if (event === 'test:start') {
-        //     this.sendInternal(event, message)
-        // }
-
-        console.log(message);
-        // this.send(message, null, {}, () => ++this.receivedMessages)
-        this.sentMessages++
+        this.reporter.emit(event, message)
     }
 
     generateUID (message) {
@@ -290,17 +285,6 @@ class MochaAdapter {
 
         return uid
     }
-
-    // sendInternal (event, message) {
-    //     process.emit(event, message)
-    // }
-    //
-    // /**
-    //  * reset globals to rewire it out in tests
-    //  */
-    // send (...args) {
-    //     return process.send.apply(process, args)
-    // }
 
     load (name, context) {
         try {
