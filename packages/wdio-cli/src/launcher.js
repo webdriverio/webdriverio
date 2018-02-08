@@ -1,7 +1,7 @@
 import logger from 'wdio-logger'
 import { ConfigParser, initialisePlugin } from 'wdio-config'
 
-import { getLauncher, initReporters, runServiceHook } from './utils'
+import { getLauncher, runServiceHook } from './utils'
 
 const log = logger('wdio-cli:Launcher')
 
@@ -19,7 +19,6 @@ class Launcher {
         this.runner = new Runner(configFile, config, capabilities, specs)
         this.runner.on('end', ::this.endHandler)
 
-        this.reporters = initReporters(config)
         this.argv = argv
         this.configFile = configFile
 
