@@ -8,28 +8,28 @@ class DotReporter extends WDIOReporter {
     /**
      * print empty line at the beginning
      */
-    start () {
+    onStart () {
         process.stdout.write('\n')
     }
 
     /**
      * pending tests
      */
-    testPending () {
+    onTestPending () {
         process.stdout.write(chalk.cyanBright('.'))
     }
 
     /**
      * passing tests
      */
-    testPass () {
+    onTestPass () {
         process.stdout.write(chalk.greenBright('.'))
     }
 
     /**
      * failing tests
      */
-    testFail () {
+    onTestFail () {
         process.stdout.write(chalk.redBright('.'))
     }
 }
