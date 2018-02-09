@@ -22,6 +22,9 @@ export default function setup () {
         if (answers.installServices) {
             packagesToInstall = packagesToInstall.concat(answers.services)
         }
+        if (answers.executionMode === 'sync') {
+            packagesToInstall.push('wdio-sync')
+        }
 
         if (packagesToInstall.length > 0) {
             console.log('\nInstalling wdio packages:') // eslint-disable-line no-console

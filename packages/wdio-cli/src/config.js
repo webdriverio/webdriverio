@@ -216,6 +216,14 @@ export const QUESTIONNAIRE = [{
     message: 'Shall I install the framework adapter for you?',
     default: true
 }, {
+    type: 'list',
+    name: 'executionMode',
+    message: 'Do you want to run WebdriverIO commands synchronous or asynchronous?',
+    choices: [
+        'sync',
+        'async'
+    ]
+}, {
     type: 'input',
     name: 'specs',
     message: 'Where are your test specs located?',
