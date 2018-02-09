@@ -64,7 +64,7 @@ export function initialisePlugin (name, type) {
         return require(pkgName)
     } catch (e) {
         if (!e.message.match(`Cannot find module '${pkgName}'`)) {
-            throw new Error(`Couldn't initialise ${type} "${name}".\n${e.stack}`)
+            throw new Error(`Couldn't initialise "${name}" ${type}.\n${e.stack}`)
         }
 
         throw new Error(

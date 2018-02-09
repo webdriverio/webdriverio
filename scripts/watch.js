@@ -12,5 +12,5 @@ require('events').EventEmitter.defaultMaxListeners = packages.length + 3
 
 shell.cd(path.join(__dirname, '..'))
 packages.forEach(
-    (pkg) => shell.exec(`lerna exec 'npm run compile -- --watch' --scope ${pkg}`, { async: true })
+    (pkg) => shell.exec(`lerna exec 'npm run compile -- --watch --source-maps inline' --scope ${pkg}`, { async: true })
 )
