@@ -24,7 +24,6 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('client:beforeCommand', ::this.onBeforeCommand)
         this.on('client:afterCommand', ::this.onAfterCommand)
-        this.on('client:screenshot', ::this.onScreenshot)
 
         this.on('runner:start', (runner) => {
             this.runnerStat = new RunnerStats(runner)
@@ -90,7 +89,22 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('runner:end', () => {
             this.runnerStat.complete()
-            this.onSuiteEnd(this.runnerStat)
+            this.onRunnerEnd(this.runnerStat)
         })
     }
+
+    onBeforeCommand () {}
+    onAfterCommand () {}
+    onScreenshot () {}
+    onRunnerStart () {}
+    onSuiteStart () {}
+    onHookStart () {}
+    onHookEnd () {}
+    onTestStart () {}
+    onTestPass () {}
+    onTestFail () {}
+    onTestSkip () {}
+    onTestEnd () {}
+    onSuiteEnd () {}
+    onRunnerEnd () {}
 }

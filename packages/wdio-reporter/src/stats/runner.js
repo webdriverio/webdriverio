@@ -8,7 +8,7 @@ import sanitize from '../utils'
 export default class RunnerStats extends RunnableStats {
     constructor (runner) {
         super('runner')
-        this.uid = this.getIdentifier(runner)
+        this.uid = RunnableStats.getIdentifier(runner)
         this.cid = runner.cid
         this.capabilities = runner.capabilities
         this.sanitizedCapabilities = runner.capabilities && sanitize.caps(runner.capabilities)
