@@ -301,8 +301,8 @@ class MochaAdapter {
 const _MochaAdapter = MochaAdapter
 const adapterFactory = {}
 
-adapterFactory.run = async function (cid, config, specs, capabilities) {
-    const adapter = new _MochaAdapter(cid, config, specs, capabilities)
+adapterFactory.run = async function (...args) {
+    const adapter = new _MochaAdapter(...args)
     const result = await adapter.run()
     return result
 }
