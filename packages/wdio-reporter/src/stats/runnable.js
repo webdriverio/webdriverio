@@ -6,17 +6,17 @@ export default class RunnableStats {
     constructor (type) {
         this.type = type
         this.start = new Date()
-        this.duration = 0
+        this._duration = 0
     }
 
     complete () {
         this.end = new Date()
-        this.duration = this.end - this.start
+        this._duration = this.end - this.start
     }
 
     get duration () {
         if (this.end) {
-            return this.duration
+            return this._duration
         }
         return new Date() - this.start
     }
