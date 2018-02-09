@@ -135,8 +135,8 @@ class MochaAdapter {
             break
         }
 
-        params.err = this.runner.lastError
-        delete this.runner.lastError
+        params.error = this.lastError
+        delete this.lastError
         return this.formatMessage(params)
     }
 
@@ -146,7 +146,7 @@ class MochaAdapter {
         }
 
         if (params.err) {
-            message.err = {
+            message.error = {
                 message: params.err.message,
                 stack: params.err.stack,
                 type: params.err.type || params.err.name,
@@ -213,16 +213,14 @@ class MochaAdapter {
 
         message.cid = this.cid
         message.specs = this.specs
-        message.runner = {}
-        message.runner[this.cid] = this.capabilities
-
-        if (err) {
-            this.runner.lastError = err
-        }
 
         let { uid, parentUid } = this.generateUID(message)
         message.uid = uid
         message.parentUid = parentUid
+
+        if (message.error) {
+            this.lastError = message.error
+        }
 
         this.reporter.emit(event, message)
     }

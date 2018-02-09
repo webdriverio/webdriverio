@@ -8,9 +8,9 @@ export default class TestStats extends RunnableStats {
     constructor (runner) {
         super('test')
         this.uid = RunnableStats.getIdentifier(runner)
+        this.cid = runner.cid
         this.title = runner.title
-        this.screenshots = []
-        this.output = []
+        this.fullTItle = runner.fullTItle
 
         /**
          * initial test state is pending
@@ -28,8 +28,9 @@ export default class TestStats extends RunnableStats {
         this.state = 'skipped'
     }
 
-    fail () {
+    fail (error) {
         this.complete()
         this.state = 'failed'
+        this.error = error
     }
 }

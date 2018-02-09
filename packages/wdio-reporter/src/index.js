@@ -22,22 +22,33 @@ export default class WDIOReporter extends EventEmitter {
             failures: 0
         }
 
+        const rootSuite = this.currentSuite = new SuiteStats({
+            title: '(root)',
+            fullTitle: '(root)',
+        })
+
         this.on('client:beforeCommand', ::this.onBeforeCommand)
         this.on('client:afterCommand', ::this.onAfterCommand)
 
         this.on('runner:start', (runner) => {
+            rootSuite.cid = runner.cid
             this.runnerStat = new RunnerStats(runner)
-            this.onRunnerStart(this.runnerStat)
+            this.onStart(this.runnerStat)
         })
 
         this.on('suite:start', (suite) => {
-            this.suites[suite.uid] = new SuiteStats(suite)
-            this.onSuiteStart(this.suites[suite.uid])
+            const currentSuite = new SuiteStats(suite)
+            this.currentSuite.suites.push(currentSuite)
+            this.currentSuite = currentSuite
+            this.suites[suite.uid] = currentSuite
+            this.onSuiteStart(currentSuite)
         })
 
         this.on('hook:start', (hook) => {
-            this.hooks[hook.uid] = new HookStats(hook)
-            this.onHookStart(this.hooks[hook.uid])
+            const hookStat = new HookStats(hook)
+            this.currentSuite.hooks.push(hookStat)
+            this.hooks[hook.uid] = hookStat
+            this.onHookStart(hookStat)
         })
 
         this.on('hook:end', (hook) => {
@@ -48,8 +59,10 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:start', (test) => {
-            this.tests[test.uid] = new TestStats(test)
-            this.onTestStart(this.tests[test.uid])
+            const testStat = new TestStats(test)
+            this.currentSuite.tests.push(testStat)
+            this.tests[test.uid] = testStat
+            this.onTestStart(testStat)
         })
 
         this.on('test:pass', (test) => {
@@ -62,14 +75,19 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:fail', (test) => {
             const testStat = this.tests[test.uid]
-            testStat.fail()
+            testStat.fail(test.error)
             this.counts.failures++
             this.counts.tests++
-            this.onTestFail(test)
+            this.onTestFail(testStat)
         })
 
-        this.on('test:skip', (test) => {
-            const testStat = this.tests[test.uid]
+        this.on('test:pending', (test) => {
+            /**
+             * tests that are skipped don't have a start event but a test end
+             */
+            const testStat = new TestStats(test)
+            this.currentSuite.tests.push(testStat)
+            this.tests[test.uid] = testStat
             testStat.skip()
             this.counts.skipping++
             this.counts.tests++
@@ -87,12 +105,15 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end', () => {
+        this.on('runner:end', (runner) => {
+            rootSuite.complete()
+            this.runnerStat.failures = runner.failures
             this.runnerStat.complete()
-            this.onRunnerEnd(this.runnerStat)
+            this.onEnd(this.runnerStat)
         })
     }
 
+    onStart () {}
     onBeforeCommand () {}
     onAfterCommand () {}
     onScreenshot () {}
@@ -106,5 +127,5 @@ export default class WDIOReporter extends EventEmitter {
     onTestSkip () {}
     onTestEnd () {}
     onSuiteEnd () {}
-    onRunnerEnd () {}
+    onEnd () {}
 }

@@ -4,9 +4,9 @@ export default class HookStats extends RunnableStats {
     constructor (runner) {
         super('hook')
         this.uid = RunnableStats.getIdentifier(runner)
+        this.cid = runner.cid
         this.title = runner.title
         this.parent = runner.parent
-        this.parenUid = runner.parentUid || runner.parent
-        this.currentTest = runner.currentTest
+        this.parentUid = runner.parentUid
     }
 }
