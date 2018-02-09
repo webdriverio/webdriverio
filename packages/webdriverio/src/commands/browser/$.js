@@ -40,6 +40,7 @@ export default async function $ (selector) {
     const element = webdriverMonad(this.options, (client) => {
         client.elementId = getElementFromResponse(res)
         client.selector = selector
+        client.emit = ::this.emit
         return client
     })
 
