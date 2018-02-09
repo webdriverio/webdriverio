@@ -4,6 +4,7 @@ import path from 'path'
 import https from 'https'
 import request from 'request'
 import logger from 'wdio-logger'
+import EventEmitter from 'events'
 
 import { isSuccessfulResponse } from './utils'
 import pkg from '../package.json'
@@ -14,8 +15,9 @@ const agents = {
     https: new https.Agent({ keepAlive: true })
 }
 
-export default class WebDriverRequest {
+export default class WebDriverRequest extends EventEmitter {
     constructor (method, endpoint, body) {
+        super()
         this.method = method
         this.endpoint = endpoint
         this.defaultOptions = {
@@ -33,6 +35,7 @@ export default class WebDriverRequest {
 
     makeRequest (options, sessionId) {
         const fullRequestOptions = Object.assign(this.defaultOptions, this._createOptions(options, sessionId))
+        this.emit('request', fullRequestOptions)
         return this._request(fullRequestOptions, options.connectionRetryCount)
     }
 
@@ -90,29 +93,28 @@ export default class WebDriverRequest {
             log.info('DATA', fullRequestOptions.body)
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
+            const error = new Error(err || (body.value ? body.value.message : body))
 
-            request(fullRequestOptions, (err, response, body) => {
-                const error = new Error(err || (body.value ? body.value.message : body))
+            /**
+             * Resolve only if successful response
+             */
+            if (!err && isSuccessfulResponse(response)) {
+                this.emit('response', { result: body })
+                return resolve(body)
+            }
 
-                /**
-                 * Resolve only if successful response
-                 */
-                if (!err && isSuccessfulResponse(response)) {
-                    return resolve(body)
-                }
+            if (retryCount >= totalRetryCount) {
+                log.error('Request failed after retry due to', error)
+                this.emit('response', { error })
+                return reject(error)
+            }
 
-                if (retryCount >= totalRetryCount) {
-                    log.error('Request failed after retry due to', error)
-                    return reject(error)
-                }
-
-                log.warn('Request failed due to', error.message)
-                log.info(`Retrying ${retryCount + 1}/${totalRetryCount}`)
-                this._request(fullRequestOptions, totalRetryCount, ++retryCount)
-                    .then(resolve)
-                    .catch(reject)
-            })
-        })
+            ++retryCount
+            this.emit('retry', { error, retryCount })
+            log.warn('Request failed due to', error.message)
+            log.info(`Retrying ${retryCount}/${totalRetryCount}`)
+            this._request(fullRequestOptions, totalRetryCount, retryCount).then(resolve, reject)
+        }))
     }
 }

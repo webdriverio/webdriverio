@@ -66,11 +66,13 @@ export default function (method, endpoint, commandInfo) {
         }
 
         const request = new WebDriverRequest(method, endpoint, body)
+        this.emit('command', { method, endpoint, body })
         return request.makeRequest(this.options, this.sessionId).then((result) => {
             if (result.value) {
                 log.info('RESULT', result.value)
             }
 
+            this.emit('result', { method, endpoint, body, result })
             return result.value
         })
     }
