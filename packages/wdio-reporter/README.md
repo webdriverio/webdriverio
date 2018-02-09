@@ -249,8 +249,8 @@ Client events are triggered when certain interactions with the automation driver
 
 ```js
 { method: 'GET',
-  endpoint: '/session/:sessionId/element/fbf57b79-6521-7d49-b3b7-df91cf2c347a/rect',
-  body: {},
+  endpoint: '/session/:sessionId/element',
+  body: { using: 'css selector', value: 'img' }
   cid: '0-0',
   sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
   capabilities: [Object] }
@@ -262,7 +262,7 @@ Client events are triggered when certain interactions with the automation driver
 { method: 'GET',
   endpoint: '/session/:sessionId/element/fbf57b79-6521-7d49-b3b7-df91cf2c347a/rect',
   body: {},
-  result: { value: [Object] },
+  result: { value: { x: 75, y: 11, width: 160, height: 160 } },
   cid: '0-0',
   sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
   capabilities: [Object] }
