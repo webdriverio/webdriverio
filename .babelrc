@@ -10,6 +10,10 @@
   "plugins": [
     "transform-runtime",
     "add-module-exports",
-    "transform-class-properties"
+    "transform-class-properties",
+    ["babel-plugin-stack-trace-sourcemap", {
+        "importOverride": ["source-map-support", "install", "_sourceMapSupport"],
+        "execute": true
+    }]
   ]
 }
