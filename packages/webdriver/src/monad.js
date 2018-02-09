@@ -1,8 +1,12 @@
+import { EventEmitter } from 'events'
 import logger from 'wdio-logger'
 
 export default function WebDriver (options, modifier) {
     const prototype = Object.create(Object.prototype)
     const log = logger('webdriver')
+
+    const eventHandler = new EventEmitter()
+    const EVENTHANDLER_FUNCTIONS = Object.getPrototypeOf(eventHandler)
 
     /**
      * WebDriver monad
@@ -35,6 +39,16 @@ export default function WebDriver (options, modifier) {
             func.name = name
 
             return func.apply(client, args)
+        }
+    }
+
+    /**
+     * register event emitter
+     */
+    for (let eventCommand in EVENTHANDLER_FUNCTIONS) {
+        prototype[eventCommand] = function (...args) {
+            eventHandler[eventCommand](...args)
+            return this
         }
     }
 
