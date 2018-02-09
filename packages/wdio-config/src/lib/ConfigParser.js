@@ -108,8 +108,8 @@ export default class ConfigParser {
          * if host and port are default, remove them to get new values
          */
         let defaultBackend = detectBackend({})
-        if (this._config.host === defaultBackend.host && this._config.port === defaultBackend.port) {
-            delete this._config.host
+        if (this._config.hostname === defaultBackend.hostname && this._config.port === defaultBackend.port) {
+            delete this._config.hostname
             delete this._config.port
         }
 

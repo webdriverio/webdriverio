@@ -103,7 +103,7 @@ describe('ConfigParser', () => {
             configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
             const config = configParser.getConfig()
-            expect(config.host).toBe('ondemand.saucelabs.com')
+            expect(config.hostname).toBe('ondemand.saucelabs.com')
             expect(config.port).toBe(443)
             expect(config.user).toBe('barfoo')
             expect(config.key).toBe('50fa1411-3121-4gb0-9p07-8q326vvbq7b0')
@@ -115,7 +115,7 @@ describe('ConfigParser', () => {
             configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
             const config = configParser.getConfig()
-            expect(config.host).toBe('ondemand.saucelabs.com')
+            expect(config.hostname).toBe('ondemand.saucelabs.com')
             expect(config.port).toBe(443)
         })
     })
@@ -203,7 +203,7 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
 
             const config = configParser.getConfig()
-            expect(config.host).toBe('ondemand.saucelabs.com')
+            expect(config.hostname).toBe('ondemand.saucelabs.com')
             expect(config.port).toBe(443)
             expect(config.user).toBe('foobar')
             expect(config.key).toBe('50fa142c-3121-4gb0-9p07-8q326vvbq7b0')
