@@ -73,8 +73,7 @@ export default class Runner extends EventEmitter {
             /**
              * initialisation successful, send start message
              */
-            this.reporter.emit({
-                event: 'runner:start',
+            this.reporter.emit('runner:start', {
                 cid: m.cid,
                 specs: m.specs,
                 sessionId: browser.sessionId,
@@ -117,8 +116,7 @@ export default class Runner extends EventEmitter {
             await global.browser.deleteSession()
         }
 
-        process.send({
-            event: 'runner:end',
+        this.reporter.emit('runner:end', {
             failures,
             cid: this.cid
         })

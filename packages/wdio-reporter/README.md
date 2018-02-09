@@ -60,55 +60,137 @@ These events are containing data about the test regardless of the framework it i
 ##### onSuiteStart
 
 ```js
-{}
+SuiteStats {
+  type: 'suite',
+  start: '2018-02-09T13:30:40.177Z',
+  duration: 0,
+  uid: 'root suite2',
+  cid: '0-0',
+  title: 'root suite',
+  tests: [],
+  hooks: [],
+  suites: [] } }
 ```
 
 ##### onSuiteEnd
 
 ```js
-{}
+SuiteStats {
+  type: 'suite',
+  start: '2018-02-09T13:30:40.177Z',
+  duration: 1432,
+  uid: 'root suite2',
+  cid: '0-0',
+  title: 'root suite',
+  fullTitle: 'root suite',
+  tests: [ [Object] ],
+  hooks: [ [Object], [Object] ],
+  suites: [ [Object] ],
+  end: '2018-02-09T13:30:41.609Z' } }
 ```
 
 ##### onHookStart
 
 ```js
-{}
+HookStats {
+  type: 'hook',
+  start: '2018-02-09T13:30:40.181Z',
+  duration: 0,
+  uid: '"before each" hook4',
+  cid: '0-0',
+  title: '"before each" hook',
+  parent: 'root suite',
+  parentUid: 'root suite2' } }
 ```
 
 ##### onHookEnd
 
 ```js
-{}
+HookStats {
+  type: 'hook',
+  start: '2018-02-09T13:30:40.181Z',
+  duration: 1,
+  uid: '"before each" hook4',
+  cid: '0-0',
+  title: '"before each" hook',
+  parent: 'root suite',
+  parentUid: 'root suite2',
+  end: '2018-02-09T13:30:40.182Z' } }
 ```
 
 ##### onTestStart
 
 ```js
-{}
+TestStats {
+  type: 'test',
+  start: '2018-02-09T13:30:40.180Z',
+  duration: 0,
+  uid: 'passing test3',
+  cid: '0-0',
+  title: 'passing test',
+  state: 'pending' } }
 ```
 
 ##### onTestSkip
 
 ```js
-{}
+TestStats {
+  type: 'test',
+  start: '2018-02-09T14:01:04.573Z',
+  duration: 0,
+  uid: 'skipped test6',
+  cid: '0-0',
+  title: 'skipped test',
+  state: 'skipped' }
 ```
 
 ##### onTestPass
 
 ```js
-{}
+TestStats {
+  type: 'test',
+  start: '2018-02-09T14:11:28.075Z',
+  duration: 1503,
+  uid: 'passing test3',
+  cid: '0-0',
+  title: 'passing test',
+  state: 'passed',
+  end: '2018-02-09T14:11:29.578Z' } }
 ```
 
 ##### onTestFail
 
 ```js
-{}
+TestStats {
+     type: 'test',
+     start: '2018-02-09T14:11:29.581Z',
+     duration: 21,
+     uid: 'failing test8',
+     cid: '0-0',
+     title: 'failing test',
+     state: 'failed',
+     end: '2018-02-09T14:11:29.602Z',
+     error:
+      { message: 'some error',
+        stack: `Error: some error\n    at Context.it (/path/to/project/test/b.js:17:19)\n
+  at /path/to/project/packages/wdio-sync/src/index.js:490:28\n    at Promise (<anonymous>)\
+n    at F (/path/to/project/node_modules/core-js/library/modules/_export.js:35:28)\n    at
+Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:488:12)\n    at /path/to/project/packages/wdio-sync/src/index.js:623:33`,
+        type: 'Error' } } }
 ```
 
 ##### onTestEnd
 
 ```js
-{}
+TestStats {
+  type: 'test',
+  start: '2018-02-09T14:11:28.075Z',
+  duration: 1503,
+  uid: 'passing test3',
+  cid: '0-0',
+  title: 'passing test',
+  state: 'passed',
+  end: '2018-02-09T14:11:29.578Z' } }
 ```
 
 ### Runner Events
@@ -118,13 +200,45 @@ These events contain information on the test runner.
 ##### onRunnerStart
 
 ```js
-{}
+RunnerStats {
+  type: 'runner',
+  start: '2018-02-09T14:30:19.871Z',
+  duration: 0,
+  cid: '0-0',
+  capabilities:
+   { acceptInsecureCerts: false,
+     browserName: 'firefox',
+     browserVersion: '59.0',
+     'moz:accessibilityChecks': false,
+     'moz:headless': false,
+     'moz:processID': 92113,
+     'moz:profile': '/var/folders/ns/8mj2mh0x27b_gsdddy1knnsm0000gn/T/rust_mozprofile.jlpfs632Becb',
+     'moz:webdriverClick': true,
+     pageLoadStrategy: 'normal',
+     platformName: 'darwin',
+     platformVersion: '17.3.0',
+     rotatable: false,
+     timeouts: { implicit: 0, pageLoad: 300000, script: 30000 } },
+  sanitizedCapabilities: 'firefox.59_0.darwin',
+  config: [Object],
+  specs: [ '/path/to/project/test/b.js' ] }
 ```
 
 ##### onRunnerEnd
 
 ```js
-{}
+RunnerStats {
+  type: 'runner',
+  start: '2018-02-09T14:30:19.871Z',
+  duration: 1546,
+  uid: undefined,
+  cid: '0-0',
+  capabilities: [Object],
+  sanitizedCapabilities: 'firefox.59_0.darwin',
+  config: [Object],
+  specs: [ '/path/to/project/test/b.js' ],
+  failures: 1,
+  end: '2018-02-09T14:30:21.417Z' } }
 ```
 
 ### Client Events
@@ -134,11 +248,22 @@ Client events are triggered when certain interactions with the automation driver
 ##### onCommandStart
 
 ```js
-{}
+{ method: 'GET',
+  endpoint: '/session/:sessionId/element/fbf57b79-6521-7d49-b3b7-df91cf2c347a/rect',
+  body: {},
+  cid: '0-0',
+  sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
+  capabilities: [Object] }
 ```
 
 ##### onCommandEnd
 
 ```js
-{}
+{ method: 'GET',
+  endpoint: '/session/:sessionId/element/fbf57b79-6521-7d49-b3b7-df91cf2c347a/rect',
+  body: {},
+  result: { value: [Object] },
+  cid: '0-0',
+  sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
+  capabilities: [Object] }
 ```

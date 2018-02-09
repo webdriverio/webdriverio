@@ -21,6 +21,9 @@ export default class RunnableStats {
         return new Date() - this.start
     }
 
+    /**
+     * ToDo: we should always rely on uid
+     */
     static getIdentifier (runner) {
         return runner.uid || runner.title
     }
