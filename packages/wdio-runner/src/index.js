@@ -15,7 +15,6 @@ export default class Runner extends EventEmitter {
     constructor () {
         super()
         this.sigintWasCalled = false
-        this.failures = 0
     }
 
     async run (m) {
@@ -45,13 +44,49 @@ export default class Runner extends EventEmitter {
 
         try {
             await runHook('beforeSession', config, this.caps, this.specs)
-            global.browser = await this.initialiseInstance(m.isMultiremote, this.caps)
+            const browser = global.browser = await this.initialiseInstance(m.isMultiremote, this.caps)
+
+            /**
+             * register beforeCommand event
+             */
+            browser.on('command', (command) => {
+                const runnerInfo = {
+                    cid: m.cid,
+                    sessionId: browser.sessionId,
+                    capabilities: browser.options.capabilities
+                }
+                this.reporter.emit('client:beforeCommand', Object.assign(command, runnerInfo))
+            })
+
+            /**
+             * register afterCommand event
+             */
+            browser.on('result', (result) => {
+                const runnerInfo = {
+                    cid: m.cid,
+                    sessionId: browser.sessionId,
+                    capabilities: browser.options.capabilities
+                }
+                this.reporter.emit('client:afterCommand', Object.assign(result, runnerInfo))
+            })
+
+            /**
+             * initialisation successful, send start message
+             */
+            this.reporter.emit({
+                event: 'runner:start',
+                cid: m.cid,
+                specs: m.specs,
+                sessionId: browser.sessionId,
+                capabilities: browser.options.capabilities,
+                config
+            })
 
             /**
              * register global helper method to fetch elements
              */
-            global.$ = ::global.browser.$
-            global.$$ = ::global.browser.$$
+            global.$ = ::browser.$
+            global.$$ = ::browser.$$
 
             /**
              * kill session of SIGINT signal showed up while trying to
@@ -59,30 +94,37 @@ export default class Runner extends EventEmitter {
              */
             if (this.sigintWasCalled) {
                 log.info('SIGINT signal detected while starting session, shutting down...')
-                return this.kill()
+                return this.shutdown(0)
             }
 
-            this.failures = await this.framework.run(m.cid, config, m.specs, this.caps, this.reporter)
-            await global.browser.deleteSession()
+            const failures = await this.framework.run(m.cid, config, m.specs, this.caps, this.reporter)
+            await browser.deleteSession()
+            delete browser.sessionId
 
             await runHook('afterSession', config, this.caps, this.specs)
-            process.exit(this.failures === 0 ? 0 : 1)
+            return this.shutdown(failures)
         } catch (e) {
             log.error(e)
-            return this.kill()
+            return this.shutdown(1)
         }
     }
 
     /**
      * kill runner session and end session if one was already started
      */
-    async kill () {
+    async shutdown (failures) {
         if (global.browser && global.browser.sessionId) {
             await global.browser.deleteSession()
         }
 
+        process.send({
+            event: 'runner:end',
+            failures,
+            cid: this.cid
+        })
+
         process.removeAllListeners()
-        process.exit(1)
+        process.exit(failures === 0 ? 0 : 1)
     }
 
     /**
