@@ -85,7 +85,7 @@ class MochaAdapter {
                 let testCommand = INTERFACES[mochaOpts.ui][2]
 
                 runInFiberContext(
-                    [testCommand, testCommand + '.only'],
+                    testCommand,
                     this.config.beforeHook,
                     this.config.afterHook,
                     fnName
@@ -93,7 +93,7 @@ class MochaAdapter {
             })
         })
 
-        // await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
+        await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
         let result = await new Promise((resolve) => {
             this.runner = mocha.run(resolve)
 
