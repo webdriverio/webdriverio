@@ -43,6 +43,7 @@ export default async function $ (selector) {
             client.elementId = getElementFromResponse(res)
             client.selector = selector
             client.index = i
+            client.emit = ::this.emit
             return client
         })
 
