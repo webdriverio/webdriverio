@@ -29,4 +29,9 @@ describe('isVisibleWithinViewport', () => {
         isVisibleWithinViewport[2].should.equal(false)
         isVisibleWithinViewport[3].should.equal(false)
     })
+
+    it('should check that function returns false for an element that does not exist', async function () {
+        const isVisibleWithinViewport = await this.client.isVisibleWithinViewport('#doesNotExist')
+        isVisibleWithinViewport.should.be.equal(false)
+    })
 })
