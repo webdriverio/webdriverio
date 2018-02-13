@@ -64,4 +64,4 @@ npm install --save mochawesome-report-generator
   },
 ```
 1) `path/to/results.json` = path and name of json file
-2) `--reportTitle 'My Project Results' = unique report title
+2) `--reportTitle 'My Project Results` = unique report title
