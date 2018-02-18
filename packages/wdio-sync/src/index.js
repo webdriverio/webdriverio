@@ -93,104 +93,135 @@ const wdioSync = global.wdioSync = function (fn, done) {
  * @param  {Function[]} afterCommand   method to be executed after calling the actual function
  * @return {Function}   actual wrapped function
  */
-const wrapCommand = function (fn, commandName, beforeCommand, afterCommand) {
-    /**
-     * sync command wrap
-     */
-    return function (...commandArgs) {
-        let future = new Future()
-        let futureFailed = false
-
-        if (forcePromises) {
-            return fn.apply(this, commandArgs)
-        }
+const wrapCommand = function (commandName, fn) {
+    return function (...args) {
+        const result = fn.apply(this, args)
 
         /**
-         * don't execute [before/after]Command hook if a command was executed
-         * in these hooks (otherwise we will get into an endless loop)
+         * just retrun result if no async operation was done
          */
-        if (commandIsRunning) {
-            let commandPromise = fn.apply(this, commandArgs)
-
-            /**
-             * if commandPromise is actually not a promise just return result
-             */
-            if (typeof commandPromise.then !== 'function') {
-                return commandPromise
-            }
-
-            /**
-             * Try to execute with Fibers and fall back if can't.
-             * This part is executed when we want to set a fiber context within a command (e.g. in waitUntil).
-             */
-            try {
-                commandPromise.then((commandResult) => {
-                    /**
-                     * extend protoype of result so people can call browser.element(...).click()
-                     */
-                    future.return(commandResult)
-                }, future.throw.bind(future))
-                return future.wait()
-            } catch (e) {
-                if (e.message === "Can't wait without a fiber") {
-                    return commandPromise
-                }
-                throw e
-            }
+        if (!result || typeof result.then !== 'function') {
+            return result
         }
 
-        /**
-         * commands that get executed during waitUntil and debug (repl mode) should always
-         * handled synchronously, therefor prevent propagating lastResults between single calls
-         */
-        if (commandName !== 'waitUntil' && commandName !== 'debug') {
-            commandIsRunning = true
-        }
-
-        let newInstance = this
-        let commandResult, commandError
-        executeHooksWithArgs(beforeCommand, [commandName, commandArgs]).then(() => {
-            /**
-             * actual function was already executed in desired catch block
-             */
-            if (futureFailed) {
-                return
-            }
-
-            newInstance = fn.apply(this, commandArgs)
-            return newInstance.then((result) => {
-                commandResult = result
-                return executeHooksWithArgs(afterCommand, [commandName, commandArgs, result])
-            }, (e) => {
-                commandError = e
-                return executeHooksWithArgs(afterCommand, [commandName, commandArgs, null, e])
-            }).then(() => {
-                commandIsRunning = false
-
-                if (commandError) {
-                    return future.throw(commandError)
-                }
-
-                wrapCommands(newInstance, beforeCommand, afterCommand)
-                return future.return(commandResult)
-            })
+        const future = new Future()
+        result.then((commandResult) => {
+            return future.return(commandResult)
+        }, (commandError) => {
+            return future.throw(commandError)
         })
 
-        /**
-         * try to execute with Fibers and fall back if can't
-         */
         try {
             return future.wait()
         } catch (e) {
-            if (e.message === "Can't wait without a fiber") {
-                futureFailed = true
-                return fn.apply(this, commandArgs)
+            /**
+             * in case we run commands where no fiber function was used
+             * e.g. when we call deleteSession
+             */
+            if (e.message.includes(`Can't wait without a fiber`)) {
+                return result
             }
 
-            e.stack = sanitizeErrorMessage(e)
             throw e
         }
     }
+    /**
+     * sync command wrap
+     */
+    // return function (...commandArgs) {
+    //     let future = new Future()
+    //     let futureFailed = false
+    //
+    //     if (forcePromises) {
+    //         return fn.apply(this, commandArgs)
+    //     }
+    //
+    //     /**
+    //      * don't execute [before/after]Command hook if a command was executed
+    //      * in these hooks (otherwise we will get into an endless loop)
+    //      */
+    //     if (commandIsRunning) {
+    //         let commandPromise = fn.apply(this, commandArgs)
+    //
+    //         /**
+    //          * if commandPromise is actually not a promise just return result
+    //          */
+    //         if (typeof commandPromise.then !== 'function') {
+    //             return commandPromise
+    //         }
+    //
+    //         /**
+    //          * Try to execute with Fibers and fall back if can't.
+    //          * This part is executed when we want to set a fiber context within a command (e.g. in waitUntil).
+    //          */
+    //         try {
+    //             commandPromise.then((commandResult) => {
+    //                 /**
+    //                  * extend protoype of result so people can call browser.element(...).click()
+    //                  */
+    //                 future.return(commandResult)
+    //             }, future.throw.bind(future))
+    //             return future.wait()
+    //         } catch (e) {
+    //             if (e.message === "Can't wait without a fiber") {
+    //                 return commandPromise
+    //             }
+    //             throw e
+    //         }
+    //     }
+    //
+    //     /**
+    //      * commands that get executed during waitUntil and debug (repl mode) should always
+    //      * handled synchronously, therefor prevent propagating lastResults between single calls
+    //      */
+    //     if (commandName !== 'waitUntil' && commandName !== 'debug') {
+    //         commandIsRunning = true
+    //     }
+    //
+    //     let newInstance = this
+    //     let commandResult, commandError
+    //     executeHooksWithArgs(beforeCommand, [commandName, commandArgs]).then(() => {
+    //         /**
+    //          * actual function was already executed in desired catch block
+    //          */
+    //         if (futureFailed) {
+    //             return
+    //         }
+    //
+    //         newInstance = fn.apply(this, commandArgs)
+    //         return newInstance.then((result) => {
+    //             commandResult = result
+    //             return executeHooksWithArgs(afterCommand, [commandName, commandArgs, result])
+    //         }, (e) => {
+    //             commandError = e
+    //             return executeHooksWithArgs(afterCommand, [commandName, commandArgs, null, e])
+    //         }).then(() => {
+    //             commandIsRunning = false
+    //
+    //             if (commandError) {
+    //                 return future.throw(commandError)
+    //             }
+    //
+    //             wrapCommands(newInstance, beforeCommand, afterCommand)
+    //             return future.return(commandResult)
+    //         })
+    //     })
+    //
+    //     /**
+    //      * try to execute with Fibers and fall back if can't
+    //      */
+    //     try {
+    //         return future.wait()
+    //     } catch (e) {
+    //         if (e.message === "Can't wait without a fiber") {
+    //             futureFailed = true
+    //             return fn.apply(this, commandArgs)
+    //         }
+    //
+    //         e.stack = sanitizeErrorMessage(e)
+    //         throw e
+    //     }
+    // }
 }
 
 /**
@@ -212,14 +243,14 @@ const wrapCommands = function (instance, beforeCommand, afterCommand) {
         })
     }
 
-    Object.keys(Object.getPrototypeOf(instance)).forEach((commandName) => {
+    for (const commandName of instance.commandList) {
         if (SYNC_COMMANDS.indexOf(commandName) > -1) {
             return
         }
 
         let origFn = instance[commandName]
         instance[commandName] = wrapCommand.call(instance, origFn, commandName, beforeCommand, afterCommand)
-    })
+    }
 
     /**
      * Adding a command within fiber context doesn't require a special routine

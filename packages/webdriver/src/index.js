@@ -2,18 +2,16 @@ import logger from 'wdio-logger'
 import { validateConfig } from 'wdio-config'
 
 import webdriverMonad from './monad'
-import command from './command'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
+import { getPrototype } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 
-const ProtocolCommands = Object.assign(WebDriverProtocol, MJsonWProtocol, AppiumProtocol)
-
 export default class WebDriver {
-    static async newSession (options = {}, modifier) {
+    static async newSession (options = {}, modifier, proto = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
         logger.setLevel('webdriver', params.logLevel)
 
@@ -28,16 +26,10 @@ export default class WebDriver {
 
         const response = await sessionRequest.makeRequest(params)
         params.capabilities = response.value.capabilities || response.value
-        const monad = webdriverMonad(params, modifier)
 
-        for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
-            for (const [method, commandData] of Object.entries(methods)) {
-                monad.lift(commandData.command, command(method, endpoint, commandData))
-            }
-        }
-
-        const prototype = monad(response.value.sessionId || response.sessionId)
-        return prototype
+        const prototype = Object.assign(WebDriver.getPrototype(), proto)
+        const monad = webdriverMonad(params, modifier, prototype)
+        return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
 
     static get WebDriver () {
@@ -58,7 +50,7 @@ export default class WebDriver {
     static get webdriverMonad () {
         return webdriverMonad
     }
-    static get command () {
-        return command
+    static get getPrototype () {
+        return getPrototype
     }
 }

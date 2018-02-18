@@ -2,7 +2,7 @@ import path from 'path'
 import Mocha from 'mocha'
 
 import logger from 'wdio-logger'
-import { runInFiberContext, wrapCommands, executeHooksWithArgs } from 'wdio-config'
+import { runInFiberContext, executeHooksWithArgs } from 'wdio-config'
 
 const log = logger('wdio-mocha-framework')
 
@@ -73,8 +73,6 @@ class MochaAdapter {
         mocha.reporter(NOOP)
         mocha.fullTrace()
         this.specs.forEach((spec) => mocha.addFile(spec))
-
-        wrapCommands(global.browser, this.config.beforeCommand, this.config.afterCommand)
 
         mocha.suite.on('pre-require', (context, file, mocha) => {
             this.options(mochaOpts, {

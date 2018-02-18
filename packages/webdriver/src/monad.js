@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import logger from 'wdio-logger'
 
-export default function WebDriver (options, modifier) {
+export default function WebDriver (options, modifier, propertiesObject) {
     const prototype = Object.create(Object.prototype)
     const log = logger('webdriver')
 
@@ -11,9 +11,21 @@ export default function WebDriver (options, modifier) {
     /**
      * WebDriver monad
      */
-    function unit (sessionId) {
-        let client = Object.create(prototype)
-        client.options = options
+    function unit (sessionId, commandWrapper) {
+        propertiesObject.commandList = { value: Object.keys(propertiesObject) }
+        propertiesObject.options = { value: options }
+
+        if (typeof commandWrapper === 'function') {
+            for (const [commandName, { value }] of Object.entries(propertiesObject)) {
+                if (typeof value !== 'function') {
+                    continue
+                }
+
+                propertiesObject[commandName].value = commandWrapper(commandName, value)
+            }
+        }
+
+        let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId
 
         if (typeof modifier === 'function') {

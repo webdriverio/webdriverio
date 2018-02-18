@@ -30,25 +30,28 @@
  * @type utility
  *
  */
-import { webdriverMonad } from 'webdriver'
+import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
 
-import { findStrategy, liftElement, getElementFromResponse } from '../../utils'
+import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { wrapCommand } from 'wdio-config'
 
 export default async function $ (selector) {
     const { using, value } = findStrategy(selector)
     const res = await this.findElements(using, value)
+    const prototype = Object.assign(getWebdriverPrototype(), getWDIOPrototype('element'))
 
     const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
             client.elementId = getElementFromResponse(res)
+            client.parentElementId = this.elementId
             client.selector = selector
+            client.parentSelector = this.selector
             client.index = i
             client.emit = ::this.emit
             return client
-        })
+        }, prototype)
 
-        liftElement(element)
-        return element(this.sessionId)
+        return element(this.sessionId, wrapCommand)
     })
 
     return elements
