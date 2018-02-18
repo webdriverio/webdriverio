@@ -46,7 +46,7 @@ export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks
 }
 
 export let runInFiberContext = NOOP
-export let wrapCommands = NOOP
+export let wrapCommand = (_, origFn) => origFn
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -57,7 +57,7 @@ try {
     log.debug('wdio-sync found, running tests synchronous')
 
     runInFiberContext = wdioSync.runInFiberContext
-    wrapCommands = wdioSync.wrapCommands
+    wrapCommand = wdioSync.wrapCommand
     executeHooksWithArgs = wdioSync.executeHooksWithArgs
 } catch (e) {
     log.debug('wdio-sync not found, running tests asynchronous')

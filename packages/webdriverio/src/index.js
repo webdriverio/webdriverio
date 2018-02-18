@@ -1,34 +1,30 @@
-import fs from 'fs'
-import path from 'path'
-
 import WebDriver from 'webdriver'
-import { validateConfig } from 'wdio-config'
+import { validateConfig, wrapCommand } from 'wdio-config'
 
 import { WDIO_DEFAULTS } from './constants'
+import { getPrototype } from './utils'
 
-const remote = async function (params = {}, modifier) {
+/**
+ * A method to create a new session with WebdriverIO
+ *
+ * @param  {Object} [params={}]       Options to create the session with
+ * @param  {function} remoteModifier  Modifier function to change the monad object
+ * @return {object}                   browser object with sessionId
+ */
+const remote = function (params = {}, remoteModifier) {
     const config = validateConfig(WDIO_DEFAULTS, params)
-    const client = await WebDriver.newSession(params, (client, options) => {
+    const modifier = (client, options) => {
         options = Object.assign(options, config)
 
-        if (typeof modifier === 'function') {
-            client = modifier(client, options)
+        if (typeof remoteModifier === 'function') {
+            client = remoteModifier(client, options)
         }
 
         return client
-    })
-
-    /**
-     * register action commands
-     */
-    const dir = path.resolve(__dirname, 'commands', 'browser')
-    const files = fs.readdirSync(dir)
-    for (let filename of files) {
-        const commandName = filename.slice(0, -3)
-        client.addCommand(commandName, require(path.join(dir, commandName)))
     }
 
-    return client
+    const prototype = getPrototype('browser')
+    return WebDriver.newSession(params, modifier, prototype, wrapCommand)
 }
 
 const multiremote = function () {

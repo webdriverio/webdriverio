@@ -1,5 +1,11 @@
 import logger from 'wdio-logger'
 
+import command from './command'
+import WebDriverProtocol from '../protocol/webdriver.json'
+import MJsonWProtocol from '../protocol/mjsonwp.json'
+import AppiumProtocol from '../protocol/appium.json'
+
+const ProtocolCommands = Object.assign(WebDriverProtocol, MJsonWProtocol, AppiumProtocol)
 const log = logger('webdriver')
 
 /**
@@ -90,4 +96,18 @@ export function isValidParameter (arg, commandParam) {
     }
 
     return true
+}
+
+/**
+ * creates the base prototype for the webdriver monad
+ */
+export function getPrototype () {
+    const prototype = {}
+    for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
+        for (const [method, commandData] of Object.entries(methods)) {
+            prototype[commandData.command] = { value: command(method, endpoint, commandData) }
+        }
+    }
+
+    return prototype
 }

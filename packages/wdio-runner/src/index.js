@@ -84,8 +84,8 @@ export default class Runner extends EventEmitter {
             /**
              * register global helper method to fetch elements
              */
-            global.$ = ::browser.$
-            global.$$ = ::browser.$$
+            global.$ = (selector) => global.browser.$(selector)
+            global.$$ = (selector) => global.browser.$$(selector)
 
             /**
              * kill session of SIGINT signal showed up while trying to

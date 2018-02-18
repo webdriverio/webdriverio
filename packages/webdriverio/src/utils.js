@@ -1,13 +1,12 @@
 import fs from 'fs'
 import path from 'path'
-import { WebDriverProtocol, MJsonWProtocol, AppiumProtocol, command } from 'webdriver'
 
 import { ELEMENT_KEY } from './constants'
 
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
 
-const findStrategy = function (...args) {
+export const findStrategy = function (...args) {
     let value = args[0]
     let relative = (args.length > 1 ? args[1] : false)
     let xpathPrefix = relative ? './/' : '//'
@@ -147,29 +146,23 @@ const findStrategy = function (...args) {
 /**
  * enhances objects with element commands
  */
-const liftElement = (scope) => {
-    /**
-     * register protocol commands
-     */
-    const ProtocolCommands = Object.assign(WebDriverProtocol, MJsonWProtocol, AppiumProtocol)
-    for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
-        for (const [method, commandData] of Object.entries(methods)) {
-            scope.lift(commandData.command, command(method, endpoint, commandData))
-        }
-    }
+export const getPrototype = (scope) => {
+    const prototype = {}
 
     /**
      * register action commands
      */
-    const dir = path.resolve(__dirname, 'commands', 'element')
+    const dir = path.resolve(__dirname, 'commands', scope)
     const files = fs.readdirSync(dir)
     for (let filename of files) {
         const commandName = filename.slice(0, -3)
-        scope.lift(commandName, require(path.join(dir, commandName)))
+        prototype[commandName] = { value: require(path.join(dir, commandName)) }
     }
+
+    return prototype
 }
 
-const getElementFromResponse = (res) => {
+export const getElementFromResponse = (res) => {
     /**
      * depcrecated JSONWireProtocol response
      */
@@ -189,5 +182,3 @@ const getElementFromResponse = (res) => {
      */
     throw new Error(`Element couldn't found in given response: ${JSON.stringify(res)}`)
 }
-
-export { findStrategy, liftElement, getElementFromResponse }
