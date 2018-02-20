@@ -2,29 +2,13 @@ import Fiber from 'fibers'
 import logger from 'wdio-logger'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
+import runFnInFiberContext from './runFnInFiberContext'
 import wrapCommand from './wrapCommand'
 
 import { STACKTRACE_FILTER_FN } from './constants'
 import { filterSpecArgs } from './utils'
 
 const log = logger('wdio-sync')
-
-/**
- * global function to wrap callbacks into Fiber context
- * @param  {Function} fn  function to wrap around
- * @return {Function}     wrapped around function
- */
-const wdioSync = global.wdioSync = function (fn, done) {
-    return function (...args) {
-        return Fiber(() => {
-            const result = fn.apply(this, args)
-
-            if (typeof done === 'function') {
-                done(result)
-            }
-        }).run()
-    }
-}
 
 /**
  * execute test or hook synchronously
@@ -220,7 +204,7 @@ const wrapTestFunction = function (fnName, origFn, testInterfaceFnName, before, 
  * @param  {String}   fnName               test interface command to wrap, e.g. `beforeEach`
  * @param  {Object}   scope                the scope to run command from, defaults to global
  */
-const runInFiberContext = function (testInterfaceFnName, before, after, fnName, scope = global) {
+const runTestInFiberContext = function (testInterfaceFnName, before, after, fnName, scope = global) {
     const origFn = scope[fnName]
     scope[fnName] = wrapTestFunction(fnName, origFn, testInterfaceFnName, before, after)
 
@@ -243,8 +227,8 @@ const runInFiberContext = function (testInterfaceFnName, before, after, fnName, 
 export {
     executeHooksWithArgs,
     wrapCommand,
-    runInFiberContext,
+    runTestInFiberContext,
+    runFnInFiberContext,
     executeSync,
-    executeAsync,
-    wdioSync
+    executeAsync
 }

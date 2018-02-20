@@ -45,8 +45,20 @@ export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks
     return Promise.all(hooks)
 }
 
-export let runInFiberContext = NOOP
+export let runTestInFiberContext = NOOP
+export let runFnInFiberContext = (fn, done) => {
+    return function (...args) {
+        const result = fn.apply(this, args)
+
+        if (typeof done === 'function') {
+            return done(result)
+        }
+
+        return result
+    }
+}
 export let wrapCommand = (_, origFn) => origFn
+export let hasWdioSyncSupport = false
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -56,7 +68,9 @@ try {
     const wdioSync = require('wdio-sync')
     log.debug('wdio-sync found, running tests synchronous')
 
-    runInFiberContext = wdioSync.runInFiberContext
+    hasWdioSyncSupport = true
+    runFnInFiberContext = wdioSync.runFnInFiberContext
+    runTestInFiberContext = wdioSync.runTestInFiberContext
     wrapCommand = wdioSync.wrapCommand
     executeHooksWithArgs = wdioSync.executeHooksWithArgs
 } catch (e) {
