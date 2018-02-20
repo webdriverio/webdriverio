@@ -22,6 +22,15 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
         return false
     }
 
+    const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
+
+    /**
+     * check status code
+     */
+    if (statusCode === 200 && !hasErrorResponse) {
+        return true
+    }
+
     /**
      * if it has a status property, it should be 0
      * (just here to stay backwards compatible to the jsonwire protocol)
@@ -37,15 +46,6 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
     if (typeof body.value === 'undefined') {
         log.debug('request failed due to missing value in body')
         return false
-    }
-
-    const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
-
-    /**
-     * check status code
-     */
-    if (statusCode === 200 && !hasErrorResponse) {
-        return true
     }
 
     /**
