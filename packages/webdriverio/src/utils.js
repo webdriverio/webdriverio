@@ -176,9 +176,4 @@ export const getElementFromResponse = (res) => {
     if (res[ELEMENT_KEY]) {
         return res[ELEMENT_KEY]
     }
-
-    /**
-     * throw if nothing was found
-     */
-    throw new Error(`Element couldn't found in given response: ${JSON.stringify(res)}`)
 }

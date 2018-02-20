@@ -33,6 +33,7 @@
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
 
 import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { elementErrorHandler } from '../../middlewares'
 import { wrapCommand } from 'wdio-config'
 
 export default async function $ (selector) {
@@ -42,7 +43,14 @@ export default async function $ (selector) {
 
     const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
-            client.elementId = getElementFromResponse(res)
+            const elementId = getElementFromResponse(res)
+
+            if (elementId) {
+                client.elementId = elementId
+            } else {
+                client.error = res
+            }
+
             client.parentElementId = this.elementId
             client.selector = selector
             client.parentSelector = this.selector
@@ -51,7 +59,7 @@ export default async function $ (selector) {
             return client
         }, prototype)
 
-        return element(this.sessionId, wrapCommand)
+        return element(this.sessionId, elementErrorHandler(wrapCommand))
     })
 
     return elements
