@@ -15,6 +15,10 @@ export default function WebDriver (options, modifier, propertiesObject) {
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
         propertiesObject.options = { value: options }
 
+        /**
+         * allow to wrap commands if necessary
+         * e.g. in wdio-cli to make them synchronous
+         */
         if (typeof commandWrapper === 'function') {
             for (const [commandName, { value }] of Object.entries(propertiesObject)) {
                 if (typeof value !== 'function') {
