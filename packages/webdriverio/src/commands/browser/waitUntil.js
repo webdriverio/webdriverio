@@ -53,8 +53,7 @@ export default function (condition, timeout, timeoutMsg, interval) {
     }
 
     const fn = condition.bind(this)
-    let isSync = this.options.sync
-    let timer = new Timer(interval, timeout, fn, true, isSync)
+    let timer = new Timer(interval, timeout, fn, true)
 
     return timer.catch((e) => {
         if (e.message === 'timeout' && typeof timeoutMsg === 'string') {

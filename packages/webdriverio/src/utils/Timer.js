@@ -1,3 +1,5 @@
+import { hasWdioSyncSupport, runFnInFiberContext } from 'wdio-config'
+
 const TIMEOUT_ERROR = 'timeout'
 
 /**
@@ -7,22 +9,18 @@ const TIMEOUT_ERROR = 'timeout'
  * @param {Number} timeout - after that time timer will stop
  * @param {Function} fn - function that returns promise. will execute every tick
  * @param {Boolean} leading - should be function invoked on start
- * @param {Boolean} isSync - true if test runner runs commands synchronously
  * @return {promise} Promise-based Timer.
  */
 class Timer {
-    constructor (delay, timeout, fn, leading, isSync) {
+    constructor (delay, timeout, fn, leading) {
         this._delay = delay
         this._timeout = timeout
         this._fn = fn
         this._leading = leading
         this._conditionExecutedCnt = 0
 
-        /**
-         * execute commands synchronously if method name is not async
-         */
-        if (isSync && typeof global.wdioSync === 'function' && fn.name.match(/^(bound )*async$/) === null) {
-            this._fn = () => new Promise((resolve) => global.wdioSync(fn, resolve)())
+        if (hasWdioSyncSupport) {
+            this._fn = () => new Promise((resolve) => runFnInFiberContext(fn, resolve)())
         }
 
         const retPromise = new Promise((resolve, reject) => {
@@ -73,9 +71,11 @@ class Timer {
         const result = this._fn()
 
         if (typeof result.then !== 'function') {
-            this.stop()
-            this.stopMain()
-            return this._reject(`Expected a promise as return value but got "${result}"`)
+            if (!result) {
+                return this.checkCondition(new Error('return value was never truthy'))
+            }
+
+            return this.checkCondition(null, result)
         }
 
         result.then(

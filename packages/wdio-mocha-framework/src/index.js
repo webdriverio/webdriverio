@@ -2,7 +2,7 @@ import path from 'path'
 import Mocha from 'mocha'
 
 import logger from 'wdio-logger'
-import { runInFiberContext, executeHooksWithArgs } from 'wdio-config'
+import { runTestInFiberContext, executeHooksWithArgs } from 'wdio-config'
 
 const log = logger('wdio-mocha-framework')
 
@@ -82,7 +82,7 @@ class MochaAdapter {
             INTERFACES[mochaOpts.ui].forEach((fnName) => {
                 let testCommand = INTERFACES[mochaOpts.ui][2]
 
-                runInFiberContext(
+                runTestInFiberContext(
                     testCommand,
                     this.config.beforeHook,
                     this.config.afterHook,
