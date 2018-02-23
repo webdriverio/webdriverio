@@ -117,6 +117,22 @@ browser.click('ios=' + selector);
 
 You can also use predicate searching within iOS UI Automation in Appium, to control element finding even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios_predicate.md) for details.
 
+### iOS XCUITest predicate strings and class chains
+
+With iOS 10 and above (using the XCUITest driver), you can use [predicate strings](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules):
+
+```js
+var selector = 'type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'';
+browser.click('ios=predicate=' + selector);
+```
+
+And [class chains](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
+
+```js
+var selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton';
+browser.click('ios=chain=' + selector);
+```
+
 ### Accessibility ID
 
 The `accessibility id` locator strategy is designed to read a unique identifier for a UI element. This has the benefit of not changing during localization or any other process that might change text. In addition, it can be an aid in creating cross-platform tests, if elements that are functionally the same have the same accessibility id.
