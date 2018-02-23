@@ -152,6 +152,18 @@ describe('selector strategies helper', () => {
         element.value.should.be.equal('foo')
     })
 
+    it('should find an element by predicate string strategy (ios >= 10 only)', () => {
+        const element = findStrategy('ios=predicate=foo')
+        element.using.should.be.equal('-ios predicate string')
+        element.value.should.be.equal('foo')
+    })
+
+    it('should find an element by class chain strategy (ios >= 10 only)', () => {
+        const element = findStrategy('ios=chain=foo')
+        element.using.should.be.equal('-ios class chain')
+        element.value.should.be.equal('foo')
+    })
+
     it('should find an element by accessibility id', () => {
         const element = findStrategy('~foo')
         element.using.should.be.equal('accessibility id')
@@ -185,10 +197,24 @@ describe('selector strategies helper', () => {
         element.value.should.be.equal(selector)
     })
 
-    it('should find an element by ios accessibility id', () => {
+    it('should find an element by ios UiAutomation', () => {
         const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
         const element = findStrategy('ios=' + selector)
         element.using.should.be.equal('-ios uiautomation')
+        element.value.should.be.equal(selector)
+    })
+
+    it('should find an element by ios XCUITest Predicate String', () => {
+        const selector = 'type === \'XCUITestTypeButton\' && name CONTAINS \'Enable\''
+        const element = findStrategy('ios=predicate=' + selector)
+        element.using.should.be.equal('-ios predicate string')
+        element.value.should.be.equal(selector)
+    })
+
+    it('should find an element by ios XCUITest Class Chain', () => {
+        const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "B"`]'
+        const element = findStrategy('ios=chain=' + selector)
+        element.using.should.be.equal('-ios class chain')
         element.value.should.be.equal(selector)
     })
 
@@ -233,6 +259,12 @@ describe('selector strategies helper', () => {
         element = findStrategy('-ios uiautomation:foobar -ios uiautomation')
         element.using.should.be.equal('-ios uiautomation')
         element.value.should.be.equal('foobar -ios uiautomation')
+        element = findStrategy('-ios predicate string:foobar -ios predicate string')
+        element.using.should.be.equal('-ios predicate string')
+        element.value.should.be.equal('foobar -ios predicate string')
+        element = findStrategy('-ios class chain:foobar -ios class chain')
+        element.using.should.be.equal('-ios class chain')
+        element.value.should.be.equal('foobar -ios class chain')
         element = findStrategy('accessibility id:foobar accessibility id')
         element.using.should.be.equal('accessibility id')
         element.value.should.be.equal('foobar accessibility id')
