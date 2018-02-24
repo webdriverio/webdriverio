@@ -121,6 +121,12 @@ Count of request retries to the Selenium server
 Type: `Number`<br>
 Default: *3*
 
+### specFileRetries
+The number of times to retry an entire specfile when it fails as a whole
+
+Type: `Number`<br>
+Default: *0*
+
 ### coloredLogs
 Enables colors for log output
 

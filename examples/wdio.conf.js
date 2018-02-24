@@ -163,6 +163,9 @@ exports.config = {
         ui: 'bdd'
     },
     //
+    // The number of times to retry the entire specfile when it fails as a whole
+    specFileRetries: 1,
+    //
     // Options to be passed to Jasmine.
     // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {

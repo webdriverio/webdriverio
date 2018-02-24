@@ -80,3 +80,18 @@ module.exports = function () {
 ```
 
 Reruns can only be defined in your step definitions file and not in your feature file. To use this you have to have the [wdio-cucumber-framework](https://github.com/webdriverio/wdio-cucumber-framework) adapter installed with `v0.1.0` or greater.
+
+## Add retries on a per-specfile basis
+
+Previously only test-level and suite-level retries were available, which are fine in most cases. In any test which involves state, such as on a server or in a db, the state may be left invalid once the test fails the first time. Any subsequent retries may have no chance of passing due to the invalid state they would have to start with.
+
+A new browser instance is created for each specfile, which makes this an ideal place to hook and setup any other states (server, db). Retries on this level mean that the whole setup process will simply be repeated as if it were for a new specfile, with the results of the failing specfile (that is to be retried) being discarded.
+
+```js
+module.exports = function () {
+    /**
+     * The number of times to retry the entire specfile when it fails as a whole
+     */
+    specFileRetries: 1
+}
+```
