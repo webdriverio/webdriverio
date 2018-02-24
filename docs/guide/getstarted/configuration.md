@@ -293,3 +293,6 @@ Similarly for mocha:
         requires: ['./test/helpers/common.js']
     },
 ```
+##specFileRetries
+
+Sets the testrunner to retry a failed spec in a suite, the retried spec gets a new setup env for its new test.

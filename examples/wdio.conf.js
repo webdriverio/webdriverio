@@ -163,6 +163,10 @@ exports.config = {
         ui: 'bdd'
     },
     //
+    // Set retry tests on a spec file basis
+    // Each failed test in a suite gets a new enviroment before the test is retried
+    specFileRetries: 1,
+    //
     // Options to be passed to Jasmine.
     // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {

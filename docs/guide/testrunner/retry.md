@@ -98,9 +98,10 @@ failing specfile (that is to be retried) being discarded.
 ```js
 module.exports = function () {
     /**
-     * Set retries to on for failed individual tests in a spec file
-     * A failed 'it' in a mocha 'Decscibe' should be  1 time if --specFileRetries:1      
-     */    
-    --specFileRetries: 2
+     * Set retries to on will re-run whole setup before the next test on per spec file basis
+     * A failed spec in a suite that is being retried will get a new test env before it is started.
+     * specFileRetries: 1 = a failed spec in a suite is retried once
+     * /
+    specFileRetries: 1
 }
 ```
