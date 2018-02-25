@@ -11,6 +11,8 @@ process.on('message', (m) => {
         log.error(`Failed launching test session:`, e)
         process.exit(1)
     })
+
+    runner.on('exit', ::process.exit)
 })
 
 /**

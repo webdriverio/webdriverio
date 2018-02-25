@@ -121,8 +121,7 @@ export default class Runner extends EventEmitter {
             cid: this.cid
         })
 
-        process.removeAllListeners()
-        process.exit(failures === 0 ? 0 : 1)
+        this.emit('exit', failures === 0 ? 0 : 1)
     }
 
     /**
