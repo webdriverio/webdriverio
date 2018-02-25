@@ -23,8 +23,8 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
          */
         if (!this.elementId && !commandName.match(/(wait(Until|ForVisible|ForExist)|isExisting)/)) {
             log.debug(
-                `command ${commandName} was called on an element with selector "${this.selector}"` +
-                `which wasn't found in the first place, waiting for that element...`
+                `command ${commandName} was called on an element ("${this.selector}") ` +
+                `that wasn't found, waiting for it...`
             )
 
             return fn(commandName, () => {
