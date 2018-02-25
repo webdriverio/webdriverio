@@ -50,6 +50,7 @@ export default async function $ (selector) {
         }
 
         client.selector = selector
+        client.parent = this
         client.emit = ::this.emit
         return client
     }, prototype)
