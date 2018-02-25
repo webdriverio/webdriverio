@@ -2,7 +2,9 @@ import { EventEmitter } from 'events'
 import logger from 'wdio-logger'
 
 export default function WebDriver (options, modifier, propertiesObject) {
-    const prototype = Object.create(Object.prototype)
+    const prototype = Object.create(Object.prototype, {
+        isW3C: { value: options.isW3C }
+    })
     const log = logger('webdriver')
 
     const eventHandler = new EventEmitter()
