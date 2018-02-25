@@ -95,13 +95,14 @@ export default class AWSLambdaRunner extends EventEmitter {
         options.specs = options.specs.map((spec) => spec.replace(process.cwd(), '.'))
         shell.cd(this.serviceDir.name)
 
+        let result
         try {
-            await this.exec(`${this.serverlessBinPath} invoke -f run --data '${JSON.stringify(options)}' --verbose`)
+            result = await this.exec(`${this.serverlessBinPath} invoke -f run --data '${JSON.stringify(options)}' --verbose`)
         } catch (e) {
             log.error(`Failed to run Lambda process for cid ${options.cid}`)
         }
-
         shell.cd(this.pwd)
+        this.emit(this.cid, result.failures === 0 ? 0 : 1)
     }
 
     link (source, dest) {
@@ -113,9 +114,23 @@ export default class AWSLambdaRunner extends EventEmitter {
         log.debug(`Run script "${script}"`)
         return new Promise((resolve, reject) => {
             const child = shell.exec(script, { async: true, silent: true })
-            child.stdout.on('data', (stdout) => log.debug(stdout.trim().replace(/^Serverless: /, '')))
+            child.stdout.on('data', (stdout) => {
+                const trimmedStdout = stdout.trim().replace(/^Serverless: /, '')
+                /**
+                 * in case stdout is starting with `{` we assume it
+                 * is the resulrt of serverless.run therefor return
+                 * json
+                 */
+                if (trimmedStdout.startsWith('{')) {
+                    return resolve(JSON.parse(trimmedStdout))
+                }
+                log.debug(trimmedStdout)
+            })
             child.stderr.on('data', ::log.error)
             child.on('close', (code) => {
+                /**
+                 * ...otherwise resolve with status code
+                 */
                 if (code === 0) {
                     return resolve(code)
                 }
