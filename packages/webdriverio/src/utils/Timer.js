@@ -19,7 +19,12 @@ class Timer {
         this._leading = leading
         this._conditionExecutedCnt = 0
 
-        if (hasWdioSyncSupport) {
+        /**
+         * only wrap waitUntil condition if:
+         *  - wdio-sync is installed
+         *  - function name is not async
+         */
+        if (hasWdioSyncSupport && !fn.name.includes('async')) {
             this._fn = () => new Promise((resolve) => runFnInFiberContext(fn, resolve)())
         }
 

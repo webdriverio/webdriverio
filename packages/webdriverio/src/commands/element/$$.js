@@ -51,6 +51,7 @@ export default async function $$ (selector) {
                 client.error = res
             }
 
+            client.parent = this
             client.selector = selector
             client.parentSelector = this.selector
             client.parentElementId = this.elementId
