@@ -99,7 +99,7 @@ failing specfile (that is to be retried) being discarded.
 module.exports = function () {
     /**
      * Set retries to on will re-run whole setup before the next test on per spec file basis
-     * A failed spec in a suite that is being retried will get a new test env before it is started.
+     * A failed spec in a suite that is being retried will get a new test environment before it is started.
      * specFileRetries: 1 = a failed spec in a suite is retried once
      * /
     specFileRetries: 1

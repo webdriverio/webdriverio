@@ -295,4 +295,4 @@ Similarly for mocha:
 ```
 ##specFileRetries
 
-Sets the testrunner to retry a failed spec in a suite, the retried spec gets a new setup env for its new test.
+Sets the testrunner to retry a failed spec in a suite, the retried spec gets a new setup environment for its new test.
