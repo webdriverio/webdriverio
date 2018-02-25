@@ -36,7 +36,7 @@ import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse 
 import { elementErrorHandler } from '../../middlewares'
 import { wrapCommand } from 'wdio-config'
 
-export default async function $ (selector) {
+export default async function $$ (selector) {
     const { using, value } = findStrategy(selector)
     const res = await this.findElements(using, value)
     const prototype = Object.assign(getWebdriverPrototype(), getWDIOPrototype('element'))
@@ -51,8 +51,8 @@ export default async function $ (selector) {
                 client.error = res
             }
 
-            client.parentElementId = this.elementId
             client.selector = selector
+            client.parentElementId = this.elementId
             client.parentSelector = this.selector
             client.index = i
             client.emit = ::this.emit
