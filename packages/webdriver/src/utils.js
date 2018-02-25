@@ -32,6 +32,14 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
     }
 
     /**
+     * if an element was not found we don't flag it as failed request because
+     * we lazy load it
+     */
+    if (statusCode === 404 && body.value && body.value.error === 'no such element') {
+        return true
+    }
+
+    /**
      * if it has a status property, it should be 0
      * (just here to stay backwards compatible to the jsonwire protocol)
      */
