@@ -66,7 +66,7 @@ export default class AWSLambdaRunner extends EventEmitter {
          * create config
          */
         const runnerConfig = Object.assign(DEFAULT_CONFIG, {
-            environment: {},
+            environment: { DEBUG: 1 },
             package: {
                 include: [],
                 exclude: []
@@ -92,8 +92,15 @@ export default class AWSLambdaRunner extends EventEmitter {
     }
 
     async run (options) {
+        options.specs = options.specs.map((spec) => spec.replace(process.cwd(), '.'))
         shell.cd(this.serviceDir.name)
-        await this.exec(`${this.serverlessBinPath} invoke -f run --data '${JSON.stringify(options)}' --verbose`)
+
+        try {
+            await this.exec(`${this.serverlessBinPath} invoke -f run --data '${JSON.stringify(options)}' --verbose`)
+        } catch (e) {
+            log.error(`Failed to run Lambda process for cid ${options.cid}`)
+        }
+
         shell.cd(this.pwd)
     }
 
@@ -110,7 +117,7 @@ export default class AWSLambdaRunner extends EventEmitter {
             child.stderr.on('data', ::log.error)
             child.on('close', (code) => {
                 if (code === 0) {
-                    return resolve()
+                    return resolve(code)
                 }
 
                 reject(new Error(`script failed with exit code ${code}`))
