@@ -12,6 +12,15 @@ describe('ConfigParser', () => {
         specs.should.include(path.resolve(__dirname, 'call.js'))
     })
 
+    it('should accept configuration as json', () => {
+        let configParser = new ConfigParser()
+        let config = require(path.resolve(FIXTURES_PATH, 'exclude.conf.js')).config
+        configParser.addConfigFile(config)
+        let specs = configParser.getSpecs()
+        specs.should.not.include(__filename)
+        specs.should.include(path.resolve(__dirname, 'call.js'))
+    })
+
     it('should exclude/include capability excludes', () => {
         let configParser = new ConfigParser()
         configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude2.conf.js'))
