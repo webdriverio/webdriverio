@@ -78,7 +78,6 @@
     "safe-buffer": "~5.1.1",
     "supports-color": "~5.0.0",
     "url": "~0.11.0",
-    "validator": "~9.1.1",
     "wdio-dot-reporter": "~0.0.8",
     "wgxpath": "~1.0.0"
   },
