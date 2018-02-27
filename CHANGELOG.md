@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v4.11.0 (2018-02-27)
+* global changes:
+    * docs improvements
+    * Add new selector strategies from WebdriverAgent (#2613)
+* bugfixes:
+    * isVisibleWithinViewport check fix if element is not existing (#2593)
+    * propagate `process.execArgv` correctly
+* wdio changes:
+    * increase framework timeout if `--inspect` parameter is found in execArgv
+
 ## v4.10.2 (2018-02-02)
 * global changes:
     * docs improvements
@@ -18,7 +28,7 @@
 * global changes:
     * docs improvements
     * fallbacks for depcrecated JsonWireProtocol commands (#2493)
-* wdio changes
+* wdio changes:
     * Add ability to specify a spec and suite (#2505)
     * Add support for filtering specs #2520
 
