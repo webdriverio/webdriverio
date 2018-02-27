@@ -30,6 +30,14 @@ describe('isVisibleWithinViewport', () => {
         isVisibleWithinViewport[3].should.equal(false)
     })
 
+    /**
+     * skip last test for IE because driver doesn't properly return error message of
+     * execute script
+     */
+    if (this.client.desiredCapabilities.browserName === 'internet explorer') {
+        return
+    }
+
     it('should check that function returns false for an element that does not exist', async function () {
         const isVisibleWithinViewport = await this.client.isVisibleWithinViewport('#doesNotExist')
         isVisibleWithinViewport.should.be.equal(false)
