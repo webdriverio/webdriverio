@@ -106,6 +106,9 @@ Default: *90000*
 ### connectionRetryCount
 Count of request retries to the Selenium server
 
+Type: `Number`<br>
+Default: *3*
+
 ### specFileRetries
 Sets the testrunner to retry a failed spec in a suite x amount of times, the retried spec gets a new setup environment for its new test.
 
