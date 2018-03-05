@@ -110,7 +110,7 @@ Count of request retries to the Selenium server
 Sets the testrunner to retry a failed spec in a suite x amount of times, the retried spec gets a new setup environment for its new test.
 
 Type: `Number`<br>
-Default: *3*
+Default: *0*
 
 ### coloredLogs
 Enables colors for log output

@@ -163,8 +163,8 @@ exports.config = {
         ui: 'bdd'
     },
     //
-    // Set retry tests on a spec file basis
-    // Each failed test in a suite gets a new enviroment before the test is retried
+    // Set to retry tests on a spec file basis to rerun failed specs in a test suite
+    // Each failed test in a suite gets a new environment before the test is retried
     specFileRetries: 1,
     //
     // Options to be passed to Jasmine.
