@@ -23,10 +23,10 @@
 ***
 
 <p align="center">
-    [Homepage](http://webdriver.io) |
-    [Developer Guide](http://webdriver.io/guide.html) |
-    [API Reference](http://webdriver.io/api.html) |
-    [Contribute](http://webdriver.io/contribute.html)
+    <a href="http://webdriver.io">Homepage</a> |
+    <a href="http://webdriver.io/guide.html">Developer Guide</a> |
+    <a href="http://webdriver.io/api.html">API Reference</a> |
+    <a href="http://webdriver.io/contribute.html">Contribute</a>
 </p>
 
 ***
