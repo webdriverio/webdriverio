@@ -40,7 +40,10 @@
   },
   "jest": {
     "testRegex": "(/__tests__/.*|(\\.|/).+\\.(test|spec))\\.jsx?$",
-    "testPathIgnorePatterns": ["/node_modules/", "/build/"],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/build/"
+    ],
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "coverageThreshold": {
