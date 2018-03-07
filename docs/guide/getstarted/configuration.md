@@ -91,6 +91,18 @@ Path to WebDriver server.
 Type: `String`<br>
 Default: */wd/hub*
 
+### agent
+http(s).Agent instance to use
+
+Type: `Object`<br>
+Default: `new http(s).Agent({ keepAlive: true })`
+
+### proxy
+An HTTP proxy to be used. Supports proxy Auth with Basic Auth, identical to support for the url parameter (by embedding the auth info in the uri)
+
+Type: `String`<br>
+Default: `undefined` (no proxy used)
+
 ### baseUrl
 Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/`, the base url gets prepended, not including the path portion of your baseUrl. If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url gets prepended directly.
 
@@ -293,3 +305,23 @@ Similarly for mocha:
         requires: ['./test/helpers/common.js']
     },
 ```
+
+## Run WebdriverIO behind corperate proxy
+
+If your company has a corperate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests you can set it using the `proxy` configuration option. Just set in your `wdio.conf.js` the following:
+
+```js
+exports.config = {
+    // ...
+    proxy: 'http://my.corp.proxy.com:9090',
+    // ...
+}
+```
+
+If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) start it via:
+
+```sh
+$ sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
+```
+
+and set the config as described above.
