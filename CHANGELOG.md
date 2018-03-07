@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v4.12.0 (2018-03-07)
+* global changes:
+    * docs improvements
+    * allow to set `proxy` and `agent` request options
+* wdio changes:
+    * support for files with `.es6` ending
+
 ## v4.11.0 (2018-02-27)
 * global changes:
     * docs improvements
