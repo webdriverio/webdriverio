@@ -41,6 +41,7 @@
     "release": "np patch",
     "release:patch": "np patch",
     "release:minor": "np minor",
+    "release:preminor": "np preminor",
     "release:major": "np major",
     "test": "run-s eslint test:unit",
     "test:android": "mocha test/setup.js test/spec/mobile/*.js test/spec/mobile/android/*.js",
