@@ -19,6 +19,17 @@ for (const param of CLI_PARAMS) {
 }
 
 const params = pickBy(argv.argv)
+
+/**
+ * fail execution if more than one wdio config file was specified
+ */
+if (params._.length > 1) {
+    argv.showHelp()
+    console.error(`More than one config file was specified: ${params._.join(', ')}`) // eslint-disable-line
+    console.error('Error: You can only run one wdio config file!') // eslint-disable-line
+    process.exit(1)
+}
+
 const localConf = path.join(process.cwd(), 'wdio.conf.js')
 const wdioConf = params._[0] || (fs.existsSync(localConf) ? localConf : null)
 
