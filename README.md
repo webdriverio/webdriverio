@@ -50,6 +50,7 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 - [wdio-cli](https://github.com/webdriverio/v5/tree/master/packages/wdio-cli) - WebdriverIO testrunner command line interface
 
 ### Helper
+
 - [wdio-config](https://github.com/webdriverio/v5/blob/master/packages/wdio-config) - A helper utility to parse and validate WebdriverIO options
 - [wdio-interface](https://github.com/webdriverio/v5/tree/master/packages/wdio-interface) - A WDIO helper utility to provide a cli interface for the testrunner
 - [wdio-logger](https://github.com/webdriverio/v5/tree/master/packages/wdio-logger) - A helper utility for logging of WebdriverIO packages
