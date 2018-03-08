@@ -7,7 +7,7 @@ const path = require('path')
 const shell = require('shelljs')
 
 const packagesDir = path.join(__dirname, '..', 'packages')
-const nodeModulesDir = path.join(__dirname, '..', 'test', 'node_modules')
+const nodeModulesDir = path.join(__dirname, '..', 'packages', 'node_modules')
 
 const packages = shell.ls(packagesDir)
 shell.mkdir(nodeModulesDir)

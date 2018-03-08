@@ -1,11 +1,11 @@
 {
   "private": true,
   "scripts": {
-    "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git",
+    "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git && npm run link",
     "build": "lerna run build",
     "clean": "run-p clean:*",
     "clean:build": "rm -fr ./packages/*/build",
-    "clean:node_modules": "rm -fr ./packages/*/node_modules",
+    "clean:node_modules": "rm -fr ./packages/*/node_modules ./packages/node_modules",
     "clean:fakegit": "rm -fr ./packages/*/.git",
     "link": "node ./scripts/link",
     "release": "npm run release:minor",
