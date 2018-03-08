@@ -47,10 +47,6 @@ In order to set up this project and start contributing follow this step by step 
 
 It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
 
-## Setup Development Environment
-
-In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check you code changes while you are working on it. You find all these files in `/test`. You find all necessary information [in there](https://github.com/webdriverio/v5/tree/master/test/README.md).
-
 ## Work On Packages
 
 If you start making changes to specific packages, make sure you listen on file changes and transpile the code everytime you press save. To do that for all packages, run:
@@ -65,6 +61,10 @@ If you only work on a single package you can watch only for that one by calling:
 # e.g. `$ npm run watch:pkg wdio-runner`
 $ npm run watch:pkg <package-name>
 ```
+
+## Test Your Changes
+
+In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/test`. You find all necessary information [in there](https://github.com/webdriverio/v5/tree/master/test/README.md).
 
 ## Commit Messages Convention
 
