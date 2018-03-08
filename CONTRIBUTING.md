@@ -45,7 +45,11 @@ In order to set up this project and start contributing follow this step by step 
     $ npm run test
     ```
 
-It should give you a passing result.
+It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
+
+## Setup Development Environment
+
+In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check you code changes while you are working on it. You find all these files in `/test`. You find all necessary information [in there](https://github.com/webdriverio/v5/tree/master/test/README.md).
 
 ## Work On Packages
 
