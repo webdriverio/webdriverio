@@ -343,6 +343,11 @@ exports.config = {
      */
     onComplete: function (exitCode, config, capabilities) {
     },
+    /**
+    * Gets executed when an error happens, good place to take a screenshot
+    */
+    onError: function() {
+    }
     //
     // Cucumber specific hooks
     beforeFeature: function (feature) {
