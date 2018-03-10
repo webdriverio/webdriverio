@@ -1,8 +1,21 @@
 import { EventEmitter } from 'events'
 import logger from 'wdio-logger'
 
+const SCOPE_TYPES = {
+    'browser': function Browser () {},
+    'element': function Element () {}
+}
+
 export default function WebDriver (options, modifier, propertiesObject) {
-    const prototype = Object.create(Object.prototype, {
+    /**
+     * In order to allow named scopes for elements we have to propagate that
+     * info within the `propertiesObject` object. This doesn't have any functional
+     * advantages just provides better description of objects when debugging them
+     */
+    const scopeType = SCOPE_TYPES[propertiesObject.scope] || SCOPE_TYPES['browser']
+    delete propertiesObject.scope
+
+    const prototype = Object.create(scopeType.prototype, {
         isW3C: { value: options.isW3C }
     })
     const log = logger('webdriver')

@@ -143,6 +143,15 @@ export const findStrategy = function (...args) {
     return { using, value }
 }
 
+const applyScopePrototype = (prototype, scope) => {
+    const dir = path.resolve(__dirname, 'commands', scope)
+    const files = fs.readdirSync(dir)
+    for (let filename of files) {
+        const commandName = path.basename(filename, path.extname(filename))
+        prototype[commandName] = { value: require(path.join(dir, commandName)) }
+    }
+}
+
 /**
  * enhances objects with element commands
  */
@@ -152,12 +161,15 @@ export const getPrototype = (scope) => {
     /**
      * register action commands
      */
-    const dir = path.resolve(__dirname, 'commands', scope)
-    const files = fs.readdirSync(dir)
-    for (let filename of files) {
-        const commandName = filename.slice(0, -3)
-        prototype[commandName] = { value: require(path.join(dir, commandName)) }
-    }
+    applyScopePrototype(prototype, scope)
+
+    /**
+     * register window scope
+     */
+    const windowPrototype = {}
+    applyScopePrototype(windowPrototype, 'window')
+    function Window () {}
+    prototype.window = { value: Object.create(Window.prototype, windowPrototype) }
 
     return prototype
 }
