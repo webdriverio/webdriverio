@@ -176,4 +176,6 @@ export const getElementFromResponse = (res) => {
     if (res[ELEMENT_KEY]) {
         return res[ELEMENT_KEY]
     }
+
+    throw new Error(`Response did not contain an element key.\n${res}`)
 }
