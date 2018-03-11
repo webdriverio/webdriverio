@@ -15,6 +15,8 @@
     "test": "run-s test:*",
     "test:eslint": "eslint packages",
     "test:coverage": "jest --coverage",
+    "test:wdio:sync": "wdio ./test/wdio.conf.js --spec=./test/specs/sync.spec.js",
+    "test:wdio:async": "wdio ./test/wdio.conf.js --spec=./test/specs/async.spec.js",
     "watch": "node ./scripts/watch",
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
@@ -43,7 +45,8 @@
     "testRegex": "(/__tests__/.*|(\\.|/).+\\.(test|spec))\\.jsx?$",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/build/"
+      "/build/",
+      "/test/"
     ],
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
