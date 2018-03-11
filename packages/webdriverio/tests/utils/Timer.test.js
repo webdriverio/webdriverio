@@ -22,10 +22,6 @@ describe('timer', () => {
             await expect(timer).rejects.toMatchObject(new Error('err'))
         })
 
-        it('should be rejected when fuction does not return a promise', async () => {
-            let timer = new Timer(20, 30, () => {return true})
-            await expect(timer).rejects.toContain('Expected a promise as return value but got')
-        })
     })
 
     it('should execute condition at least once', async () => {
