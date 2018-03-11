@@ -39,12 +39,15 @@ describe('commands test', () => {
 
         describe('waitUntil', () => {
             it('Should throw an error if an invalid condition is used', async () => {  
+                let error
                 expect.assertions(1)  
-                function waitUntil() {
-                    browser.waitUntil('foo',500,'Timed Out',200)
+                try {
+                    await browser.waitUntil('foo',500,'Timed Out',200)
+                } catch(e) {
+                    error = e
+                } finally{
+                    expect(error.message).toContain('Condition is not a function')
                 }
-
-                await expect(waitUntil).toThrowError('Condition is not a function')
             })
 
             it('Should throw an error when the waitUntil times out', async () => {
@@ -60,7 +63,7 @@ describe('commands test', () => {
                 } catch(e) {
                     error = e
                 } finally{
-                    expect(error.message).toBe('Timed Out')
+                    expect(error.message).toContain('Timed Out')
                 }
             })
 
@@ -77,7 +80,7 @@ describe('commands test', () => {
                 } catch(e) {
                     error = e
                 } finally{
-                    expect(error.message).toBe('Promise was rejected with the following reason: Error: foobar')
+                    expect(error.message).toContain('Promise was rejected with the following reason: Error: foobar')
                 }
             })
 
@@ -94,7 +97,7 @@ describe('commands test', () => {
                 } catch(e) {
                     error = e
                 } finally{
-                    expect(error.message).toBe('Timed Out')
+                    expect(error.message).toContain('Timed Out')
                 }
             })
 
@@ -111,7 +114,7 @@ describe('commands test', () => {
                 } catch(e) {
                     error = e
                 } finally{
-                    expect(error.message).toBe('Timed Out')
+                    expect(error.message).toContain('Timed Out')
                 }
             })
             
