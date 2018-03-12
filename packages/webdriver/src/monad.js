@@ -6,7 +6,7 @@ const SCOPE_TYPES = {
     'element': function Element () {}
 }
 
-export default function WebDriver (options, modifier, propertiesObject) {
+export default function WebDriver (options, modifier, propertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional

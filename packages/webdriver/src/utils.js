@@ -17,7 +17,7 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
     /**
      * response contains a body
      */
-    if (!body) {
+    if (!body || typeof body.value === 'undefined') {
         log.debug('request failed due to missing body')
         return false
     }
@@ -49,14 +49,6 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
     }
 
     /**
-     * the body contains an actual result
-     */
-    if (typeof body.value === 'undefined') {
-        log.debug('request failed due to missing value in body')
-        return false
-    }
-
-    /**
      * that has no error property (Appium only)
      */
     if (hasErrorResponse) {
@@ -74,9 +66,8 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
  * @param  {Object}  commandParam  corresponding parameter description
  * @return {Boolean}               true if argument is valid
  */
-export function isValidParameter (arg, commandParam) {
+export function isValidParameter (arg, expectedType) {
     let shouldBeArray = false
-    let expectedType = commandParam.type
 
     if (expectedType.slice(-2) === '[]') {
         expectedType = expectedType.slice(0, -2)
