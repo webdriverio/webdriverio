@@ -8,8 +8,8 @@
  *
  */
 
-let switchTab = function (target) {
-    console.log('switch to', target)
+let switchTab = function () {
+    // ToDo: implement command
 }
 
 export default switchTab
