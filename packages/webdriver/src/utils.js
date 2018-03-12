@@ -63,7 +63,7 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
  * checks if command argument is valid according to specificiation
  *
  * @param  {*}       arg           command argument
- * @param  {Object}  commandParam  corresponding parameter description
+ * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
  * @return {Boolean}               true if argument is valid
  */
 export function isValidParameter (arg, expectedType) {
