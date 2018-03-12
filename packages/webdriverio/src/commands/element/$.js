@@ -53,8 +53,6 @@ export default async function $ (selector) {
         }
 
         client.parent = this
-        client.parentSelector = this.selector
-        client.parentElement = this.elementId
         client.selector = selector
         client.emit = ::this.emit
         return client
