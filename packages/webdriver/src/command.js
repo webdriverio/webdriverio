@@ -42,7 +42,7 @@ export default function (method, endpoint, commandInfo) {
         for (const [i, arg] of Object.entries(args)) {
             const commandParam = commandParams[i]
 
-            if (!isValidParameter(arg, commandParam)) {
+            if (!isValidParameter(arg, commandParam.type)) {
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
                     `Expected: ${commandParam.type}\n` +
