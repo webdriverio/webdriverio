@@ -345,8 +345,9 @@ exports.config = {
     },
     /**
     * Gets executed when an error happens, good place to take a screenshot
+    * @ {String} error message
     */
-    onError: function() {
+    onError: function(message) {
     }
     //
     // Cucumber specific hooks
