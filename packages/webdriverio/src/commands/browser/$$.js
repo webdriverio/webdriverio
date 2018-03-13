@@ -31,17 +31,15 @@
  *
  */
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
+import { wrapCommand } from 'wdio-config'
 
 import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
-import { wrapCommand } from 'wdio-config'
 
 export default async function $$ (selector) {
     const { using, value } = findStrategy(selector)
     const res = await this.findElements(using, value)
-
-    const prototype = Object.assign(getWebdriverPrototype(), getWDIOPrototype('element'))
-    prototype.scope = 'element'
+    const prototype = Object.assign(getWebdriverPrototype(), getWDIOPrototype('element'), { scope: 'element' })
 
     const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
