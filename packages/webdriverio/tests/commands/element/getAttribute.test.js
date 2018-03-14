@@ -1,7 +1,7 @@
 import request from 'request'
 import { remote } from '../../../src'
 
-describe('click test', () => {
+describe('getAttribute test', () => {
     let browser
     let elem
 
