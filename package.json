@@ -108,7 +108,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "isparta": "^4.0.0",
     "istanbul": "^0.4.5",
-    "mocha": "^3.2.0",
+    "mocha": "^5.0.0",
     "mock-require": "^2.0.2",
     "nock": "^9.0.13",
     "node-static": "^0.7.9",
