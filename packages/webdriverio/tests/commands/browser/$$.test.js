@@ -13,19 +13,12 @@ describe('elements', () => {
             }
         })
     })
-
-    it('should have a sessionId when instance was created', () => {
-        expect(browser.sessionId).toBe('foobar-123')
-        expect(request.mock.calls).toHaveLength(1)
-        expect(request.mock.calls[0][0].method).toBe('POST')
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session')
-    })
     
     it('should fetch elements', async () => {
         elems = await browser.$$('.foo')
-        expect(request.mock.calls[0][0].method).toBe('POST')
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/elements')
-        expect(request.mock.calls[0][0].body).toEqual({ using: 'css selector', value: '.foo' })
+        expect(request.mock.calls[1][0].method).toBe('POST')
+        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/elements')
+        expect(request.mock.calls[1][0].body).toEqual({ using: 'css selector', value: '.foo' })
         expect(elems).toHaveLength(3)
 
         expect(elems[0].elementId).toBe('some-elem-123')
