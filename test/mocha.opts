@@ -1,4 +1,5 @@
---compilers js:babel-register
+--require js:babel-register
+--require babel-core/register
 --recursive
 --timeout 120000
 --reporter spec
