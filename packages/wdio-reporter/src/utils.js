@@ -3,7 +3,7 @@
  * @param  {String} str  variable to sanitize
  * @return {String}      sanitized variable
  */
-function sanitizeString (str) {
+export function sanitizeString (str) {
     if (!str) {
         return ''
     }
@@ -19,7 +19,7 @@ function sanitizeString (str) {
  * formats capability object into sanitized string for e.g.filenames
  * @param {Object} caps  Selenium capabilities
  */
-function sanitizeCaps (caps) {
+export function sanitizeCaps (caps) {
     if (!caps) {
         return ''
     }
@@ -47,9 +47,4 @@ function sanitizeCaps (caps) {
 
     result = result.filter(n => n !== undefined && n !== '')
     return result.join('.')
-}
-
-export default {
-    string: sanitizeString,
-    caps: sanitizeCaps
 }

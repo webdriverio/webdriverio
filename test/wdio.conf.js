@@ -54,8 +54,8 @@ exports.config = {
     // e.g. using promises you can set the sync option to false.
     sync: true,
     //
-    // Level of logging verbosity: silent | verbose | command | data | result | error
-    logLevel: 'verbose',
+    // Level of logging verbosity: trace | debug | info | warn | error
+    logLevel: 'trace',
     //
     // Enables colors for log output.
     coloredLogs: true,
