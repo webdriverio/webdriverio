@@ -1,7 +1,7 @@
 import request from 'request'
 import { remote } from '../../../src'
 
-describe('isSelected test', () => {
+describe('isDisplayed test', () => {
     let browser
     let elem
 
