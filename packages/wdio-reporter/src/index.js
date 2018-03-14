@@ -33,7 +33,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('runner:start', (runner) => {
             rootSuite.cid = runner.cid
             this.runnerStat = new RunnerStats(runner)
-            this.onStart(this.runnerStat)
+            this.onRunnerStart(this.runnerStat)
         })
 
         this.on('suite:start', (suite) => {
@@ -109,15 +109,14 @@ export default class WDIOReporter extends EventEmitter {
             rootSuite.complete()
             this.runnerStat.failures = runner.failures
             this.runnerStat.complete()
-            this.onEnd(this.runnerStat)
+            this.onRunnerEnd(this.runnerStat)
         })
     }
 
-    onStart () {}
+    onRunnerStart () {}
     onBeforeCommand () {}
     onAfterCommand () {}
     onScreenshot () {}
-    onRunnerStart () {}
     onSuiteStart () {}
     onHookStart () {}
     onHookEnd () {}
@@ -127,5 +126,5 @@ export default class WDIOReporter extends EventEmitter {
     onTestSkip () {}
     onTestEnd () {}
     onSuiteEnd () {}
-    onEnd () {}
+    onRunnerEnd () {}
 }

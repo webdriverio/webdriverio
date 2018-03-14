@@ -1,5 +1,5 @@
 import RunnableStats from './runnable'
-import sanitize from '../utils'
+import { sanitizeCaps } from '../utils'
 
 /**
  * Class to capture statistics about a test run. A test run is a single instance that
@@ -10,7 +10,7 @@ export default class RunnerStats extends RunnableStats {
         super('runner')
         this.cid = runner.cid
         this.capabilities = runner.capabilities
-        this.sanitizedCapabilities = sanitize.caps(runner.capabilities)
+        this.sanitizedCapabilities = sanitizeCaps(runner.capabilities)
         this.config = runner.config
         this.specs = runner.specs
     }
