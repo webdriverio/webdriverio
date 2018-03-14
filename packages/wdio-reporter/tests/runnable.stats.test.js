@@ -13,8 +13,7 @@ describe('RunnableStats', () => {
     })
 
     it('can be completed', () => {
-        const duration = stat.duration
-        expect(typeof duration).toBe('number')
+        expect(typeof stat.duration).toBe('number')
 
         return new Promise((resolve, reject) => setTimeout(() => {
             stat.complete()
