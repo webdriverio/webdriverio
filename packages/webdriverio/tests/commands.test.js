@@ -27,11 +27,6 @@ describe('commands test', () => {
             elem = await browser.$('#foo')
         })
 
-        it('should allow to click on an element', async () => {
-            await elem.click()
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/click')
-        })
-
         it('should allow to get attribute from element', async () => {
             await elem.getAttribute('foo')
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/foo')
