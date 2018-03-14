@@ -8,7 +8,7 @@ class DotReporter extends WDIOReporter {
     /**
      * print empty line at the beginning
      */
-    onStart () {
+    onRunnerStart () {
         process.stdout.write('\n')
     }
 
