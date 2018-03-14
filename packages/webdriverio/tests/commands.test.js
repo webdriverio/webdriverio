@@ -27,19 +27,6 @@ describe('commands test', () => {
             elem = await browser.$('#foo')
         })
 
-        
-
-       
-
-       
-
-       
-
-        it('should allow to get the tag name of an element', async () => {
-            await elem.getTagName()
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/name')
-        })
-
         it('should allow to check if an element is enabled', async () => {
             await elem.isEnabled()
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/enabled')
