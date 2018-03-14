@@ -105,3 +105,4 @@ In 2014, the project was renamed WebdriverIO later on.
 ### License
 
 MIT
+SAMPLE
