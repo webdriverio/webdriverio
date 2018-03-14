@@ -43,7 +43,7 @@
     "shelljs": "^0.8.1"
   },
   "jest": {
-    "testRegex": "(/__tests__/.*|(\\.|/).+\\.(test|spec))\\.jsx?$",
+    "testMatch": ["/**/tests/**/*.test.js"],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/build/",
@@ -53,10 +53,10 @@
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 95,
-        "functions": 100,
-        "lines": 100,
-        "statements": 100
+        "branches": 76,
+        "functions": 66,
+        "lines": 79,
+        "statements": 78
       }
     }
   }
