@@ -27,13 +27,6 @@ describe('commands test', () => {
             elem = await browser.$('#foo')
         })
 
-        it('should fetch an element', async () => {
-            expect(request.mock.calls[0][0].method).toBe('POST')
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
-            expect(request.mock.calls[0][0].body).toEqual({ using: 'id', value: 'foo' })
-            expect(elem.elementId).toBe('some-elem-123')
-        })
-
         it('should allow to click on an element', async () => {
             await elem.click()
             expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/click')
