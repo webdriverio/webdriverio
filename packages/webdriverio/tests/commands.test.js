@@ -33,10 +33,7 @@ describe('commands test', () => {
 
        
 
-        it('should allow to clear an input element', async () => {
-            await elem.clearElement()
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/clear')
-        })
+       
 
         it('should allow to get the tag name of an element', async () => {
             await elem.getTagName()
