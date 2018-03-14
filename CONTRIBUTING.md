@@ -10,8 +10,8 @@ Also if there is anything that needs to get simplified, also please let us know.
 
 In order to set up this project and start contributing follow this step by step guide:
 
-1. Fork the project.
-2. Clone the project somewhere on your computer
+* Fork the project.
+* Clone the project somewhere on your computer
 
     ```sh
     $ git clone git@github.com:<your-username>/v5.git
@@ -19,33 +19,32 @@ In order to set up this project and start contributing follow this step by step 
 
     _Note_: this is currently a dev repository to keep making releases in the [original](https://github.com/webdriverio/webdriverio) project. Once we are at a state where this can be released we will force push this master branch to the webdriverio/webdriverio#master branch.
 
-3. Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
-4. Install Dependencies
+* Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
+
+* Setup project:
 
     ```sh
     $ cd ./v5
-    $ npm install
+    $ npm run setup
     ```
 
-5. Bootstrap sub-projects: many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks it is recommend to use the package bootstrap command:
+    * Installs Dependencies via ```npm install``
 
-    ```sh
-    $ npm run bootstrap
-    ```
+    * Bootstraps sub-projects via ```npm run bootstrap```
 
-6. As the last step you need to build all sub-packages in order to resolve the internal dependencies. We also have a NPM command for that:
+        Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks it is recommend to use the package bootstrap command:
 
-    ```sh
-    $ npm run build
-    ```
+    * Builds all subpackages via ```npm run build``` 
 
-6. You are all set now. To ensure that everything is set up correctly run the unit tests:
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. We also have a NPM command for that:
+
+* Run Tests to ensure that everything is set up correctly
 
     ```sh
     $ npm run test
     ```
 
-It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
+    It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
 
 ## Work On Packages
 

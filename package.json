@@ -12,6 +12,7 @@
     "release:patch": "lerna run release:patch --scope",
     "release:minor": "lerna run release:minor --scope",
     "release:major": "lerna run release:major --scope",
+    "setup": "npm install && npm run bootstrap && npm run build",
     "test": "run-s test:*",
     "test:eslint": "eslint packages",
     "test:coverage": "jest --coverage",
