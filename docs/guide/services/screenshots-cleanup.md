@@ -48,4 +48,4 @@ export.config = {
 
 Where:
   - `folder` is absolute or relative path to your project screenshots folder
-  - `pattern` is optional property to tell `wdio-screenshots-clenup-service` what pattern to apply before deleting screenshots
+  - `pattern` is optional property to tell `wdio-screenshots-cleanup-service` what pattern to apply before deleting screenshots
