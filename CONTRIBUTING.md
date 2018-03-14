@@ -28,7 +28,7 @@ In order to set up this project and start contributing follow this step by step 
     $ npm run setup
     ```
 
-    * Installs Dependencies via ```npm install``
+    * Installs Dependencies via ```npm install```
 
     * Bootstraps sub-projects via ```npm run bootstrap```
 
