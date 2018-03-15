@@ -1,10 +1,8 @@
 
 /**
  *
- * Wait for an element (selected by css selector) for the provided amount of
- * milliseconds to be (in)visible. If multiple elements get queried by a given
- * selector, it returns true (or false if reverse flag is set) if at least one
- * element is visible.
+ * Wait for an element for the provided amount of
+ * milliseconds to be (in)visible.
  *
  * <example>
     :index.html
@@ -16,12 +14,12 @@
     </script>
     :waitForVisibleExample.js
     it('should detect when element is visible', function () {
-        $('#elem').waitForVisible(3000);
+        var elem = browser.$('#elem')
+        elem.waitForVisible(3000);
     });
  * </example>
  *
  * @alias browser.waitForVisible
- * @param {String}   selector element to wait for
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
  * @uses utility/waitUntil, state/isVisible

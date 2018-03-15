@@ -1,6 +1,6 @@
 /**
  *
- * Return true or false if the selected DOM-element found by given selector is enabled.
+ * Return true or false if the selected DOM-element is enabled.
  *
  * <example>
     :index.html
@@ -10,20 +10,22 @@
 
     :isEnabled.js
     it('should detect if an element is enabled', function () {
-        var isEnabled = browser.isEnabled('.input1');
+        let elem = browser.$('.input1')
+        let isEnabled = elem.isEnabled();
         console.log(isEnabled); // outputs: true
 
-        var isEnabled2 = browser.isEnabled('.input2');
+        elem = browser.$('.input2')
+        isEnabled = elem.isEnabled();
         console.log(isEnabled2); // outputs: false
 
-        var isEnabled3 = browser.isEnabled('.input3')
+        elem = browser.$('.input3')
+        isEnabled = elem.isEnabled();
         console.log(isEnabled3); // outputs: false
     });
  * </example>
  *
  * @alias browser.isEnabled
- * @param   {String}             selector  DOM-element
- * @return {Boolean|Boolean[]}            true if element(s)* (is|are) enabled
+ * @return {Boolean} true if element(s)* (is|are) enabled
  * @uses protocol/elements, protocol/elementIdEnabled
  * @type state
  *

@@ -1,6 +1,6 @@
 /**
  *
- * Get tag name of a DOM-element found by given selector.
+ * Get tag name of a DOM-element.
  *
  * <example>
     :index.html
@@ -8,16 +8,15 @@
 
     :getTagName.js
     it('should demonstrate the getTagName command', function () {
-        var elem = $('#elem');
+        let elem = $('#elem');
 
-        var tagName = elem.getTagName();
+        let tagName = elem.getTagName();
         console.log(tagName); // outputs: "div"
     })
  * </example>
  *
  * @alias browser.getTagName
- * @param   {String}           selector   element with requested tag name
- * @return {String|String[]}             the element's tag name, as a lowercase string
+ * @return {String} the element's tag name, as a lowercase string
  * @uses protocol/elements, protocol/elementIdName
  * @type property
  *

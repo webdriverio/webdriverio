@@ -1,6 +1,6 @@
 /**
  *
- * The given selector will return true or false whether or not an `<option>` or `<input>` element of type
+ * Will return true or false whether or not an `<option>` or `<input>` element of type
  * checkbox or radio is currently selected.
  *
  * <example>
@@ -13,17 +13,16 @@
 
     :isSelected.js
     it('should detect if an element is selected', function () {
-        var element = $('[value="Layla Terry"]');
+        var element = browser.$('[value="Layla Terry"]');
         console.log(element.isSelected()); // outputs: true
 
-        browser.selectByValue('#selectbox', 'Bill Gilbert');
+        element = browser.$('[value="Bill Gilbert"]')
         console.log(element.isSelected()); // outputs: false
     });
  * </example>
  *
  * @alias browser.isSelected
- * @param   {String}             selector  option element or input of type checkbox or radio
- * @return {Boolean|Boolean[]}            true if element is selected
+ * @return {Boolean} true if element is selected
  * @uses protocol/elements, protocol/elementIdSelected
  * @type state
  *
