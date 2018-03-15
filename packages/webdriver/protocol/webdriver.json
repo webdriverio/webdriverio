@@ -548,7 +548,12 @@
     "POST": {
       "command": "sendAlertText",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-send-alert-text",
-      "parameters": []
+      "parameters": [{
+        "name": "text",
+        "type": "string",
+        "description": "string to set the prompt to",
+        "required": true
+      }]
     }
   },
   "/session/:sessionId/screenshot": {
