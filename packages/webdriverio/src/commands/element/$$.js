@@ -39,7 +39,7 @@ import { elementErrorHandler } from '../../middlewares'
 export default async function $$ (selector) {
     const { using, value } = findStrategy(selector)
     const res = await this.findElementsFromElement(this.elementId, using, value)
-    const prototype = Object.assign(getWebdriverPrototype(), getWDIOPrototype('element'), { scope: 'element' })
+    const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
 
     const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {

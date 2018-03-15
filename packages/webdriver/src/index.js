@@ -7,6 +7,7 @@ import { DEFAULTS } from './constants'
 import { getPrototype } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
+import JsonWProtocol from '../protocol/jsonwp.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 
@@ -28,7 +29,7 @@ export default class WebDriver {
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = Boolean(response.value.capabilities)
 
-        const prototype = Object.assign(WebDriver.getPrototype(), proto)
+        const prototype = Object.assign(WebDriver.getPrototype(params.isW3C), proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
@@ -41,6 +42,9 @@ export default class WebDriver {
     }
     static get WebDriverProtocol () {
         return WebDriverProtocol
+    }
+    static get JsonWProtocol () {
+        return JsonWProtocol
     }
     static get MJsonWProtocol () {
         return MJsonWProtocol
