@@ -21,15 +21,15 @@
     <div id="someText">I was not clicked</div>
     :click.js
     it('should demonstrate the click command', function () {
-        let myButton = browser.$('#myButton')
+        const myButton = $('#myButton')
         myButton.click()
-        let myText = browser.$('#someText')
-        let text = myText.getText();
+        const myText = $('#someText')
+        const text = myText.getText();
         assert(text === 'I was clicked'); // true
     })
     :example.js
     it('should fetch menu links and visit each page', function () {
-        let links = browser.$$('#menu a');
+        const links = $$('#menu a');
         links.forEach(function (link) {
             link.click();
         });

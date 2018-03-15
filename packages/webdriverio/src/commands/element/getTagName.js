@@ -8,9 +8,9 @@
 
     :getTagName.js
     it('should demonstrate the getTagName command', function () {
-        let elem = $('#elem');
+        const elem = $('#elem');
 
-        let tagName = elem.getTagName();
+        const tagName = elem.getTagName();
         console.log(tagName); // outputs: "div"
     })
  * </example>

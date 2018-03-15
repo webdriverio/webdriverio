@@ -7,12 +7,14 @@
     :getLocation.js
     it('should demonstrate the getLocation function', function () {
         browser.url('http://github.com');
-        let logo = browser.$('.octicon-mark-github')
-        let location = logo.getLocation();
+        const logo = $('.octicon-mark-github')
+        const location = logo.getLocation();
         console.log(location); // outputs: { x: 150, y: 20 }
-        let xLocation = logo.getLocation('x')
+
+        const xLocation = logo.getLocation('x')
         console.log(xLocation); // outputs: 150
-        let yLocation = logo.getLocation('.octicon-mark-github', 'y')
+        
+        const yLocation = logo.getLocation('.octicon-mark-github', 'y')
         console.log(yLocation); // outputs: 20
     });
  * </example>

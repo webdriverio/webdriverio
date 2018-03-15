@@ -11,8 +11,8 @@
     </form>
     :getAttribute.js
     it('should demonstrate the getAttribute command', function () {
-        let form = browser.$('form')
-        let attr = form.getAttribute('method')
+        const form = $('form')
+        const attr = form.getAttribute('method')
         console.log(attr) // outputs: "post"
     })
  * </example>

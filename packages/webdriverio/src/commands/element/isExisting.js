@@ -1,7 +1,7 @@
 
 /**
  *
- * Returns true if at least one element is existing by given selector
+ * Returns true if element exists in the DOM
  *
  * <example>
     :index.html
@@ -11,16 +11,24 @@
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isExisting.js
     it('should detect if elements are existing', function () {
-        var isExisting;
-        isExisting = browser.isExisting('#someRandomNonExistingElement');
+        let elem = $('#someRandomNonExistingElement')
+        let isExisting = elem.isExisting()
         console.log(isExisting); // outputs: false
-        isExisting = browser.isExisting('#notDisplayed');
+        
+        elem = $('#notDisplayed')
+        isExisting = elem.isExisting()
         console.log(isExisting); // outputs: true
-        isExisting = browser.isExisting('#notVisible');
+        
+        elem = $('#notVisible')
+        isExisting = elem.isExisting()
         console.log(isExisting); // outputs: true
-        isExisting = browser.isExisting('#notInViewport');
+        
+        elem = $('#notInViewport')
+        isExisting = elem.isExisting()
         console.log(isExisting); // outputs: true
-        isExisting = browser.isExisting('#zeroOpacity');
+
+        elem = $('#zeroOpacity')
+        isExisting = elem.isExisting()
         console.log(isExisting); // outputs: true
     });
  * </example>

@@ -13,10 +13,10 @@
 
     :isSelected.js
     it('should detect if an element is selected', function () {
-        var element = browser.$('[value="Layla Terry"]');
+        let element = $('[value="Layla Terry"]');
         console.log(element.isSelected()); // outputs: true
 
-        element = browser.$('[value="Bill Gilbert"]')
+        element = $('[value="Bill Gilbert"]')
         console.log(element.isSelected()); // outputs: false
     });
  * </example>
