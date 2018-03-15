@@ -30,7 +30,7 @@
 export default async function getElementSize(prop = null) {
     let rect = {}
 
-    if (this.W3C) {
+    if (this.isW3C) {
         rect = await this.getElementRect(this.elementId)
     } else {
         rect = await this.getElementSize(this.elementId)
