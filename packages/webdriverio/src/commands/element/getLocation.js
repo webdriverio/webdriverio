@@ -33,7 +33,7 @@ export default async function getLocation (prop) {
         delete location.width
         delete location.height
     } else {
-        location = await this.elementIdLocation(this.elementId)
+        location = await this.getElementLocation(this.elementId)
     }
 
     if (prop === 'x' || prop === 'y') {

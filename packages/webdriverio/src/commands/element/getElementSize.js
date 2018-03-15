@@ -28,16 +28,20 @@
  */
 
 export default async function getElementSize(prop = null) {
-    const rect = await this.getElementRect(this.elementId)
+    let rect = {}
 
-    if(!prop) {
-        return {
-            width: rect.width,
-            height: rect.height
-        }
+    if (this.W3C) {
+        rect = await this.getElementRect(this.elementId)
+    } else {
+        rect = await this.getElementSize(this.elementId)
     }
 
     if(rect[prop]) {
         return rect[prop]
+    }
+
+    return {
+        width: rect.width,
+        height: rect.height
     }
 }
