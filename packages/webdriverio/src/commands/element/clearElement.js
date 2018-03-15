@@ -7,10 +7,10 @@
  * <example>
     :clearElement.js
     it('should demonstrate the clearElement command', function () {
-        let elem = browser.$('.input')
+        const elem = $('.input')
         elem.setValue('test123')
 
-        let value = elem.getValue() 
+        const value = elem.getValue() 
         console.log(value) // returns 'test123'
         
         elem.clearElement()

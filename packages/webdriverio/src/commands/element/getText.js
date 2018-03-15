@@ -15,19 +15,19 @@
     <span style="display: none">I am invisible</span>
     :getText.js
     it('should demonstrate the getText function', function () {
-        var elem = browser.$('#elem');
+        const elem = $('#elem');
         console.log(elem.getText());
         // outputs the following:
         // "Lorem ipsum dolor sit amet,consetetur sadipscing elitr"
 
-        var span = browser.$('span');
+        const span = $('span');
         console.log(span.getText());
         // outputs "" (empty string) since element is not interactable
     });
     it('get content from table cell', function () {
         browser.url('http://the-internet.herokuapp.com/tables');
-        var rows = browser.$$('#table1 tr');
-        var columns = rows[1].$$('td'); // get columns of 2nd row
+        const rows = $$('#table1 tr');
+        const columns = rows[1].$$('td'); // get columns of 2nd row
         console.log(columns[2].getText()); // get text of 3rd column
     });
  * </example>

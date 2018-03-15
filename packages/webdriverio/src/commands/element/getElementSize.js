@@ -6,15 +6,15 @@
     :getElementSize.js
     it('should demonstrate the getElementSize command', function () {
         browser.url('http://github.com')
-        let logo = browser.$('.octicon-mark-github')
+        const logo = $('.octicon-mark-github')
 
-        let size = logo.getElementSize()
+        const size = logo.getElementSize()
         console.log(size) // outputs: { width: 32, height: 32 }
 
-        let width = logo.getElementSize('width')
+        const width = logo.getElementSize('width')
         console.log(width) // outputs: 32
 
-        let height = logo.getElementSize('height')
+        const height = logo.getElementSize('height')
         console.log(height) // outputs: 32
     })
  * </example>

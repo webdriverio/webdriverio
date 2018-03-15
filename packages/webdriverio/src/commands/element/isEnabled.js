@@ -10,15 +10,15 @@
 
     :isEnabled.js
     it('should detect if an element is enabled', function () {
-        let elem = browser.$('.input1')
+        let elem = $('.input1')
         let isEnabled = elem.isEnabled();
         console.log(isEnabled); // outputs: true
 
-        elem = browser.$('.input2')
+        elem = $('.input2')
         isEnabled = elem.isEnabled();
         console.log(isEnabled2); // outputs: false
 
-        elem = browser.$('.input3')
+        elem = $('.input3')
         isEnabled = elem.isEnabled();
         console.log(isEnabled3); // outputs: false
     });

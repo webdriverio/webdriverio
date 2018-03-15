@@ -5,7 +5,7 @@
  * <example>
     :scrollIntoView.js
     it('should demonstrate the scrollIntoView command', function () {
-        var elem = browser.$('#myElement');
+        const elem = $('#myElement');
         // scroll to specific element
         elem.scrollIntoView();
     });

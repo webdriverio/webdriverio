@@ -10,23 +10,23 @@
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isVisible.js
     it('should detect if an element is visible', function () {
-        let elem = browser.$('#notDisplayed');
+        let elem = $('#notDisplayed');
         let isVisible = elem.isVisible();
         console.log(isVisible); // outputs: false
 
-        elem = browser.$('#notVisible');
+        elem = $('#notVisible');
         isVisible = elem.isVisible();
         console.log(isVisible); // outputs: false
         
-        elem = browser.$('#notExisting');
+        elem = $('#notExisting');
         isVisible = elem.isVisible();
         console.log(isVisible); // outputs: false
 
-        elem = browser.$('#notInViewport');
+        elem = $('#notInViewport');
         isVisible = elem.isVisible();
         console.log(isVisible); // outputs: true
 
-        elem = browser.$('#zeroOpacity');
+        elem = $('#zeroOpacity');
         isVisible = elem.isVisible();
         console.log(isVisible); // outputs: true
     });

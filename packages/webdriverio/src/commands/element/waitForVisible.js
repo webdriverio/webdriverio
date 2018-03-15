@@ -14,7 +14,7 @@
     </script>
     :waitForVisibleExample.js
     it('should detect when element is visible', function () {
-        var elem = browser.$('#elem')
+        const elem = $('#elem')
         elem.waitForVisible(3000);
     });
  * </example>
