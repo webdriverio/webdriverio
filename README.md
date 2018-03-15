@@ -72,3 +72,4 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 - [wdio-devtools-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-devtools-service) - A WebdriverIO service that allows you to run Chrome DevTools commands in your tests
 - [wdio-firefox-profile-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-firefox-profile-service) - WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
 - [wdio-sauce-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-sauce-service) - WebdriverIO service that provides a better integration into SauceLabs
+- [wdio-testingbot-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-testingbot-service) - WebdriverIO service that provides a better integration into TestingBot
