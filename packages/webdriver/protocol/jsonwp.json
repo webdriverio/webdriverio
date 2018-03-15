@@ -1,0 +1,972 @@
+{
+  "/status": {
+    "GET": {
+      "command": "status",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#status",
+      "parameters": []
+    }
+  },
+  "/session": {
+    "POST": {
+      "command": "newSession",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#session-1",
+      "parameters": [{
+        "name": "desiredCapabilities",
+        "type": "object",
+        "description": "An object describing the session's desired capabilities.",
+        "required": true
+      }]
+    }
+  },
+  "/sessions": {
+    "GET": {
+      "command": "getSessions",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessions",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId": {
+    "GET": {
+      "command": "getSession",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionid",
+      "parameters": []
+    },
+    "DELETE": {
+      "command": "deleteSession",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionid",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/timeouts": {
+    "POST": {
+      "command": "setTimeout",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeouts",
+      "parameters": [{
+        "name": "type",
+        "type": "string",
+        "description": "The type of operation to set the timeout for. Valid values are: \"script\" for script timeouts, \"implicit\" for modifying the implicit wait timeout and \"page load\" for setting a page load timeout.",
+        "required": true
+      }, {
+        "name": "ms",
+        "type": "number",
+        "description": "The amount of time, in milliseconds, that time-limited commands are permitted to run",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/timeouts/async_script": {
+    "POST": {
+      "command": "setAsyncTimeout",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeoutsasync_script",
+      "parameters": [{
+        "name": "ms",
+        "type": "number",
+        "description": "The amount of time, in milliseconds, that time-limited commands are permitted to run",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/timeouts/implicit_wait": {
+    "POST": {
+      "command": "setImplicitTimeout",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeoutsimplicit_wait",
+      "parameters": [{
+        "name": "ms",
+        "type": "number",
+        "description": "The amount of time, in milliseconds, to wait on an element",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/url": {
+    "GET": {
+      "command": "getCurrentUrl",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidurl",
+      "parameters": []
+    },
+    "POST": {
+      "command": "navigateTo",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidurl",
+      "parameters": [{
+        "name": "url",
+        "type": "string",
+        "description": "The URL to navigate to.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/back": {
+    "POST": {
+      "command": "back",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidback",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/forward": {
+    "POST": {
+      "command": "forward",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidforward",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/refresh": {
+    "POST": {
+      "command": "refresh",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidrefresh",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/title": {
+    "GET": {
+      "command": "getTitle",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtitle",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window_handle": {
+    "GET": {
+      "command": "getWindowHandle",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-window-handle",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window_handles": {
+    "GET": {
+      "command": "getWindowHandles",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-window-handles",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window": {
+    "DELETE": {
+      "command": "closeWindow",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-close-window",
+      "parameters": []
+    },
+    "POST": {
+      "command": "switchToWindow",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-switch-to-window",
+      "parameters": [{
+        "name": "handle",
+        "type": "string",
+        "description": "The window to change focus to",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/frame": {
+    "POST": {
+      "command": "switchToFrame",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidframe",
+      "parameters": [{
+        "name": "id",
+        "type": "(string|number|object)",
+        "description": "Identifier for the frame to change focus to",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/frame/parent": {
+    "POST": {
+      "command": "switchToParentFrame",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidframeparent",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/window/current/position": {
+    "GET": {
+      "command": "getWindowPosition",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidwindowwindowhandleposition",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setWindowPosition",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindowwindowhandleposition",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "The X coordinate to position the window at, relative to the upper left corner of the screen.",
+        "required": true
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "The Y coordinate to position the window at, relative to the upper left corner of the screen.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/window/current/size": {
+    "GET": {
+      "command": "getWindowSize",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidwindowwindowhandlesize",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setWindowSize",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindowwindowhandlesize",
+      "parameters": [{
+        "name": "width",
+        "type": "number",
+        "description": "the new window width",
+        "required": true
+      }, {
+        "name": "height",
+        "type": "number",
+        "description": "the new window height",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/window/current/maximize": {
+    "POST": {
+      "command": "maximizeWindow",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidwindowwindowhandlemaximize",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element": {
+    "POST": {
+      "command": "findElement",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelement",
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "the locator strategy to use",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the search target",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/elements": {
+    "POST": {
+      "command": "findElements",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelements",
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "the locator strategy to use",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the search target",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/element/:elementId/element": {
+    "POST": {
+      "command": "findElementFromElement",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelement",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "the locator strategy to use",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the search target",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/element/:elementId/elements": {
+    "POST": {
+      "command": "findElementsFromElement",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelements",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "the locator strategy to use",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the search target",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/element/active": {
+    "POST": {
+      "command": "getActiveElement",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementactive",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/selected": {
+    "GET": {
+      "command": "isElementSelected",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidselected",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/displayed": {
+    "GET": {
+      "command": "isElementDisplayed",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementiddisplayed",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/attribute/:name": {
+    "GET": {
+      "command": "getElementAttribute",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidattributename",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }, {
+        "name": "name",
+        "description": "name of the attribute value to retrieve"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/css/:propertyName": {
+    "GET": {
+      "command": "getElementCSSValue",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidcsspropertyname",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }, {
+        "name": "propertyName",
+        "description": "name of the CSS property to retrieve"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/text": {
+    "GET": {
+      "command": "getElementText",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidtext",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/name": {
+    "GET": {
+      "command": "getElementTagName",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidname",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/location": {
+    "GET": {
+      "command": "getElementLocation",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidlocation",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/location_in_view": {
+    "GET": {
+      "command": "getElementLocationInView",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidlocation_in_view",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/size": {
+    "GET": {
+      "command": "getElementSize",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidsize",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/enabled": {
+    "GET": {
+      "command": "getElementEnabled",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidenabled",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/click": {
+    "POST": {
+      "command": "elementClick",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidclick",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/submit": {
+    "POST": {
+      "command": "elementSubmit",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidsubmit",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the form element to be submitted"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/clear": {
+    "POST": {
+      "command": "elementClear",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidclear",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/value": {
+    "POST": {
+      "command": "elementSendKeys",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidvalue",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }],
+      "parameters": [{
+        "name": "value",
+        "type": "string[]",
+        "description": "The sequence of keys to type. An array must be provided.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/keys": {
+    "GET": {
+      "command": "sendKeys",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidkeys",
+      "parameters": [{
+        "name": "value",
+        "type": "string[]",
+        "description": "The sequence of keys to type. An array must be provided.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/source": {
+    "GET": {
+      "command": "getPageSource",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidsource",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/execute": {
+    "POST": {
+      "command": "executeScript",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidexecute",
+      "parameters": [{
+        "name": "script",
+        "type": "string",
+        "description": "the script to execute",
+        "required": true
+      }, {
+        "name": "args",
+        "type": "(string|object|number|boolean)[]",
+        "description": "the script arguments",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/execute_async": {
+    "POST": {
+      "command": "executeAsyncScript",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidexecute_async",
+      "parameters": [{
+        "name": "script",
+        "type": "string",
+        "description": "the script to execute",
+        "required": true
+      }, {
+        "name": "args",
+        "type": "(string|object|number|boolean)[]",
+        "description": "the script arguments",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/cookie": {
+    "GET": {
+      "command": "getAllCookies",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidcookie",
+      "parameters": []
+    },
+    "POST": {
+      "command": "addCookie",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidcookie",
+      "parameters": [{
+        "name": "cookie",
+        "type": "object",
+        "description": "A JSON object representing a cookie. It must have at least the name and value fields and could have more, including expiry-time and so on",
+        "required": true
+      }]
+    },
+    "DELETE": {
+      "command": "deleteAllCookies",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidcookie",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/cookie/:name": {
+    "DELETE": {
+      "command": "deleteCookie",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidcookiename",
+      "variables": [{
+        "name": "name",
+        "description": "name of the cookie to retrieve"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/dismiss_alert": {
+    "POST": {
+      "command": "dismissAlert",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddismiss_alert"
+    }
+  },
+  "/session/:sessionId/accept_alert": {
+    "POST": {
+      "command": "acceptAlert",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidaccept_alert"
+    }
+  },
+  "/session/:sessionId/alert_text": {
+    "GET": {
+      "command": "getAlertText",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidalert_text",
+      "parameters": []
+    },
+    "POST": {
+      "command": "sendAlertText",
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-send-alert-text",
+      "parameters": [{
+        "name": "text",
+        "type": "string",
+        "description": "keystrokes to send to the prompt() dialog",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/screenshot": {
+    "GET": {
+      "command": "takeScreenshot",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidscreenshot",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/ime/available_engines": {
+    "GET": {
+      "command": "getAvailableEngines",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeavailable_engines",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/ime/active_engine": {
+    "GET": {
+      "command": "getActiveEngine",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactive_engine",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/ime/activated": {
+    "GET": {
+      "command": "isIMEActivated",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactivated",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/ime/deactivate": {
+    "POST": {
+      "command": "deactivateIME",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimedeactivate",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/ime/activate": {
+    "POST": {
+      "command": "activateIME",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactivate",
+      "parameters": [{
+        "name": "engine",
+        "type": "string",
+        "description": "name of the engine to activate",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/orientation": {
+    "GET": {
+      "command": "getOrientation",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidorientation",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setOrientation",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidorientation",
+      "parameters": [{
+        "name": "engine",
+        "type": "string",
+        "description": "name of the engine to activate",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/moveto": {
+    "POST": {
+      "command": "moveTo",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto",
+      "parameters": [{
+        "name": "element",
+        "type": "string",
+        "description": "opaque ID assigned to the element to move to, as described in the WebElement JSON Object, if not specified or is null, the offset is relative to current position of the mouse",
+        "required": false
+      }, {
+        "name": "xoffset",
+        "type": "number",
+        "description": "x offset to move to, relative to the top-left corner of the element, if not specified, the mouse will move to the middle of the element",
+        "required": false
+      }, {
+        "name": "yoffset",
+        "type": "number",
+        "description": "y offset to move to, relative to the top-left corner of the element, if not specified, the mouse will move to the middle of the element",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/buttondown": {
+    "POST": {
+      "command": "buttonDown",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidbuttondown",
+      "parameters": [{
+        "name": "button",
+        "type": "number",
+        "description": "which button, enum: LEFT = 0, MIDDLE = 1 , RIGHT = 2, defaults to the left mouse button if not specified",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/buttonup": {
+    "POST": {
+      "command": "buttonUp",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidbuttonup",
+      "parameters": [{
+        "name": "button",
+        "type": "number",
+        "description": "which button, enum: LEFT = 0, MIDDLE = 1 , RIGHT = 2, defaults to the left mouse button if not specified",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/doubleclick": {
+    "POST": {
+      "command": "doubleClick",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddoubleclick",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/touch/click": {
+    "POST": {
+      "command": "touchClick",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchclick",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/touch/down": {
+    "POST": {
+      "command": "touchDown",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchdown",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "x coordinate on the screen",
+        "required": false
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "y coordinate on the screen",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/touch/up": {
+    "POST": {
+      "command": "touchUp",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchup",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "x coordinate on the screen",
+        "required": false
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "y coordinate on the screen",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/touch/scroll": {
+    "POST": {
+      "command": "touchScroll",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchscroll",
+      "parameters": [{
+        "name": "xoffset",
+        "type": "number",
+        "description": "the x offset in pixels to scroll by",
+        "required": true
+      }, {
+        "name": "yoffset",
+        "type": "number",
+        "description": "the y offset in pixels to scroll by",
+        "required": true
+      }, {
+        "name": "element",
+        "type": "string",
+        "description": "ID of the element where the scroll starts",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/touch/doubleclick": {
+    "POST": {
+      "command": "touchDoubleClick",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchdoubleclick",
+      "parameters": [{
+        "name": "element",
+        "type": "string",
+        "description": "ID of the element to double tap on",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/touch/longclick": {
+    "POST": {
+      "command": "touchLongClick",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchlongclick",
+      "parameters": [{
+        "name": "element",
+        "type": "string",
+        "description": "ID of the element to long press on",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/touch/flick": {
+    "POST": {
+      "command": "touchFlick",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchflick",
+      "parameters": [{
+        "name": "xoffset",
+        "type": "number",
+        "description": "the x offset in pixels to flick by",
+        "required": true
+      }, {
+        "name": "yoffset",
+        "type": "number",
+        "description": "the y offset in pixels to flick by",
+        "required": true
+      }, {
+        "name": "element",
+        "type": "string",
+        "description": "ID of the element where the flick starts",
+        "required": false
+      }, {
+        "name": "speed",
+        "type": "number",
+        "description": "the speed in pixels per seconds",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/location": {
+    "GET": {
+      "command": "getGeoLocation",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocation",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setGeoLocation",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidlocation",
+      "parameters": [{
+        "name": "location",
+        "type": "object",
+        "description": "the new location (`{latitude: number, longitude: number, altitude: number}`)",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/local_storage": {
+    "GET": {
+      "command": "getLocalStorage",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocal_storage",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setLocalStorage",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidlocal_storage",
+      "parameters": [{
+        "name": "key",
+        "type": "string",
+        "description": "the key to set",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the value to set",
+        "required": true
+      }]
+    },
+    "DELETE": {
+      "command": "clearLocalStorage",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocal_storage",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/local_storage/key/:key": {
+    "GET": {
+      "command": "getLocalStorageItem",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidlocal_storagekeykey",
+      "variables": [{
+        "name": "key",
+        "description": "the key to get"
+      }],
+      "parameters": []
+    },
+    "DELETE": {
+      "command": "deleteLocalStorageItem",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidlocal_storagekeykey",
+      "variables": [{
+        "name": "key",
+        "description": "the key to remove"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/local_storage/size": {
+    "GET": {
+      "command": "getLocalStorageSize",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlocal_storagesize",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/session_storage": {
+    "GET": {
+      "command": "getSessionStorage",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidsession_storage",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setSessionStorage",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidsession_storage",
+      "parameters": [{
+        "name": "key",
+        "type": "string",
+        "description": "the key to set",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the value to set",
+        "required": true
+      }]
+    },
+    "DELETE": {
+      "command": "clearSessionStorage",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidsession_storage",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/session_storage/key/:key": {
+    "GET": {
+      "command": "getSessionStorageItem",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidsession_storagekeykey",
+      "variables": [{
+        "name": "key",
+        "description": "the key to get"
+      }],
+      "parameters": []
+    },
+    "DELETE": {
+      "command": "deleteSessionStorageItem",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidsession_storagekeykey",
+      "variables": [{
+        "name": "key",
+        "description": "the key to remove"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/session_storage/size": {
+    "GET": {
+      "command": "getSessionStorageSize",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidsession_storagesize",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/log": {
+    "POST": {
+      "command": "getLogs",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlog",
+      "parameters": [{
+        "name": "type",
+        "type": "string",
+        "description": "the log type",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/log/types": {
+    "GET": {
+      "command": "getLogTypes",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlogtypes",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/application_cache/status": {
+    "GET": {
+      "command": "getApplicationCacheStatus",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidapplication_cachestatus",
+      "parameters": []
+    }
+  }
+}
