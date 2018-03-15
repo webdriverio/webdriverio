@@ -148,7 +148,7 @@ export default class TestingBotService {
     }
 
     /**
-     * massage data
+     * message data
      */
     getBody (failures, calledOnReload = false) {
         let body = { test: {} }
