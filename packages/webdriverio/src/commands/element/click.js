@@ -1,6 +1,6 @@
 /**
  *
- * Click on an element based on the given selector (unless the element is covered up).
+ * Click on an element.
  *
  * Note: This issues a Webdriver `click` command for the selected element, which generally scrolls to and then clicks the
  * selected element. However, if you have fixed-position elements (such as a fixed header or footer) that cover up the
@@ -21,16 +21,15 @@
     <div id="someText">I was not clicked</div>
     :click.js
     it('should demonstrate the click command', function () {
-        var myButton = $('#myButton')
+        let myButton = browser.$('#myButton')
         myButton.click()
-        // or
-        browser.click('#myButton')
-        var text = browser.getText('#someText');
+        let myText = browser.$('#someText')
+        let text = myText.getText();
         assert(text === 'I was clicked'); // true
     })
     :example.js
     it('should fetch menu links and visit each page', function () {
-        links = $$('#menu a');
+        let links = browser.$$('#menu a');
         links.forEach(function (link) {
             link.click();
         });
@@ -38,7 +37,6 @@
  * </example>
  *
  * @alias browser.click
- * @param {String} selector element to click on. If it matches with more than one DOM-element it automatically clicks on the first element
  * @uses protocol/element, protocol/elementIdClick
  * @type action
  *

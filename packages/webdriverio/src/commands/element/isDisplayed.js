@@ -1,6 +1,6 @@
 /**
  *
- * Return true if the selected DOM-element found by given selector is visible. Returns an array if multiple DOM-elements are found for the given selector.
+ * Return true if the selected DOM-element is visible.
  *
  * <example>
     :index.html
@@ -10,24 +10,30 @@
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isVisible.js
     it('should detect if an element is visible', function () {
-        const elem = $('#notDisplayed');
-        const isVisible = elem.isVisible()
+        let elem = browser.$('#notDisplayed');
+        let isVisible = elem.isVisible();
+        console.log(isVisible); // outputs: false
 
+        elem = browser.$('#notVisible');
+        isVisible = elem.isVisible();
         console.log(isVisible); // outputs: false
-        isVisible = browser.isVisible('#notVisible');
+        
+        elem = browser.$('#notExisting');
+        isVisible = elem.isVisible();
         console.log(isVisible); // outputs: false
-        isVisible = browser.isVisible('#notExisting');
-        console.log(isVisible); // outputs: false
-        isVisible = browser.isVisible('#notInViewport');
+
+        elem = browser.$('#notInViewport');
+        isVisible = elem.isVisible();
         console.log(isVisible); // outputs: true
-        isVisible = browser.isVisible('#zeroOpacity');
+
+        elem = browser.$('#zeroOpacity');
+        isVisible = elem.isVisible();
         console.log(isVisible); // outputs: true
     });
  * </example>
  *
  * @alias browser.isVisible
- * @param   {String}             selector  DOM-element
- * @return {Boolean|Boolean[]}            true if element(s)* [is|are] visible
+ * @return {Boolean} true if element(s)* [is|are] visible
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state
  *
