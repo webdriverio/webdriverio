@@ -91,8 +91,6 @@ describe('wdio-testingbot-service', () => {
         tbService.tbSecret = 'secret'
         tbService.sessionId = 'sessionId'
         tbService.failures = 2
-        tbService.onReload()
-
         tbService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true)
