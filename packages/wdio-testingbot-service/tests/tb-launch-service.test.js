@@ -5,10 +5,46 @@ describe('wdio-testingbot-service', () => {
     const updateJobSpy = jest.spyOn(tbService, 'updateJob')
     const execute = jest.fn()
     global.browser = {
-        execute
+        execute,
+        sessionId: 'globalSessionId',
+        requestHandler: {
+            auth: {
+                user: 'user',
+                pass: 'pass'
+            }
+        }
     }
 
-    afterEach(() => updateJobSpy.mockReset())
+    afterEach(() => {
+        updateJobSpy.mockReset()
+        execute.mockReset()
+    })
+
+    it('onComplete', () => {
+        const close = jest.fn()
+        tbService.tunnel = { close }
+
+        tbService.onComplete()
+        expect(close).toBeCalled()
+    })
+
+    it('before', () => {
+        const capabilities = {
+            name: 'Test suite',
+            tags: ['tag1', 'tag2'],
+            public: true,
+            build: 344
+        }
+        tbService.before(capabilities)
+
+        expect(tbService.sessionId).toEqual('globalSessionId')
+        expect(tbService.capabilities).toEqual(capabilities)
+        expect(tbService.auth).toEqual(global.browser.requestHandler.auth)
+        expect(tbService.tbUser).toEqual(global.browser.requestHandler.auth.user)
+        expect(tbService.tbSecret).toEqual(global.browser.requestHandler.auth.pass)
+        expect(tbService.testCnt).toEqual(0)
+        expect(tbService.failures).toEqual(0)
+    })
 
     it('beforeSuite', () => {
         const suiteTitle = 'Test Suite Title'
@@ -47,6 +83,22 @@ describe('wdio-testingbot-service', () => {
         expect(tbService.suiteTitle).toEqual('Test suite')
     })
 
+    it('beforeTest: execute called', () => {
+        const test = {
+            name: 'Test name',
+            fullName: 'Test #1',
+            title: 'Test title',
+            parent: 'Test parent'
+        }
+        tbService.tbUser = 'user'
+        tbService.tbSecret = 'secret'
+        tbService.suiteTitle = 'Jasmine__TopLevel__Suite'
+        tbService.beforeTest(test)
+
+        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(tbService.suiteTitle).toEqual('Test ')
+    })
+
     it('afterTest: failed test', () => {
         tbService.failures = 0
         const test = {
@@ -67,6 +119,31 @@ describe('wdio-testingbot-service', () => {
         expect(tbService.failures).toEqual(1)
     })
 
+    it('beforeFeature: execute not called', () => {
+        const feature = {
+            name: 'Feature name',
+            getName: () => 'Feature name'
+        }
+        tbService.tbUser = undefined
+        tbService.tbSecret = undefined
+        tbService.beforeFeature(feature)
+
+        expect(execute).not.toBeCalled()
+    })
+
+    it('beforeFeature: execute called', () => {
+        const feature = {
+            name: 'Feature name',
+            getName: () => 'Feature name'
+        }
+        tbService.tbUser = 'user'
+        tbService.tbSecret = 'secret'
+        tbService.beforeFeature(feature)
+
+        expect(tbService.suiteTitle).toEqual('Feature name')
+        expect(execute).toBeCalledWith('tb:test-context=Feature: Feature name')
+    })
+
     it('afterStep: exception happened', () => {
         tbService.failures = 0
         const feature = {
@@ -85,6 +162,30 @@ describe('wdio-testingbot-service', () => {
         tbService.afterStep(feature)
 
         expect(tbService.failures).toEqual(1)
+    })
+
+    it('beforeScenario: execute not called', () => {
+        const scenario = {
+            name: 'Scenario name',
+            getName: () => 'Scenario name'
+        }
+        tbService.tbUser = 'user'
+        tbService.tbSecret = undefined
+        tbService.beforeScenario(scenario)
+
+        expect(execute).not.toBeCalled()
+    })
+
+    it('beforeScenario: execute called', () => {
+        const scenario = {
+            name: 'Scenario name',
+            getName: () => 'Scenario name'
+        }
+        tbService.tbUser = 'user'
+        tbService.tbSecret = 'secret'
+        tbService.beforeScenario(scenario)
+
+        expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })
 
     it('after: updatedJob not called', () => {
@@ -128,5 +229,36 @@ describe('wdio-testingbot-service', () => {
 
     it('getRestUrl', () => {
         expect(tbService.getRestUrl('testSessionId')).toEqual(`https://api.testingbot.com/v1/tests/testSessionId`)
+    })
+
+    it('getBody', () => {
+        tbService.capabilities = {
+            name: 'Test suite',
+            tags: ['tag1', 'tag2'],
+            public: true,
+            build: 344
+        }
+        tbService.suiteTitle = 'Suite title'
+
+        expect(tbService.getBody(0, false)).toEqual({
+            test: {
+                build: 344,
+                name: 'Test suite',
+                public: true,
+                success: '1',
+                tags: ['tag1', 'tag2']
+            }
+        })
+
+        tbService.testCnt = 2
+        expect(tbService.getBody(2, true)).toEqual({
+            test: {
+                build: 344,
+                name: 'Test suite',
+                public: true,
+                success: '0',
+                tags: ['tag1', 'tag2']
+            }
+        })
     })
 })
