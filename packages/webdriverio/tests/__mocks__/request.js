@@ -7,14 +7,14 @@ const request = jest.fn().mockImplementation((params, cb) => {
     let sessionResponse = {
         sessionId,
         capabilities: {
-            browserName: 'mockBorwser'
+            browserName: 'mockBrowser'
         }
     }
 
     if (params.body.capabilities && params.body.capabilities.jsonwpMode) {
         sessionResponse = {
             sessionId,
-            browserName: 'mockBorwser'
+            browserName: 'mockBrowser'
         }
     }
 
