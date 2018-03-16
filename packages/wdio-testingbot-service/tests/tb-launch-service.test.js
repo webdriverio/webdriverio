@@ -3,6 +3,10 @@ import TestingBotService from '../src/tb-launch-service'
 describe('wdio-testingbot-service', () => {
     const tbService = new TestingBotService()
     const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+    const execute = jest.fn()
+    global.browser = {
+        execute
+    }
 
     afterEach(() => updateJobSpy.mockReset())
 
@@ -13,11 +17,34 @@ describe('wdio-testingbot-service', () => {
         expect(tbService.suiteTitle).toEqual(suiteTitle)
     })
 
-    it('beforeTest', () => {
-        const testTitle = 'Test Title'
-        tbService.beforeSuite({ title: testTitle })
+    it('beforeTest: execute not called', () => {
+        const test = {
+            fullName: 'Test #1',
+            parent: 'Test parent'
+        }
+        tbService.tbUser = undefined
+        tbService.tbSecret = undefined
+        tbService.suiteTitle = 'Test suite'
+        tbService.beforeTest(test)
 
-        expect(tbService.suiteTitle).toEqual(testTitle)
+        expect(execute).not.toBeCalled()
+        expect(tbService.suiteTitle).toEqual('Test suite')
+    })
+
+    it('beforeTest: execute called', () => {
+        const test = {
+            name: 'Test name',
+            fullName: 'Test #1',
+            title: 'Test title',
+            parent: 'Test parent'
+        }
+        tbService.tbUser = 'user'
+        tbService.tbSecret = 'secret'
+        tbService.suiteTitle = 'Test suite'
+        tbService.beforeTest(test)
+
+        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(tbService.suiteTitle).toEqual('Test suite')
     })
 
     it('afterTest: failed test', () => {
@@ -61,6 +88,8 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('after: updatedJob not called', () => {
+        tbService.tbUser = undefined
+        tbService.tbSecret = undefined
         tbService.after()
 
         expect(updateJobSpy).not.toBeCalled()
