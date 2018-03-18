@@ -11,7 +11,7 @@ Over the time our community has developed a bunch of boilerplate projects that c
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
-- Framework: Cucumber (v4.x)
+- Framework: Cucumber (v3.x)
 - Features:
     - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
     - Examples of multi selector option to query element with more than one selector at a time
