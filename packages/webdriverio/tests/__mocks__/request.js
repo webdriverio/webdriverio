@@ -2,7 +2,7 @@ import { ELEMENT_KEY } from '../../src/constants'
 
 const sessionId = 'foobar-123'
 const genericElementId = 'some-elem-123'
-const request = jest.fn().mockImplementation((params, cb) => {
+export default jest.fn().mockImplementation((params, cb) => {
     let value = {}
     let sessionResponse = {
         sessionId,
@@ -67,5 +67,3 @@ const request = jest.fn().mockImplementation((params, cb) => {
         body: response
     }, response)
 })
-
-export default request
