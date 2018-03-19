@@ -71,7 +71,7 @@ export default function getLogger (name) {
     };
 
     loggers[name] = log.getLogger(name)
-    loggers[name].setLevel(DEFAULT_LEVEL)
+    loggers[name].setLevel(process.env.WDIO_LOG_LEVEL || DEFAULT_LEVEL)
     return loggers[name]
 }
 

@@ -160,6 +160,10 @@ export const WDIO_DEFAULTS = {
         type: 'number',
         default: 100
     },
+    logDir: {
+        type: 'string',
+        default: process.cwd()
+    },
 
     /**
      * framework defaults
