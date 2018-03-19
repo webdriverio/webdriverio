@@ -7,8 +7,9 @@ import TestStats from './stats/test'
 import RunnerStats from './stats/runner'
 
 export default class WDIOReporter extends EventEmitter {
-    constructor () {
+    constructor (options) {
         super()
+        this.options = options
         this.failures = []
         this.suites = {}
         this.hooks = {}

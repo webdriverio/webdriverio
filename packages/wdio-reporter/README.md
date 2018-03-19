@@ -49,6 +49,43 @@ this.on('suite:start', (raw) => {
 
 in your constructor function.
 
+## Configuration
+
+User can pass in custom configurations for each reporter. Per default WebdriverIO populates the `logDir` and `logLevel` option to the reporter, they can get overwritten too. For example, if the user has provided the following reporter options:
+
+```js
+// wdio.conf.js
+exports.config = {
+    // ...
+    reporters: ['dot', ['my-reporter', {
+        logDir: '/some/path',
+        foo: 'bar'
+    }]]
+    // ...
+}
+```
+
+your options in your reporter class are as follows:
+
+```js
+export default class MyReporter extends WDIOReporter {
+    constructor () {
+        super()
+        console.log(this.options)
+        /**
+         * outputs:
+         * {
+         *   logDir: '/some/path',
+         *   logLevel: 'trace',
+         *   foo: 'bar'
+         * }
+         */
+    }
+}
+```
+
+You can access all options via `this.options`. As per convention it is recommended that every reporter logs its output to a file in the `logDir` directory.
+
 ## Events
 
 During a test run in WebdriverIO several events are thrown and can be captured by your event functions. The following events are propagated:
