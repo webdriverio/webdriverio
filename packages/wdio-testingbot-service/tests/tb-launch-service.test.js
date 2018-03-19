@@ -21,11 +21,11 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onComplete', () => {
-        const close = jest.fn()
-        tbService.tunnel = { close }
+        tbService.tunnel = {
+            close: resolve => resolve('tunnel closed')
+        }
 
-        tbService.onComplete()
-        expect(close).toBeCalled()
+        return expect(tbService.onComplete()).resolves.toEqual('tunnel closed')
     })
 
     it('before', () => {
