@@ -39,7 +39,7 @@ export default class Runner extends EventEmitter {
         this.initialiseServices(config)
 
         this.framework = initialisePlugin(config.framework, 'framework').adapterFactory
-        this.reporter = new BaseReporter(config)
+        this.reporter = new BaseReporter(config, this.cid)
         this.inWatchMode = Boolean(config.watch)
 
         try {
