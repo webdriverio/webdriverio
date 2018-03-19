@@ -6,9 +6,9 @@ import { initialisePlugin } from 'wdio-config'
  * to all these reporters
  */
 export default class BaseReporter {
-    constructor (reporters, options = {}) {
-        this.options = options
-        this.reporters = reporters.map(::this.initReporter)
+    constructor (config) {
+        this.config = config
+        this.reporters = config.reporters.map(::this.initReporter)
     }
 
     /**
@@ -23,7 +23,10 @@ export default class BaseReporter {
      */
     initReporter (reporter) {
         let ReporterClass
-        let options = this.options
+        let options = {
+            logDir: this.config.logDir,
+            logLevel: this.config.logLevel
+        }
 
         /**
          * check if reporter has custom options
