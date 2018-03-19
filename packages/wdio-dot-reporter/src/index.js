@@ -1,37 +1,48 @@
+import fs from 'fs'
 import chalk from 'chalk'
 import WDIOReporter from 'wdio-reporter'
 
 /**
  * Initialize a new `Dot` matrix test reporter.
  */
-class DotReporter extends WDIOReporter {
+export default class DotReporter extends WDIOReporter {
+    constructor (...args) {
+        super(...args)
+        this.outputStream = this.stdout ? process.stdout : fs.createWriteStream(this.options.logFile)
+    }
+
     /**
      * print empty line at the beginning
      */
     onRunnerStart () {
-        process.stdout.write('\n')
+        this.write('\n')
     }
 
     /**
      * pending tests
      */
     onTestSkip () {
-        process.stdout.write(chalk.cyanBright('.'))
+        this.write(chalk.cyanBright('.'))
     }
 
     /**
      * passing tests
      */
     onTestPass () {
-        process.stdout.write(chalk.greenBright('.'))
+        this.write(chalk.greenBright('.'))
     }
 
     /**
      * failing tests
      */
     onTestFail () {
-        process.stdout.write(chalk.redBright('.'))
+        this.write(chalk.redBright('.'))
+    }
+
+    /**
+     * write to target environment
+     */
+    write (...args) {
+        this.outputStream.write(...args)
     }
 }
-
-export default DotReporter
