@@ -21,6 +21,13 @@ export default class BaseReporter {
     }
 
     /**
+     * returns name of log file
+     */
+    getLogFile (name) {
+        return path.join(this.config.logDir, `wdio-${this.cid}-${name}-reporter.log`)
+    }
+
+    /**
      * initialise reporters
      */
     initReporter (reporter) {
@@ -57,7 +64,7 @@ export default class BaseReporter {
                 throw new Error('Custom reporters must export a unique \'reporterName\' property')
             }
 
-            options.logFile = path.join(this.config.logDir, `wdio-${this.cid}-${ReporterClass.reporterName}.log`)
+            options.logFile = this.getLogFile(ReporterClass.reporterName)
             return new ReporterClass(options)
         }
 
@@ -77,7 +84,7 @@ export default class BaseReporter {
          */
         if (typeof reporter === 'string') {
             ReporterClass = initialisePlugin(reporter, 'reporter')
-            options.logFile = path.join(this.config.logDir, `wdio-${this.cid}-${reporter}.log`)
+            options.logFile = this.getLogFile(reporter)
             return new ReporterClass(options)
         }
 
