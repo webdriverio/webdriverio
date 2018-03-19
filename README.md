@@ -63,6 +63,7 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 - [wdio-allure-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-allure-reporter) - A WebdriverIO reporter plugin to create Allure Test Reports
 - [wdio-concise-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-concise-reporter) - A WebdriverIO reporter plugin to create concise test reports
 - [wdio-dot-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-dot-reporter) - A WebdriverIO plugin to report in dot style
+- [wdio-spec-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-spec-reporter) - A WebdriverIO plugin to report in spec style
 - [wdio-sumologic-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-sumologic-reporter) - A WebdriverIO reporter that sends test results to Sumologic for data analyses
 - [wdio-xml-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-xml-reporter) - A WebdriverIO reporter that creates test results in XML format
 

@@ -31,5 +31,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "chalk": "^2.3.2",
+    "pretty-ms": "^3.1.0",
+    "wdio-reporter": "^0.0.0"
   }
 }
