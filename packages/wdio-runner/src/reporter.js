@@ -1,3 +1,4 @@
+import path from 'path'
 import { initialisePlugin } from 'wdio-config'
 
 /**
@@ -6,8 +7,9 @@ import { initialisePlugin } from 'wdio-config'
  * to all these reporters
  */
 export default class BaseReporter {
-    constructor (config) {
+    constructor (config, cid) {
         this.config = config
+        this.cid = cid
         this.reporters = config.reporters.map(::this.initReporter)
     }
 
@@ -23,10 +25,7 @@ export default class BaseReporter {
      */
     initReporter (reporter) {
         let ReporterClass
-        let options = {
-            logDir: this.config.logDir,
-            logLevel: this.config.logLevel
-        }
+        let options = { logLevel: this.config.logLevel }
 
         /**
          * check if reporter has custom options
@@ -58,6 +57,7 @@ export default class BaseReporter {
                 throw new Error('Custom reporters must export a unique \'reporterName\' property')
             }
 
+            options.logFile = path.join(this.config.logDir, `wdio-${this.cid}-${ReporterClass.reporterName}.log`)
             return new ReporterClass(options)
         }
 
@@ -77,6 +77,7 @@ export default class BaseReporter {
          */
         if (typeof reporter === 'string') {
             ReporterClass = initialisePlugin(reporter, 'reporter')
+            options.logFile = path.join(this.config.logDir, `wdio-${this.cid}-${reporter}.log`)
             return new ReporterClass(options)
         }
 

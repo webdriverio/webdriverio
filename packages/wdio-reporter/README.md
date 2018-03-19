@@ -84,7 +84,7 @@ export default class MyReporter extends WDIOReporter {
 }
 ```
 
-You can access all options via `this.options`. As per convention it is recommended that every reporter logs its output to a file in the `logDir` directory.
+You can access all options via `this.options`. As per convention it is recommended that every reporter logs its output to a file that is propagated as `logFile`.
 
 ## Events
 
