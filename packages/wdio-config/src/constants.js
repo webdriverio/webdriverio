@@ -10,7 +10,6 @@ export const DEFAULT_CONFIGS = {
     exclude: [],
     logDir: process.cwd(),
     logLevel: 'trace',
-    coloredLogs: true,
     deprecationWarnings: true,
     baseUrl: null,
     bail: 0,
