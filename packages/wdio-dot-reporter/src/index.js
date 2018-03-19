@@ -8,7 +8,7 @@ import WDIOReporter from 'wdio-reporter'
 export default class DotReporter extends WDIOReporter {
     constructor (...args) {
         super(...args)
-        this.outputStream = this.stdout ? process.stdout : fs.createWriteStream(this.options.logFile)
+        this.outputStream = this.options.stdout ? process.stdout : fs.createWriteStream(this.options.logFile)
     }
 
     /**
@@ -36,7 +36,7 @@ export default class DotReporter extends WDIOReporter {
      * failing tests
      */
     onTestFail () {
-        this.write(chalk.redBright('.'))
+        this.write(chalk.redBright('F'))
     }
 
     /**
