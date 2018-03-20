@@ -2,6 +2,7 @@ import { ELEMENT_KEY } from '../../src/constants'
 
 const sessionId = 'foobar-123'
 const genericElementId = 'some-elem-123'
+const genericSubElementId = 'some-sub-elem-321'
 export default jest.fn().mockImplementation((params, cb) => {
     let value = {}
     let sessionResponse = {
@@ -27,6 +28,11 @@ export default jest.fn().mockImplementation((params, cb) => {
             [ELEMENT_KEY]: genericElementId
         }
         break;
+    case `/wd/hub/session/${sessionId}/element/some-elem-123/element`:
+        value = {
+            [ELEMENT_KEY]: genericSubElementId
+        }
+        break;
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/rect`:
         value = {
             x: 15,
@@ -50,6 +56,13 @@ export default jest.fn().mockImplementation((params, cb) => {
     case `/wd/hub/session/${sessionId}/elements`:
         value = [
             { [ELEMENT_KEY]: genericElementId },
+            { [ELEMENT_KEY]: 'some-elem-456' },
+            { [ELEMENT_KEY]: 'some-elem-789' },
+        ]
+        break;
+    case `/wd/hub/session/${sessionId}/element/some-elem-123/elements`:
+        value = [
+            { [ELEMENT_KEY]: genericSubElementId },
             { [ELEMENT_KEY]: 'some-elem-456' },
             { [ELEMENT_KEY]: 'some-elem-789' },
         ]
