@@ -59,12 +59,7 @@ export default class BaseReporter {
          */
         if (typeof reporter === 'function') {
             ReporterClass = reporter
-
-            if (!ReporterClass.reporterName) {
-                throw new Error('Custom reporters must export a unique \'reporterName\' property')
-            }
-
-            options.logFile = this.getLogFile(ReporterClass.reporterName)
+            options.logFile = this.getLogFile(ReporterClass.name)
             return new ReporterClass(options)
         }
 
