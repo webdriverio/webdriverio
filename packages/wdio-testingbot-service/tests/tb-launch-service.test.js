@@ -19,6 +19,36 @@ describe('wdio-testingbot-service', () => {
 
     afterEach(() => execute.mockReset())
 
+    it('onPrepare: tbTunnel is undefined', () => {
+        const config = {
+            tbTunnel: undefined
+        }
+
+        tbService.onPrepare(config)
+        expect(tbService.tbTunnelOpts).toBeUndefined()
+        expect(tbService.tunnel).toBeUndefined()
+        expect(config.protocol).toBeUndefined()
+        expect(config.host).toBeUndefined()
+        expect(config.port).toBeUndefined()
+    })
+
+    it('onPrepare', () => {
+        const config = {
+            tbTunnel: {},
+            tbTunnelOpts: {
+                options: 'some options'
+            },
+            user: 'user',
+            key: 'key'
+        }
+
+        tbService.onPrepare(config)
+        expect(tbService.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
+        expect(config.protocol).toEqual('http')
+        expect(config.host).toEqual('localhost')
+        expect(config.port).toEqual(4445)
+    })
+
     it('onComplete', () => {
         tbService.tunnel = {
             close: resolve => resolve('tunnel closed')
@@ -29,7 +59,7 @@ describe('wdio-testingbot-service', () => {
 
     it('onComplete: no tunnel', () => {
         tbService.tunnel = undefined
-        return expect(tbService.onComplete()).toBeUndefined()
+        expect(tbService.onComplete()).toBeUndefined()
     })
 
     it('before', () => {
