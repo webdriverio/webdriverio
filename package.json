@@ -12,7 +12,7 @@
     "release:patch": "lerna run release:patch --scope",
     "release:minor": "lerna run release:minor --scope",
     "release:major": "lerna run release:major --scope",
-    "setup": "npm install && npm run bootstrap && npm run build",
+    "setup": "run-s install bootstrap build",
     "test": "run-s test:*",
     "test:eslint": "eslint packages",
     "test:coverage": "jest --coverage",
@@ -43,15 +43,17 @@
     "shelljs": "^0.8.1"
   },
   "jest": {
-    "testMatch": ["/**/tests/**/*.test.js"],
+    "testMatch": [
+      "/**/tests/**/*.test.js"
+    ],
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 79,
-        "functions": 77,
-        "lines": 81,
-        "statements": 81
+        "branches": 82,
+        "functions": 80,
+        "lines": 84,
+        "statements": 83
       }
     }
   }

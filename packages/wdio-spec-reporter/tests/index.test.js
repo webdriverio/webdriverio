@@ -165,16 +165,16 @@ describe('SpecReporter', () => {
 
             expect(result.length).toBe(12)
             expect(result[0]).toBe('Foo test')
-            expect(result[1]).toBe('   ✓ foo')
-            expect(result[2]).toBe('   ✓ bar')
+            expect(result[1]).toBe('   green ✓ foo')
+            expect(result[2]).toBe('   green ✓ bar')
             expect(result[3]).toBe('')
             expect(result[4]).toBe('Bar test')
-            expect(result[5]).toBe('   ✓ some test')
-            expect(result[6]).toBe('   ✖ a failed test')
+            expect(result[5]).toBe('   green ✓ some test')
+            expect(result[6]).toBe('   red ✖ a failed test')
             expect(result[7]).toBe('')
             expect(result[8]).toBe('Baz test')
-            expect(result[9]).toBe('   ✓ foo bar baz')
-            expect(result[10]).toBe('   - a skipped test')
+            expect(result[9]).toBe('   green ✓ foo bar baz')
+            expect(result[10]).toBe('   cyan - a skipped test')
             expect(result[11]).toBe('')
         })
 
@@ -194,7 +194,7 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(1)
-            expect(result[0]).toBe('2 passing 5')
+            expect(result[0]).toBe('green 2 passing 5')
         })
 
         it('should return passing and failing counts', () => {
@@ -203,8 +203,8 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(2)
-            expect(result[0]).toBe('2 passing 5')
-            expect(result[1]).toBe('1 failing')
+            expect(result[0]).toBe('green 2 passing 5')
+            expect(result[1]).toBe('red 1 failing')
         })
 
         it('should return failing and skipped counts', () => {
@@ -213,8 +213,8 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(2)
-            expect(result[0]).toBe('1 failing 5')
-            expect(result[1]).toBe('2 skipped')
+            expect(result[0]).toBe('red 1 failing 5')
+            expect(result[1]).toBe('cyan 2 skipped')
         })
 
         it('should only display skipped with duration', () => {
@@ -222,7 +222,7 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(1)
-            expect(result[0]).toBe('2 skipped 5')
+            expect(result[0]).toBe('cyan 2 skipped 5')
         })
     })
 
@@ -236,8 +236,8 @@ describe('SpecReporter', () => {
             expect(result.length).toBe(4)
             expect(result[0]).toBe('')
             expect(result[1]).toBe('1) Bar test a failed test')
-            expect(result[2]).toBe('expected foo to equal bar')
-            expect(result[3]).toBe('Failed test stack trace')
+            expect(result[2]).toBe('red expected foo to equal bar')
+            expect(result[3]).toBe('gray Failed test stack trace')
         })
 
         it('should return no results', () => {
