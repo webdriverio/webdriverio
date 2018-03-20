@@ -125,16 +125,17 @@ export default class Runner extends EventEmitter {
         const logTypes = await global.browser.getLogTypes()
         log.debug(`Fetching logs for ${logTypes.join(', ')}`)
         return Promise.all(logTypes.map(async (logType) => {
-            const logs = (await global.browser.getLogs(logType)).map((log) => JSON.stringify(log)).join('\n')
+            const logs = await global.browser.getLogs(logType)
 
             /**
              * don't write to file if no logs were captured
              */
-            if (log.length === 0) {
+            if (logs.length === 0) {
                 return
             }
 
-            return util.promisify(fs.writeFile)(`wdio-${this.cid}-${logType}.log`, logs, 'utf-8')
+            const stringLogs = logs.map((log) => JSON.stringify(log)).join('\n')
+            return util.promisify(fs.writeFile)(`wdio-${this.cid}-${logType}.log`, stringLogs, 'utf-8')
         }))
     }
 
