@@ -42,5 +42,9 @@ describe('wdio-runner', () => {
             await runner.fetchDriverLogs()
             expect(fs.writeFile.mock.calls).toHaveLength(0)
         })
+
+        afterEach(() => {
+            delete global.browser
+        })
     })
 })
