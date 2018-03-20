@@ -6,8 +6,8 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 export default class TestingBotService {
     /**
      * Modify config and launch tb tunnel
-     * @param  {Object} config Wdio config
-     * @returns {Promise}
+     * @param   {Object} config Wdio config
+     * @returns {Promise}       Resolved promise if tunnel launched successfully or rejected promise with error if tunnel failed to start
      */
     onPrepare (config) {
         if (!config.tbTunnel) {
@@ -35,7 +35,7 @@ export default class TestingBotService {
 
     /**
      * Shut down the tunnel
-     * @returns {Promise}
+     * @returns {Promise} Resolved promise when tunnel is closed
      */
     onComplete () {
         if (!this.tunnel) {
@@ -135,7 +135,7 @@ export default class TestingBotService {
 
     /**
      * Update TestingBot info
-     * @return {Promise}
+     * @return {Promise} Promsie with result of updateJob method call
      */
     after () {
         if (!this.tbUser || !this.tbSecret) {
@@ -149,7 +149,7 @@ export default class TestingBotService {
      * On TestingBot tunnel reload
      * @param   {String} oldSessionId Old session id
      * @param   {String} newSessionId New session id
-     * @returns {Promise}             Result of updateJob method call
+     * @returns {Promise}             Promsie with result of updateJob method call
      */
     onReload (oldSessionId, newSessionId) {
         if (!this.tbUser || !this.tbSecret) {
@@ -171,10 +171,10 @@ export default class TestingBotService {
 
     /**
      *
-     * @param   {String} sessionId       Session id
-     * @param   {String} failures        Number of failed tests
+     * @param   {String}  sessionId      Session id
+     * @param   {String}  failures       Number of failed tests
      * @param   {boolean} calledOnReload If function was called on tunnel reload or not
-     * @returns {Promise}
+     * @returns {Promise}                Resolved promise if request is successfull or rejected promise with error if request is failed
      */
     updateJob (sessionId, failures, calledOnReload) {
         return new Promise((resolve, reject) => request.put(this.getRestUrl(sessionId), {
@@ -196,8 +196,9 @@ export default class TestingBotService {
 
     /**
      * Get message data
-     * @param {number}  failures       Number of failed tests
-     * @param {boolean} calledOnReload If function was called on tunnel reload or not
+     * @param   {number}  failures       Number of failed tests
+     * @param   {boolean} calledOnReload If function was called on tunnel reload or not
+     * @returns {Object}  body           Request body
      */
     getBody (failures, calledOnReload = false) {
         let body = { test: {} }
