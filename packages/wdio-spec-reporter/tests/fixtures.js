@@ -80,22 +80,22 @@ export const REPORT = `---------------------------------------------------------
 [loremipsum #0-0] Running: loremipsum
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
-[loremipsum #0-0]    ✓ foo
-[loremipsum #0-0]    ✓ bar
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
 [loremipsum #0-0]
 [loremipsum #0-0] Bar test
-[loremipsum #0-0]    ✓ some test
-[loremipsum #0-0]    ✖ a failed test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
 [loremipsum #0-0]
 [loremipsum #0-0] Baz test
-[loremipsum #0-0]    ✓ foo bar baz
-[loremipsum #0-0]    - a skipped test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
 [loremipsum #0-0]
-[loremipsum #0-0] 4 passing (5s)
-[loremipsum #0-0] 1 failing
-[loremipsum #0-0] 1 skipped
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
 [loremipsum #0-0]
 [loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] expected foo to equal bar
-[loremipsum #0-0] Failed test stack trace
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
 `
