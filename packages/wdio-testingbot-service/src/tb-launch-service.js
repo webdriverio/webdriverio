@@ -5,7 +5,9 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class TestingBotService {
     /**
-     * modify config and launch tb tunnel
+     * Modify config and launch tb tunnel
+     * @param  {Object} config Wdio config
+     * @returns {Promise}
      */
     onPrepare (config) {
         if (!config.tbTunnel) {
@@ -32,7 +34,8 @@ export default class TestingBotService {
     }
 
     /**
-     * shut down the tunnel
+     * Shut down the tunnel
+     * @returns {Promise}
      */
     onComplete () {
         if (!this.tunnel) {
@@ -43,7 +46,8 @@ export default class TestingBotService {
     }
 
     /**
-     * gather information about runner
+     * Gather information about runner
+     * @param {Object} capabilities Capabilities
      */
     before (capabilities) {
         this.sessionId = global.browser.sessionId
@@ -55,10 +59,18 @@ export default class TestingBotService {
         this.failures = 0
     }
 
+    /**
+     * Before suite
+     * @param {Object} suite Suite
+     */
     beforeSuite (suite) {
         this.suiteTitle = suite.title
     }
 
+    /**
+     * Before test
+     * @param {Object} test Test
+     */
     beforeTest (test) {
         if (!this.tbUser || !this.tbSecret) {
             return
@@ -76,12 +88,20 @@ export default class TestingBotService {
         global.browser.execute('tb:test-context=' + test.parent + ' - ' + test.title)
     }
 
+    /**
+     * After test
+     * @param {Object} test Test
+     */
     afterTest (test) {
         if (!test.passed) {
             ++this.failures
         }
     }
 
+    /**
+     * Before feature
+     * @param {Object} feature Feature
+     */
     beforeFeature (feature) {
         if (!this.tbUser || !this.tbSecret) {
             return
@@ -91,12 +111,20 @@ export default class TestingBotService {
         global.browser.execute('tb:test-context=Feature: ' + this.suiteTitle)
     }
 
+    /**
+     * After step
+     * @param {Object} feature Feature
+     */
     afterStep (feature) {
         if (feature.failureException || feature.getFailureException()) {
             ++this.failures
         }
     }
 
+    /**
+     * Before scenario
+     * @param {Object} scenario Scenario
+     */
     beforeScenario (scenario) {
         if (!this.tbUser || !this.tbSecret) {
             return
@@ -106,7 +134,8 @@ export default class TestingBotService {
     }
 
     /**
-     * update TestingBot info
+     * Update TestingBot info
+     * @return {Promise}
      */
     after () {
         if (!this.tbUser || !this.tbSecret) {
@@ -116,6 +145,12 @@ export default class TestingBotService {
         return this.updateJob(this.sessionId, this.failures)
     }
 
+    /**
+     * On TestingBot tunnel reload
+     * @param   {String} oldSessionId Old session id
+     * @param   {String} newSessionId New session id
+     * @returns {Promise}             Result of updateJob method call
+     */
     onReload (oldSessionId, newSessionId) {
         if (!this.tbUser || !this.tbSecret) {
             return
@@ -125,10 +160,22 @@ export default class TestingBotService {
         return this.updateJob(oldSessionId, this.failures, true)
     }
 
+    /**
+     *
+     * @param   {String} sessionId Session id
+     * @returns {String}           TestingBot API URL
+     */
     getRestUrl (sessionId) {
         return `https://api.testingbot.com/v1/tests/${sessionId}`
     }
 
+    /**
+     *
+     * @param   {String} sessionId       Session id
+     * @param   {String} failures        Number of failed tests
+     * @param   {boolean} calledOnReload If function was called on tunnel reload or not
+     * @returns {Promise}
+     */
     updateJob (sessionId, failures, calledOnReload) {
         return new Promise((resolve, reject) => request.put(this.getRestUrl(sessionId), {
             json: true,
@@ -148,7 +195,9 @@ export default class TestingBotService {
     }
 
     /**
-     * message data
+     * Get message data
+     * @param {number}  failures       Number of failed tests
+     * @param {boolean} calledOnReload If function was called on tunnel reload or not
      */
     getBody (failures, calledOnReload = false) {
         let body = { test: {} }

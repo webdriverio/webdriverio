@@ -1,8 +1,10 @@
+jest.unmock('request')
+
+import request from 'request'
 import TestingBotService from '../src/tb-launch-service'
 
 describe('wdio-testingbot-service', () => {
     const tbService = new TestingBotService()
-    const updateJobSpy = jest.spyOn(tbService, 'updateJob')
     const execute = jest.fn()
     global.browser = {
         execute,
@@ -15,10 +17,7 @@ describe('wdio-testingbot-service', () => {
         }
     }
 
-    afterEach(() => {
-        updateJobSpy.mockReset()
-        execute.mockReset()
-    })
+    afterEach(() => execute.mockReset())
 
     it('onComplete', () => {
         tbService.tunnel = {
@@ -26,6 +25,11 @@ describe('wdio-testingbot-service', () => {
         }
 
         return expect(tbService.onComplete()).resolves.toEqual('tunnel closed')
+    })
+
+    it('onComplete: no tunnel', () => {
+        tbService.tunnel = undefined
+        return expect(tbService.onComplete()).toBeUndefined()
     })
 
     it('before', () => {
@@ -189,6 +193,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('after: updatedJob not called', () => {
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.tbUser = undefined
         tbService.tbSecret = undefined
         tbService.after()
@@ -197,6 +202,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('after: updatedJob called with passed params', () => {
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.tbUser = 'user'
         tbService.tbSecret = 'secret'
         tbService.sessionId = 'sessionId'
@@ -207,6 +213,8 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onReload: updatedJob not called', () => {
+        const tbService2 = new TestingBotService()
+        const updateJobSpy = jest.spyOn(tbService2, 'updateJob')
         tbService.tbUser = undefined
         tbService.tbSecret = undefined
         tbService.sessionId = 'sessionId'
@@ -217,6 +225,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onReload: updatedJob called with passed params', () => {
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.tbUser = 'user'
         tbService.tbSecret = 'secret'
         tbService.sessionId = 'sessionId'
@@ -229,6 +238,15 @@ describe('wdio-testingbot-service', () => {
 
     it('getRestUrl', () => {
         expect(tbService.getRestUrl('testSessionId')).toEqual(`https://api.testingbot.com/v1/tests/testSessionId`)
+    })
+
+    it('updateJob: returns 401 error when no API key or/and API user set', () => {
+        const putSpy = jest.spyOn(request, 'put')
+        const updateJob = tbService.updateJob('sessionId', 2, true)
+
+        expect(putSpy).toBeCalled()
+        return (expect(updateJob)).resolves
+            .toEqual({ error: '401 Unauthorized. Please supply the correct API key and API secret' })
     })
 
     it('getBody', () => {
