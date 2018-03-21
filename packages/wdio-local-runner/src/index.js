@@ -36,7 +36,7 @@ export default class LocalRunner extends EventEmitter {
         childProcess.on('message', this.emit.bind(this, this.cid))
         childProcess.on('exit', (code) => {
             log.debug(`Runner ${cid} finished with exit code ${code}`)
-            this.emit(this.cid, code)
+            this.emit('end', { cid, exitCode: code })
         })
 
         childProcess.send({
