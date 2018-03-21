@@ -4,10 +4,11 @@ import { isValidParameter } from './utils'
 
 const log = logger('webdriver')
 
-export default function (method, endpoint, commandInfo) {
+export default function (method, endpointUri, commandInfo) {
     const { command, ref, parameters, variables = [] } = commandInfo
 
     return function (...args) {
+        let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
              * url variables are:
