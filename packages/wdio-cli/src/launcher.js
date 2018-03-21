@@ -1,6 +1,7 @@
 import logger from 'wdio-logger'
 import { ConfigParser, initialisePlugin } from 'wdio-config'
 
+import CLIInterface from './interface'
 import { getLauncher, runServiceHook } from './utils'
 
 const log = logger('wdio-cli:Launcher')
@@ -19,6 +20,7 @@ class Launcher {
         this.runner = new Runner(configFile, config, capabilities, specs)
         this.runner.on('end', ::this.endHandler)
 
+        this.interface = new CLIInterface(config)
         this.argv = argv
         this.configFile = configFile
 
@@ -259,6 +261,7 @@ class Launcher {
             execArgv
         })
 
+        this.interface.emit('job:start', { cid, caps, specs })
         this.runnerStarted++
     }
 
@@ -276,12 +279,12 @@ class Launcher {
 
     /**
      * Close test runner process once all child processes have exited
-     * @param  {Number} cid  Capabilities ID
-     * @param  {Number} childProcessExitCode  exit code of child process
+     * @param  {Number} cid       Capabilities ID
+     * @param  {Number} exitCode  exit code of child process
      */
-    endHandler (cid, childProcessExitCode) {
-        this.exitCode = this.exitCode || childProcessExitCode
-        this.runnerFailed += childProcessExitCode !== 0 ? 1 : 0
+    endHandler ({ cid, exitCode }) {
+        this.exitCode = this.exitCode || exitCode
+        this.runnerFailed += exitCode !== 0 ? 1 : 0
 
         // Update schedule now this process has ended
         if (!this.isMultiremote) {
@@ -296,7 +299,9 @@ class Launcher {
             return
         }
 
-        if (this.exitCode === 0) {
+        const passed = this.exitCode === 0
+        this.interface.emit('job:end', { cid, passed })
+        if (passed) {
             return this.resolve(this.exitCode)
         }
 

@@ -1,67 +1,90 @@
-process.title = 'WDIO Testrunner';
+import { isInteractive } from './utils'
 
-import blessed from 'blessed'
-
-import { BOX_STYLE } from './constants'
-
-export class WDIOCLIInterface {
+export default class CLIInterface {
     constructor () {
-        this.screen = blessed.screen({
-            smartCSR: true,
-            log: process.env.HOME + '/blessed-terminal.log',
-            fullUnicode: true,
-            dockBorders: true,
-            ignoreDockContrast: true
-        })
+        this.clear = ''
+        this.height = 0
+        this.stdoutHandler = () => {}
+        this.bufferedOutput = new Set()
+        this.out = process.stdout.write.bind(process.stdout)
+        this.err = process.stderr.write.bind(process.stderr)
+        this.wrapStdio(process.stdout)
+        this.wrapStdio(process.stderr)
 
-        this.runnerWindow = blessed.box({
-            parent: this.screen,
-            label: ' WDIO Testrunner ',
-            left: 0,
-            top: 0,
-            width: '100%',
-            height: '30%',
-            border: 'line',
-            style: BOX_STYLE
-        })
+        this.clearAll()
+    }
 
-        this.logWindow = blessed.box({
-            parent: this.screen,
-            label: ' WebdriverIO Logs ',
-            left: 0,
-            top: '30%-1',
-            width: '50%+2',
-            height: '70%+1',
-            border: 'line',
-            style: BOX_STYLE
-        })
+    onStdout (stdoutHandler) {
+        this.stdoutHandler = stdoutHandler
+    }
 
-        this.reporterWindow = blessed.box({
-            parent: this.screen,
-            label: ' Reporter ',
-            left: '50%-1',
-            top: '30%-1',
-            width: '50%+2',
-            height: '70%+1',
-            border: 'line',
-            style: BOX_STYLE
-        })
+    wrapStdio(stream) {
+        const originalWrite = stream.write
 
-        this.windows = [this.runnerWindow, this.logWindow, this.reporterWindow]
-        this.windows.forEach((term) => {
-            term.on('title', (title) => {
-                this.screen.title = title;
-                term.setLabel(' ' + title + ' ');
-                this.screen.render();
-            });
-        })
+        let buffer = []
+        let timeout = null
 
-        this.runnerWindow.focus()
-        this.screen.key('C-c', () => this.screen.destroy())
-        this.screen.program.key('S-tab', () => {
-            this.screen.focusNext();
-            this.screen.render();
-        })
-        this.screen.render()
+        const flushBufferedOutput = () => {
+            const string = buffer.join('')
+            buffer = [];
+
+            /**
+             * This is to avoid conflicts between random output and status text
+             */
+            this.clearAll()
+
+            if (string) {
+                originalWrite.call(stream, string)
+            }
+
+            this.stdoutHandler()
+            this.bufferedOutput.delete(flushBufferedOutput);
+        };
+
+        this.bufferedOutput.add(flushBufferedOutput);
+
+        const debouncedFlush = () => {
+            // If the process blows up no errors would be printed.
+            // There should be a smart way to buffer stderr, but for now
+            // we just won't buffer it.
+            if (stream === process.stderr) {
+                return flushBufferedOutput();
+            }
+
+            if (!timeout) {
+                timeout = setTimeout(() => {
+                    flushBufferedOutput();
+                    timeout = null;
+                }, 100);
+            }
+        }
+
+        stream.write = (chunk) => {
+            buffer.push(chunk)
+            debouncedFlush()
+            return true
+        }
+    }
+
+    clearAll () {
+        if (!isInteractive) {
+            return
+        }
+
+        process.stdout.write('\x1B[2J\x1B[0f\u001b[0;0H')
+    }
+
+    clearLine () {
+        if (!isInteractive) {
+            return
+        }
+
+        this.out('\r\x1B[K\r\x1B[1A'.repeat(this.height))
+        this.height = 0
+    }
+
+    log(...messages) {
+        this.height++
+        process.stderr.write(messages.join('') + '\n');
     }
 }
