@@ -134,10 +134,10 @@ export const WDIO_DEFAULTS = {
                 }
 
                 /**
-                 * or an object that contains at least a `name` key with the name
-                 * of the reporter and arbitrary options
+                 * or an array with the name of the reporter as first element and the options
+                 * as second element
                  */
-                if (typeof option === 'object' && typeof option.name === 'string') {
+                if (Array.isArray(option) && typeof option[0] === 'string' && typeof option[1] === 'object') {
                     continue
                 }
 
