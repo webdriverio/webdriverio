@@ -31,8 +31,6 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "blessed": "^0.1.81",
-    "pty.js": "^0.3.1",
-    "term.js": "^0.0.7"
+    "is-ci": "^1.1.0"
   }
 }
