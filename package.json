@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "create": "node ./scripts/generate-sub-package",
     "bootstrap": "npm run clean && lerna bootstrap && lerna exec -- mkdir ./.git && npm run link",
     "build": "lerna run build",
     "clean": "run-p clean:*",
@@ -36,6 +37,7 @@
     "codecov": "^3.0.0",
     "eslint": "^4.7.2",
     "eslint-plugin-import": "^2.8.0",
+    "inquirer": "^5.1.0",
     "jest": "^21.2.1",
     "lerna": "^2.5.1",
     "np": "^2.18.2",
