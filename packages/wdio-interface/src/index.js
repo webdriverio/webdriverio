@@ -1,90 +1,54 @@
-import { isInteractive } from './utils'
+import util from 'util'
+import ansiEscapes from 'ansi-escapes'
+
+// import { isInteractive } from './utils'
 
 export default class CLIInterface {
     constructor () {
-        this.clear = ''
-        this.height = 0
-        this.stdoutHandler = () => {}
-        this.bufferedOutput = new Set()
+        this.i = 0
+        this.stdoutBuffer = []
+        this.stderrBuffer = []
         this.out = process.stdout.write.bind(process.stdout)
         this.err = process.stderr.write.bind(process.stderr)
-        this.wrapStdio(process.stdout)
-        this.wrapStdio(process.stderr)
 
         this.clearAll()
+        this.wrapStdio(process.stdout, this.stdoutBuffer)
+        this.wrapStdio(process.stderr, this.stderrBuffer)
     }
 
-    onStdout (stdoutHandler) {
-        this.stdoutHandler = stdoutHandler
+    getStdout () {
+        const stdout = this.stdoutBuffer.join('')
+        this.stdoutBuffer = []
+        return stdout
     }
 
-    wrapStdio(stream) {
-        const originalWrite = stream.write
+    getStderr () {
+        const stderr = this.stderrBuffer.join('')
+        this.stderrBuffer = []
+        return stderr
+    }
 
-        let buffer = []
-        let timeout = null
-
-        const flushBufferedOutput = () => {
-            const string = buffer.join('')
-            buffer = [];
-
-            /**
-             * This is to avoid conflicts between random output and status text
-             */
-            this.clearAll()
-
-            if (string) {
-                originalWrite.call(stream, string)
-            }
-
-            this.stdoutHandler()
-            this.bufferedOutput.delete(flushBufferedOutput);
-        };
-
-        this.bufferedOutput.add(flushBufferedOutput);
-
-        const debouncedFlush = () => {
-            // If the process blows up no errors would be printed.
-            // There should be a smart way to buffer stderr, but for now
-            // we just won't buffer it.
-            if (stream === process.stderr) {
-                return flushBufferedOutput();
-            }
-
-            if (!timeout) {
-                timeout = setTimeout(() => {
-                    flushBufferedOutput();
-                    timeout = null;
-                }, 100);
-            }
-        }
-
-        stream.write = (chunk) => {
+    wrapStdio(stream, buffer) {
+        stream.write = chunk => {
             buffer.push(chunk)
-            debouncedFlush()
             return true
         }
     }
 
     clearAll () {
-        if (!isInteractive) {
-            return
-        }
-
-        process.stdout.write('\x1B[2J\x1B[0f\u001b[0;0H')
+        this.out(ansiEscapes.clearScreen)
     }
 
     clearLine () {
-        if (!isInteractive) {
-            return
-        }
-
-        this.out('\r\x1B[K\r\x1B[1A'.repeat(this.height))
-        this.height = 0
+        this.out(ansiEscapes.eraseStartLine)
+        this.out(ansiEscapes.cursorLeft)
     }
 
     log(...messages) {
-        this.height++
-        process.stderr.write(messages.join('') + '\n');
+        this.out(util.format.apply(this, messages) + '\n')
+    }
+
+    write (message) {
+        this.out(message)
     }
 }

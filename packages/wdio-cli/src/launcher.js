@@ -20,7 +20,7 @@ class Launcher {
         this.runner = new Runner(configFile, config, capabilities, specs)
         this.runner.on('end', ::this.endHandler)
 
-        this.interface = new CLIInterface(config)
+        this.interface = new CLIInterface(config, specs)
         this.argv = argv
         this.configFile = configFile
 
@@ -283,8 +283,10 @@ class Launcher {
      * @param  {Number} exitCode  exit code of child process
      */
     endHandler ({ cid, exitCode }) {
+        const passed = this.exitCode === 0
         this.exitCode = this.exitCode || exitCode
         this.runnerFailed += exitCode !== 0 ? 1 : 0
+        this.interface.emit('job:end', { cid, passed })
 
         // Update schedule now this process has ended
         if (!this.isMultiremote) {
@@ -299,16 +301,20 @@ class Launcher {
             return
         }
 
-        const passed = this.exitCode === 0
-        this.interface.emit('job:end', { cid, passed })
         if (passed) {
-            return this.resolve(this.exitCode)
+            return process.nextTick(() => {
+                this.interface.updateView()
+                setTimeout(() => this.resolve(this.exitCode), 100)
+            })
         }
 
         /**
          * finish with exit code 1
          */
-        return this.resolve(1)
+        return process.nextTick(() => {
+            this.interface.updateView()
+            setTimeout(() => this.resolve(1), 100)
+        })
     }
 
     /**
