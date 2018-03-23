@@ -2,7 +2,7 @@ export default async function getCookies(names) {
     const namesList = typeof names !== 'undefined' && !Array.isArray(names) ? [names] : names
 
     if (typeof namesList === 'undefined') {
-        return await this.getAllCookies()
+        return this.getAllCookies()
     }
 
     if (namesList.every(obj => typeof obj !== 'string')) {
