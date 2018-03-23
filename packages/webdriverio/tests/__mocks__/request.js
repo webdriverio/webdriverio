@@ -67,6 +67,13 @@ export default jest.fn().mockImplementation((params, cb) => {
             { [ELEMENT_KEY]: 'some-elem-789' },
         ]
         break;
+    case `/wd/hub/session/${sessionId}/cookie`:
+        value = [
+            { name: 'cookie1', value: 'dummy-value-1' },
+            { name: 'cookie2', value: 'dummy-value-2' },
+            { name: 'cookie3', value: 'dummy-value-3' },
+        ]
+        break;
     }
 
     let response = { value }
