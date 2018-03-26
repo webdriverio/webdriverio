@@ -18,6 +18,12 @@
     "wdio",
     "wdio-reporter"
   ],
+  "scripts": {
+    "release": "np patch",
+    "release:patch": "np patch",
+    "release:minor": "np minor",
+    "release:major": "np major"
+  },
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
