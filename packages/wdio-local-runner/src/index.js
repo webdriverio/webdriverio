@@ -1,9 +1,9 @@
-import fs from 'fs'
 import path from 'path'
 import child from 'child_process'
 import EventEmitter from 'events'
 
 import logger from 'wdio-logger'
+import RunnerTransformStream from './transformStream'
 
 const log = logger('wdio-local-runner')
 
@@ -16,14 +16,10 @@ export default class LocalRunner extends EventEmitter {
 
     initialise () {}
 
-    run (options) {
-        const {
-            cid, command, configFile, argv, caps, processNumber,
-            specs, server, isMultiremote
-        } = options
-        const logFile = fs.createWriteStream(path.join(this.config.logDir, `wdio-${cid}.log`))
+    run ({ cid, command, configFile, argv, caps, processNumber, specs, server, isMultiremote }) {
         const runnerEnv = Object.assign(this.config.runnerEnv, {
-            WDIO_LOG_LEVEL: this.config.logLevel
+            WDIO_LOG_LEVEL: this.config.logLevel,
+            WDIO_LOG_PATH: path.join(this.config.logDir, `wdio-${cid}.log`)
         })
 
         const childProcess = child.fork(path.join(__dirname, 'run.js'), process.argv.slice(2), {
@@ -44,7 +40,8 @@ export default class LocalRunner extends EventEmitter {
             processNumber, specs, server, isMultiremote
         })
 
-        childProcess.stdout.pipe(logFile)
-        childProcess.stderr.pipe(logFile)
+
+        childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
+        childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
     }
 }

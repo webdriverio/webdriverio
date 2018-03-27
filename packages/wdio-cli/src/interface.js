@@ -57,6 +57,21 @@ export default class WDIOCLIInterface extends EventEmitter {
             this.interface.log(chalk.yellow('...', pendingJobs, 'pending tests'))
         }
 
+        /**
+         * print stdout and stderr from runners
+         */
+        if (this.jobs.size === 0) {
+            if (this.interface.stdoutBuffer.length) {
+                this.interface.log(`Stdout:\n${this.interface.stdoutBuffer.join('')}`)
+            }
+            if (this.interface.stderrBuffer.length) {
+                this.interface.log(`\nStderr:\n${this.interface.stderrBuffer.join('')}`)
+            }
+        }
+
+        /**
+         * add empty line between "pending tests" and results
+         */
         if (this.jobs.size) {
             this.interface.log()
         }
@@ -72,12 +87,7 @@ export default class WDIOCLIInterface extends EventEmitter {
 
         if (this.jobs.size === 0) {
             clearTimeout(this.interval)
-            if (this.interface.stdoutBuffer.length) {
-                this.interface.log(`\n\nStdout:\n${this.interface.stdoutBuffer.join('')}`)
-            }
-            if (this.interface.stderrBuffer.length) {
-                this.interface.log(`\nStderr:\n${this.interface.stderrBuffer.join('')}`)
-            }
+            this.interface.log('\n')
         }
     }
 
