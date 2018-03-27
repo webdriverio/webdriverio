@@ -1,4 +1,6 @@
+import fs from 'fs'
 import log from 'loglevel'
+import util from 'util'
 import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 
@@ -36,6 +38,18 @@ const SERIALIZERS = [{
     matches: (log) => log === 'RESULT',
     serialize: (log) => chalk.cyan(log)
 }]
+
+/**
+ * write to log file instead of stdout
+ */
+if (process.env.WDIO_LOG_PATH) {
+    const logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
+    log.methodFactory = () => {
+        return (...args) => {
+            logFile.write(`${util.format.apply(this, args)}\n`)
+        }
+    }
+}
 
 prefix.apply(log, {
     template: '%t %l %n:',
