@@ -50,7 +50,8 @@ export default class WDIOCLIInterface extends EventEmitter {
         this.interface.log()
 
         for (var [cid, job] of this.jobs.entries()) {
-            this.interface.log('RUNNING', cid, 'in', job.caps.browserName, '-', job.specs.join(', '))
+            const filename = job.specs.join(', ').replace(process.cwd(), '')
+            this.interface.log('RUNNING', cid, 'in', job.caps.browserName, '-', filename)
         }
 
         if (pendingJobs) {
