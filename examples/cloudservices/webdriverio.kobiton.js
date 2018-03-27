@@ -12,6 +12,7 @@ var webdriverio = require('../../build/index'),
       platformName:       'Android'
     },
     protocol: 'https',
+    port: 443,
     host: 'api.kobiton.com',
     user: process.env.KOBITON_USERNAME,
     key: process.env.KOBITON_ACCESS_KEY,
