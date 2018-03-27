@@ -283,9 +283,9 @@ class Launcher {
      * @param  {Number} exitCode  exit code of child process
      */
     endHandler ({ cid, exitCode }) {
-        const passed = this.exitCode === 0
+        const passed = exitCode === 0
         this.exitCode = this.exitCode || exitCode
-        this.runnerFailed += exitCode !== 0 ? 1 : 0
+        this.runnerFailed += !passed ? 1 : 0
         this.interface.emit('job:end', { cid, passed })
 
         // Update schedule now this process has ended
