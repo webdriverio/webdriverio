@@ -72,9 +72,12 @@ export default class WDIOCLIInterface extends EventEmitter {
 
         if (this.jobs.size === 0) {
             clearTimeout(this.interval)
-            this.interface.log('\n\nTests completed', this.interface.stdoutBuffer.length, this.interface.stderrBuffer.length, this.interface.i)
-            this.interface.log('\n', 'Stdout:\n', this.interface.stdoutBuffer)
-            this.interface.log('\n', 'Stderr:\n', this.interface.stderrBuffer)
+            if (this.interface.stdoutBuffer.length) {
+                this.interface.log(`\n\nStdout:\n${this.interface.stdoutBuffer.join('')}`)
+            }
+            if (this.interface.stderrBuffer.length) {
+                this.interface.log(`\nStderr:\n${this.interface.stderrBuffer.join('')}`)
+            }
         }
     }
 
