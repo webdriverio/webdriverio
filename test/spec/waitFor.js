@@ -7,6 +7,19 @@ describe('waitFor', () => {
                 .should.be.equal(true)
         })
 
+        it('should pass fast with a short waitfor interval', async function () {
+            (await this.client.waitForEnabled('//html/body/section/input[8]', duration, 20))
+                .should.be.equal(true)
+        })
+
+        it('should timeout with a long waitfor interval', async function () {
+            try {
+                (await this.client.waitForEnabled('//html/body/section/input[8]', duration, 20000))
+            } catch (error) {
+                error.message.should.be.equal('Promise was rejected with the following reason: timeout')
+            }
+        })
+
         it('(reverse) should return w/o err after element was disabled', async function () {
             (await this.client.waitForEnabled('.waitForValueEnabledReverse', duration, true))
                 .should.be.equal(true)
@@ -27,6 +40,19 @@ describe('waitFor', () => {
         it('should return w/o err after element was appended to the DOM', async function () {
             (await this.client.waitForExist('//div[text()="Sorry, I\'m late!"]', duration))
                 .should.be.equal(true)
+        })
+
+        it('should pass fast with a short waitfor interval', async function () {
+            (await this.client.waitForExist('//div[text()="Sorry, I\'m late!"]', duration, 20))
+                .should.be.equal(true)
+        })
+
+        it('should timeout with a long waitfor interval', async function () {
+            try {
+                (await this.client.waitForExist('//div[text()="Sorry, I\'m late!"]', duration, 20000))
+            } catch (error) {
+                error.message.should.be.equal('Promise was rejected with the following reason: timeout')
+            }
         })
 
         it('(reverse) should return w/o err after element was removed from the DOM', async function () {
@@ -60,6 +86,19 @@ describe('waitFor', () => {
                 .should.be.equal(true)
         })
 
+        it('should pass fast with a short waitfor interval', async function () {
+            (await this.client.waitForSelected('//*[@id="selectbox"]/option[3]', duration, 20))
+                .should.be.equal(true)
+        })
+
+        it('should timeout with a long waitfor interval', async function () {
+            try {
+                (await this.client.waitForSelected('//*[@id="selectbox"]/option[3]', duration, 20000))
+            } catch (error) {
+                error.message.should.be.equal('Promise was rejected with the following reason: timeout')
+            }
+        })
+
         it('(reverse) should return w/o err after element was unselected', async function () {
             (await this.client.waitForSelected('.option2', duration, true))
                 .should.be.equal(true)
@@ -80,6 +119,19 @@ describe('waitFor', () => {
         it('should return w/o err after element got a text/content', async function () {
             (await this.client.waitForText('//*[contains(@class, "sometextlater")]', duration))
                 .should.be.equal(true)
+        })
+
+        it('should pass fast with a short waitfor interval', async function () {
+            (await this.client.waitForText('//*[contains(@class, "sometextlater")]', duration, 20))
+                .should.be.equal(true)
+        })
+
+        it('should timeout with a long waitfor interval', async function () {
+            try {
+                (await this.client.waitForText('//*[contains(@class, "sometextlater")]', duration, 20000))
+            } catch (error) {
+                error.message.should.be.equal('Promise was rejected with the following reason: timeout')
+            }
         })
 
         it('(reverse) should return w/o err after text/content element was removed', async function () {
@@ -104,6 +156,19 @@ describe('waitFor', () => {
                 .should.be.equal(true)
         })
 
+        it('should pass fast with a short waitfor interval', async function () {
+            (await this.client.waitForValue('//*[contains(@class, "waitForValueEnabledReverse")]', duration, 20))
+                .should.be.equal(true)
+        })
+
+        it('should timeout with a long waitfor interval', async function () {
+            try {
+                (await this.client.waitForValue('//*[contains(@class, "waitForValueEnabledReverse")]', duration, 20000))
+            } catch (error) {
+                error.message.should.be.equal('Promise was rejected with the following reason: timeout')
+            }
+        })
+
         it('(reverse) should return w/o err after element lost its value', async function () {
             (await this.client.waitForValue('.waitForValueEnabled', duration, true))
                 .should.be.equal(true)
@@ -124,6 +189,19 @@ describe('waitFor', () => {
         it('should return w/o err after element moved into document bounderies', async function () {
             (await this.client.waitForVisible('//*[contains(@class, "notVisible")]', duration))
                 .should.be.equal(true)
+        })
+
+        it('should pass fast with a short waitfor interval', async function () {
+            (await this.client.waitForVisible('//*[contains(@class, "notVisible")]', duration, 20))
+                .should.be.equal(true)
+        })
+
+        it('should timeout with a long waitfor interval', async function () {
+            try {
+                (await this.client.waitForVisible('//*[contains(@class, "notVisible")]', duration, 20000))
+            } catch (error) {
+                error.message.should.be.equal('Promise was rejected with the following reason: timeout')
+            }
         })
 
         it('(reverse) should return w/o err after element left document bounderies', async function () {
