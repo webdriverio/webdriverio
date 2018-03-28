@@ -102,7 +102,7 @@ For (hybrid/native) mobile testing you have to use mobile strategies and use the
 Android’s UI Automator framework provides a number of ways to find elements. You can use the [UI Automator API](https://developer.android.com/tools/testing-support-library/index.html#uia-apis), in particular the [UiSelector class](https://developer.android.com/reference/android/support/test/uiautomator/UiSelector.html) to locate elements. In Appium you send the Java code, as a string, to the server, which executes it in the application’s environment, returning the element or elements.
 
 ```js
-var selector = 'new UiSelector().text("Cancel")).className("android.widget.Button")';
+var selector = 'new UiSelector().text("Cancel").className("android.widget.Button")';
 browser.click('android=' + selector);
 ```
 
