@@ -72,7 +72,7 @@ export default class WDIOCLIInterface extends EventEmitter {
          * print reporter output
          */
         for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
-            this.interface.log(chalk.bgYellow.black(` "${reporterName}" Reporter: `))
+            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
             this.interface.log(messages.join(''))
             this.interface.log()
         }
@@ -94,10 +94,10 @@ export default class WDIOCLIInterface extends EventEmitter {
          */
         if (this.jobs.size === 0) {
             if (this.interface.stdoutBuffer.length) {
-                this.interface.log(chalk.bgYellow.black(` Stdout: \n`), this.interface.stdoutBuffer.join(''))
+                this.interface.log(chalk.bgYellow.black(`Stdout:\n`) + this.interface.stdoutBuffer.join(''))
             }
             if (this.interface.stderrBuffer.length) {
-                this.interface.log(chalk.bgRed.black(`\n Stderr: \n`), this.interface.stderrBuffer.join(''))
+                this.interface.log(chalk.bgRed.black(`\nStderr:\n`) + this.interface.stderrBuffer.join(''))
             }
         }
 
