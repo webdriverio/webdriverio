@@ -1,3 +1,4 @@
+import fs from 'fs'
 import EventEmitter from 'events'
 
 import SuiteStats from './stats/suite'
@@ -10,6 +11,7 @@ export default class WDIOReporter extends EventEmitter {
     constructor (options) {
         super()
         this.options = options
+        this.outputStream = this.options.stdout ? options.writeStream : fs.createWriteStream(this.options.logFile)
         this.failures = []
         this.suites = {}
         this.hooks = {}
@@ -112,6 +114,13 @@ export default class WDIOReporter extends EventEmitter {
             this.runnerStat.complete()
             this.onRunnerEnd(this.runnerStat)
         })
+    }
+
+    /**
+     * function to write to reporters output stream
+     */
+    write (content) {
+        this.outputStream.write(content)
     }
 
     onRunnerStart () {}
