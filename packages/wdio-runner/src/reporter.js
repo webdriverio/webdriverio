@@ -50,13 +50,7 @@ export default class BaseReporter {
         let ReporterClass
         let options = {
             logLevel: this.config.logLevel,
-            setLogFile: NOOP,
-            writeStream: {
-                write: (content) => process.send({
-                    origin: 'reporter',
-                    content
-                })
-            }
+            setLogFile: NOOP
         }
 
         /**
