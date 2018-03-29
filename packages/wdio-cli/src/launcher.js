@@ -21,6 +21,7 @@ class Launcher {
         this.runner.on('end', ::this.endHandler)
 
         this.interface = new CLIInterface(config, specs)
+        this.runner.on('message', ::this.interface.onMessage)
         this.argv = argv
         this.configFile = configFile
 

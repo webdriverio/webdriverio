@@ -3,8 +3,12 @@ import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
 
 class SpecReporter extends WDIOReporter {
-    constructor () {
-        super()
+    constructor (options) {
+        /**
+         * make dot reporter to write to output stream by default
+         */
+        options = Object.assign(options, { stdout: true })
+        super(options)
 
         // Keep track of the order that suites were called
         this.suiteUids = []
@@ -77,7 +81,7 @@ class SpecReporter extends WDIOReporter {
         })
 
         // Output the results
-        process.stdout.write(`${divider}\n${prefacedOutput.join(`\n`)}\n`)
+        this.write(`${divider}\n${prefacedOutput.join(`\n`)}\n`)
     }
 
     /**

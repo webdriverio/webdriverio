@@ -1,4 +1,3 @@
-import fs from 'fs'
 import chalk from 'chalk'
 import WDIOReporter from 'wdio-reporter'
 
@@ -6,16 +5,12 @@ import WDIOReporter from 'wdio-reporter'
  * Initialize a new `Dot` matrix test reporter.
  */
 export default class DotReporter extends WDIOReporter {
-    constructor (...args) {
-        super(...args)
-        this.outputStream = this.options.stdout ? process.stdout : fs.createWriteStream(this.options.logFile)
-    }
-
-    /**
-     * print empty line at the beginning
-     */
-    onRunnerStart () {
-        this.write('\n')
+    constructor (options) {
+        /**
+         * make dot reporter to write to output stream by default
+         */
+        options = Object.assign(options, { stdout: true })
+        super(options)
     }
 
     /**
@@ -37,12 +32,5 @@ export default class DotReporter extends WDIOReporter {
      */
     onTestFail () {
         this.write(chalk.redBright('F'))
-    }
-
-    /**
-     * write to target environment
-     */
-    write (...args) {
-        this.outputStream.write(...args)
     }
 }

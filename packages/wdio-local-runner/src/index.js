@@ -14,6 +14,9 @@ export default class LocalRunner extends EventEmitter {
         this.config = config
     }
 
+    /**
+     * nothing to initialise when running locally
+     */
     initialise () {}
 
     run ({ cid, command, configFile, argv, caps, processNumber, specs, server, isMultiremote }) {
@@ -29,7 +32,9 @@ export default class LocalRunner extends EventEmitter {
             silent: true
         })
 
-        childProcess.on('message', this.emit.bind(this, this.cid))
+        childProcess.on('message',
+            (payload) => this.emit('message', Object.assign(payload, { cid })))
+
         childProcess.on('exit', (code) => {
             log.debug(`Runner ${cid} finished with exit code ${code}`)
             this.emit('end', { cid, exitCode: code })

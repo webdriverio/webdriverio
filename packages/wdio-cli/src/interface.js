@@ -18,6 +18,9 @@ export default class WDIOCLIInterface extends EventEmitter {
             passed: 0,
             failed: 0
         }
+        this.messages = {
+            reporter: {}
+        }
 
         this.interface = new CLIInterface()
         this.on('job:start', ::this.addJob)
@@ -25,11 +28,17 @@ export default class WDIOCLIInterface extends EventEmitter {
         this.updateView()
     }
 
+    /**
+     * add job to interface
+     */
     addJob({ cid, caps, specs }) {
         this.jobs.set(cid, { caps, specs })
         this.updateView()
     }
 
+    /**
+     * clear job from interface
+     */
     clearJob ({ cid, passed }) {
         this.jobs.delete(cid)
         this.result.finished++
@@ -43,15 +52,37 @@ export default class WDIOCLIInterface extends EventEmitter {
         this.updateView()
     }
 
+    /**
+     * event handler that is triggered when runner sends up events
+     */
+    onMessage (params) {
+        if (!this.messages[params.origin][params.name]) {
+            this.messages[params.origin][params.name] = []
+        }
+        this.messages[params.origin][params.name].push(params.content)
+    }
+
     updateView () {
         const pendingJobs = this.specs.length - this.jobs.size - this.result.finished
 
         this.interface.clearAll()
         this.interface.log()
 
-        for (var [cid, job] of this.jobs.entries()) {
+        /**
+         * print reporter output
+         */
+        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
+            this.interface.log(chalk.bgYellow.black(` "${reporterName}" Reporter: `))
+            this.interface.log(messages.join(''))
+            this.interface.log()
+        }
+
+        /**
+         * print running jobs
+         */
+        for (const [cid, job] of this.jobs.entries()) {
             const filename = job.specs.join(', ').replace(process.cwd(), '')
-            this.interface.log('RUNNING', cid, 'in', job.caps.browserName, '-', filename)
+            this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
         }
 
         if (pendingJobs) {
@@ -63,10 +94,10 @@ export default class WDIOCLIInterface extends EventEmitter {
          */
         if (this.jobs.size === 0) {
             if (this.interface.stdoutBuffer.length) {
-                this.interface.log(`Stdout:\n${this.interface.stdoutBuffer.join('')}`)
+                this.interface.log(chalk.bgYellow.black(` Stdout: \n`), this.interface.stdoutBuffer.join(''))
             }
             if (this.interface.stderrBuffer.length) {
-                this.interface.log(`\nStderr:\n${this.interface.stderrBuffer.join('')}`)
+                this.interface.log(chalk.bgRed.black(`\n Stderr: \n`), this.interface.stderrBuffer.join(''))
             }
         }
 

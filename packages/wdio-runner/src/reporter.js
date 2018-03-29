@@ -1,6 +1,8 @@
 import path from 'path'
 import { initialisePlugin } from 'wdio-config'
 
+const NOOP = () => {}
+
 /**
  * BaseReporter
  * responsible for initialising reporters for every testrun and propagating events
@@ -14,10 +16,11 @@ export default class BaseReporter {
     }
 
     /**
-     * emit events to all registered reporter
+     * emit events to all registered reporter and wdio launcer
      */
-    emit (...args) {
-        this.reporters.forEach((reporter) => reporter.emit(...args))
+    emit (e, payload) {
+        payload.cid = this.cid
+        this.reporters.forEach((reporter) => reporter.emit(e, payload))
     }
 
     /**
@@ -28,11 +31,33 @@ export default class BaseReporter {
     }
 
     /**
+     * return write stream object based on reporter name
+     */
+    getWriteStreamObject (reporter) {
+        return {
+            write: (content) => process.send({
+                origin: 'reporter',
+                name: reporter,
+                content
+            })
+        }
+    }
+
+    /**
      * initialise reporters
      */
     initReporter (reporter) {
         let ReporterClass
-        let options = { logLevel: this.config.logLevel }
+        let options = {
+            logLevel: this.config.logLevel,
+            setLogFile: NOOP,
+            writeStream: {
+                write: (content) => process.send({
+                    origin: 'reporter',
+                    content
+                })
+            }
+        }
 
         /**
          * check if reporter has custom options
@@ -59,7 +84,9 @@ export default class BaseReporter {
          */
         if (typeof reporter === 'function') {
             ReporterClass = reporter
-            options.logFile = this.getLogFile(ReporterClass.name)
+            const customLogFile = options.setLogFile(this.cid, ReporterClass.name)
+            options.logFile = customLogFile || this.getLogFile(ReporterClass.name)
+            options.writeStream = this.getWriteStreamObject(ReporterClass.name)
             return new ReporterClass(options)
         }
 
@@ -79,7 +106,9 @@ export default class BaseReporter {
          */
         if (typeof reporter === 'string') {
             ReporterClass = initialisePlugin(reporter, 'reporter')
-            options.logFile = this.getLogFile(reporter)
+            const customLogFile = options.setLogFile(this.cid, reporter)
+            options.logFile = customLogFile || this.getLogFile(reporter)
+            options.writeStream = this.getWriteStreamObject(reporter)
             return new ReporterClass(options)
         }
 
