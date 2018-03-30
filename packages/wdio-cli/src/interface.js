@@ -8,6 +8,7 @@ const clock = cliSpinners['clock']
 export default class WDIOCLIInterface extends EventEmitter {
     constructor (config, specs) {
         super()
+        this.hasAnsiSupport = chalk.supportsColor.hasBasic
         this.clockTimer = 0
         this.specs = specs
         this.config = config
@@ -25,7 +26,6 @@ export default class WDIOCLIInterface extends EventEmitter {
         this.interface = new CLIInterface()
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
-        this.updateView()
     }
 
     /**
@@ -49,7 +49,7 @@ export default class WDIOCLIInterface extends EventEmitter {
             this.result.failed++
         }
 
-        this.updateView()
+        this.updateView(true)
     }
 
     /**
@@ -62,8 +62,29 @@ export default class WDIOCLIInterface extends EventEmitter {
         this.messages[params.origin][params.name].push(params.content)
     }
 
-    updateView () {
+    updateView (wasJobCleared) {
+        const isFinished = this.jobs.size === 0
         const pendingJobs = this.specs.length - this.jobs.size - this.result.finished
+
+        /**
+         * check if environment supports ansi and print a limited update if not
+         */
+        if (!this.hasAnsiSupport && !isFinished) {
+            /**
+             * only update if a job finishes
+             */
+            if (!wasJobCleared) {
+                return
+            }
+
+            const time = clock.frames[this.clockTimer = ++this.clockTimer % clock.frames.length]
+            return this.interface.log(
+                `${time} Running: ${this.jobs.size}, ` +
+                `${this.result.passed} passed, ` +
+                `${this.result.failed} failed, ` +
+                `${this.specs.length} total ` +
+                `(${Math.round((this.result.finished / this.specs.length) * 100)}% completed)`)
+        }
 
         this.interface.clearAll()
         this.interface.log()
@@ -92,7 +113,7 @@ export default class WDIOCLIInterface extends EventEmitter {
         /**
          * print stdout and stderr from runners
          */
-        if (this.jobs.size === 0) {
+        if (isFinished) {
             if (this.interface.stdoutBuffer.length) {
                 this.interface.log(chalk.bgYellow.black(`Stdout:\n`) + this.interface.stdoutBuffer.join(''))
             }
@@ -117,7 +138,7 @@ export default class WDIOCLIInterface extends EventEmitter {
 
         this.updateClock()
 
-        if (this.jobs.size === 0) {
+        if (isFinished) {
             clearTimeout(this.interval)
             this.interface.log('\n')
         }
