@@ -84,7 +84,38 @@ export default class MyReporter extends WDIOReporter {
 }
 ```
 
-You can access all options via `this.options`. As per convention it is recommended that every reporter logs its output to a file that is propagated as `logFile`.
+You can access all options via `this.options`. You can push logs to stdout or a log file depending of whether the `stdout` option is true or false. Please use the internal method `write` that is provided by the `WDIOReporter` parent class in order to push out logs, e.g.
+
+```js
+class MyReporter extends WDIOReporter {
+    constructor (options) {
+        /**
+         * make dot reporter to write to output stream by default
+         */
+        options = Object.assign(options, { stdout: true })
+        super(options)
+    }
+
+    // ...
+    onTestPass (test) {
+        this.write(`test "${test.title}" passed`)
+    }
+    // ...
+}
+```
+
+This will result the following output:
+
+```
+"MyReporter" Reporter:
+test "some test" passed
+test "some other test" passed
+
+"spec" Reporter:
+...
+```
+
+If `stdout` is set to `false` WebdriverIO will automatically write to a filestream at a location where other logs are stored as well.
 
 ## Events
 
