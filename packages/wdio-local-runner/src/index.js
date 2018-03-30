@@ -23,11 +23,15 @@ export default class LocalRunner extends EventEmitter {
         const runnerEnv = Object.assign(this.config.runnerEnv, {
             WDIO_LOG_LEVEL: this.config.logLevel,
             WDIO_LOG_PATH: path.join(this.config.logDir, `wdio-${cid}.log`),
-            /**
-             * ensure that logs are colored in wdio-cli interface
-             */
-            FORCE_COLOR: true
         })
+
+        /**
+         * ensure that logs are colored in wdio-cli interface
+         * (only set if not set by user or wdio-cli package)
+         */
+        if (Object.keys(runnerEnv).includes('FORCE_COLOR')) {
+            runnerEnv.FORCE_COLOR = true
+        }
 
         const childProcess = child.fork(path.join(__dirname, 'run.js'), process.argv.slice(2), {
             cwd: process.cwd(),
