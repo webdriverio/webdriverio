@@ -45,8 +45,8 @@ describe('cli interface', () => {
     })
 
     it('should update clock', async () => {
-        wdioCliInterface.updateClock(10)
-        await new Promise((resolve) => setTimeout(resolve, 23))
+        wdioCliInterface.updateClock(100)
+        await new Promise((resolve) => setTimeout(resolve, 230))
         clearTimeout(wdioCliInterface.interval)
         expect(wdioCliInterface.interface.clearLine.mock.calls).toHaveLength(3)
         expect(wdioCliInterface.interface.write.mock.calls).toHaveLength(3)
