@@ -41,12 +41,14 @@
     "deepmerge": "^2.0.1",
     "ejs": "^2.5.7",
     "inquirer": "^4.0.1",
-    "lodash.flattendeep": "^4.4.0",
-    "lodash.pickby": "^4.6.0",
     "npm-install-package": "^2.1.0",
     "wdio-config": "^0.1.0",
     "wdio-interface": "^0.0.0",
     "wdio-logger": "^0.1.0",
     "yargs": "^10.0.3"
+  },
+  "devDependencies": {
+    "lodash.flattendeep": "^4.4.0",
+    "lodash.pickby": "^4.6.0"
   }
 }
