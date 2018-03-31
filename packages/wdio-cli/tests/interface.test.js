@@ -4,6 +4,8 @@ import WDIOCLIInterface from '../src/interface'
 const config = {}
 const specs = ['/some/path/to/test.js']
 
+jest.useFakeTimers()
+
 describe('cli interface', () => {
     let wdioCliInterface
 
@@ -45,10 +47,9 @@ describe('cli interface', () => {
     })
 
     it('should update clock', async () => {
-        wdioCliInterface.updateClock(1000)
-        await new Promise((resolve) => setTimeout(resolve, 2300))
-        clearTimeout(wdioCliInterface.interval)
-        expect(wdioCliInterface.interface.clearLine.mock.calls).toHaveLength(2)
+        wdioCliInterface.updateClock()
+        jest.runTimersToTime(250)
+        expect(wdioCliInterface.interface.clearLine.mock.calls).toHaveLength(3)
         expect(wdioCliInterface.interface.write.mock.calls).toHaveLength(3)
     })
 
