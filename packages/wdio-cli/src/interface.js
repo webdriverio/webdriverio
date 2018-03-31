@@ -144,12 +144,12 @@ export default class WDIOCLIInterface extends EventEmitter {
         }
     }
 
-    updateClock () {
+    updateClock (interval = 100) {
         const time = clock.frames[this.clockTimer = ++this.clockTimer % clock.frames.length]
 
         clearTimeout(this.interval)
         this.interface.clearLine()
         this.interface.write('Time:\t\t ' + time + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
-        this.interval = setTimeout(::this.updateClock, 100)
+        this.interval = setTimeout(() => this.updateClock(interval), interval)
     }
 }
