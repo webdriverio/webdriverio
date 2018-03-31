@@ -17,6 +17,9 @@ export default class BaseReporter {
 
     /**
      * emit events to all registered reporter and wdio launcer
+     *
+     * @param  {String} e       event name
+     * @param  {object} payload event payload
      */
     emit (e, payload) {
         payload.cid = this.cid

@@ -9,7 +9,6 @@ import {
 } from './fixtures'
 
 const reporter = new SpecReporter({})
-//s
 
 describe('SpecReporter', () => {
     let tmpReporter = null

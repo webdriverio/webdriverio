@@ -42,8 +42,12 @@ describe('BaseReporter', () => {
             ]
         }, '0-0')
 
-        reporter.emit(1, 2, 3)
-        expect(reporter.reporters.map((r) => r.emit.mock.calls)).toEqual([[[1, 2, 3]], [[1, 2, 3]]])
+        const payload = { foo: [1, 2, 3] }
+        reporter.emit('runner:start', payload)
+        expect(reporter.reporters.map((r) => r.emit.mock.calls)).toEqual([
+            [['runner:start', Object.assign(payload, { cid: '0-0' })]],
+            [['runner:start', Object.assign(payload, { cid: '0-0' })]]
+        ])
     })
 
     it('should allow to load custom reporters', () => {
