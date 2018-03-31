@@ -8,13 +8,6 @@ describe('Dot Reporter', () => {
         const reporter = new DotReporter({ logFile: logFile.name })
         reporter.write = jest.fn()
 
-        expect(reporter.options.logFile).toBe(logFile.name)
-        expect(reporter.outputStream.path).toBe(logFile.name)
-
-        reporter.onRunnerStart()
-        expect(reporter.write.mock.calls[0][0]).toBe('\n')
-        reporter.write.mockClear()
-
         reporter.onTestSkip()
         expect(reporter.write.mock.calls[0][0]).toBe('cyanBright .')
         reporter.write.mockClear()
@@ -28,13 +21,9 @@ describe('Dot Reporter', () => {
         reporter.write.mockClear()
     })
 
-    it('should write to stdout if stdout is true', () => {
-        const logFile = tmp.fileSync()
-        const reporter = new DotReporter({
-            logFile: logFile.name,
-            stdout: true
-        })
-        expect(reporter.outputStream.path).not.toBe(logFile.name)
+    it('should write to stdout per default', () => {
+        const reporter = new DotReporter({})
+        expect(reporter.options.stdout).toBe(true)
     })
 
     it('should write to output stream', () => {
@@ -44,7 +33,7 @@ describe('Dot Reporter', () => {
             stdout: false
         })
         reporter.outputStream = { write: jest.fn() }
-        reporter.write(1, 2, 3)
-        expect(reporter.outputStream.write.mock.calls[0]).toEqual([1, 2, 3])
+        reporter.write(1)
+        expect(reporter.outputStream.write.mock.calls[0]).toEqual([1])
     })
 })
