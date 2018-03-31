@@ -1,8 +1,6 @@
 import util from 'util'
 import ansiEscapes from 'ansi-escapes'
 
-// import { isInteractive } from './utils'
-
 export default class CLIInterface {
     constructor () {
         this.i = 0
@@ -12,20 +10,15 @@ export default class CLIInterface {
         this.err = process.stderr.write.bind(process.stderr)
 
         this.clearAll()
-        this.wrapStdio(process.stdout, this.stdoutBuffer)
-        this.wrapStdio(process.stderr, this.stderrBuffer)
-    }
 
-    getStdout () {
-        const stdout = this.stdoutBuffer.join('')
-        this.stdoutBuffer = []
-        return stdout
-    }
-
-    getStderr () {
-        const stderr = this.stderrBuffer.join('')
-        this.stderrBuffer = []
-        return stderr
+        /**
+         * don't modify stdout and stderr streams for unit tests
+         */
+        /* istanbul ignore if */
+        if (!process.env.WDIO_TEST) {
+            this.wrapStdio(process.stdout, this.stdoutBuffer)
+            this.wrapStdio(process.stderr, this.stderrBuffer)
+        }
     }
 
     wrapStdio(stream, buffer) {
