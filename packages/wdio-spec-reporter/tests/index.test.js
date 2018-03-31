@@ -8,13 +8,14 @@ import {
     REPORT,
 } from './fixtures'
 
-const reporter = new SpecReporter()
+const reporter = new SpecReporter({})
+//s
 
 describe('SpecReporter', () => {
     let tmpReporter = null
 
     beforeEach(() => {
-        tmpReporter = new SpecReporter()
+        tmpReporter = new SpecReporter({})
         tmpReporter.chalk.level = 0
     })
 
@@ -107,18 +108,12 @@ describe('SpecReporter', () => {
     })
 
     describe('printReport', () => {
-        let originalWrite = null
         let printReporter = null
 
         beforeEach(() => {
-            originalWrite = process.stdout.write
-            printReporter = new SpecReporter()
+            printReporter = new SpecReporter({})
             printReporter.chalk.level = 0
-            process.stdout.write = jest.fn()
-        })
-
-        afterEach(() => {
-            process.stdout.write = originalWrite
+            printReporter.write = jest.fn()
         })
 
         it('should print the report to the console', () => {
@@ -132,7 +127,7 @@ describe('SpecReporter', () => {
 
             printReporter.printReport(RUNNER)
 
-            expect(process.stdout.write).toBeCalledWith(REPORT)
+            expect(printReporter.write).toBeCalledWith(REPORT)
         })
 
         it('should not print the report because there are no tests', () => {
@@ -141,7 +136,7 @@ describe('SpecReporter', () => {
 
             printReporter.printReport(RUNNER)
 
-            expect(process.stdout.write.mock.calls.length).toBe(0)
+            expect(printReporter.write.mock.calls.length).toBe(0)
         })
     })
 
