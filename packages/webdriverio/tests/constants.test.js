@@ -14,7 +14,7 @@ describe('constants', () => {
 
         it('should validate reporters correctly', () => {
             WDIO_DEFAULTS.reporters.type(['string'])
-            WDIO_DEFAULTS.reporters.type([{ name: 'foobar' }])
+            WDIO_DEFAULTS.reporters.type([[{ name: 'foobar' }, {}]])
 
             expect(() => WDIO_DEFAULTS.reporters.type('foobar')).toThrow()
             expect(() => WDIO_DEFAULTS.reporters.type([false, 'string'])).toThrow()
