@@ -1,4 +1,4 @@
-export default class CLIInterfaceMock {
+export default class CLInterfaceMock {
     constructor () {
         this.clearLine = jest.fn()
         this.write = jest.fn()

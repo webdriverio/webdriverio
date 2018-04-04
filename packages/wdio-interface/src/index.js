@@ -1,13 +1,13 @@
 import util from 'util'
 import ansiEscapes from 'ansi-escapes'
 
-export default class CLIInterface {
+export default class CLInterface {
     constructor () {
         this.i = 0
         this.stdoutBuffer = []
         this.stderrBuffer = []
-        this.out = process.stdout.write.bind(process.stdout)
-        this.err = process.stderr.write.bind(process.stderr)
+        this.out = ::process.stdout.write
+        this.err = ::process.stderr.write
 
         this.clearAll()
 
