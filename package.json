@@ -57,6 +57,10 @@
         "lines": 86,
         "statements": 86
       }
-    }
+    },
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/webdriverio/src/scripts/newWindow.js"
+    ]
   }
 }
