@@ -79,7 +79,7 @@ describe('cli interface', () => {
         wdioClInterface.updateView(true)
         expect(
             wdioClInterface.interface.log.mock.calls[0][0]
-        ).toEqual('🕑  Running: 2, 1 passed, 2 failed, 5 total (60% completed)')
+        ).toEqual('🕑  2 running, 1 passed, 2 failed, 5 total (60% completed)')
     })
 
     it('should update view if ansi is supported', () => {
