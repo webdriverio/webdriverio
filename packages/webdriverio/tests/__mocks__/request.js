@@ -1,9 +1,11 @@
 import { ELEMENT_KEY } from '../../src/constants'
 
+let manualMockResponse
+
 const sessionId = 'foobar-123'
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
-export default jest.fn().mockImplementation((params, cb) => {
+const requestMock = jest.fn().mockImplementation((params, cb) => {
     let value = {}
     let sessionResponse = {
         sessionId,
@@ -74,6 +76,29 @@ export default jest.fn().mockImplementation((params, cb) => {
             { name: 'cookie3', value: 'dummy-value-3' },
         ]
         break;
+    case `/wd/hub/session/${sessionId}/window/handles`:
+        value = ['window-handle-1', 'window-handle-2', 'window-handle-3']
+        break;
+    case `/wd/hub/session/${sessionId}/url`:
+        value = 'https://webdriver.io/?foo=bar'
+        break;
+    case `/wd/hub/session/${sessionId}/title`:
+        value = 'WebdriverIO - WebDriver bindings for Node.js'
+        break;
+    }
+
+    /**
+     * overwrite if manual response is set
+     */
+    if (Array.isArray(manualMockResponse)) {
+        value = manualMockResponse.shift() || value
+
+        if (manualMockResponse.length === 0) {
+            manualMockResponse = null
+        }
+    } else if (manualMockResponse) {
+        value = manualMockResponse
+        manualMockResponse = null
     }
 
     let response = { value }
@@ -87,3 +112,9 @@ export default jest.fn().mockImplementation((params, cb) => {
         body: response
     }, response)
 })
+
+requestMock.setMockResponse = (value) => {
+    manualMockResponse = value
+}
+
+export default requestMock

@@ -162,15 +162,6 @@ export const getPrototype = (scope) => {
      * register action commands
      */
     applyScopePrototype(prototype, scope)
-
-    /**
-     * register window scope
-     */
-    const windowPrototype = {}
-    applyScopePrototype(windowPrototype, 'window')
-    function Window () {}
-    prototype.window = { value: Object.create(Window.prototype, windowPrototype) }
-
     return prototype
 }
 
@@ -190,4 +181,34 @@ export const getElementFromResponse = (res) => {
     }
 
     throw new Error(`Response did not contain an element key.\n${res}`)
+}
+
+/**
+ * check if current platform is mobile device
+ *
+ * @param  {Object}  caps  capabilities
+ * @return {Boolean}       true if platform is mobile device
+ */
+export function mobileDetector (caps) {
+    let isMobile = Boolean(
+        (typeof caps['appium-version'] !== 'undefined') ||
+        (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
+        (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
+        (typeof caps.deviceName !== 'undefined') ||
+        // Check browserName for specific values
+        (caps.browserName === '' ||
+             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
+    )
+
+    let isIOS = Boolean(
+        (caps.platformName && caps.platformName.match(/iOS/i)) ||
+        (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
+    )
+
+    let isAndroid = Boolean(
+        (caps.platformName && caps.platformName.match(/Android/i)) ||
+        (caps.browserName && caps.browserName.match(/Android/i))
+    )
+
+    return { isMobile, isIOS, isAndroid }
 }

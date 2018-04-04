@@ -126,28 +126,28 @@
   "/session/:sessionId/window_handle": {
     "GET": {
       "command": "getWindowHandle",
-      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-window-handle",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidwindow_handle",
       "parameters": []
     }
   },
   "/session/:sessionId/window_handles": {
     "GET": {
       "command": "getWindowHandles",
-      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-window-handles",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidwindow_handles",
       "parameters": []
     }
   },
   "/session/:sessionId/window": {
     "DELETE": {
       "command": "closeWindow",
-      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-close-window",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidwindow",
       "parameters": []
     },
     "POST": {
       "command": "switchToWindow",
-      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-switch-to-window",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindow",
       "parameters": [{
-        "name": "handle",
+        "name": "name",
         "type": "string",
         "description": "The window to change focus to",
         "required": true

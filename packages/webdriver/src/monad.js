@@ -47,6 +47,13 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId
 
+        /**
+         * register capabilities only to browser scope
+         */
+        if (scopeType.name === 'Browser') {
+            client.capabilities = options.capabilities
+        }
+
         if (typeof modifier === 'function') {
             client = modifier(client, options)
         }
