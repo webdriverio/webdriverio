@@ -1,7 +1,7 @@
 import logger from 'wdio-logger'
 import { ConfigParser, initialisePlugin } from 'wdio-config'
 
-import CLIInterface from './interface'
+import CLInterface from './interface'
 import { getLauncher, runServiceHook } from './utils'
 
 const log = logger('wdio-cli:Launcher')
@@ -16,12 +16,14 @@ class Launcher {
         const capabilities = this.configParser.getCapabilities()
         const specs = this.configParser.getSpecs()
 
-        const Runner = initialisePlugin(config.runner, 'runner')
-        this.runner = new Runner(configFile, config, capabilities, specs)
-        this.runner.on('end', ::this.endHandler)
+        this.interface = new CLInterface(config, specs)
+        config.runnerEnv.FORCE_COLOR = this.interface.hasAnsiSupport
 
-        this.interface = new CLIInterface(config, specs)
+        const Runner = initialisePlugin(config.runner, 'runner')
+        this.runner = new Runner(configFile, config)
+        this.runner.on('end', ::this.endHandler)
         this.runner.on('message', ::this.interface.onMessage)
+
         this.argv = argv
         this.configFile = configFile
 

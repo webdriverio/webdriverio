@@ -1,11 +1,11 @@
 import chalk from 'chalk'
 import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
-import CLIInterface from 'wdio-interface'
+import CLInterface from 'wdio-interface'
 
-const clock = cliSpinners['clock']
+const clockSpinner = cliSpinners['clock']
 
-export default class WDIOCLIInterface extends EventEmitter {
+export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs) {
         super()
         this.hasAnsiSupport = chalk.supportsColor.hasBasic
@@ -23,7 +23,7 @@ export default class WDIOCLIInterface extends EventEmitter {
             reporter: {}
         }
 
-        this.interface = new CLIInterface()
+        this.interface = new CLInterface()
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
     }
@@ -77,9 +77,10 @@ export default class WDIOCLIInterface extends EventEmitter {
                 return
             }
 
-            const time = clock.frames[this.clockTimer = ++this.clockTimer % clock.frames.length]
+            const clockSpinnerSymbol = this.getClockSymbol()
             return this.interface.log(
-                `${time} Running: ${this.jobs.size}, ` +
+                `${clockSpinnerSymbol} ` +
+                `${this.jobs.size} running, ` +
                 `${this.result.passed} passed, ` +
                 `${this.result.failed} failed, ` +
                 `${this.specs.length} total ` +
@@ -145,11 +146,15 @@ export default class WDIOCLIInterface extends EventEmitter {
     }
 
     updateClock (interval = 100) {
-        const time = clock.frames[this.clockTimer = ++this.clockTimer % clock.frames.length]
+        const clockSpinnerSymbol = this.getClockSymbol()
 
         clearTimeout(this.interval)
         this.interface.clearLine()
-        this.interface.write('Time:\t\t ' + time + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
+        this.interface.write('Time:\t\t ' + clockSpinnerSymbol + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
         this.interval = setTimeout(() => this.updateClock(interval), interval)
+    }
+
+    getClockSymbol () {
+        return clockSpinner.frames[this.clockTimer = ++this.clockTimer % clockSpinner.frames.length]
     }
 }
