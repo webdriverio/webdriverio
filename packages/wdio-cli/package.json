@@ -45,7 +45,7 @@
     "wdio-config": "^0.1.0",
     "wdio-interface": "^0.0.0",
     "wdio-logger": "^0.1.0",
-    "yargs": "^10.0.3"
+    "yargs": "^11.1.0"
   },
   "devDependencies": {
     "lodash.flattendeep": "^4.4.0",
