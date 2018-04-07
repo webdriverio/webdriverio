@@ -1,11 +1,11 @@
 {
   "name": "wdio-sauce-service",
-  "version": "0.0.1",
+  "version": "0.4.7",
   "description": "WebdriverIO service that provides a better integration into SauceLabs",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-sauce-service",
   "license": "MIT",
-  "main": "./build/index",
+  "main": "launcher",
   "engines": {
     "node": ">= 4.8.5"
   },
@@ -25,11 +25,14 @@
   "keywords": [
     "webdriver",
     "wdio",
-    "wdio-service"
+    "wdio-service",
+    "sauce"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "request": "^2.85.0",
+    "sauce-connect-launcher": "^1.2.3"
   }
 }
