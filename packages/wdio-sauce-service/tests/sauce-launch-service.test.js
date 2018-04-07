@@ -133,7 +133,25 @@ describe('wdio-sauce-service', () => {
         expect(sauceService.suiteTitle).toEqual('Test ')
     })
 
-    it('afterTest: failed test', () => {
+    it('afterSuite: no errors', () => {
+        sauceService.failures = 0
+        const suite = {}
+
+        sauceService.afterSuite(suite)
+        expect(sauceService.failures).toEqual(0)
+    })
+
+    it('afterSuite: has errors', () => {
+        sauceService.failures = 0
+        const suite = {
+            err: 'some error'
+        }
+
+        sauceService.afterSuite(suite)
+        expect(sauceService.failures).toEqual(1)
+    })
+
+    it('afterTest: passed test', () => {
         sauceService.failures = 0
         const test = {
             passed: true
@@ -143,7 +161,7 @@ describe('wdio-sauce-service', () => {
         expect(sauceService.failures).toEqual(0)
     })
 
-    it('afterTest: passed test', () => {
+    it('afterTest: failed test', () => {
         sauceService.failures = 0
         const test = {
             passed: false
