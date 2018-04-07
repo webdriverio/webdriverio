@@ -50,15 +50,15 @@ describe('wdio-sauce-service', () => {
     })
 
     it('onComplete', () => {
-        sauceService.tunnel = {
-            close: resolve => resolve('tunnel closed')
+        sauceService.sauceConnectProcess = {
+            close: resolve => resolve('sauce connect closed')
         }
 
-        return expect(sauceService.onComplete()).resolves.toEqual('tunnel closed')
+        return expect(sauceService.onComplete()).resolves.toEqual('sauce connect closed')
     })
 
-    it('onComplete: no tunnel', () => {
-        sauceService.tunnel = undefined
+    it('onComplete: no sauce connect', () => {
+        sauceService.sauceConnectProcess = undefined
         expect(sauceService.onComplete()).toBeUndefined()
     })
 
