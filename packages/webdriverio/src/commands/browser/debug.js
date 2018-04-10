@@ -46,6 +46,7 @@ export default function debug(commandTimeout = 5000) {
 
     let commandIsRunning = false
 
+    /* istanbul ignore next */
     const myEval = (cmd, context, filename, callback) => {
         if (commandIsRunning) {
             return
