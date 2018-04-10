@@ -9,14 +9,16 @@ const log = logger('wdio-cli:run')
 
 export default function run (params) {
     let stdinData = ''
-    const commands = fs.readdirSync(path.join(__dirname, 'commands')).map((file) => file.slice(0, -3))
+
+    const firstArgument = params._[0]
+    const commands = fs.readdirSync(path.join(__dirname, 'commands')).map((file) => path.parse(file).name)
     const localConf = path.join(process.cwd(), 'wdio.conf.js')
-    const wdioConf = params._[0] || (fs.existsSync(localConf) ? localConf : null)
+    const wdioConf = firstArgument || (fs.existsSync(localConf) ? localConf : null)
 
     /**
      * don't do anything if command handler is triggered
      */
-    if (commands.includes(params._[0])) {
+    if (commands.includes(firstArgument)) {
         return
     }
 
