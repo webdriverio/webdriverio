@@ -3,13 +3,17 @@
 const path = require('path')
 const shell = require('shelljs')
 
-const packages = shell.ls(path.join(__dirname, '..', 'packages')).filter(
+const packages = shell.ls(path.join(__dirname, '..', 'packages')).filter((pkg) => (
     /**
      * ignore node_modules directory that is created by the link script to test the
      * wdio test runner
      */
-    (pkg) => pkg !== 'node_modules'
-)
+    pkg !== 'node_modules' &&
+    /**
+     * ignore packages that don't need to be compiled
+     */
+    !['eslint-plugin-wdio'].includes(pkg)
+))
 
 /**
  * set proper size of max listener
