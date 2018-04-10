@@ -16,6 +16,8 @@ const MERGE_OPTIONS = { clone: false }
 export default class Runner extends EventEmitter {
     constructor () {
         super()
+
+        this.configParser = new ConfigParser()
         this.sigintWasCalled = false
     }
 
@@ -24,7 +26,9 @@ export default class Runner extends EventEmitter {
         this.specs = m.specs
         this.caps = m.caps
 
-        this.configParser = new ConfigParser()
+        /**
+         * add config file
+         */
         this.configParser.addConfigFile(m.configFile)
 
         /**

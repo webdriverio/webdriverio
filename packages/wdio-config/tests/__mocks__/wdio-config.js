@@ -7,9 +7,25 @@ class DotReporter {
     }
 }
 
+class ConfigParserMock {
+    constructor () {
+        this.addService = jest.fn()
+    }
+}
+
+
+class FoobarServiceMock {
+    beforeSuite () {}
+    afterCommand () {}
+}
+
+
 const pluginMocks = {
     reporter: {
         dot: DotReporter
+    },
+    service: {
+        foobar: FoobarServiceMock
     }
 }
 
@@ -22,5 +38,6 @@ export default {
             config
         )
     ),
-    wrapCommand: (_, origFn) => origFn
+    wrapCommand: (_, origFn) => origFn,
+    ConfigParser: ConfigParserMock
 }
