@@ -1,10 +1,7 @@
-// import logger from 'wdio-logger'
 import { remote } from 'webdriverio'
 
 export const command = 'repl <browserName>'
 export const desc = 'Run WebDriver session in command line'
-
-// const log = logger('wdio-cli:repl')
 
 export const handler = async (argv) => {
     const { browserName } = argv
