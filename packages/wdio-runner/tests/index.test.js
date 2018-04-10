@@ -47,4 +47,31 @@ describe('wdio-runner', () => {
             delete global.browser
         })
     })
+
+    describe('initialiseServices', () => {
+        it('should be able to add custom services', () => {
+            const runner = new WDIORunner()
+            const service = {
+                before: jest.fn(),
+                afterTest: jest.fn()
+            }
+
+            runner.initialiseServices({ services: [service] })
+            expect(runner.configParser.addService.mock.calls).toHaveLength(1)
+            expect(runner.configParser.addService.mock.calls[0][0]).toEqual(service)
+        })
+
+        it('should be able to add wdio services', () => {
+            const runner = new WDIORunner()
+            runner.initialiseServices({ services: ['foobar'] })
+            expect(runner.configParser.addService.mock.calls).toHaveLength(1)
+
+            const service = runner.configParser.addService.mock.calls[0][0]
+            // check if /packages/wdio-config/tests/__mocks__/wdio-config.js how the mock looks like
+            expect(typeof service.beforeSuite).toBe('function')
+            expect(typeof service.afterCommand).toBe('function')
+            // not defined method
+            expect(typeof service.before).toBe('undefined')
+        })
+    })
 })
