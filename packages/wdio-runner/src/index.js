@@ -194,11 +194,14 @@ export default class Runner extends EventEmitter {
              * allow custom services
              */
             if (typeof serviceName === 'object') {
+                log.debug(`initialise custom service "${serviceName}"`)
                 this.configParser.addService(serviceName)
                 continue
             }
 
-            this.configParser.addService(initialisePlugin(serviceName, 'service'))
+            log.debug(`initialise wdio service "${serviceName}"`)
+            const Service = initialisePlugin(serviceName, 'service')
+            this.configParser.addService(new Service(config))
         }
     }
 }
