@@ -20,7 +20,7 @@ export default class DevToolsService {
 
     async before () {
         if (!this.isSupported) {
-            return global.browser.addCommand('cdp', () => {
+            return global.browser.addCommand('cdp', /* istanbul ignore next */ () => {
                 throw new Error(UNSUPPORTED_ERROR_MESSAGE)
             })
         }
@@ -41,6 +41,7 @@ export default class DevToolsService {
             }
 
             return new Promise((resolve, reject) => this.client[domain][command](args, (err, result) => {
+                /* istanbul ignore if */
                 if (err) {
                     return reject(new Error(`Chrome DevTools Error: ${result.message}`))
                 }
@@ -81,7 +82,7 @@ export default class DevToolsService {
         return new Promise((resolve) => CDP({
             port,
             host: 'localhost',
-            target: (targets) => targets.findIndex((t) => t.type === 'page')
+            target: /* istanbul ignore next */ (targets) => targets.findIndex((t) => t.type === 'page')
         }, resolve))
     }
 }
