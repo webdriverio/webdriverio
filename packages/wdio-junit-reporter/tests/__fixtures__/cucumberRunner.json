@@ -1,0 +1,91 @@
+
+{
+  "runners": {
+    "0-0": {
+      "type": "runner",
+      "start": "2017-07-06T12:58:41.492Z",
+      "_duration": 0,
+      "cid": "0-0",
+      "capabilities": {
+        "platformName": "Android",
+        "deviceName": "Nexus 5"
+      },
+      "sanitizedCapabilities": "nexus5.android",
+      "specs": {
+        "ee317ec04b8745d10159cc033b1a95a0": {
+          "type": "spec",
+          "start": "2017-07-06T12:58:41.492Z",
+          "_duration": 16348,
+          "files": [
+            "/path/to/file3.spec.js"
+          ],
+          "specHash": "ee317ec04b8745d10159cc033b1a95a0",
+          "suites": {
+            "Some foobaz test1": {
+              "type": "suite",
+              "start": "2017-07-06T12:58:50.249Z",
+              "_duration": 5605,
+              "uid": "Some foobaz test1",
+              "title": "Some foobaz test",
+              "tests": {},
+              "hooks": {},
+              "end": "2017-07-06T12:58:55.854Z"
+            },
+            "Some other foobaz test3": {
+              "type": "suite",
+              "start": "2017-07-06T12:58:50.250Z",
+              "_duration": 5602,
+              "uid": "Some other foobaz test3",
+              "title": "Some other foobaz test",
+              "tests": {
+                "I do some foo4": {
+                  "type": "test",
+                  "start": "2017-07-06T12:58:50.252Z",
+                  "_duration": 0,
+                  "uid": "I do some foo4",
+                  "title": "I do some foo",
+                  "state": "pass",
+                  "screenshots": [],
+                  "output": []
+                },
+                "I do some baz5": {
+                  "type": "test",
+                  "start": "2017-07-06T12:58:52.267Z",
+                  "_duration": 0,
+                  "uid": "I do some baz5",
+                  "title": "I do some baz",
+                  "state": "pass",
+                  "screenshots": [],
+                  "output": []
+                },
+                "I get some barbaz6": {
+                  "type": "test",
+                  "start": "2017-07-06T12:58:53.545Z",
+                  "_duration": 0,
+                  "uid": "I get some barbaz6",
+                  "title": "I get some barbaz",
+                  "state": "pass",
+                  "screenshots": [],
+                  "output": []
+                },
+                "undefined": {
+                  "type": "test",
+                  "start": "2017-07-06T12:58:55.851Z",
+                  "_duration": 0,
+                  "uid": "undefined",
+                  "state": "",
+                  "screenshots": [],
+                  "output": []
+                }
+              },
+              "hooks": {},
+              "end": "2017-07-06T12:58:55.852Z"
+            }
+          },
+          "end": "2017-07-06T12:58:57.840Z"
+        }
+      },
+      "sessionID": "e81e204e-0305-4860-badb-eb09ec38ffa0"
+    }
+  }
+}
