@@ -33,5 +33,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "junit-report-builder": "^1.3.0",
+    "libxmljs": "^0.18.7",
+    "lodash.get": "^4.4.2"
   }
 }
