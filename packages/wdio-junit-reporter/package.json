@@ -1,9 +1,9 @@
 {
-  "name": "wdio-xml-reporter",
-  "version": "0.3.1",
-  "description": "A WebdriverIO reporter that creates test results in XML format",
+  "name": "wdio-junit-reporter",
+  "version": "0.4.2",
+  "description": "A WebdriverIO reporter that creates Jenkins compatible XML based JUnit reports",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-xml-reporter",
+  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-junit-reporter",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
@@ -25,7 +25,9 @@
   "keywords": [
     "webdriver",
     "wdio",
-    "wdio-reporter"
+    "wdio-reporter",
+    "junit",
+    "reporter"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
