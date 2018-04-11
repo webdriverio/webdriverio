@@ -13,12 +13,10 @@ class ConfigParserMock {
     }
 }
 
-
 class FoobarServiceMock {
     beforeSuite () {}
     afterCommand () {}
 }
-
 
 const pluginMocks = {
     reporter: {
