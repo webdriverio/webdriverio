@@ -1,7 +1,10 @@
 import request from 'request'
 import { remote } from '../../../src'
+import { ELEMENT_KEY } from '../../../src/constants'
+import * as utils from '../../../src/utils'
 
 describe('selectByAttribute test', () => {
+    const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
     let browser
     let elem
 
@@ -17,6 +20,7 @@ describe('selectByAttribute test', () => {
 
     afterEach(() => {
         request.mockClear()
+        getElementFromResponseSpy.mockClear()
     })
 
     it('should select value by attribute when value is string', async () => {
@@ -27,6 +31,9 @@ describe('selectByAttribute test', () => {
         /* eslint-disable-next-line no-useless-escape */
         expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = \"someValue1\"]|./optgroup/option[normalize-space(@value) = \"someValue1\"]`)
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
+        expect(getElementFromResponseSpy).toBeCalledWith({
+            [ELEMENT_KEY]: 'some-sub-elem-321'
+        })
     })
 
     it('should select value by attribute when value is number', async () => {
@@ -37,5 +44,8 @@ describe('selectByAttribute test', () => {
         /* eslint-disable-next-line no-useless-escape */
         expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = \"123\"]|./optgroup/option[normalize-space(@value) = \"123\"]`)
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
+        expect(getElementFromResponseSpy).toBeCalledWith({
+            [ELEMENT_KEY]: 'some-sub-elem-321'
+        })
     })
 })
