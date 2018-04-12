@@ -28,6 +28,8 @@
  *
  */
 
+import { getElementFromResponse } from '../../utils'
+
 export default async function selectByIndex (index) {
     /**
      * negative index check
@@ -39,7 +41,7 @@ export default async function selectByIndex (index) {
     /**
     * get option elememnts using css
     */
-    const optionElements = await this.findElementsFromElement(this.elementId, 'css',  '<option>')
+    const optionElements = await this.findElementsFromElement(this.elementId, 'css',  'option')
 
     if (optionElements.length === 0) {
         throw new Error(`Select element doesn't contain any option element`)
@@ -52,5 +54,5 @@ export default async function selectByIndex (index) {
     /**
     * select option
     */
-    return this.elementClick(Object.values(optionElements[index])[0])
+    return this.elementClick(getElementFromResponse(optionElements[index]))
 }
