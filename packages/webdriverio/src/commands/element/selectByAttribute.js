@@ -32,6 +32,8 @@
  *
  */
 
+import { getElementFromResponse } from '../../utils'
+
 export default async function selectByAttribute (attribute, value) {
     /**
      * convert value into string
@@ -49,5 +51,5 @@ export default async function selectByAttribute (attribute, value) {
     /**
     * select option
     */
-    return this.elementClick(Object.values(optionElement)[0])
+    return this.elementClick(getElementFromResponse(optionElement))
 }

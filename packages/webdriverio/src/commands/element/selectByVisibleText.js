@@ -28,7 +28,16 @@
  *
  */
 
+import { getElementFromResponse } from '../../utils'
+
 export default async function selectByVisibleText (text) {
+    /**
+     * convert value into string
+     */
+    text = typeof text === 'number'
+        ? text.toString()
+        : text
+
     /**
     * find option element using xpath
     */
@@ -41,5 +50,5 @@ export default async function selectByVisibleText (text) {
     /**
     * select option
     */
-    return this.elementClick(Object.values(optionElement)[0])
+    return this.elementClick(getElementFromResponse(optionElement))
 }
