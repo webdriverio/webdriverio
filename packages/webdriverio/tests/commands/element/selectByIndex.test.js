@@ -1,7 +1,10 @@
 import request from 'request'
 import { remote } from '../../../src'
+import { ELEMENT_KEY } from '../../../src/constants'
+import * as utils from '../../../src/utils'
 
 describe('selectByIndex test', () => {
+    const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
     let browser
     let elem
 
@@ -25,6 +28,9 @@ describe('selectByIndex test', () => {
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/elements')
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-456/click')
+        expect(getElementFromResponseSpy).toBeCalledWith({
+            [ELEMENT_KEY]: 'some-elem-456'
+        })
     })
 
     it('should throw an error when index < 0', async () => {
