@@ -42,4 +42,34 @@ describe('isVisibleWithinViewport', () => {
         const isVisibleWithinViewport = await this.client.isVisibleWithinViewport('#doesNotExist')
         isVisibleWithinViewport.should.be.equal(false)
     })
+
+    it('should ignore dimension of element with position: static', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('.noPosition.np-default .positionAbsolute')
+        isVisibleWithinViewport.should.equal(true)
+    })
+
+    it('return true for position: static', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('.noPosition.np-static .positionAbsolute')
+        isVisibleWithinViewport.should.equal(true)
+    })
+
+    it('return false for static position and display: none', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('.noPosition.np-display-none .positionAbsolute')
+        isVisibleWithinViewport.should.equal(false)
+    })
+
+    it('return false for static position and visibility: hidden', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('.noPosition.np-visibility-hidden .positionAbsolute')
+        isVisibleWithinViewport.should.equal(false)
+    })
+
+    it('return false for static position and opacity: 0', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('.noPosition.np-opacity-zero .positionAbsolute')
+        isVisibleWithinViewport.should.equal(false)
+    })
+
+    it('return false for non-existent element', async function () {
+        const isVisibleWithinViewport = await this.client.scroll(0, 0).isVisibleWithinViewport('.please-make-it-consistent')
+        isVisibleWithinViewport.should.equal(false)
+    })
 })
