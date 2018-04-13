@@ -119,7 +119,7 @@ export default class WDIOCLInterface extends EventEmitter {
                 this.interface.log(chalk.bgYellow.black(`Stdout:\n`) + this.interface.stdoutBuffer.join(''))
             }
             if (this.interface.stderrBuffer.length) {
-                this.interface.log(chalk.bgRed.black(`\nStderr:\n`) + this.interface.stderrBuffer.join(''))
+                this.interface.log(chalk.bgRed.black(`Stderr:\n`) + this.interface.stderrBuffer.join(''))
             }
         }
 

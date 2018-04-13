@@ -22,7 +22,7 @@ export default class LocalRunner extends EventEmitter {
     run ({ cid, command, configFile, argv, caps, processNumber, specs, server, isMultiremote }) {
         const runnerEnv = Object.assign(this.config.runnerEnv, {
             WDIO_LOG_LEVEL: this.config.logLevel,
-            WDIO_LOG_PATH: path.join(this.config.logDir, `wdio-${cid}.log`),
+            WDIO_LOG_PATH: path.join(this.config.logDir, `wdio-${cid}.log`)
         })
 
         /**
