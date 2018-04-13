@@ -10,7 +10,8 @@ export default class TestStats extends RunnableStats {
         this.uid = RunnableStats.getIdentifier(runner)
         this.cid = runner.cid
         this.title = runner.title
-        this.fullTItle = runner.fullTItle
+        this.fullTitle = runner.fullTitle
+        this.output = []
 
         /**
          * initial test state is pending

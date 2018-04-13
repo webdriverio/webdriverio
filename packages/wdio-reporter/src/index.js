@@ -25,6 +25,8 @@ export default class WDIOReporter extends EventEmitter {
             failures: 0
         }
 
+        let currentTest
+
         const rootSuite = this.currentSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
@@ -62,7 +64,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:start', (test) => {
-            const testStat = new TestStats(test)
+            const testStat = currentTest = new TestStats(test)
             this.currentSuite.tests.push(testStat)
             this.tests[test.uid] = testStat
             this.onTestStart(testStat)
@@ -114,6 +116,14 @@ export default class WDIOReporter extends EventEmitter {
             this.runnerStat.complete()
             this.onRunnerEnd(this.runnerStat)
         })
+
+        /**
+         * browser client event handlers
+         */
+        this.on('client:command',
+            (payload) => currentTest.output.push(Object.assign(payload, { type: 'command' })))
+        this.on('client:result',
+            (payload) => currentTest.output.push(Object.assign(payload, { type: 'result' })))
     }
 
     /**
