@@ -44,8 +44,17 @@ const SERIALIZERS = [{
  */
 if (process.env.WDIO_LOG_PATH) {
     const logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
-    log.methodFactory = () => {
+    const originalFactory = log.methodFactory
+    log.methodFactory = (methodName, logLevel, loggerName) => {
+        const rawMethod = originalFactory(methodName, logLevel, loggerName)
         return (...args) => {
+            /**
+             * propagate errors to wdio runner
+             */
+            if (methodName === 'error') {
+                rawMethod(...args)
+            }
+
             logFile.write(`${util.format.apply(this, args)}\n`)
         }
     }
@@ -70,7 +79,7 @@ export default function getLogger (name) {
 
     const originalFactory = log.methodFactory;
     log.methodFactory = function (methodName, logLevel, loggerName) {
-        const rawMethod = originalFactory(methodName, logLevel, loggerName);
+        const rawMethod = originalFactory(methodName, logLevel, loggerName)
         return function (...args) {
             args = args.map((arg) => {
                 for (const s of SERIALIZERS) {
