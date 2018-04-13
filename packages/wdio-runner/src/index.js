@@ -53,28 +53,20 @@ export default class Runner extends EventEmitter {
             const browser = global.browser = await this.initialiseInstance(m.isMultiremote, this.caps)
 
             /**
-             * register beforeCommand event
+             * register command event
              */
-            browser.on('command', (command) => {
-                const runnerInfo = {
-                    cid: m.cid,
-                    sessionId: browser.sessionId,
-                    capabilities: browser.options.capabilities
-                }
-                this.reporter.emit('client:beforeCommand', Object.assign(command, runnerInfo))
-            })
+            browser.on('command', (command) => this.reporter.emit(
+                'client:command',
+                Object.assign(command, { sessionId: browser.sessionId })
+            ))
 
             /**
-             * register afterCommand event
+             * register result event
              */
-            browser.on('result', (result) => {
-                const runnerInfo = {
-                    cid: m.cid,
-                    sessionId: browser.sessionId,
-                    capabilities: browser.options.capabilities
-                }
-                this.reporter.emit('client:afterCommand', Object.assign(result, runnerInfo))
-            })
+            browser.on('result', (result) => this.reporter.emit(
+                'client:result',
+                Object.assign(result, { sessionId: browser.sessionId })
+            ))
 
             /**
              * initialisation successful, send start message
