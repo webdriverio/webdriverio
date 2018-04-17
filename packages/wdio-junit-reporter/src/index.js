@@ -43,7 +43,7 @@ class JunitReporter extends WDIOReporter {
                 const suiteName = this.prepareName(suite.title)
                 const testSuite = builder.testSuite()
                     .name(suiteName)
-                    .timestamp(new Date(suite.start))
+                    .timestamp(suite.start)
                     .time(suite._duration / 1000)
                     .property('specId', specId)
                     .property('suiteName', suite.title)

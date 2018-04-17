@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="My_awesome_feature" timestamp="2018-04-17T11:10:10" time="0.745" tests="3" failures="0" errors="1" skipped="1">
+  <testsuite name="My_awesome_feature" timestamp="2018-04-17T09:10:10.255Z" time="0.745" tests="3" failures="0" errors="1" skipped="1">
     <properties>
       <property name="specId" value="0"/>
       <property name="suiteName" value="My awesome feature"/>
       <property name="capabilities" value="chrome.65_0_3325_181.macosx"/>
-      <property name="file" value="./test/specs/sync.spec.js"/>
+      <property name="file" value="/path/to/project/test/specs/sync.spec.js"/>
     </properties>
     <testcase classname="chrome.65_0_3325_181.macosx.My_awesome_feature" name="should_can_do_something" time="0.727">
       <system-out>
@@ -37,12 +37,12 @@ RESULT: {}
       <system-err>
         <![CDATA[
 Error: uupsi
-    at Context.it (/Users/christianbromann/Sites/WebdriverIO/v5/test/specs/sync.spec.js:18:15)
-    at /Users/christianbromann/Sites/WebdriverIO/v5/packages/wdio-sync/src/index.js:28:28
+    at Context.it (/path/to/project/test/specs/sync.spec.js:18:15)
+    at /path/to/project/packages/wdio-sync/src/index.js:28:28
     at Promise (<anonymous>)
-    at F (/Users/christianbromann/Sites/WebdriverIO/v5/node_modules/core-js/library/modules/_export.js:35:28)
-    at Context.executeSync (/Users/christianbromann/Sites/WebdriverIO/v5/packages/wdio-sync/src/index.js:26:12)
-    at /Users/christianbromann/Sites/WebdriverIO/v5/packages/wdio-sync/src/index.js:161:33
+    at F (/path/to/project/node_modules/core-js/library/modules/_export.js:35:28)
+    at Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:26:12)
+    at /path/to/project/packages/wdio-sync/src/index.js:161:33
 ]]>
       </system-err>
     </testcase>
