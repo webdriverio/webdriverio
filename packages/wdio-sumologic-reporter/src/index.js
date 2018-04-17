@@ -29,7 +29,7 @@ export default class SumoLogicReporter extends WDIOReporter {
 
         // Cache of entries we are yet to sync
         this.unsynced = []
-        this.inSync = false
+        this.isSynchronising = false
 
         this.errorCount = 0
         this.specs = {}
@@ -110,12 +110,22 @@ export default class SumoLogicReporter extends WDIOReporter {
     }
 
     sync () {
-        if (this.inSync || this.unsynced.length === 0 || typeof this.options.sourceAddress !== 'string') {
+        /**
+         * don't synchronise logs if
+         *  - we've already send out a request and are waiting for the successful response
+         *  - we have nothing to synchronise
+         *  - there is an invalid source address
+         */
+        if (this.isSynchronising || this.unsynced.length === 0 || typeof this.options.sourceAddress !== 'string') {
             return
         }
 
         const logLines = this.unsynced.slice(0, MAX_LINES).join('\n')
-        this.inSync = true
+
+        /**
+         * set `isSynchronising` to true so we don't sync when a request is being made
+         */
+        this.isSynchronising = true
 
         request({
             method: 'POST',
@@ -125,12 +135,18 @@ export default class SumoLogicReporter extends WDIOReporter {
             const failed = Boolean(err) || resp.status < 200 || resp.status >= 400
 
             if (failed) {
-                log.error('failed send data to Sumo Logic:\n', err.stack ? err.stack : err)
+                return log.error('failed send data to Sumo Logic:\n', err.stack ? err.stack : err)
             } else {
+                /**
+                 * remove transfered logs from log bucket
+                 */
                 this.unsynced.splice(0, MAX_LINES)
             }
 
-            this.inSync = false
+            /**
+             * reset sync flag so we can sync again
+             */
+            this.isSynchronising = false
         })
     }
 }
