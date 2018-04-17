@@ -5,7 +5,7 @@ import WDIOJunitReporter from '../src'
 import runnerLog from './__fixtures__/runner.json'
 import suitesLog from './__fixtures__/suites.json'
 
-const testLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter.log'))
+const testLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter.txt'))
 
 describe('wdio-junit-reporter', () => {
     let reporter
