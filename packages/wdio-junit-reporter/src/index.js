@@ -41,10 +41,11 @@ class JunitReporter extends WDIOReporter {
 
                 const suite = this.suites[suiteKey]
                 const suiteName = this.prepareName(suite.title)
+                console.log(suite._duration);
                 const testSuite = builder.testSuite()
                     .name(suiteName)
-                    .timestamp(suite.start)
-                    .time(suite.duration / 1000)
+                    .timestamp(new Date(suite.start))
+                    .time(suite._duration / 1000)
                     .property('specId', specId)
                     .property('suiteName', suite.title)
                     .property('capabilities', runner.sanitizedCapabilities)
@@ -57,9 +58,9 @@ class JunitReporter extends WDIOReporter {
                         const testCase = testSuite.testCase()
                             .className(`${packageName}.${suiteName}`)
                             .name(testName)
-                            .time(test.duration / 1000)
+                            .time(test._duration / 1000)
 
-                        if (test.state === 'pending') {
+                        if (test.state === 'pending' || test.state === 'skipped') {
                             testCase.skipped()
                         }
 
