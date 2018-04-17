@@ -122,7 +122,7 @@ describe('cli interface', () => {
         const output = flatten(wdioClInterface.interface.log.mock.calls)
         expect(output).toContain('black "foo" Reporter:')
         expect(output).toContain('black Stdout:\nfoobar')
-        expect(output).toContain('black \nStderr:\nbarfoo')
+        expect(output).toContain('black Stderr:\nbarfoo')
         expect(output).toContain('(100% completed)')
     })
 })
