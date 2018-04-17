@@ -64,10 +64,10 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:start', (test) => {
-            const testStat = currentTest = new TestStats(test)
-            this.currentSuite.tests.push(testStat)
-            this.tests[test.uid] = testStat
-            this.onTestStart(testStat)
+            currentTest = new TestStats(test)
+            this.currentSuite.tests.push(currentTest)
+            this.tests[test.uid] = currentTest
+            this.onTestStart(currentTest)
         })
 
         this.on('test:pass', (test) => {
