@@ -10,6 +10,7 @@ export const SUPPORTED_REPORTER = [
     ' junit - https://www.npmjs.com/package/wdio-junit-reporter',
     ' allure - https://www.npmjs.com/package/wdio-allure-reporter',
     ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
+    ' sumologic - https://www.npmjs.com/package/wdio-sumologic-reporter',
     ' json - https://www.npmjs.com/package/wdio-json-reporter',
     ' concise - https://www.npmjs.com/package/wdio-concise-reporter',
     ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
