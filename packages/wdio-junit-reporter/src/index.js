@@ -41,7 +41,6 @@ class JunitReporter extends WDIOReporter {
 
                 const suite = this.suites[suiteKey]
                 const suiteName = this.prepareName(suite.title)
-                console.log(suite._duration);
                 const testSuite = builder.testSuite()
                     .name(suiteName)
                     .timestamp(new Date(suite.start))
