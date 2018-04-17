@@ -187,7 +187,7 @@
                 "end": "2018-04-17T09:10:10.999Z",
                 "error": {
                     "message": "uupsi",
-                    "stack": "Error: uupsi\n    at Context.it (/Users/christianbromann/Sites/WebdriverIO/v5/test/specs/sync.spec.js:18:15)\n    at /Users/christianbromann/Sites/WebdriverIO/v5/packages/wdio-sync/src/index.js:28:28\n    at Promise (<anonymous>)\n    at F (/Users/christianbromann/Sites/WebdriverIO/v5/node_modules/core-js/library/modules/_export.js:35:28)\n    at Context.executeSync (/Users/christianbromann/Sites/WebdriverIO/v5/packages/wdio-sync/src/index.js:26:12)\n    at /Users/christianbromann/Sites/WebdriverIO/v5/packages/wdio-sync/src/index.js:161:33",
+                    "stack": "Error: uupsi\n    at Context.it (/path/to/project/test/specs/sync.spec.js:18:15)\n    at /path/to/project/packages/wdio-sync/src/index.js:28:28\n    at Promise (<anonymous>)\n    at F (/path/to/project/node_modules/core-js/library/modules/_export.js:35:28)\n    at Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:26:12)\n    at /path/to/project/packages/wdio-sync/src/index.js:161:33",
                     "type": "Error"
                 }
             }
