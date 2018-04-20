@@ -1,5 +1,3 @@
-
-
 /**
  * opens new window via window.open
  * @param  {String} url            The URL to be loaded in the newly opened window.
@@ -8,8 +6,6 @@
  *
  * @see  https://developer.mozilla.org/en-US/docs/Web/API/Window.open
  */
-
-/* global window */
 export default function newWindow (url, windowName = 'new window', windowFeatures = '') {
     window.open(url, windowName, windowFeatures)
 }
