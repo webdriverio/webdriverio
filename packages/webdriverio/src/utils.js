@@ -212,3 +212,13 @@ export function mobileDetector (caps) {
 
     return { isMobile, isIOS, isAndroid }
 }
+
+/**
+ * get browser object from element
+ */
+export function getBrowserObject (elem) {
+    if (elem.parent) {
+        return elem.parent
+    }
+    return elem
+}

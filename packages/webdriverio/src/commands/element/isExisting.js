@@ -14,15 +14,15 @@
         let elem = $('#someRandomNonExistingElement')
         let isExisting = elem.isExisting()
         console.log(isExisting); // outputs: false
-        
+
         elem = $('#notDisplayed')
         isExisting = elem.isExisting()
         console.log(isExisting); // outputs: true
-        
+
         elem = $('#notVisible')
         isExisting = elem.isExisting()
         console.log(isExisting); // outputs: true
-        
+
         elem = $('#notInViewport')
         isExisting = elem.isExisting()
         console.log(isExisting); // outputs: true
@@ -41,8 +41,6 @@
  *
  */
 
-let isExisting = function () {
+export default function isExisting () {
     return this.parent.$$(this.selector).then((res) => res.length > 0)
 }
-
-export default isExisting
