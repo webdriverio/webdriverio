@@ -9,7 +9,7 @@
     :hasFocus.js
     it('should detect the focus of an element', function () {
         browser.url('/');
-        var loginInput = $('[name="login"]');
+        const loginInput = $('[name="login"]');
         console.log(loginInput.hasFocus()); // outputs: false
         loginInput.click();
         console.log(loginInput.hasFocus()); // outputs: true
