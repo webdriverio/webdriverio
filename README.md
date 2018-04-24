@@ -65,7 +65,7 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 - [wdio-dot-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-dot-reporter) - A WebdriverIO plugin to report in dot style
 - [wdio-spec-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-spec-reporter) - A WebdriverIO plugin to report in spec style
 - [wdio-sumologic-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-sumologic-reporter) - A WebdriverIO reporter that sends test results to Sumologic for data analyses
-- [wdio-xml-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-xml-reporter) - A WebdriverIO reporter that creates test results in XML format
+- [wdio-junit-reporter](https://github.com/webdriverio/v5/tree/master/packages/wdio-junit-reporter) - A WebdriverIO reporter that creates test results in XML format
 
 ### Services
 
@@ -73,3 +73,8 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 - [wdio-firefox-profile-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-firefox-profile-service) - WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
 - [wdio-sauce-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-sauce-service) - WebdriverIO service that provides a better integration into SauceLabs
 - [wdio-testingbot-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-testingbot-service) - WebdriverIO service that provides a better integration into TestingBot
+
+### Runner
+
+- [wdio-local-runner](https://github.com/webdriverio/v5/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
+- [wdio-firefox-profile-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-firefox-profile-service) - A WebdriverIO plugin that allows you to run tests on AWS

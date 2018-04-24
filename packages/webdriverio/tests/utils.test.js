@@ -1,4 +1,4 @@
-import { findStrategy, getElementFromResponse, mobileDetector } from '../src/utils'
+import { findStrategy, getElementFromResponse, mobileDetector, getBrowserObject } from '../src/utils'
 
 describe('utils', () => {
     describe('selector strategies helper', () => {
@@ -323,6 +323,20 @@ describe('utils', () => {
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(true)
+        })
+    })
+
+    describe('getBrowserObject', () => {
+        it('should traverse up', () => {
+            expect(getBrowserObject({
+                parent: {
+                    parent: {
+                        parent: {
+                            foo: 'bar'
+                        }
+                    }
+                }
+            })).toEqual({ foo: 'bar' })
         })
     })
 })

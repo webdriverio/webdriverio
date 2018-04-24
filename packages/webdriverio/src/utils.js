@@ -214,11 +214,8 @@ export function mobileDetector (caps) {
 }
 
 /**
- * get browser object from element
+ * traverse up the scope chain until browser element was reached
  */
 export function getBrowserObject (elem) {
-    if (elem.parent) {
-        return elem.parent
-    }
-    return elem
+    return elem.parent ? getBrowserObject(elem.parent) : elem
 }

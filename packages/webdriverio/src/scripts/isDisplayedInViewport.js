@@ -1,12 +1,8 @@
-
 /**
  * check if element is visible and within the viewport
- *
- * @param {String}  elements  DOM elements to check against
- *
- * @see  waitForVisible
+ * @param  {HTMLElement} elem  element to check
+ * @return {Boolean}           true if element is within viewport
  */
-
 export default function isDisplayedInViewport (elem) {
     const dde = document.documentElement
 
