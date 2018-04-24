@@ -12,7 +12,7 @@
     :isVisibleWithinViewport.js
     :isVisible.js
     it('should detect if an element is visible', function () {
-        var isVisibleWithinViewport = browser.isVisibleWithinViewport('#notDisplayed');
+        let isVisibleWithinViewport = browser.isVisibleWithinViewport('#notDisplayed');
         console.log(isVisibleWithinViewport); // outputs: false
         isVisibleWithinViewport = browser.isVisibleWithinViewport('#notVisible');
         console.log(isVisibleWithinViewport); // outputs: false
