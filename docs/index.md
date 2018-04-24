@@ -132,7 +132,7 @@ client
 ## Easy Test Setup
 
 The `wdio` command line interface comes with a nice configuration utility that helps you to
-create your config file in less than a minute. It also gives and overview of all available
+create your config file in less than a minute. It also gives an overview of all available
 3rd party packages like framework adaptions, reporter and services and installs them for you.
 
 
@@ -154,7 +154,7 @@ create your config file in less than a minute. It also gives and overview of all
     <article class="runyourtests col2 last">
         <h2>Run your tests in the cloud</h2>
         <p>
-            Services like Sauce Labs or BrowserStack provide selenium testing on remote hosts. Be able to run tests on a wide collection of platforms, devices and browser combinations without any configuration in your environment.
+            Services like Sauce Labs or BrowserStack provide selenium testing on remote hosts. They allow you to run tests on a wide collection of platforms, devices and browser combinations without any extra configuration to your environment.
         </p>
         <div>
             <p>WebdriverIO supports services including:</p>
