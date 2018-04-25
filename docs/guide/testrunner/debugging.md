@@ -95,7 +95,7 @@ To start debugging, open the following URL in Chrome:
 ```
 You'll want to open that url, which will attach the debugger.
 
-Tests will pause at `debugger` statements, but ONLY once dev-tools has been opened and the debugger attached. That can be a little awkward if you're trying to debug something close to the start of a test. You can get around that by adding a `browser.debug()` to pause long enough.
+Tests will pause at `debugger` statements, but ONLY once dev-tools has been opened and the debugger attached. If you prefer to break on the first line, you can use `'--inspect-brk'` instead.
 
 Once execution has finished, the test doesn't actually finish until the devtools is closed. You'll need to do that yourself.
 
