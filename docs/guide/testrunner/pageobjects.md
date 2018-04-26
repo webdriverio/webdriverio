@@ -156,6 +156,34 @@ describe('login form', function () {
     });
 });
 ```
+OR, when using ES6 class:
+
+```js
+// login.spec.js
+import LoginPage from '../pageobjects/login.page';
+
+var expect = require('chai').expect;
+
+describe('login form', => {
+    it('should deny access with wrong creds', => {
+        LoginPage.open();
+        LoginPage.username.setValue('foo');
+        LoginPage.password.setValue('bar');
+        LoginPage.submit();
+
+        expect(LoginPage.flash.getText()).to.contain('Your username is invalid!');
+    });
+
+    it('should allow access with correct creds', => {
+        LoginPage.open();
+        LoginPage.username.setValue('tomsmith');
+        LoginPage.password.setValue('SuperSecretPassword!');
+        LoginPage.submit();
+
+        expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!');
+    });
+});
+```
 
 From the structural side it makes sense to separate spec files and page objects and put them into different directories. Additionally you can give each page object the ending: `.page.js`. This way it is easy to figure out that you actually require a page object if you execute `var LoginPage = require('../pageobjects/form.page');`.
 
