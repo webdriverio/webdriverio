@@ -131,10 +131,11 @@ These events are containing data about the test regardless of the framework it i
 SuiteStats {
   type: 'suite',
   start: '2018-02-09T13:30:40.177Z',
-  duration: 0,
+  _duration: 0,
   uid: 'root suite2',
   cid: '0-0',
   title: 'root suite',
+  fullTitle: 'root suite',
   tests: [],
   hooks: [],
   suites: [] } }
@@ -146,13 +147,13 @@ SuiteStats {
 SuiteStats {
   type: 'suite',
   start: '2018-02-09T13:30:40.177Z',
-  duration: 1432,
+  _duration: 1432,
   uid: 'root suite2',
   cid: '0-0',
   title: 'root suite',
   fullTitle: 'root suite',
-  tests: [ [Object] ],
-  hooks: [ [Object], [Object] ],
+  tests: [ [TestStats] ],
+  hooks: [ [HookStats], [HookStats] ],
   suites: [ [Object] ],
   end: '2018-02-09T13:30:41.609Z' } }
 ```
@@ -163,7 +164,7 @@ SuiteStats {
 HookStats {
   type: 'hook',
   start: '2018-02-09T13:30:40.181Z',
-  duration: 0,
+  _duration: 0,
   uid: '"before each" hook4',
   cid: '0-0',
   title: '"before each" hook',
@@ -177,7 +178,7 @@ HookStats {
 HookStats {
   type: 'hook',
   start: '2018-02-09T13:30:40.181Z',
-  duration: 1,
+  _duration: 1,
   uid: '"before each" hook4',
   cid: '0-0',
   title: '"before each" hook',
@@ -192,10 +193,11 @@ HookStats {
 TestStats {
   type: 'test',
   start: '2018-02-09T13:30:40.180Z',
-  duration: 0,
+  _duration: 0,
   uid: 'passing test3',
   cid: '0-0',
   title: 'passing test',
+  fullTitle: 'passing test',
   state: 'pending' } }
 ```
 
@@ -205,10 +207,11 @@ TestStats {
 TestStats {
   type: 'test',
   start: '2018-02-09T14:01:04.573Z',
-  duration: 0,
+  _duration: 0,
   uid: 'skipped test6',
   cid: '0-0',
   title: 'skipped test',
+  fullTitle: 'skipped test',
   state: 'skipped' }
 ```
 
@@ -218,10 +221,11 @@ TestStats {
 TestStats {
   type: 'test',
   start: '2018-02-09T14:11:28.075Z',
-  duration: 1503,
+  _duration: 1503,
   uid: 'passing test3',
   cid: '0-0',
   title: 'passing test',
+  fullTitle: 'passing test',
   state: 'passed',
   end: '2018-02-09T14:11:29.578Z' } }
 ```
@@ -232,10 +236,11 @@ TestStats {
 TestStats {
      type: 'test',
      start: '2018-02-09T14:11:29.581Z',
-     duration: 21,
+     _duration: 21,
      uid: 'failing test8',
      cid: '0-0',
      title: 'failing test',
+     fullTitle: 'failing test',
      state: 'failed',
      end: '2018-02-09T14:11:29.602Z',
      error:
@@ -253,10 +258,11 @@ Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:488:12)\n 
 TestStats {
   type: 'test',
   start: '2018-02-09T14:11:28.075Z',
-  duration: 1503,
+  _duration: 1503,
   uid: 'passing test3',
   cid: '0-0',
   title: 'passing test',
+  fullTitle: 'passing test',
   state: 'passed',
   end: '2018-02-09T14:11:29.578Z' } }
 ```
@@ -271,7 +277,7 @@ These events contain information on the test runner.
 RunnerStats {
   type: 'runner',
   start: '2018-02-09T14:30:19.871Z',
-  duration: 0,
+  _duration: 0,
   cid: '0-0',
   capabilities:
    { acceptInsecureCerts: false,
@@ -298,7 +304,7 @@ RunnerStats {
 RunnerStats {
   type: 'runner',
   start: '2018-02-09T14:30:19.871Z',
-  duration: 1546,
+  _duration: 1546,
   uid: undefined,
   cid: '0-0',
   capabilities: [Object],
@@ -313,7 +319,7 @@ RunnerStats {
 
 Client events are triggered when certain interactions with the automation driver are happening.
 
-##### onCommandStart
+##### onBeforeCommand
 
 ```js
 { method: 'GET',
@@ -324,7 +330,7 @@ Client events are triggered when certain interactions with the automation driver
   capabilities: [Object] }
 ```
 
-##### onCommandEnd
+##### onAfterCommand
 
 ```js
 { method: 'GET',
