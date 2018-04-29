@@ -139,7 +139,7 @@ describe('ConfigParser', () => {
     })
 
     describe('merge', () => {
-        it('should update capabilities based on merged config', () => {
+        it('should override capability based on merged config', () => {
             let configParser = new ConfigParser()
             configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
             configParser.merge({
@@ -147,10 +147,29 @@ describe('ConfigParser', () => {
                     someNewCapability: 'I should be included in ConfigParser capabilities!'
                 }
             })
-
-            configParser.getCapabilities().should.have.property('browserName', 'chrome')
+            Object.keys(configParser.getCapabilities()).should.have.lengthOf(1)
             configParser.getCapabilities().should.have.property('someNewCapability',
                 'I should be included in ConfigParser capabilities!'
+            )
+        })
+
+        it('should override capabilities based on merged config', () => {
+            let configParser = new ConfigParser()
+            configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
+            configParser.merge({
+                capabilities: [{
+                    someNewCapability: 'I should be included in ConfigParser capabilities!'
+                },
+                {
+                    secondNewCapability: 'I should also be included in ConfigParser capabilities!'
+                }]
+            })
+            configParser.getCapabilities().should.have.lengthOf(2)
+            configParser.getCapabilities()[0].should.have.property('someNewCapability',
+                'I should be included in ConfigParser capabilities!'
+            )
+            configParser.getCapabilities()[1].should.have.property('secondNewCapability',
+                'I should also be included in ConfigParser capabilities!'
             )
         })
     })

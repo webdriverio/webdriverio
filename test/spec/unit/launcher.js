@@ -76,6 +76,32 @@ describe('launcher', () => {
                 spec: './foobar.js'
             })).to.throw(/spec file \.\/foobar\.js not found/)
         })
+
+        it('should allow to pass a cap as cli argument to run tests on only one cap', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                capabilities: {
+                    browserName: 'chrome'
+                }
+            })
+            let caps = launcher.configParser.getCapabilities()
+            caps.should.deep.equal({
+                browserName: 'chrome'
+            })
+        })
+
+        it('should allow to pass multiple caps as cli argument to run tests on only these caps ', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                capabilities: [{
+                    browserName: 'chrome'
+                }, {
+                    browserName: 'firefox'
+                }]
+            })
+            let caps = launcher.configParser.getCapabilities()
+            caps.should.have.length(2)
+            caps[0].should.deep.equal({ browserName: 'chrome' })
+            caps[1].should.deep.equal({ browserName: 'firefox' })
+        })
     })
 
     it('should exit if no spec was found', () => {
