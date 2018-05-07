@@ -131,7 +131,7 @@ These events are containing data about the test regardless of the framework it i
 SuiteStats {
   type: 'suite',
   start: '2018-02-09T13:30:40.177Z',
-  _duration: 0,
+  duration: 0,
   uid: 'root suite2',
   cid: '0-0',
   title: 'root suite',
@@ -147,7 +147,7 @@ SuiteStats {
 SuiteStats {
   type: 'suite',
   start: '2018-02-09T13:30:40.177Z',
-  _duration: 1432,
+  duration: 1432,
   uid: 'root suite2',
   cid: '0-0',
   title: 'root suite',
@@ -164,7 +164,7 @@ SuiteStats {
 HookStats {
   type: 'hook',
   start: '2018-02-09T13:30:40.181Z',
-  _duration: 0,
+  duration: 0,
   uid: '"before each" hook4',
   cid: '0-0',
   title: '"before each" hook',
@@ -178,7 +178,7 @@ HookStats {
 HookStats {
   type: 'hook',
   start: '2018-02-09T13:30:40.181Z',
-  _duration: 1,
+  duration: 1,
   uid: '"before each" hook4',
   cid: '0-0',
   title: '"before each" hook',
@@ -193,7 +193,7 @@ HookStats {
 TestStats {
   type: 'test',
   start: '2018-02-09T13:30:40.180Z',
-  _duration: 0,
+  duration: 0,
   uid: 'passing test3',
   cid: '0-0',
   title: 'passing test',
@@ -207,7 +207,7 @@ TestStats {
 TestStats {
   type: 'test',
   start: '2018-02-09T14:01:04.573Z',
-  _duration: 0,
+  duration: 0,
   uid: 'skipped test6',
   cid: '0-0',
   title: 'skipped test',
@@ -221,7 +221,7 @@ TestStats {
 TestStats {
   type: 'test',
   start: '2018-02-09T14:11:28.075Z',
-  _duration: 1503,
+  duration: 1503,
   uid: 'passing test3',
   cid: '0-0',
   title: 'passing test',
@@ -236,7 +236,7 @@ TestStats {
 TestStats {
      type: 'test',
      start: '2018-02-09T14:11:29.581Z',
-     _duration: 21,
+     duration: 21,
      uid: 'failing test8',
      cid: '0-0',
      title: 'failing test',
@@ -258,7 +258,7 @@ Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:488:12)\n 
 TestStats {
   type: 'test',
   start: '2018-02-09T14:11:28.075Z',
-  _duration: 1503,
+  duration: 1503,
   uid: 'passing test3',
   cid: '0-0',
   title: 'passing test',
@@ -277,7 +277,7 @@ These events contain information on the test runner.
 RunnerStats {
   type: 'runner',
   start: '2018-02-09T14:30:19.871Z',
-  _duration: 0,
+  duration: 0,
   cid: '0-0',
   capabilities:
    { acceptInsecureCerts: false,
@@ -304,7 +304,7 @@ RunnerStats {
 RunnerStats {
   type: 'runner',
   start: '2018-02-09T14:30:19.871Z',
-  _duration: 1546,
+  duration: 1546,
   uid: undefined,
   cid: '0-0',
   capabilities: [Object],
