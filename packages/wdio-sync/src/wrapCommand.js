@@ -34,7 +34,7 @@ export default function wrapCommand (commandName, fn) {
         )
 
         if (commandError) {
-            throw new Error(commandError)
+            throw commandError
         }
 
         return commandResult
