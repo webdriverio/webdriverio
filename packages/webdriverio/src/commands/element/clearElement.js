@@ -5,26 +5,26 @@
  * readonly mode.
  *
  * <example>
-    :clearElement.js
-    it('should demonstrate the clearElement command', function () {
+    :clearValue.js
+    it('should demonstrate the clearValue command', function () {
         const elem = $('.input')
         elem.setValue('test123')
 
-        const value = elem.getValue() 
+        const value = elem.getValue()
         console.log(value) // returns 'test123'
-        
-        elem.clearElement()
+
+        elem.clearValue()
         value = elem.getValue()
         assert(value === ''); // true
     })
  * </example>
  *
- * @alias browser.clearElement
+ * @alias browser.clearValue
  * @uses protocol/elements, protocol/elementIdClear
  * @type action
  *
  */
 
-export default function clearElement () {
+export default function clearValue () {
     return this.elementClear(this.elementId)
 }
