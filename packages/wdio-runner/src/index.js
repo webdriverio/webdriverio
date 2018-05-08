@@ -103,7 +103,7 @@ export default class Runner extends EventEmitter {
             return this.shutdown(failures)
         } catch (e) {
             log.error(e)
-            return this.shutdown(1)
+            return this.shutdown(1, true)
         }
     }
 
@@ -138,15 +138,20 @@ export default class Runner extends EventEmitter {
     /**
      * kill runner session and end session if one was already started
      */
-    async shutdown (failures) {
+    async shutdown (failures, noSessionStarted) {
         if (global.browser && global.browser.sessionId) {
             await global.browser.deleteSession()
         }
 
-        this.reporter.emit('runner:end', {
-            failures,
-            cid: this.cid
-        })
+        /**
+         * only report if session was actually started
+         */
+        if (!noSessionStarted) {
+            this.reporter.emit('runner:end', {
+                failures,
+                cid: this.cid
+            })
+        }
 
         this.emit('exit', failures === 0 ? 0 : 1)
     }
