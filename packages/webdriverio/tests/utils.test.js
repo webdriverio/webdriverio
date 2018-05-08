@@ -357,13 +357,22 @@ describe('utils', () => {
             expect(transformToCharString({ a: 1 })).toEqual(['{', '"', 'a', '"', ':', '1', '}'])
         })
 
-        it('should be able to transform numvers', () => {
+        it('should be able to transform numbers', () => {
             expect(transformToCharString(42)).toEqual(['4', '2'])
+        })
+
+        it('should be able to transform booleans', () => {
+            expect(transformToCharString(true)).toEqual(['t', 'r', 'u', 'e'])
         })
 
         it('ignore undefined/null', () => {
             expect(transformToCharString([null])).toEqual([])
             expect(transformToCharString([undefined])).toEqual([])
+        })
+
+        it('can do all of this together', () => {
+            expect(transformToCharString(['foo', undefined, { b: 1 }, null, 42, false])).toEqual(
+                ['f', 'o', 'o', '{', '"', 'b', '"', ':', '1', '}', '4', '2', 'f', 'a', 'l', 's', 'e'])
         })
     })
 })

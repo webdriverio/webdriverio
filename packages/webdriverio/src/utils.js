@@ -225,26 +225,27 @@ export function getBrowserObject (elem) {
  * transform whatever value is into an array of char strings
  */
 export function transformToCharString (value) {
+    const ret = []
+
     if (!Array.isArray(value)) {
         value = [value]
     }
 
-    for (const [i, val] of Object.entries(value)) {
+    for (const val of value) {
         if (typeof val === 'string') {
-            value = [...value.slice(0, i), ...val.split(''), ...value.slice(i + 1)]
+            ret.push(...val.split(''))
         } else if (typeof val === 'number') {
-            value = [...value.slice(0, i), ...`${val}`.split(''), ...value.slice(i + 1)]
+            const entry = `${val}`.split('')
+            ret.push(...entry)
         } else if (val && typeof val === 'object') {
             try {
-                value = [...value.slice(0, i), ...JSON.stringify(val).split(''), ...value.slice(i + 1)]
+                ret.push(...JSON.stringify(val).split(''))
             } catch (e) { /* ignore */ }
         } else if (typeof val === 'boolean') {
-            value = [...value.slice(0, i), val ? 'true'.split('') : 'false'.split(''), value.slice(i + 1)]
-        } else {
-            // ignore all others
-            value = [...value.slice(0, i), ...value.slice(i + 1)]
+            const entry = val ? 'true'.split('') : 'false'.split('')
+            ret.push(...entry)
         }
     }
 
-    return value
+    return ret
 }
