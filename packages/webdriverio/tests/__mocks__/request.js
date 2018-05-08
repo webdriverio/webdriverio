@@ -24,6 +24,12 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     switch (params.uri.path) {
     case '/wd/hub/session':
         value = sessionResponse
+
+        if (params.body.capabilities.browserName.includes('noW3C')) {
+            value.desiredCapabilities = { browserName: 'mockBrowser' }
+            delete value.capabilities
+        }
+
         break;
     case `/wd/hub/session/${sessionId}/element`:
         value = {
