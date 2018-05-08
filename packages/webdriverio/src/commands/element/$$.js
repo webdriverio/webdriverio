@@ -37,7 +37,7 @@ import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse 
 import { elementErrorHandler } from '../../middlewares'
 
 export default async function $$ (selector) {
-    const { using, value } = findStrategy(selector)
+    const { using, value } = findStrategy(selector, this.isW3C)
     const res = await this.findElementsFromElement(this.elementId, using, value)
     const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
 
@@ -51,8 +51,8 @@ export default async function $$ (selector) {
                 client.error = res
             }
 
-            client.parent = this
             client.selector = selector
+            client.parent = this
             client.index = i
             client.emit = ::this.emit
             return client

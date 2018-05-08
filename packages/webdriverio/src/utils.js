@@ -1,16 +1,12 @@
 import fs from 'fs'
 import path from 'path'
 
-import { ELEMENT_KEY } from './constants'
+import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES } from './constants'
 
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
 
-export const findStrategy = function (...args) {
-    let value = args[0]
-    let relative = (args.length > 1 ? args[1] : false)
-    let xpathPrefix = relative ? './/' : '//'
-
+export const findStrategy = function (value, isW3C) {
     /**
      * set default selector
      */
@@ -20,33 +16,26 @@ export const findStrategy = function (...args) {
         throw new Error('selector needs to be typeof `string`')
     }
 
-    if (args.length === 3) {
-        return {
-            using: args[0],
-            value: args[1]
-        }
-    }
-
     /**
      * check if user has specified locator strategy directly
      */
     const match = value.match(DIRECT_SELECTOR_REGEXP)
     if (match) {
+        /**
+         * ensure selector strategy is supported
+         */
+        if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
+            throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
+        }
+
         return {
             using: match[1],
             value: match[2]
         }
     }
 
-    // check value type
-    // use id strategy if value starts with # and doesnt contain any other CSS selector-relevant character
-    // regex to match ids from http://stackoverflow.com/questions/18938390/regex-to-match-ids-in-a-css-file
-    if (value.search(/^#-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/) > -1) {
-        using = 'id'
-        value = value.slice(1)
-
     // use xPath strategy if value starts with //
-    } else if (value.indexOf('/') === 0 || value.indexOf('(') === 0 ||
+    if (value.indexOf('/') === 0 || value.indexOf('(') === 0 ||
                value.indexOf('../') === 0 || value.indexOf('./') === 0 ||
                value.indexOf('*/') === 0) {
         using = 'xpath'
@@ -100,7 +89,7 @@ export const findStrategy = function (...args) {
         let tag = query.shift()
 
         using = 'xpath'
-        value = `${xpathPrefix}${tag.length ? tag : '*'}[normalize-space() = "${query.join('=')}"]`
+        value = `.//${tag.length ? tag : '*'}[normalize-space() = "${query.join('=')}"]`
 
     // any element containing given text
     } else if (value.search(/^[a-z0-9]*\*=(.)+$/) >= 0) {
@@ -108,7 +97,7 @@ export const findStrategy = function (...args) {
         let tag = query.shift()
 
         using = 'xpath'
-        value = `${xpathPrefix}${tag.length ? tag : '*'}[contains(., "${query.join('*=')}")]`
+        value = `.//${tag.length ? tag : '*'}[contains(., "${query.join('*=')}")]`
 
     // any element with certain class or id + given content
     } else if (value.search(/^[a-z0-9]*(\.|#)-?[_a-zA-Z]+[_a-zA-Z0-9-]*=(.)+$/) >= 0) {
@@ -120,7 +109,7 @@ export const findStrategy = function (...args) {
 
         tag = tag.substr(0, tag.search(/(\.|#)/))
         using = 'xpath'
-        value = `${xpathPrefix}${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and normalize-space() = "${query.join('=')}"]`
+        value = `.//${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and normalize-space() = "${query.join('=')}"]`
 
     // any element with certain class or id + has certain content
     } else if (value.search(/^[a-z0-9]*(\.|#)-?[_a-zA-Z]+[_a-zA-Z0-9-]*\*=(.)+$/) >= 0) {
@@ -132,12 +121,19 @@ export const findStrategy = function (...args) {
 
         tag = tag.substr(0, tag.search(/(\.|#)/))
         using = 'xpath'
-        value = xpathPrefix + (tag.length ? tag : '*') + '[contains(@' + classOrId + ', "' + classOrIdName + '") and contains(., "' + query.join('*=') + '")]'
-        value = `${xpathPrefix}${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and contains(., "${query.join('*=')}")]`
+        value = './/' + (tag.length ? tag : '*') + '[contains(@' + classOrId + ', "' + classOrIdName + '") and contains(., "' + query.join('*=') + '")]'
+        value = `.//${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and contains(., "${query.join('*=')}")]`
 
     // allow to move up to the parent or select current element
     } else if (value === '..' || value === '.') {
         using = 'xpath'
+    }
+
+    /**
+     * ensure selector strategy is supported
+     */
+    if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {
+        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
     }
 
     return { using, value }
