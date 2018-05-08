@@ -10,19 +10,17 @@
     :addValue.js
     it('should demonstrate the addValue command', function () {
         var input = $('.input')
-        input.setValue('test')
+        input.addValue('test')
         input.addValue(123)
-        // same as
-        browser.setValue('.input', 'test')
-        browser.addValue('.input', '123')
-        var value = elem.getValue()
+
+        var value = input.getValue()
         assert(value === 'test123') // true
     })
  * </example>
  *
  * @alias browser.addValue
- * @param {String}        selector   Input element
- * @param {String|Number} values     value to be added
+ * @param {String} selector   Input element
+ * @param {*}      values     value to be added
  * @uses protocol/elements, protocol/elementIdValue
  * @type action
  *
