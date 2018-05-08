@@ -161,6 +161,11 @@ export const getPrototype = (scope) => {
     return prototype
 }
 
+/**
+ * get element id from WebDriver response
+ * @param  {object} res         body object from response
+ * @return {string|undefined}   element id or null if element couldn't be found
+ */
 export const getElementFromResponse = (res) => {
     /**
      * depcrecated JSONWireProtocol response
@@ -176,7 +181,7 @@ export const getElementFromResponse = (res) => {
         return res[ELEMENT_KEY]
     }
 
-    throw new Error(`Response did not contain an element key.\n${res}`)
+    return null
 }
 
 /**
@@ -214,4 +219,32 @@ export function mobileDetector (caps) {
  */
 export function getBrowserObject (elem) {
     return elem.parent ? getBrowserObject(elem.parent) : elem
+}
+
+/**
+ * transform whatever value is into an array of char strings
+ */
+export function transformToCharString (value) {
+    if (!Array.isArray(value)) {
+        value = [value]
+    }
+
+    for (const [i, val] of Object.entries(value)) {
+        if (typeof val === 'string') {
+            value = [...value.slice(0, i), ...val.split(''), ...value.slice(i + 1)]
+        } else if (typeof val === 'number') {
+            value[i] = `${val}`
+        } else if (typeof val === 'object') {
+            try {
+                value[i] = JSON.stringify(val)
+            } catch (e) { /* ignore */ }
+        } else if (typeof val === 'boolean') {
+            value = [...value.slice(0, i), val ? 'true'.split('') : 'false'.split(''), value.slice(i + 1)]
+        } else {
+            // ignore all others
+            value = [...value.slice(0, i), value.slice(i + 1)]
+        }
+    }
+
+    return value
 }
