@@ -18,11 +18,11 @@ describe('element', () => {
         const elems = await elem.$$('#subfoo')
         expect(request.mock.calls[1][0].method).toBe('POST')
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
-        expect(request.mock.calls[1][0].body).toEqual({ using: 'id', value: 'foo' })
+        expect(request.mock.calls[1][0].body).toEqual({ using: 'css selector', value: '#foo' })
         expect(elem.elementId).toBe('some-elem-123')
         expect(request.mock.calls[2][0].method).toBe('POST')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/elements')
-        expect(request.mock.calls[2][0].body).toEqual({ using: 'id', value: 'subfoo' })
+        expect(request.mock.calls[2][0].body).toEqual({ using: 'css selector', value: '#subfoo' })
         expect(elems).toHaveLength(3)
 
         expect(elems[0].elementId).toBe('some-sub-elem-321')

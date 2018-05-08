@@ -233,16 +233,16 @@ export function transformToCharString (value) {
         if (typeof val === 'string') {
             value = [...value.slice(0, i), ...val.split(''), ...value.slice(i + 1)]
         } else if (typeof val === 'number') {
-            value[i] = `${val}`
-        } else if (typeof val === 'object') {
+            value = [...value.slice(0, i), ...`${val}`.split(''), ...value.slice(i + 1)]
+        } else if (val && typeof val === 'object') {
             try {
-                value[i] = JSON.stringify(val)
+                value = [...value.slice(0, i), ...JSON.stringify(val).split(''), ...value.slice(i + 1)]
             } catch (e) { /* ignore */ }
         } else if (typeof val === 'boolean') {
             value = [...value.slice(0, i), val ? 'true'.split('') : 'false'.split(''), value.slice(i + 1)]
         } else {
             // ignore all others
-            value = [...value.slice(0, i), value.slice(i + 1)]
+            value = [...value.slice(0, i), ...value.slice(i + 1)]
         }
     }
 

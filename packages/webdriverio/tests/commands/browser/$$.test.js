@@ -13,7 +13,7 @@ describe('elements', () => {
             }
         })
     })
-    
+
     it('should fetch elements', async () => {
         elems = await browser.$$('.foo')
         expect(request.mock.calls[1][0].method).toBe('POST')
