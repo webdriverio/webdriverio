@@ -230,3 +230,5 @@ export const WDIO_DEFAULTS = {
     afterScenario: HOOK_DEFINITION,
     afterStep: HOOK_DEFINITION
 }
+
+export const W3C_SELECTOR_STRATEGIES = ['css selector', 'link text', 'partial link text', 'tag name', 'xpath']
