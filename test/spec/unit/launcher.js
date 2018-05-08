@@ -134,13 +134,13 @@ describe('launcher', () => {
             await launcher.run()
             launcher.startInstance.callCount.should.be.equal(10)
 
-            launcher.startInstance.reset()
+            launcher.startInstance.resetHistory()
             launcher.schedule[0].runningInstances--
             launcher.schedule[0].availableInstances++
             launcher.runSpecs().should.be.not.ok
             launcher.startInstance.callCount.should.be.equal(1)
 
-            launcher.startInstance.reset()
+            launcher.startInstance.resetHistory()
             launcher.schedule.forEach((cap) => {
                 cap.runningInstances--
                 cap.availableInstances++
@@ -148,14 +148,14 @@ describe('launcher', () => {
             launcher.runSpecs().should.be.not.ok
             launcher.startInstance.callCount.should.be.equal(5)
 
-            launcher.startInstance.reset()
+            launcher.startInstance.resetHistory()
             launcher.schedule.forEach((cap) => {
                 cap.runningInstances = 0
                 cap.availableInstances = 100
             })
             launcher.runSpecs().should.be.not.ok
             launcher.startInstance.callCount.should.be.equal(4)
-            launcher.startInstance.reset()
+            launcher.startInstance.resetHistory()
             launcher.schedule.forEach((cap) => {
                 cap.runningInstances = 0
                 cap.availableInstances = 100
@@ -174,14 +174,14 @@ describe('launcher', () => {
             await launcher.run()
             launcher.startInstance.callCount.should.be.equal(15)
 
-            launcher.startInstance.reset()
+            launcher.startInstance.resetHistory()
             launcher.schedule.forEach((cap) => {
                 cap.runningInstances = 0
                 cap.availableInstances = 100
             })
             launcher.runSpecs().should.be.not.ok
             launcher.startInstance.callCount.should.be.equal(10)
-            launcher.startInstance.reset()
+            launcher.startInstance.resetHistory()
             launcher.schedule.forEach((cap) => {
                 cap.runningInstances = 0
                 cap.availableInstances = 100
@@ -220,7 +220,7 @@ describe('launcher', () => {
         })
 
         afterEach(() => {
-            launcher.startInstance.reset()
+            launcher.startInstance.resetHistory()
         })
     })
 
