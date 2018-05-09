@@ -1,5 +1,4 @@
 import path from 'path'
-import sinon from 'sinon'
 import Launcher from '../../../build/lib/launcher'
 import mock from 'mock-require'
 
