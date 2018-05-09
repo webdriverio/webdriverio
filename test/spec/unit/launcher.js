@@ -111,23 +111,23 @@ describe('launcher', () => {
             browserName: 'phantomjs'
         }]
 
-        function getLauncer (args, numberOfSpecs = 20) {
+        function getLauncher (args, numberOfSpecs = 20) {
             launcher = new Launcher(path.join(FIXTURE_ROOT, 'runspec.wdio.conf.js'), args)
             launcher.configParser.getSpecs = () => Object.assign('/foo/bar.js,'.repeat(numberOfSpecs).split(',').slice(0, -1))
             launcher.configParser.getCapabilities = () => Object.assign(caps)
-            launcher.startInstance = sinon.spy()
+            launcher.startInstance = global.sinon.spy()
             return launcher
         }
 
         it('should run all specs if no limitations are given (full concurrency)', async () => {
-            launcher = getLauncer()
+            launcher = getLauncher()
             setTimeout(() => launcher.resolve(0), 10)
             await launcher.run()
             launcher.startInstance.callCount.should.be.equal(100)
         })
 
         it('should run max maxInstances', async () => {
-            launcher = getLauncer({
+            launcher = getLauncher({
                 maxInstances: 10
             }, 4)
             setTimeout(() => launcher.resolve(0), 10)
@@ -165,7 +165,7 @@ describe('launcher', () => {
         })
 
         it('should respect maxInstances property of a single capabiltiy', async () => {
-            launcher = getLauncer({}, 5)
+            launcher = getLauncher({}, 5)
             launcher.configParser.getCapabilities = () => Object.assign(caps).map((a, i) => {
                 a.maxInstances = i + 1
                 return a
@@ -191,7 +191,7 @@ describe('launcher', () => {
         })
 
         it('should stop launching runners after bail number is reached', async () => {
-            launcher = getLauncer({
+            launcher = getLauncher({
                 maxInstances: 1,
                 bail: 2
             }, 5)
