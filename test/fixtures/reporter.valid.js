@@ -1,8 +1,8 @@
 const util = require('util')
 const events = require('events')
 
-const SweetReporter = function(baseReporter, config, options) {
-    this.on('start', function() {console.log('start')})
+const SweetReporter = function (baseReporter, config, options) {
+    this.on('start', function () { console.log('start') })
 }
 
 SweetReporter.reporterName = 'SweetReporter'

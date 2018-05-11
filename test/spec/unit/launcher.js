@@ -6,7 +6,6 @@ const FIXTURE_ROOT = path.join(__dirname, '..', '..', 'fixtures')
 
 describe('Launcher', () => {
     describe('Suites and Specs', () => {
-
         it('should not overwrite specs if no suite is given', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
             let specs = launcher.configParser.getSpecs()
@@ -85,58 +84,60 @@ describe('Launcher', () => {
         })
     })
 
-
     describe('getRunnerId', () => {
-      it('should assign proper runner ids using getRunnerId', () => {
-          let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
-          expect(launcher.getRunnerId(0)).to.be.equal('0-0')
-          expect(launcher.getRunnerId(0)).to.be.equal('0-1')
-          expect(launcher.getRunnerId(0)).to.be.equal('0-2')
-          expect(launcher.getRunnerId(0)).to.be.equal('0-3')
-          expect(launcher.getRunnerId(5)).to.be.equal('5-0')
-          expect(launcher.getRunnerId(5)).to.be.equal('5-1')
-      })
+        it('should assign proper runner ids using getRunnerId', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
+            expect(launcher.getRunnerId(0)).to.be.equal('0-0')
+            expect(launcher.getRunnerId(0)).to.be.equal('0-1')
+            expect(launcher.getRunnerId(0)).to.be.equal('0-2')
+            expect(launcher.getRunnerId(0)).to.be.equal('0-3')
+            expect(launcher.getRunnerId(5)).to.be.equal('5-0')
+            expect(launcher.getRunnerId(5)).to.be.equal('5-1')
+        })
     })
 
     describe('initReporters', () => {
-      it('should be called upon instantiation', () => {
-        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
-        const launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
-        expect(initReportersSpy.calledOnce).to.be.true
-        initReportersSpy.restore()
-      })
+        it('should be called upon instantiation', () => {
+            const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+            /* eslint-disable no-unused-vars */
+            const launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
+            /* eslint-enable no-unused-vars */
+            expect(initReportersSpy.calledOnce).to.be.true
+            initReportersSpy.restore()
+        })
 
-      it('should accept a valid custom reporter', () => {
-        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
-        const launcher = new Launcher( path.join(FIXTURE_ROOT, 'reporter.valid.wdio.conf.js'), {})
-        expect(initReportersSpy.calledOnce).to.be.true
-        initReportersSpy.restore()
-      })
+        it('should accept a valid custom reporter', () => {
+            const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+            /* eslint-disable no-unused-vars */
+            const launcher = new Launcher(path.join(FIXTURE_ROOT, 'reporter.valid.wdio.conf.js'), {})
+            /* eslint-enable no-unused-vars */
+            expect(initReportersSpy.calledOnce).to.be.true
+            initReportersSpy.restore()
+        })
 
-      it('should throw an error when reporters are not found', () => {
-        const err = /reporter "wdio-unreal-reporter" is not installed/
-        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
-        expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.fake.wdio.conf.js'), {})).to.throw(err)
-        expect(initReportersSpy.threw()).to.be.true
-        initReportersSpy.restore()
-      })
+        it('should throw an error when reporters are not found', () => {
+            const err = /reporter "wdio-unreal-reporter" is not installed/
+            const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+            expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.fake.wdio.conf.js'), {})).to.throw(err)
+            expect(initReportersSpy.threw()).to.be.true
+            initReportersSpy.restore()
+        })
 
-      it('should throw an error when reporters are not strings or functions', () => {
-        const err = /config.reporters must be an array of strings or functions, but got 'number'/
-        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
-        expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.number.wdio.conf.js'), {})).to.throw(err)
-        expect(initReportersSpy.threw()).to.be.true
-        initReportersSpy.restore()
-      })
+        it('should throw an error when reporters are not strings or functions', () => {
+            const err = /config.reporters must be an array of strings or functions, but got 'number'/
+            const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+            expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.number.wdio.conf.js'), {})).to.throw(err)
+            expect(initReportersSpy.threw()).to.be.true
+            initReportersSpy.restore()
+        })
 
-      it('should throw an error when reporters do not export reporterName property', () => {
-        const err = /Custom reporters must export a unique 'reporterName' property/
-        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
-        expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.empty.wdio.conf.js'), {})).to.throw(err)
-        expect(initReportersSpy.threw()).to.be.true
-        initReportersSpy.restore()
-      })
-
+        it('should throw an error when reporters do not export reporterName property', () => {
+            const err = /Custom reporters must export a unique 'reporterName' property/
+            const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+            expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.empty.wdio.conf.js'), {})).to.throw(err)
+            expect(initReportersSpy.threw()).to.be.true
+            initReportersSpy.restore()
+        })
     })
 
     describe('runSpec', () => {
