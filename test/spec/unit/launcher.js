@@ -4,8 +4,9 @@ import mock from 'mock-require'
 
 const FIXTURE_ROOT = path.join(__dirname, '..', '..', 'fixtures')
 
-describe('launcher', () => {
-    describe('allows to define run specific suites', () => {
+describe('Launcher', () => {
+    describe('Suites and Specs', () => {
+
         it('should not overwrite specs if no suite is given', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
             let specs = launcher.configParser.getSpecs()
@@ -42,23 +43,23 @@ describe('launcher', () => {
             expect(() => launcher.configParser.getSpecs()).to.throw(/The suite\(s\) "foo" you specified don't exist/)
         })
 
-        it('should allow to pass spec as cli argument to run only one test file', () => {
+        it('should allow users to pass spec as a cli argument to run only one test file', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 spec: './test/spec/unit/launcher.js'
             })
             let specs = launcher.configParser.getSpecs()
             specs.should.have.length(1)
-            specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
+            specs[0].should.equal(path.resolve('test', 'spec', 'unit', 'launcher.js'))
         })
 
-        it('should allow to pass multiple specs as cli argument to run only these test files', () => {
+        it('should allow users to pass multiple specs as cli arguments to run multiple test files', () => {
             let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 spec: './test/spec/unit/launcher.js,./lib/webdriverio.js'
             })
             let specs = launcher.configParser.getSpecs()
             specs.should.have.length(2)
-            specs[0].should.endWith(path.resolve('test', 'spec', 'unit', 'launcher.js'))
-            specs[1].should.endWith(path.resolve('lib', 'webdriverio.js'))
+            specs[0].should.equal(path.resolve('test', 'spec', 'unit', 'launcher.js'))
+            specs[1].should.equal(path.resolve('lib', 'webdriverio.js'))
         })
 
         it('should filter specs with spec as a cli argument', () => {
@@ -67,7 +68,7 @@ describe('launcher', () => {
             })
             let specs = launcher.configParser.getSpecs()
             specs.should.have.length(1)
-            specs[0].should.contain('index.js')
+            specs[0].should.equal(path.resolve('index.js'))
         })
 
         it('should throw if specified spec file doesnt exist', () => {
@@ -75,25 +76,67 @@ describe('launcher', () => {
                 spec: './foobar.js'
             })).to.throw(/spec file \.\/foobar\.js not found/)
         })
-    })
 
-    it('should exit if no spec was found', () => {
-        const launcher = new Launcher(path.join(FIXTURE_ROOT, 'empty.conf.js'), {})
-        return launcher.run().then((exitCode) => {
-            expect(exitCode).to.be.equal(0)
+        it('should exit if no spec was found', () => {
+            const launcher = new Launcher(path.join(FIXTURE_ROOT, 'empty.conf.js'), {})
+            return launcher.run().then((exitCode) => {
+                expect(exitCode).to.be.equal(0)
+            })
         })
     })
 
-    it('should assign proper runner ids using getRunnerId', () => {
-        let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
-        expect(launcher.getRunnerId(0)).to.be.equal('0-0')
-        expect(launcher.getRunnerId(0)).to.be.equal('0-1')
-        expect(launcher.getRunnerId(0)).to.be.equal('0-2')
-        expect(launcher.getRunnerId(0)).to.be.equal('0-3')
-        expect(launcher.getRunnerId(5)).to.be.equal('5-0')
-        expect(launcher.getRunnerId(5)).to.be.equal('5-1')
-        expect(launcher.getRunnerId(5)).to.be.equal('5-2')
-        expect(launcher.getRunnerId(5)).to.be.equal('5-3')
+
+    describe('getRunnerId', () => {
+      it('should assign proper runner ids using getRunnerId', () => {
+          let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
+          expect(launcher.getRunnerId(0)).to.be.equal('0-0')
+          expect(launcher.getRunnerId(0)).to.be.equal('0-1')
+          expect(launcher.getRunnerId(0)).to.be.equal('0-2')
+          expect(launcher.getRunnerId(0)).to.be.equal('0-3')
+          expect(launcher.getRunnerId(5)).to.be.equal('5-0')
+          expect(launcher.getRunnerId(5)).to.be.equal('5-1')
+      })
+    })
+
+    describe('initReporters', () => {
+      it('should be called upon instantiation', () => {
+        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+        const launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {})
+        expect(initReportersSpy.calledOnce).to.be.true
+        initReportersSpy.restore()
+      })
+
+      it('should accept a valid custom reporter', () => {
+        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+        const launcher = new Launcher( path.join(FIXTURE_ROOT, 'reporter.valid.wdio.conf.js'), {})
+        expect(initReportersSpy.calledOnce).to.be.true
+        initReportersSpy.restore()
+      })
+
+      it('should throw an error when reporters are not found', () => {
+        const err = /reporter "wdio-unreal-reporter" is not installed/
+        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+        expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.fake.wdio.conf.js'), {})).to.throw(err)
+        expect(initReportersSpy.threw()).to.be.true
+        initReportersSpy.restore()
+      })
+
+      it('should throw an error when reporters are not strings or functions', () => {
+        const err = /config.reporters must be an array of strings or functions, but got 'number'/
+        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+        expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.number.wdio.conf.js'), {})).to.throw(err)
+        expect(initReportersSpy.threw()).to.be.true
+        initReportersSpy.restore()
+      })
+
+      it('should throw an error when reporters do not export reporterName property', () => {
+        const err = /Custom reporters must export a unique 'reporterName' property/
+        const initReportersSpy = global.sinon.spy(Launcher.prototype, 'initReporters')
+        expect(() => new Launcher(path.join(FIXTURE_ROOT, 'reporter.empty.wdio.conf.js'), {})).to.throw(err)
+        expect(initReportersSpy.threw()).to.be.true
+        initReportersSpy.restore()
+      })
+
     })
 
     describe('runSpec', () => {
