@@ -77,4 +77,4 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 ### Runner
 
 - [wdio-local-runner](https://github.com/webdriverio/v5/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
-- [wdio-firefox-profile-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-firefox-profile-service) - A WebdriverIO plugin that allows you to run tests on AWS
+- [wdio-lambda-runner](https://github.com/webdriverio/v5/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on AWS using Lambda functions
