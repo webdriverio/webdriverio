@@ -1,23 +1,11 @@
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-import { findStrategy, getElementFromResponse, mobileDetector, getBrowserObject } from '../src/utils'
-=======
->>>>>>> port getProperty and getCSSProperty
 import {
     findStrategy,
     getElementFromResponse,
     mobileDetector,
     getBrowserObject,
-<<<<<<< HEAD
-    transformToCharString
-} from '../src/utils'
-=======
     transformToCharString,
     parseCSS
 } from '../src/utils'
->>>>>>> Stashed changes
->>>>>>> port getProperty and getCSSProperty
 
 describe('utils', () => {
     describe('selector strategies helper', () => {
