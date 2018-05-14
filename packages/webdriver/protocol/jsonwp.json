@@ -473,7 +473,7 @@
     }
   },
   "/session/:sessionId/keys": {
-    "GET": {
+    "POST": {
       "command": "sendKeys",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidkeys",
       "parameters": [{
