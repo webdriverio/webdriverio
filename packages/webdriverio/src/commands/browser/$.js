@@ -35,6 +35,7 @@ import { wrapCommand } from 'wdio-config'
 
 import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
+import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
     const { using, value } = findStrategy(selector, this.isW3C)
@@ -45,7 +46,19 @@ export default async function $ (selector) {
         const elementId = getElementFromResponse(res)
 
         if (elementId) {
+            /**
+             * set elementId for easy access
+             */
             client.elementId = elementId
+
+            /**
+             * set element id with proper key so element can be passed into execute commands
+             */
+            if (this.isW3C) {
+                client[ELEMENT_KEY] = elementId
+            } else {
+                client.ELEMENT = elementId
+            }
         } else {
             client.error = res
         }
