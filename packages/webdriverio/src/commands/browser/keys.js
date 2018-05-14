@@ -12,8 +12,8 @@
         const input = $('#username')
         input.setValue('anonymous')
 
-        browser.keys(['Control', 'a'])
-        browser.keys(['Control', 'c'])
+        browser.keys(['Meta', 'a'])
+        browser.keys(['Meta', 'c'])
     });
  * </example>
  *
@@ -24,36 +24,36 @@
 
 import { checkUnicode } from '../../utils'
 
-module.exports = function keys (value) {
-    let keys = []
+export default function keys (value) {
+    let keySequence = []
 
     /**
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keys = checkUnicode(value)
+        keySequence = checkUnicode(value)
     } else if (value instanceof Array) {
         for (const charSet of value) {
-            keys = keys.concat(checkUnicode(charSet))
+            keySequence = keySequence.concat(checkUnicode(charSet))
         }
     } else {
-        throw new Error('number or type of arguments don\'t agree with keys protocol command')
+        throw new Error(`"keys" command requires an string or array of strings as parameter`)
     }
 
     /**
      * JsonWireProtocol action
      */
     if (!this.isW3C) {
-        return this.sendKeys(keys)
+        return this.sendKeys(keySequence)
     }
 
     /**
      * W3C way of handle it key actions
      */
-    const keyDownActions = keys.map((value) => ({ type: 'keyDown', value }))
-    const keyUpActions = keys.map((value) => ({ type: 'keyUp', value }))
+    const keyDownActions = keySequence.map((value) => ({ type: 'keyDown', value }))
+    const keyUpActions = keySequence.map((value) => ({ type: 'keyUp', value }))
 
-    return this.actions([{
+    return this.performActions([{
         type: 'key',
         id: 'keyboard',
         actions: [...keyDownActions, ...keyUpActions]
