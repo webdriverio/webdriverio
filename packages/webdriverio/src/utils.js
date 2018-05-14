@@ -3,7 +3,7 @@ import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 
-import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES } from './constants'
+import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
@@ -318,4 +318,13 @@ export function parseCSS (cssPropertyValue, cssProperty) {
     }
 
     return parsedValue
+}
+
+/**
+ * check for unicode character or split string into literals
+ * @param  {String} value  text
+ * @return {Array}         set of characters or unicode symbols
+ */
+export function checkUnicode (value) {
+    return UNICODE_CHARACTERS.hasOwnProperty(value) ? [UNICODE_CHARACTERS[value]] : value.split('')
 }
