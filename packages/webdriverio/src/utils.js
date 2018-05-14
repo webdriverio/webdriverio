@@ -1,5 +1,7 @@
 import fs from 'fs'
 import path from 'path'
+import cssValue from 'css-value'
+import rgb2hex from 'rgb2hex'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES } from './constants'
 
@@ -248,4 +250,72 @@ export function transformToCharString (value) {
     }
 
     return ret
+}
+
+function sanitizeCSS (value) {
+    /* istanbul ignore next */
+    if (!value) {
+        return value
+    }
+
+    return value.trim().replace(/'/g, '').replace(/"/g, '').toLowerCase()
+}
+
+/**
+ * parse css values to a better format
+ * @param  {Object} cssPropertyValue result of WebDriver call
+ * @param  {String} cssProperty      name of css property to parse
+ * @return {Object}                  parsed css property
+ */
+export function parseCSS (cssPropertyValue, cssProperty) {
+    if (!cssPropertyValue) {
+        return null
+    }
+
+    let parsedValue = {
+        property: cssProperty,
+        value: cssPropertyValue.toLowerCase().trim()
+    }
+
+    if (parsedValue.value.indexOf('rgb') === 0) {
+        /**
+         * remove whitespaces in rgb values
+         */
+        parsedValue.value = parsedValue.value.replace(/\s/g, '')
+
+        /**
+         * parse color values
+         */
+        let color = parsedValue.value
+        parsedValue.parsed = rgb2hex(parsedValue.value)
+        parsedValue.parsed.type = 'color'
+        parsedValue.parsed[/[rgba]+/g.exec(color)[0]] = color
+    } else if (parsedValue.property === 'font-family') {
+        let font = cssValue(cssPropertyValue)
+        let string = parsedValue.value
+        let value = cssPropertyValue.split(/,/).map(sanitizeCSS)
+
+        parsedValue.value = sanitizeCSS(font[0].value || font[0].string)
+        parsedValue.parsed = { value, type: 'font', string }
+    } else {
+        /**
+         * parse other css properties
+         */
+        try {
+            parsedValue.parsed = cssValue(cssPropertyValue)
+
+            if (parsedValue.parsed.length === 1) {
+                parsedValue.parsed = parsedValue.parsed[0]
+            }
+
+            if (parsedValue.parsed.type && parsedValue.parsed.type === 'number' && parsedValue.parsed.unit === '') {
+                parsedValue.value = parsedValue.parsed.value
+            }
+        } catch (e) {
+            // TODO improve css-parse lib to handle properties like
+            // `-webkit-animation-timing-function :  cubic-bezier(0.25, 0.1, 0.25, 1)
+        }
+    }
+
+    return parsedValue
 }

@@ -68,13 +68,19 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             { [ELEMENT_KEY]: 'some-elem-789' },
         ]
         break
+    case `/wd/hub/session/${sessionId}/element/${genericElementId}/css/width`:
+        value = '1250px'
+        break
+    case `/wd/hub/session/${sessionId}/element/${genericElementId}/property/tagName`:
+        value = 'BODY'
+        break
     case `/wd/hub/session/${sessionId}/execute`:
     case `/wd/hub/session/${sessionId}/execute/sync`: {
         const script = Function(params.body.script)
         const args = params.body.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
         value = script.apply(this, args) || {}
         break
-    } case `/wd/hub/session/${sessionId}/element/some-elem-123/elements`:
+    } case `/wd/hub/session/${sessionId}/element/${genericElementId}/elements`:
         value = [
             { [ELEMENT_KEY]: genericSubElementId },
             { [ELEMENT_KEY]: 'some-elem-456' },

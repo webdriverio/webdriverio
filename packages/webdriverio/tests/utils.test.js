@@ -1,10 +1,23 @@
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+import { findStrategy, getElementFromResponse, mobileDetector, getBrowserObject } from '../src/utils'
+=======
+>>>>>>> port getProperty and getCSSProperty
 import {
     findStrategy,
     getElementFromResponse,
     mobileDetector,
     getBrowserObject,
+<<<<<<< HEAD
     transformToCharString
 } from '../src/utils'
+=======
+    transformToCharString,
+    parseCSS
+} from '../src/utils'
+>>>>>>> Stashed changes
+>>>>>>> port getProperty and getCSSProperty
 
 describe('utils', () => {
     describe('selector strategies helper', () => {
@@ -373,6 +386,77 @@ describe('utils', () => {
         it('can do all of this together', () => {
             expect(transformToCharString(['foo', undefined, { b: 1 }, null, 42, false])).toEqual(
                 ['f', 'o', 'o', '{', '"', 'b', '"', ':', '1', '}', '4', '2', 'f', 'a', 'l', 's', 'e'])
+        })
+    })
+
+    describe('parseCSS', () => {
+        it('should return null if css prop is null', () => {
+            expect(parseCSS()).toBe(null)
+        })
+
+        it('should parse colors properly', () => {
+            expect(parseCSS('rgba(0, 136, 204, 1)', 'color')).toEqual({
+                property: 'color',
+                value: 'rgba(0,136,204,1)',
+                parsed: {
+                    hex: '#0088cc',
+                    alpha: 1,
+                    type: 'color',
+                    rgba: 'rgba(0,136,204,1)'
+                }
+            })
+
+            expect(parseCSS('#0088cc', 'color')).toEqual({
+                property: 'color',
+                value: '#0088cc'
+            })
+        })
+
+        it('should parse fonts properly', () => {
+            expect(parseCSS('helvetica', 'font-family')).toEqual({
+                property: 'font-family',
+                value: 'helvetica',
+                parsed: {
+                    value: ['helvetica'],
+                    type: 'font',
+                    string: 'helvetica'
+                }
+            })
+        })
+
+        it('should parse number with unit values', () => {
+            expect(parseCSS('100px', 'width')).toEqual({
+                property: 'width',
+                value: '100px',
+                parsed: {
+                    type: 'number',
+                    string: '100px',
+                    unit: 'px',
+                    value: 100
+                }
+            })
+
+            expect(parseCSS('50%', 'width')).toEqual({
+                property: 'width',
+                value: '50%',
+                parsed: {
+                    type: 'number',
+                    string: '50%',
+                    unit: '%',
+                    value: 50
+                }
+            })
+
+            expect(parseCSS('42', 'foobar')).toEqual({
+                property: 'foobar',
+                value: 42,
+                parsed: {
+                    type: 'number',
+                    string: '42',
+                    unit: '',
+                    value: 42
+                }
+            })
         })
     })
 })
