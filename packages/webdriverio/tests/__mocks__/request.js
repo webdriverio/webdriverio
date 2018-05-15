@@ -30,17 +30,17 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             delete value.capabilities
         }
 
-        break;
+        break
     case `/wd/hub/session/${sessionId}/element`:
         value = {
             [ELEMENT_KEY]: genericElementId
         }
-        break;
+        break
     case `/wd/hub/session/${sessionId}/element/some-elem-123/element`:
         value = {
             [ELEMENT_KEY]: genericSubElementId
         }
-        break;
+        break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/rect`:
         value = {
             x: 15,
@@ -48,49 +48,55 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             height: 30,
             width: 50
         }
-        break;
+        break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/size`:
         value = {
             height: 30,
             width: 50
         }
-        break;
+        break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/location`:
         value = {
             x: 15,
             y: 20
         }
-        break;
+        break
     case `/wd/hub/session/${sessionId}/elements`:
         value = [
             { [ELEMENT_KEY]: genericElementId },
             { [ELEMENT_KEY]: 'some-elem-456' },
             { [ELEMENT_KEY]: 'some-elem-789' },
         ]
-        break;
-    case `/wd/hub/session/${sessionId}/element/some-elem-123/elements`:
+        break
+    case `/wd/hub/session/${sessionId}/execute`:
+    case `/wd/hub/session/${sessionId}/execute/sync`: {
+        const script = Function(params.body.script)
+        const args = params.body.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
+        value = script.apply(this, args)
+        break
+    } case `/wd/hub/session/${sessionId}/element/some-elem-123/elements`:
         value = [
             { [ELEMENT_KEY]: genericSubElementId },
             { [ELEMENT_KEY]: 'some-elem-456' },
             { [ELEMENT_KEY]: 'some-elem-789' },
         ]
-        break;
+        break
     case `/wd/hub/session/${sessionId}/cookie`:
         value = [
             { name: 'cookie1', value: 'dummy-value-1' },
             { name: 'cookie2', value: 'dummy-value-2' },
             { name: 'cookie3', value: 'dummy-value-3' },
         ]
-        break;
+        break
     case `/wd/hub/session/${sessionId}/window/handles`:
         value = ['window-handle-1', 'window-handle-2', 'window-handle-3']
-        break;
+        break
     case `/wd/hub/session/${sessionId}/url`:
         value = 'https://webdriver.io/?foo=bar'
-        break;
+        break
     case `/wd/hub/session/${sessionId}/title`:
         value = 'WebdriverIO - WebDriver bindings for Node.js'
-        break;
+        break
     }
 
     /**
