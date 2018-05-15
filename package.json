@@ -61,7 +61,7 @@
     },
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      "/webdriverio/src/scripts/newWindow.js"
+      "/packages/webdriverio/src/scripts"
     ]
   }
 }
