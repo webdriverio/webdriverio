@@ -72,7 +72,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     case `/wd/hub/session/${sessionId}/execute/sync`: {
         const script = Function(params.body.script)
         const args = params.body.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
-        value = script.apply(this, args)
+        value = script.apply(this, args) || {}
         break
     } case `/wd/hub/session/${sessionId}/element/some-elem-123/elements`:
         value = [

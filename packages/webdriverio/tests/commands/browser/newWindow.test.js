@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import request from 'request'
 import { remote } from '../../../src'
 
@@ -11,6 +15,10 @@ describe('newWindow', () => {
                 browserName: 'foobar'
             }
         })
+
+        global.window = {
+            open: jest.fn()
+        }
     })
 
     it('should allow to create a new window handle', async () => {
@@ -40,5 +48,9 @@ describe('newWindow', () => {
         } catch (e) {
             expect(e.message).toContain('not supported on mobile')
         }
+    })
+
+    afterEach(() => {
+        global.window.open.mockClear()
     })
 })
