@@ -7,21 +7,18 @@ const fs = require('fs')
 const path = require('path')
 const shell = require('shelljs')
 const inquirer = require('inquirer')
-const packageType = ['reporter', 'service', 'runner']
-const questions = [
-    {
-        type: 'input',
-        name: 'packageName',
-        message: 'Provide sub package name:'
-    },
-    {
-        type: 'list',
-        name: 'packageType',
-        message: 'Select sub package type:',
-        choices: packageType,
-        default: 'reporter'
-    }
-]
+const packageType = ['reporter', 'service', 'runner', 'framework']
+const questions = [{
+    type: 'list',
+    name: 'packageType',
+    message: 'Select sub package type:',
+    choices: packageType,
+    default: 'reporter'
+}, {
+    type: 'input',
+    name: 'packageName',
+    message: 'Provide sub package name:'
+}]
 
 inquirer.prompt(questions).then(answers => {
     const {packageName, packageType} = answers
