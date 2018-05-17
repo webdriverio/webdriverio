@@ -34,7 +34,7 @@ In order to set up this project and start contributing follow this step by step 
 
         Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks it is recommend to use the package bootstrap command:
 
-    * Builds all subpackages via ```npm run build``` 
+    * Builds all subpackages via ```npm run build```
 
         As the last step you need to build all sub-packages in order to resolve the internal dependencies. We also have a NPM command for that:
 
@@ -45,6 +45,16 @@ In order to set up this project and start contributing follow this step by step 
     ```
 
     It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
+
+## Create New Package
+
+All WebdriverIO sub packages require a certain structure to work within the wdio ecosystem. To simplify the process of creating a new sub package we build a NPM script that does all the boilerplate work for you. Just run:
+
+```sh
+$ npm run create
+```
+
+It will ask you about the type and name of the new package and creates all the files for you.
 
 ## Work On Packages
 
