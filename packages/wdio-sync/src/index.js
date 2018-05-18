@@ -163,11 +163,14 @@ function runSync (fn, repeatTest = 0, args = []) {
 
 /**
  * wraps hooks and test function of a framework within a fiber context
+ * @param  {String}   fnName               spec function that is being overwritten
  * @param  {Function} origFn               original framework function
- * @param  {string[]} testInterfaceFnName  actual test functions for that framework
+ * @param  {String[]} testInterfaceFnNames command that runs specs, e.g. `it`, `it.only` or `fit`
+ * @param  {Function} before               before hook hook
+ * @param  {Function} after                after hook hook
  * @return {Function}                      wrapped test/hook function
  */
-const wrapTestFunction = function (fnName, origFn, testInterfaceFnName, before, after) {
+const wrapTestFunction = function (fnName, origFn, testInterfaceFnNames, before, after) {
     return function (...specArguments) {
         /**
          * Variadic arguments:
@@ -178,7 +181,6 @@ const wrapTestFunction = function (fnName, origFn, testInterfaceFnName, before, 
         const specFn = typeof specArguments[0] === 'function' ? specArguments.shift()
             : (typeof specArguments[1] === 'function' ? specArguments.pop() : undefined)
         const specTitle = specArguments[0]
-        const testInterfaceFnNames = [testInterfaceFnName, `${testInterfaceFnName}.only`]
 
         if (testInterfaceFnNames.indexOf(fnName) > -1) {
             if (specFn) return runSpec(specTitle, specFn, origFn, retryCnt)
@@ -198,15 +200,15 @@ const wrapTestFunction = function (fnName, origFn, testInterfaceFnName, before, 
  *
  * The scope parameter is used in the qunit framework since all functions are bound to global.QUnit instead of global
  *
- * @param  {String[]} testInterfaceFnName  command that runs specs, e.g. `it`
+ * @param  {String[]} testInterfaceFnNames command that runs specs, e.g. `it`, `it.only` or `fit`
  * @param  {Function} before               before hook hook
  * @param  {Function} after                after hook hook
  * @param  {String}   fnName               test interface command to wrap, e.g. `beforeEach`
  * @param  {Object}   scope                the scope to run command from, defaults to global
  */
-const runTestInFiberContext = function (testInterfaceFnName, before, after, fnName, scope = global) {
+const runTestInFiberContext = function (testInterfaceFnNames, before, after, fnName, scope = global) {
     const origFn = scope[fnName]
-    scope[fnName] = wrapTestFunction(fnName, origFn, testInterfaceFnName, before, after)
+    scope[fnName] = wrapTestFunction(fnName, origFn, testInterfaceFnNames, before, after)
 
     /**
      * support it.skip for the Mocha framework
@@ -220,7 +222,7 @@ const runTestInFiberContext = function (testInterfaceFnName, before, after, fnNa
      */
     if (typeof origFn.only === 'function') {
         const origOnlyFn = origFn.only
-        scope[fnName].only = wrapTestFunction(fnName + '.only', origOnlyFn, testInterfaceFnName, before, after)
+        scope[fnName].only = wrapTestFunction(fnName + '.only', origOnlyFn, testInterfaceFnNames, before, after)
     }
 }
 
