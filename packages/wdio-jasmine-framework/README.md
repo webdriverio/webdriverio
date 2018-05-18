@@ -62,19 +62,19 @@ Type: `RegExp | string`<br>
 Default: undefined
 
 ## invertGrep
-Inverts 'grep' matches
+Inverts 'grep' matches.
 
 Type: `Boolean`<br>
 Default: false
 
 ## cleanStack
-Cleans up stack trace and removes all traces of node module packages
+Clean up stack trace and remove all traces of node module packages.
 
 Type: `Boolean`<br>
 Default: true
 
 ## random
-Run specs in semi-random order
+Run specs in semi-random order.
 
 Type: `Boolean`<br>
 Default: `false`
