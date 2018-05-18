@@ -1,4 +1,4 @@
-const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|wdio-sync\/build|- - - - -)/g
+const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|wdio-sync\/(build|src)|- - - - -)/g
 
 export default class JasmineReporter {
     constructor (reporter, params) {
@@ -7,13 +7,13 @@ export default class JasmineReporter {
         this.cid = params.cid
         this.capabilities = params.capabilities
         this.specs = params.specs
-        this.cleanStack = params.cleanStack
+        this.shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
         this.parent = []
         this.failedCount = 0
     }
 
     suiteStarted (suite = {}) {
-        this._suiteStart = new Date()
+        this.suiteStart = new Date()
         suite.type = 'suite'
 
         this.emit('suite:start', suite)
@@ -24,7 +24,7 @@ export default class JasmineReporter {
     }
 
     specStarted (test = {}) {
-        this._testStart = new Date()
+        this.testStart = new Date()
         test.type = 'test'
         this.emit('test:start', test)
     }
@@ -43,13 +43,13 @@ export default class JasmineReporter {
             })
         }
 
-        if (test.failedExpectations && this.cleanStack) {
+        if (test.failedExpectations.length && this.shouldCleanStack) {
             test.failedExpectations = test.failedExpectations.map(::this.cleanStack)
         }
 
         var e = 'test:' + test.status.replace(/ed/, '')
         test.type = 'test'
-        test.duration = new Date() - this._testStart
+        test.duration = new Date() - this.testStart
         this.emit(e, test)
         this.failedCount += test.status === 'failed' ? 1 : 0
         this.emit('test:end', test)
@@ -58,7 +58,7 @@ export default class JasmineReporter {
     suiteDone (suite = {}) {
         this.parent.pop()
         suite.type = 'suite'
-        suite.duration = new Date() - this._suiteStart
+        suite.duration = new Date() - this.suiteStart
         this.failedCount += suite.status === 'failed' ? 1 : 0
         this.emit('suite:end', suite)
     }
@@ -73,7 +73,7 @@ export default class JasmineReporter {
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
             file: '',
-            err: payload.failedExpectations && payload.failedExpectations.length ? payload.failedExpectations[0] : null,
+            error: payload.failedExpectations && payload.failedExpectations.length ? payload.failedExpectations[0] : null,
             duration: payload.duration,
             runner: {},
             specs: this.specs

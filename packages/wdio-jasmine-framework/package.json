@@ -27,7 +27,7 @@
     "webdriverio",
     "wdio",
     "wdio-plugin",
-    "wdio-framework"
+    "wdio-framework",
     "webdriver"
   ],
   "bugs": {

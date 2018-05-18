@@ -83,7 +83,7 @@ class MochaAdapter {
                 let testCommand = INTERFACES[mochaOpts.ui][2]
 
                 runTestInFiberContext(
-                    testCommand,
+                    [testCommand, testCommand + '.only'],
                     this.config.beforeHook,
                     this.config.afterHook,
                     fnName
@@ -294,11 +294,10 @@ class MochaAdapter {
     }
 }
 
-const _MochaAdapter = MochaAdapter
 const adapterFactory = {}
 
 adapterFactory.run = async function (...args) {
-    const adapter = new _MochaAdapter(...args)
+    const adapter = new MochaAdapter(...args)
     const result = await adapter.run()
     return result
 }

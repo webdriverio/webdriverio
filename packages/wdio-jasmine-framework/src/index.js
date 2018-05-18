@@ -1,5 +1,5 @@
 import Jasmine from 'jasmine'
-import { runInFiberContext, executeHooksWithArgs } from 'wdio-config'
+import { runTestInFiberContext, executeHooksWithArgs } from 'wdio-config'
 import logger from 'wdio-logger'
 
 import JasmineReporter from './reporter'
@@ -72,32 +72,9 @@ class JasmineAdapter {
         jasmine.Spec.prototype.addExpectationResult = handler
 
         /**
-         * patch jasmine to support promises
-         */
-        INTERFACES['bdd'].forEach((fnName) => {
-            const origFn = global[fnName]
-            global[fnName] = (...args) => {
-                const retryCnt = typeof args[args.length - 1] === 'number' ? args.pop() : 0
-                const specFn = typeof args[0] === 'function' ? args.shift() : (typeof args[1] === 'function' ? args.pop() : undefined)
-                const specTitle = args[0]
-                const patchedOrigFn = function (done) {
-                    // specFn will be replaced by wdio-sync and will always return a promise
-                    return specFn.call(this).then(() => done(), (e) => done.fail(e))
-                }
-                const newArgs = [specTitle, patchedOrigFn, retryCnt].filter(arg => Boolean(arg))
-
-                if (!specFn) {
-                    return origFn(specTitle)
-                }
-
-                return origFn.apply(this, newArgs)
-            }
-        })
-
-        /**
          * wrap commands with wdio-sync
          */
-        INTERFACES['bdd'].forEach((fnName) => runInFiberContext(
+        INTERFACES['bdd'].forEach((fnName) => runTestInFiberContext(
             ['it', 'fit'],
             this.config.beforeHook,
             this.config.afterHook,
@@ -231,8 +208,8 @@ class JasmineAdapter {
 }
 
 const adapterFactory = {}
-adapterFactory.run = async function (cid, config, specs, capabilities) {
-    const adapter = new JasmineAdapter(cid, config, specs, capabilities)
+adapterFactory.run = async function (...args) {
+    const adapter = new JasmineAdapter(...args)
     const result = await adapter.run()
     return result
 }
