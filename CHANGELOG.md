@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v4.12.1 (2018-05-24)
+* global changes:
+    * docs improvements
+    * Increased test coverage for reporters (#2730)
+    * additional checks for isIOS, isAndroid and isMobile (#2739)
+* bugfixes:
+    * Decide to read from stdin using a parameter rather than magic (#2704)
+
 ## v4.12.0 (2018-03-07)
 * global changes:
     * docs improvements
