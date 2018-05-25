@@ -7,6 +7,7 @@
     * additional checks for isIOS, isAndroid and isMobile (#2739)
 * bugfixes:
     * Decide to read from stdin using a parameter rather than magic (#2704)
+    * file check for specs passed in with cli arg (#2689)
 
 ## v4.12.0 (2018-03-07)
 * global changes:
