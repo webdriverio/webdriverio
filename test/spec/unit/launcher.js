@@ -81,13 +81,6 @@ describe('Launcher', () => {
             return launcher.run().then((exitCode) => {
                 expect(exitCode).to.be.equal(0)
             })
-
-        it('should treat directory match as pattern', () => {
-            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'exclude.conf.js'), {
-                spec: 'test'
-            })
-            let specs = launcher.configParser.getSpecs()
-            specs.should.have.lengthOf.at.least(2)
         })
     })
 
