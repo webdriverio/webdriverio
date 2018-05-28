@@ -8,6 +8,6 @@ export default {
         platformName: (process.env._PLATFORM || '').replace(/_/g, ' '),
         platformVersion: (process.env._VERSION || ''),
         deviceName: (process.env._DEVICENAME || '').replace(/_/g, ' '),
-        'appium-version': '1.4.16'
+        'appium-version': '1.8.0'
     }
 }
