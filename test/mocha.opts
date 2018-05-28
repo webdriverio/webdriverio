@@ -1,4 +1,4 @@
 --recursive
---timeout 150000
+--timeout 180000
 --reporter spec
 --require babel-core/register
