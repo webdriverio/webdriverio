@@ -10,11 +10,13 @@ export default class JasmineReporter {
         this.shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
         this.parent = []
         this.failedCount = 0
+        this.startedTest = null
     }
 
-    suiteStarted (suite = {}) {
+    suiteStarted (suite) {
         this.suiteStart = new Date()
         suite.type = 'suite'
+        suite.start = new Date()
 
         this.emit('suite:start', suite)
         this.parent.push({
@@ -23,24 +25,32 @@ export default class JasmineReporter {
         })
     }
 
-    specStarted (test = {}) {
+    specStarted (test) {
         this.testStart = new Date()
         test.type = 'test'
-        this.emit('test:start', test)
+        test.start = new Date()
+
+        /**
+         * don't emit test start event until we know if the test will
+         * be skipped or not
+         */
+        this.startedTest = test
     }
 
     specDone (test) {
         /**
-         * jasmine can't set test pending if async (`pending()` got called)
-         * this is a workaround until https://github.com/jasmine/jasmine/issues/937 is resolved
+         * excluded tests are treated as pending tests
          */
-        if (Array.isArray(test.failedExpectations)) {
-            test.failedExpectations.forEach((e) => {
-                if (e.message.includes('Failed: => marked Pending')) {
-                    test.status = 'pending'
-                    test.failedExpectations = []
-                }
-            })
+        if (test.status === 'excluded') {
+            test.status = 'pending'
+        }
+
+        /**
+         * emit test start event if test was not skipped
+         */
+        if (test.status !== 'pending' && this.startedTest) {
+            this.emit('test:start', this.startedTest)
+            delete this.startedTest
         }
 
         if (test.failedExpectations.length && this.shouldCleanStack) {
@@ -55,7 +65,7 @@ export default class JasmineReporter {
         this.emit('test:end', test)
     }
 
-    suiteDone (suite = {}) {
+    suiteDone (suite) {
         this.parent.pop()
         suite.type = 'suite'
         suite.duration = new Date() - this.suiteStart
@@ -72,14 +82,12 @@ export default class JasmineReporter {
             pending: payload.status === 'pending',
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
-            file: '',
             error: payload.failedExpectations && payload.failedExpectations.length ? payload.failedExpectations[0] : null,
-            duration: payload.duration,
-            runner: {},
-            specs: this.specs
+            duration: payload.duration || 0,
+            specs: this.specs,
+            start: payload.start
         }
 
-        message.runner[this.cid] = this.capabilities
         this.reporter.emit(event, message)
     }
 

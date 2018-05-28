@@ -90,13 +90,13 @@ export default class WDIOReporter extends EventEmitter {
             /**
              * tests that are skipped don't have a start event but a test end
              */
-            const testStat = new TestStats(test)
-            this.currentSuite.tests.push(testStat)
-            this.tests[test.uid] = testStat
-            testStat.skip()
+            currentTest = new TestStats(test)
+            this.currentSuite.tests.push(currentTest)
+            this.tests[test.uid] = currentTest
+            currentTest.skip()
             this.counts.skipping++
             this.counts.tests++
-            this.onTestSkip(testStat)
+            this.onTestSkip(currentTest)
         })
 
         this.on('test:end', (test) => {
