@@ -129,10 +129,18 @@ export default class WDIOReporter extends EventEmitter {
         /**
          * browser client event handlers
          */
-        this.on('client:command',
-            (payload) => currentTest.output.push(Object.assign(payload, { type: 'command' })))
-        this.on('client:result',
-            (payload) => currentTest.output.push(Object.assign(payload, { type: 'result' })))
+        this.on('client:command', (payload) => {
+            if (!currentTest) {
+                return
+            }
+            currentTest.output.push(Object.assign(payload, { type: 'command' }))
+        })
+        this.on('client:result', (payload) => {
+            if (!currentTest) {
+                return
+            }
+            currentTest.output.push(Object.assign(payload, { type: 'result' }))
+        })
     }
 
     /**

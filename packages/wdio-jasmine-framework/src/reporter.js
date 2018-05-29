@@ -46,7 +46,7 @@ export default class JasmineReporter {
             test.failedExpectations = test.failedExpectations.map(::this.cleanStack)
         }
 
-        var e = 'test:' + test.status.replace(/ed/, '')
+        const e = 'test:' + test.status.replace(/ed/, '')
         test.type = 'test'
         test.duration = new Date() - this.testStart
         this.emit(e, test)
@@ -82,7 +82,6 @@ export default class JasmineReporter {
         this.parent.pop()
         suite.type = 'suite'
         suite.duration = new Date() - this.suiteStart
-        this.failedCount += suite.status === 'failed' ? 1 : 0
         this.emit('suite:end', suite)
     }
 
