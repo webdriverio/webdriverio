@@ -87,11 +87,20 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:pending', (test) => {
-            /**
-             * tests that are skipped don't have a start event but a test end
-             */
             currentTest = new TestStats(test)
-            this.currentSuite.tests.push(currentTest)
+
+            /**
+             * In Mocha: tests that are skipped don't have a start event but a test end.
+             * In Jasmine: tests have a start event, therefor we need to replace the
+             * test instance with the pending test here
+             */
+            const suiteTests = this.currentSuite.tests
+            if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {
+                this.currentSuite.tests.push(currentTest)
+            } else {
+                suiteTests[suiteTests.length - 1] = currentTest
+            }
+
             this.tests[test.uid] = currentTest
             currentTest.skip()
             this.counts.skipping++
