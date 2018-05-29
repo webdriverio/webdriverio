@@ -112,16 +112,16 @@ class SpecReporter extends WDIOReporter {
         const suites = this.getOrderedSuites()
 
         for (const suite of suites) {
-            // Don't do anything if a suite has no tests
-            if (suite.tests.length === 0) {
-                continue
-            }
-
             // Get the indent/starting point for this suite
             const suiteIndent = this.indent(suite.uid)
 
             // Display the title of the suite
             output.push(`${suiteIndent}${suite.title}`)
+
+            // Don't do anything if a suite has no tests
+            if (suite.tests.length === 0) {
+                continue
+            }
 
             for (const test of suite.tests) {
                 const test_title = test.title
