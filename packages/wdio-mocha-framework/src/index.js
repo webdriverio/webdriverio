@@ -91,9 +91,15 @@ class MochaAdapter {
             })
         })
 
+        let runtimeError
         await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
         let result = await new Promise((resolve) => {
-            this.runner = mocha.run(resolve)
+            try {
+                this.runner = mocha.run(resolve)
+            } catch (e) {
+                runtimeError = e
+                return resolve(1)
+            }
 
             Object.keys(EVENTS).forEach((e) =>
                 this.runner.on(e, this.emit.bind(this, EVENTS[e])))
@@ -103,7 +109,15 @@ class MochaAdapter {
             this.runner.suite.afterEach(this.wrapHook('afterTest'))
             this.runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
+        await executeHooksWithArgs(this.config.after, [runtimeError || result, this.capabilities, this.specs])
+
+        /**
+         * in case the spec has a runtime error throw after the wdio hook
+         */
+        if (runtimeError) {
+            throw runtimeError
+        }
+
         return result
     }
 

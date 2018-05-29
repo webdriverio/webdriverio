@@ -21,7 +21,8 @@ export default class JasmineReporter {
         this.emit('suite:start', suite)
         this.parent.push({
             description: suite.description,
-            id: suite.id
+            id: suite.id,
+            tests: 0
         })
     }
 
@@ -29,6 +30,7 @@ export default class JasmineReporter {
         this.testStart = new Date()
         test.type = 'test'
         test.start = new Date()
+        this.parent[this.parent.length - 1].tests++
         this.emit('test:start', test)
     }
 
@@ -53,6 +55,30 @@ export default class JasmineReporter {
     }
 
     suiteDone (suite) {
+        const parentSuite = this.parent[this.parent.length - 1]
+
+        /**
+         * in case there is a runtime error within one of the specs
+         * create an empty test to attach the error to it
+         */
+        if (parentSuite.tests === 0 && suite.failedExpectations.length) {
+            const id = 'spec' + Math.random()
+            this.specStarted({
+                id,
+                description: '<unknown test>',
+                fullName: '<unknown test>',
+                start: Date.now()
+            })
+            this.specDone({
+                id,
+                description: '<unknown test>',
+                fullName: '<unknown test>',
+                failedExpectations: suite.failedExpectations,
+                start: Date.now(),
+                status: 'failed'
+            })
+        }
+
         this.parent.pop()
         suite.type = 'suite'
         suite.duration = new Date() - this.suiteStart
