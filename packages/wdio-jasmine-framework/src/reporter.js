@@ -29,12 +29,7 @@ export default class JasmineReporter {
         this.testStart = new Date()
         test.type = 'test'
         test.start = new Date()
-
-        /**
-         * don't emit test start event until we know if the test will
-         * be skipped or not
-         */
-        this.startedTest = test
+        this.emit('test:start', test)
     }
 
     specDone (test) {
@@ -43,14 +38,6 @@ export default class JasmineReporter {
          */
         if (test.status === 'excluded') {
             test.status = 'pending'
-        }
-
-        /**
-         * emit test start event if test was not skipped
-         */
-        if (test.status !== 'pending' && this.startedTest) {
-            this.emit('test:start', this.startedTest)
-            delete this.startedTest
         }
 
         if (test.failedExpectations.length && this.shouldCleanStack) {
