@@ -16,6 +16,7 @@ export default class WDIOReporter extends EventEmitter {
         this.suites = {}
         this.hooks = {}
         this.tests = {}
+        this.currentSuites = []
         this.counts = {
             suites: 0,
             tests: 0,
@@ -27,10 +28,11 @@ export default class WDIOReporter extends EventEmitter {
 
         let currentTest
 
-        const rootSuite = this.currentSuite = new SuiteStats({
+        const rootSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
         })
+        this.currentSuites.push(rootSuite)
 
         this.on('client:beforeCommand', ::this.onBeforeCommand)
         this.on('client:afterCommand', ::this.onAfterCommand)
@@ -41,17 +43,19 @@ export default class WDIOReporter extends EventEmitter {
             this.onRunnerStart(this.runnerStat)
         })
 
-        this.on('suite:start', (suite) => {
-            const currentSuite = new SuiteStats(suite)
-            this.currentSuite.suites.push(currentSuite)
-            this.currentSuite = currentSuite
-            this.suites[suite.uid] = currentSuite
-            this.onSuiteStart(currentSuite)
+        this.on('suite:start', (params) => {
+            const suite = new SuiteStats(params)
+            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            currentSuite.suites.push(suite)
+            this.currentSuites.push(suite)
+            this.suites[suite.uid] = suite
+            this.onSuiteStart(suite)
         })
 
         this.on('hook:start', (hook) => {
             const hookStat = new HookStats(hook)
-            this.currentSuite.hooks.push(hookStat)
+            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            currentSuite.hooks.push(hookStat)
             this.hooks[hook.uid] = hookStat
             this.onHookStart(hookStat)
         })
@@ -65,7 +69,8 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:start', (test) => {
             currentTest = new TestStats(test)
-            this.currentSuite.tests.push(currentTest)
+            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            currentSuite.tests.push(currentTest)
             this.tests[test.uid] = currentTest
             this.onTestStart(currentTest)
         })
@@ -87,6 +92,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:pending', (test) => {
+            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
             /**
@@ -94,9 +100,9 @@ export default class WDIOReporter extends EventEmitter {
              * In Jasmine: tests have a start event, therefor we need to replace the
              * test instance with the pending test here
              */
-            const suiteTests = this.currentSuite.tests
+            const suiteTests = currentSuite.tests
             if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {
-                this.currentSuite.tests.push(currentTest)
+                currentSuite.tests.push(currentTest)
             } else {
                 suiteTests[suiteTests.length - 1] = currentTest
             }
@@ -116,6 +122,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('suite:end', (suite) => {
             const suiteStat = this.suites[suite.uid]
             suiteStat.complete()
+            this.currentSuites.pop()
             this.onSuiteEnd(suiteStat)
         })
 

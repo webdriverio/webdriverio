@@ -69,9 +69,10 @@ export const SUITES = [
 
 export const SUITES_NO_TESTS = [
     {
-        uid : SUITE_UIDS[0],
-        title : SUITE_UIDS[0].slice(0, -1),
-        tests : [],
+        uid: SUITE_UIDS[0],
+        title: SUITE_UIDS[0].slice(0, -1),
+        tests: [],
+        suites: []
     },
 ]
 
