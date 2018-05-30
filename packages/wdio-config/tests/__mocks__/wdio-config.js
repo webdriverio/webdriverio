@@ -37,5 +37,7 @@ export default {
         )
     ),
     wrapCommand: (_, origFn) => origFn,
-    ConfigParser: ConfigParserMock
+    ConfigParser: ConfigParserMock,
+    runTestInFiberContext: jest.fn(),
+    executeHooksWithArgs: jest.fn()
 }

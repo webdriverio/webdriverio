@@ -7,7 +7,7 @@ import JasmineReporter from './reporter'
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
 }
-
+const NOOP = function noop () {}
 const DEFAULT_TIMEOUT_INTERVAL = 60000
 
 const log = logger('wdio-mocha-framework')
@@ -16,7 +16,7 @@ const log = logger('wdio-mocha-framework')
  * Jasmine 2.x runner
  */
 class JasmineAdapter {
-    constructor (cid, config = {}, specs, capabilities, reporter) {
+    constructor (cid, config, specs, capabilities, reporter) {
         this.cid = cid
         this.config = config
         this.capabilities = capabilities
@@ -39,7 +39,7 @@ class JasmineAdapter {
         const self = this
 
         this.jrunner = new Jasmine()
-        const jasmine = this.jrunner.jasmine
+        const { jasmine } = this.jrunner
 
         this.jrunner.randomizeTests(Boolean(this.jasmineNodeOpts.random))
 
@@ -53,14 +53,7 @@ class JasmineAdapter {
         /**
          * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
          */
-        jasmine.getEnv().specFilter = (spec) => {
-            const { grep, invertGrep } = this.jasmineNodeOpts
-            const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
-            if (grepMatch === Boolean(invertGrep)) {
-                spec.pend()
-            }
-            return true
-        }
+        jasmine.getEnv().specFilter = ::this.customSpecFilter
 
         /**
          * enable expectHandler
@@ -85,7 +78,7 @@ class JasmineAdapter {
          * for a clean stdout we need to avoid that Jasmine initialises the
          * default reporter
          */
-        Jasmine.prototype.configureDefaultReporter = () => {}
+        Jasmine.prototype.configureDefaultReporter = NOOP
 
         /**
          * wrap Suite and Spec prototypes to get access to their data
@@ -114,6 +107,15 @@ class JasmineAdapter {
         })
         await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
         return result
+    }
+
+    customSpecFilter (spec) {
+        const { grep, invertGrep } = this.jasmineNodeOpts
+        const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
+        if (grepMatch === Boolean(invertGrep)) {
+            spec.pend()
+        }
+        return true
     }
 
     /**
@@ -188,7 +190,7 @@ class JasmineAdapter {
         const { expectationResultHandler } = this.jasmineNodeOpts
         return function (passed, data) {
             try {
-                expectationResultHandler.call(global.browser, passed, data)
+                expectationResultHandler.call(this, passed, data)
             } catch (e) {
                 /**
                  * propagate expectationResultHandler error if actual assertion passed
