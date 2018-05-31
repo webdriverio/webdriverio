@@ -4,30 +4,10 @@ import Mocha from 'mocha'
 import logger from 'wdio-logger'
 import { runTestInFiberContext, executeHooksWithArgs } from 'wdio-config'
 
+import { loadModule } from './utils'
+import { INTERFACES, EVENTS, NOOP } from './constants'
+
 const log = logger('wdio-mocha-framework')
-
-const INTERFACES = {
-    bdd: ['before', 'beforeEach', 'it', 'after', 'afterEach'],
-    tdd: ['suiteSetup', 'setup', 'test', 'suiteTeardown', 'teardown'],
-    qunit: ['before', 'beforeEach', 'test', 'after', 'afterEach']
-}
-
-/**
- * to map Mocha events to WDIO events
- */
-const EVENTS = {
-    'suite': 'suite:start',
-    'suite end': 'suite:end',
-    'test': 'test:start',
-    'test end': 'test:end',
-    'hook': 'hook:start',
-    'hook end': 'hook:end',
-    'pass': 'test:pass',
-    'fail': 'test:fail',
-    'pending': 'test:pending'
-}
-
-const NOOP = function () {}
 
 /**
  * Mocha runner
@@ -62,7 +42,7 @@ class MochaAdapter {
     }
 
     async run () {
-        let {mochaOpts} = this.config
+        const { mochaOpts } = this.config
 
         if (typeof mochaOpts.ui !== 'string' || !INTERFACES[mochaOpts.ui]) {
             mochaOpts.ui = 'bdd'
@@ -72,28 +52,13 @@ class MochaAdapter {
         mocha.loadFiles()
         mocha.reporter(NOOP)
         mocha.fullTrace()
+
         this.specs.forEach((spec) => mocha.addFile(spec))
-
-        mocha.suite.on('pre-require', (context, file, mocha) => {
-            this.options(mochaOpts, {
-                context, file, mocha, options: mochaOpts
-            })
-
-            INTERFACES[mochaOpts.ui].forEach((fnName) => {
-                let testCommand = INTERFACES[mochaOpts.ui][2]
-
-                runTestInFiberContext(
-                    [testCommand, testCommand + '.only'],
-                    this.config.beforeHook,
-                    this.config.afterHook,
-                    fnName
-                )
-            })
-        })
+        mocha.suite.on('pre-require', ::this.preRequire)
 
         let runtimeError
         await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
-        let result = await new Promise((resolve) => {
+        const result = await new Promise((resolve) => {
             try {
                 this.runner = mocha.run(resolve)
             } catch (e) {
@@ -119,6 +84,22 @@ class MochaAdapter {
         }
 
         return result
+    }
+
+    preRequire (context, file, mocha) {
+        const options = this.config.mochaOpts
+
+        this.options(options, { context, file, mocha, options })
+        INTERFACES[options.ui].forEach((fnName) => {
+            let testCommand = INTERFACES[options.ui][2]
+
+            runTestInFiberContext(
+                [testCommand, testCommand + '.only'],
+                this.config.beforeHook,
+                this.config.afterHook,
+                fnName
+            )
+        })
     }
 
     /**
@@ -209,7 +190,7 @@ class MochaAdapter {
                     module = path.join(process.cwd(), module)
                 }
 
-                this.load(module, context)
+                loadModule(module, context)
             }
         })
     }
@@ -294,17 +275,6 @@ class MochaAdapter {
         this.messageUIDs[type][title] = uid
 
         return uid
-    }
-
-    load (name, context) {
-        try {
-            module.context = context
-            require(name)
-        } catch (e) {
-            throw new Error(`Module ${name} can't get loaded. Are you sure you have installed it?\n` +
-                            `Note: if you've installed WebdriverIO globally you need to install ` +
-                            `these external modules globally too!`)
-        }
     }
 }
 
