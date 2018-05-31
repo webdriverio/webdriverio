@@ -31,16 +31,6 @@ class MochaAdapter {
         }
     }
 
-    options (options, context) {
-        let {require = [], compilers = []} = options
-
-        if (typeof require === 'string') {
-            require = [require]
-        }
-
-        this.requireExternalModules([...compilers, ...require], context)
-    }
-
     async run () {
         const { mochaOpts } = this.config
 
@@ -48,7 +38,7 @@ class MochaAdapter {
             mochaOpts.ui = 'bdd'
         }
 
-        const mocha = new Mocha(mochaOpts)
+        const mocha = this.mocha = new Mocha(mochaOpts)
         mocha.loadFiles()
         mocha.reporter(NOOP)
         mocha.fullTrace()
@@ -86,6 +76,16 @@ class MochaAdapter {
         return result
     }
 
+    options (options, context) {
+        let {require = [], compilers = []} = options
+
+        if (typeof require === 'string') {
+            require = [require]
+        }
+
+        this.requireExternalModules([...compilers, ...require], context)
+    }
+
     preRequire (context, file, mocha) {
         const options = this.config.mochaOpts
 
@@ -110,7 +110,7 @@ class MochaAdapter {
             this.config[hookName],
             this.prepareMessage(hookName)
         ).catch((e) => {
-            log.error(`Error in ${hookName} hook (ignoring)`, e.stack)
+            log.error(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
         })
     }
 
@@ -128,7 +128,7 @@ class MochaAdapter {
             break
         }
 
-        params.error = this.lastError
+        params.err = this.lastError
         delete this.lastError
         return this.formatMessage(params)
     }
@@ -183,15 +183,17 @@ class MochaAdapter {
 
     requireExternalModules (modules, context) {
         modules.forEach(module => {
-            if (module) {
-                module = module.replace(/.*:/, '')
-
-                if (module.substr(0, 1) === '.') {
-                    module = path.join(process.cwd(), module)
-                }
-
-                loadModule(module, context)
+            if (!module) {
+                return
             }
+
+            module = module.replace(/.*:/, '')
+
+            if (module.substr(0, 1) === '.') {
+                module = path.join(process.cwd(), module)
+            }
+
+            loadModule(module, context)
         })
     }
 
