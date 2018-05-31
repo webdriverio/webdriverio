@@ -19,4 +19,4 @@ export const EVENTS = {
     'pending': 'test:pending'
 }
 
-export const NOOP = function () {}
+export const NOOP = /* istanbul ignore next */ function () {}
