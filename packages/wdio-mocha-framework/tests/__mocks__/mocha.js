@@ -1,4 +1,4 @@
-class JasmineMock {
+export default class MochaMock {
     constructor (mochaOpts) {
         this.mochaOpts = mochaOpts
 
@@ -34,5 +34,3 @@ class JasmineMock {
         })
     }
 }
-
-export default JasmineMock
