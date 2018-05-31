@@ -28,8 +28,7 @@ describe('selectByVisibleText test', () => {
 
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
-        /* eslint-disable-next-line no-useless-escape */
-        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(translate(., ' ', '')) = \"someValue1\"]|./optgroup/option[normalize-space(translate(., ' ', '')) = \"someValue1\"]`)
+        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(translate(., ' ', '')) = "someValue1"]|./optgroup/option[normalize-space(translate(., ' ', '')) = "someValue1"]`)
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -41,9 +40,7 @@ describe('selectByVisibleText test', () => {
 
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
-        /* eslint-disable no-useless-escape */
-        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(translate(., ' ', '')) = concat(\"\", '\"', \"someValue1\", '\"', \"\", '\"', \"\")]|./optgroup/option[normalize-space(translate(., ' ', '')) = concat(\"\", '\"', \"someValue1\", '\"', \"\", '\"', \"\")]`)
-        /*eslint-enable */
+        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(translate(., ' ', '')) = concat("", '"', "someValue1", '"', "", '"', "")]|./optgroup/option[normalize-space(translate(., ' ', '')) = concat("", '"', "someValue1", '"', "", '"', "")]`)
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'

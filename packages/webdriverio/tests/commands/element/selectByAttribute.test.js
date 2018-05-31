@@ -28,8 +28,7 @@ describe('selectByAttribute test', () => {
 
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
-        /* eslint-disable-next-line no-useless-escape */
-        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = \"someValue1\"]|./optgroup/option[normalize-space(@value) = \"someValue1\"]`)
+        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = "someValue1"]|./optgroup/option[normalize-space(@value) = "someValue1"]`)
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -41,8 +40,7 @@ describe('selectByAttribute test', () => {
 
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
-        /* eslint-disable-next-line no-useless-escape */
-        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = \"123\"]|./optgroup/option[normalize-space(@value) = \"123\"]`)
+        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = "123"]|./optgroup/option[normalize-space(@value) = "123"]`)
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
