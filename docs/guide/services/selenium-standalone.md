@@ -54,10 +54,10 @@ Path where all logs from the Selenium server should be stored.
 Type: `String`
 
 ### seleniumArgs
-Array of arguments for the Selenium server, passed directly to `child_process.spawn`.
+Object configuration for selenium-standalone.start().
 
-Type: `String[]`<br>
-Default: `[]`
+Type: `Object`<br>
+Default: `{}`
 
 ### seleniumInstallArgs
 Object configuration for selenium-standalone.install().
