@@ -12,3 +12,5 @@ lib/**/*.ejs
 
 !lib/commands/*.js
 !lib/protocol/*.js
+
+package-lock.json
