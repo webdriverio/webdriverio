@@ -1,13 +1,15 @@
 # CHANGELOG
 
-## v4.12.1 (2018-05-24)
+## v4.13.0 (2018-06-19)
 * global changes:
     * docs improvements
+    * support ipv6 address in driver hostname (#2756)
     * Increased test coverage for reporters (#2730)
     * additional checks for isIOS, isAndroid and isMobile (#2739)
 * bugfixes:
     * Decide to read from stdin using a parameter rather than magic (#2704)
     * file check for specs passed in with cli arg (#2689)
+    * fix vulnerability with rgb2hex package
 
 ## v4.12.0 (2018-03-07)
 * global changes:
