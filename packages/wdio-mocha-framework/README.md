@@ -40,6 +40,8 @@ module.exports = {
 };
 ```
 
+Note that interfaces supported are `bdd`, `tdd` and `qunit`. If you want to provide a custom interface, it should expose methods compatible with them and be named ending with `-bdd`, `-tdd` or `-qunit` accordingly.
+
 ## `mochaOpts` Options
 
 Options will be passed to the Mocha instance. See the list of supported Mocha options [here](https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options).

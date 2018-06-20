@@ -110,6 +110,22 @@ test('preRequire', () => {
     expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'teardown')
 })
 
+test('custom ui', () => {
+    const mochaOpts = { ui: 'custom-qunit' }
+    const adapter = new MochaAdapter(
+        '0-2',
+        { mochaOpts },
+        ['/foo/bar.test.js'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.preRequire('context', 'file', 'mocha')
+    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'after')
+    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'afterEach')
+    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'beforeEach')
+    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'before')
+})
+
 test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = new MochaAdapter(

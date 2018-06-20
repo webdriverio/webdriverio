@@ -10,6 +10,18 @@ import { INTERFACES, EVENTS, NOOP } from './constants'
 const log = logger('wdio-mocha-framework')
 
 /**
+* Extracts the mocha UI type following this convention:
+*  - If the mochaOpts.ui provided doesn't contain a '-' then the full name
+*      is taken as ui type (i.e. 'bdd','tdd','qunit')
+*  - If it contains a '-' then it asumes we are providing a custom ui for
+*      mocha. Then it extracts the text after the last '-' (ignoring .js if
+*      provided) as the interface type. (i.e. strong-bdd in
+*      https://github.com/strongloop/strong-mocha-interfaces)
+*/
+const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
+const DEFAULT_INTERFACE_TYPE = 'bdd'
+
+/**
  * Mocha runner
  */
 class MochaAdapter {
@@ -33,11 +45,6 @@ class MochaAdapter {
 
     async run () {
         const { mochaOpts } = this.config
-
-        if (typeof mochaOpts.ui !== 'string' || !INTERFACES[mochaOpts.ui]) {
-            mochaOpts.ui = 'bdd'
-        }
-
         const mocha = this.mocha = new Mocha(mochaOpts)
         mocha.loadFiles()
         mocha.reporter(NOOP)
@@ -89,9 +96,12 @@ class MochaAdapter {
     preRequire (context, file, mocha) {
         const options = this.config.mochaOpts
 
+        const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui)
+        const type = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
+
         this.options(options, { context, file, mocha, options })
-        INTERFACES[options.ui].forEach((fnName) => {
-            let testCommand = INTERFACES[options.ui][2]
+        INTERFACES[type].forEach((fnName) => {
+            let testCommand = INTERFACES[type][0]
 
             runTestInFiberContext(
                 [testCommand, testCommand + '.only'],
