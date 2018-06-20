@@ -1,0 +1,42 @@
+/**
+ *
+ * Move the mouse by an offset of the specified element. If no element is specified,
+ * the move is relative to the current mouse cursor. If an element is provided but
+ * no offset, the mouse will be moved to the center of the element. If the element
+ * is not visible, it will be scrolled into view.
+ *
+ * @param {Number} xoffset  X offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
+ * @param {Number} yoffset  Y offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
+ *
+ * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
+ * @type protocol
+ */
+export default async function moveTo (xoffset = 0, yoffset = 0) {
+    /**
+     * validate parameters
+     */
+    if (typeof xoffset !== 'number' || typeof yoffset !== 'number') {
+        throw new Error('the moveTo command requires an x and y offset from type number')
+    }
+
+    if (!this.isW3C) {
+        return this.moveToElement(this.elementId, xoffset, yoffset)
+    }
+
+    /**
+     * get rect of element
+     */
+    const { x, y, width, height } = await this.getElementRect(this.elementId)
+    const newXoffset = parseInt(x + (xoffset > 0 ? xoffset : (width / 2)), 10)
+    const newYoffset = parseInt(y + (yoffset > 0 ? yoffset : (height / 2)), 10)
+
+    /**
+     * W3C way of handle it key actions
+     */
+    return this.performActions([{
+        type: 'pointer',
+        id: 'finger1',
+        parameters: { pointerType: 'mouse' },
+        actions: [{type: 'pointerMove', duration: 0, x: newXoffset, y: newYoffset}]
+    }]).then(() => this.releaseActions())
+}

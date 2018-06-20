@@ -653,7 +653,7 @@
   },
   "/session/:sessionId/moveto": {
     "POST": {
-      "command": "moveTo",
+      "command": "moveToElement",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto",
       "parameters": [{
         "name": "element",
