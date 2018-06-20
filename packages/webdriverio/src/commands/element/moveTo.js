@@ -11,16 +11,16 @@
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
  */
-export default async function moveTo (xoffset = 0, yoffset = 0) {
+export default async function moveTo (xoffset, yoffset) {
+    if (!this.isW3C) {
+        return this.moveToElement(this.elementId, xoffset, yoffset)
+    }
+
     /**
      * validate parameters
      */
     if (typeof xoffset !== 'number' || typeof yoffset !== 'number') {
         throw new Error('the moveTo command requires an x and y offset from type number')
-    }
-
-    if (!this.isW3C) {
-        return this.moveToElement(this.elementId, xoffset, yoffset)
     }
 
     /**
