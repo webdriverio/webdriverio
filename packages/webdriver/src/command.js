@@ -44,6 +44,13 @@ export default function (method, endpointUri, commandInfo) {
             const commandParam = commandParams[i]
 
             if (!isValidParameter(arg, commandParam.type)) {
+                /**
+                 * ignore if argument is not required
+                 */
+                if (typeof arg === 'undefined' && !commandParam.required) {
+                    continue
+                }
+
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
                     `Expected: ${commandParam.type}\n` +
