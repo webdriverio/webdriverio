@@ -699,7 +699,7 @@
   },
   "/session/:sessionId/doubleclick": {
     "POST": {
-      "command": "doubleClick",
+      "command": "positionDoubleClick",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddoubleclick",
       "parameters": []
     }

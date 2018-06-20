@@ -31,7 +31,7 @@ export default async function moveTo (xoffset = 0, yoffset = 0) {
     const newYoffset = parseInt(y + (yoffset > 0 ? yoffset : (height / 2)), 10)
 
     /**
-     * W3C way of handle it key actions
+     * W3C way of handle the mouse move actions
      */
     return this.performActions([{
         type: 'pointer',
