@@ -6,8 +6,8 @@
  * To do that, the value has to correspond to a key from the table.
  *
  * <example>
-    :executeAsync.js
-    it('sends keystrokes to active element', () => {
+    :keys.js
+    it('copies text out of active element', () => {
         // copies text from an input element
         const input = $('#username')
         input.setValue('anonymous')
@@ -57,5 +57,5 @@ export default function keys (value) {
         type: 'key',
         id: 'keyboard',
         actions: [...keyDownActions, ...keyUpActions]
-    }])
+    }]).then(() => this.releaseActions())
 }
