@@ -1,7 +1,7 @@
 export const INTERFACES = {
-    bdd: ['before', 'beforeEach', 'it', 'after', 'afterEach'],
-    tdd: ['suiteSetup', 'setup', 'test', 'suiteTeardown', 'teardown'],
-    qunit: ['before', 'beforeEach', 'test', 'after', 'afterEach']
+    bdd: ['it', 'before', 'beforeEach', 'after', 'afterEach'],
+    tdd: ['test', 'suiteSetup', 'setup', 'suiteTeardown', 'teardown'],
+    qunit: ['test', 'before', 'beforeEach', 'after', 'afterEach']
 }
 
 /**
