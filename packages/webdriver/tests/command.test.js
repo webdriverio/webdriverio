@@ -19,6 +19,11 @@ const command = {
         'type': 'string',
         'description': 'the actual selector that will be used to find an element',
         'required': true
+    }, {
+        'name': 'customParam',
+        'type': 'number',
+        'description': 'a random not required param',
+        'required': false
     }]
 }
 
@@ -45,10 +50,15 @@ describe('command wrapper', () => {
         expect(() => commandFn('123', 123, '123')).toThrow(/Malformed type for "using" parameter of command/)
     })
 
+    it('should fail if not required param has wrong type', () => {
+        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        expect(() => commandFn('123', '123', '123', 'foobar')).toThrow(/Malformed type for "customParam" parameter of command/)
+    })
+
     it('should do a proper request', () => {
         const commandFn = commandWrapper(command.method, command.endpoint, command)
         const requestMock = require('../src/request')
-        commandFn.call(scope, '123', 'css selector', '#body')
+        commandFn.call(scope, '123', 'css selector', '#body', undefined)
         expect(requestMock.mock.calls).toHaveLength(1)
 
         const [method, endpoint, { using, value }] = requestMock.mock.calls[0]
@@ -56,5 +66,21 @@ describe('command wrapper', () => {
         expect(endpoint).toBe('/session/:sessionId/element/123/element')
         expect(using).toBe('css selector')
         expect(value).toBe('#body')
+        requestMock.mockClear()
+    })
+
+    it('should do a proper request with non required params', () => {
+        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const requestMock = require('../src/request')
+        commandFn.call(scope, '123', 'css selector', '#body', 123)
+        expect(requestMock.mock.calls).toHaveLength(1)
+
+        const [method, endpoint, { using, value, customParam }] = requestMock.mock.calls[0]
+        expect(method).toBe('POST')
+        expect(endpoint).toBe('/session/:sessionId/element/123/element')
+        expect(using).toBe('css selector')
+        expect(value).toBe('#body')
+        expect(customParam).toBe(123)
+        requestMock.mockClear()
     })
 })

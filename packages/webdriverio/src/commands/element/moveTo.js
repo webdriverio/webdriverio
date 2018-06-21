@@ -17,18 +17,11 @@ export default async function moveTo (xoffset, yoffset) {
     }
 
     /**
-     * validate parameters
-     */
-    if (typeof xoffset !== 'number' || typeof yoffset !== 'number') {
-        throw new Error('the moveTo command requires an x and y offset from type number')
-    }
-
-    /**
      * get rect of element
      */
     const { x, y, width, height } = await this.getElementRect(this.elementId)
-    const newXoffset = parseInt(x + (xoffset > 0 ? xoffset : (width / 2)), 10)
-    const newYoffset = parseInt(y + (yoffset > 0 ? yoffset : (height / 2)), 10)
+    const newXoffset = parseInt(x + (typeof xoffset === 'number' ? xoffset : (width / 2)), 10)
+    const newYoffset = parseInt(y + (typeof yoffset === 'number' ? yoffset : (height / 2)), 10)
 
     /**
      * W3C way of handle the mouse move actions

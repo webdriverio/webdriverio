@@ -49,6 +49,14 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             width: 50
         }
         break
+    case `/wd/hub/session/${sessionId}/element/${genericSubElementId}/rect`:
+        value = {
+            x: 100,
+            y: 200,
+            height: 120,
+            width: 150
+        }
+        break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/size`:
         value = {
             height: 30,
