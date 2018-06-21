@@ -1,19 +1,16 @@
 import request from 'request'
 import { remote } from '../../../src'
+import { ELEMENT_KEY } from '../../../src/constants'
 
 describe('element', () => {
-    let browser
-
-    beforeAll(async () => {
-        browser = await remote({
+    it('should fetch an element', async () => {
+        const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
             }
         })
-    })
 
-    it('should fetch an element', async () => {
         const elem = await browser.$('#foo')
         const elems = await elem.$$('#subfoo')
         expect(request.mock.calls[1][0].method).toBe('POST')
@@ -26,14 +23,39 @@ describe('element', () => {
         expect(elems).toHaveLength(3)
 
         expect(elems[0].elementId).toBe('some-sub-elem-321')
+        expect(elems[0][ELEMENT_KEY]).toBe('some-sub-elem-321')
+        expect(elems[0].ELEMENT).toBe(undefined)
         expect(elems[0].selector).toBe('#subfoo')
         expect(elems[0].index).toBe(0)
         expect(elems[1].elementId).toBe('some-elem-456')
+        expect(elems[1][ELEMENT_KEY]).toBe('some-elem-456')
+        expect(elems[1].ELEMENT).toBe(undefined)
         expect(elems[1].selector).toBe('#subfoo')
         expect(elems[1].index).toBe(1)
         expect(elems[2].elementId).toBe('some-elem-789')
+        expect(elems[2][ELEMENT_KEY]).toBe('some-elem-789')
+        expect(elems[2].ELEMENT).toBe(undefined)
         expect(elems[2].selector).toBe('#subfoo')
         expect(elems[2].index).toBe(2)
+    })
+
+    it('should fetch an element (no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const elems = await elem.$$('#subfoo')
+        expect(elems).toHaveLength(3)
+        expect(elems[0][ELEMENT_KEY]).toBe(undefined)
+        expect(elems[0].ELEMENT).toBe('some-sub-elem-321')
+        expect(elems[1][ELEMENT_KEY]).toBe(undefined)
+        expect(elems[1].ELEMENT).toBe('some-elem-456')
+        expect(elems[2][ELEMENT_KEY]).toBe(undefined)
+        expect(elems[2].ELEMENT).toBe('some-elem-789')
     })
 
     afterEach(() => {

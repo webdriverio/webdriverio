@@ -24,7 +24,8 @@ export default function (method, endpointUri, commandInfo) {
         /**
          * parameter check
          */
-        if (args.length !== commandParams.length) {
+        const minAllowedParams = commandParams.filter((param) => param.required).length
+        if (args.length < minAllowedParams || args.length > commandParams.length) {
             const parameterDescription = commandParams.length
                 ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
                 : ''
