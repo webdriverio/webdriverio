@@ -10,7 +10,7 @@
     "clean:node_modules": "rm -fr ./packages/*/node_modules ./packages/node_modules",
     "clean:fakegit": "rm -fr ./packages/*/.git",
     "link": "node ./scripts/link",
-    "release": "npm run release:minor",
+    "release": "lerna run release:patch --scope",
     "release:patch": "lerna run release:patch --scope",
     "release:minor": "lerna run release:minor --scope",
     "release:major": "lerna run release:major --scope",
