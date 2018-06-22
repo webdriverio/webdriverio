@@ -3,6 +3,8 @@ import SauceConnectLauncher from 'sauce-connect-launcher'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
+const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
+
 export default class SauceService {
     /**
      * modify config and launch sauce connect
@@ -88,10 +90,12 @@ export default class SauceService {
          * This tweak allows us to set the real suite name for jasmine jobs.
          */
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
-            this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.name) - 1)
+            this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
 
-        global.browser.execute('sauce:context=' + test.parent + ' - ' + test.title)
+        const context = test.parent === jasmineTopLevelSuite ? test.fullName : test.parent + ' - ' + test.title
+
+        global.browser.execute('sauce:context=' + context)
     }
 
     afterSuite (suite) {

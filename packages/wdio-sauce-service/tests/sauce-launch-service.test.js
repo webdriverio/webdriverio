@@ -117,7 +117,7 @@ describe('wdio-sauce-service', () => {
         expect(sauceService.suiteTitle).toEqual('Test suite')
     })
 
-    it('beforeTest: execute called', () => {
+    it('beforeTest: execute called: suite is Jasmine__TopLevel__Suite', () => {
         const test = {
             name: 'Test name',
             fullName: 'Test #1',
@@ -131,6 +131,22 @@ describe('wdio-sauce-service', () => {
 
         expect(execute).toBeCalledWith('sauce:context=Test parent - Test title')
         expect(sauceService.suiteTitle).toEqual('Test ')
+    })
+
+    it('beforeTest: execute called: parent is Jasmine__TopLevel__Suite', () => {
+        const test = {
+            name: undefined,            
+            fullName: 'Test #1',
+            title: 'Test title',
+            parent: 'Jasmine__TopLevel__Suite'
+        }
+        sauceService.sauceUser = 'user'
+        sauceService.sauceKey = 'secret'
+        sauceService.suiteTitle = 'Test suite'
+        sauceService.beforeTest(test)
+
+        expect(execute).toBeCalledWith('sauce:context=Test #1')
+        expect(sauceService.suiteTitle).toEqual('Test suite')
     })
 
     it('afterSuite: no errors', () => {
