@@ -1,6 +1,6 @@
 {
   "name": "wdio-interface",
-  "version": "0.1.0",
+  "version": "5.0.0-alpha.0",
   "description": "A WDIO helper utility to provide a cli interface for the testrunner",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-interface",
