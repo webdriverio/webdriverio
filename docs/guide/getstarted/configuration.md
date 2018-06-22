@@ -306,9 +306,9 @@ Similarly for mocha:
     },
 ```
 
-## Run WebdriverIO behind corperate proxy
+## Run WebdriverIO Behind Corporate Proxy
 
-If your company has a corperate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests you can set it using the `proxy` configuration option. Just set in your `wdio.conf.js` the following:
+If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests you can set it using the `proxy` configuration option. Just set in your `wdio.conf.js` the following:
 
 ```js
 exports.config = {
