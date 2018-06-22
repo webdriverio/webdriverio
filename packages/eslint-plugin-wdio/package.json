@@ -20,12 +20,9 @@
   ],
   "scripts": {
     "release": "np patch",
-    "release:prepatch": "np prepatch",
     "release:patch": "np patch",
     "release:minor": "np minor",
-    "release:premajor": "np premajor",
-    "release:major": "np major",
-    "release:prerelease": "np prerelease"
+    "release:major": "np major"
   },
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
