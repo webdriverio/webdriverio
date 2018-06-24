@@ -149,7 +149,7 @@ export const QUESTIONNAIRE = [{
     name: 'runner',
     message: 'Where should your tests be launched',
     choices: SUPPORTED_RUNNERS,
-    filter: (runner) => runner.map((r) => `wdio-${r.split(/-/)[0].trim()}-runner`)
+    filter: (runner) => runner.split(/-/)[0].trim()
 }, {
     type: 'confirm',
     name: 'installRunner',
