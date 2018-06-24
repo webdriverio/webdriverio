@@ -34,5 +34,8 @@
     "mocha": "^5.0.0",
     "wdio-config": "^5.0.0-alpha.6",
     "wdio-logger": "^5.0.0-alpha.6"
+  },
+  "peerDependencies": {
+    "webdriverio": "^5.0.0"
   }
 }
