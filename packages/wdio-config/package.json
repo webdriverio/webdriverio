@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "deepmerge": "^2.0.1",
+    "glob": "^7.1.2",
     "wdio-logger": "^5.0.0-alpha.6"
   }
 }
