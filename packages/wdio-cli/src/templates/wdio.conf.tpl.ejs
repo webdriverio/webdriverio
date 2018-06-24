@@ -1,11 +1,12 @@
 exports.config = {
+    //
     // ====================
     // Runner Configuration
     // ====================
+    //
     // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
     // on a remote machine).
     runner: '<%= answers.runner %>',
-    //
     <% if(answers.host && answers.port) { %>//
     // =====================
     // Server Configurations
@@ -21,8 +22,7 @@ exports.config = {
     port: <%= answers.port %>,
     path: '<%= answers.path %>',
     <% }
-    if(answers.env_user && answers.env_key) { %>
-    //
+    if(answers.env_user && answers.env_key) { %>//
     // =================
     // Service Providers
     // =================
