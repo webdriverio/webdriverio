@@ -2,13 +2,12 @@
   "presets": [
     ["env", {
       "targets": {
-        "node": "4.4"
+        "node": "6"
       }
-    }],
-    "stage-0"
+    }]
   ],
   "plugins": [
-    "transform-runtime",
+    "transform-function-bind",
     "add-module-exports",
     "transform-class-properties",
     ["babel-plugin-stack-trace-sourcemap", {
