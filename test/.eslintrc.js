@@ -3,6 +3,7 @@ module.exports = {
     mocha: true
   },
   globals: {
-    browser: true
+    browser: true,
+    driver: true
   }
 }

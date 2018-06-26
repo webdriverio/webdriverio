@@ -2,7 +2,7 @@
   "name": "dev-playground",
   "private": true,
   "scripts": {
-    "wdio": "../packages/wdio-cli/bin/wdio",
+    "wdio": "../packages/wdio-cli/bin/wdio.js",
     "sync": "DEBUG=1 npm run wdio wdio.conf.js"
   }
 }
