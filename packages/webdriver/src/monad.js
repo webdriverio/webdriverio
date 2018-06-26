@@ -59,7 +59,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         }
 
         client.addCommand = function (name, func) {
-            unit.lift(name, func)
+            unit.lift(name, commandWrapper(name, func))
         }
 
         return client
