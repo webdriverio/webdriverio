@@ -16,7 +16,7 @@ export default class ApplitoolsService {
     /**
      * set API key in onPrepare hook and start test
      */
-    before (config) {
+    beforeSession (config) {
         const key = config.applitoolsKey || process.env.APPLITOOLS_KEY
         const applitoolsConfig = config.applitools || {}
 
@@ -27,6 +27,15 @@ export default class ApplitoolsService {
         this.isConfigured = true
         this.eyes.setApiKey(key)
         this.viewport = Object.assign(DEFAULT_VIEWPORT, applitoolsConfig.viewport)
+    }
+
+    /**
+     * set custom commands
+     */
+    before () {
+        if (!this.isConfigured) {
+            return
+        }
 
         global.browser.addCommand('check', (title) => {
             if (!title) {
@@ -50,10 +59,18 @@ export default class ApplitoolsService {
     }
 
     afterTest () {
+        if (!this.isConfigured) {
+            return
+        }
+
         global.browser.call(::this.eyes.close)
     }
 
     after () {
+        if (!this.isConfigured) {
+            return
+        }
+
         global.browser.call(::this.eyes.abortIfNotClosed)
     }
 }
