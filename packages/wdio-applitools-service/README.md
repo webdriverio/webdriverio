@@ -3,6 +3,26 @@ WebdriverIO Applitools Service
 
 > A WebdriverIO service for visual regression testing using Applitools
 
+## Installation
+
+The easiest way is to keep `wdio-applitools-service` as a devDependency in your `package.json`.
+
+```json
+{
+  "devDependencies": {
+    "wdio-applitools-service": "^5.0.0"
+  }
+}
+```
+
+You can simple do it by:
+
+```bash
+npm install wdio-applitools-service --save-dev
+```
+
+Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/guide/getstarted/install.html)
+
 ## Configuration
 
 In order to use the service you need to set `applitoolsKey` in your `wdio.conf.js` config file or have `APPLITOOLS_KEY` stored in your environment so that it can access the Applitools API. Also make sure that you added `applitools` to your service list, e.g.
