@@ -55,7 +55,8 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.call(() => this.eyes.open(global.browser, test.parent, test.title, this.viewport))
+        log.info(`Open eyes for ${test.parent} ${test.title}`)
+        global.browser.call(() => this.eyes.open(global.browser, test.title, test.parent, this.viewport))
     }
 
     afterTest () {
