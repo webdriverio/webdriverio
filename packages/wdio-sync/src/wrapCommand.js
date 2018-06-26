@@ -50,6 +50,13 @@ export default function wrapCommand (commandName, fn) {
             return future.wait()
         } catch (e) {
             /**
+             * in case some 3rd party lib rejects without bundling into an error
+             */
+            if (typeof e === 'string') {
+                throw new Error(e)
+            }
+
+            /**
              * in case we run commands where no fiber function was used
              * e.g. when we call deleteSession
              */
