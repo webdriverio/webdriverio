@@ -85,3 +85,13 @@ git commit -m "<package-name>: some changes"
 ```
 
 Commits that affect all packages or are not related to any (e.g. changes to NPM scripts or docs) don't need to follow this convention.
+
+## Release New Version
+
+Package releases are made using Lerna's release capabilities and executed by [the technical committee](https://github.com/webdriverio/v5/blob/master/GOVERNANCE.md#the-technical-committee) only. To run it just call:
+
+```sh
+$ npm run release
+```
+
+and choose the appropiate version upgrade based on the [Semantic Versioning](https://semver.org/).

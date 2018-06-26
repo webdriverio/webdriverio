@@ -10,6 +10,7 @@
     "clean:node_modules": "rm -fr ./packages/*/node_modules ./packages/node_modules",
     "clean:fakegit": "rm -fr ./packages/*/.git",
     "link": "node ./scripts/link",
+    "release": "lerna publish",
     "setup": "run-s bootstrap build",
     "test": "run-s test:*",
     "test:eslint": "eslint packages",
