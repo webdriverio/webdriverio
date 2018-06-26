@@ -12,7 +12,7 @@ consisting of:
 * [@vvo](https://github.com/vvo)
 * [@georgecrawford](https://github.com/georgecrawford)
 
-They all represent different companies and different types of contribution to the WebdriverIO Project. The TC is responsible for high-level decisions (like establishing a feature roadmap, accepting sponsorship, organizing conferences, etc...), adjudicating conflicts between members of the community, and making changes to the project's governance processes.
+They all represent different companies and different types of contribution to the WebdriverIO Project. The TC is responsible for high-level decisions (like release a new version, establishing a feature roadmap, accepting sponsorship, organizing conferences, etc...), adjudicating conflicts between members of the community, and making changes to the project's governance processes.
 
 * Membership in the TC is granted by unanimous vote of current TC members.
 * TC members can step down at any time.
