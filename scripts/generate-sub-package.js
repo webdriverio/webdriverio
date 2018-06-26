@@ -52,7 +52,6 @@ inquirer.prompt(questions).then(answers => {
     "build": "run-s clean compile",
     "clean": "rm -rf ./build",
     "compile": "babel src/ -d build/",
-    "postversion": "npm run build && git tag -d $(git tag -l)",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
