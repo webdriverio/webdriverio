@@ -4,7 +4,8 @@ module.exports = {
             globals: {
                 $: false,
                 $$: false,
-                browser: false
+                browser: false,
+                driver: false
             }
         }
     }
