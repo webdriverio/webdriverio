@@ -17,7 +17,7 @@ export default class ApplitoolsService {
      * set API key in onPrepare hook and start test
      */
     beforeSession (config) {
-        const key = config.applitoolsKey || process.env.APPLITOOLS_KEY
+        const key = process.env.APPLITOOLS_KEY || config.applitoolsKey
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {
