@@ -21,7 +21,7 @@ export default class ApplitoolsService {
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {
-            return log.error(`Couldn't find an Applitools private key in config nor environment`)
+            throw new Error(`Couldn't find an Applitools private key in config nor environment`)
         }
 
         this.isConfigured = true
@@ -44,10 +44,6 @@ export default class ApplitoolsService {
 
             return this.eyes.check(title, Target.window())
         })
-    }
-
-    beforeSuite (suite) {
-        this.suiteTitle = suite.title
     }
 
     beforeTest (test) {
