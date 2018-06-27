@@ -137,20 +137,3 @@ describe('wdio-applitools-service', () => {
         })
     })
 })
-
-
-// afterTest () {
-//     if (!this.isConfigured) {
-//         return
-//     }
-//
-//     global.browser.call(::this.eyes.close)
-// }
-//
-// after () {
-//     if (!this.isConfigured) {
-//         return
-//     }
-//
-//     global.browser.call(::this.eyes.abortIfNotClosed)
-// }
