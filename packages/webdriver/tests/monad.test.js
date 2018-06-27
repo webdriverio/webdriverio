@@ -34,9 +34,13 @@ describe('monad', () => {
 
     it('should allow to extend base prototype', () => {
         const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
-        const client = monad(sessionId)
-        client.addCommand('foo', () => 'bar')
+        const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
+        const client = monad(sessionId, commandWrapperMock)
+        const fn = () => 'bar'
+
+        client.addCommand('foo', fn)
         expect(client.foo()).toBe('bar')
+        expect(commandWrapperMock).toBeCalledWith('foo', fn)
     })
 
     it('allows to use custom command wrapper', () => {
