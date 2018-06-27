@@ -34,6 +34,21 @@ export default class WebDriver {
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
 
+    /**
+     * allows user to attach to existing sessions
+     */
+    static attachToSession (options = {}, modifier, proto = {}, commandWrapper) {
+        if (typeof options.sessionId !== 'string') {
+            throw new Error('sessionId is required to attach to existing session')
+        }
+
+        options.capabilities = options.capabilities || {}
+        options.isW3C = options.isW3C || true
+        const prototype = Object.assign(WebDriver.getPrototype(options.isW3C), proto)
+        const monad = webdriverMonad(options, modifier, prototype)
+        return monad(options.sessionId, commandWrapper)
+    }
+
     static get WebDriver () {
         return WebDriver
     }

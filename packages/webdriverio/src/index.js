@@ -1,6 +1,7 @@
 import WebDriver from 'webdriver'
 import { validateConfig, wrapCommand } from 'wdio-config'
 
+import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
 import { getPrototype } from './utils'
 
@@ -11,13 +12,11 @@ import { getPrototype } from './utils'
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-const remote = function (params = {}, remoteModifier) {
+export const remote = function (params = {}, remoteModifier) {
     const config = validateConfig(WDIO_DEFAULTS, params)
     const modifier = (client, options) => {
-        options = Object.assign(options, config)
-
         if (typeof remoteModifier === 'function') {
-            client = remoteModifier(client, options)
+            client = remoteModifier(client, Object.assign(options, config))
         }
 
         return client
@@ -27,11 +26,24 @@ const remote = function (params = {}, remoteModifier) {
     return WebDriver.newSession(params, modifier, prototype, wrapCommand)
 }
 
-const multiremote = function () {
-    /**
-     * ToDo implement multiremote here
-     */
-    return 'NYI'
-}
+export const multiremote = async function (params = {}) {
+    const multibrowser = new MultiRemote()
+    const browserNames = Object.keys(params)
 
-export { remote, multiremote }
+    /**
+     * create all instance sessions
+     */
+    await Promise.all(
+        browserNames.map((browserName) => multibrowser.addInstance(browserName, remote(params[browserName])))
+    )
+
+    /**
+     * use attachToSession capability to wrap instances around blank pod
+     */
+    const prototype = getPrototype('browser')
+    const sessionParams = {
+        sessionId: '',
+        isW3C: multibrowser.instances[browserNames[0]].isW3C
+    }
+    return WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype)
+}
