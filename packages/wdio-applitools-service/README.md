@@ -42,19 +42,19 @@ export.config = {
 
 ## Usage
 
-Once the service is added you just need to call the `browser.check` command to compare images within the badge. The command takes a screenshot name so Applitools can compare it always with the correct image from the baseline, e.g.
+Once the service is added you just need to call the `browser.takeSnapshot` command to compare images within the badge. The command takes a screenshot name so Applitools can compare it always with the correct image from the baseline, e.g.
 
 ```js
 describe('My Google Search', () => {
     it('should open the page', () => {
         browser.url('http://google.com')
-        browser.check('main page')
+        browser.takeSnapshot('main page')
     })
 
     it('should search for something', () => {
         $('#lst-ib').addValue('WebdriverIO ❤️  Applitools')
         browser.keys('Enter')
-        browser.check('search')
+        browser.takeSnapshot('search')
     })
 })
 ```

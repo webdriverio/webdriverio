@@ -21,7 +21,7 @@ export default class ApplitoolsService {
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {
-            throw new Error(`Couldn't find an Applitools private key in config nor environment`)
+            throw new Error(`Couldn't find an Applitools 'applitoolsKey' in config nor 'APPLITOOLS_KEY' in the environment`)
         }
 
         this.isConfigured = true
@@ -37,9 +37,9 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.addCommand('check', (title) => {
+        global.browser.addCommand('takeSnapshot', (title) => {
             if (!title) {
-                throw new Error('A title for the Applitools check is missing')
+                throw new Error('A title for the Applitools snapshot is missing')
             }
 
             return this.eyes.check(title, Target.window())

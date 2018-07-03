@@ -43,7 +43,7 @@ describe('wdio-applitools-service', () => {
             expect(global.browser.addCommand).not.toBeCalled()
         })
 
-        it('should register check command', () => {
+        it('should register takeSnapshot command', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService()
             global.browser = new BrowserMock()
@@ -52,11 +52,11 @@ describe('wdio-applitools-service', () => {
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
-            global.browser.check('foobar')
+            global.browser.takeSnapshot('foobar')
             expect(service.eyes.check).toBeCalledWith('foobar', 'some window')
         })
 
-        it('should throw if check command is used without title', () => {
+        it('should throw if takeSnapshot command is used without title', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService()
             global.browser = new BrowserMock()
@@ -65,7 +65,7 @@ describe('wdio-applitools-service', () => {
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
-            expect(() => global.browser.check()).toThrow()
+            expect(() => global.browser.takeSnapshot()).toThrow()
             expect(service.eyes.check).not.toBeCalled()
         })
     })
