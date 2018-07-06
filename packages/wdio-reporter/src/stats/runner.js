@@ -13,5 +13,6 @@ export default class RunnerStats extends RunnableStats {
         this.sanitizedCapabilities = sanitizeCaps(runner.capabilities)
         this.config = runner.config
         this.specs = runner.specs
+        this.isMultiremote = runner.isMultiremote
     }
 }
