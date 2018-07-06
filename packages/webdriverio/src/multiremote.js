@@ -1,5 +1,6 @@
 import zip from 'lodash.zip'
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
+import { wrapCommand } from 'wdio-config'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
@@ -35,7 +36,8 @@ export default class MultiRemote {
             propertiesObject[commandName] = { value: this.commandWrapper(commandName) }
         }
 
-        const client = Object.create({}, propertiesObject)
+        this.baseInstance = new MultiRemoteDriver(this.instances)
+        const client = Object.create(this.baseInstance, propertiesObject)
 
         /**
          * attach instances to wrapper client
@@ -83,7 +85,7 @@ export default class MultiRemote {
             return client
         }, prototype)
 
-        return element(this.sessionId, multiremoteHandler(isMultiremote))
+        return element(this.sessionId, multiremoteHandler(wrapCommand, isMultiremote))
     }
 
     /**
@@ -91,7 +93,7 @@ export default class MultiRemote {
      */
     commandWrapper (commandName) {
         const instances = this.instances
-        return async function (...args) {
+        return wrapCommand(commandName, async function (...args) {
             const result = await Promise.all(
                 Object.entries(instances).map(([, instance]) => instance[commandName](...args))
             )
@@ -107,6 +109,52 @@ export default class MultiRemote {
             }
 
             return result
-        }
+        })
+    }
+}
+
+/**
+ * event listener class that propagates events to sub drivers
+ */
+class MultiRemoteDriver {
+    constructor (instances) {
+        this.instances = Object.keys(instances)
+        this.isMultiremote = true
+    }
+
+    on (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].on(...args))
+    }
+
+    once (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].once(...args))
+    }
+
+    emit (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].emit(...args))
+    }
+
+    eventNames (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].eventNames(...args))
+    }
+
+    getMaxListeners () {
+        this.instances.forEach((instanceName) => this[instanceName].getMaxListeners())
+    }
+
+    listenerCount (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].listenerCount(...args))
+    }
+
+    listeners (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].listeners(...args))
+    }
+
+    removeListener (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].removeListener(...args))
+    }
+
+    removeAllListeners (...args) {
+        this.instances.forEach((instanceName) => this[instanceName].removeAllListeners(...args))
     }
 }

@@ -159,7 +159,7 @@ export default class Runner extends EventEmitter {
     /**
      * initialise browser instance depending whether remote or multiremote is requested
      */
-    initialiseInstance (isMultiremote, capabilities) {
+    async initialiseInstance (isMultiremote, capabilities) {
         let config = this.configParser.getConfig()
 
         if (!isMultiremote) {
@@ -168,17 +168,17 @@ export default class Runner extends EventEmitter {
             return remote(config)
         }
 
-        let options = {}
+        const options = {}
         log.debug('init multiremote session')
         for (let browserName of Object.keys(capabilities)) {
             options[browserName] = merge(config, capabilities[browserName], MERGE_OPTIONS)
         }
 
-        let browser = multiremote(options)
+        const browser = await multiremote(options)
         for (let browserName of Object.keys(capabilities)) {
-            global[browserName] = browser.select(browserName)
+            global[browserName] = browser[browserName]
         }
-        browser.isMultiremote = true
+
         return browser
     }
 
