@@ -23,7 +23,7 @@ export default class LocalRunner extends EventEmitter {
         const runnerEnv = Object.assign(this.config.runnerEnv, {
             WDIO_LOG_LEVEL: this.config.logLevel,
             WDIO_LOG_PATH: path.join(this.config.logDir, `wdio-${cid}.log`)
-        })
+        }, process.env)
 
         /**
          * ensure that logs are colored in wdio-cli interface
