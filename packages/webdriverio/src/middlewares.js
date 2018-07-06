@@ -58,8 +58,8 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
 /**
  * handle single command calls from multiremote instances
  */
-export const multiremoteHandler = (isMultiremote) => (commandName) => {
-    return function (...args) {
+export const multiremoteHandler = (wrapCommand, isMultiremote) => (commandName) => {
+    return wrapCommand(commandName, function (...args) {
         const commandResults = this.instances.map((instanceName) => {
             return this[instanceName][commandName](...args)
         })
@@ -69,5 +69,5 @@ export const multiremoteHandler = (isMultiremote) => (commandName) => {
         }
 
         return commandResults
-    }
+    })
 }
