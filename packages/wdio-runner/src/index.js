@@ -75,8 +75,14 @@ export default class Runner extends EventEmitter {
                 cid: m.cid,
                 specs: m.specs,
                 sessionId: browser.sessionId,
-                capabilities: browser.options.capabilities,
-                config
+                capabilities: browser.isMultiremote
+                    ? browser.instances.reduce((caps, browserName) => {
+                        caps[browserName] = browser[browserName].capabilities
+                        return caps
+                    }, {})
+                    : browser.options.capabilities,
+                config,
+                isMultiremote: browser.isMultiremote
             })
 
             /**

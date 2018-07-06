@@ -57,7 +57,7 @@ class SpecReporter extends WDIOReporter {
      */
     printReport(runner) {
         const duration = `(${prettyMs(runner._duration)})`
-        const preface = `[${this.getEnviromentCombo(runner.capabilities, false).trim()} #${runner.cid}]`
+        const preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
         const divider = '------------------------------------------------------------------'
 
         // Get the results
@@ -291,9 +291,9 @@ class SpecReporter extends WDIOReporter {
      * @param  {Boolean} verbose
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (caps, verbose = true) {
+    getEnviromentCombo (caps, verbose = true, isMultiremote = false) {
         const device = caps.deviceName
-        const browser = caps.browserName || caps.browser
+        const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
         const version = caps.version || caps.platformVersion || caps.browser_version
         const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
 
