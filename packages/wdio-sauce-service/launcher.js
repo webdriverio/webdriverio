@@ -1,2 +1,2 @@
-var SauceService = require('./build/sauce-launch-service')
+var SauceService = require('./build/launcher')
 module.exports = new SauceService()
