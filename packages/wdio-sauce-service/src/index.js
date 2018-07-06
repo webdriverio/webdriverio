@@ -1,72 +1,25 @@
 import request from 'request'
-import SauceConnectLauncher from 'sauce-connect-launcher'
+import logger from 'wdio-logger'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
 const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
 
+const log = logger('wdio-sauce-service')
+
 export default class SauceService {
-    /**
-     * modify config and launch sauce connect
-     */
-    onPrepare (config, capabilities) {
-        if (!config.sauceConnect) {
-            return
-        }
-
-        this.sauceConnectOpts = Object.assign({
-            username: config.user,
-            accessKey: config.key
-        }, config.sauceConnectOpts)
-
-        config.protocol = 'http'
-        config.host = 'localhost'
-        config.port = this.sauceConnectOpts.port || 4445
-
-        const sauceConnectTunnelIdentifier = this.sauceConnectOpts.tunnelIdentifier
-
-        if (sauceConnectTunnelIdentifier) {
-            if (Array.isArray(capabilities)) {
-                capabilities.forEach(capability => {
-                    capability.tunnelIdentifier = capability.tunnelIdentifier || sauceConnectTunnelIdentifier
-                })
-            } else {
-                Object.keys(capabilities).forEach(browser => {
-                    capabilities[browser].desiredCapabilities.tunnelIdentifier = capabilities[browser].desiredCapabilities.tunnelIdentifier || sauceConnectTunnelIdentifier
-                })
-            }
-        }
-
-        return new Promise((resolve, reject) => SauceConnectLauncher(this.sauceConnectOpts, (err, sauceConnectProcess) => {
-            if (err) {
-                return reject(err)
-            }
-
-            this.sauceConnectProcess = sauceConnectProcess
-            return resolve()
-        }))
-    }
-
-    /**
-     * shut down sauce connect
-     */
-    onComplete () {
-        if (!this.sauceConnectProcess) {
-            return
-        }
-
-        return new Promise(resolve => this.sauceConnectProcess.close(resolve))
+    constructor (config) {
+        this.config = config
+        this.isMultiremote = !Array.isArray(config.capabilities)
     }
 
     /**
      * gather information about runner
      */
     before (capabilities) {
-        this.sessionId = global.browser.sessionId
         this.capabilities = capabilities
-        this.auth = global.browser.requestHandler.auth || {}
-        this.sauceUser = this.auth.user
-        this.sauceKey = this.auth.pass
+        this.sauceUser = this.config.user
+        this.sauceKey = this.config.key
         this.testCnt = 0
         this.failures = 0 // counts failures between reloads
     }
@@ -99,7 +52,7 @@ export default class SauceService {
     }
 
     afterSuite (suite) {
-        if (suite.hasOwnProperty('err')) {
+        if (suite.hasOwnProperty('error')) {
             ++this.failures
         }
     }
@@ -151,26 +104,36 @@ export default class SauceService {
             return
         }
 
-        return this.updateJob(this.sessionId, this.failures)
-    }
+        const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
 
-    onReload (oldSessionId, newSessionId) {
-        if (!this.sauceUser || !this.sauceKey) {
-            return
+        if (!this.isMultiremote) {
+            log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
+            return this.updateJob(global.browser.sessionId, this.failures)
         }
 
-        this.sessionId = newSessionId
-        return this.updateJob(oldSessionId, this.failures, true)
+        return Promise.all(Object.entries(this.capabilities).map(([browserName, instance]) => {
+            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
+            return this.updateJob(global.browser[browserName].sessionId, this.failures, false, browserName)
+        }))
     }
 
-    updateJob (sessionId, failures, calledOnReload = false) {
+    // onReload (oldSessionId, newSessionId) {
+    //     if (!this.sauceUser || !this.sauceKey) {
+    //         return
+    //     }
+    //
+    //     this.sessionId = newSessionId
+    //     return this.updateJob(oldSessionId, this.failures, true)
+    // }
+
+    updateJob (sessionId, failures, calledOnReload = false, browserName) {
         return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
             json: true,
             auth: {
                 user: this.sauceUser,
                 pass: this.sauceKey
             },
-            body: this.getBody(failures, calledOnReload)
+            body: this.getBody(failures, calledOnReload, browserName)
         }, (e, res, body) => {
             if (e) {
                 return reject(e)
@@ -184,13 +147,13 @@ export default class SauceService {
     /**
      * massage data
      */
-    getBody (failures, calledOnReload = false) {
+    getBody (failures, calledOnReload = false, browserName) {
         let body = {}
 
         /**
          * set default values
          */
-        body.name = this.suiteTitle
+        body.name = `${browserName}: ${this.suiteTitle}`
 
         /**
          * add reload count to title if reload is used
