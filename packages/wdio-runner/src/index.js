@@ -51,6 +51,16 @@ export default class Runner extends EventEmitter {
         try {
             await runHook('beforeSession', config, this.caps, this.specs)
             const browser = global.browser = global.driver = await this.initialiseInstance(m.isMultiremote, this.caps)
+            browser.sessionConfig = this.configParser.getConfig()
+
+            /**
+             * populate session config to browser instances in multiremote mode
+             */
+            if (browser.isMultiremote) {
+                for (const browserName of browser.instances) {
+                    browser[browserName].sessionConfig = browser.sessionConfig
+                }
+            }
 
             /**
              * register command event
@@ -208,7 +218,7 @@ export default class Runner extends EventEmitter {
 
             log.debug(`initialise wdio service "${serviceName}"`)
             const Service = initialisePlugin(serviceName, 'service')
-            this.configParser.addService(new Service(config))
+            this.configParser.addService(new Service(config, this.caps))
         }
     }
 }
