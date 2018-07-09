@@ -6,7 +6,7 @@ import {
     SUITES,
     SUITES_NO_TESTS,
     REPORT,
-} from './fixtures'
+} from './__fixtures__/testdata'
 
 const reporter = new SpecReporter({})
 
@@ -340,6 +340,12 @@ describe('SpecReporter', () => {
             })).toBe('chrome (v50) on Windows 8.1')
         })
 
+        it('should return Multibrowser as capability if multiremote is used', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome'
+            }, true, true)).toBe('MultiremoteBrowser')
+        })
+
         it('should return preface desktop combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
@@ -379,8 +385,8 @@ describe('SpecReporter', () => {
                 platformVersion: '9.2',
                 platformName: 'iOS',
                 app: 'sauce-storage:myApp.app'
-            })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
-        }, false)
+            }, true)).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
+        })
 
         it('should return verbose mobile combo executing a browser', () => {
             expect(tmpReporter.getEnviromentCombo({
