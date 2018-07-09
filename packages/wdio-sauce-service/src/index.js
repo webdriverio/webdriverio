@@ -8,9 +8,8 @@ const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
 const log = logger('wdio-sauce-service')
 
 export default class SauceService {
-    constructor (config, capabilities) {
+    constructor (config) {
         this.config = config
-        this.capabilities = capabilities
     }
 
     /**
@@ -42,6 +41,7 @@ export default class SauceService {
          * framework hooks in order to execute async functions.
          * This tweak allows us to set the real suite name for jasmine jobs.
          */
+        /* istanbul ignore if */
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
             this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
@@ -144,6 +144,7 @@ export default class SauceService {
             },
             body: this.getBody(failures, calledOnReload, browserName)
         }, (e, res, body) => {
+            /* istanbul ignore if */
             if (e) {
                 return reject(e)
             }

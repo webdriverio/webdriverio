@@ -27,12 +27,13 @@ export default class SauceLaunchService {
                 })
             } else {
                 Object.keys(capabilities).forEach(browser => {
-                    capabilities[browser].desiredCapabilities.tunnelIdentifier = capabilities[browser].desiredCapabilities.tunnelIdentifier || sauceConnectTunnelIdentifier
+                    capabilities[browser].capabilities.tunnelIdentifier = capabilities[browser].capabilities.tunnelIdentifier || sauceConnectTunnelIdentifier
                 })
             }
         }
 
         return new Promise((resolve, reject) => SauceConnectLauncher(this.sauceConnectOpts, (err, sauceConnectProcess) => {
+            /* istanbul ignore if */
             if (err) {
                 return reject(err)
             }
