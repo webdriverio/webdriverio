@@ -7,9 +7,9 @@ jest.mock('webdriver', () => {
     }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
-    newSessionMock.mockImplementation((params, cb) => cb(client, params))
+    newSessionMock.mockImplementation((params, cb) => cb ? cb(client, params) : params)
 
-    return { newSession: newSessionMock }
+    return { newSession: newSessionMock, attachToSession: jest.fn() }
 })
 
 jest.mock('wdio-config', () => {
@@ -19,6 +19,8 @@ jest.mock('wdio-config', () => {
     }
     return validateConfigMock
 })
+
+const WebDriver = require('webdriver')
 
 describe('WebdriverIO module interface', () => {
     it('should provide remote and multiremote access', () => {
@@ -43,8 +45,18 @@ describe('WebdriverIO module interface', () => {
     })
 
     describe('multiremote', () => {
-        it('should exist', () => {
-            expect(multiremote()).toBe('NYI')
+        it('register multiple clients', async () => {
+            await multiremote({
+                browserA: { browserName: 'chrome' },
+                browserB: { browserName: 'firefox' }
+            })
+            expect(WebDriver.attachToSession).toBeCalled()
+            expect(WebDriver.newSession.mock.calls).toHaveLength(2)
         })
+    })
+
+    afterEach(() => {
+        WebDriver.attachToSession.mockClear()
+        WebDriver.newSession.mockClear()
     })
 })
