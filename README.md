@@ -46,8 +46,8 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 ### Core
 
 - [webdriver](https://github.com/webdriverio/v5/tree/master/packages/webdriver) - A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol
-- [webdriverio](https://github.com/webdriverio/v5/blob/master/packages/webdriverio) - Next-gen WebDriver test automation framework for Node.js
-- [wdio-cli](https://github.com/webdriverio/v5/tree/master/packages/wdio-cli) - WebdriverIO testrunner command line interface
+- [webdriverio](https://github.com/webdriverio/v5/blob/master/packages/webdriverio) - A next-gen WebDriver test automation framework for Node.js
+- [wdio-cli](https://github.com/webdriverio/v5/tree/master/packages/wdio-cli) - A WebdriverIO testrunner command line interface
 
 ### Helper
 
@@ -69,10 +69,11 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 
 ### Services
 
+- [wdio-applitools-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-applitools-service) - A WebdriverIO service for visual regression testing using Applitools
 - [wdio-devtools-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-devtools-service) - A WebdriverIO service that allows you to run Chrome DevTools commands in your tests
-- [wdio-firefox-profile-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-firefox-profile-service) - WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
-- [wdio-sauce-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-sauce-service) - WebdriverIO service that provides a better integration into SauceLabs
-- [wdio-testingbot-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-testingbot-service) - WebdriverIO service that provides a better integration into TestingBot
+- [wdio-firefox-profile-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-firefox-profile-service) - A WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
+- [wdio-sauce-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-sauce-service) - A WebdriverIO service that provides a better integration into SauceLabs
+- [wdio-testingbot-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-testingbot-service) - A WebdriverIO service that provides a better integration into TestingBot
 
 ### Runner
 
