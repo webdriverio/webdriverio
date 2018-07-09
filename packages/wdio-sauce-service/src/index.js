@@ -8,9 +8,9 @@ const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
 const log = logger('wdio-sauce-service')
 
 export default class SauceService {
-    constructor (config) {
+    constructor (config, capabilities) {
         this.config = config
-        this.isMultiremote = !Array.isArray(config.capabilities)
+        this.capabilities = capabilities
     }
 
     /**
@@ -106,25 +106,34 @@ export default class SauceService {
 
         const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
 
-        if (!this.isMultiremote) {
+        if (!global.browser.isMultiremote) {
             log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
             return this.updateJob(global.browser.sessionId, this.failures)
         }
 
-        return Promise.all(Object.entries(this.capabilities).map(([browserName, instance]) => {
+        return Promise.all(Object.keys(this.capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
             return this.updateJob(global.browser[browserName].sessionId, this.failures, false, browserName)
         }))
     }
 
-    // onReload (oldSessionId, newSessionId) {
-    //     if (!this.sauceUser || !this.sauceKey) {
-    //         return
-    //     }
-    //
-    //     this.sessionId = newSessionId
-    //     return this.updateJob(oldSessionId, this.failures, true)
-    // }
+    onReload (oldSessionId, newSessionId) {
+        if (!this.sauceUser || !this.sauceKey) {
+            return
+        }
+
+        const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
+
+        if (!global.browser.isMultiremote) {
+            log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
+            return this.updateJob(oldSessionId, this.failures, true)
+        }
+
+        const browserName = global.browser.instances.filter(
+            (browserName) => global.browser[browserName].sessionId === newSessionId)[0]
+        log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
+        return this.updateJob(oldSessionId, this.failures, true, browserName)
+    }
 
     updateJob (sessionId, failures, calledOnReload = false, browserName) {
         return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
@@ -153,13 +162,23 @@ export default class SauceService {
         /**
          * set default values
          */
-        body.name = `${browserName}: ${this.suiteTitle}`
+        body.name = this.suiteTitle
+
+        if (browserName) {
+            body.name = `${browserName}: ${body.name}`
+        }
 
         /**
          * add reload count to title if reload is used
          */
         if (calledOnReload || this.testCnt) {
-            body.name += ` (${++this.testCnt})`
+            let testCnt = ++this.testCnt
+
+            if (global.browser.isMultiremote) {
+                testCnt = Math.ceil(testCnt / global.browser.instances.length)
+            }
+
+            body.name += ` (${testCnt})`
         }
 
         for (let prop of jobDataProperties) {

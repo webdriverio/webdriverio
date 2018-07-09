@@ -26,6 +26,7 @@ export default class WebDriver {
         )
 
         const response = await sessionRequest.makeRequest(params)
+        params.requestedCapabilities = params.capabilities
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = Boolean(response.value.capabilities)
 
