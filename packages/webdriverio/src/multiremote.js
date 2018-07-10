@@ -17,9 +17,6 @@ export default class MultiRemote {
      * add instance to multibrowser instance
      */
     async addInstance (browserName, client) {
-        if (this.instances[browserName]) {
-            throw new Error(`webdriver instance "${browserName}" is already defined`)
-        }
         this.instances[browserName] = await client
         return this.instances[browserName]
     }
@@ -64,7 +61,7 @@ export default class MultiRemote {
      * elems[0].getHTML()
      * ```
      */
-    static elementWrapper (instances, result, isMultiremote) {
+    static elementWrapper (instances, result) {
         /**
          * we can't handle multi browser with different protocol support, therefor check only the
          * first registered browser and handle it similar to other browser
@@ -85,7 +82,7 @@ export default class MultiRemote {
             return client
         }, prototype)
 
-        return element(this.sessionId, multiremoteHandler(wrapCommand, isMultiremote))
+        return element(this.sessionId, multiremoteHandler(wrapCommand))
     }
 
     /**
@@ -105,7 +102,7 @@ export default class MultiRemote {
                 return MultiRemote.elementWrapper(instances, result)
             } else if (commandName === '$$') {
                 const zippedResult = zip(...result)
-                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult, true))
+                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult))
             }
 
             return result
@@ -116,6 +113,7 @@ export default class MultiRemote {
 /**
  * event listener class that propagates events to sub drivers
  */
+/* istanbul ignore next */
 class MultiRemoteDriver {
     constructor (instances) {
         this.instances = Object.keys(instances)

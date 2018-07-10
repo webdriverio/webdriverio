@@ -58,16 +58,12 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
 /**
  * handle single command calls from multiremote instances
  */
-export const multiremoteHandler = (wrapCommand, isMultiremote) => (commandName) => {
+export const multiremoteHandler = (wrapCommand) => (commandName) => {
     return wrapCommand(commandName, function (...args) {
         const commandResults = this.instances.map((instanceName) => {
             return this[instanceName][commandName](...args)
         })
 
-        if (isMultiremote) {
-            return Promise.all(commandResults)
-        }
-
-        return commandResults
+        return Promise.all(commandResults)
     })
 }
