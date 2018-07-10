@@ -41,7 +41,9 @@ export default class WebDriverRequest extends EventEmitter {
 
     _createOptions (options, sessionId) {
         const requestOptions = {
-            agent: agents[options.protocol]
+            agent: agents[options.protocol],
+            headers: typeof options.headers === 'object' ? options.headers : {},
+            qs: typeof this.defaultOptions.queryParams === 'object' ? options.queryParams : {}
         }
 
         /**
@@ -58,20 +60,6 @@ export default class WebDriverRequest extends EventEmitter {
             `${options.hostname}:${options.port}` +
             path.resolve(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
         )
-
-        /**
-         * Check for custom authorization header
-         */
-        if (typeof options.headers === 'object') {
-            requestOptions.headers = Object.assign(requestOptions.headers, options.headers)
-        }
-
-        /**
-         * Add query parameters to request options if it is an object
-         */
-        if (typeof this.defaultOptions.queryParams === 'object') {
-            requestOptions.qs = options.queryParams
-        }
 
         /**
          * send authentication credentials only when creating new session
