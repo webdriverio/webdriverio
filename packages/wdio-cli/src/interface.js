@@ -134,7 +134,7 @@ export default class WDIOCLInterface extends EventEmitter {
             'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
             (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
             this.specs.length, 'total',
-            `(${Math.round((this.result.finished / this.specs.length) * 100)}% completed)`
+            `(${this.specs.length ? Math.round((this.result.finished / this.specs.length) * 100) : 0}% completed)`
         )
 
         this.updateClock()
