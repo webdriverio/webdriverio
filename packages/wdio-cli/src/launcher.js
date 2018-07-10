@@ -103,6 +103,15 @@ class Launcher {
             this.resolve = resolve
 
             /**
+             * fail if no specs were found or specified
+             */
+            if (Object.values(this.schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
+                log.error('No specs found to run, exiting with failure')
+                this.interface.updateView()
+                return resolve(1)
+            }
+
+            /**
              * return immediately if no spec was run
              */
             if (this.runSpecs()) {
