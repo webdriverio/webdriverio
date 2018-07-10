@@ -14,7 +14,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         }
     }
 
-    if (params.body.capabilities && params.body.capabilities.jsonwpMode) {
+    if (params.body && params.body.capabilities && params.body.capabilities.jsonwpMode) {
         sessionResponse = {
             sessionId,
             browserName: 'mockBrowser'
@@ -114,6 +114,31 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     /**
+     * simulate failing response
+     */
+    if (params.uri.path === '/wd/hub/failing') {
+        ++requestMock.retryCnt
+
+        /**
+         * success this request if you retry 3 times
+         */
+        if (requestMock.retryCnt > 3) {
+            const response = { value: 'caught' }
+            return cb(null, {
+                headers: { foo: 'bar' },
+                statusCode: 200,
+                body: response
+            }, response)
+        }
+
+        return cb(new Error('Could not send request'), {
+            headers: { foo: 'bar' },
+            statusCode: 400,
+            body: {}
+        }, {})
+    }
+
+    /**
      * overwrite if manual response is set
      */
     if (Array.isArray(manualMockResponse)) {
@@ -139,6 +164,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }, response)
 })
 
+requestMock.retryCnt = 0
 requestMock.setMockResponse = (value) => {
     manualMockResponse = value
 }
