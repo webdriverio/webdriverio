@@ -1,0 +1,9 @@
+{
+  env: {
+    jasmine: true
+  },
+  globals: {
+    browser: true,
+    $: true
+  }
+}

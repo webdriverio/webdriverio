@@ -1,7 +1,9 @@
-var WebdriverIO = require('../../build'),
-    matrix = WebdriverIO.multiremote({
+import { multiremote } from '../../packages/webdriverio/build'
+
+(async () => {
+    const matrix = await multiremote({
         browserA: {
-            desiredCapabilities: {
+            capabilities: {
                 browserName: 'chrome',
                 chromeOptions: {
                     args: [
@@ -12,7 +14,7 @@ var WebdriverIO = require('../../build'),
             }
         },
         browserB: {
-            desiredCapabilities: {
+            capabilities: {
                 browserName: 'chrome',
                 chromeOptions: {
                     args: [
@@ -24,15 +26,15 @@ var WebdriverIO = require('../../build'),
         }
     });
 
-var channel = Math.round(Math.random() * 10e10);
+    var channel = Math.round(Math.random() * 10e10);
 
-matrix
-    .init()
-    .url('https://apprtc.appspot.com/r/' + channel)
-    .click('#confirm-join-button')
-    .pause(5000)
-    .end()
-    .then(
-        () => console.log('Multiremote script ran successfully'),
-        (e) => console.log(e)
-    );
+    await matrix.url('https://apprtc.appspot.com/r/' + channel)
+
+    const elem = await matrix.$('#confirm-join-button')
+    await elem.click()
+
+    await matrix.pause(5000)
+    await matrix.deleteSession()
+
+    console.log('Multiremote script ran successfully') // eslint-disable-line no-console
+})().catch(console.error) // eslint-disable-line no-console

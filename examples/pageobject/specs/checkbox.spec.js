@@ -1,17 +1,18 @@
-var expect = require('chai').expect;
-var CheckboxPage = require('../pageobjects/checkbox.page');
+import assert from 'assert'
 
-describe('checkboxes', function () {
-    it('checkbox 2 should be enabled', function () {
-        CheckboxPage.open();
-        expect(CheckboxPage.firstCheckbox.isSelected()).to.be.equal(false);
-        expect(CheckboxPage.lastCheckbox.isSelected()).to.be.equal(true);
-    });
+import CheckboxPage from '../pageobjects/checkbox.page'
 
-    it('checkbox 1 should be enabled after clicking on it', function () {
-        CheckboxPage.open();
-        expect(CheckboxPage.firstCheckbox.isSelected()).to.be.equal(false);
-        CheckboxPage.firstCheckbox.click();
-        expect(CheckboxPage.firstCheckbox.isSelected()).to.be.equal(true);
-    });
-});
+describe('checkboxes', () => {
+    it('checkbox 2 should be enabled', () => {
+        CheckboxPage.open()
+        assert.equal(CheckboxPage.firstCheckbox.isSelected(), false)
+        assert.equal(CheckboxPage.lastCheckbox.isSelected(), true)
+    })
+
+    it('checkbox 1 should be enabled after clicking on it', () => {
+        CheckboxPage.open()
+        assert.equal(CheckboxPage.firstCheckbox.isSelected(), false)
+        CheckboxPage.firstCheckbox.click()
+        assert.equal(CheckboxPage.firstCheckbox.isSelected(), true)
+    })
+})

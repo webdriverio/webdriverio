@@ -1,26 +1,24 @@
-var page = require('./page');
+import Page from './page'
 
-var formPage = Object.create(page, {
+class FormPage extends Page {
     /**
      * define elements
      */
-    username: { get: function () { return $('#username'); } },
-    password: { get: function () { return $('#password'); } },
-    submitButton: {
-      get: function () { return $('#login button[type=submit]'); }
-    },
-    flash:    { get: function () { return $('#flash'); } },
+    get username () { return $('#username') }
+    get password () { return $('#password') }
+    get submitButton () { return $('#login button[type=submit]') }
+    get flash () { return $('#flash') }
 
     /**
      * define or overwrite page methods
      */
-    open: { value: function() {
-        page.open.call(this, 'login');
-    } },
+    open () {
+        super.open('login');
+    }
 
-    submit: { value: function() {
+    submit () {
         this.submitButton.click();
-    } }
-});
+    }
+}
 
-module.exports = formPage;
+export default new FormPage()
