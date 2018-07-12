@@ -22,6 +22,15 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
         return false
     }
 
+    /**
+     * if it has a status property, it should be 0
+     * (just here to stay backwards compatible to the jsonwire protocol)
+     */
+    if (body.status && body.status !== 0) {
+        log.debug(`request failed due to status ${body.status}`)
+        return false
+    }
+
     const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
 
     /**
@@ -37,15 +46,6 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
      */
     if (statusCode === 404 && body.value && body.value.error === 'no such element') {
         return true
-    }
-
-    /**
-     * if it has a status property, it should be 0
-     * (just here to stay backwards compatible to the jsonwire protocol)
-     */
-    if (body.status && body.status !== 0) {
-        log.debug(`request failed due to status ${body.status}`)
-        return false
     }
 
     /**
