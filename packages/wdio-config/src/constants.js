@@ -11,7 +11,7 @@ export const DEFAULT_CONFIGS = {
     logDir: process.cwd(),
     logLevel: 'trace',
     deprecationWarnings: true,
-    baseUrl: null,
+    baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,
     waitforTimeout: 1000,
