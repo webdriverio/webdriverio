@@ -142,7 +142,7 @@ export const WDIO_DEFAULTS = {
                     typeof option[1] === 'object' &&
                     (
                         (typeof option[0] === 'string') ||
-                        (typeof option[0] === 'object' && typeof option[0].name === 'string')
+                        (typeof option[0] === 'function')
                     )
                 ) {
                     continue
