@@ -53,45 +53,66 @@ node ./examples/cloudservices/webdriverio.kobiton.js
 
 All files inside this directory demonstrate how some commands can get used. To run these examples just execute them with node.
 
-## Multiremote
+# Multiremote
 
 The multiremote examples demonstrate how you can use more than one browser to test a specific thing. This feature is not meant to run tests in parallel, it helps you test interactive features (e.g. a chat system) where you need more than one browser to test.
 
-#### webdriverio.multiremote.js
+## webrtc.js
 
-Run this test by executing the file using node. It opens up a WebRTC page with two Chrome browser.
-Both browser will connect to each other and will have a two seconds long call.
-
-#### webdriverio.multiremote.chat.js
-
-This example demonstrates how you could test a chat system. Both browsers will connect to a text-based chat. One browser will input something whereas the other browser reads the message, interprets it and returns with a proper response message. You can execute the test using Mocha. Make sure you pass a high timeout as argument to make the test work properly.
+Run this test by executing the file using node. It opens up a WebRTC page with two Chrome browser. Both browser will connect to each other and will have a two seconds long call.
 
 ```sh
-./node_modules/.bin/mocha ./examples/multiremote/webdriverio.multiremote.chat.js --timeout 9999999
+$ npm run test:webrtc
 ```
+
+## webdriverio.multiremote.chat.js
+
+This example demonstrates how you could test a chat system. Both browsers will connect to a text based chat. One browser will input something whereas the other browser reads the message, interprets it and returns with a proper response message. You can execute the test using Mocha. Make sure you pass a high timeout as argument to make the test work properly.
+
+```sh
+$ npm run test:chat
+```
+
 
 ## Page Object Example
 
-This directory demonstrates a simple setup for a wdio test suite with page objects. There is a page object for each page that gets tested + a parent page (`demo.page.js`) object that contains all important selectors and methods each page object should inherit from. As you can see the page objects are created using `Object.create` in order to enable easy inheritance between pages and their selectors.
-
-Since WebdriverIO v4 you don't need to specify a selector when using a command that acts on a certain element on the page. That allows an interesting, intuitive and easy to read syntax. For example:
-
-```js
-MyPageObject.input.setValue('foo');
-// is the same as
-browser.setValue('#input', 'foo');
-```
+This directory demonstrates a simple setup for a wdio test suite with page objects. There is a page object for each page that gets tested + a parent page (`page.js`) object that contains all important selectors and methods each page object should inherit from. As you can see the page objects are created using `Object.create` in order to enable easy inheritance between pages and their selectors.
 
 The goal behind this pattern is to abstract any page information away from the actual tests. Ideally you should store all selectors or specific instructions that are unique for a certain page in a page controller, so that you still can run your test after you've completely redesigned your page and fixed all selectors in the page object.
 
-## Standalone
+The examples works without any 3rd party dependencies for assertions. These can be added if desired to make the test even more readable. The code is written using [JavaScript classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes). In order to be able to run the code make sure you run a Node.JS version that supports it or integrate [Babel](https://babeljs.io/) as compiler.
 
-These files show how to run WebdriverIO as standalone package in different frameworks. Before running them make sure you have the desired framework installed.
-
-## WDIO
-
-This directory contains config files for each framework for the wdio test runner. It also shows you how to run multiremote test with the test runner as well as WebdriverCSS tests. To execute the framework configs you need the desired framework installed locally. Then just run the wdio executable from the root directory of the WebdriverIO repository:
+To run the test, change into this directory:
 
 ```sh
-./bin/wdio examples/wdio/wdio.mocha.conf.js
+$ cd ./examples/pageobject
+```
+
+And run the demo:
+
+```sh
+$ npm test
+```
+
+# WDIO Testrunner Examples
+
+This directory contains examples for each framework for the wdio test runner. It also shows you how to run multiremote test with the test runner or how to embed a custom reporter. First change directory to the example folder:
+
+```sh
+$ cd ./examples/wdio
+```
+
+Then run the test by calling the following commands:
+
+```sh
+# mocha tests
+$ npm run test:mocha
+# jasmine tests
+$ npm run test:jasmine
+# cucumber tests
+$ npm run test:cucumber
+# testsuite with multiremote
+$ npm run test:multiremote
+# test suite with custome reporter
+$ npm run test:customReporter
 ```

@@ -1,13 +1,14 @@
-var expect = require('chai').expect;
-var DynamicPage = require('../pageobjects/dynamic.page');
+import assert from 'assert'
 
-describe('dynamic loading', function () {
-    it('should be an button on the page', function () {
-        DynamicPage.open();
-        expect(DynamicPage.loadedPage.isExisting()).to.be.equal(false);
+import DynamicPage from '../pageobjects/dynamic.page'
 
-        DynamicPage.btnStart.click();
-        DynamicPage.loadedPage.waitForExist();
-        expect(DynamicPage.loadedPage.isExisting()).to.be.equal(true);
-    });
-});
+describe('dynamic loading', () => {
+    it('should be an button on the page', () => {
+        DynamicPage.open()
+        assert.equal(DynamicPage.loadedPage.isExisting(), false)
+
+        DynamicPage.btnStart.click()
+        DynamicPage.loadedPage.waitForExist()
+        assert.equal(DynamicPage.loadedPage.isExisting(), true)
+    })
+})

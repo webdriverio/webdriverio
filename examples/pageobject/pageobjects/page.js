@@ -1,8 +1,5 @@
-function Page () {
+export default class Page {
+    open (path) {
+        browser.url(path)
+    }
 }
-
-Page.prototype.open = function (path) {
-    browser.url(path);
-};
-
-module.exports = new Page();

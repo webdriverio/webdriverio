@@ -1,23 +1,24 @@
-var expect = require('chai').expect;
-var FormPage = require('../pageobjects/form.page');
+import assert from 'assert'
 
-describe('auth form', function () {
-    it('should deny access with wrong creds', function () {
-        FormPage.open();
-        FormPage.username.setValue('foo');
-        FormPage.password.setValue('bar');
-        FormPage.submit();
+import FormPage from '../pageobjects/form.page'
 
-        expect(FormPage.flash.getText()).to.contain('Your username is invalid!');
-    });
+describe('auth form', () => {
+    it('should deny access with wrong creds', () => {
+        FormPage.open()
+        FormPage.username.addValue('foo')
+        FormPage.password.addValue('bar')
+        FormPage.submit()
 
-    it('should allow access with correct creds', function () {
-        FormPage.open();
-        FormPage.username.setValue('tomsmith');
-        FormPage.password.setValue('SuperSecretPassword!');
-        FormPage.submit();
+        assert.ok(FormPage.flash.getText().includes('Your username is invalid!'))
+    })
 
-        FormPage.flash.waitForVisible();
-        expect(FormPage.flash.getText()).to.contain('You logged into a secure area!');
-    });
-});
+    it('should allow access with correct creds', () => {
+        FormPage.open()
+        FormPage.username.addValue('tomsmith')
+        FormPage.password.addValue('SuperSecretPassword!')
+        FormPage.submit()
+
+        FormPage.flash.waitForVisible()
+        assert.ok(FormPage.flash.getText().includes('You logged into a secure area!'))
+    })
+})

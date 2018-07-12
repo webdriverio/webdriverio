@@ -1,18 +1,18 @@
-var page = require('./page');
+import Page from './page'
 
-var checkboxPage = Object.create(page, {
+class CheckboxPage extends Page {
     /**
      * define elements
      */
-    lastCheckbox:  { get: function () { return $('#checkboxes input:last-Child'); } },
-    firstCheckbox: { get: function () { return $('#checkboxes input:first-Child'); } },
+    get lastCheckbox () { return $('#checkboxes input:last-Child') }
+    get firstCheckbox () { return $('#checkboxes input:first-Child') }
 
     /**
      * define or overwrite page methods
      */
-    open: { value: function() {
-        page.open.call(this, 'checkboxes');
-    } }
-});
+    open () {
+        super.open('checkboxes')
+    }
+}
 
-module.exports = checkboxPage;
+export default new CheckboxPage()

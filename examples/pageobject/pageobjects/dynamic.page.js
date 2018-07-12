@@ -1,18 +1,18 @@
-var page = require('./page');
+import Page from './page'
 
-var dynamicPage = Object.create(page, {
+class DynamicPage extends Page {
     /**
      * define elements
      */
-    btnStart:   { get: function () { return $('button=Start'); } },
-    loadedPage: { get: function () { return $('#finish'); } },
+    get btnStart () { return $('button=Start') }
+    get loadedPage () { return $('#finish') }
 
     /**
      * define or overwrite page methods
      */
-    open: { value: function() {
-        page.open.call(this, 'dynamic_loading/2');
-    } }
-});
+    open () {
+        super.open('dynamic_loading/2')
+    }
+}
 
-module.exports = dynamicPage;
+export default new DynamicPage()
