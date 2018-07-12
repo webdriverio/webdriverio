@@ -1,9 +1,11 @@
-module.exports = {
+{
   env: {
     mocha: true
   },
   globals: {
     browser: true,
-    driver: true
+    browserA: true,
+    browserB: true,
+    $: true
   }
 }

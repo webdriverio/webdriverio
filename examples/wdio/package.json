@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "test:mocha": "../../packages/wdio-cli/bin/wdio.js ./mocha/wdio.conf.js",
+    "test:jasmine": "../../packages/wdio-cli/bin/wdio.js ./jasmine/wdio.conf.js",
+    "test:cucumber": "../../packages/wdio-cli/bin/wdio.js ./cucumber/wdio.conf.js",
+    "test:multiremote": "../../packages/wdio-cli/bin/wdio.js ./multiremote/wdio.conf.js",
+    "test:customReporter": "../../packages/wdio-cli/bin/wdio.js ./custom-reporter/wdio.conf.js"
+  }
+}
