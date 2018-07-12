@@ -99,7 +99,7 @@ class Launcher {
             process.stdin.resume()
         }
 
-        let exitCode = await new Promise((resolve) => {
+        const exitCode = await new Promise((resolve) => {
             this.resolve = resolve
 
             /**
@@ -125,6 +125,7 @@ class Launcher {
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
         await config.onComplete(exitCode, config, caps)
 
+        this.interface.updateView()
         return exitCode
     }
 
