@@ -1,6 +1,6 @@
 var path = require('path');
 var helper = require('./helpers/drawHelper');
-var webdriverio = require('../../');
+var webdriverio = require('../../packages/webdriverio/build');
 var webviewApp = path.resolve(__dirname, '..', '..', 'test', 'site', 'platforms', 'ios', 'build', 'emulator', 'WebdriverIO Guinea Pig.app');
 
 var client = webdriverio.remote({
@@ -40,6 +40,7 @@ client
         helper.innerArcAction(2*Math.PI / 3*3 + Math.PI / 3, 2*Math.PI / 3*3 + Math.PI + Math.PI / 8 + Math.PI / 3)
     ])
     .end().catch(function (e) {
+        // eslint-disable-next-line
         console.error(e.stack);
         return client.end();
     });
