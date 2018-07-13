@@ -56,7 +56,6 @@ module.exports.arcAction = function(start, end) {
 module.exports.innerArcAction = function(start, end) {
     var theta = start;
     var step = 4 * Math.PI / 100;
-    var min_radius = 30;
 
     var prev = { action: 'press', x: h - r * Math.cos(theta), y: k + r * Math.sin(theta) };
     var actions = [];
