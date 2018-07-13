@@ -1,3 +1,5 @@
+import { detectBackend } from 'wdio-config'
+
 import { remote, multiremote } from '../src'
 
 jest.mock('webdriver', () => {
@@ -41,6 +43,11 @@ describe('WebdriverIO module interface', () => {
             })
             expect(browser.sessionId).toBe('foobar-123')
             expect(browser.foobar).toBe('barfoo')
+        })
+
+        it('should try to detect the backend', async () => {
+            await remote({ user: 'foo', key: 'bar' })
+            expect(detectBackend).toBeCalled()
         })
     })
 
