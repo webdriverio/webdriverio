@@ -1,5 +1,5 @@
 import WebDriver from 'webdriver'
-import { validateConfig, wrapCommand } from 'wdio-config'
+import { validateConfig, wrapCommand, detectBackend } from 'wdio-config'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
@@ -20,6 +20,10 @@ export const remote = function (params = {}, remoteModifier) {
         }
 
         return client
+    }
+
+    if (params.user && params.key) {
+        params = Object.assign(params, detectBackend(params))
     }
 
     const prototype = getPrototype('browser')
