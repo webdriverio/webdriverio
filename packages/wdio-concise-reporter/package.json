@@ -1,6 +1,6 @@
 {
   "name": "wdio-concise-reporter",
-  "version": "5.0.0-alpha.9",
+  "version": "5.0.0-alpha.10",
   "description": "A concise reporter for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-concise-reporter",
@@ -32,6 +32,6 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "pretty-ms": "^3.2.0",
-    "wdio-reporter": "^5.0.0-alpha.9"
+    "wdio-reporter": "^5.0.0-alpha.10"
   }
 }
