@@ -1,5 +1,7 @@
 import { WDIO_DEFAULTS } from '../src/constants'
 
+class CustomReporter {}
+
 describe('constants', () => {
     describe('WDIO_DEFAULTS', () => {
         it('should expect specs to be an array', () => {
@@ -14,7 +16,7 @@ describe('constants', () => {
 
         it('should validate reporters correctly', () => {
             WDIO_DEFAULTS.reporters.type(['string'])
-            WDIO_DEFAULTS.reporters.type([[{ name: 'foobar' }, {}]])
+            WDIO_DEFAULTS.reporters.type([[CustomReporter, {}]])
 
             expect(() => WDIO_DEFAULTS.reporters.type('foobar')).toThrow()
             expect(() => WDIO_DEFAULTS.reporters.type([false, 'string'])).toThrow()

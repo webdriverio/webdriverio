@@ -25,7 +25,7 @@ export function isSuccessfulResponse ({ body, statusCode } = {}) {
     /**
      * ignore failing element request to enable lazy loading capability
      */
-    if (body.status && body.status === 7 && body.value.message.startsWith('no such element')) {
+    if (body.status && body.status === 7 && body.value.message && body.value.message.startsWith('no such element')) {
         return true
     }
 
