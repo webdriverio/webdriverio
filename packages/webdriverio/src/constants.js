@@ -1,7 +1,5 @@
 /* istanbul ignore next */
-const NOOP = () => {}
 
-const DEFAULT_TEST_TIMEOUT = 30000
 const HOOK_DEFINITION = {
     type: (param) => {
         /**
@@ -26,19 +24,11 @@ const HOOK_DEFINITION = {
         }
 
         return true
-    },
-    default: []
+    }
 }
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 export const WDIO_DEFAULTS = {
-    /**
-     * run WebdriverIO commands synchronously using Fibers package
-     */
-    sync: {
-        type: 'boolean',
-        default: true
-    },
     /**
      * define specs for test execution
      */
@@ -57,16 +47,14 @@ export const WDIO_DEFAULTS = {
             if (!Array.isArray(param)) {
                 throw new Error('the "exclude" options needs to be a list of strings')
             }
-        },
-        default: []
+        }
     },
     /**
      * key/value definition of suites (named by key) and a list of specs as value
      * to specify a specific set of tests to execute
      */
     suites: {
-        type: 'object',
-        default: {}
+        type: 'object'
     },
     /**
      * Shorten navigateTo command calls by setting a base url
@@ -156,16 +144,13 @@ export const WDIO_DEFAULTS = {
             }
 
             return true
-        },
-        default: []
+        }
     },
     maxInstances: {
-        type: 'number',
-        default: 100
+        type: 'number'
     },
     maxInstancesPerCapability: {
-        type: 'number',
-        default: 100
+        type: 'number'
     },
     logDir: {
         type: 'string',
@@ -173,33 +158,10 @@ export const WDIO_DEFAULTS = {
     },
 
     /**
-     * framework defaults
-     */
-    mochaOpts: {
-        type: 'object',
-        default: {
-            timeout: DEFAULT_TEST_TIMEOUT
-        }
-    },
-    jasmineNodeOpts: {
-        type: 'object',
-        default: {
-            defaultTimeoutInterval: DEFAULT_TEST_TIMEOUT
-        }
-    },
-    cucumberOpts: {
-        type: 'object',
-        default: {
-            timeout: DEFAULT_TEST_TIMEOUT
-        }
-    },
-
-    /**
      * hooks
      */
     onPrepare: {
-        type: 'function',
-        default: NOOP
+        type: 'function'
     },
     before: HOOK_DEFINITION,
     beforeSession: HOOK_DEFINITION,
@@ -214,8 +176,7 @@ export const WDIO_DEFAULTS = {
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
     onComplete: {
-        type: 'function',
-        default: NOOP
+        type: 'function'
     },
     onError: HOOK_DEFINITION,
     onReload: HOOK_DEFINITION,

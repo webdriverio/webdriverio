@@ -40,9 +40,8 @@ export default function url (path) {
         throw new Error(`Parameter for 'url' command needs to be type of string`)
     }
 
-    const config = this.sessionConfig || this.options
-    if (typeof config.baseUrl === 'string') {
-        path = nodeUrl.resolve(config.baseUrl, path)
+    if (typeof this.options.baseUrl === 'string') {
+        path = nodeUrl.resolve(this.options.baseUrl, path)
     }
 
     return this.navigateTo(path)

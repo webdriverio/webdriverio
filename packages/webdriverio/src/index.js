@@ -19,6 +19,7 @@ export const remote = function (params = {}, remoteModifier) {
             client = remoteModifier(client, Object.assign(options, config))
         }
 
+        Object.assign(options, config)
         return client
     }
 

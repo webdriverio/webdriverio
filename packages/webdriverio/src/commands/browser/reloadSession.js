@@ -41,11 +41,10 @@ export default async function reloadSession () {
 
     const response = await sessionRequest.makeRequest(this.options)
     const newSessionId = response.sessionId
-    const config = this.sessionConfig || this.options
     this.sessionId = newSessionId
 
-    if (Array.isArray(config.onReload) && config.onReload.length) {
-        await Promise.all(config.onReload.map((hook) => hook(oldSessionId, newSessionId)))
+    if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
+        await Promise.all(this.options.onReload.map((hook) => hook(oldSessionId, newSessionId)))
     }
 
     return newSessionId
