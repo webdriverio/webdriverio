@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test:saucelabs": "../../node_modules/.bin/babel-node saucelabs.js",
+    "test:browserstack": "../../node_modules/.bin/babel-node browserstack.js",
+    "test:testingbot": "../../node_modules/.bin/babel-node testingbot.js",
+    "test:kobiton": "../../node_modules/.bin/babel-node kobiton.js"
+  }
+}
