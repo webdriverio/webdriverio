@@ -24,6 +24,7 @@ export default class TestingBotService {
         config.port = 4445
 
         return new Promise((resolve, reject) => testingbotTunnel(this.tbTunnelOpts, (err, tunnel) => {
+            /* istanbul ignore if */
             if (err) {
                 return reject(err)
             }
@@ -185,6 +186,7 @@ export default class TestingBotService {
             },
             body: this.getBody(failures, calledOnReload)
         }, (e, res, body) => {
+            /* istanbul ignore if */
             if (e) {
                 return reject(e)
             }
