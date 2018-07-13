@@ -1,9 +1,11 @@
-var webdriverio = require('../../build/index'),
-    client = webdriverio.remote({
-        desiredCapabilities: {
+import { remote } from '../../packages/webdriverio/build'
+
+(async () => {
+    const browser = await remote({
+        capabilities: {
             browserName: 'chrome',
-            version: '27',
-            platform: 'XP',
+            version: 'latest',
+            platform: 'Windows 10',
             tags: ['examples'],
             name: 'This is an example test',
 
@@ -15,20 +17,24 @@ var webdriverio = require('../../build/index'),
             // Also see https://support.saucelabs.com/customer/portal/articles/2005331-why-do-my-tests-say-%22finished%22-instead-of-%22passed%22-or-%22failed%22-how-do-i-set-the-status-
             'public': true
         },
-        host: 'ondemand.saucelabs.com',
-        port: 80,
         user: process.env.SAUCE_USERNAME,
         key: process.env.SAUCE_ACCESS_KEY,
-        logLevel: 'silent'
-    }).init();
-
-client
-    .url('http://webdriver.io')
-    .setValue('.ds-input', 'click')
-    .click('.algolia-docsearch-suggestion--title')
-    .pause(1000)
-    .getTitle().then((title) => {
-        console.log(title); // should return "WebdriverIO - click"
+        logLevel: 'trace'
     })
-    .end()
-    .catch((e) => console.log(e));
+
+    await browser.url('http://webdriver.io')
+
+    const searchInput = await browser.$('.ds-input')
+    await searchInput.addValue('click')
+
+    const resultLabel = await browser.$('.algolia-docsearch-suggestion--title')
+    await resultLabel.click()
+
+    await browser.pause(1000)
+
+    const title = await browser.getTitle()
+    // eslint-disable-next-line
+    console.log(title) // returns "should return "WebdriverIO - click""
+
+    await browser.deleteSession()
+})()

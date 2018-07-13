@@ -1,34 +1,40 @@
 # Cloudservices
 
-Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. If so just execute the file using node:
+Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:
 
-## webdriverio.saucelabs.js
+```sh
+$ cd ./examples/cloudservices
+```
+
+and run the demos by calling:
+
+## saucelabs.js
 
 ```sh
 export SAUCE_USERNAME="username"
 export SAUCE_ACCESS_KEY="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-node ./examples/cloudservices/webdriverio.saucelabs.js
+npm run test:saucelabs
 ```
 
-## webdriverio.browserstack.js
+## browserstack.js
 
 ```sh
 export BROWSERSTACK_USERNAME="username"
 export BROWSERSTACK_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXX"
-node ./examples/cloudservices/webdriverio.browserstack.js
+npm run test:browserstack
 ```
 
-## webdriverio.testingbot.js
+## testingbot.js
 
 ```sh
 export TESTINGBOT_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export TESTINGBOT_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-node ./examples/cloudservices/webdriverio.testingbot.js
+npm run test:testingbot
 ```
 
-## webdriverio.kobiton.js
+## kobiton.js
 ```sh
 export KOBITON_USERNAME="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export KOBITON_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-node ./examples/cloudservices/webdriverio.kobiton.js
+npm run test:kobiton
 ```
