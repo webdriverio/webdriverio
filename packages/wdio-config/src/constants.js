@@ -36,6 +36,9 @@ export const DEFAULT_CONFIGS = {
     jasmineNodeOpts: {
         defaultTimeoutInterval: DEFAULT_TIMEOUT
     },
+    cucumberOpts: {
+        timeout: DEFAULT_TIMEOUT
+    },
 
     /**
      * hooks
