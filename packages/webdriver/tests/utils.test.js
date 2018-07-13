@@ -30,6 +30,9 @@ describe('utils', () => {
         expect(isSuccessfulResponse({
             body: { status: 0, value: {} }
         })).toBe(true)
+        expect(isSuccessfulResponse({
+            body: { status: 7, value: { message: 'no such element: foobar' } }
+        })).toBe(true)
     })
 
     it('isValidParameter', () => {
