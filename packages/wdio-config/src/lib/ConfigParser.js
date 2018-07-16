@@ -68,7 +68,7 @@ export default class ConfigParser {
      */
     merge (object = {}) {
         this._config = merge(this._config, object, MERGE_OPTIONS)
-        let spec = object.spec ? object.spec : []
+        let spec = Array.isArray(object.spec) ? object.spec : []
 
         /**
          * overwrite config specs that got piped into the wdio command
@@ -91,7 +91,7 @@ export default class ConfigParser {
             const allSpecs = ConfigParser.getFilePaths(this._config.specs)
 
             spec.forEach((spec_file) => {
-                if (fs.existsSync(spec_file)) {
+                if (fs.existsSync(spec_file) && fs.lstatSync(spec).isFile()) {
                     specs.add(path.resolve(process.cwd(), spec_file))
                 }
                 else {
@@ -152,9 +152,9 @@ export default class ConfigParser {
      */
     getSpecs (capSpecs, capExclude) {
         let specs = ConfigParser.getFilePaths(this._config.specs)
-        let spec  = this._config.spec ? this._config.spec : []
+        let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude)
-        let suites = this._config.suite ? this._config.suite : []
+        let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         /**
          * check if user has specified a specific suites to run
