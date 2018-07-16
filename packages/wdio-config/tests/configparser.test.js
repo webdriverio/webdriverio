@@ -77,7 +77,7 @@ describe('ConfigParser', () => {
         it('should throw if specified spec file does not exist', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            expect(() => configParser.merge({ spec: path.resolve(__dirname, 'foobar.js') })).toThrow()
+            expect(() => configParser.merge({ spec: [path.resolve(__dirname, 'foobar.js')] })).toThrow()
         })
 
         it('should allow to specify multiple suites', () => {
