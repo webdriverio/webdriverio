@@ -37,7 +37,7 @@ describe('ConfigParser', () => {
         it('should allow specifying a spec file', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec: INDEX_PATH })
+            configParser.merge({ spec: [INDEX_PATH] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
@@ -47,12 +47,31 @@ describe('ConfigParser', () => {
         it('should allow specifying mutliple single spec file', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec: `${INDEX_PATH},${FIXTURES_CONF}` })
+            configParser.merge({ spec : [INDEX_PATH, FIXTURES_CONF]})
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
             expect(specs).toContain(INDEX_PATH)
             expect(specs).toContain(FIXTURES_CONF)
+        })
+
+        it('should allow to specify partial matching spec file', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec : ['Plugin']})
+
+            const specs = configParser.getSpecs()
+            expect(specs).toContain(path.join(__dirname, 'initialisePlugin.test.js'))
+        })
+
+        it('should exclude duplicate spec files', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec : [INDEX_PATH, INDEX_PATH]})
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            expect(specs).toContain(INDEX_PATH)
         })
 
         it('should throw if specified spec file does not exist', () => {
@@ -64,7 +83,7 @@ describe('ConfigParser', () => {
         it('should allow to specify multiple suites', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: 'unit,functional,mobile' })
+            configParser.merge({ suite: ['unit', 'functional', 'mobile']})
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(__filename)
@@ -76,21 +95,21 @@ describe('ConfigParser', () => {
         it('should throw when suite is not defined', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: 'blabla' })
+            configParser.merge({ suite: ['blabla'] })
             expect(() => configParser.getSpecs()).toThrow(/The suite\(s\) "blabla" you specified don't exist/)
         })
 
         it('should throw when multiple suites are not defined', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: 'blabla,lala' })
+            configParser.merge({ suite: ['blabla', 'lala'] })
             expect(() => configParser.getSpecs()).toThrow(/The suite\(s\) "blabla", "lala" you specified don't exist/)
         })
 
         it('should allow to specify a single suite', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: 'mobile' })
+            configParser.merge({ suite: ['mobile'] })
 
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
@@ -188,7 +207,7 @@ describe('ConfigParser', () => {
         it('should include spec when specifying a suite', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: 'mobile', spec: INDEX_PATH })
+            configParser.merge({ suite: ['mobile'], spec: [INDEX_PATH] })
 
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)

@@ -68,6 +68,7 @@ export default class ConfigParser {
      */
     merge (object = {}) {
         this._config = merge(this._config, object, MERGE_OPTIONS)
+        let spec = object.spec ? object.spec : []
 
         /**
          * overwrite config specs that got piped into the wdio command
@@ -85,21 +86,29 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        if (typeof object.spec === 'string') {
-            const specs = []
-            const specList = object.spec.split(/,/g)
+        if (spec.length > 0) {
+            const specs = new Set()
+            const allSpecs = ConfigParser.getFilePaths(this._config.specs)
 
-            for (let spec of specList) {
-                if (fs.existsSync(spec)) {
-                    specs.push(path.resolve(process.cwd(), spec))
+            spec.forEach((spec_file) => {
+                if (fs.existsSync(spec_file)) {
+                    specs.add(path.resolve(process.cwd(), spec_file))
                 }
+                else {
+                    // Check for any specs that match a patter provided
+                    allSpecs.forEach((file) => {
+                        if (file.match(spec_file)) {
+                            specs.add(file)
+                        }
+                    });
+                }
+            });
+
+            if (specs.size === 0) {
+                throw new Error(`spec file(s) ${spec.join(`, `)} not found`)
             }
 
-            if (specs.length === 0) {
-                throw new Error(`spec file ${object.spec} not found`)
-            }
-
-            this._config.specs = specs
+            this._config.specs = [...specs]
         }
 
         /**
@@ -143,13 +152,14 @@ export default class ConfigParser {
      */
     getSpecs (capSpecs, capExclude) {
         let specs = ConfigParser.getFilePaths(this._config.specs)
+        let spec  = this._config.spec ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude)
+        let suites = this._config.suite ? this._config.suite : []
 
         /**
          * check if user has specified a specific suites to run
          */
-        let suites = typeof this._config.suite === 'string' ? this._config.suite.split(',') : []
-        if (Array.isArray(suites) && suites.length > 0) {
+        if (suites.length > 0) {
             let suiteSpecs = []
             for (let suiteName of suites) {
                 // ToDo: log warning if suite was not found
@@ -164,7 +174,11 @@ export default class ConfigParser {
                                 'in your config file or doesn\'t contain any files!')
             }
 
-            return typeof this._config.spec === `string` ? [...specs, ...suiteSpecs] : suiteSpecs
+            // Allow --suite and --spec to both be defined on the command line
+            // Removing any duplicate tests that could be included
+            const tmp_specs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
+
+            return [...new Set(tmp_specs)]
         }
 
         if (Array.isArray(capSpecs)) {
