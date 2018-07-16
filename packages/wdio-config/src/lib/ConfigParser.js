@@ -91,7 +91,7 @@ export default class ConfigParser {
             const allSpecs = ConfigParser.getFilePaths(this._config.specs)
 
             spec.forEach((spec_file) => {
-                if (fs.existsSync(spec_file) && fs.lstatSync(spec).isFile()) {
+                if (fs.existsSync(spec_file) && fs.lstatSync(spec_file).isFile()) {
                     specs.add(path.resolve(process.cwd(), spec_file))
                 }
                 else {
