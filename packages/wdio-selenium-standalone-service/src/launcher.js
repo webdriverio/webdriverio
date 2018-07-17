@@ -5,9 +5,7 @@ import getFilePath from './utils/getFilePath'
 const DEFAULT_LOG_FILENAME = 'selenium-standalone.txt'
 
 export default class SeleniumStandaloneLauncher {
-    constructor (config) {
-        console.log(`from construct`)
-        this.config = config
+    constructor () {
         this.seleniumLogs = null
         this.seleniumArgs = {}
         this.seleniumInstallArgs = {}
@@ -16,13 +14,11 @@ export default class SeleniumStandaloneLauncher {
         return this;
     }
 
-    onPrepare () {
-        //
-        console.log(`before on sel standalone`);
-        this.seleniumArgs = this.config.seleniumArgs || {}
-        this.seleniumInstallArgs = this.config.seleniumInstallArgs || {}
-        this.seleniumLogs = this.config.seleniumLogs
-        this.logToStdout = this.config.logToStdout
+    onPrepare (config) {
+        this.seleniumArgs = config.seleniumArgs || {}
+        this.seleniumInstallArgs = config.seleniumInstallArgs || {}
+        this.seleniumLogs = config.seleniumLogs
+        this.logToStdout = config.logToStdout
 
         return this._installSeleniumDependencies(this.seleniumInstallArgs).then(() => new Promise((resolve, reject) => Selenium.start(this.seleniumArgs, (err, process) => {
             if (err) {
@@ -39,9 +35,7 @@ export default class SeleniumStandaloneLauncher {
     }
 
     onComplete () {
-        console.log(`after session...`)
         if(this.process) {
-            console.log(`has existing process`)
             this.process.kill()
         }
     }
