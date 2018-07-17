@@ -27,7 +27,7 @@ export default function setup () {
         }
 
         if (packagesToInstall.length > 0) {
-            console.log('\nInstalling wdio packages:') // eslint-disable-line no-console
+            console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
             return npmInstallPackage(packagesToInstall, { saveDev: true }, (err) => {
                 if (err) {
                     throw err
