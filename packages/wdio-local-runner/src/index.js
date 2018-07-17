@@ -20,10 +20,13 @@ export default class LocalRunner extends EventEmitter {
     initialise () {}
 
     run ({ cid, command, configFile, argv, caps, processNumber, specs, server, isMultiremote }) {
-        const runnerEnv = Object.assign(this.config.runnerEnv, {
-            WDIO_LOG_LEVEL: this.config.logLevel,
-            WDIO_LOG_PATH: path.join(this.config.logDir, `wdio-${cid}.log`)
-        }, process.env)
+        const runnerEnv = Object.assign(process.env, this.config.runnerEnv, {
+            WDIO_LOG_LEVEL: this.config.logLevel
+        })
+
+        if (this.config.logDir) {
+            runnerEnv.WDIO_LOG_PATH = path.join(this.config.logDir, `wdio-${cid}.log`)
+        }
 
         /**
          * ensure that logs are colored in wdio-cli interface
@@ -33,6 +36,7 @@ export default class LocalRunner extends EventEmitter {
             runnerEnv.FORCE_COLOR = true
         }
 
+        log.info(`Start worker ${cid} with arg: ${process.argv.slice(2)}`)
         const childProcess = child.fork(path.join(__dirname, 'run.js'), process.argv.slice(2), {
             cwd: process.cwd(),
             env: runnerEnv,

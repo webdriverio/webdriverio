@@ -30,6 +30,9 @@ export default class BaseReporter {
      * returns name of log file
      */
     getLogFile (name) {
+        if (!this.config.logDir) {
+            return
+        }
         return path.join(this.config.logDir, `wdio-${this.cid}-${name}-reporter.log`)
     }
 

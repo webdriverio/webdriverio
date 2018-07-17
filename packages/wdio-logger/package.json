@@ -32,6 +32,7 @@
   "dependencies": {
     "chalk": "^2.3.0",
     "loglevel": "^1.6.0",
-    "loglevel-plugin-prefix": "^0.5.3"
+    "loglevel-plugin-prefix": "^0.5.3",
+    "strip-ansi": "^4.0.0"
   }
 }
