@@ -40,16 +40,54 @@ const SERIALIZERS = [{
     serialize: (log) => chalk.cyan(log)
 }]
 
+const loggers = {}
+const logCache = new Set()
+let logFile
+
+const originalFactory = log.methodFactory
+log.methodFactory = function (methodName, logLevel, loggerName) {
+    const rawMethod = originalFactory(methodName, logLevel, loggerName)
+    return (...args) => {
+        /**
+         * create logFile lazily
+         */
+        if (!logFile && process.env.WDIO_LOG_PATH) {
+            logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
+        }
+
+        args = args.map((arg) => {
+            for (const s of SERIALIZERS) {
+                if (s.matches(arg)) {
+                    return s.serialize(arg)
+                }
+            }
+            return arg
+        })
+
+        const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
+        if (logFile) {
+            /**
+             * empty logging cache if stuff got logged before
+             */
+            if (logCache.size) {
+                logCache.forEach((log) => logFile.write(log))
+                logCache.clear()
+            }
+
+            return logFile.write(logText)
+        }
+
+        logCache.add(logText)
+        rawMethod(...args)
+    }
+}
+
 prefix.apply(log, {
     template: '%t %l %n:',
     timestampFormatter: (date) => chalk.gray(date.toISOString()),
     levelFormatter: (level) => chalk[COLORS[level]](level.toUpperCase()),
     nameFormatter: (name) => chalk.whiteBright(name || 'global')
 })
-
-const loggers = {}
-const logCache = new Set()
-let logFile
 
 export default function getLogger (name) {
     /**
@@ -58,43 +96,6 @@ export default function getLogger (name) {
     if (loggers[name]) {
         return loggers[name]
     }
-
-    const originalFactory = log.methodFactory;
-    log.methodFactory = function (methodName, logLevel, loggerName) {
-        const rawMethod = originalFactory(methodName, logLevel, loggerName)
-        return (...args) => {
-            /**
-             * create logFile lazily
-             */
-            if (!logFile && process.env.WDIO_LOG_PATH) {
-                logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
-            }
-
-            args = args.map((arg) => {
-                for (const s of SERIALIZERS) {
-                    if (s.matches(arg)) {
-                        return s.serialize(arg)
-                    }
-                }
-                return arg
-            })
-
-            const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
-            if (logFile) {
-                if (logCache.size) {
-                    logCache.forEach((a) => {
-                        logFile.write(a)
-                    })
-                    logCache.clear()
-                }
-
-                return logFile.write(logText)
-            }
-
-            logCache.add(logText)
-            rawMethod(...args)
-        };
-    };
 
     loggers[name] = log.getLogger(name)
     loggers[name].setLevel(process.env.WDIO_LOG_LEVEL || DEFAULT_LEVEL)
