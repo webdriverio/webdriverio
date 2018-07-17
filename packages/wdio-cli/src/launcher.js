@@ -1,3 +1,5 @@
+import path from 'path'
+
 import logger from 'wdio-logger'
 import { ConfigParser, initialisePlugin } from 'wdio-config'
 
@@ -15,6 +17,10 @@ class Launcher {
         const config = this.configParser.getConfig()
         const capabilities = this.configParser.getCapabilities()
         const specs = this.configParser.getSpecs()
+
+        if (config.logDir) {
+            process.env.WDIO_LOG_PATH = path.join(config.logDir, `wdio.log`)
+        }
 
         this.interface = new CLInterface(config, specs)
         config.runnerEnv.FORCE_COLOR = this.interface.hasAnsiSupport
@@ -52,6 +58,7 @@ class Launcher {
          * run onPrepare hook
          */
         await config.onPrepare(config, caps)
+        log.info('Run onPrepare hook')
         await runServiceHook(launcher, 'onPrepare', config, caps)
 
         /**
@@ -66,6 +73,7 @@ class Launcher {
             /**
              * run onComplete hook for multiremote
              */
+            log.info('Run multiremote onComplete hook')
             await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
             await config.onComplete(exitCode, config, caps)
 
@@ -122,6 +130,7 @@ class Launcher {
         /**
          * run onComplete hook
          */
+        log.info('Run onComplete hook')
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
         await config.onComplete(exitCode, config, caps)
 

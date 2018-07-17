@@ -1,4 +1,5 @@
 import fs from 'fs'
+import path from 'path'
 import util from 'util'
 import merge from 'deepmerge'
 import EventEmitter from 'events'
@@ -117,10 +118,12 @@ export default class Runner extends EventEmitter {
      * fetch logs provided by browser driver
      */
     async fetchDriverLogs () {
+        const config = this.configParser.getConfig()
+
         /**
          * only fetch logs if driver supports it
          */
-        if (typeof global.browser.getLogs !== 'function') {
+        if (!config.logDir || typeof global.browser.getLogs !== 'function') {
             return
         }
 
@@ -137,7 +140,11 @@ export default class Runner extends EventEmitter {
             }
 
             const stringLogs = logs.map((log) => JSON.stringify(log)).join('\n')
-            return util.promisify(fs.writeFile)(`wdio-${this.cid}-${logType}.log`, stringLogs, 'utf-8')
+            return util.promisify(fs.writeFile)(
+                path.join(config.logDir, `wdio-${this.cid}-${logType}.log`),
+                stringLogs,
+                'utf-8'
+            )
         }))
     }
 

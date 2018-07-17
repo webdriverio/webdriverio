@@ -3,8 +3,9 @@ import log from 'loglevel'
 import util from 'util'
 import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
+import ansiStrip from 'strip-ansi'
 
-const DEFAULT_LEVEL = process.env.DEBUG ? 0 : 5 // silent
+const DEFAULT_LEVEL = 0
 const COLORS = {
     error: 'red',
     warn: 'yellow',
@@ -39,35 +40,16 @@ const SERIALIZERS = [{
     serialize: (log) => chalk.cyan(log)
 }]
 
-/**
- * write to log file instead of stdout
- */
-if (process.env.WDIO_LOG_PATH) {
-    const logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
-    const originalFactory = log.methodFactory
-    log.methodFactory = (methodName, logLevel, loggerName) => {
-        const rawMethod = originalFactory(methodName, logLevel, loggerName)
-        return (...args) => {
-            /**
-             * propagate errors to wdio runner
-             */
-            if (methodName === 'error') {
-                rawMethod(...args)
-            }
-
-            logFile.write(`${util.format.apply(this, args)}\n`)
-        }
-    }
-}
-
 prefix.apply(log, {
     template: '%t %l %n:',
-    timestampFormatter: function (date) { return chalk.gray(date.toISOString()) },
-    levelFormatter: function (level) { return chalk[COLORS[level]](level.toUpperCase()) },
-    nameFormatter: function (name) { return chalk.whiteBright(name || 'global') }
-});
+    timestampFormatter: (date) => chalk.gray(date.toISOString()),
+    levelFormatter: (level) => chalk[COLORS[level]](level.toUpperCase()),
+    nameFormatter: (name) => chalk.whiteBright(name || 'global')
+})
 
 const loggers = {}
+const logCache = new Set()
+let logFile
 
 export default function getLogger (name) {
     /**
@@ -80,7 +62,14 @@ export default function getLogger (name) {
     const originalFactory = log.methodFactory;
     log.methodFactory = function (methodName, logLevel, loggerName) {
         const rawMethod = originalFactory(methodName, logLevel, loggerName)
-        return function (...args) {
+        return (...args) => {
+            /**
+             * create logFile lazily
+             */
+            if (!logFile && process.env.WDIO_LOG_PATH) {
+                logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
+            }
+
             args = args.map((arg) => {
                 for (const s of SERIALIZERS) {
                     if (s.matches(arg)) {
@@ -89,6 +78,20 @@ export default function getLogger (name) {
                 }
                 return arg
             })
+
+            const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
+            if (logFile) {
+                if (logCache.size) {
+                    logCache.forEach((a) => {
+                        logFile.write(a)
+                    })
+                    logCache.clear()
+                }
+
+                return logFile.write(logText)
+            }
+
+            logCache.add(logText)
             rawMethod(...args)
         };
     };
@@ -98,6 +101,4 @@ export default function getLogger (name) {
     return loggers[name]
 }
 
-getLogger.setLevel = function (name, level) {
-    loggers[name].setLevel(level)
-}
+getLogger.setLevel = (name, level) => loggers[name].setLevel(level)

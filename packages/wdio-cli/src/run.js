@@ -59,7 +59,7 @@ export default function run (params) {
 }
 
 function launch (wdioConf, params) {
-    log.debug('Run suite with config', wdioConf, 'and params', params) // eslint-disable-line no-console
+    log.debug('Run suite with config', wdioConf, 'and params', params)
     let launcher = new Launcher(wdioConf, params)
     launcher.run().then(
         (code) => process.exit(code),

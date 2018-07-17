@@ -2,6 +2,9 @@ import chalk from 'chalk'
 import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
 import CLInterface from 'wdio-interface'
+import logger from 'wdio-logger'
+
+const log = logger('wdio-cli')
 
 const clockSpinner = cliSpinners['clock']
 
@@ -56,6 +59,10 @@ export default class WDIOCLInterface extends EventEmitter {
      * event handler that is triggered when runner sends up events
      */
     onMessage (params) {
+        if (!params.origin || !this.messages[params.origin]) {
+            return log.warn(`Can't identify message from worker: ${JSON.stringify(params)}, ignoring!`)
+        }
+
         if (!this.messages[params.origin][params.name]) {
             this.messages[params.origin][params.name] = []
         }
