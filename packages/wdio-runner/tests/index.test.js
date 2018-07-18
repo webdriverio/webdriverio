@@ -2,7 +2,7 @@ import fs from 'fs'
 
 import WDIORunner from '../src'
 
-jest.mock('fs', () => ({ writeFile: jest.fn() }))
+jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
 
 describe('wdio-runner', () => {
@@ -11,6 +11,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             global.browser = {}
 
+            runner.configParser.getConfig = () => ({ logDir: '/foo/bar' })
             const result = await runner.fetchDriverLogs()
             expect(result).toBe(undefined)
         })
@@ -24,9 +25,10 @@ describe('wdio-runner', () => {
                 getLogs: (type) => Promise.resolve([`#1 ${type} log`, `#2 ${type} log`])
             }
 
+            runner.configParser.getConfig = () => ({ logDir: '/foo/bar' })
             await runner.fetchDriverLogs()
-            expect(fs.writeFile.mock.calls[0]).toEqual(['wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
-            expect(fs.writeFile.mock.calls[1]).toEqual(['wdio-0-1-bar.log', '"#1 bar log"\n"#2 bar log"', 'utf-8'])
+            expect(fs.writeFile.mock.calls[0]).toEqual(['/foo/bar/wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
+            expect(fs.writeFile.mock.calls[1]).toEqual(['/foo/bar/wdio-0-1-bar.log', '"#1 bar log"\n"#2 bar log"', 'utf-8'])
             fs.writeFile.mockClear()
         })
 
@@ -39,6 +41,7 @@ describe('wdio-runner', () => {
                 getLogs: () => Promise.resolve([])
             }
 
+            runner.configParser.getConfig = () => ({ logDir: '/foo/bar' })
             await runner.fetchDriverLogs()
             expect(fs.writeFile.mock.calls).toHaveLength(0)
         })

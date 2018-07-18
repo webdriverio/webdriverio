@@ -46,6 +46,11 @@ describe('cli interface', () => {
         expect(wdioClInterface.messages).toEqual({ reporter: { foo: ['bar'] } })
     })
 
+    it('should ignore messages that do not contain a proper origin', () => {
+        wdioClInterface.onMessage({ foo: 'bar' })
+        expect(wdioClInterface.messages).toEqual({ reporter: {} })
+    })
+
     it('should update clock', () => {
         wdioClInterface.updateClock()
         jest.runTimersToTime(250)
