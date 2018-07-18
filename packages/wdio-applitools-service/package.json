@@ -1,6 +1,6 @@
 {
   "name": "wdio-applitools-service",
-  "version": "5.0.0-alpha.11",
+  "version": "5.0.0-alpha.12",
   "description": "A WebdriverIO service for visual regression testing using Applitools",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-applitools-service",
@@ -35,6 +35,6 @@
   },
   "dependencies": {
     "@applitools/eyes.webdriverio": "^1.1.0",
-    "wdio-logger": "^5.0.0-alpha.11"
+    "wdio-logger": "^5.0.0-alpha.12"
   }
 }
