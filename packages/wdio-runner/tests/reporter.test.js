@@ -33,6 +33,17 @@ describe('BaseReporter', () => {
         expect(reporter.getLogFile('foobar')).toBe('/foo/bar/wdio-0-0-foobar-reporter.log')
     })
 
+    test('getLogFile returns undefined if logDir is not defined', () => {
+        const reporter = new BaseReporter({
+            reporters: [
+                'dot',
+                ['dot', { foo: 'bar' }]
+            ]
+        }, '0-0')
+
+        expect(reporter.getLogFile('foobar')).toBe(undefined)
+    })
+
     it('should emit events to all reporters', () => {
         const reporter = new BaseReporter({
             logDir: '/foo/bar',

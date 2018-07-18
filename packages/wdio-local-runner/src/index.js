@@ -60,5 +60,7 @@ export default class LocalRunner extends EventEmitter {
 
         childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
         childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
+
+        return childProcess
     }
 }

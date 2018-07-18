@@ -55,6 +55,7 @@
         "statements": 94
       }
     },
+    "testEnvironment": "node",
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/packages/webdriverio/src/scripts"
