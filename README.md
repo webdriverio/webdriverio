@@ -74,6 +74,7 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 - [wdio-firefox-profile-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-firefox-profile-service) - A WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
 - [wdio-sauce-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-sauce-service) - A WebdriverIO service that provides a better integration into SauceLabs
 - [wdio-testingbot-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-testingbot-service) - A WebdriverIO service that provides a better integration into TestingBot
+- [wdio-selenium-standalon-service](https://github.com/webdriverio/v5/tree/master/packages/wdio-selenium-standalone-service) - A WebdriverIO service that automatically sets up a selenium standalone server
 
 ### Runner
 
