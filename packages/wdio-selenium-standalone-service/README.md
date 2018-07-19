@@ -10,7 +10,7 @@ The easiest way is to keep `wdio-selenium-standalone-service` as a devDependency
 ```json
 {
   "devDependencies": {
-    "wdio-selenium-standalone-service": "~0.1"
+    "wdio-selenium-standalone-service": "^5.0.0"
   }
 }
 ```
@@ -38,10 +38,19 @@ export.config = {
 
 ## Options
 
+The following options can be added to the wdio.conf.js file.
+
 ### seleniumLogs
 Path where all logs from the Selenium server should be stored.
 
 Type: `String`
+
+Default: `{}`
+
+Example:
+```js
+seleniumLogs : "./",
+```
 
 ### seleniumArgs
 Map of arguments for the Selenium server, passed directly to `Selenium.start()`.
@@ -53,19 +62,39 @@ Default: `{}`
 Example:
 ```js
 seleniumArgs: {
-  seleniumArgs: ["-port", "4441"],
-  javaArgs: [
-    "-Xmx1024m"
-  ]
+  version : "3.9.1",
+  drivers : {
+    chrome : {
+      version : "2.38",
+      arch    : process.arch,
+    }
+  }
 },
 ```
 
 ### seleniumInstallArgs
 Map of arguments for the Selenium server, passed directly to `Selenium.install()`.
 
+By default, versions will be installed based on what is set in the selenium-standalone package. The defaults can be overridden by specifying the versions.
+
 Type: `Object`
 
 Default: `{}`
+
+Example:
+```js
+seleniumInstallArgs: {
+  version : "3.9.1",
+  baseURL : "https://selenium-release.storage.googleapis.com",
+  drivers : {
+    chrome : {
+      version : "2.38",
+      arch    : process.arch,
+      baseURL : "https://chromedriver.storage.googleapis.com",
+    }
+  }
+},
+```
 
 ----
 
