@@ -54,8 +54,10 @@ In summary...
 
 * Add the package to your project
 ```shell
-npm install --save mochawesome-report-generator
+npm install --save mochawesome-report-generator@2.3.2
 ```
+
+**NOTE** wdio-mochawesome-reporter is NOT compatible with the 3.x versions of the mochawesome-report-generator
 
 * Add a script to your package.json to generate the report
 ```json
