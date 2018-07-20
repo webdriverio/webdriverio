@@ -1,6 +1,6 @@
 {
   "name": "wdio-lambda-runner",
-  "version": "5.0.0-alpha.12",
+  "version": "5.0.0-alpha.13",
   "description": "A WebdriverIO plugin that allows you to run tests on AWS",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-lambda-runner",
@@ -36,7 +36,7 @@
     "serverless": "^1.25.0",
     "shelljs": "^0.7.8",
     "tmp": "^0.0.33",
-    "wdio-logger": "^5.0.0-alpha.12",
-    "wdio-runner": "^5.0.0-alpha.12"
+    "wdio-logger": "^5.0.0-alpha.13",
+    "wdio-runner": "^5.0.0-alpha.13"
   }
 }
