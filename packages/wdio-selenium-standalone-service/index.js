@@ -1,4 +1,4 @@
 /**
  * no service required
  */
-module.exports = {}
+module.exports = function() {}
