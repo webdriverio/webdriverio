@@ -71,7 +71,7 @@ describe('waitUntil', () => {
         expect(request.mock.calls[5][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
-    test('aaaaashould call isElementDisplayed and return false', async () => {
+    test('should call isElementDisplayed and return true', async () => {
         const tmpElem = await browser.$(`#foo`)
         const elem = {
             selector : '#foo',
@@ -85,13 +85,6 @@ describe('waitUntil', () => {
 
         const result = await elem.waitForVisible(duration)
         expect(result).toBe(true)
-        /*
-        try {
-            await elem.waitForVisible(duration)
-        } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not visible after ${duration}ms`)
-        }
-        */
     })
 
     test('should call isElementDisplayed and return false', async () => {
