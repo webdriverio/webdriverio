@@ -27,15 +27,15 @@
  *
  */
 
-export default function waitForVisible (ms, reverse = false) {
+export default async function waitForVisible (ms, reverse = false) {
     /**
      * if element wasn't found in the first place wait for its existance first
      */
     if (!this.elementId && !reverse) {
-        return this.waitForExist(ms).then(() => this.waitForVisible(ms))
+        await this.waitForExist(ms)
     }
 
-    /*!
+    /*
      * ensure that ms is set properly
      */
     if (typeof ms !== 'number') {
@@ -45,8 +45,9 @@ export default function waitForVisible (ms, reverse = false) {
     const isReversed = reverse ? '' : 'not'
     const errorMsg = `element ("${this.selector}") still ${isReversed} visible after ${ms}ms`
 
-    return this.waitUntil(function async () {
-        return this.isElementDisplayed(this.elementId)
-            .then((isVisible) => isVisible !== reverse)
+    return this.waitUntil(async () => {
+        const isVisible = await this.isElementDisplayed(this.elementId)
+
+        return isVisible !== reverse
     }, ms, errorMsg)
 }
