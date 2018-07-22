@@ -464,7 +464,7 @@ describe('utils', () => {
             expect(result[0]).toEqual('\uE011')
         })
 
-        it('should return an arry without unicode', () => {
+        it('should return an array without unicode', () => {
             const result = checkUnicode('foo')
 
             expect(Array.isArray(result)).toBe(true)
