@@ -4,7 +4,8 @@ import {
     mobileDetector,
     getBrowserObject,
     transformToCharString,
-    parseCSS
+    parseCSS,
+    checkUnicode,
 } from '../src/utils'
 
 describe('utils', () => {
@@ -375,6 +376,13 @@ describe('utils', () => {
             expect(transformToCharString(['foo', undefined, { b: 1 }, null, 42, false])).toEqual(
                 ['f', 'o', 'o', '{', '"', 'b', '"', ':', '1', '}', '4', '2', 'f', 'a', 'l', 's', 'e'])
         })
+
+        it('should convert string to unicode', () => {
+            expect(transformToCharString('Enter')).toEqual(['\uE007'])
+            expect(transformToCharString('Back space')).toEqual(['\uE003'])
+            expect(transformToCharString('Backspace')).toEqual(['\uE003'])
+            expect(transformToCharString('Pageup')).toEqual(['\uE00E'])
+        })
     })
 
     describe('parseCSS', () => {
@@ -445,6 +453,24 @@ describe('utils', () => {
                     value: 42
                 }
             })
+        })
+    })
+
+    describe('checkUnicode', () => {
+        it('should return array with unicode', () => {
+            const result = checkUnicode('Home')
+
+            expect(Array.isArray(result)).toBe(true)
+            expect(result[0]).toEqual('\uE011')
+        })
+
+        it('should return an arry without unicode', () => {
+            const result = checkUnicode('foo')
+
+            expect(Array.isArray(result)).toBe(true)
+            expect(result[0]).toBe('f')
+            expect(result[1]).toBe('o')
+            expect(result[2]).toBe('o')
         })
     })
 })
