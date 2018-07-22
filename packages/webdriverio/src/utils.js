@@ -235,7 +235,7 @@ export function transformToCharString (value) {
 
     for (const val of value) {
         if (typeof val === 'string') {
-            ret.push(...val.split(''))
+            ret.push(...checkUnicode(val))
         } else if (typeof val === 'number') {
             const entry = `${val}`.split('')
             ret.push(...entry)
