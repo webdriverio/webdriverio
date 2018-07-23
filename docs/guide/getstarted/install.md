@@ -21,6 +21,8 @@ $ ./node_modules/.bin/wdio --help
 
 You can also install the package globally on your machine and use the `wdio` directly from the command line. However it is recommended to install it per project.
 
+Webdriverio needs a separate browser-driver to function. You can use Selenium, Chromedriver or Firefox Geckodriver, whichever you like.
+
 ## Set up your Selenium environment
 
 There are two ways of setting up your Selenium environment: as a standalone package or by installing the
