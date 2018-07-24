@@ -1,0 +1,27 @@
+// import compass plugins
+@import 'compass';
+
+// reset CSS before including inform styles
+@include global-reset();
+
+// import utilities
+@import '_utils/vars';
+@import '_utils/fonts';
+
+// import modules
+@import '_modules/nav';
+
+// import components
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: $bodyBackground;
+    font-family: $fontRegular;
+    font-size: 16px;
+    color: $textColor;
+    line-height: 1.3em;
+}

@@ -15,8 +15,7 @@ module.exports = {
         { href: repoUrl, label: 'GitHub' }
     ],
     editUrl: repoUrl + '/edit/master/docs/',
-    headerIcon: 'img/docusaurus.svg',
-    footerIcon: 'img/docusaurus.svg',
+    footerIcon: 'img/twitter-profile.png',
     favicon: 'img/favicon.png',
 
     colors: {
@@ -30,6 +29,12 @@ module.exports = {
     highlight: {
         // Highlight.js theme to use for syntax highlighting in code blocks
         theme: 'default'
+    },
+
+    algolia: {
+        apiKey: '1b22fa823f22b7916528edc0e36d9d4a',
+        indexName: 'webdriver',
+        appId: 'BH4D9OD16A'
     },
 
     // Add custom scripts here that would be placed in <script> tags
