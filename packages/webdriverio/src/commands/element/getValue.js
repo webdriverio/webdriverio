@@ -23,13 +23,9 @@
  */
 
 export default function getValue () {
-    try {
+    if (this.isW3C) {
         return this.getElementProperty(this.elementId, 'value')
-    } catch (error) {
-        if (error.message === 'this.getElementProperty is not a function') {
-            return this.getElementAttribute(this.elementId, 'value')
-        }
-
-        throw error
+    } else {
+        return this.getElementAttribute(this.elementId, 'value')
     }
 }
