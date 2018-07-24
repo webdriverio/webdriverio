@@ -2,7 +2,7 @@ import request from 'request'
 import { remote } from '../../../src'
 
 describe('getValue', () => {
-    beforeAll(async () => {
+    beforeEach(() => {
         request.mockClear()
     })
 
@@ -28,15 +28,9 @@ describe('getValue', () => {
             }
         })
 
-        const tmp = await browser.$('#foo')
-        const elem = {
-            elementId : 123,
-            getValue : tmp.getValue,
-            getElementAttribute : jest.fn(),
-        }
+        const elem = await browser.$('#foo')
 
         await elem.getValue()
-
-        expect(elem.getElementAttribute).toBeCalledWith(elem.elementId, 'value')
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/value')
     })
 })
