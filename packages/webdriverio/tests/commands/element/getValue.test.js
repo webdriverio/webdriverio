@@ -2,20 +2,18 @@ import request from 'request'
 import { remote } from '../../../src'
 
 describe('getValue', () => {
-    let browser
-
     beforeAll(async () => {
         request.mockClear()
+    })
 
-        browser = await remote({
+    test('should get the value using getElementProperty', async () => {
+        const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
             }
         })
-    })
 
-    test('should get the value using getElementProperty', async () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
@@ -23,11 +21,17 @@ describe('getValue', () => {
     })
 
     test('should get the value using getElementAttribute', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
         const tmp = await browser.$('#foo')
         const elem = {
             elementId : 123,
             getValue : tmp.getValue,
-            isW3C : false,
             getElementAttribute : jest.fn(),
         }
 

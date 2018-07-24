@@ -25,7 +25,7 @@
 export default function getValue () {
     if (this.isW3C) {
         return this.getElementProperty(this.elementId, 'value')
-    } else {
-        return this.getElementAttribute(this.elementId, 'value')
     }
+
+    return this.getElementAttribute(this.elementId, 'value')
 }
