@@ -24,9 +24,19 @@
   "keywords": [
     "webdriver",
     "wdio",
-    "wdio-service"
+    "wdio-service",
+    "firefox",
+    "profile",
+    "selenium",
+    "e2e",
+    "test",
+    "automation",
+    "integration"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "firefox-profile": "^1.1.0"
   }
 }
