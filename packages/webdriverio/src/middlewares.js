@@ -21,7 +21,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
          *  - elementId couldn't be fetched in the first place
          *  - command is not explicit wait command for existance or displayedness
          */
-        if (!this.elementId && !commandName.match(/(wait(Until|ForVisible|ForExist|ForEnabled)|isExisting)/)) {
+        if (!this.elementId && !commandName.match(/(wait(Until|ForDisplayed|ForExist|ForEnabled)|isExisting)/)) {
             log.debug(
                 `command ${commandName} was called on an element ("${this.selector}") ` +
                 `that wasn't found, waiting for it...`
