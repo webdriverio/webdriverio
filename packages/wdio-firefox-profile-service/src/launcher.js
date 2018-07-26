@@ -30,12 +30,12 @@ export default class FirefoxProfileLauncher {
      * Sets any preferences and proxy
      */
     _setPreferences () {
-        for (const preference in this.config.firefoxProfile) {
+        for (const [ preference, value ] of Object.entries(this.config.firefoxProfile)) {
             if (['extensions', 'proxy'].includes(preference)) {
                 continue
             }
 
-            this.profile.setPreference(preference, this.config.firefoxProfile[preference])
+            this.profile.setPreference(preference, value)
         }
 
         if (this.config.firefoxProfile.proxy) {
@@ -52,13 +52,7 @@ export default class FirefoxProfileLauncher {
             this.capabilities
                 .filter((capability) => capability.browserName === 'firefox')
                 .forEach((capability) => {
-                    // for older firefox and geckodriver versions
-                    capability.firefox_profile = zippedProfile
-
-                    // for firefox >= 56.0 and geckodriver >= 0.19.0
-                    capability['moz:firefoxOptions'] = {
-                        profile: zippedProfile,
-                    }
+                    this._setProfile(capability, zippedProfile)
                 })
 
             return
@@ -71,13 +65,17 @@ export default class FirefoxProfileLauncher {
                 continue
             }
 
-            // for older firefox and geckodriver versions
-            capability.firefox_profile = zippedProfile
+            this._setProfile(capability, zippedProfile)
+        }
+    }
 
-            // for firefox >= 56.0 and geckodriver >= 0.19.0
-            capability['moz:firefoxOptions'] = {
-                profile: zippedProfile,
-            }
+    _setProfile(capability, zippedProfile) {
+        // for older firefox and geckodriver versions
+        capability.firefox_profile = zippedProfile
+
+        // for firefox >= 56.0 and geckodriver >= 0.19.0
+        capability['moz:firefoxOptions'] = {
+            profile: zippedProfile,
         }
     }
 }

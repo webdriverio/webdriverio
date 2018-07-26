@@ -1,6 +1,6 @@
 import Launcher from '../src/launcher'
 
-describe('Firefox profile server', () => {
+describe('Firefox profile service', () => {
     describe('onPrepare', () => {
         test('should return when no firefoxProfile set in the config', async () => {
             const config = {}
