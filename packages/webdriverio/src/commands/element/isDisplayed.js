@@ -1,6 +1,6 @@
 /**
  *
- * Return true if the selected DOM-element is visible.
+ * Return true if the selected DOM-element is displayed.
  *
  * <example>
     :index.html
@@ -8,32 +8,32 @@
     <div id="notVisible" style="visibility: hidden"></div>
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
-    :isVisible.js
-    it('should detect if an element is visible', function () {
+    :isDisplayed.js
+    it('should detect if an element is displayed', function () {
         let elem = $('#notDisplayed');
-        let isVisible = elem.isVisible();
-        console.log(isVisible); // outputs: false
+        let isDisplayed = elem.isDisplayed();
+        console.log(isDisplayed); // outputs: false
 
         elem = $('#notVisible');
-        isVisible = elem.isVisible();
-        console.log(isVisible); // outputs: false
-        
+        isDisplayed = elem.isDisplayed();
+        console.log(isDisplayed); // outputs: false
+
         elem = $('#notExisting');
-        isVisible = elem.isVisible();
-        console.log(isVisible); // outputs: false
+        isDisplayed = elem.isDisplayed();
+        console.log(isDisplayed); // outputs: false
 
         elem = $('#notInViewport');
-        isVisible = elem.isVisible();
-        console.log(isVisible); // outputs: true
+        isDisplayed = elem.isDisplayed();
+        console.log(isDisplayed); // outputs: true
 
         elem = $('#zeroOpacity');
-        isVisible = elem.isVisible();
-        console.log(isVisible); // outputs: true
+        isDisplayed = elem.isDisplayed();
+        console.log(isDisplayed); // outputs: true
     });
  * </example>
  *
- * @alias browser.isVisible
- * @return {Boolean} true if element(s)* [is|are] visible
+ * @alias browser.isDisplayed
+ * @return {Boolean} true if element(s)* [is|are] displayed
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state
  *
