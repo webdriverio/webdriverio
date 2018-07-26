@@ -144,6 +144,35 @@ available:
 
 * **viewportChangePause**  `Number` <br>
     Overrides the global *viewportChangePause* value for this command. Wait x milliseconds after viewport change.
+    
+### Return values
+
+The method calls return an array of result report objects, 1 for each viewport or orientation on mobile. These result objects have the following properties:
+
+* **misMatchPercentage**  `Number` <br>
+  The percentage than the *taken* image differs from the *reference* image. This will be 0 for an exact match.
+
+* **isWithinMisMatchTolerance**  `Boolean` <br>
+  True if the `misMatchPercentage` above is within the `misMatchTolerance` passed to the `LocalCompare` constructor in *wdio.conf.js*:
+  ```js
+  // wdio.conf.js
+  var VisualRegressionCompare = require("wdio-visual-regression-service/compare");
+  exports.config = {
+    // ...
+    visualRegression: {
+        compare: new VisualRegressionCompare.LocalCompare({
+            // ...
+            misMatchTolerance: 0.01
+        })
+    }
+  };
+  ```
+
+* **isSameDimensions**  `Boolean` <br>
+  True if the *taken* and *reference* images have the same dimensions; otherwise false.
+
+* **isExactSameImage**  `Boolean` <br>
+  True if the `misMatchPercentage` is 0; otherwise false.
 
 ### License
 
