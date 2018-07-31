@@ -38,7 +38,10 @@ module.exports = {
     },
 
     // Add custom scripts here that would be placed in <script> tags
-    scripts: ['https://buttons.github.io/buttons.js'],
+    scripts: [
+        'https://buttons.github.io/buttons.js',
+        'https://platform.twitter.com/widgets.js'
+    ],
 
     /* On page navigation for the current documentation page */
     onPageNav: 'separate',

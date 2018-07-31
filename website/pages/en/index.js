@@ -56,11 +56,30 @@ const Logo = props => (
     </div>
 );
 
-const ProjectTitle = props => (
-    <h2 className="projectTitle">
-        {siteConfig.title}
-        <small>{siteConfig.tagline}</small>
-    </h2>
+const Badges = () => (
+    <section>
+        <div class="badges">
+            <a href="http://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" class="retina-badge" /></a>
+            <a href="https://travis-ci.org/webdriverio/v5"><img src="https://travis-ci.org/webdriverio/v5.svg" alt="Build Status" /></a>
+            <a href="https://codecov.io/gh/webdriverio/v5"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/v5/branch/master/graph/badge.svg" /></a>
+        </div>
+        <div>
+            <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameborder="0" allowTransparency="true" allow="encrypted-media" id="fblike"></iframe>
+            <iframe src="http://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameborder="0" scrolling="0" style={{ width: '118px', height: '20px' }} allowTransparency="true"></iframe>
+            <a href="https://twitter.com/share" class="twitter-share-button" data-via="bromann" data-hashtags="webdriverio">Tweet</a>
+            <a href="https://twitter.com/webdriverio" class="twitter-follow-button" data-show-count="true" data-lang="en">Follow @webdriverio</a>
+        </div>
+    </section>
+);
+
+const ProjectTitle = () => (
+    <header>
+        <h2 className="projectTitle">
+            Webdriver <span>I/O</span>
+        </h2>
+        <small class="tagline">{siteConfig.tagline}</small>
+        <Badges />
+    </header>
 );
 
 const PromoSection = props => (
@@ -76,7 +95,7 @@ class HomeSplash extends React.Component {
         let language = this.props.language || '';
         return (
             <SplashContainer>
-                <Logo img_src={imgUrl('docusaurus.svg')} />
+                <Logo img_src={imgUrl('webdriverio.png')} />
                 <div className="inner">
                     <ProjectTitle />
                     <PromoSection>
