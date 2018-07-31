@@ -8,6 +8,7 @@
 const React = require('react');
 
 const CompLibrary = require('../../core/CompLibrary.js');
+const translate = require('../../server/translate.js').translate;
 const MarkdownBlock = CompLibrary.MarkdownBlock; /* Used to read markdown */
 const Container = CompLibrary.Container;
 const GridBlock = CompLibrary.GridBlock;
@@ -58,16 +59,16 @@ const Logo = props => (
 
 const Badges = () => (
     <section>
-        <div class="badges">
-            <a href="http://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" class="retina-badge" /></a>
+        <div className="badges">
+            <a href="http://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
             <a href="https://travis-ci.org/webdriverio/v5"><img src="https://travis-ci.org/webdriverio/v5.svg" alt="Build Status" /></a>
             <a href="https://codecov.io/gh/webdriverio/v5"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/v5/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
             <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameborder="0" allowTransparency="true" allow="encrypted-media" id="fblike"></iframe>
             <iframe src="http://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameborder="0" scrolling="0" style={{ width: '118px', height: '20px' }} allowTransparency="true"></iframe>
-            <a href="https://twitter.com/share" class="twitter-share-button" data-via="bromann" data-hashtags="webdriverio">Tweet</a>
-            <a href="https://twitter.com/webdriverio" class="twitter-follow-button" data-show-count="true" data-lang="en">Follow @webdriverio</a>
+            <a href="https://twitter.com/share" className="twitter-share-button" data-via="bromann" data-hashtags="webdriverio">Tweet</a>
+            <a href="https://twitter.com/webdriverio" className="twitter-follow-button" data-show-count="true" data-lang="en">Follow @webdriverio</a>
         </div>
     </section>
 );
@@ -77,7 +78,7 @@ const ProjectTitle = () => (
         <h2 className="projectTitle">
             Webdriver <span>I/O</span>
         </h2>
-        <small class="tagline">{siteConfig.tagline}</small>
+        <small className="tagline">{siteConfig.tagline}</small>
         <Badges />
     </header>
 );
@@ -99,9 +100,10 @@ class HomeSplash extends React.Component {
                 <div className="inner">
                     <ProjectTitle />
                     <PromoSection>
-                        <Button href="#try">Try It Out</Button>
-                        <Button href={docUrl('doc1.html', language)}>Example Link</Button>
-                        <Button href={docUrl('doc2.html', language)}>Example Link 2</Button>
+                        <Button href={docUrl('gettingstarted.html', language)}>Get Started</Button>
+                        <Button href="#watch">Watch Talks</Button>
+                        <Button href="https://learn.webdriver.io">Online Course</Button>
+                        <Button href="https://gitter.im/webdriverio/webdriverio">Support</Button>
                     </PromoSection>
                 </div>
             </SplashContainer>
@@ -117,6 +119,101 @@ const Block = props => (
         <GridBlock align="center" contents={props.children} layout={props.layout} />
     </Container>
 );
+
+const TestSetup = props => (
+    <Block>
+        {[
+            {
+                content: 'The wdio command line interface comes with a nice configuration utility that helps you to create your config file in less than a minute. It also gives an overview of all available 3rd party packages like framework adaptions, reporter and services and installs them for you.',
+                image: imgUrl('config-utility.gif'),
+                imageAlign: 'right',
+                title: 'Easy Test Setup',
+            },
+        ]}
+    </Block>
+);
+
+const Talks = props => (
+    <Container background="light" padding={['bottom', 'top']}>
+        <a className="anchor" name="watch" />
+        <a className="hash-link" href="#watch" />
+        <div className="blockElement imageAlignSide twoByGridBlock">
+            <div className="video">
+                <iframe
+                    width="560"
+                    height="315"
+                    src="https://www.youtube.com/embed/FHxXMeDh7Co"
+                    frameBorder="0"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                />
+            </div>
+            <div className="blockContent">
+                <h2>
+                    <div>
+                        <span>
+                            <p>
+                                <translate>Watch Talks about WebdriverIO</translate>
+                            </p>
+                        </span>
+                    </div>
+                </h2>
+                <div>
+                    <MarkdownBlock>
+                        <translate>
+                            The community around WebdriverIO is actively speaking on various user groups or
+                            conferences about specific topics around automated testing with WebdriverIO. Check out
+                            this talk about [Building Scalable And Stable e2e Test Suites](https://www.youtube.com/watch?v=FHxXMeDh7Co&t=935s)
+                            by [@bromann](https://twitter.com/bromann) at SauceCon 2018. There is also a whole
+                            [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
+                            about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).
+                        </translate>
+                    </MarkdownBlock>
+                </div>
+                <div
+                    className="productShowcaseSection paddingTop"
+                    style={{textAlign: 'center'}}
+                >
+                    <a
+                        className="button"
+                        href={siteConfig.baseUrl + props.language + '/videos.html'}
+                    >
+                        <translate>Watch more videos</translate>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </Container>
+)
+
+const ApplitoolsSupport = props => (
+    <Container padding={['bottom', 'top']} id="applitools">
+        <div className="blockElement imageAlignSide imageAlignRight twoByGridBlock">
+            <div className="blockContent">
+                <h2>
+                    <div>
+                        <span>
+                            <p>
+                                <translate>Applitools Support</translate>
+                            </p>
+                        </span>
+                    </div>
+                </h2>
+                <div>
+                    <MarkdownBlock>
+                        WebdriverIO comes with integrated support for [Applitools Eyes](https://applitools.com/)
+                        allowing you to write seamless visual regression tests:
+
+                        ![alt text](/img/applitools-test-code.png "Applitools Test")
+                    </MarkdownBlock>
+                </div>
+            </div>
+            <div className="blockImage">
+                <img src={imgUrl('applitools.png')} />
+            </div>
+        </div>
+    </Container>
+)
 
 const Features = props => (
     <Block layout="fourColumn">
@@ -223,6 +320,46 @@ class Index extends React.Component {
             <div>
                 <HomeSplash language={language} />
                 <div className="mainContainer">
+                    <Container padding={['bottom', 'top']} background="light">
+                        <GridBlock
+                            align="center"
+                            contents={[{
+                                content: (
+                                    <translate>
+                                        Adding helper functions, or more complicated sets and combinations
+                                        of existing commands is __simple__ and really __useful__
+                                    </translate>
+                                ),
+                                image: imgUrl('teaser/extendable.png'),
+                                imageAlign: 'top',
+                                title: <translate>Extendable</translate>,
+                            }, {
+                                content: (
+                                    <translate>
+                                        WebdriverIO has 1st class support for the __WebDriver specification__
+                                        as well as to __Appium__ and allows to run tests on desktop and mobile.
+                                    </translate>
+                                ),
+                                image: imgUrl('teaser/compatible.png'),
+                                imageAlign: 'top',
+                                title: <translate>Compatible</translate>,
+                            }, {
+                                content: (
+                                    <translate>
+                                        It implements all Webdriver protocol commands and provides useful
+                                        integrations with other tools.
+                                    </translate>
+                                ),
+                                image: imgUrl('teaser/featurerich.png'),
+                                imageAlign: 'top',
+                                title: <translate>Feature Rich</translate>,
+                            }]}
+                            layout="fourColumn"
+                        />
+                    </Container>
+                    <TestSetup />
+                    <Talks />
+                    <ApplitoolsSupport />
                     <Features />
                     <FeatureCallout />
                     <LearnHow />
