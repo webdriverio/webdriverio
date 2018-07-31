@@ -13,6 +13,7 @@
 @import '_modules/headers';
 
 // import components
+@import '_components/content';
 
 html,
 body {
@@ -25,4 +26,8 @@ body {
     font-size: 16px;
     color: $textColor;
     line-height: 1.3em;
+}
+
+strong {
+    font-weight: bold;
 }
