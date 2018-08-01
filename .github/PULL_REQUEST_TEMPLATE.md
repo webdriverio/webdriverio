@@ -18,6 +18,7 @@
 - [ ] I have read the [CONTRIBUTING](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) doc
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] I have added necessary documentation (if appropriate)
+- [ ] I have proposed the same patch to the new [v5](https://github.com/webdriverio/v5) repository
 
 ## Further comments
 
