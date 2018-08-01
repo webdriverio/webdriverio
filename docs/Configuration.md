@@ -3,8 +3,6 @@ id: configuration
 title: Configuration
 ---
 
-# Configuration
-
 If you create a WebdriverIO instance, you need to define some options in order to set the proper
 capabilities and settings. When calling the `remote` method like:
 
@@ -13,9 +11,13 @@ var webdriverio = require('webdriverio');
 var client = webdriverio.remote(options);
 ```
 
-you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if you run WebdriverIO as a standalone package. If you are using the wdio test runner, these options belong in your `wdio.conf.js` configuration file. The following options can be defined:
+you need to pass in an options object to define your Webdriver instance. Note that this is only necessary if you run WebdriverIO as a standalone package. If you are using the wdio test runner, these options belong in your `wdio.conf.js` configuration file.
 
-### desiredCapabilities
+## WebdriverIO Options
+
+The following options can be defined:
+
+### capabilities
 Defines the capabilities you want to run in your Selenium session. See the [Selenium documentation](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
 for a list of the available `capabilities`. Also useful is Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 that helps you to create this object by clicking together your desired capabilities.
@@ -208,24 +210,25 @@ headers: {
 // This would result in a header named 'Authorization' with a value of 'Basic dGVzdEtleTp0ZXN0VmFsdWU='
 ```
 
-## debug
+### debug
 
 Enables node debugging
 
 Type: `Boolean`<br>
 Default: *false*
 
-## execArgv
+### execArgv
 Node arguments to specify when launching child processes
 
 Type: `Array of String`<br>
 Default: *null*
 
-## Setup [Babel](https://babeljs.io/) to write tests using next generation JavaScript
+## Setup [Babel](https://babeljs.io/)
 
 **Note: these instructions are for Babel 6.  Using Babel 5 is not recommended.**
 
-First, install babel dependencies:
+To write tests using next generation JavaScript features you can add Babel as compiler for your test files. For that first, install Babel dependencies:
+
 ```
 npm install --save-dev babel-register babel-preset-es2015
 ```

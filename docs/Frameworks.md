@@ -1,10 +1,7 @@
 ---
 id: frameworks
-title: Test Runner Frameworks
+title: Testrunner Frameworks
 ---
-
-Frameworks
-==========
 
 The wdio runner currently supports [Mocha](http://mochajs.org/), [Jasmine](http://jasmine.github.io/) (v2.0) and [Cucumber](https://cucumber.io/). To integrate each framework with WebdriverIO there are adapter packages on NPM that need to be downloaded and installed. Note that these packages need to be installed at the same place WebdriverIO is installed. If you've installed WebdriverIO globally make sure you have the adapter package installed globally as well.
 

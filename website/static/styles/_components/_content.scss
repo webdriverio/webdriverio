@@ -33,3 +33,11 @@
 #applitools .blockContent img {
     width: 93%;
 }
+
+.docMainWrapper {
+    background: $white;
+
+    .post article p {
+        margin: 10px 0;
+    }
+}

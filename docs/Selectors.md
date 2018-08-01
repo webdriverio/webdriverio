@@ -1,10 +1,7 @@
 ---
 id: selectors
-title: WebdriverIO - Selectors
+title: Selectors
 ---
-
-Selectors
-=========
 
 The JsonWireProtocol provides several strategies to query an element. WebdriverIO simplifies these to make it more familiar with the common existing selector libraries like [Sizzle](http://sizzlejs.com/). The following selector types are supported:
 

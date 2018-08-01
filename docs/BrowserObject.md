@@ -3,14 +3,11 @@ id: browserobject
 title: The Browser Object
 ---
 
-The Browser Object
-==================
-
 If you use the wdio test runner you can access the webdriver instance through the global `browser` object. The session is initialized by the test runner so you don't need to call [`init`](/api/protocol/init.html) command. The same goes for ending the session. This is also done by the test runner process.
 
 Besides all commands from the [api](/api.html) the browser object provides some more information you might be interested in during your test run:
 
-### Get desired capabilities
+## Get Desired Capabilities
 
 ```js
 console.log(browser.capabilities);
@@ -27,7 +24,7 @@ console.log(browser.capabilities);
  */
 ```
 
-### Get wdio config options
+## Get Config Options
 
 ```js
 // wdio.conf.js
@@ -60,7 +57,7 @@ console.log(browser.options);
  */
 ```
 
-### Check if capability is a mobile device
+## Check If Capability Is A Mobile Device
 
 ```js
 var client = require('webdriverio').remote({
@@ -76,11 +73,3 @@ console.log(client.isMobile); // outputs: true
 console.log(client.isIOS); // outputs: true
 console.log(client.isAndroid); // outputs: false
 ```
-
-### Log results
-
-```js
-browser.logger.info('some random logging');
-```
-
-For more information about the logger class check out [Logger.js](https://github.com/webdriverio/webdriverio/blob/master/lib/utils/Logger.js) on GitHub.

@@ -11,14 +11,16 @@
 // import modules
 @import '_modules/nav';
 @import '_modules/headers';
+@import '_modules/hljs';
 
 // import components
 @import '_components/content';
+@import '_components/headings';
+@import '_components/lists';
 
 html,
 body {
     width: 100%;
-    height: 100%;
     margin: 0;
     padding: 0;
     background: $bodyBackground;
