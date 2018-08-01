@@ -1,10 +1,33 @@
 {
   "docs": {
-    "Docusaurus": ["doc1"],
-    "First Category": ["doc2"],
-    "Second Category": ["doc3"]
+    "Introduction": [
+      "gettingstarted",
+      "configuration",
+      "boilerplate",
+      "setuptypes"
+    ],
+    "Usage": [
+      "selectors",
+      "customcommands",
+      "browserobject",
+      "multiremote",
+      "cloudservices",
+      "autocompletion"
+    ],
+    "Testrunner": [
+      "clioptions",
+      "configurationfile",
+      "frameworks",
+      "organizingsuites",
+      "timeouts",
+      "pageobjects",
+      "debugging",
+      "retry",
+      "repl",
+      "jenkins",
+      "customreporter",
+      "customservices"
+    ]
   },
-  "docs-other": {
-    "First Category": ["doc4", "doc5"]
-  }
+  "api": {}
 }

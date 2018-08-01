@@ -40,7 +40,8 @@ module.exports = {
     // Add custom scripts here that would be placed in <script> tags
     scripts: [
         'https://buttons.github.io/buttons.js',
-        'https://platform.twitter.com/widgets.js'
+        'https://platform.twitter.com/widgets.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js'
     ],
 
     /* On page navigation for the current documentation page */

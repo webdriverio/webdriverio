@@ -3,8 +3,6 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-# Using Cloud Services
-
 Using ondemand services like Sauce Labs, Browserstack or TestingBot with WebdriverIO is pretty simple.
 
 1. Make sure WebdriverIO uses their host (e.g. `ondemand.saucelabs.com` for Sauce Labs) as the selenium server, either by setting the `host` config or letting WebdriverIO configure that automatically based on the value of `user` and `key`.

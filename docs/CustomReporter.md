@@ -3,9 +3,6 @@ id: customreporter
 title: Custom Reporter
 ---
 
-Custom Reporter
-===============
-
 You can write your own custom reporter for the wdio test runner that fits your needs. All you need to do is to create a node module that inherits from the Eventemitter object so it can receive messages from the test. The basic construction should look like:
 
 ```js

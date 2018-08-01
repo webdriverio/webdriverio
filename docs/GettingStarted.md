@@ -3,88 +3,185 @@ id: gettingstarted
 title: Getting Started
 ---
 
-Getting Started
-===============
+Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
 
-WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
+The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
 
-To see the command line interface help just type the following command in your terminal:
+## Taking the first step
 
-```txt
-$ ./node_modules/.bin/wdio --help
+Let's suppose you have [Node.js](http://nodejs.org/) and Java already installed. First thing we need to do is to start a selenium server that executes all selenium commands within the browser. To do so we create an example folder first:
 
-WebdriverIO CLI runner
+### Create a simple test folder
 
-Usage: wdio [options] [configFile]
-config file defaults to wdio.conf.js
-The [options] object will override values from the config file.
-An optional list of spec files can be piped to wdio that will override configured specs.
-
-Options:
-  --help, -h            prints WebdriverIO help menu
-  --version, -v         prints WebdriverIO version
-  --host                Selenium server host address
-  --port                Selenium server port
-  --path                Selenium server path (default: /wd/hub)
-  --user, -u            username if using a cloud service as Selenium backend
-  --key, -k             corresponding access key to the user
-  --watch               watch specs for changes
-  --logLevel, -l        level of logging verbosity (default: silent)
-  --coloredLogs, -c     if true enables colors for log output (default: true)
-  --bail                stop test runner after specific amount of tests have failed (default: 0 - don't bail)
-  --screenshotPath, -s  saves a screenshot to a given path if a command fails
-  --baseUrl, -b         shorten url command calls by setting a base url
-  --waitforTimeout, -w  timeout for all waitForXXX commands (default: 1000ms)
-  --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to run the specs (default: mocha)
-  --reporters, -r       reporters to print out the results on stdout
-  --suite               runs the defined suite, can be combined with --spec
-  --spec                runs a certain spec file, can be combined with --suite - overrides specs piped from stdin
-  --stdin, -            reads specs from stdin (a single dash is the abbrevated version)
-  --cucumberOpts.*      Cucumber options, see the full list options at https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
-  --jasmineOpts.*       Jasmine options, see the full list options at https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
-  --mochaOpts.*         Mocha options, see the full list options at http://mochajs.org
+```sh
+$ mkdir webdriverio-test && cd webdriverio-test
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](/guide/testrunner/configurationfile.html) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
+*While still in this test folder:*
+
+Then let's download the latest [selenium standalone server](http://docs.seleniumhq.org/download/) version:
+
+### Download latest selenium standalone server
+
+```sh
+$ curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+```
+
+### Download Geckodriver
+
+Download the latest version of geckodriver for your environment and unpack it in your project directory:
+
+Linux 64 bit
+
+```sh
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.16.0/geckodriver-v0.16.0-linux64.tar.gz | tar xz
+```
+
+OSX
+
+```sh
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.16.0/geckodriver-v0.16.0-macos.tar.gz | tar xz
+```
+
+Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases).
+
+### Start selenium standalone server
+
+Start the server by executing the following:
+
+```sh
+$ java -jar -Dwebdriver.gecko.driver=./geckodriver selenium-server-standalone-3.5.3.jar
+```
+
+Note that this command sets webdriver path variable so that Selenium uses the geckdriver binary that was added to the project directory and also starts Selenium standalone server.
+
+Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
+
+### Download WebdriverIO
+
+By calling:
+
+```sh
+$ npm install webdriverio
+```
+
+### Create Test File
+
+Create a test file (e.g. `test.js`) with the following content**
+
+```js
+var webdriverio = require('webdriverio');
+var options = {
+    desiredCapabilities: {
+        browserName: 'firefox'
+    }
+};
+
+webdriverio
+    .remote(options)
+    .init()
+    .url('http://www.google.com')
+    .getTitle().then(function(title) {
+        console.log('Title was: ' + title);
+    })
+    .end()
+    .catch(function(err) {
+        console.log(err);
+    });
+```
+
+### Run your test file
+
+By calling:
+
+```sh
+$ node test.js
+```
+
+this should output the following:
+
+```sh
+Title was: Google
+```
+
+Yay, Congratulations! You've just run your first automation script with WebdriverIO. Let's step it up a notch and create a real test.
+
+## Let's get serious
+
+*(If you haven't already, navigate back to the project root directory)*
+
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. The first step is to create a config file.
+
+### Generate Configuration File
+
+To do that just run the configuration utility:
 
 ```sh
 $ ./node_modules/.bin/wdio config
 ```
 
-and it launches the helper utility. It will ask you questions depending on the answers you give. This way
-you can generate your config file in less than a minute.
+A question interface pops up. It will help to create the config easy and fast. If you are not sure what to answer follow this answers:
 
-<div class="cliwindow" style="width: 92%">
-![WDIO configuration utility](/images/config-utility.gif "WDIO configuration utility")
-</div>
+__Q: Where do you want to execute your tests?__<br>
+A: _On my local machine_<br>
+<br>
+__Q: Which framework do you want to use?__<br>
+A: _mocha_<br>
+<br>
+__Q: Shall I install the framework adapter for you?__<br>
+A: _Yes_ (just press enter)<br>
+<br>
+__Q: Where are your test specs located?__<br>
+A: _./test/specs/**/*.js_ (just press enter)<br>
+<br>
+__Q: Which reporter do you want to use?__<br>
+A: _dot_ (just press space and enter)<br>
+<br>
+__Q: Shall I install the reporter library for you?__<br>
+A: _Yes_ (just press enter)<br>
+<br>
+__Q: Do you want to add a service to your test setup?__<br>
+A: none (just press enter, let's skip this for simplicity)<br>
+<br>
+__Q: Level of logging verbosity:__<br>
+A: _silent_ (just press enter)<br>
+<br>
+__Q: In which directory should screenshots gets saved if a command fails?__<br>
+A: _./errorShots/_ (just press enter)<br>
+<br>
+__Q: What is the base url?__<br>
+A: _http://localhost_ (just press enter)<br>
 
-Once you have your configuration file set up you can start your
-integration tests by calling:
+That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. Next step is to create your first spec file (test file).
+
+### Create Spec Files
+
+For that create a test folder like this:
+
+```sh
+$ mkdir -p ./test/specs
+```
+
+Now let's create a simple spec file in that new folder:
+
+```js
+var assert = require('assert');
+
+describe('webdriver.io page', function() {
+    it('should have the right title - the fancy generator way', function () {
+        browser.url('http://webdriver.io');
+        var title = browser.getTitle();
+        assert.equal(title, 'WebdriverIO - WebDriver bindings for Node.js');
+    });
+});
+```
+
+### Kick Off Testrunner
+
+The last step is to execute the test runner. To do so just run:
 
 ```sh
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-That's it! Now, you can access to the selenium instance via the global variable `browser`.
-
-## Run the test runner programmatically
-
-Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the launcher module (in `/node_modules/webdriverio/build/launcher`) the following way:
-
-```js
-var Launcher = require('webdriverio').Launcher;
-```
-
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and accepts [certain](https://github.com/webdriverio/webdriverio/blob/973f23d8949dae8168e96b1b709e5b19241a373b/lib/cli.js#L51-L55) parameters that will overwrite the value in the config.
-
-```js
-var wdio = new Launcher(opts.configFile, opts);
-wdio.run().then(function (code) {
-    process.exit(code);
-}, function (error) {
-    console.error('Launcher failed to start the test', error.stacktrace);
-    process.exit(1);
-});
-```
-
-The run command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that gets resolved if the test ran successful or failed or gets rejected if the launcher was not able to start run the tests.
+Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](/guide/getstarted/boilerplate.html) that can help you to get started.
