@@ -50,7 +50,7 @@ With the latest version of Selenium most of the drivers for the browser come wit
 
 The [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/home) is a standalone server which implements WebDriver's wire protocol for Chromium. It is being developed by members of the Chromium and WebDriver team. For running Chrome browser tests on your local machine you need to download ChromeDriver from the project website and make it available on your machine by setting the `PATH` to the ChromeDriver executable.
 
-Alternatively, if you have a Mac and have homebrew installed, you could just type `brew install chromedriver` into your terminal.
+Alternatively, if you have a Mac and have homebrew installed, you could just type `brew cask install chromedriver` into your terminal.
 
 ## Setup Firefox
 
