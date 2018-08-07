@@ -5,27 +5,31 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
+const React = require('react')
+const PropTypes = require('prop-types')
 
-const CompLibrary = require('../../core/CompLibrary.js');
-const translate = require('../../server/translate.js').translate;
-const MarkdownBlock = CompLibrary.MarkdownBlock; /* Used to read markdown */
-const Container = CompLibrary.Container;
-const GridBlock = CompLibrary.GridBlock;
+/* eslint-disable import/no-unresolved */
+const CompLibrary = require('../../core/CompLibrary.js')
+const translate = require('../../server/translate.js').translate
+/* eslint-enable import/no-unresolved */
 
-const siteConfig = require(process.cwd() + '/siteConfig.js');
+const MarkdownBlock = CompLibrary.MarkdownBlock /* Used to read markdown */
+const Container = CompLibrary.Container
+const GridBlock = CompLibrary.GridBlock
+
+const siteConfig = require(process.cwd() + '/siteConfig.js')
 
 function imgUrl(img) {
-    return siteConfig.baseUrl + 'img/' + img;
+    return siteConfig.baseUrl + 'img/' + img
 }
 
 function docUrl(doc, language) {
-    return siteConfig.baseUrl + 'docs/' + (language ? language + '/' : '') + doc;
+    return siteConfig.baseUrl + 'docs/' + (language ? language + '/' : '') + doc
 }
 
-function pageUrl(page, language) {
-    return siteConfig.baseUrl + (language ? language + '/' : '') + page;
-}
+// function pageUrl(page, language) {
+//     return siteConfig.baseUrl + (language ? language + '/' : '') + page
+// }
 
 class Button extends React.Component {
     render() {
@@ -35,13 +39,19 @@ class Button extends React.Component {
                     {this.props.children}
                 </a>
             </div>
-        );
+        )
     }
 }
 
 Button.defaultProps = {
     target: '_self',
-};
+}
+
+Button.propTypes = {
+    href: PropTypes.string,
+    target: PropTypes.string,
+    children: PropTypes.array
+}
 
 const SplashContainer = props => (
     <div className="homeContainer">
@@ -49,13 +59,21 @@ const SplashContainer = props => (
             <div className="wrapper homeWrapper">{props.children}</div>
         </div>
     </div>
-);
+)
+
+SplashContainer.propTypes = {
+    children: PropTypes.array
+}
 
 const Logo = props => (
     <div className="projectLogo">
         <img src={props.img_src} />
     </div>
-);
+)
+
+Logo.propTypes = {
+    img_src: PropTypes.string.required
+}
 
 const Badges = () => (
     <section>
@@ -65,13 +83,13 @@ const Badges = () => (
             <a href="https://codecov.io/gh/webdriverio/v5"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/v5/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
-            <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameborder="0" allowtransparency="true" allow="encrypted-media" id="fblike"></iframe>
-            <iframe src="http://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameborder="0" scrolling="0" style={{ width: '118px', height: '20px' }} allowtransparency="true"></iframe>
+            <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameBorder="0" allow="encrypted-media" id="fblike"></iframe>
+            <iframe src="http://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameBorder="0" scrolling="0" style={{ width: '118px', height: '20px' }}></iframe>
             <a href="https://twitter.com/share" className="twitter-share-button" data-via="bromann" data-hashtags="webdriverio">Tweet</a>
             <a href="https://twitter.com/webdriverio" className="twitter-follow-button" data-show-count="true" data-lang="en">Follow @webdriverio</a>
         </div>
     </section>
-);
+)
 
 const ProjectTitle = () => (
     <header>
@@ -81,7 +99,7 @@ const ProjectTitle = () => (
         <small className="tagline">{siteConfig.tagline}</small>
         <Badges />
     </header>
-);
+)
 
 const PromoSection = props => (
     <div className="section promoSection">
@@ -89,11 +107,15 @@ const PromoSection = props => (
             <div className="pluginRowBlock">{props.children}</div>
         </div>
     </div>
-);
+)
+
+PromoSection.propTypes = {
+    children: PropTypes.array
+}
 
 class HomeSplash extends React.Component {
     render() {
-        let language = this.props.language || '';
+        let language = this.props.language || ''
         return (
             <SplashContainer>
                 <Logo img_src={imgUrl('webdriverio.png')} />
@@ -107,8 +129,12 @@ class HomeSplash extends React.Component {
                     </PromoSection>
                 </div>
             </SplashContainer>
-        );
+        )
     }
+}
+
+HomeSplash.propTypes = {
+    language: PropTypes.string.required
 }
 
 const Block = props => (
@@ -118,9 +144,16 @@ const Block = props => (
         background={props.background}>
         <GridBlock align="center" contents={props.children} layout={props.layout} />
     </Container>
-);
+)
 
-const TestSetup = props => (
+Block.propTypes = {
+    id: PropTypes.string,
+    layout: PropTypes.string,
+    background: PropTypes.string,
+    children: PropTypes.array,
+}
+
+const TestSetup = () => (
     <Block>
         {[
             {
@@ -131,7 +164,7 @@ const TestSetup = props => (
             },
         ]}
     </Block>
-);
+)
 
 const Talks = props => (
     <Container background="light" padding={['bottom', 'top']}>
@@ -143,7 +176,7 @@ const Talks = props => (
                     width="560"
                     height="315"
                     src="https://www.youtube.com/embed/FHxXMeDh7Co"
-                    frameborder="0"
+                    frameBorder="0"
                     allow="autoplay; encrypted-media"
                     allowFullScreen
                 />
@@ -186,7 +219,11 @@ const Talks = props => (
     </Container>
 )
 
-const ApplitoolsSupport = props => (
+Talks.propTypes = {
+    language: PropTypes.string.required
+}
+
+const ApplitoolsSupport = () => (
     <Container padding={['bottom', 'top']} id="applitools">
         <div className="blockElement imageAlignSide imageAlignRight twoByGridBlock">
             <div className="blockContent">
@@ -204,7 +241,7 @@ const ApplitoolsSupport = props => (
                         WebdriverIO comes with integrated support for [Applitools Eyes](https://applitools.com/)
                         allowing you to write seamless visual regression tests:
 
-                        ![alt text](/img/applitools-test-code.png "Applitools Test")
+                        ![alt text](/img/applitools-test-code.png Applitools Test)
                     </MarkdownBlock>
                 </div>
             </div>
@@ -214,103 +251,6 @@ const ApplitoolsSupport = props => (
         </div>
     </Container>
 )
-
-const Features = props => (
-    <Block layout="fourColumn">
-        {[
-            {
-                content: 'This is the content of my feature',
-                image: imgUrl('docusaurus.svg'),
-                imageAlign: 'top',
-                title: 'Feature One',
-            },
-            {
-                content: 'The content of my second feature',
-                image: imgUrl('docusaurus.svg'),
-                imageAlign: 'top',
-                title: 'Feature Two',
-            },
-        ]}
-    </Block>
-);
-
-const FeatureCallout = props => (
-    <div
-        className="productShowcaseSection paddingBottom"
-        style={{textAlign: 'center'}}>
-        <h2>Feature Callout</h2>
-        <MarkdownBlock>These are features of this project</MarkdownBlock>
-    </div>
-);
-
-const LearnHow = props => (
-    <Block background="light">
-        {[
-            {
-                content: 'Talk about learning how to use this',
-                image: imgUrl('docusaurus.svg'),
-                imageAlign: 'right',
-                title: 'Learn How',
-            },
-        ]}
-    </Block>
-);
-
-const TryOut = props => (
-    <Block id="try">
-        {[
-            {
-                content: 'Talk about trying this out',
-                image: imgUrl('docusaurus.svg'),
-                imageAlign: 'left',
-                title: 'Try it Out',
-            },
-        ]}
-    </Block>
-);
-
-const Description = props => (
-    <Block background="dark">
-        {[
-            {
-                content: 'This is another description of how this project is useful',
-                image: imgUrl('docusaurus.svg'),
-                imageAlign: 'right',
-                title: 'Description',
-            },
-        ]}
-    </Block>
-);
-
-const Showcase = props => {
-    if ((siteConfig.users || []).length === 0) {
-        return null;
-    }
-    const showcase = siteConfig.users
-        .filter(user => {
-            return user.pinned;
-        })
-        .map((user, i) => {
-            return (
-                <a href={user.infoLink} key={i}>
-                    <img src={user.image} alt={user.caption} title={user.caption} />
-                </a>
-            );
-        });
-
-    return (
-        <div className="productShowcaseSection paddingBottom">
-            <h2>{"Who's Using This?"}</h2>
-            <p>This project is used by all these people</p>
-            <div className="logos">{showcase}</div>
-            <div className="more-users">
-                <a className="button" href={pageUrl('users.html', props.language)}>
-                    More {siteConfig.title} Users
-                </a>
-            </div>
-        </div>
-    );
-};
 
 class Index extends React.Component {
     render() {
@@ -360,16 +300,14 @@ class Index extends React.Component {
                     <TestSetup />
                     <Talks />
                     <ApplitoolsSupport />
-                    <Features />
-                    <FeatureCallout />
-                    <LearnHow />
-                    <TryOut />
-                    <Description />
-                    <Showcase language={language} />
                 </div>
             </div>
         );
     }
+}
+
+Index.propTypes = {
+    language: PropTypes.string.required
 }
 
 module.exports = Index;
