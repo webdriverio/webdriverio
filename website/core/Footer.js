@@ -5,17 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
+const React = require('react')
+const PropTypes = require('prop-types')
 
-module.exports = class Footer extends React.Component {
+class Footer extends React.Component {
     docUrl(doc, language) {
-        const baseUrl = this.props.config.baseUrl;
-        return baseUrl + 'docs/' + (language ? language + '/' : '') + doc;
+        const baseUrl = this.props.config.baseUrl
+        return baseUrl + 'docs/' + (language ? language + '/' : '') + doc
     }
 
     pageUrl(doc, language) {
-        const baseUrl = this.props.config.baseUrl;
-        return baseUrl + (language ? language + '/' : '') + doc;
+        const baseUrl = this.props.config.baseUrl
+        return baseUrl + (language ? language + '/' : '') + doc
     }
 
     render() {
@@ -34,14 +35,14 @@ module.exports = class Footer extends React.Component {
                     </a>
                     <div>
                         <h5>Docs</h5>
-                        <a href={this.docUrl('doc1.html', this.props.language)}>
-                            Getting Started (or other categories)
+                        <a href={this.docUrl('gettingstarted.html', this.props.language)}>
+                            Getting Started
                         </a>
-                        <a href={this.docUrl('doc2.html', this.props.language)}>
-                            Guides (or other categories)
+                        <a href={this.docUrl('api.html', this.props.language)}>
+                            API Reference
                         </a>
-                        <a href={this.docUrl('doc3.html', this.props.language)}>
-                            API Reference (or other categories)
+                        <a href={this.docUrl('help.html', this.props.language)}>
+                            Help
                         </a>
                     </div>
                     <div>
@@ -90,6 +91,13 @@ module.exports = class Footer extends React.Component {
                 </a>
                 <section className="copyright">{this.props.config.copyright}</section>
             </footer>
-        );
+        )
     }
 }
+
+Footer.propTypes = {
+    config: PropTypes.object,
+    language: PropTypes.string
+}
+
+module.exports = Footer

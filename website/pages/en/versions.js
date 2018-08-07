@@ -5,20 +5,24 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
+const React = require('react')
+const PropTypes = require('prop-types')
 
-const CompLibrary = require('../../core/CompLibrary');
-const Container = CompLibrary.Container;
+/* eslint-disable import/no-unresolved */
+const CompLibrary = require('../../core/CompLibrary')
+/* eslint-enable import/no-unresolved */
 
-const CWD = process.cwd();
+const Container = CompLibrary.Container
 
-const siteConfig = require(CWD + '/siteConfig.js');
-const versions = require(CWD + '/versions.json');
+const CWD = process.cwd()
+
+const siteConfig = require(CWD + '/siteConfig.js')
+const versions = require(CWD + '/versions.json')
 
 class Versions extends React.Component {
     render() {
-        const latestVersion = versions[0];
-        const {language} = this.props;
+        const latestVersion = versions[0]
+        const { language } = this.props
         return (
             <div className="docMainWrapper wrapper">
                 <Container className="mainContainer versionsContainer">
@@ -100,8 +104,12 @@ class Versions extends React.Component {
                     </div>
                 </Container>
             </div>
-        );
+        )
     }
 }
 
-module.exports = Versions;
+Versions.propTypes = {
+    language: PropTypes.string
+}
+
+module.exports = Versions
