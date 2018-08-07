@@ -72,7 +72,7 @@ const Logo = props => (
 )
 
 Logo.propTypes = {
-    img_src: PropTypes.string.required
+    img_src: PropTypes.string
 }
 
 const Badges = () => (
@@ -134,7 +134,7 @@ class HomeSplash extends React.Component {
 }
 
 HomeSplash.propTypes = {
-    language: PropTypes.string.required
+    language: PropTypes.string
 }
 
 const Block = props => (
@@ -220,7 +220,7 @@ const Talks = props => (
 )
 
 Talks.propTypes = {
-    language: PropTypes.string.required
+    language: PropTypes.string
 }
 
 const ApplitoolsSupport = () => (
@@ -241,7 +241,7 @@ const ApplitoolsSupport = () => (
                         WebdriverIO comes with integrated support for [Applitools Eyes](https://applitools.com/)
                         allowing you to write seamless visual regression tests:
 
-                        ![alt text](/img/applitools-test-code.png Applitools Test)
+                        ![alt text](/img/applitools-test-code.png "Applitools Test")
                     </MarkdownBlock>
                 </div>
             </div>
@@ -250,6 +250,19 @@ const ApplitoolsSupport = () => (
             </div>
         </div>
     </Container>
+)
+
+const TryIt = () => (
+    <Block background="light">
+        {[
+            {
+                content: 'You can try WebdriverIO using [try.webdriver.io](http://try.webdriver.io) that provides you with an interface to write a sample test and share it. You can also us it for debugging purposes.',
+                image: imgUrl('try.png'),
+                imageAlign: 'right',
+                title: 'Try it out!',
+            },
+        ]}
+    </Block>
 )
 
 class Index extends React.Component {
@@ -300,6 +313,7 @@ class Index extends React.Component {
                     <TestSetup />
                     <Talks />
                     <ApplitoolsSupport />
+                    <TryIt />
                 </div>
             </div>
         );
@@ -307,7 +321,7 @@ class Index extends React.Component {
 }
 
 Index.propTypes = {
-    language: PropTypes.string.required
+    language: PropTypes.string
 }
 
 module.exports = Index;
