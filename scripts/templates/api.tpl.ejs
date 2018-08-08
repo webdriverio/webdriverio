@@ -1,0 +1,47 @@
+---
+id: <%= method.command %>
+title: <%= method.command %>
+---
+
+<%= method.description %>
+
+### Usage
+
+```js
+browser.<%= method.command %>(<%= method.paramString %>)
+```
+
+<% if (method.paramTags.length) { %>
+### Parameters
+
+| Param | Type | Details |
+| ----- | ---- | ------- |
+<% method.paramTags.forEach((paramTag) => {
+    %>| <%= paramTag.name %><% if (!paramTag.required) { %><br><span class="label label-warning">optional</span><% }
+    %> | <%= paramTag.type
+    %> | <%= paramTag.description %> |
+<% }) %>
+<% } %>
+
+<% if (method.examples.length) { %>
+### Example
+<% method.examples.forEach(function(example) { %>
+``` <%= example.format %> <%= example.file %>
+<%= example.code %>
+```
+<% }); %>
+<% } %>
+
+<% if (method.returnTags.length) { %>
+### Returns
+
+<% method.returnTags.forEach(function(returnTag) { %>- **&lt;<%= returnTag.type %>&gt;**: <%= returnTag.description %>
+<% }) %>
+<% } %>
+
+<% if (method.throwsTags.length) { %>
+### Throws
+
+<% method.throwsTags.forEach(function(throwsTag) { %>- **<%= throwsTag.type %>**: <%= throwsTag.description %>
+<% }) %>
+<% } %>
