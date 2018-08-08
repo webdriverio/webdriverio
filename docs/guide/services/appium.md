@@ -41,6 +41,7 @@ Please register this package as service plugin and specify command line argument
   appium: {
     args: {
       address: '127.0.0.1',
+      port: 4444,
       commandTimeout: '7200',
       sessionOverride: true,
       debugLogSpacing: true,
