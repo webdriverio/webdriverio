@@ -1,4 +1,4 @@
-const repoUrl = 'https://github.com/webdriverio/webdriverio'
+const repoUrl = 'https://github.com/webdriverio/v5'
 
 module.exports = {
     title: 'WebdriverIO',
@@ -14,6 +14,7 @@ module.exports = {
         { search: true },
         { href: repoUrl, label: 'GitHub' }
     ],
+    repoUrl: repoUrl,
     editUrl: repoUrl + '/edit/master/docs/',
     footerIcon: 'img/twitter-profile.png',
     favicon: 'img/favicon.png',

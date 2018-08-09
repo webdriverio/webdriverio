@@ -1,6 +1,7 @@
 ---
-id: <%= method.id %>
+id: <%= method.command %>
 title: <%= method.command %>
+<% if (method.customEditUrl) { %>custom_edit_url: <%= method.customEditUrl %><% } %>
 ---
 
 <%= method.description %>
