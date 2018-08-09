@@ -29,7 +29,7 @@ module.exports = {
 
     highlight: {
         // Highlight.js theme to use for syntax highlighting in code blocks
-        theme: 'default'
+        theme: 'github'
     },
 
     algolia: {

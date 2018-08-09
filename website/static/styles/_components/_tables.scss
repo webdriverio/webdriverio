@@ -1,0 +1,11 @@
+thead {
+    background-color: $tHeadColor;
+
+    tr th {
+        font-weight: 500;
+    }
+}
+
+tbody tr td {
+    font-weight: 300;
+}
