@@ -490,7 +490,7 @@
   "/session/:sessionId/element/:elementId/text": {
     "GET": {
       "command": "getElementText",
-      "description": "The Get Element Text command intends to return an element’s text "as rendered". An element's rendered text is also used for locating a elements by their link text and partial link text.",
+      "description": "The Get Element Text command intends to return an element’s text \"as rendered\". An element's rendered text is also used for locating a elements by their link text and partial link text.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-element-text",
       "variables": [{
         "name": "elementId",

@@ -8,10 +8,10 @@ const config = require('../website/siteConfig')
 const sidebars = require('../website/_sidebars.json')
 
 const PROTOCOLS = {
+    webdriver: require('../packages/webdriver/protocol/webdriver.json'),
     appium: require('../packages/webdriver/protocol/appium.json'),
     jsonwp: require('../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json'),
-    webdriver: require('../packages/webdriver/protocol/webdriver.json')
+    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json')
 }
 const PROTOCOL_NAMES = {
     appium: 'Appium',
@@ -37,9 +37,11 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             description.throwsTags = [] // tbd
             description.customEditUrl = `${config.repoUrl}/edit/master/packages/webdriver/protocol/${protocolName}.json`
 
-            if (!description.description) {
-                description.description = `${protocol} command. More details can be found ` +
-                    `in the [official protocol docs](${description.ref}).`
+            const protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`
+            if (description.description) {
+                description.description += `<br><br>${protocolNote}`
+            } else {
+                description.description = protocolNote
             }
 
             const docDir = path.join(__dirname, '..', 'docs', 'api', protocolName)
