@@ -2,10 +2,17 @@
 
 const fs = require('fs')
 const path = require('path')
+const markdox = require('markdox')
+
+const formatter = require('./utils/formatter')
+const compiler = require('./utils/compiler')
 const ejs = require('../packages/wdio-cli/node_modules/ejs')
 
 const config = require('../website/siteConfig')
 const sidebars = require('../website/_sidebars.json')
+
+ejs.open = '<?';
+ejs.close = '?>';
 
 const PROTOCOLS = {
     webdriver: require('../packages/webdriver/protocol/webdriver.json'),
@@ -20,7 +27,14 @@ const PROTOCOL_NAMES = {
     webdriver: 'Webdriver Protocol'
 }
 
-const template = fs.readFileSync(path.join(__dirname, 'templates', 'api.tpl.ejs'), 'utf8')
+const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')
+const MARKDOX_OPTIONS = {
+    formatter: formatter,
+    compiler: compiler,
+    template: TEMPLATE_PATH
+}
+
+const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
 
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     const protocol = PROTOCOL_NAMES[protocolName]
@@ -49,7 +63,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 fs.mkdirSync(docDir);
             }
 
-            const markdown = ejs.render(template, { method: description }, {})
+            const markdown = ejs.render(template, { docfiles: [description] }, {})
             const docPath = path.join(docDir, `${description.command}.md`)
             fs.writeFileSync(docPath, markdown, { encoding: 'utf-8' })
 
@@ -72,3 +86,34 @@ fs.writeFileSync(
     JSON.stringify(sidebars, null, 2),
     { encoding: 'utf-8' }
 )
+
+const COMMAND_DIR = path.join(__dirname, '..', 'packages', 'webdriverio', 'src', 'commands')
+const COMMANDS = {
+    browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
+    element: fs.readdirSync(path.join(COMMAND_DIR, 'element'))
+}
+
+for (const [scope, files] of Object.entries(COMMANDS)) {
+    for (const file of files) {
+        const docDir = path.join(__dirname, '..', 'docs', 'api', scope)
+        if (!fs.existsSync(docDir)){
+            fs.mkdirSync(docDir);
+        }
+
+        const filepath = path.join(COMMAND_DIR, scope, file)
+        const output = path.join(docDir, file.replace('js', 'md'))
+        const options = Object.assign({}, MARKDOX_OPTIONS, { output })
+        markdox.process(
+            filepath,
+            options,
+            (err) => {
+                if (err) {
+                    // eslint-disable-next-line no-console
+                    console.error(`ERROR: ${err.stack}`)
+                }
+                // eslint-disable-next-line no-console
+                console.log(`Generated docs for ${scope}/${file} - ${output}`)
+            }
+        )
+    }
+}
