@@ -32,7 +32,7 @@ const MARKDOX_OPTIONS = {
 }
 
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-
+const protocolDocs = {}
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     const protocol = PROTOCOL_NAMES[protocolName]
 
@@ -42,6 +42,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 return Object.assign(variable, { required: true, type: 'String' })
             }), ...description.parameters || []]
 
+            description.hasHeader = true
             description.paramString = description.paramTags.map((param) => param.name).join(', ')
             description.examples = [] // tbd
             description.returnTags = [] // tbd
@@ -55,27 +56,36 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 description.description = protocolNote
             }
 
-            const docDir = path.join(__dirname, '..', 'docs', 'api', protocolName)
-            if (!fs.existsSync(docDir)){
-                fs.mkdirSync(docDir);
-            }
-
             const markdown = ejs.render(template, { docfiles: [description] }, { delimiter: '?' })
-            const docPath = path.join(docDir, `${description.command}.md`)
-            fs.writeFileSync(docPath, markdown, { encoding: 'utf-8' })
-
-            /**
-             * add command to sidebar
-             */
-            if (!sidebars.protocol[protocol]) {
-                sidebars.protocol[protocol] = []
+            // const docPath = path.join(docDir, `${description.command}.md`)
+            // fs.writeFileSync(docPath, markdown, { encoding: 'utf-8' })
+            if (!protocolDocs[protocolName]) {
+                protocolDocs[protocolName] = [[
+                    '---',
+                    `id: ${protocolName}`,
+                    `title: ${protocol}`,
+                    `custom_edit_url: https://github.com/webdriverio/v5/edit/master/packages/webdriver/protocol/${protocolName}.json`,
+                    '---\n'
+                ].join('\n')]
             }
-            sidebars.protocol[protocol].push(`api/${protocolName}/${description.command}`)
+            protocolDocs[protocolName].push(markdown)
 
-            // eslint-disable-next-line no-console
-            console.log(`Generated docs for ${method} ${endpoint} - ${docPath}`);
+            // /**
+            //  * add command to sidebar
+            //  */
+            // if (!sidebars.protocol[protocol]) {
+            //     sidebars.protocol[protocol] = []
+            // }
+            // sidebars.protocol[protocol].push(`api/${protocolName}/${description.command}`)
+            //
+            // // eslint-disable-next-line no-console
+            // console.log(`Generated docs for ${method} ${endpoint} - ${docPath}`);
         }
     }
+
+    const docPath = path.join(__dirname, '..', 'docs', 'api', `${protocolName}.md`)
+    fs.writeFileSync(docPath, protocolDocs[protocolName].join('\n---\n'), { encoding: 'utf-8' })
+    sidebars.api.Introduction.push(`api/${protocolName}`)
 }
 
 const COMMAND_DIR = path.join(__dirname, '..', 'packages', 'webdriverio', 'src', 'commands')
