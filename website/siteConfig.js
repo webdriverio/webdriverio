@@ -2,6 +2,7 @@ const repoUrl = 'https://github.com/webdriverio/v5'
 
 module.exports = {
     title: 'WebdriverIO',
+    projectName: 'webdriver.io',
     tagline: 'Next-gen WebDriver test framework for Node.js',
     url: 'https://webdriver.io',
     baseUrl: '/',
