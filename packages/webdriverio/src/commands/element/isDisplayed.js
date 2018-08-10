@@ -17,7 +17,7 @@
         elem = $('#notVisible');
         isVisible = elem.isVisible();
         console.log(isVisible); // outputs: false
-        
+
         elem = $('#notExisting');
         isVisible = elem.isVisible();
         console.log(isVisible); // outputs: false
