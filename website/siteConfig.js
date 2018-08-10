@@ -8,6 +8,7 @@ module.exports = {
     headerLinks: [
         { doc: 'gettingstarted', label: 'Guide' },
         { doc: 'api', label: 'API' },
+        { doc: 'protocol', label: 'Protocol' },
         { page: 'help', label: 'Help' },
         { blog: true, label: 'Blog' },
         { languages: true },
