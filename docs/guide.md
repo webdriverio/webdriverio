@@ -57,7 +57,7 @@ Keep this running in the background and open a new terminal window. Next step is
 
 ** 5. Download WebdriverIO**
 ```sh
-$ npm install webdriverio
+$ mkdir node_modules && npm install webdriverio
 ```
 
 ** 6. Create a test file (test.js) with the following content**
