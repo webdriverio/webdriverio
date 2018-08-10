@@ -11,9 +11,6 @@ const ejs = require('../packages/wdio-cli/node_modules/ejs')
 const config = require('../website/siteConfig')
 const sidebars = require('../website/_sidebars.json')
 
-ejs.open = '<?';
-ejs.close = '?>';
-
 const PROTOCOLS = {
     webdriver: require('../packages/webdriver/protocol/webdriver.json'),
     appium: require('../packages/webdriver/protocol/appium.json'),
@@ -63,29 +60,23 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 fs.mkdirSync(docDir);
             }
 
-            const markdown = ejs.render(template, { docfiles: [description] }, {})
+            const markdown = ejs.render(template, { docfiles: [description] }, { delimiter: '?' })
             const docPath = path.join(docDir, `${description.command}.md`)
             fs.writeFileSync(docPath, markdown, { encoding: 'utf-8' })
 
             /**
              * add command to sidebar
              */
-            if (!sidebars.api[protocol]) {
-                sidebars.api[protocol] = []
+            if (!sidebars.protocol[protocol]) {
+                sidebars.protocol[protocol] = []
             }
-            sidebars.api[protocol].push(`api/${protocolName}/${description.command}`)
+            sidebars.protocol[protocol].push(`api/${protocolName}/${description.command}`)
 
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${method} ${endpoint} - ${docPath}`);
         }
     }
 }
-
-fs.writeFileSync(
-    path.join(__dirname, '..', 'website', 'sidebars.json'),
-    JSON.stringify(sidebars, null, 2),
-    { encoding: 'utf-8' }
-)
 
 const COMMAND_DIR = path.join(__dirname, '..', 'packages', 'webdriverio', 'src', 'commands')
 const COMMANDS = {
@@ -115,5 +106,19 @@ for (const [scope, files] of Object.entries(COMMANDS)) {
                 console.log(`Generated docs for ${scope}/${file} - ${output}`)
             }
         )
+
+        /**
+         * add command to sidebar
+         */
+        if (!sidebars.api[scope]) {
+            sidebars.api[scope] = []
+        }
+        sidebars.api[scope].push(`api/${scope}/${file.replace('.js', '')}`)
     }
 }
+
+fs.writeFileSync(
+    path.join(__dirname, '..', 'website', 'sidebars.json'),
+    JSON.stringify(sidebars, null, 2),
+    { encoding: 'utf-8' }
+)
