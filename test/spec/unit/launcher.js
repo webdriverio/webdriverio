@@ -70,10 +70,46 @@ describe('Launcher', () => {
             specs[0].should.equal(path.resolve('index.js'))
         })
 
+        it('should allow users to exclude specs with exclude as a cli argument', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                exclude: './index.js'
+            })
+            let specs = launcher.configParser.getSpecs()
+            specs.should.have.length(0)
+        })
+
+        it('should exclude a file from a list of filtered spec included in spec cli argument', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                spec: './test/spec/unit/launcher.js,./lib/webdriverio.js',
+                exclude: './lib/webdriverio.js'
+            })
+            let specs = launcher.configParser.getSpecs()
+            specs.should.have.length(1)
+            specs[0].should.equal(path.resolve('test', 'spec', 'unit', 'launcher.js'))
+        })
+
+        it('should allow users to exclude multiple files when included in exclude cli argument', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                spec: './test/spec/unit/launcher.js,./lib/webdriverio.js',
+                exclude: './test/spec/unit/launcher.js,./lib/webdriverio.js'
+            })
+            let specs = launcher.configParser.getSpecs()
+            specs.should.have.length(0)
+        })
+
+        it('should exclude a file from a given list of specs when multiple files are included in spec cli', () => {
+            let launcher = new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
+                spec: './index.js',
+                exclude: './index.js'
+            })
+            let specs = launcher.configParser.getSpecs()
+            specs.should.have.length(0)
+        })
+
         it('should throw if specified spec file doesnt exist', () => {
             expect(() => new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 spec: './foobar.js'
-            })).to.throw(/spec file \.\/foobar\.js not found/)
+            })).to.throw('specs file ./foobar.js not found')
         })
 
         it('should exit if no spec was found', () => {
