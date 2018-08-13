@@ -137,6 +137,27 @@ $ grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 
 _**Note:** This will_ not _override the `--spec` flag for running a single spec._
 
+## Exclude Selected Tests
+
+When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine). For example if you want to exclude your login
+test from the test run, do:
+
+```sh
+$ wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
+```
+
+or exclude multiple spec files:
+
+```sh
+$ wdio wdio.conf.js --exclude ./test/specs/signup.js,./test/specs/forgot-password.js
+```
+
+or exclude a spec file when filtering using a suite:
+
+```sh
+$ wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
+```
+
 ## Stop testing after failure
 
 With the `bail` option you can specify when WebdriverIO should stop the test run after test failures. This can be helpful when you have a big test suite and want to avoid long test runs when you already know that your build will break. The option expects a number that specifies after how many spec failures it should stop the whole test run. The default is `0` meaning that it always runs all tests specs it can find.
