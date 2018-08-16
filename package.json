@@ -76,7 +76,7 @@
     "optimist": "~0.6.1",
     "q": "~1.5.0",
     "request": "^2.83.0",
-    "rgb2hex": "~0.1.4",
+    "rgb2hex": "^0.1.9",
     "safe-buffer": "~5.1.1",
     "supports-color": "~5.0.0",
     "url": "~0.11.0",
