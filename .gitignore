@@ -8,6 +8,6 @@ test/site.zip
 coverage
 .idea
 build
-
+package-lock.json
 /*.js
 !index.js
