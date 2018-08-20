@@ -61,7 +61,6 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 protocolDocs[protocolName] = [[
                     '---',
                     `id: ${protocolName}`,
-                    `original_id: api/${protocolName}`,
                     `title: ${protocol}`,
                     `custom_edit_url: https://github.com/webdriverio/v5/edit/master/packages/webdriver/protocol/${protocolName}.json`,
                     '---\n'

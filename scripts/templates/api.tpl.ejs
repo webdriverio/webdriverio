@@ -6,7 +6,6 @@ if (method.hasDocusaurusHeader) {
 id: <?= method.command ?>
 title: <?= method.command ?>
 <? if (method.customEditUrl) { ?>custom_edit_url: <?= method.customEditUrl ?><? } ?>
-<? if (method.originalId) { ?>original_id: <?= method.originalId ?><? } ?>
 ---
 <? } else if (method.hasHeader) { ?>
 ## <?= method.command ?>
