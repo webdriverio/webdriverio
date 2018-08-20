@@ -36,8 +36,8 @@ const protocolDocs = {}
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     const protocol = PROTOCOL_NAMES[protocolName]
 
-    for (const [endpoint, methods] of Object.entries(definition)) {
-        for (const [method, description] of Object.entries(methods)) {
+    for (const [, methods] of Object.entries(definition)) {
+        for (const [, description] of Object.entries(methods)) {
             description.paramTags = [...(description.variables || []).map((variable) => {
                 return Object.assign(variable, { required: true, type: 'String' })
             }), ...description.parameters || []]
@@ -57,29 +57,17 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             }
 
             const markdown = ejs.render(template, { docfiles: [description] }, { delimiter: '?' })
-            // const docPath = path.join(docDir, `${description.command}.md`)
-            // fs.writeFileSync(docPath, markdown, { encoding: 'utf-8' })
             if (!protocolDocs[protocolName]) {
                 protocolDocs[protocolName] = [[
                     '---',
                     `id: ${protocolName}`,
+                    `original_id: api/${protocolName}`,
                     `title: ${protocol}`,
                     `custom_edit_url: https://github.com/webdriverio/v5/edit/master/packages/webdriver/protocol/${protocolName}.json`,
                     '---\n'
                 ].join('\n')]
             }
             protocolDocs[protocolName].push(markdown)
-
-            // /**
-            //  * add command to sidebar
-            //  */
-            // if (!sidebars.protocol[protocol]) {
-            //     sidebars.protocol[protocol] = []
-            // }
-            // sidebars.protocol[protocol].push(`api/${protocolName}/${description.command}`)
-            //
-            // // eslint-disable-next-line no-console
-            // console.log(`Generated docs for ${method} ${endpoint} - ${docPath}`);
         }
     }
 

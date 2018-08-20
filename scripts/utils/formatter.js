@@ -163,7 +163,8 @@ module.exports = function (docfile) {
         ignore: javadoc.ignore,
         examples: files,
         customEditUrl: `${config.repoUrl}/edit/master/packages/webdriverio/src/commands/${scope}/${name}.js`,
-        hasDocusaurusHeader: true
+        hasDocusaurusHeader: true,
+        originalId: `api/${scope}/${name}`
     }
 
     return commandDescription
