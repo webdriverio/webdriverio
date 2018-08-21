@@ -1,7 +1,7 @@
 {
   "scripts": {
     "examples": "docusaurus-examples",
-    "start": "docusaurus-start",
+    "start": "run-p start:*",
     "start:docusaurus": "docusaurus-start",
     "start:compass": "compass watch ./static/styles",
     "build": "docusaurus-build",
