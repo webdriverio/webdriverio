@@ -2,9 +2,14 @@
   "docs": {
     "Introduction": [
       "gettingstarted",
-      "configuration",
       "boilerplate",
       "setuptypes"
+    ],
+    "Configuration": [
+      "options",
+      "babel",
+      "typescript",
+      "proxy"
     ],
     "Usage": [
       "selectors",
