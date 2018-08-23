@@ -37,8 +37,8 @@ env:
     - _ENV=desktop _BROWSER=firefox _PLATFORM=Windows_8 _VERSION=42
     - _ENV=desktop _BROWSER=internet_explorer _PLATFORM=Windows_8 _VERSION=10
     - _ENV=desktop _BROWSER=MicrosoftEdge _PLATFORM=Windows_10 _VERSION=14.14393
-    - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPhone_6 _VERSION=9.2 _APP=http://webdriver.io/ios.zip
-    - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPad_Air _VERSION=9.2 _APP=http://webdriver.io/ios.zip
+    # - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPhone_8 _VERSION=11.2 _APP=http://webdriver.io/ios.zip
+    # - _ENV=ios _PLATFORM=iOS _DEVICENAME=iPad_Air_2 _VERSION=11.2 _APP=http://webdriver.io/ios.zip
     - _ENV=android _PLATFORM=Android _DEVICENAME=Google_Nexus_7C_Emulator _VERSION=4.4 _APP=http://webdriver.io/android.apk.zip
     - _ENV=android _PLATFORM=Android _DEVICENAME=Samsung_Galaxy_S4_Emulator _VERSION=4.4 _APP=http://webdriver.io/android.apk.zip
     - _ENV=functional _BROWSER=phantomjs

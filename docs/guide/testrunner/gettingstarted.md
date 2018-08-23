@@ -41,6 +41,7 @@ Options:
   --reporters, -r       reporters to print out the results on stdout
   --suite               runs the defined suite, can be combined with --spec
   --spec                runs a certain spec file, can be combined with --suite - overrides specs piped from stdin
+  --stdin, -            reads specs from stdin (a single dash is the abbrevated version)
   --cucumberOpts.*      Cucumber options, see the full list options at https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
   --jasmineOpts.*       Jasmine options, see the full list options at https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
   --mochaOpts.*         Mocha options, see the full list options at http://mochajs.org

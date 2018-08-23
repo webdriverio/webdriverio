@@ -4,8 +4,8 @@ let performMultiAction, performTouchAction, scope, elementCalls
 
 describe('touchAction', () => {
     beforeEach(() => {
-        performMultiAction = sinon.spy()
-        performTouchAction = sinon.spy()
+        performMultiAction = global.sinon.spy()
+        performTouchAction = global.sinon.spy()
         elementCalls = 0
 
         scope = {

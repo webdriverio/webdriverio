@@ -1,4 +1,4 @@
-import { isSuccessfulResponse, isUnknownCommand } from '../../../lib/helpers/utilities'
+import { isSuccessfulResponse, isUnknownCommand, formatHostname } from '../../../lib/helpers/utilities'
 
 describe('utilities', () => {
     describe('isSuccessfulResponse', () => {
@@ -96,12 +96,27 @@ describe('utilities', () => {
                     type: 'UnknownCommand'
                 }
             })).to.be.equal(true)
+
+            expect(isUnknownCommand({
+                message: 'foobar',
+                seleniumStack: {
+                    type: 'Unknown'
+                }
+            })).to.be.equal(true)
         })
 
         it('should recognise unknown command when using chromedriver', () => {
             expect(isUnknownCommand({
                 message: 'did not map to a valid resource'
             })).to.be.equal(true)
+        })
+    })
+
+    describe('formatHostname', () => {
+        it('should properly format hostname', () => {
+            formatHostname('::1').should.equal('[::1]')
+            formatHostname('127.0.0.1').should.equal('127.0.0.1')
+            formatHostname('localhost').should.equal('localhost')
         })
     })
 })
