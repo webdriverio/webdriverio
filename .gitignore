@@ -72,3 +72,4 @@ website/sidebars.json
 website/node_modules
 website/i18n/*
 docs/api/**/*.md
+docs/_*.md

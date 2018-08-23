@@ -7,6 +7,7 @@ const markdox = require('markdox')
 const formatter = require('./utils/formatter')
 const compiler = require('./utils/compiler')
 const ejs = require('../packages/wdio-cli/node_modules/ejs')
+const { getSubPackages } = require('./utils/helpers')
 
 const config = require('../website/siteConfig')
 const sidebars = require('../website/_sidebars.json')
@@ -31,6 +32,11 @@ const MARKDOX_OPTIONS = {
     template: TEMPLATE_PATH
 }
 
+/**
+ * ======================
+ * Generate Protocol docs
+ * ======================
+ */
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
 const protocolDocs = {}
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
@@ -72,9 +78,18 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
     const docPath = path.join(__dirname, '..', 'docs', 'api', `${protocolName}.md`)
     fs.writeFileSync(docPath, protocolDocs[protocolName].join('\n---\n'), { encoding: 'utf-8' })
+
+    // eslint-disable-next-line no-console
+    console.log(`Generated docs for ${protocolName} protocol`)
+
     sidebars.api.Introduction.push(`api/${protocolName}`)
 }
 
+/**
+ * =========================
+ * Generate WebdriverIO docs
+ * =========================
+ */
 const COMMAND_DIR = path.join(__dirname, '..', 'packages', 'webdriverio', 'src', 'commands')
 const COMMANDS = {
     browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
@@ -111,6 +126,42 @@ for (const [scope, files] of Object.entries(COMMANDS)) {
             sidebars.api[scope] = []
         }
         sidebars.api[scope].push(`api/${scope}/${file.replace('.js', '')}`)
+    }
+}
+
+/**
+ * =======================================
+ * Generate docs for reporter and services
+ * =======================================
+ */
+const plugins = {
+    reporter: ['Reporter', 'Reporter'],
+    service: ['Services', 'Service']
+}
+const packages = getSubPackages()
+for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
+    const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
+    for (const pkg of pkgs) {
+        const pkgName = pkg.split("-").slice(1,-1).map((n) => n[0].toUpperCase() + n.slice(1)).join(" ")
+        const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'Readme.md')).toString()
+        const preface = [
+            '---',
+            `id: ${pkg}`,
+            `title: ${pkgName} ${nameSingular}`,
+            `custom_edit_url: https://github.com/webdriverio/v5/edit/master/packages/${pkg}/README.md`,
+            '---\n'
+        ]
+        const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
+        fs.writeFileSync(path.join(__dirname, '..', 'docs', `_${pkg}.md`), doc, { encoding: 'utf-8' })
+
+        if (!sidebars.docs[namePlural]) {
+            sidebars.docs[namePlural] = []
+        }
+
+        // eslint-disable-next-line no-console
+        console.log(`Generated docs for ${pkg}`)
+
+        sidebars.docs[namePlural].push(pkg)
     }
 }
 
