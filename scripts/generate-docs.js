@@ -142,17 +142,19 @@ const packages = getSubPackages()
 for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
     const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
     for (const pkg of pkgs) {
-        const pkgName = pkg.split("-").slice(1,-1).map((n) => n[0].toUpperCase() + n.slice(1)).join(" ")
+        const name = pkg.split("-").slice(1,-1)
+        const id = `${name.join('-')}-${type}`
+        const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(" ")
         const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'Readme.md')).toString()
         const preface = [
             '---',
-            `id: ${pkg}`,
+            `id: ${id}`,
             `title: ${pkgName} ${nameSingular}`,
             `custom_edit_url: https://github.com/webdriverio/v5/edit/master/packages/${pkg}/README.md`,
             '---\n'
         ]
         const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
-        fs.writeFileSync(path.join(__dirname, '..', 'docs', `_${pkg}.md`), doc, { encoding: 'utf-8' })
+        fs.writeFileSync(path.join(__dirname, '..', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
 
         if (!sidebars.docs[namePlural]) {
             sidebars.docs[namePlural] = []
@@ -161,7 +163,7 @@ for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         // eslint-disable-next-line no-console
         console.log(`Generated docs for ${pkg}`)
 
-        sidebars.docs[namePlural].push(pkg)
+        sidebars.docs[namePlural].push(id)
     }
 }
 
