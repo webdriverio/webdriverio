@@ -55,19 +55,9 @@
       "description": "The Set Timeouts command sets timeout durations associated with the current session. The timeouts that can be controlled are listed in the table of session timeouts below.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-timeouts",
       "parameters": [{
-        "name": "script",
-        "type": "number",
-        "description": "integer in ms for session script timeout",
-        "required": true
-      }, {
-        "name": "pageLoad",
-        "type": "number",
-        "description": "integer in ms for session page load timeout",
-        "required": true
-      }, {
-        "name": "implicit",
-        "type": "number",
-        "description": "integer in ms for session implicit wait timeout",
+        "name": "timeouts",
+        "type": "Object",
+        "description": "Object containing timeout values for at least one of the following keys: \"script\", \"pageLoad\" and/or \"implicit\"",
         "required": true
       }]
     }
