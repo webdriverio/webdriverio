@@ -12,7 +12,7 @@ Each command in WebdriverIO is an asynchronous operation where a request is fire
 A session has an associated session script timeout that specifies a time to wait for asynchronous scripts to run. Unless stated otherwise it is 30 seconds. You can set this timeout via:
 
 ```js
-browser.timeouts('script', 60000);
+browser.setTimeout({ 'script': 60000 });
 browser.executeAsync(function (done) {
     console.log('this should not fail');
     setTimeout(done, 59000);
@@ -24,7 +24,7 @@ browser.executeAsync(function (done) {
 A session has an associated session page load timeout that specifies a time to wait for the page loading to complete. Unless stated otherwise it is 300,000 milliseconds. You can set this timeout via:
 
 ```js
-browser.timeouts('pageLoad', 10000);
+browser.setTimeout({ 'pageLoad': 10000 });
 ```
 
 > The `pageLoad` keyword is a part of the official WebDriver [specification](https://www.w3.org/TR/webdriver/#set-timeouts), but might not be [supported](https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/687) for your browser (the previous name is `page load`).
@@ -34,7 +34,7 @@ browser.timeouts('pageLoad', 10000);
 A session has an associated session implicit wait timeout that specifies a time to wait for the implicit element location strategy when locating elements using the [`element`](/api/protocol/element.html) or [`elements`](/api/protocol/elements.html) commands. Unless stated otherwise it is zero milliseconds. You can set this timeout via:
 
 ```js
-browser.timeouts('implicit', 5000);
+browser.setTimeout({ 'implicit': 5000 });
 ```
 
 ## WebdriverIO related timeouts
@@ -55,14 +55,11 @@ exports.config = {
 In your test you now can do this:
 
 ```js
-var myElem = browser.element('#myElem');
+const myElem = $('#myElem');
 myElem.waitForVisible();
 
-// which is the same as
-browser.waitForVisible('#myElem');
-
-// which is the same as
-browser.waitForVisible('#myElem', 5000);
+// you can also overwrite the default timeout if needed
+browser.waitForVisible('#myElem', 10000);
 ```
 
 ## Framework related timeouts

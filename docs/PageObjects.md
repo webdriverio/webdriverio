@@ -14,20 +14,6 @@ The goal behind page objects is to abstract any page information away from the a
 First off we need a main page object that we call `Page`. It will contain general selectors or methods all page objects will inherit from. Apart from all child page objects `Page` is created using the prototype model:
 
 ```js
-function Page () {
-    this.title = 'My Page';
-}
-
-Page.prototype.open = function (path) {
-    browser.url(path)
-}
-
-module.exports = new Page()
-```
-
-Or, using ES6 class:
-
-```js
 export default class Page {
     constructor() {
         this.title = 'My Page';
@@ -45,51 +31,22 @@ Let's start testing the first page. For demo purposes we use [The Internet](http
 
 ```js
 // login.page.js
-var Page = require('./page')
-
-var LoginPage = Object.create(Page, {
-    /**
-     * define elements
-     */
-    username: { get: function () { return browser.element('#username'); } },
-    password: { get: function () { return browser.element('#password'); } },
-    form:     { get: function () { return browser.element('#login'); } },
-    flash:    { get: function () { return browser.element('#flash'); } },
-
-    /**
-     * define or overwrite page methods
-     */
-    open: { value: function() {
-        Page.open.call(this, 'login');
-    } },
-
-    submit: { value: function() {
-        this.form.submitForm();
-    } }
-});
-
-module.exports = LoginPage;
-```
-
-OR, when using ES6 class:
-
-```js
-// login.page.js
 import Page from './page';
 
 class LoginPage extends Page {
 
-    get username()  { return browser.element('#username'); }
-    get password()  { return browser.element('#password'); }
-    get form()      { return browser.element('#login'); }
-    get flash()     { return browser.element('#flash'); }
+    get username() { return browser.element('#username'); }
+    get password() { return browser.element('#password'); }
+    get submitBtn() { return browser.element('form button[type="submit"]'); }
+    get flash() { return browser.element('#flash'); }
+    get headerLinks() { return $$('#header a'); }
 
     open() {
         super.open('login');
     }
 
     submit() {
-        this.form.submitForm();
+        this.submitBtn.click();
     }
 
 }
@@ -108,31 +65,25 @@ LoginPage.username.setValue('Max Mustermann');
 which is basically the same thing as:
 
 ```js
-var elem = browser.element('#username');
+var elem = $('#username');
 elem.setValue('Max Mustermann');
 ```
 
 or
 
 ```js
-browser.element('#username').setValue('Max Mustermann');
-```
-
-or
-
-```js
-browser.setValue('#username', 'Max Mustermann');
+$('#username').setValue('Max Mustermann');
 ```
 
 After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to require it and that's it. The `Object.create` method returns an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
 
 ```js
 // login.spec.js
-var expect = require('chai').expect;
-var LoginPage = require('../pageobjects/login.page');
+import { expect } 'chai';
+import LoginPage '../pageobjects/login.page';
 
-describe('login form', function () {
-    it('should deny access with wrong creds', function () {
+describe('login form', () => {
+    it('should deny access with wrong creds', () => {
         LoginPage.open();
         LoginPage.username.setValue('foo');
         LoginPage.password.setValue('bar');
@@ -141,35 +92,7 @@ describe('login form', function () {
         expect(LoginPage.flash.getText()).to.contain('Your username is invalid!');
     });
 
-    it('should allow access with correct creds', function () {
-        LoginPage.open();
-        LoginPage.username.setValue('tomsmith');
-        LoginPage.password.setValue('SuperSecretPassword!');
-        LoginPage.submit();
-
-        expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!');
-    });
-});
-```
-OR, when using ES6 class:
-
-```js
-// login.spec.js
-import LoginPage from '../pageobjects/login.page';
-
-var expect = require('chai').expect;
-
-describe('login form', => {
-    it('should deny access with wrong creds', => {
-        LoginPage.open();
-        LoginPage.username.setValue('foo');
-        LoginPage.password.setValue('bar');
-        LoginPage.submit();
-
-        expect(LoginPage.flash.getText()).to.contain('Your username is invalid!');
-    });
-
-    it('should allow access with correct creds', => {
+    it('should allow access with correct creds', () => {
         LoginPage.open();
         LoginPage.username.setValue('tomsmith');
         LoginPage.password.setValue('SuperSecretPassword!');

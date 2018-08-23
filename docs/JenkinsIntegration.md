@@ -11,12 +11,12 @@ First we need to define `junit` as test reporter. Also make sure you have it ins
 // wdio.conf.js
 module.exports = {
     // ...
-    reporters: ['dot', 'junit'],
-    reporterOptions: {
-        junit: {
+    reporters: [
+        'dot',
+        ['junit', {
             outputDir: './'
-        }
-    },
+        }]
+    ],
     // ...
 };
 ```

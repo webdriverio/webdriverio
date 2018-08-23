@@ -3,13 +3,13 @@ id: organizingsuites
 title: Organizing Test Suite
 ---
 
-While your project is growing you will inevitably add more and more integration tests. This will increase your build time and will also slow down your productivity. To prevent this you should start to run your tests in parallel. You might have already recognised that WebdriverIO creates for each spec (or feature file in cucumber) a single Selenium session. In general, you should try to test a single feature in your app in one spec file. Try to not have too many or too few tests in one file. However, there is no golden rule about that.
+While your project is growing you will inevitably add more and more integration tests. This will increase your build time and will also slow down your productivity. To prevent this you should start to run your tests in parallel. You might have already recognised that WebdriverIO creates for each spec (or feature file in cucumber) a single WebDriver session. In general, you should try to test a single feature in your app in one spec file. Try to not have too many or too few tests in one file. However, there is no golden rule about that.
 
-Once you get more and more spec files you should start running them concurrently. To do so you can adjust the [`maxInstances`](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L52-L60) property in your config file. WebdriverIO allows you to run your tests with maximum concurrency meaning that no matter how many files and tests you have, they could run all in parallel. Though there are certain limits (computer CPU, concurrency restrictions).
+Once you get more and more spec files you should start running them concurrently. To do so you can adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency meaning that no matter how many files and tests you have, they could run all in parallel. Though there are certain limits (computer CPU, concurrency restrictions).
 
 > Let's say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have set maxInstances to 1, the wdio test runner will spawn 3 processes. Therefore, if you have 10 spec files and you set maxInstances to 10; all spec files will get tested at the same time and 30 processes will get spawned.
 
-You can define the `maxInstance` property globally to set the attribute for all browser. If you run your own Selenium grid it could be that you have more capacity for one browser than for an other one. In this case you can limit the `maxInstance` in your capability object:
+You can define the `maxInstance` property globally to set the attribute for all browser. If you run your own WebDriver grid it could be that you have more capacity for one browser than for an other one. In this case you can limit the `maxInstance` in your capability object:
 
 ```js
 // wdio.conf.js
@@ -21,7 +21,7 @@ exports.config = {
     capabilities: [{
         browserName: "firefox"
     }, {
-        // maxInstances can get overwritten per capability. So if you have an in-house Selenium
+        // maxInstances can get overwritten per capability. So if you have an in-house WebDriver
         // grid with only 5 firefox instance available you can make sure that not more than
         // 5 instance gets started at a time.
         browserName: 'chrome'
@@ -32,12 +32,12 @@ exports.config = {
 
 ## Inherit From Main Config File
 
-If you run your test suite in multiple environments (e.g. dev and integration) it could be helpful to have multiple configuration files to keep them easy manageable. Similar to the [page object concept](/guide/testrunner/pageobjects.html) you first create a main config file. It contains all configurations you share across environments. Then for each environment you can create a file and supplement the information from the main config file with environment specific ones:
+If you run your test suite in multiple environments (e.g. dev and integration) it could be helpful to have multiple configuration files to keep them easy manageable. Similar to the [page object concept](PageObjects.md) you first create a main config file. It contains all configurations you share across environments. Then for each environment you can create a file and supplement the information from the main config file with environment specific ones:
 
 ```js
 // wdio.dev.config.js
-var merge = require('deepmerge');
-var wdioConf = require('./wdio.conf.js');
+import merge from 'deepmerge';
+import wdioConf from './wdio.conf.js';
 
 // have main config file as default but overwrite environment specific information
 exports.config = merge(wdioConf.config, {
@@ -89,7 +89,7 @@ $ wdio wdio.conf.js --suite login
 or run multiple suites at once:
 
 ```sh
-$ wdio wdio.conf.js --suite login,otherFeature
+$ wdio wdio.conf.js --suite login --suite otherFeature
 ```
 
 ## Run Selected Tests
@@ -103,7 +103,7 @@ $ wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 or run multiple specs at once:
 
 ```sh
-$ wdio wdio.conf.js --spec ./test/specs/signup.js,./test/specs/forgot-password.js
+$ wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
 ```
 
 If the spec passed in is not a path to a spec file, it is used as a filter for the spec file names defined in your configuration file. To run all specs with the word 'dialog' in the spec file names, you could use:
@@ -136,4 +136,4 @@ _**Note:** This will_ not _override the `--spec` flag for running a single spec.
 
 With the `bail` option you can specify when WebdriverIO should stop the test run after test failures. This can be helpful when you have a big test suite and want to avoid long test runs when you already know that your build will break. The option expects a number that specifies after how many spec failures it should stop the whole test run. The default is `0` meaning that it always runs all tests specs it can find.
 
-Please see http://webdriver.io/guide/getstarted/configuration.html#bail for additional information on the bail configuration.
+Please see [Options Page](Options.md) for additional information on the bail configuration.

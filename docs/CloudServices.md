@@ -3,15 +3,9 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-Using ondemand services like Sauce Labs, Browserstack or TestingBot with WebdriverIO is pretty simple.
+Using ondemand services like Sauce Labs, Browserstack or TestingBot with WebdriverIO is pretty simple. All you need to do is to set `user` and `key` in your options that are provided by the cloud provider. Optional you can also parametrize your test by setting cloud specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
-1. Make sure WebdriverIO uses their host (e.g. `ondemand.saucelabs.com` for Sauce Labs) as the selenium server, either by setting the `host` config or letting WebdriverIO configure that automatically based on the value of `user` and `key`.
-2. (optional) Set service specific values for each browser in `desiredCapabilities` (e.g. `build` to specify the build number and cluster multiple tests together).
-3. (optional) Tunnel local traffic to provider, so that your tests can access `localhost`.
-
-If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
-
-```javascript
+```js
 // wdio.conf.js
 
 var config = {...}
