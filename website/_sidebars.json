@@ -14,7 +14,6 @@
     "Usage": [
       "selectors",
       "customcommands",
-      "browserobject",
       "multiremote",
       "cloudservices",
       "autocompletion"
@@ -22,6 +21,7 @@
     "Testrunner": [
       "clioptions",
       "configurationfile",
+      "browserobject",
       "frameworks",
       "organizingsuites",
       "timeouts",
