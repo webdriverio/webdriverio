@@ -103,10 +103,6 @@ export const CLI_PARAMS = [{
     description: `stop test runner after specific amount of tests have failed`,
     type: 'number'
 }, {
-    name: 'screenshotPath',
-    alias: 's',
-    description: `saves a screenshot to a given path if a command fails`,
-}, {
     name: 'baseUrl',
     description: 'shorten url command calls by setting a base url',
     type: 'string'
@@ -290,11 +286,6 @@ export const QUESTIONNAIRE = [{
     message: 'Level of logging verbosity',
     default: 'silent',
     choices: LOG_LEVELS
-}, {
-    type: 'input',
-    name: 'screenshotPath',
-    message: 'In which directory should screenshots gets saved if a command fails?',
-    default: './errorShots/'
 }, {
     type: 'input',
     name: 'baseUrl',

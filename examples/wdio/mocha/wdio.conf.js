@@ -24,7 +24,6 @@ exports.config = {
      */
     logLevel: 'trace',
     coloredLogs: true,
-    screenshotPath: 'shots',
     framework: 'mocha',
     logDir: __dirname,
 

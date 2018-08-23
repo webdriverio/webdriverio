@@ -94,7 +94,6 @@
         "afterScenario": [],
         "afterStep": [],
         "coloredLogs": true,
-        "screenshotPath": "./errorShots/",
         "_": [
             "wdio.conf.js"
         ],
