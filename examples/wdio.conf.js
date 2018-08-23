@@ -104,9 +104,6 @@ exports.config = {
     // Warns when a deprecated command is used
     deprecationWarnings: true,
     //
-    // Saves a screenshot to a given path if a command fails.
-    screenshotPath: 'shots',
-    //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
@@ -149,15 +146,15 @@ exports.config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: http://webdriver.io/guide/testrunner/reporters.html
-    reporters: ['dot', 'allure'],
-    //
-    // Some reporters require additional information which should get defined here
-    reporterOptions: {
-        //
-        // If you are using the "xunit" reporter you should define the directory where
-        // WebdriverIO should save all unit reports.
-        outputDir: './'
-    },
+    reporters: [
+        'dot',
+        ['allure', {
+            //
+            // If you are using the "allure" reporter you should define the directory where
+            // WebdriverIO should save all allure reports.
+            outputDir: './'
+        }]
+    ],
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
