@@ -33,7 +33,7 @@ var CustomService = require('./service/my.custom.service');
 
 exports.config = {
     // ...
-    services: [CustomService],
+    services: [new CustomService()],
     // ...
 };
 ```
