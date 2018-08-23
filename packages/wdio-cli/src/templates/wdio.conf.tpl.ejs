@@ -167,15 +167,6 @@ exports.config = {
     <% } else {
     %>// reporters: ['dot'],<%
     }
-    if(answers.outputDir) { %>//
-    // Some reporters require additional information which should get defined here
-    reporterOptions: {
-        //
-        // If you are using the "xunit" reporter you should define the directory where
-        // WebdriverIO should save all unit reports.
-        outputDir: './'
-    },
-    <% }
     if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
