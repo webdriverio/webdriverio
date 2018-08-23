@@ -3,7 +3,7 @@ id: frameworks
 title: Testrunner Frameworks
 ---
 
-The wdio runner currently supports [Mocha](http://mochajs.org/), [Jasmine](http://jasmine.github.io/) (v2.0) and [Cucumber](https://cucumber.io/). To integrate each framework with WebdriverIO there are adapter packages on NPM that need to be downloaded and installed. Note that these packages need to be installed at the same place WebdriverIO is installed. If you've installed WebdriverIO globally make sure you have the adapter package installed globally as well.
+The wdio runner currently supports [Mocha](http://mochajs.org/) and [Jasmine](http://jasmine.github.io/) and [Cucumber](https://cucumber.io/) (not yet supported in v5). To integrate each framework with WebdriverIO there are adapter packages on NPM that need to be downloaded and installed. Note that these packages need to be installed at the same place WebdriverIO is installed. If you've installed WebdriverIO globally make sure you have the adapter package installed globally as well.
 
 Within your spec files or step definition you can access the webdriver instance using the global variable `browser`. You don't need to initiate or end the Selenium session. This is taken care of by the wdio testrunner.
 
@@ -49,7 +49,7 @@ suite('my awesome website', function() {
 
 If you want to define specific Mocha settings you can do that by adding `mochaOpts` to your configuration file. A list of all options can be found on the [project website](http://mochajs.org/).
 
-Note that since all commands are running synchronously there is no need to have async mode in Mocha enabled. Therefor you can't use the `done` callback:
+__Note:__ that since all commands are running synchronously there is no need to have async mode in Mocha enabled. Therefor you can't use the `done` callback:
 
 ```js
 it('should test something', function () {
@@ -95,7 +95,7 @@ commands the screenshot got taken which gives you still valuable information abo
 
 ## Using Cucumber
 
-First you need to install the adapter package from NPM:
+To use Cucumber you have to use WebdriverIO v4 until the framework has been migrated to v5. First you need to install the adapter package from NPM:
 
 ```sh
 npm install wdio-cucumber-framework --save-dev

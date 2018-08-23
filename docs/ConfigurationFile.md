@@ -92,20 +92,7 @@ exports.config = {
           // flag to activate Firefox headless mode (see https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
           // args: ['-headless']
         }
-    },{
-        browserName: 'phantomjs',
-        exclude: [
-            'test/spec/alert.js'
-        ]
     }],
-    //
-    // When enabled opens a debug port for node-inspector and pauses execution
-    // on `debugger` statements. The node-inspector can be attached with:
-    // `node-inspector --debug-port 5859 --no-preload`
-    // When debugging it is also recommended to change the timeout interval of
-    // test runner (eg. jasmineNodeOpts.defaultTimeoutInterval) to a very high
-    // value and setting maxInstances to 1.
-    debug: false,
     //
     // Additional list node arguments to use when starting child processes
     execArgv: null,
@@ -116,26 +103,12 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // Per default WebdriverIO commands getting executed in a synchronous way using
-    // the wdio-sync package. If you still want to run your tests in an async way
-    // using promises you can set the sync command to false.
-    sync: true,
-    //
     // Level of logging verbosity: silent | verbose | command | data | result | error
     logLevel: 'silent',
-    //
-    // Enables colors for log output.
-    coloredLogs: true,
-    //
-    // Warns when a deprecated command is used
-    deprecationWarnings: true,
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
     bail: 0,
-    //
-    // Saves a screenshot to a given path if a command fails.
-    screenshotPath: 'shots',
     //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
@@ -145,24 +118,6 @@ exports.config = {
     //
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 1000,
-    //
-    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as property. Make sure you have
-    // the plugin installed before running any tests. The following plugins are currently
-    // available:
-    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
-    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
-    // Browserevent: https://github.com/webdriverio/browserevent
-    plugins: {
-        webdrivercss: {
-            screenshotRoot: 'my-shots',
-            failedComparisonsRoot: 'diffs',
-            misMatchTolerance: 0.05,
-            screenWidth: [320,480,640,1024]
-        },
-        webdriverrtc: {},
-        browserevent: {}
-    },
     //
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
@@ -174,15 +129,15 @@ exports.config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: http://webdriver.io/guide.html and click on "Reporters" in left column
-    reporters: ['dot', 'allure'],
-    //
-    // Some reporter require additional information which should get defined here
-    reporterOptions: {
-        //
-        // If you are using the "xunit" reporter you should define the directory where
-        // WebdriverIO should save all unit reports.
-        outputDir: './'
-    },
+    reporters: [
+        'dot',
+        ['allure', {
+            //
+            // If you are using the "allure" reporter you should define the directory where
+            // WebdriverIO should save all allure reports.
+            outputDir: './'
+        }]
+    ],
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
