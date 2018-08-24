@@ -34,3 +34,13 @@ body {
 strong {
     font-weight: bold;
 }
+
+body .docsNavContainer {
+    height: auto;
+}
+
+body .onPageNav {
+    max-height: none;
+    position: relative;
+    top: 40px;
+}
