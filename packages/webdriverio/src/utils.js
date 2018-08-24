@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
+import GraphemeSplitter from 'grapheme-splitter'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
@@ -326,5 +327,5 @@ export function parseCSS (cssPropertyValue, cssProperty) {
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (value) {
-    return UNICODE_CHARACTERS.hasOwnProperty(value) ? [UNICODE_CHARACTERS[value]] : value.split('')
+    return UNICODE_CHARACTERS.hasOwnProperty(value) ? [UNICODE_CHARACTERS[value]] : new GraphemeSplitter().splitGraphemes(value)
 }

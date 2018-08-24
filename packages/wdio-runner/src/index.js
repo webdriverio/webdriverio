@@ -58,7 +58,7 @@ export default class Runner extends EventEmitter {
              * register command event
              */
             browser.on('command', (command) => this.reporter.emit(
-                'client:command',
+                'client:beforeCommand',
                 Object.assign(command, { sessionId: browser.sessionId })
             ))
 
@@ -66,7 +66,7 @@ export default class Runner extends EventEmitter {
              * register result event
              */
             browser.on('result', (result) => this.reporter.emit(
-                'client:result',
+                'client:afterCommand',
                 Object.assign(result, { sessionId: browser.sessionId })
             ))
 
