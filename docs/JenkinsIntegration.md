@@ -3,7 +3,7 @@ id: jenkins
 title: Jenkins Integration
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org/). With the [junit reporter](https://github.com/webdriverio/wdio-junit-reporter) you can easily debug your tests as well as keep track of your test results. The integration is pretty easy. There is a [demo project](https://github.com/christian-bromann/wdio-demo) we used in this tutorial to demonstrate how to integrate a WebdriverIO testsuite with Jenkins.
+WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org/). With the [junit reporter](https://github.com/webdriverio/wdio-junit-reporter) you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
 
 First we need to define `junit` as test reporter. Also make sure you have it installed (`$ npm install --save-dev wdio-junit-reporter`) and that we save our xunit results at a place where Jenkins can pick them up. Therefore we define our reporter in our config as follows:
 
@@ -21,7 +21,7 @@ module.exports = {
 };
 ```
 
-It is up to you which framework you want to choose. The reports will be similar. This tutorial is going to use Jasmine. After you have written [couple of tests](https://github.com/christian-bromann/wdio-demo/tree/master/test/specs) you can begin to setup a new Jenkins job. Give it a name and a description:
+It is up to you which framework you want to choose. The reports will be similar. This tutorial is going to use Jasmine. After you have written couple of tests you can begin to setup a new Jenkins job. Give it a name and a description:
 
 ![Name And Description](/img/jenkins/jobname.png "Name And Description")
 
@@ -39,8 +39,6 @@ According to our config file we store the xunit reports in our workspace root di
 
 ![Post-build Action](/img/jenkins/postjob.png "Post-build Action")
 
-That's it! This is all you need to setup Jenkins to run your WebdriverIO jobs. The only thing that didn't got mentioned is that Jenkins is setup in a way that it runs Node.js v0.12 and has the [Sauce Labs](https://saucelabs.com/) environment variables set in the settings.
-
-Your job will now provide detailed test results with history charts, stacktrace information on failed jobs as well as a list of commands with payload that got used in each test.
+That's it! This is all you need to setup Jenkins to run your WebdriverIO jobs. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs as well as a list of commands with payload that got used in each test.
 
 ![Jenkins Final Integration](/img/jenkins/final.png "Jenkins Final Integration")

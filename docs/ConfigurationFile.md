@@ -94,9 +94,8 @@ exports.config = {
         }
     }],
     //
-    // Additional list node arguments to use when starting child processes
-    execArgv: null,
-    //
+    // Additional list of node arguments to use when starting child processes
+    execArgv: [],
     //
     // ===================
     // Test Configurations
