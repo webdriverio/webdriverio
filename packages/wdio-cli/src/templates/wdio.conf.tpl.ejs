@@ -102,9 +102,6 @@ exports.config = {
     // bail (default is 0 - don't bail, run all tests).
     bail: 0,
     //
-    // Saves a screenshot to a given path if a command fails.
-    screenshotPath: '<%= answers.screenshotPath %>',
-    //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
@@ -167,15 +164,6 @@ exports.config = {
     <% } else {
     %>// reporters: ['dot'],<%
     }
-    if(answers.outputDir) { %>//
-    // Some reporters require additional information which should get defined here
-    reporterOptions: {
-        //
-        // If you are using the "xunit" reporter you should define the directory where
-        // WebdriverIO should save all unit reports.
-        outputDir: './'
-    },
-    <% }
     if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.

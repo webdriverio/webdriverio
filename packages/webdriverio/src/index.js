@@ -3,7 +3,7 @@ import { validateConfig, wrapCommand, detectBackend } from 'wdio-config'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
-import { getPrototype } from './utils'
+import { getPrototype, mobileDetector } from './utils'
 
 /**
  * A method to create a new session with WebdriverIO
@@ -28,6 +28,16 @@ export const remote = function (params = {}, remoteModifier) {
     }
 
     const prototype = getPrototype('browser')
+
+    /**
+     * apply mobile check flags to browser scope
+     */
+    const mobileDetection = mobileDetector(params.capabilities)
+    Object.assign(prototype, Object.keys(mobileDetection).reduce((proto, flag) => {
+        proto[flag] = { value: mobileDetection[flag] }
+        return proto
+    }, {}))
+
     return WebDriver.newSession(params, modifier, prototype, wrapCommand)
 }
 

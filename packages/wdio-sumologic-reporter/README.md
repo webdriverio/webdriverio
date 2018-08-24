@@ -43,15 +43,15 @@ Following code shows the default wdio test runner configuration. Just add `'sumo
 // wdio.conf.js
 module.exports = {
   // ...
-  reporters: ['spec', 'sumologic'],
-  reporterOptions: {
-    sumologic: {
-      // define sync interval how often logs get pushed to Sumologic
-      syncInterval: 100,
-      // endpoint of collector source
-      sourceAddress: process.env.SUMO_SOURCE_ADDRESS
-    }
-  },
+  reporters: [
+    'spec',
+    ['sumologic', {
+        // define sync interval how often logs get pushed to Sumologic
+        syncInterval: 100,
+        // endpoint of collector source
+        sourceAddress: process.env.SUMO_SOURCE_ADDRESS
+    }]
+  ],
   // ...
 };
 ```

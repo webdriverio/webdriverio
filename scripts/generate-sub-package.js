@@ -134,5 +134,5 @@ inquirer.prompt(questions).then(answers => {
 
     // create tests folder files
     testsPackageFolderFiles.map(file => createFile(path.join(testsPackageFolder, file.name), file.content))
-/* eslint-disable-next-line no-console */
+// eslint-disable-next-line no-console
 }).catch(err => console.error(err))

@@ -8,7 +8,7 @@
     "clean:build": "rm -fr ./packages/*/build",
     "clean:pkglock": "rm -fr ./packages/*/package-lock.json",
     "clean:node_modules": "rm -fr ./packages/*/node_modules ./packages/node_modules",
-    "clean:fakegit": "rm -fr ./packages/*/.git",
+    "clean:website": "rm -fr docs/api/**/*.md && rm -fr website/sidebars.json",
     "link": "node ./scripts/link",
     "release": "lerna publish",
     "setup": "run-s bootstrap build",
@@ -37,6 +37,7 @@
     "inquirer": "^5.1.0",
     "jest": "^21.2.1",
     "lerna": "^2.5.1",
+    "markdox": "^0.1.10",
     "np": "^2.18.2",
     "npm-run-all": "^4.0.2",
     "shelljs": "^0.8.1"

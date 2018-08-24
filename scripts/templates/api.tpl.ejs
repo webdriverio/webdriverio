@@ -1,0 +1,54 @@
+<?
+var method = docfiles[0]
+
+if (method.hasDocusaurusHeader) {
+?>---
+id: <?= method.command ?>
+title: <?= method.command ?>
+<? if (method.customEditUrl) { ?>custom_edit_url: <?= method.customEditUrl ?><? } ?>
+---
+<? } else if (method.hasHeader) { ?>
+## <?= method.command ?>
+<? } ?>
+
+<?- method.description ?>
+
+##### Usage
+
+```js
+browser.<?= method.command ?>(<?= method.paramString ?>)
+```
+
+<? if (method.paramTags.length) { ?>
+##### Parameters
+
+| Param | Type | Details |
+| ----- | ---- | ------- |
+<? method.paramTags.forEach((paramTag) => {
+    ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label label-warning">optional</span><? }
+    ?> | <?= paramTag.type
+    ?> | <?= paramTag.description ?> |
+<? }) ?>
+<? } ?>
+
+<? if (method.examples.length) { ?>
+##### Example
+<? method.examples.forEach(function(example) { ?>
+``` <?= example.format ?> <?= example.file ?>
+<?= example.code ?>
+```
+<? }); ?>
+<? } ?>
+
+<? if (method.returns) { ?>
+##### Returns
+
+- **&lt;<?= method.returns.type ?>&gt; <?= method.returns.name ?>:** <?= method.returns.description ?>
+<? } ?>
+
+<? if (method.throwsTags.length) { ?>
+##### Throws
+
+<? method.throwsTags.forEach(function(throwsTag) { ?>- **<?= throwsTag.type ?>**: <?= throwsTag.description ?>
+<? }) ?>
+<? } ?>

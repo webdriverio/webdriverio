@@ -1,0 +1,42 @@
+{
+  "docs": {
+    "Introduction": [
+      "gettingstarted",
+      "boilerplate",
+      "setuptypes"
+    ],
+    "Configuration": [
+      "options",
+      "babel",
+      "typescript",
+      "proxy"
+    ],
+    "Usage": [
+      "selectors",
+      "customcommands",
+      "multiremote",
+      "cloudservices",
+      "autocompletion"
+    ],
+    "Testrunner": [
+      "clioptions",
+      "configurationfile",
+      "browserobject",
+      "frameworks",
+      "organizingsuites",
+      "timeouts",
+      "pageobjects",
+      "debugging",
+      "retry",
+      "repl",
+      "jenkins",
+      "customreporter",
+      "customservices"
+    ]
+  },
+  "api": {
+    "Introduction": [
+      "api"
+    ]
+  }
+}

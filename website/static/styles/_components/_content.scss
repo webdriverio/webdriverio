@@ -1,0 +1,43 @@
+.container .blockElement {
+    .blockContent {
+        margin-left: 40px;
+
+        >h2 {
+            font-size: 24px;
+            color: $black;
+        }
+
+        p {
+            margin-bottom: 20px;
+        }
+    }
+
+    &.alignCenter .blockContent {
+        margin-left: 0;
+
+        >h2,
+        >div {
+            text-align: center;
+        }
+    }
+
+    &.imageAlignRight .blockContent {
+        margin-left: 0;
+
+        p {
+            text-align: left;
+        }
+    }
+}
+
+#applitools .blockContent img {
+    width: 93%;
+}
+
+.docMainWrapper {
+    background: $white;
+
+    .post article p {
+        margin: 10px 0;
+    }
+}

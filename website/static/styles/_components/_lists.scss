@@ -1,0 +1,20 @@
+.mainContainer {
+    ul, ol {
+        margin-left: 20px;
+
+        p {
+            overflow: visible;
+        }
+    }
+
+    ul {
+        list-style-type: inherit;
+    }
+    ol {
+        list-style-type: decimal;
+    }
+
+    li {
+        font-weight: 300;
+    }
+}
