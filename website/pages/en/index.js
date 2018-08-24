@@ -79,8 +79,8 @@ const Badges = () => (
     <section>
         <div className="badges">
             <a href="http://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
-            <a href="https://travis-ci.org/webdriverio/v5"><img src="https://travis-ci.org/webdriverio/v5.svg" alt="Build Status" /></a>
-            <a href="https://codecov.io/gh/webdriverio/v5"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/v5/branch/master/graph/badge.svg" /></a>
+            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg" alt="Build Status" /></a>
+            <a href="https://codecov.io/gh/webdriverio/webdriverio"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
             <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameBorder="0" allow="encrypted-media" id="fblike"></iframe>
