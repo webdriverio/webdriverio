@@ -32,12 +32,12 @@ describe('WebdriverIO module interface', () => {
 
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
-            const browser = await remote()
+            const browser = await remote({ capabilities: {} })
             expect(browser.sessionId).toBe('foobar-123')
         })
 
         it('allows to propagate a modifier', async () => {
-            const browser = await remote('foo', (client) => {
+            const browser = await remote({ capabilities: {} }, (client) => {
                 client.foobar = 'barfoo'
                 return client
             })
@@ -46,7 +46,7 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('should try to detect the backend', async () => {
-            await remote({ user: 'foo', key: 'bar' })
+            await remote({ user: 'foo', key: 'bar', capabilities: {} })
             expect(detectBackend).toBeCalled()
         })
     })
