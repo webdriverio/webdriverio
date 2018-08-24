@@ -412,7 +412,7 @@
       "parameters": [],
       "returns": {
         "type": "Boolean",
-        "name": "isSelected",
+        "name": "isDisplayed",
         "description": "`true` or `false` based on the visible state."
       }
     }
