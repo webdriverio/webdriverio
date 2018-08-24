@@ -15,6 +15,7 @@
         console.log(isDisplayed); // outputs: false
 
         elem = $('#notVisible');
+
         isDisplayed = elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 

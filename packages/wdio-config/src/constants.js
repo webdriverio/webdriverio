@@ -17,7 +17,6 @@ export const DEFAULT_CONFIGS = {
     waitforTimeout: 1000,
     framework: 'mocha',
     reporters: [],
-    reporterOptions: {},
     maxInstances: 100,
     maxInstancesPerCapability: 100,
     connectionRetryTimeout: 90000,

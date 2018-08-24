@@ -8,4 +8,4 @@ if (process.env.NODE_ENV == null) {
     process.env.NODE_ENV = 'test'
 }
 
-require('../build')
+require('../build').run()

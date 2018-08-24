@@ -32,15 +32,15 @@ to the array. To get some output during the test you can run the [WDIO Dot Repor
 // wdio.conf.js
 module.exports = {
     // ...
-    reporters: ['dot', 'junit'],
-    reporterOptions: {
-        junit: {
+    reporters: [
+        'dot',
+        ['junit', {
             outputDir: './',
             outputFileFormat: function(opts) { // optional
                 return `results-${opts.cid}.${opts.capabilities}.xml`
             }
-        }
-    },
+        }]
+    ],
     // ...
 };
 ```
@@ -92,13 +92,13 @@ Example:
 // wdio.conf.js
 module.exports = {
     // ...
-    reporters: ['dot', 'junit'],
-    reporterOptions: {
-        junit: {
+    reporters: [
+        'dot',
+        ['junit', {
             outputDir: './',
             packageName: process.env.USER_ROLE // chrome.41 - administrator
-        }
-    }
+        }]
+    ]
     // ...
 };
 ```
@@ -129,17 +129,17 @@ Example:
 // wdio.conf.js
 module.exports = {
     // ...
-    reporters: ['dot', 'junit'],
-    reporterOptions: {
-        junit: {
+    reporters: [
+        'dot',
+        ['junit', {
             outputDir: './',
             errorOptions: {
                 error: 'message',
                 failure: 'message',
                 stacktrace: 'stack'
             }
-        }
-    }
+        }]
+    ],
     // ...
 };
 ```

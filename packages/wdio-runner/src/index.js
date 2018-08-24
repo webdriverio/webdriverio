@@ -52,6 +52,7 @@ export default class Runner extends EventEmitter {
         try {
             await runHook('beforeSession', config, this.caps, this.specs)
             const browser = global.browser = global.driver = await this.initialiseInstance(m.isMultiremote, this.caps)
+            browser.config = config
 
             /**
              * register command event

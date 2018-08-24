@@ -62,3 +62,14 @@ typings/
 !.eslintrc.js
 package-lock.json
 .DS_Store
+
+website/.sass-cache/
+website/translated_docs
+website/static/css
+website/build/
+website/yarn.lock
+website/sidebars.json
+website/node_modules
+website/i18n/*
+docs/api/**/*.md
+docs/_*.md

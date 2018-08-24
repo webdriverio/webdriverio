@@ -54,7 +54,6 @@
             "junit",
             "spec"
         ],
-        "reporterOptions": {},
         "maxInstances": 1,
         "maxInstancesPerCapability": 100,
         "connectionRetryTimeout": 90000,
@@ -95,7 +94,6 @@
         "afterScenario": [],
         "afterStep": [],
         "coloredLogs": true,
-        "screenshotPath": "./errorShots/",
         "_": [
             "wdio.conf.js"
         ],

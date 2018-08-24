@@ -1,0 +1,46 @@
+// import compass plugins
+@import 'compass';
+
+// reset CSS before including inform styles
+@include global-reset();
+
+// import utilities
+@import '_utils/vars';
+@import '_utils/fonts';
+
+// import modules
+@import '_modules/nav';
+@import '_modules/headers';
+@import '_modules/hljs';
+
+// import components
+@import '_components/content';
+@import '_components/headings';
+@import '_components/lists';
+@import '_components/tables';
+
+html,
+body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: $bodyBackground;
+    font-family: $fontRegular;
+    font-size: 16px;
+    color: $textColor;
+    line-height: 1.3em;
+}
+
+strong {
+    font-weight: bold;
+}
+
+body .docsNavContainer {
+    height: auto;
+}
+
+body .onPageNav {
+    max-height: none;
+    position: relative;
+    top: 40px;
+}
