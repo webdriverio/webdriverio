@@ -14,7 +14,7 @@ In order to set up this project and start contributing follow this step by step 
 * Clone the project somewhere on your computer
 
     ```sh
-    $ git clone git@github.com:<your-username>/v5.git
+    $ git clone git@github.com:<your-username>/webdriverio.git
     ```
 
     _Note_: this is currently a dev repository to keep making releases in the [original](https://github.com/webdriverio/webdriverio) project. Once we are at a state where this can be released we will force push this master branch to the webdriverio/webdriverio#master branch.
@@ -24,7 +24,7 @@ In order to set up this project and start contributing follow this step by step 
 * Setup project:
 
     ```sh
-    $ cd ./v5
+    $ cd ./webdriverio
     $ npm install
     $ npm run setup
     ```
@@ -72,7 +72,7 @@ $ npm run watch:pkg <package-name>
 
 ## Test Your Changes
 
-In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/v5/tree/master/examples/README.md).
+In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md).
 
 ## Commit Messages Convention
 
@@ -87,7 +87,7 @@ Commits that affect all packages or are not related to any (e.g. changes to NPM 
 
 ## Release New Version
 
-Package releases are made using Lerna's release capabilities and executed by [the technical committee](https://github.com/webdriverio/v5/blob/master/GOVERNANCE.md#the-technical-committee) only. To run it just call:
+Package releases are made using Lerna's release capabilities and executed by [the technical committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. To run it just call:
 
 ```sh
 $ npm run release

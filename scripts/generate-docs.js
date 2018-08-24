@@ -68,7 +68,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                     '---',
                     `id: ${protocolName}`,
                     `title: ${protocol}`,
-                    `custom_edit_url: https://github.com/webdriverio/v5/edit/master/packages/webdriver/protocol/${protocolName}.json`,
+                    `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/master/packages/webdriver/protocol/${protocolName}.json`,
                     '---\n'
                 ].join('\n')]
             }
@@ -150,7 +150,7 @@ for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
             '---',
             `id: ${id}`,
             `title: ${pkgName} ${nameSingular}`,
-            `custom_edit_url: https://github.com/webdriverio/v5/edit/master/packages/${pkg}/README.md`,
+            `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/master/packages/${pkg}/README.md`,
             '---\n'
         ]
         const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
