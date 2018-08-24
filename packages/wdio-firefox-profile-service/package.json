@@ -1,6 +1,6 @@
 {
   "name": "wdio-firefox-profile-service",
-  "version": "5.0.0-alpha.13",
+  "version": "5.0.0-alpha.14",
   "description": "WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-firefox-profile-service",
@@ -24,9 +24,19 @@
   "keywords": [
     "webdriver",
     "wdio",
-    "wdio-service"
+    "wdio-service",
+    "firefox",
+    "profile",
+    "selenium",
+    "e2e",
+    "test",
+    "automation",
+    "integration"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "firefox-profile": "^1.1.0"
   }
 }

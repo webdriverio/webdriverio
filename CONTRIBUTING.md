@@ -25,10 +25,9 @@ In order to set up this project and start contributing follow this step by step 
 
     ```sh
     $ cd ./v5
+    $ npm install
     $ npm run setup
     ```
-
-    * Installs Dependencies via ```npm install```
 
     * Bootstraps sub-projects via ```npm run bootstrap```
 
@@ -73,7 +72,7 @@ $ npm run watch:pkg <package-name>
 
 ## Test Your Changes
 
-In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/test`. You find all necessary information [in there](https://github.com/webdriverio/v5/tree/master/test/README.md).
+In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/v5/tree/master/examples/README.md).
 
 ## Commit Messages Convention
 

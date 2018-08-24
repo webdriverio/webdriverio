@@ -1,7 +1,7 @@
 import request from 'request'
 import { remote } from '../../../src'
 
-describe('waitForVisible', () => {
+describe('waitForDisplayed', () => {
     const duration = 1000
     let browser
 
@@ -19,28 +19,28 @@ describe('waitForVisible', () => {
     test('should wait for the element to exist', async () => {
         const tmpElem = await browser.$(`#foo`)
         const elem = {
-            waitForVisible : tmpElem.waitForVisible,
+            waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
             elementId : null,
             waitUntil : jest.fn(),
             isElementDisplayed : jest.fn(() => Promise.resolve())
         }
 
-        await elem.waitForVisible(duration)
+        await elem.waitForDisplayed(duration)
         expect(elem.waitForExist).toBeCalled()
     })
 
     test('element should already exist on the page', async () => {
         const tmpElem = await browser.$(`#foo`)
         const elem = {
-            waitForVisible : tmpElem.waitForVisible,
+            waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
             elementId : 123,
             waitUntil : jest.fn(),
             isElementDisplayed : jest.fn(() => Promise.resolve())
         }
 
-        await elem.waitForVisible(duration)
+        await elem.waitForDisplayed(duration)
         expect(elem.waitForExist).not.toBeCalled()
     })
 
@@ -49,23 +49,23 @@ describe('waitForVisible', () => {
         const tmpElem = await browser.$(`#foo`)
         const elem = {
             selector : '#foo',
-            waitForVisible : tmpElem.waitForVisible,
+            waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
             elementId : 123,
             waitUntil : jest.fn(((cb))),
             isElementDisplayed : jest.fn(() => Promise.resolve())
         }
 
-        await elem.waitForVisible(duration)
+        await elem.waitForDisplayed(duration)
 
         expect(cb).toBeCalled()
         expect(elem.waitUntil.mock.calls[0][1]).toBe(duration)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still not visible after ${duration}ms`)
+        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still not displayed after ${duration}ms`)
     })
 
     test('should call isElementDisplayed and return true', async () => {
         const elem = await browser.$(`#foo`)
-        const result = await elem.waitForVisible(duration)
+        const result = await elem.waitForDisplayed(duration)
 
         expect(result).toBe(true)
         expect(request.mock.calls[5][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
@@ -75,7 +75,7 @@ describe('waitForVisible', () => {
         const tmpElem = await browser.$(`#foo`)
         const elem = {
             selector : '#foo',
-            waitForVisible : tmpElem.waitForVisible,
+            waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
@@ -83,7 +83,7 @@ describe('waitForVisible', () => {
             options : { waitforTimeout : 500 },
         }
 
-        const result = await elem.waitForVisible(duration)
+        const result = await elem.waitForDisplayed(duration)
         expect(result).toBe(true)
     })
 
@@ -91,7 +91,7 @@ describe('waitForVisible', () => {
         const tmpElem = await browser.$(`#foo`)
         const elem = {
             selector : '#foo',
-            waitForVisible : tmpElem.waitForVisible,
+            waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
@@ -100,9 +100,9 @@ describe('waitForVisible', () => {
         }
 
         try {
-            await elem.waitForVisible(duration)
+            await elem.waitForDisplayed(duration)
         } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not visible after ${duration}ms`)
+            expect(e.message).toBe(`element ("#foo") still not displayed after ${duration}ms`)
         }
     })
 
@@ -111,7 +111,7 @@ describe('waitForVisible', () => {
         const tmpElem = await browser.$(`#foo`)
         const elem = {
             selector : '#foo',
-            waitForVisible : tmpElem.waitForVisible,
+            waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
             elementId : 123,
             waitUntil : jest.fn(((cb))),
@@ -119,9 +119,9 @@ describe('waitForVisible', () => {
             options : { waitforTimeout : 500 },
         }
 
-        await elem.waitForVisible(null, true)
+        await elem.waitForDisplayed(null, true)
 
         expect(elem.waitUntil.mock.calls[0][1]).toBe(elem.options.waitforTimeout)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still ${``} visible after ${elem.options.waitforTimeout}ms`)
+        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still ${``} displayed after ${elem.options.waitforTimeout}ms`)
     })
 })

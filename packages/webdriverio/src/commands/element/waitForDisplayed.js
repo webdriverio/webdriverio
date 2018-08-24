@@ -2,7 +2,7 @@
 /**
  *
  * Wait for an element for the provided amount of
- * milliseconds to be (in)visible.
+ * milliseconds to be displayed or not displayed.
  *
  * <example>
     :index.html
@@ -15,19 +15,19 @@
     :waitForVisibleExample.js
     it('should detect when element is visible', function () {
         const elem = $('#elem')
-        elem.waitForVisible(3000);
+        elem.waitForDisplayed(3000);
     });
  * </example>
  *
- * @alias browser.waitForVisible
+ * @alias browser.waitForDisplayed
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
- * @uses utility/waitUntil, state/isVisible
+ * @uses utility/waitUntil, state/isDisplayed
  * @type utility
  *
  */
 
-export default async function waitForVisible (ms, reverse = false) {
+export default async function waitForDisplayed (ms, reverse = false) {
     /**
      * if element wasn't found in the first place wait for its existance first
      */
@@ -43,7 +43,7 @@ export default async function waitForVisible (ms, reverse = false) {
     }
 
     const isReversed = reverse ? '' : 'not'
-    const errorMsg = `element ("${this.selector}") still ${isReversed} visible after ${ms}ms`
+    const errorMsg = `element ("${this.selector}") still ${isReversed} displayed after ${ms}ms`
 
     return this.waitUntil(async () => {
         const isVisible = await this.isElementDisplayed(this.elementId)
