@@ -52,3 +52,13 @@ browser.<?= method.command ?>(<?= method.paramString ?>)
 <? method.throwsTags.forEach(function(throwsTag) { ?>- **<?= throwsTag.type ?>**: <?= throwsTag.description ?>
 <? }) ?>
 <? } ?>
+
+<? if (method.support && Object.keys(method.support).length) { ?>
+##### Support
+
+<? Object.keys(method.support).forEach(function(platform) {
+?>![Support for <?=Object.keys(method.support[platform]).map(function(driver) {
+    return driver + " (" + method.support[platform][driver] + ")"
+}).join(", ")?>](/img/icons/<?= platform ?>.svg)
+?><? }) ?>
+<? } ?>

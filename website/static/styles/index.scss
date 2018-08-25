@@ -44,3 +44,9 @@ body .onPageNav {
     position: relative;
     top: 40px;
 }
+
+.mainContainer article p img[alt^="Support"] {
+    width: 20px;
+    margin-right: 5px;
+    display: inline-block;
+}
