@@ -137,6 +137,39 @@ describe('ConfigParser', () => {
             expect(config.hostname).toBe('ondemand.saucelabs.com')
             expect(config.port).toBe(443)
         })
+
+        it('should allow specifying a exclude file', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
+            configParser.merge({ exclude: [INDEX_PATH] })
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            expect(specs).toContain(FIXTURES_CONF)
+        })
+
+        it('should allow specifying multiple exclude files', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
+            configParser.merge({ exclude: [INDEX_PATH, FIXTURES_CONF] })
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(0)
+        })
+
+        it('should throw if specified exclude file does not exist', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            expect(() => configParser.merge({ exclude: [path.resolve(__dirname, 'foobar.js')] })).toThrow()
+        })
+
+        it('should overwrite exclude if piped into cli command', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ exclude: [INDEX_PATH] })
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(4)
+        })
     })
 
     describe('addService', () => {
