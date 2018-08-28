@@ -35,7 +35,7 @@ it('can handle commands using async/await', async function () {
 });
 ```
 
-However it is recommended to use the testrunner to scale up your test suite as it comes with a lot of useful add ons like the [Sauce Service](http://webdriver.io/guide/services/sauce.html) that helps you to avoid writing a lot of boilerplate code by yourself.
+However it is recommended to use the testrunner to scale up your test suite as it comes with a lot of useful add ons like the [Sauce Service](_sauce-service.md) that helps you to avoid writing a lot of boilerplate code by yourself.
 
 ## Element as first class citizen
 

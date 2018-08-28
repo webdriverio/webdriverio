@@ -6,7 +6,7 @@ Briefly describe the issue you are experiencing (or the feature you want to see 
 
 * WebdriverIO version:
 * Node.js version:
-* [Standalone mode or wdio testrunner](http://webdriver.io/guide/getstarted/modes.html):
+* Standalone mode or WDIO Testrunner:
 * if wdio testrunner, running synchronous or asynchronous tests:
 * Additional wdio packages used (if applicable):
 

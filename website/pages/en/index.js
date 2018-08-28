@@ -166,7 +166,7 @@ const TestSetup = () => (
     </Block>
 )
 
-const Talks = props => (
+const Talks = () => (
     <Container background="light" padding={['bottom', 'top']}>
         <a className="anchor" name="watch" />
         <a className="hash-link" href="#watch" />
@@ -209,7 +209,9 @@ const Talks = props => (
                 >
                     <a
                         className="button"
-                        href={siteConfig.baseUrl + props.language + '/videos.html'}
+                        href="https://www.youtube.com/user/medigerati/videos"
+                        target="_blank"
+                        rel="noopener noreferrer"
                     >
                         <translate>Watch more videos</translate>
                     </a>

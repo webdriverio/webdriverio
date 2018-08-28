@@ -24,9 +24,9 @@
 
 <p align="center">
     <a href="http://webdriver.io">Homepage</a> |
-    <a href="http://webdriver.io/guide.html">Developer Guide</a> |
-    <a href="http://webdriver.io/api.html">API Reference</a> |
-    <a href="http://webdriver.io/contribute.html">Contribute</a>
+    <a href="http://webdriver.io/docs/gettingstarted.html">Developer Guide</a> |
+    <a href="http://webdriver.io/docs/api.html">API Reference</a> |
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a>
 </p>
 
 ***
