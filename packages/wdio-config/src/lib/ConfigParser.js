@@ -69,12 +69,15 @@ export default class ConfigParser {
     merge (object = {}) {
         this._config = merge(this._config, object, MERGE_OPTIONS)
         let spec = Array.isArray(object.spec) ? object.spec : []
+        let exclude = Array.isArray(object.exclude) ? object.exclude : []
 
         /**
          * overwrite config specs that got piped into the wdio command
          */
         if (object.specs && object.specs.length > 0) {
             this._config.specs = object.specs
+        } else if (object.exclude && object.exclude.length > 0) {
+            this._config.exclude = object.exclude
         }
 
         /**
@@ -86,30 +89,8 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        if (spec.length > 0) {
-            const specs = new Set()
-            const allSpecs = ConfigParser.getFilePaths(this._config.specs)
-
-            spec.forEach((spec_file) => {
-                if (fs.existsSync(spec_file) && fs.lstatSync(spec_file).isFile()) {
-                    specs.add(path.resolve(process.cwd(), spec_file))
-                }
-                else {
-                    // Check for any specs that match a patter provided
-                    allSpecs.forEach((file) => {
-                        if (file.match(spec_file)) {
-                            specs.add(file)
-                        }
-                    });
-                }
-            });
-
-            if (specs.size === 0) {
-                throw new Error(`spec file(s) ${spec.join(`, `)} not found`)
-            }
-
-            this._config.specs = [...specs]
-        }
+        this.setFilePathToFilterOptions(spec)
+        this.setFilePathToFilterOptions(exclude, true)
 
         /**
          * user and key could get added via cli arguments so we need to detect again
@@ -190,6 +171,38 @@ export default class ConfigParser {
         }
 
         return specs.filter(spec => exclude.indexOf(spec) < 0)
+    }
+
+    /**
+     * sets config attribute with file paths from filtering
+     * options from cli argument
+     *
+     * @param  {String} filterObj  list of files in a string from
+     * cli argument
+     * @return {Boolean} exclude  true or false
+     */
+    setFilePathToFilterOptions (filterObj, exclude = false) {
+        const FILTER_TYPE = exclude ? 'exclude' : 'specs'
+        if (filterObj.length > 0) {
+            const objs = new Set()
+            const objsList = ConfigParser.getFilePaths(this._config[FILTER_TYPE])
+            filterObj.forEach(filtered_file => {
+                if (fs.existsSync(filtered_file) && fs.lstatSync(filtered_file).isFile()) {
+                    objs.add(path.resolve(process.cwd(), filtered_file))
+                }
+                else {
+                    objsList.forEach(file => {
+                        if (file.match(filtered_file)) {
+                            objs.add(file)
+                        }
+                    })
+                }
+            })
+            if (objs.size === 0) {
+                throw new Error(`spec file(s) ${filterObj.join(`, `)} not found`)
+            }
+            this._config[FILTER_TYPE] = [...objs]
+        }
     }
 
     /**
