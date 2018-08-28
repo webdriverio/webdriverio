@@ -156,7 +156,7 @@ const Button = $(`ios=${selector}`);
 Button.click();
 ```
 
-You can also use predicate searching within iOS UI Automation in Appium, to control element finding even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios_predicate.md) for details.
+You can also use predicate searching within iOS UI Automation in Appium, to control element finding even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios/ios-predicate.md) for details.
 
 ### iOS XCUITest predicate strings and class chains
 
