@@ -55,4 +55,4 @@ describe('DuckDuckGo search', () => {
 })
 ```
 
-The test runner is an abstraction of popular test frameworks like Mocha, Jasmine or Cucumber. Different than using the standalone mode all commands that get executed by the wdio test runner are synchronous. That means that you don't use promises anymore to handle async code. To run your tests using the wdio test runner check out the [Getting Started](/guide/testrunner/gettingstarted.html) section for more information.
+The test runner is an abstraction of popular test frameworks like Mocha, Jasmine or Cucumber. Different than using the standalone mode all commands that get executed by the wdio test runner are synchronous. That means that you don't use promises anymore to handle async code. To run your tests using the wdio test runner check out the [Getting Started](GettingStarted.md) section for more information.

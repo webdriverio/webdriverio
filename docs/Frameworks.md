@@ -1,6 +1,6 @@
 ---
 id: frameworks
-title: Testrunner Frameworks
+title: Frameworks
 ---
 
 The wdio runner currently supports [Mocha](http://mochajs.org/) and [Jasmine](http://jasmine.github.io/) and [Cucumber](https://cucumber.io/) (not yet supported in v5). To integrate each framework with WebdriverIO there are adapter packages on NPM that need to be downloaded and installed. Note that these packages need to be installed at the same place WebdriverIO is installed. If you've installed WebdriverIO globally make sure you have the adapter package installed globally as well.
@@ -57,7 +57,7 @@ it('should test something', function () {
 })
 ```
 
-If you want to run something asynchronously you can either use the [`call`](/api/utility/call.html) command or [custom commands](/guide/usage/customcommands.html).
+If you want to run something asynchronously you can either use the [`call`](api/browser/call.md) command or [custom commands](CustomCommands.md).
 
 ## Using Jasmine
 
@@ -101,7 +101,7 @@ To use Cucumber you have to use WebdriverIO v4 until the framework has been migr
 npm install wdio-cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber set the `framework` property to cucumber, either by adding `framework: 'cucumber'` to the [config file](/guide/testrunner/configurationfile.html) or by adding `-f cucumber` to the command line.
+If you want to use Cucumber set the `framework` property to cucumber, either by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md) or by adding `-f cucumber` to the command line.
 
 Options for Cucumber can be given in the config file with cucumberOpts. Check out the whole list of options [here](https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options).
 

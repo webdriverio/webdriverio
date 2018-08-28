@@ -100,7 +100,11 @@ Yay, Congratulations! You've just run your first automation script with Webdrive
 
 *(If you haven't already, navigate back to the project root directory)*
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. The first step is to create a config file.
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`wdio-cli`](https://www.npmjs.com/package/wdio-cli) NPM package. To get started, we need to install this first:
+
+```sh
+$ npm i --save-dev wdio-cli
+```
 
 ### Generate Configuration File
 
@@ -183,4 +187,4 @@ The last step is to execute the test runner. To do so just run:
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](/guide/getstarted/boilerplate.html) that can help you to get started.
+Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](BoilerplateProjects.md) that can help you to get started.
