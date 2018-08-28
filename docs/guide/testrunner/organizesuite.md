@@ -139,7 +139,7 @@ _**Note:** This will_ not _override the `--spec` flag for running a single spec.
 
 ## Exclude Selected Tests
 
-When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine). For example if you want to exclude your login
+When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber). For example if you want to exclude your login
 test from the test run, do:
 
 ```sh
