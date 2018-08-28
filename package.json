@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "A Node.js bindings implementation for the W3C WebDriver protocol",
-  "version": "4.13.1",
+  "version": "4.13.2",
   "homepage": "http://webdriver.io",
   "author": "Camilo Tapia <camilo.tapia@gmail.com>",
   "repository": {
@@ -68,6 +68,7 @@
     "ejs": "~2.5.6",
     "gaze": "~1.1.2",
     "glob": "~7.1.1",
+    "grapheme-splitter": "^1.0.2",
     "inquirer": "~3.3.0",
     "json-stringify-safe": "~5.0.1",
     "mkdirp": "~0.5.1",
@@ -75,7 +76,7 @@
     "optimist": "~0.6.1",
     "q": "~1.5.0",
     "request": "^2.83.0",
-    "rgb2hex": "~0.1.4",
+    "rgb2hex": "^0.1.9",
     "safe-buffer": "~5.1.1",
     "supports-color": "~5.0.0",
     "url": "~0.11.0",

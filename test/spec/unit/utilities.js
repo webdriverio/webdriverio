@@ -96,6 +96,13 @@ describe('utilities', () => {
                     type: 'UnknownCommand'
                 }
             })).to.be.equal(true)
+
+            expect(isUnknownCommand({
+                message: 'foobar',
+                seleniumStack: {
+                    type: 'Unknown'
+                }
+            })).to.be.equal(true)
         })
 
         it('should recognise unknown command when using chromedriver', () => {

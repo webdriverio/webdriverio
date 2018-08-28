@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v4.13.2 (2018-08-17)
+* global changes:
+    * docs improvements
+* bugfix:
+    * fix protocol switch for IE (#2846)
+
 ## v4.13.0 (2018-06-19)
 * global changes:
     * docs improvements
