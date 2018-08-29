@@ -56,7 +56,7 @@ describe('getCookies', () => {
     it('should throw error if invalid arguments are passed', async () => {
         await expect(browser.getCookies([2]))
             .rejects
-            .toEqual(new Error('Invalid input (see http://webdriver.io/api/cookie/getCookies.html for documentation.'))
+            .toEqual(new Error('Invalid input (see http://webdriver.io/docs/api/browser/getCookies.html for documentation.'))
     })
 
     afterEach(() => {
