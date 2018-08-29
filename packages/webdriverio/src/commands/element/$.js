@@ -1,5 +1,5 @@
 /**
- * The `$` command is a short way to call the [`element`](/api/protocol/element.html) command in order
+ * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
  * to fetch a single element on the page. It returns an object that with an extended prototype to call
  * action commands without passing in a selector. However if you still pass in a selector it will look
  * for that element first and call the action on that element.
