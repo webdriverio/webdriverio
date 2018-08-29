@@ -109,7 +109,7 @@ describe('Launcher', () => {
         it('should throw if specified spec file doesnt exist', () => {
             expect(() => new Launcher(path.join(FIXTURE_ROOT, 'suite.wdio.conf.js'), {
                 spec: './foobar.js'
-            })).to.throw('specs file ./foobar.js not found')
+            })).to.throw('File ./foobar.js not found')
         })
 
         it('should exit if no spec was found', () => {
