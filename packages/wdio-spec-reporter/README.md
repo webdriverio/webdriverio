@@ -3,7 +3,7 @@ WDIO Spec Reporter
 
 > A WebdriverIO plugin to report in spec style.
 
-![Spec Reporter](http://webdriver.io/images/spec.png "Spec Reporter")
+![Spec Reporter](/img/spec.png "Spec Reporter")
 
 ## Configuration
 
