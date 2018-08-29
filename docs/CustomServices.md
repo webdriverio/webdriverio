@@ -41,7 +41,7 @@ To make services easier to consume and discover by the webdriver.io community, p
 * services should use naming convention is `wdio-*-service`
 * use NPM keywords `wdio-plugin`, `wdio-service`
 * main entry should export an instance of the service.
-* example services: [wdio-sauce-service](https://github.com/webdriverio/packages/wdio-sauce-service)
+* example services: [wdio-sauce-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service)
 
 Following the recommended naming pattern allows services to be added by name:
 
@@ -54,4 +54,4 @@ exports.config = {
 };
 ```
 
-We really appreciate every new plugin that gets developed and may help other people to run better tests. If you have created such a plugin make sure to create a pull request to our [configuration utility](https://github.com/webdriverio/packages/wdio-cli/src/config.js#L13-L33) so your package will be suggested if someone runs the wdio configurator.
+We really appreciate every new plugin that gets developed and may help other people to run better tests. If you have created such a plugin make sure to create a pull request to our [configuration utility](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/config.js#L20-L34) so your package will be suggested if someone runs the wdio configurator.
