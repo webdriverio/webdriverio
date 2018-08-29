@@ -61,7 +61,7 @@ describe('My Google Search', () => {
 
 On the Applitools dashboard you should now find the test with two images:
 
-![Applitools Dashboard](/website/static/img/applitools.png "Applitools Dashboard")
+![Applitools Dashboard](/img/applitools.png "Applitools Dashboard")
 
 ## Options
 
