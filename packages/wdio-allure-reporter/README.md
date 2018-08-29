@@ -3,7 +3,7 @@ WDIO Allure Reporter
 
 > A WebdriverIO reporter plugin to create [Allure Test Reports](https://docs.qameta.io/allure/).
 
-![screenshot 2016-02-05 10.15.57.png](https://docs.qameta.io/allure/latest/images/tab_overview.png)
+![Allure Reporter Example](/img/allure.png)
 
 ## Installation
 
@@ -22,7 +22,9 @@ You can simple do it by:
 ```bash
 npm install wdio-allure-reporter --save-dev
 ```
+
 ## Configuration
+
 Configure the output directory in your wdio.conf.js file:
 
 ```js
@@ -59,15 +61,21 @@ exports.config = {
     * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
 ### Usage
 Allure Api can be accessed using:
+
 ES5
+
 ```js
 const addFeature = require('wdio-allure-reporter/runtime').addFeature
 ```
+
 ES6
+
 ```js
 import {addFeature} from 'wdio-allure-reporter/runtime'
 ```
+
 Mocha example
+
 ```js
 describe('Suite', () => {
     it('Case', () => {
@@ -75,10 +83,13 @@ describe('Suite', () => {
     })
 })
 ```
+
 ## Displaying the report
+
 The results can be consumed by any of the [reporting tools](https://docs.qameta.io/allure#_reporting) offered by Allure. For example:
 
 ### Command-line
+
 Install the [Allure command-line tool](https://www.npmjs.com/package/allure-commandline), and process the results directory:
 ```bash
 allure generate [allure_output_dir] && allure open
@@ -86,26 +97,18 @@ allure generate [allure_output_dir] && allure open
 This will generate a report (by default in `./allure-report`), and open it in your browser.
 
 ### Jenkins
+
 Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#_jenkins)
 
 ## Add Screenshots
+
 Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in afterStep hook.
+
 ```js
 //...
 var name = 'ERROR-chrome-' + Date.now()
 browser.takeScreenshot('./errorShots/' + name + '.png')
 //...
 ```
+
 As shown in the example above, when this function is called, a screenshot image will be created and saved in the directory, as well as attached to the allure report.
-
-----
-
-## Development
-
-### Integration Tests
-Integration Tests are running Allure reporter with predefined suite\test\command stats data and verifying the output.
-
-Run tests:
-```bash
-npm test
-```
