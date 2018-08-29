@@ -3,7 +3,7 @@ WebdriverIO Dot Reporter
 
 > A WebdriverIO plugin to report in dot style.
 
-![Dot Reporter](http://webdriver.io/img/dot.png "Dot Reporter")
+![Dot Reporter](/img/dot.png "Dot Reporter")
 
 ## Installation
 
@@ -23,7 +23,7 @@ You can simple do it by:
 npm install wdio-dot-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](http://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](/docs/gettingstarted.html).
 
 ## Configuration
 
