@@ -1,4 +1,11 @@
+import speedline from 'speedline'
 import logger from 'wdio-logger'
+
+import FirstInteractiveAudit from './lighthouse/firstInteractive'
+import TraceOfTab from './lighthouse/tabTraces'
+
+import { DEFAULT_TRACING_CATEGORIES } from './constants'
+import { readIOStream } from './utils'
 
 const log = logger('wdio-devtools-service:CommandHandler')
 
@@ -6,20 +13,14 @@ export default class CommandHandler {
     constructor (client, browser) {
         this.client = client
         this.browser = browser
+        this.isTracing = false
 
         /**
-         * allow to easily access the CDP from the browser object
+         * register browser commands
          */
-        this.browser.addCommand('cdp', ::this.cdp)
-        /**
-         * helper method to receive Chrome remote debugging connection data to
-         * e.g. use external tools like lighthouse
-         */
-        this.browser.addCommand('cdpConnection', ::this.cdpConnection)
-        /**
-         * get nodeId to use for other commands
-         */
-        this.browser.addCommand('getNodeId', ::this.getNodeId)
+        const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
+            fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
+        commands.forEach(fnName => this.browser.addCommand(fnName, ::this[fnName]))
 
         /**
          * propagate CDP events to the browser event listener
@@ -31,6 +32,9 @@ export default class CommandHandler {
         })
     }
 
+    /**
+     * allow to easily access the CDP from the browser object
+     */
     cdp (domain, command, args = {}) {
         if (!this.client[domain]) {
             throw new Error(`Domain "${domain}" doesn't exist in the Chrome DevTools protocol`)
@@ -51,13 +55,126 @@ export default class CommandHandler {
         }))
     }
 
+    /**
+     * helper method to receive Chrome remote debugging connection data to
+     * e.g. use external tools like lighthouse
+     */
     cdpConnection () {
         const { host, port } = this.client
         return { host, port }
     }
 
-    getNodeId (selector) {
-        const document = this.browser.cdp('DOM', 'getDocument');
-        return this.cdp('DOM', 'querySelector', {nodeId: document.root.nodeId, selector})
+    /**
+     * get nodeId to use for other commands
+     */
+    async getNodeId (selector) {
+        const document = await this.cdp('DOM', 'getDocument');
+        const { nodeId } = await this.cdp(
+            'DOM', 'querySelector',
+            { nodeId: document.root.nodeId, selector }
+        )
+        return nodeId
+    }
+
+    /**
+     * get nodeIds to use for other commands
+     */
+    async getNodeIds (selector) {
+        const document = await this.cdp('DOM', 'getDocument');
+        const { nodeIds } = await this.cdp(
+            'DOM', 'querySelectorAll',
+            { nodeId: document.root.nodeId, selector }
+        )
+        return nodeIds
+    }
+
+    /**
+     * start tracing the browser
+     *
+     * @param  {string[]} [categories=DEFAULT_TRACING_CATEGORIES]  categories to trace for
+     * @param  {Number}   [samplingFrequency=10000]                sampling frequency
+     */
+    startTracing (categories = DEFAULT_TRACING_CATEGORIES, samplingFrequency = 10000) {
+        if (this.isTracing) {
+            throw new Error('browser is already being traced')
+        }
+
+        this.isTracing = true
+        return this.cdp('Tracing', 'start', {
+            categories: categories.join(','),
+            transferMode: 'ReturnAsStream',
+            options: `sampling-frequency=${samplingFrequency}` // 1000 is default and too slow.
+        })
+    }
+
+    /**
+     * stop tracing the browser
+     *
+     * @return {Number}  tracing id to use for other commands
+     */
+    async endTracing () {
+        if (!this.isTracing) {
+            throw new Error('No tracing was initiated, call `browser.startTracing()` first')
+        }
+
+        this.cdp('Tracing', 'end')
+        const stream = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(
+                () => reject('Did not receive a Tracing.tracingComplete event'),
+                5000)
+
+            this.browser.once('Tracing.tracingComplete', ({ stream }) => {
+                clearTimeout(timeout)
+                resolve(stream)
+            })
+        })
+
+        this.traceEvents = await readIOStream(::this.cdp, stream)
+        return stream
+    }
+
+    /**
+     * get raw trace logs
+     */
+    getTraceLogs () {
+        return this.traceEvents
+    }
+
+    /**
+     * get speedindex metrics using speedline package
+     */
+    async getSpeedIndex () {
+        const { speedIndex, perceptualSpeedIndex } = await speedline(this.traceEvents)
+        return { speedIndex, perceptualSpeedIndex }
+    }
+
+    /**
+     * get performance metrics
+     */
+    getPerformanceMetrics () {
+        const traces = TraceOfTab.compute(this.traceEvents)
+        const audit = new FirstInteractiveAudit()
+        let ttfi = null
+
+        /**
+         * There are cases where TTFI can't be computed as the tracing window is not long enough.
+         * In order to always be able to capture TTFI we would need to wait around 5 seconds after
+         * the page has been loaded to have high enough chances there is a quite window in that
+         * time frame.
+         */
+        try {
+            ttfi = audit.computeWithArtifacts(traces).timeInMs
+        } catch (e) {
+            log.warn(`Couldn't compute timeToFirstInteractive due to "${e.friendlyMessage}"`)
+        }
+
+        return {
+            firstPaint: traces.timings.firstPaint,
+            firstContentfulPaint: traces.timings.firstContentfulPaint,
+            firstMeaningfulPaint: traces.timings.firstMeaningfulPaint,
+            domContentLoaded: traces.timings.domContentLoaded,
+            timeToFirstInteractive: ttfi,
+            load: traces.timings.load
+        }
     }
 }
