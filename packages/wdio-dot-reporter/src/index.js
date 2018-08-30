@@ -9,7 +9,7 @@ export default class DotReporter extends WDIOReporter {
         /**
          * make dot reporter to write to output stream by default
          */
-        options = Object.assign(options, { stdout: true })
+        options = Object.assign({ stdout: true }, options)
         super(options)
     }
 
