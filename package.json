@@ -5,10 +5,10 @@
     "bootstrap": "npm run clean && lerna bootstrap && npm run link",
     "build": "lerna run build",
     "clean": "run-p clean:*",
-    "clean:build": "rm -fr ./packages/*/build",
-    "clean:pkglock": "rm -fr ./packages/*/package-lock.json",
-    "clean:node_modules": "rm -fr ./packages/*/node_modules ./packages/node_modules",
-    "clean:website": "rm -fr docs/api/**/*.md && rm -fr website/sidebars.json",
+    "clean:build": "rimraf ./packages/*/build",
+    "clean:pkglock": "rimraf ./packages/*/package-lock.json",
+    "clean:node_modules": "rimraf ./packages/*/node_modules ./packages/node_modules",
+    "clean:website": "rimraf docs/api/**/*.md && rimraf website/sidebars.json",
     "link": "node ./scripts/link",
     "release": "lerna publish",
     "setup": "run-s bootstrap build",
@@ -40,6 +40,7 @@
     "markdox": "^0.1.10",
     "np": "^2.18.2",
     "npm-run-all": "^4.0.2",
+    "rimraf": "^2.6.2",
     "shelljs": "^0.8.1"
   },
   "jest": {
