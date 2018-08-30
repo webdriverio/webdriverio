@@ -907,7 +907,12 @@
       "command": "touchClick",
       "description": "Single tap on the touch enabled device.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchclick",
-      "parameters": []
+      "parameters": [{
+        "name": "element",
+        "type": "string",
+        "description": "ID of the element to single tap on.",
+        "required": true
+      }]
     }
   },
   "/session/:sessionId/touch/down": {
