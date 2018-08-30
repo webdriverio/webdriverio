@@ -1,6 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 import CDP from 'chrome-remote-interface'
+import logger from 'wdio-logger'
+
+const log = logger('wdio-devtools-service:utils')
 
 const RE_DEVTOOLS_DEBUGGING_PORT_SWITCH = /--remote-debugging-port=(\d*)/
 const RE_USER_DATA_DIR_SWITCH = /--user-data-dir=([^-]*)/
@@ -33,4 +36,21 @@ export function getCDPClient (port) {
         host: 'localhost',
         target: /* istanbul ignore next */ (targets) => targets.findIndex((t) => t.type === 'page')
     }, resolve))
+}
+
+export async function readIOStream (cdp, stream) {
+    let isEOF = false
+    let tracingChunks = ''
+
+    log.info(`start fetching IO stream with id ${stream}`)
+    while (!isEOF) {
+        const { data, eof } = await cdp('IO', 'read', { handle: stream })
+        tracingChunks += data
+
+        if (eof) {
+            isEOF = true
+            log.info(`finished fetching IO stream with id ${stream}`)
+            return JSON.parse(tracingChunks)
+        }
+    }
 }
