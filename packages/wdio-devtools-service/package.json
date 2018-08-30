@@ -35,6 +35,8 @@
   },
   "dependencies": {
     "chrome-remote-interface": "^0.25.5",
+    "speedline": "^1.4.1",
+    "stable": "^0.1.8",
     "wdio-logger": "^5.0.0-beta.1"
   }
 }
