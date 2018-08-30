@@ -5,9 +5,9 @@ import prettyMs from 'pretty-ms'
 class SpecReporter extends WDIOReporter {
     constructor (options) {
         /**
-         * make dot reporter to write to output stream by default
+         * make spec reporter to write to output stream by default
          */
-        options = Object.assign(options, { stdout: true })
+        options = Object.assign({ stdout: true }, options)
         super(options)
 
         // Keep track of the order that suites were called
