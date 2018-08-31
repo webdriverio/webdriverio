@@ -3,9 +3,10 @@ import logger from 'wdio-logger'
 
 import FirstInteractiveAudit from './lighthouse/firstInteractive'
 import TraceOfTab from './lighthouse/tabTraces'
+import NetworkHandler from './handler/network'
 
 import { DEFAULT_TRACING_CATEGORIES } from './constants'
-import { readIOStream } from './utils'
+import { readIOStream, sumByKey } from './utils'
 
 const log = logger('wdio-devtools-service:CommandHandler')
 
@@ -14,6 +15,7 @@ export default class CommandHandler {
         this.client = client
         this.browser = browser
         this.isTracing = false
+        this.networkHandler = new NetworkHandler(client)
 
         /**
          * register browser commands
@@ -176,5 +178,15 @@ export default class CommandHandler {
             timeToFirstInteractive: ttfi,
             load: traces.timings.load
         }
+    }
+
+    /**
+     * get page weight from last page load
+     */
+    getPageWeight () {
+        const pageWeight = sumByKey(Object.values(this.networkHandler.requestTypes), 'size')
+        const transferred = sumByKey(Object.values(this.networkHandler.requestTypes), 'encoded')
+        const requestCount = sumByKey(Object.values(this.networkHandler.requestTypes), 'count')
+        return { pageWeight, transferred, requestCount, details: this.networkHandler.requestTypes }
     }
 }
