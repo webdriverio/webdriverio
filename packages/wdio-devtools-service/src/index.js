@@ -34,5 +34,11 @@ export default class DevToolsService {
             log.error(`Couldn't connect to chrome: ${err.stack}`)
             return
         }
+
+        /**
+         * enable network and page domain for resource analysis
+         */
+        await this.commandHandler.cdp('Network', 'enable')
+        await this.commandHandler.cdp('Page', 'enable')
     }
 }

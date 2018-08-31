@@ -54,3 +54,7 @@ export async function readIOStream (cdp, stream) {
         }
     }
 }
+
+export function sumByKey (list, key) {
+    return list.map((data) => data[key]).reduce((acc, val) => acc + val, 0)
+}
