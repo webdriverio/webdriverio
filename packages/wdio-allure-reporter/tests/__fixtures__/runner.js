@@ -5,7 +5,7 @@ const runner =  () => ({
     cid: '0-0',
     capabilities: {foo: "bar"},
     sanitizedCapabilities: 'chrome.66_0_3359_170.linux',
-    config: {capabilities: {browserName: 'chrome'}},
+    config: {capabilities: {browserName: 'chrome', version: '68'}},
     specs: ['/tmp/user/spec.js']
 })
 
