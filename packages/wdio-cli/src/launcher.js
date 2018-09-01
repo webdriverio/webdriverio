@@ -23,7 +23,7 @@ class Launcher {
         }
 
         this.interface = new CLInterface(config, specs)
-        config.runnerEnv.FORCE_COLOR = this.interface.hasAnsiSupport
+        config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
