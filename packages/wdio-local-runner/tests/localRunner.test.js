@@ -16,7 +16,7 @@ jest.mock('child_process', () => {
 test('should fork a new process', () => {
     const runner = new LocalRunner('/path/to/wdio.conf.js', {
         logDir: '/foo/bar',
-        runnerEnv: { FORCE_COLOR: false }
+        runnerEnv: { FORCE_COLOR: 1 }
     })
     const childProcess = runner.run({
         cid: '0-5',
@@ -34,7 +34,7 @@ test('should fork a new process', () => {
 
     const { env } = child.fork.mock.calls[0][2]
     expect(env.WDIO_LOG_PATH).toBe('/foo/bar/wdio-0-5.log')
-    expect(env.FORCE_COLOR).toBe('true')
+    expect(env.FORCE_COLOR).toBe('1')
     expect(childProcess.on).toBeCalled()
 
     expect(childProcess.send).toBeCalledWith({
