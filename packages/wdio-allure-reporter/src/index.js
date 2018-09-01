@@ -43,7 +43,9 @@ class AllureReporter extends WDIOReporter {
 
         const currentTest = this.allure.getCurrentTest()
 
-        currentTest.addParameter('argument', 'browser', this.config.capabilities.browserName || test.cid)
+        const browserName = this.config.capabilities.browserName || test.cid
+        const version = this.config.capabilities.version || test.cid
+        currentTest.addParameter('argument', 'browser', `${browserName}-${version}`)
 
         // Allure analytics labels. See https://github.com/allure-framework/allure2/blob/master/Analytics.md
         currentTest.addLabel('language', 'javascript')

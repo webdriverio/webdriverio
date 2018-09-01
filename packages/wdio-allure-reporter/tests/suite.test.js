@@ -55,7 +55,7 @@ describe('Passing tests', () => {
 
     it('should add browser name as test argument', () => {
         expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
-        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome')
+        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
     })
 
     it('should add story, feature, severity, labels, thread', () => {
@@ -99,6 +99,7 @@ describe('Failed tests', () => {
 
         const runnerEvent = runnerStart()
         delete runnerEvent.config.capabilities.browserName
+        delete runnerEvent.config.capabilities.version
 
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())
@@ -115,7 +116,7 @@ describe('Failed tests', () => {
         expect(allureXml('test-case').attr('status')).toEqual('failed')
 
         expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
-        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(testStart().cid)
+        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(`${testStart().cid}-${testStart().cid}`)
     })
 
     it('should detect failed test case without start event', () => {
