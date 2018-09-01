@@ -11,7 +11,7 @@ const clockSpinner = cliSpinners['clock']
 export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs) {
         super()
-        this.hasAnsiSupport = chalk.supportsColor.hasBasic
+        this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
         this.clockTimer = 0
         this.specs = specs
         this.config = config
