@@ -128,6 +128,7 @@ export default class CommandHandler {
             this.browser.once('Tracing.tracingComplete', ({ stream }) => {
                 clearTimeout(timeout)
                 resolve(stream)
+                this.isTracing = false
             })
         })
 
