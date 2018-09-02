@@ -24,7 +24,7 @@ export async function findChromePort () {
     if (port === 0) {
         const userDataDir = cmdLineText.match(RE_USER_DATA_DIR_SWITCH)[1].trim()
         const devToolsActivePortFile = fs.readFileSync(path.join(userDataDir, 'DevToolsActivePort'), 'utf8')
-        port = devToolsActivePortFile.split('\n').shift()
+        port = parseInt(devToolsActivePortFile.split('\n').shift(), 10)
     }
 
     return port
