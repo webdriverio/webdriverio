@@ -60,7 +60,8 @@
     "testEnvironment": "node",
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      "/packages/webdriverio/src/scripts"
+      "/packages/webdriverio/src/scripts",
+      "/packages/wdio-devtools-service/src/lighthouse"
     ]
   }
 }
