@@ -76,26 +76,3 @@ test('initialization fails', async () => {
     expect(service.commandHandler).toBe(undefined)
     expect(logger().error.mock.calls.pop()[0]).toContain(`Couldn't connect to chrome: Error: boom`)
 })
-//     async before () {
-//         if (!this.isSupported) {
-//             return global.browser.addCommand('cdp', /* istanbul ignore next */ () => {
-//                 throw new Error(UNSUPPORTED_ERROR_MESSAGE)
-//             })
-//         }
-//
-//         try {
-//             const chromePort = await findChromePort()
-//             const client = await getCDPClient(chromePort)
-//             this.commandHandler = new CommandHandler(client, global.browser)
-//         } catch (err) {
-//             log.error(`Couldn't connect to chrome: ${err.stack}`)
-//             return
-//         }
-//
-//         /**
-//          * enable network and page domain for resource analysis
-//          */
-//         await this.commandHandler.cdp('Network', 'enable')
-//         await this.commandHandler.cdp('Page', 'enable')
-//     }
-// }
