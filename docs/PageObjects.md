@@ -35,10 +35,10 @@ import Page from './page';
 
 class LoginPage extends Page {
 
-    get username() { return browser.element('#username'); }
-    get password() { return browser.element('#password'); }
-    get submitBtn() { return browser.element('form button[type="submit"]'); }
-    get flash() { return browser.element('#flash'); }
+    get username() { return browser.findElement('#username'); }
+    get password() { return browser.findElement('#password'); }
+    get submitBtn() { return browser.findElement('form button[type="submit"]'); }
+    get flash() { return browser.findElement('#flash'); }
     get headerLinks() { return $$('#header a'); }
 
     open() {
