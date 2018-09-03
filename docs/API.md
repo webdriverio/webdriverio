@@ -61,4 +61,4 @@ it('should use elements as first class citizen in standalone mode', function () 
 
 ## Contribute
 
-If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange button on the top right with the label _"Improve this doc"_. Make sure you understand the way we write these docs by checking the [Contribute](/contribute.html) section.
+If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange button on the top right with the label _"Improve this doc"_. Make sure you understand the way we write these docs by checking the [Contribute](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) section.
