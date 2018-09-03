@@ -1,12 +1,7 @@
 /**
  * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
- * to fetch multiple elements on the page. It returns an array with element results that will have an
- * extended prototype to call action commands without passing in a selector. However if you still pass
- * in a selector it will look for that element first and call the action on that element.
- *
- * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
- *
- * You can chain `$` or `$$` together in order to walk down the DOM tree.
+ * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
+ * it from an element scope is that the driver will look within the children of that element.
  *
  * <example>
     :index.html
