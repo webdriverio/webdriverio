@@ -39,15 +39,15 @@ However it is recommended to use the testrunner to scale up your test suite as i
 
 ## Element as first class citizen
 
-To make the code more readable and easier to write we handle element calls as first class citizen objects. This means that if you call the [`element`](/api/protocol/element.html) to query an element, WebdriverIO propagates its prototype to the result so you can chain another command to it. This is useful when writing tests with the [Page Object Pattern](http://martinfowler.com/bliki/PageObject.html) where you want to store your page elements in a page object to access them in the test. Simplified this can look like:
+To make the code more readable and easier to write we handle element calls as first class citizen objects. This means that if you call the [`findElement`](/docs/api/webdriver.html#findelement) to query an element, WebdriverIO propagates its prototype to the result so you can chain another command to it. This is useful when writing tests with the [Page Object Pattern](http://martinfowler.com/bliki/PageObject.html) where you want to store your page elements in a page object to access them in the test. Simplified this can look like:
 
 ```js
 it('should use elements as first class citizen', function () {
-    var input = browser.element('.someInput');
+    var input = browser.element('.someInput')
 
-    input.setValue('some text');
+    input.setValue('some text')
     // is the same as calling
-    browser.setValue('.someInput', 'some text');
+    browser.setValue('.someInput', 'some text')
 });
 ```
 
