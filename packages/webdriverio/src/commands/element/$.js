@@ -1,12 +1,11 @@
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
- * to fetch a single element on the page. It returns an object that with an extended prototype to call
- * action commands without passing in a selector. However if you still pass in a selector it will look
- * for that element first and call the action on that element.
+ * to fetch a single element on the page similar to the `$` command from the browser scope. The difference when calling
+ * it from an element scope is that the driver will look within the children of that element.
  *
- * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
- *
- * You can chain `$` or `$$` together in order to walk down the DOM tree.
+ * Note: chaining `$` and `$$` commands only make sense when you use multiple selector strategies. You will otherwise
+ * make unnecessary requests that slow down the test (e.g. `$('body').$('div')` will trigger two request whereas
+ * `$('body div')` does literary the same with just one request)
  *
  * <example>
     :index.html
