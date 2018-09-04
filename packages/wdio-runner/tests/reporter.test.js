@@ -5,6 +5,11 @@ class CustomReporter {
         this.options = options
         this.emit = jest.fn()
         this.isCustom = true
+        this.inSync = false
+    }
+
+    get isSynchronised () {
+        return this.inSync
     }
 }
 
@@ -80,5 +85,35 @@ describe('BaseReporter', () => {
         } catch (e) {
             expect(e.message).toBe('Invalid reporters config')
         }
+    })
+
+    it('should have a waitForSync method to allow reporters to sync stuff', async () => {
+        expect.assertions(1)
+
+        const start = Date.now()
+        const reporter = new BaseReporter({
+            logDir: '/foo/bar',
+            reporters: [CustomReporter, CustomReporter]
+        })
+
+        setTimeout(() => (reporter.reporters[0].inSync = true), 100)
+        setTimeout(() => (reporter.reporters[1].inSync = true), 200)
+        await reporter.waitForSync()
+        expect(Date.now() - start).toBeGreaterThanOrEqual(200)
+    })
+
+    it('it should fail if waitForSync times out', async () => {
+        expect.assertions(1)
+
+        const reporter = new BaseReporter({
+            logDir: '/foo/bar',
+            reporters: [CustomReporter],
+            reporterSyncInterval: 10,
+            reporterSyncTimeout: 100
+        })
+
+        setTimeout(() => (reporter.reporters[0].inSync = true), 110)
+        await expect(reporter.waitForSync())
+            .rejects.toEqual(new Error('Some reporter are still unsynced: CustomReporter'))
     })
 })
