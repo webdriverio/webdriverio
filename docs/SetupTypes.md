@@ -22,10 +22,10 @@ const { remote } = require('webdriverio');
 
     await browser.url('https://duckduckgo.com/')
 
-    const inputElem = await $('#search_form_input_homepage')
+    const inputElem = await browser.$('#search_form_input_homepage')
     await inputElem.setValue('WebdriverIO')
 
-    const submitBtn = await $('#search_button_homepage')
+    const submitBtn = await browser.$('#search_button_homepage')
     await submitBtn.click()
 
     console.log(await browser.getTitle()) // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"

@@ -30,7 +30,7 @@ import { multiremote } from 'webdriverio';
     await browser.url('http://json.org');
 
     // click on an element at the same time
-    const elem = await $('#someElem');
+    const elem = await browser.$('#someElem');
     await elem.click();
 
     // only click with one browser (Firefox)
