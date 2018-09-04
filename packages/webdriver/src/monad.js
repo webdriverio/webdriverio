@@ -78,7 +78,18 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             Object.defineProperty(func, 'name', { writable: true })
             func.name = name
 
-            return func.apply(client, args)
+            const result = func.apply(client, args)
+
+            /**
+             * always transform result into promise as we don't know whether or not
+             * the user is running tests with wdio-sync or not
+             */
+            Promise.resolve(result).then((res) => {
+                log.info('RESULT', res)
+                this.emit('result', { name, result: res })
+            })
+
+            return result
         }
     }
 
