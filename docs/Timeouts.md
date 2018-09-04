@@ -70,9 +70,9 @@ Also the testing framework you use with WebdriverIO has to deal with timeouts es
 it('should login into the application', function () {
     browser.url('/login');
 
-    var form = browser.element('form');
-    var username = browser.element('#username');
-    var password = browser.element('#password');
+    var form = $('form');
+    var username = $('#username');
+    var password = $('#password');
 
     username.setValue('userXY');
     password.setValue('******');
