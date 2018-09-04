@@ -28,5 +28,8 @@
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "devDependencies": {
+    "tmp": "^0.0.33"
   }
 }
