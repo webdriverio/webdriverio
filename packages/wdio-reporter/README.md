@@ -117,6 +117,26 @@ test "some other test" passed
 
 If `stdout` is set to `false` WebdriverIO will automatically write to a filestream at a location where other logs are stored as well.
 
+## Synchronization
+
+If your reporter needs to do some async computation after the test (e.g. upload logs to a server) you can overwrite the `isSynchronised` getter method to manage this. By default this property always returns true as most of the reporters don't require to do any async work. However in case you need to handle this overwrite the getter method with an custom implementation (e.g. [wdio-sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sumologic-reporter)).
+
+```js
+class MyReporter extends WDIOReporter {
+    constructor (options) {
+        // ...
+    }
+
+    get isSynchronised (test) {
+        return this.unsyncedMessages.length === 0
+    }
+
+    // ...
+}
+```
+
+The wdio testrunner will wait to kill the runner process until every reporter has the `isSynchronised` property set to `true`.
+
 ## Events
 
 During a test run in WebdriverIO several events are thrown and can be captured by your event functions. The following events are propagated:
