@@ -43,7 +43,7 @@ To make the code more readable and easier to write we handle element calls as fi
 
 ```js
 it('should use elements as first class citizen', function () {
-    var input = browser.element('.someInput')
+    var input = $('.someInput')
 
     input.setValue('some text')
     // is the same as calling
@@ -55,7 +55,7 @@ Each command that takes a selector as first argument can be executed without pas
 
 ```js
 it('should use elements as first class citizen in standalone mode', function () {
-    return browser.element('.someInput').setValue('some text');
+    return $('.someInput').setValue('some text');
 });
 ```
 
