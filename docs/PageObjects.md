@@ -5,9 +5,9 @@ title: Page Object Pattern
 
 The new version (v4) of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle it is now possible to build up large test suites using this pattern. There are no additional packages required to create page objects. It turns out that `Object.create` provides all necessary features we need:
 
-- inheritance between page objects
-- lazy loading of elements
-- encapsulation of methods and actions
+-   inheritance between page objects
+-   lazy loading of elements
+-   encapsulation of methods and actions
 
 The goal behind page objects is to abstract any page information away from the actual tests. Ideally you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
 
@@ -16,7 +16,7 @@ First off we need a main page object that we call `Page`. It will contain genera
 ```js
 export default class Page {
     constructor() {
-        this.title = 'My Page';
+        this.title = "My Page";
     }
 
     open(path) {
@@ -31,24 +31,32 @@ Let's start testing the first page. For demo purposes we use [The Internet](http
 
 ```js
 // login.page.js
-import Page from './page';
+import Page from "./page";
 
 class LoginPage extends Page {
-
-    get username() { return browser.findElement('#username'); }
-    get password() { return browser.findElement('#password'); }
-    get submitBtn() { return browser.findElement('form button[type="submit"]'); }
-    get flash() { return browser.findElement('#flash'); }
-    get headerLinks() { return $$('#header a'); }
+    get username() {
+        return browser.$("#username");
+    }
+    get password() {
+        return browser.$("#password");
+    }
+    get submitBtn() {
+        return browser.$('form button[type="submit"]');
+    }
+    get flash() {
+        return browser.$("#flash");
+    }
+    get headerLinks() {
+        return $$("#header a");
+    }
 
     open() {
-        super.open('login');
+        super.open("login");
     }
 
     submit() {
         this.submitBtn.click();
     }
-
 }
 
 export default new LoginPage();
@@ -59,20 +67,20 @@ Defining selectors in getter functions might look a bit verbose but it is really
 WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
 
 ```js
-LoginPage.username.setValue('Max Mustermann');
+LoginPage.username.setValue("Max Mustermann");
 ```
 
 which is basically the same thing as:
 
 ```js
-var elem = $('#username');
-elem.setValue('Max Mustermann');
+var elem = $("#username");
+elem.setValue("Max Mustermann");
 ```
 
 or
 
 ```js
-$('#username').setValue('Max Mustermann');
+$("#username").setValue("Max Mustermann");
 ```
 
 After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to require it and that's it. The `Object.create` method returns an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
