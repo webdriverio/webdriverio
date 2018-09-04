@@ -10,7 +10,7 @@ describe('wdio-sumologic-reporter', () => {
 
     beforeEach(() => {
         logger().error.mockClear()
-        reporter = new SumoLogicReporter({ stdout: true })
+        reporter = new SumoLogicReporter()
     })
 
     it('it should start sync when reporter gets initiated', () => {
@@ -104,5 +104,13 @@ describe('wdio-sumologic-reporter', () => {
         request.mock.calls[0][1](new Error('ups'))
         expect(logger().error.mock.calls).toHaveLength(1)
         expect(logger().error.mock.calls[0][0]).toContain('failed send data to Sumo Logic')
+    })
+
+    it('should be synchronised when no unsynced messages', () => {
+        reporter = new SumoLogicReporter({ sourceAddress: 'foobar' })
+        reporter.onRunnerStart('onRunnerStart')
+        expect(reporter.isSynchronised).toBe(false)
+        reporter.sync()
+        expect(reporter.isSynchronised).toBe(true)
     })
 })
