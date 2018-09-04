@@ -167,6 +167,7 @@ export default class Runner extends EventEmitter {
             })
         }
 
+        await this.reporter.waitForSync()
         this.emit('exit', failures === 0 ? 0 : 1)
     }
 
