@@ -1,6 +1,8 @@
 import { EventEmitter } from 'events'
 import logger from 'wdio-logger'
 
+import { commandCallStructure } from './utils'
+
 const SCOPE_TYPES = {
     'browser': function Browser () {},
     'element': function Element () {}
@@ -68,7 +70,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     unit.lift = function (name, func) {
         prototype[name] = function next (...args) {
             const client = unit(this.sessionId)
-            log.info('COMMAND', `${name}(${args.join(', ')})`)
+            log.info('COMMAND', commandCallStructure(name, args))
 
             /**
              * set name of function for better error stack
@@ -76,7 +78,18 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             Object.defineProperty(func, 'name', { writable: true })
             func.name = name
 
-            return func.apply(client, args)
+            const result = func.apply(client, args)
+
+            /**
+             * always transform result into promise as we don't know whether or not
+             * the user is running tests with wdio-sync or not
+             */
+            Promise.resolve(result).then((res) => {
+                log.info('RESULT', res)
+                this.emit('result', { name, result: res })
+            })
+
+            return result
         }
     }
 

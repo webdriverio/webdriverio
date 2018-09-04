@@ -1,4 +1,4 @@
-import { isSuccessfulResponse, isValidParameter, getPrototype } from '../src/utils'
+import { isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure } from '../src/utils'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -63,5 +63,10 @@ describe('utils', () => {
         expect(webdriverPrototype instanceof Object).toBe(true)
         expect(typeof webdriverPrototype.sendKeys).toBe('undefined')
         expect(typeof webdriverPrototype.performActions.value).toBe('function')
+    })
+
+    it('commandCallStructure', () => {
+        expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
+            .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
     })
 })
