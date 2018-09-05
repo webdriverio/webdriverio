@@ -49,8 +49,8 @@ export default async function waitForEnabled(ms, reverse = false) {
         ms = this.options.waitforTimeout
     }
 
-    const isReversed = reverse ? '' : 'not'
-    const errorMessage = `element ("${this.selector}") still ${isReversed} enabled after ${ms}ms`
+    const isReversed = reverse ? '' : 'not '
+    const errorMessage = `element ("${this.selector}") still ${isReversed}enabled after ${ms}ms`
 
     return this.waitUntil(async () => {
         const isEnabled = await this.isEnabled()

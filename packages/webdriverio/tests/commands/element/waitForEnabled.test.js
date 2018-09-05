@@ -114,6 +114,6 @@ describe('waitForEnabled', () => {
         await elem.waitForEnabled(null, true)
 
         expect(elem.waitUntil.mock.calls[0][1]).toBe(elem.options.waitforTimeout)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still ${``} enabled after ${elem.options.waitforTimeout}ms`)
+        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still enabled after ${elem.options.waitforTimeout}ms`)
     })
 })
