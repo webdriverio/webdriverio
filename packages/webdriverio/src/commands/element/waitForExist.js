@@ -34,8 +34,8 @@ export default function waitForExist (ms, reverse = false) {
         ms = this.options.waitforTimeout
     }
 
-    const isReversed = reverse ? '' : 'not'
-    const errorMsg = `element ("${this.selector}") still ${isReversed} existing after ${ms}ms`
+    const isReversed = reverse ? '' : 'not '
+    const errorMsg = `element ("${this.selector}") still ${isReversed}existing after ${ms}ms`
 
     return this.waitUntil(function async () {
         return this.isExisting().then((isExisting) => isExisting !== reverse)

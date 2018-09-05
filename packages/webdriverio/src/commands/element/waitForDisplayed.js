@@ -42,8 +42,8 @@ export default async function waitForDisplayed (ms, reverse = false) {
         ms = this.options.waitforTimeout
     }
 
-    const isReversed = reverse ? '' : 'not'
-    const errorMsg = `element ("${this.selector}") still ${isReversed} displayed after ${ms}ms`
+    const isReversed = reverse ? '' : 'not '
+    const errorMsg = `element ("${this.selector}") still ${isReversed}displayed after ${ms}ms`
 
     return this.waitUntil(async () => {
         const isVisible = await this.isElementDisplayed(this.elementId)
