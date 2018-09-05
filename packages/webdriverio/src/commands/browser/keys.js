@@ -37,7 +37,7 @@ export default function keys (value) {
             keySequence = keySequence.concat(checkUnicode(charSet))
         }
     } else {
-        throw new Error(`"keys" command requires an string or array of strings as parameter`)
+        throw new Error(`"keys" command requires a string or array of strings as parameter`)
     }
 
     /**
