@@ -24,6 +24,21 @@
     });
  * </example>
  *
+ * <example>
+    :execute.js
+    // Cucumber context - Step in feature file
+    When I do 1 + 2
+    // Implementation of the step in js file
+    When(/^I do \d + \d', function (x, y) {
+        var result = browser.execute(function(a, b) {
+            // browser context - you may not access client or console (alternatively you can use alert() to see the output, but not recommended)
+            return a + b;
+        }, x, y);
+        // node.js context - client and console are available
+        console.log(result.value); // outputs: 3
+    });
+ * </example>
+ *
  * @param {String|Function} script                     The script to execute.
  * @param {*}               [argument1,...,argumentN]  script arguments
  *
