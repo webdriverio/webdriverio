@@ -15,7 +15,7 @@
         browser.switchWindow('google.com')
 
         // switch back via title match
-        browser.switchWindow('WebDriver test framework')
+        browser.switchWindow('WebDriver bindings for Node.js')
     });
  * </example>
  *
