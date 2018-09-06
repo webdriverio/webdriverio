@@ -74,7 +74,7 @@ export default class BaseReporter {
 
                 if ((Date.now() - startTime) > this.reporterSyncTimeout && unsyncedReporter.length) {
                     clearInterval(interval)
-                    return reject(new Error(`Some reporter are still unsynced: ${unsyncedReporter.join(', ')}`))
+                    return reject(new Error(`Some reporters are still unsynced: ${unsyncedReporter.join(', ')}`))
                 }
 
                 /**
