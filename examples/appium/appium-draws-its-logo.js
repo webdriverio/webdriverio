@@ -5,7 +5,7 @@ var webviewApp = path.resolve(__dirname, '..', '..', 'test', 'site', 'platforms'
 
 var client = webdriverio.remote({
     port: 4723,
-    logLevel: 'verbose',
+    logLevel: 'debug',
     desiredCapabilities: {
         platformName: 'iOS',
         platformVersion: '8.4',

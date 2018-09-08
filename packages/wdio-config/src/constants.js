@@ -9,7 +9,7 @@ export const DEFAULT_CONFIGS = {
     suites: {},
     exclude: [],
     logDir: undefined,
-    logLevel: 'trace',
+    logLevel: 'info',
     deprecationWarnings: true,
     baseUrl: undefined,
     bail: 0,
