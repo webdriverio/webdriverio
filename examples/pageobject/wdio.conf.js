@@ -32,7 +32,7 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // Level of logging verbosity: silent | verbose | command | data | result | error
+    // Level of logging verbosity: trace | debug | info | warn | error
     logLevel: 'trace',
     logDir: __dirname,
     //

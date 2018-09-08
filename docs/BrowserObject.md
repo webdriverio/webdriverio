@@ -70,7 +70,7 @@ console.log(browser.config);
         waitforInterval: 250,
         coloredLogs: true,
         deprecationWarnings: true,
-        logLevel: 'verbose',
+        logLevel: 'debug',
         baseUrl: 'http://localhost',
         connectionRetryTimeout: 90000,
         connectionRetryCount: 3,

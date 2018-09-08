@@ -55,7 +55,7 @@ describe('validateConfig', () => {
         expect(() => validateConfig({
             logLevel: {
                 type: 'string',
-                default: 'silent',
+                default: 'trace',
                 match: /(trace|debug|info|warn|error)/
             }
         }, {
@@ -65,7 +65,7 @@ describe('validateConfig', () => {
         expect(validateConfig({
             logLevel: {
                 type: 'string',
-                default: 'silent',
+                default: 'trace',
                 match: /(trace|debug|info|warn|error)/
             }
         }, {

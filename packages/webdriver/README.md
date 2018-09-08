@@ -53,8 +53,8 @@ Required: `true`
 Level of logging verbosity.
 
 Type: `String`<br>
-Default: *silent*<br>
-Options: *silent* | *error* | *warn* | *info* | *debug*
+Default: *info*<br>
+Options: *trace* | *debug* | *info* | *warn* | *error*
 
 ### logOutput
 Pipe logs into a file.

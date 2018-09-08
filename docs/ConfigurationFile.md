@@ -102,8 +102,8 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // Level of logging verbosity: silent | verbose | command | data | result | error
-    logLevel: 'silent',
+    // Level of logging verbosity: trace | debug | info | warn | error
+    logLevel: 'info',
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
