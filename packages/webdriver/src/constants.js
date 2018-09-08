@@ -48,7 +48,7 @@ const DEFAULTS = {
      */
     logLevel: {
         type: 'string',
-        default: 'silent',
+        default: 'info',
         match: /(trace|debug|info|warn|error)/
     },
     /**

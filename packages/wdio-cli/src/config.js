@@ -284,7 +284,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'logLevel',
     message: 'Level of logging verbosity',
-    default: 'silent',
+    default: 'info',
     choices: LOG_LEVELS
 }, {
     type: 'input',
