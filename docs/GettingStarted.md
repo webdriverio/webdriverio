@@ -168,12 +168,12 @@ $ mkdir -p ./test/specs
 Now let's create a simple spec file in that new folder:
 
 ```js
-var assert = require('assert');
+const assert = require('assert');
 
-describe('webdriver.io page', function() {
-    it('should have the right title - the fancy generator way', function () {
+describe('webdriver.io page', () => {
+    it('should have the right title - the fancy generator way', () => {
         browser.url('http://webdriver.io');
-        var title = browser.getTitle();
+        const title = browser.getTitle();
         assert.equal(title, 'WebdriverIO - WebDriver bindings for Node.js');
     });
 });
