@@ -89,8 +89,14 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
-        this.setFilePathToFilterOptions(spec)
-        this.setFilePathToFilterOptions(exclude, true)
+        if (spec.length > 0) {
+            this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs)]
+        }
+        
+        if (exclude.length > 0) {
+            this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude)]
+        }
+        
 
         /**
          * user and key could get added via cli arguments so we need to detect again
@@ -177,32 +183,31 @@ export default class ConfigParser {
      * sets config attribute with file paths from filtering
      * options from cli argument
      *
-     * @param  {String} filterObj  list of files in a string from
+     * @param  {String} cliArgFileList  list of files in a string from
+     * @param  {Object} config  config object that stores the spec and exlcude attributes
      * cli argument
-     * @return {Boolean} exclude  true or false
+     * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions (filterObj, exclude = false) {
-        const FILTER_TYPE = exclude ? 'exclude' : 'specs'
-        if (filterObj.length > 0) {
-            const objs = new Set()
-            const objsList = ConfigParser.getFilePaths(this._config[FILTER_TYPE])
-            filterObj.forEach(filtered_file => {
-                if (fs.existsSync(filtered_file) && fs.lstatSync(filtered_file).isFile()) {
-                    objs.add(path.resolve(process.cwd(), filtered_file))
-                }
-                else {
-                    objsList.forEach(file => {
-                        if (file.match(filtered_file)) {
-                            objs.add(file)
-                        }
-                    })
-                }
-            })
-            if (objs.size === 0) {
-                throw new Error(`spec file(s) ${filterObj.join(`, `)} not found`)
+    setFilePathToFilterOptions (cliArgFileList, config) {
+        const filesToFilter = new Set()
+        const fileList = ConfigParser.getFilePaths(config)
+        cliArgFileList.forEach(filtered_file => {
+            if (fs.existsSync(filtered_file) && fs.lstatSync(filtered_file).isFile()) {
+                filesToFilter.add(path.resolve(process.cwd(), filtered_file))
             }
-            this._config[FILTER_TYPE] = [...objs]
+            else {
+                fileList.forEach(file => {
+                    if (file.match(filtered_file)) {
+                        filesToFilter.add(file)
+                    }
+                })
+            }
+        })
+        if (filesToFilter.size === 0) {
+            throw new Error(`spec file(s) ${cliArgFileList.join(`, `)} not found`)
         }
+        
+        return filesToFilter
     }
 
     /**
