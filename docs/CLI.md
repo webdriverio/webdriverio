@@ -47,6 +47,8 @@ Options:
                         suite                                            [array]
   --spec                run only a certain spec file - overrides specs piped
                         from stdin                                       [array]
+  --exclude             exclude spec file(s) from a run - overrides specs piped
+                        from stdin                                       [array]
   --mochaOpts           Mocha options
   --jasmineOpts         Jasmine options
   --cucumberOpts        Cucumber options
