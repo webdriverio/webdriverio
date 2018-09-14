@@ -114,6 +114,22 @@ $ wdio wdio.conf.js --spec dialog
 
 Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`) you _can't_ use for example `describe.only` at the top of your spec file to say Mocha to only run that suite. This feature will help you though to do that in the same way.
 
+## Exclude Selected Tests
+
+ When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber). For example if you want to exclude your login
+test from the test run, do:
+ ```sh
+$ wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
+```
+ or exclude multiple spec files:
+ ```sh
+$ wdio wdio.conf.js --exclude ./test/specs/signup.js,./test/specs/forgot-password.js
+```
+ or exclude a spec file when filtering using a suite:
+ ```sh
+$ wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
+```
+
 ## Run Suites and Test Specs
 
 This will allow you to run an entire suite along with individual spec's.
