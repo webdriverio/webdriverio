@@ -74,8 +74,7 @@ export default class FirefoxProfileLauncher {
         capability.firefox_profile = zippedProfile
 
         // for firefox >= 56.0 and geckodriver >= 0.19.0
-        capability['moz:firefoxOptions'] = {
-            profile: zippedProfile,
-        }
+        capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {};
+        capability['moz:firefoxOptions'].profile = zippedProfile;
     }
 }
