@@ -34,6 +34,31 @@ describe('Firefox profile service', () => {
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
         })
 
+        test('should amend firefox capabilities', async () => {
+            const config = {
+                firefoxProfile : {
+                    'browser.startup.homepage': 'http://webdriver.io',
+                }
+            }
+            const capabilities = [{
+                browserName : 'firefox',
+                'moz:firefoxOptions': {
+                    args: ['-headless']
+                }
+            }]
+
+            const service = new Launcher()
+            await service.onPrepare(config, capabilities)
+
+            expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
+            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'http://webdriver.io')
+            expect(service.profile.updatePreferences).toHaveBeenCalled()
+            expect(service.profile.addExtensions).not.toHaveBeenCalled()
+
+            expect(capabilities[0].firefox_profile).toBe('foobar')
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile : 'foobar'})
+        })
+
         test('should set preferences with extensions', async () => {
             const config = {
                 firefoxProfile : {
