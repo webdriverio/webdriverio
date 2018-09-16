@@ -12,7 +12,7 @@ Here is an example demonstrating a how to create a multiremote WebdriverIO insta
 ```js
 import { multiremote } from 'webdriverio';
 
-(async function () {
+(async () => {
     const browser = await multiremote({
         myChromeBrowser: {
             capabilities: {

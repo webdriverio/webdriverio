@@ -13,7 +13,7 @@ A session has an associated session script timeout that specifies a time to wait
 
 ```js
 browser.setTimeout({ 'script': 60000 });
-browser.executeAsync(function (done) {
+browser.executeAsync((done) => {
     console.log('this should not fail');
     setTimeout(done, 59000);
 });
@@ -59,7 +59,7 @@ const myElem = $('#myElem');
 myElem.waitForVisible();
 
 // you can also overwrite the default timeout if needed
-browser.waitForVisible('#myElem', 10000);
+myElem.waitForVisible(10000);
 ```
 
 ## Framework related timeouts
@@ -67,12 +67,12 @@ browser.waitForVisible('#myElem', 10000);
 Also the testing framework you use with WebdriverIO has to deal with timeouts especially since everything is asynchronous. It ensures that the test process don't get stuck if something went wrong. By default the timeout is set to 10 seconds which means that a single test should not take longer than that. A single test in Mocha looks like:
 
 ```js
-it('should login into the application', function () {
+it('should login into the application', () => {
     browser.url('/login');
 
-    var form = $('form');
-    var username = $('#username');
-    var password = $('#password');
+    const form = $('form');
+    const username = $('#username');
+    const password = $('#password');
 
     username.setValue('userXY');
     password.setValue('******');
