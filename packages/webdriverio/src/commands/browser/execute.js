@@ -15,12 +15,12 @@
  * <example>
     :execute.js
     it('should inject javascript on the page', () => {
-        var result = browser.execute((a, b, c, d) => {
+        const result = browser.execute((a, b, c, d) => {
             // browser context - you may not access client or console
             return a + b + c + d
         }, 1, 2, 3, 4)
         // node.js context - client and console are available
-        console.log(result.value) // outputs: 10
+        console.log(result) // outputs: 10
     });
  * </example>
  *
