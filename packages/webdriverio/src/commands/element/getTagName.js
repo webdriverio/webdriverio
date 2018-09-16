@@ -7,7 +7,7 @@
     <div id="elem">Lorem ipsum</div>
 
     :getTagName.js
-    it('should demonstrate the getTagName command', function () {
+    it('should demonstrate the getTagName command', () => {
         const elem = $('#elem');
 
         const tagName = elem.getTagName();

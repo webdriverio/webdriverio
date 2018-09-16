@@ -14,7 +14,7 @@
     </div>
     <span style="display: none">I am invisible</span>
     :getText.js
-    it('should demonstrate the getText function', function () {
+    it('should demonstrate the getText function', () => {
         const elem = $('#elem');
         console.log(elem.getText());
         // outputs the following:
@@ -24,7 +24,7 @@
         console.log(span.getText());
         // outputs "" (empty string) since element is not interactable
     });
-    it('get content from table cell', function () {
+    it('get content from table cell', () => {
         browser.url('http://the-internet.herokuapp.com/tables');
         const rows = $$('#table1 tr');
         const columns = rows[1].$$('td'); // get columns of 2nd row

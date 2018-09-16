@@ -9,7 +9,7 @@
     <input type="text" name="inputField" class="input3" disabled="disabled">
 
     :isEnabled.js
-    it('should detect if an element is enabled', function () {
+    it('should detect if an element is enabled', () => {
         let elem = $('.input1')
         let isEnabled = elem.isEnabled();
         console.log(isEnabled); // outputs: true

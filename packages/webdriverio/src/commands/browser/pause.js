@@ -6,11 +6,11 @@
  *
  * <example>
     :pause.js
-    it('should pause the execution', function () {
-        var starttime = new Date().getTime();
-        browser.pause(3000);
-        var endtime = new Date().getTime();
-        console.log(endtime - starttime); // outputs: 3000
+    it('should pause the execution', () => {
+        const starttime = new Date().getTime()
+        browser.pause(3000)
+        const endtime = new Date().getTime()
+        console.log(endtime - starttime) // outputs: 3000
     });
  * </example>
  *

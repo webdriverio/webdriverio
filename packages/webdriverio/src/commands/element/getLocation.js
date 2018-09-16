@@ -5,7 +5,7 @@
  *
  * <example>
     :getLocation.js
-    it('should demonstrate the getLocation function', function () {
+    it('should demonstrate the getLocation function', () => {
         browser.url('http://github.com');
         const logo = $('.octicon-mark-github')
         const location = logo.getLocation();

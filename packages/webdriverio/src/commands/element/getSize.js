@@ -4,7 +4,7 @@
  *
  * <example>
     :getElementSize.js
-    it('should demonstrate the getElementSize command', function () {
+    it('should demonstrate the getElementSize command', () => {
         browser.url('http://github.com')
         const logo = $('.octicon-mark-github')
 

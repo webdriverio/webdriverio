@@ -12,8 +12,8 @@
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', function () {
-        var text = $('#menu');
+    it('should get text a menu link', () => {
+        const text = $('#menu');
         console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
         // same as
         console.log(text.$$('li')[2].getText('a'));

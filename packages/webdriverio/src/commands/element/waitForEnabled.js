@@ -9,23 +9,16 @@
     :index.html
     <input type="text" id="username" value="foobar" disabled="disabled"></input>
     <script type="text/javascript">
-        setTimeout(function () {
+        setTimeout(() => {
             document.getElementById('username').disabled = false
         }, 2000);
     </script>
     :waitForEnabledExample.js
     it('should detect when element is enabled', () => {
-        browser.waitForEnabled('#username', 3000);
-
-        // Same as
-        elem = $('#username');
-        elem.waitForEnabled(3000)
+        $('#username').waitForEnabled(3000);
     });
 
     it('should detect when element is disabled', () => {
-        browser.waitForEnabled('#username', 3000, true);
-
-        // Same as
         elem = $('#username');
         elem.waitForEnabled(3000, true)
     });

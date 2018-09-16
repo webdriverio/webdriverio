@@ -10,7 +10,7 @@
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isExisting.js
-    it('should detect if elements are existing', function () {
+    it('should detect if elements are existing', () => {
         let elem = $('#someRandomNonExistingElement')
         let isExisting = elem.isExisting()
         console.log(isExisting); // outputs: false
