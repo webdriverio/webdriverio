@@ -8,12 +8,13 @@
         <span>Lorem ipsum dolor amet</span>
     </div>
     :getHTML.js
-    it('should get html for certain elements', function () {
-        var outerHTML = browser.getHTML('#test');
+    it('should get html for certain elements', () => {
+        var outerHTML = $('#test').getHTML();
         console.log(outerHTML);
         // outputs:
         // "<div id="test"><span>Lorem ipsum dolor amet</span></div>"
-        var innerHTML = browser.getHTML('#test', false);
+
+        var innerHTML = $('#test').getHTML(false);
         console.log(innerHTML);
         // outputs:
         // "<span>Lorem ipsum dolor amet</span>"

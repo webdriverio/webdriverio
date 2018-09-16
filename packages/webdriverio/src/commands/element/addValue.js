@@ -8,12 +8,12 @@
  *
  * <example>
     :addValue.js
-    it('should demonstrate the addValue command', function () {
-        var input = $('.input')
+    it('should demonstrate the addValue command', () => {
+        let input = $('.input')
         input.addValue('test')
         input.addValue(123)
 
-        var value = input.getValue()
+        value = input.getValue()
         assert(value === 'test123') // true
     })
  * </example>

@@ -12,9 +12,9 @@
     :example.html
     <label id="myLabel" for="input" style="color: #0088cc; font-family: helvetica, arial, freesans, clean, sans-serif, width: 100px">Some Label</label>
     :getCssProperty.js
-    it('should demonstrate the getCssProperty command', function () {
-        var elem = $('#myLabel')
-        var color = elem.getCssProperty('color')
+    it('should demonstrate the getCssProperty command', () => {
+        const elem = $('#myLabel')
+        const color = elem.getCssProperty('color')
         console.log(color)
         // outputs the following:
         // {
@@ -27,7 +27,8 @@
         //         rgba: 'rgba(0, 136, 204, 1)'
         //     }
         // }
-        var font = elem.getCssProperty('font-family')
+
+        const font = elem.getCssProperty('font-family')
         console.log(font)
         // outputs the following:
         // {
@@ -39,6 +40,7 @@
         //          string: 'helvetica, arial, freesans, clean, sans-serif'
         //      }
         // }
+        
         var width = elem.getCssProperty('width')
         console.log(width)
         // outputs the following:

@@ -5,7 +5,7 @@
  *
  * <example>
     :switchWindow.js
-    it('should switch to another window', function () {
+    it('should switch to another window', () => {
         // open url
         browser.url('https://google.com')
         // create new window

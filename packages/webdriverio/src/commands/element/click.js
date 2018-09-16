@@ -20,7 +20,7 @@
     <button id="myButton" onclick="document.getElementById('someText').innerHTML='I was clicked'">Click me</button>
     <div id="someText">I was not clicked</div>
     :click.js
-    it('should demonstrate the click command', function () {
+    it('should demonstrate the click command', () => {
         const myButton = $('#myButton')
         myButton.click()
         const myText = $('#someText')
@@ -28,9 +28,9 @@
         assert(text === 'I was clicked'); // true
     })
     :example.js
-    it('should fetch menu links and visit each page', function () {
+    it('should fetch menu links and visit each page', () => {
         const links = $$('#menu a');
-        links.forEach(function (link) {
+        links.forEach((link) => {
             link.click();
         });
     });
