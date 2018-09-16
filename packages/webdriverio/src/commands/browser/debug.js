@@ -17,10 +17,10 @@
  *
  * <example>
     :debug.js
-    it('should demonstrate the debug command', function () {
-        browser.setValue('#input', 'FOO')
+    it('should demonstrate the debug command', () => {
+        $('#input').setValue('FOO')
         browser.debug() // jumping into the browser and change value of #input to 'BAR'
-        const value = browser.getValue('#input')
+        const value = $('#input').getValue()
         console.log(value) // outputs: "BAR"
     })
  * </example>

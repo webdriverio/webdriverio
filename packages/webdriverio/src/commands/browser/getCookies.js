@@ -6,12 +6,13 @@
  *
  * <example>
     :getCookie.js
-    it('should return a cookie for me', function () {
+    it('should return a cookie for me', () => {
         browser.setCookie({name: 'test', value: '123'})
         browser.setCookie({name: 'test2', value: '456'})
-        var testCookie = browser.getCookies(['test'])
+        const testCookie = browser.getCookies(['test'])
         console.log(testCookie); // outputs: { name: 'test', value: '123' }
-        var allCookies = browser.getCookies()
+        
+        const allCookies = browser.getCookies()
         console.log(allCookies);
         // outputs:
         // [

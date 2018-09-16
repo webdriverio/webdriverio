@@ -10,15 +10,15 @@
     :example.html
     <div id="someText">I am some text</div>
     <script>
-      setTimeout(function() {
+      setTimeout(() => {
         $('#someText').html('I am now different');
       }, 1000);
     </script>
 
     :waitUntil.js
-    it('should wait until text has changed', function () {
-        browser.waitUntil(function () {
-          return browser.getText('#someText') === 'I am now different'
+    it('should wait until text has changed', () => {
+        browser.waitUntil(() => {
+          return $('#someText').getText() === 'I am now different'
         }, 5000, 'expected text to be different after 5s');
     });
  * </example>

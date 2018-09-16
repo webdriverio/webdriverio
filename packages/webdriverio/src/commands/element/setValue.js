@@ -13,8 +13,6 @@
         const input = $('.input');
         input.setValue('test123');
 
-        // Same as
-        browser.setValue('.input', 'test123');
         console.log(input.getValue()); // outputs: 'test123'
     });
  * </example>

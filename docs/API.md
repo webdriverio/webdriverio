@@ -10,8 +10,8 @@ Welcome to the WebdriverIO docs page. These pages contain reference materials fo
 Each command documentation usually comes with an example that demonstrates the usage of it using WebdriverIO's testrunner running its commands synchronously. If you run WebdriverIO in standalone mode you still can use all commands but need to make sure that the execution order is handled properly by chaining the commands and resolving the promise chain. So instead of assigning the value directly to a variable, as the wdio testrunner allows it:
 
 ```js
-it('can handle commands synchronously', function () {
-    var value = browser.getValue('#input');
+it('can handle commands synchronously', () => {
+    var value = $('#input').getValue();
     console.log(value); // outputs: some value
 });
 ```
@@ -19,8 +19,8 @@ it('can handle commands synchronously', function () {
 you need return the command promise so it gets resolved properly as well as access the value when the promise got resolve:
 
 ```js
-it('handles commands as promises', function () {
-    return browser.getValue('#input').then(function (value) {
+it('handles commands as promises', ()  =>{
+    return $('#input').getValue().then((value) => {
         console.log(value); // outputs: some value
     });
 });
@@ -30,34 +30,12 @@ Of course you can use Node.JS latest [async/await](https://github.com/yortus/asy
 
 ```js
 it('can handle commands using async/await', async function () {
-    var value = await browser.getValue('#input');
+    var value = await $('#input').getValue();
     console.log(value); // outputs: some value
 });
 ```
 
 However it is recommended to use the testrunner to scale up your test suite as it comes with a lot of useful add ons like the [Sauce Service](_sauce-service.md) that helps you to avoid writing a lot of boilerplate code by yourself.
-
-## Element as first class citizen
-
-To make the code more readable and easier to write we handle element calls as first class citizen objects. This means that if you call the [`findElement`](/docs/api/webdriver.html#findelement) to query an element, WebdriverIO propagates its prototype to the result so you can chain another command to it. This is useful when writing tests with the [Page Object Pattern](http://martinfowler.com/bliki/PageObject.html) where you want to store your page elements in a page object to access them in the test. Simplified this can look like:
-
-```js
-it('should use elements as first class citizen', function () {
-    var input = $('.someInput')
-
-    input.setValue('some text')
-    // is the same as calling
-    browser.setValue('.someInput', 'some text')
-});
-```
-
-Each command that takes a selector as first argument can be executed without passing along the selector again and again. This not only looks nice, it also avoids querying the same element over and over again. The same works in standalone mode:
-
-```js
-it('should use elements as first class citizen in standalone mode', function () {
-    return $('.someInput').setValue('some text');
-});
-```
 
 ## Contribute
 

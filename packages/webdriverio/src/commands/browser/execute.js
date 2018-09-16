@@ -14,13 +14,13 @@
  *
  * <example>
     :execute.js
-    it('should inject javascript on the page', function () {
-        var result = browser.execute(function(a, b, c, d) {
+    it('should inject javascript on the page', () => {
+        var result = browser.execute((a, b, c, d) => {
             // browser context - you may not access client or console
-            return a + b + c + d;
+            return a + b + c + d
         }, 1, 2, 3, 4)
         // node.js context - client and console are available
-        console.log(result.value); // outputs: 10
+        console.log(result.value) // outputs: 10
     });
  * </example>
  *
