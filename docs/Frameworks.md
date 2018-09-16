@@ -28,8 +28,8 @@ before: function() {
 Once that is done you can write beautiful assertions like:
 
 ```js
-describe('my awesome website', function() {
-    it('should do some chai assertions', function() {
+describe('my awesome website', () => {
+    it('should do some chai assertions', () => {
         browser.url('http://webdriver.io');
         browser.getTitle().should.be.equal('WebdriverIO - WebDriver bindings for Node.js');
     });
@@ -39,8 +39,8 @@ describe('my awesome website', function() {
 WebdriverIO supports Mochas `BDD` (default), `TDD` and `QUnit` [interface](https://mochajs.org/#interfaces). If you like to write your specs in TDD language set the ui property in your `mochaOpts` config to `tdd`, now your test files should get written like:
 
 ```js
-suite('my awesome website', function() {
-    test('should do some chai assertions', function() {
+suite('my awesome website', () => {
+    test('should do some chai assertions', () => {
         browser.url('http://webdriver.io');
         browser.getTitle().should.be.equal('WebdriverIO - WebDriver bindings for Node.js');
     });
@@ -52,7 +52,7 @@ If you want to define specific Mocha settings you can do that by adding `mochaOp
 __Note:__ that since all commands are running synchronously there is no need to have async mode in Mocha enabled. Therefor you can't use the `done` callback:
 
 ```js
-it('should test something', function () {
+it('should test something', () => {
     done(); // throws "done is not a function"
 })
 ```
