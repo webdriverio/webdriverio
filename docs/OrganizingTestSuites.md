@@ -123,7 +123,7 @@ $ wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
 ```
  or exclude multiple spec files:
  ```sh
-$ wdio wdio.conf.js --exclude ./test/specs/signup.js,./test/specs/forgot-password.js
+$ wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
 ```
  or exclude a spec file when filtering using a suite:
  ```sh
