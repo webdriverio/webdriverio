@@ -31,13 +31,12 @@
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
 import { wrapCommand } from 'wdio-config'
 
-import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { findElement, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
-    const { using, value } = findStrategy(selector, this.isW3C)
-    const res = await this.findElement(using, value)
+    const res = await findElement.call(this, selector)
     const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
 
     const element = webdriverMonad(this.options, (client) => {
