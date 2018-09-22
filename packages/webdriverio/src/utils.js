@@ -8,6 +8,7 @@ import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './cons
 
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
+const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C) {
     /**
@@ -330,6 +331,15 @@ export function checkUnicode (value) {
     return UNICODE_CHARACTERS.hasOwnProperty(value) ? [UNICODE_CHARACTERS[value]] : new GraphemeSplitter().splitGraphemes(value)
 }
 
+function fetchElementByJSFunction (selector, scope) {
+    if (!scope.elementId) {
+        return this.execute(selector)
+    }
+
+    const script = ((elem) => (selector).call(elem)).toString().replace('selector', `(${selector.toString()})`)
+    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope)
+}
+
 /**
  * logic to find an element
  */
@@ -348,19 +358,13 @@ export async function findElement(selector) {
      * fetch element with JS function
      */
     if (typeof selector === 'function') {
-        const script = ((elem) => (selector).call(elem)).toString().replace('selector', `(${selector.toString()})`)
         const notFoundError = new Error(`Function selector "${selector.toString()}" did not return an HTMLElement`)
-
-        let elem = await (
-            this.elementId
-                ? getBrowserObject(this).execute(`return (${script}).apply(null, arguments)`, this)
-                : this.execute(selector)
-        )
+        let elem = await fetchElementByJSFunction(selector, this)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
 
-    throw new Error('selector needs to be typeof `string` or `function`')
+    throw INVALID_SELECTOR_ERROR
 }
 
 /**
@@ -381,16 +385,10 @@ export async function findElements(selector) {
      * fetch element with JS function
      */
     if (typeof selector === 'function') {
-        const script = ((elem) => (selector).call(elem)).toString().replace('selector', `(${selector.toString()})`)
-
-        let elems = await (
-            this.elementId
-                ? getBrowserObject(this).execute(`return (${script}).apply(null, arguments)`, this)
-                : this.execute(selector)
-        )
+        let elems = await fetchElementByJSFunction(selector, this)
         elems = Array.isArray(elems) ? elems : [elems]
         return elems.filter((elem) => elem && getElementFromResponse(elem))
     }
 
-    throw new Error('selector needs to be typeof `string` or `function`')
+    throw INVALID_SELECTOR_ERROR
 }
