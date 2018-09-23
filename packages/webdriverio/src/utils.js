@@ -43,12 +43,12 @@ export const findStrategy = function (value, isW3C) {
                value.indexOf('*/') === 0) {
         using = 'xpath'
 
-    // use link text strategy if value startes with =
+    // use link text strategy if value starts with =
     } else if (value.indexOf('=') === 0) {
         using = 'link text'
         value = value.slice(1)
 
-    // use partial link text strategy if value startes with *=
+    // use partial link text strategy if value starts with *=
     } else if (value.indexOf('*=') === 0) {
         using = 'partial link text'
         value = value.slice(2)
@@ -86,50 +86,54 @@ export const findStrategy = function (value, isW3C) {
         using = 'name'
         value = value.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
 
-    // any element with given text e.g. h1=Welcome
-    } else if (value.search(/^[a-z0-9]*=(.)+$/) >= 0) {
-        let query = value.split(/=/)
-        let tag = query.shift()
-
-        using = 'xpath'
-        value = `.//${tag.length ? tag : '*'}[normalize-space() = "${query.join('=')}"]`
-
-    // any element containing given text
-    } else if (value.search(/^[a-z0-9]*\*=(.)+$/) >= 0) {
-        let query = value.split(/\*=/)
-        let tag = query.shift()
-
-        using = 'xpath'
-        value = `.//${tag.length ? tag : '*'}[contains(., "${query.join('*=')}")]`
-
-    // any element with certain class or id + given content
-    } else if (value.search(/^[a-z0-9]*(\.|#)-?[_a-zA-Z]+[_a-zA-Z0-9-]*=(.)+$/) >= 0) {
-        let query = value.split(/=/)
-        let tag = query.shift()
-
-        let classOrId = tag.substr(tag.search(/(\.|#)/), 1) === '#' ? 'id' : 'class'
-        let classOrIdName = tag.slice(tag.search(/(\.|#)/) + 1)
-
-        tag = tag.substr(0, tag.search(/(\.|#)/))
-        using = 'xpath'
-        value = `.//${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and normalize-space() = "${query.join('=')}"]`
-
-    // any element with certain class or id + has certain content
-    } else if (value.search(/^[a-z0-9]*(\.|#)-?[_a-zA-Z]+[_a-zA-Z0-9-]*\*=(.)+$/) >= 0) {
-        let query = value.split(/\*=/)
-        let tag = query.shift()
-
-        let classOrId = tag.substr(tag.search(/(\.|#)/), 1) === '#' ? 'id' : 'class'
-        let classOrIdName = tag.slice(tag.search(/(\.|#)/) + 1)
-
-        tag = tag.substr(0, tag.search(/(\.|#)/))
-        using = 'xpath'
-        value = './/' + (tag.length ? tag : '*') + '[contains(@' + classOrId + ', "' + classOrIdName + '") and contains(., "' + query.join('*=') + '")]'
-        value = `.//${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and contains(., "${query.join('*=')}")]`
 
     // allow to move up to the parent or select current element
     } else if (value === '..' || value === '.') {
         using = 'xpath'
+
+    // any element with given class, id, or attribute and content
+    // e.g. h1.header=Welcome or [data-name=table-row]=Item or #content*=Intro
+    } else {
+        const match = value.match(new RegExp([
+            // HTML tag
+            /^([a-z0-9]*)/,
+            // optional . or # + class or id
+            /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
+            // optional [attribute-name="attribute-value"]
+            /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
+            // *=query or =query
+            /(\*)?=(.+)$/,
+        ].map(rx => rx.source).join('')))
+
+        if (match) {
+            const PREFIX_NAME = { '.': 'class', '#': 'id' }
+            const conditions = []
+            const [
+                tag,
+                prefix, name,
+                attrName, attrValue,
+                partial, query
+            ] =  match.slice(1)
+
+            if (prefix) {
+                conditions.push(`contains(@${PREFIX_NAME[prefix]}, "${name}")`)
+            }
+            if (attrName) {
+                conditions.push(
+                    attrValue
+                        ? `contains(@${attrName}, "${attrValue}")`
+                        : `@${attrName}`
+                );
+            }
+            if (partial) {
+                conditions.push(`contains(., "${query}")`)
+            } else {
+                conditions.push(`normalize-space() = "${query}"`)
+            }
+
+            using = 'xpath'
+            value = `.//${tag || '*'}[${conditions.join(' and ')}]`
+        }
     }
 
     /**
@@ -171,7 +175,7 @@ export const getPrototype = (scope) => {
  */
 export const getElementFromResponse = (res) => {
     /**
-     * depcrecated JSONWireProtocol response
+     * deprecated JSONWireProtocol response
      */
     if (res.ELEMENT) {
         return res.ELEMENT
