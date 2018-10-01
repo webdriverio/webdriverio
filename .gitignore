@@ -73,3 +73,5 @@ website/node_modules
 website/i18n/*
 docs/api/**/*.md
 docs/_*.md
+setup.sh
+node-install.sh

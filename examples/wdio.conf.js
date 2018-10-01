@@ -12,7 +12,8 @@ exports.config = {
     // according to your user and key information. However, if you are using a private Selenium
     // backend you should define the host address, port, and path here.
     //
-    hostname: '0.0.0.0',
+    hostname: '192.168.8.63',
+    //hostname: 'selenium-chrome',
     port: 4444,
     path: '/wd/hub',
     //
@@ -108,7 +109,8 @@ exports.config = {
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
-    baseUrl: 'http://localhost:8080',
+    //baseUrl: 'http://localhost:8080',
+    baseUrl: 'http://the-internet.herokuapp.com/',
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
