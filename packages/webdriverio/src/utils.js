@@ -333,7 +333,7 @@ export function checkUnicode (value) {
 
 function fetchElementByJSFunction (selector, scope) {
     if (!scope.elementId) {
-        return this.execute(selector)
+        return scope.execute(selector)
     }
 
     const script = ((elem) => (selector).call(elem)).toString().replace('selector', `(${selector.toString()})`)

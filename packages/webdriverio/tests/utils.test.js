@@ -1,3 +1,4 @@
+import { ELEMENT_KEY } from '../src/constants'
 import {
     findStrategy,
     getElementFromResponse,
@@ -6,14 +7,12 @@ import {
     transformToCharString,
     parseCSS,
     checkUnicode,
+    findElement,
+    findElements
 } from '../src/utils'
 
 describe('utils', () => {
     describe('selector strategies helper', () => {
-        it('should throw when not a string', () => {
-            expect(() => findStrategy(123)).toThrow('selector needs to be typeof `string`')
-        })
-
         it('should find an element using "css selector" method', () => {
             const element = findStrategy('.red')
             expect(element.using).toBe('css selector')
@@ -501,6 +500,172 @@ describe('utils', () => {
             expect(result[0]).toBe('f')
             expect(result[1]).toBe('o')
             expect(result[2]).toBe('o')
+        })
+    })
+
+    describe('findElement', () => {
+        const malformedElementResponse = { foo: 'bar' }
+        const elementResponse = { [ELEMENT_KEY]: 'foobar' }
+        const elementsResponse = [
+            { [ELEMENT_KEY]: 'foobar' },
+            { [ELEMENT_KEY]: 'barfoo' }
+        ]
+        let scope
+
+        beforeEach(() => {
+            scope = {
+                findElementsFromElement: jest.fn(),
+                findElementFromElement: jest.fn(),
+                findElements: jest.fn(),
+                findElement: jest.fn(),
+                execute: jest.fn()
+            }
+        })
+
+        it('fetches element using a selector string with browser scope', async () => {
+            await findElement.call(scope, '.elem')
+            expect(scope.findElement).toBeCalledWith('css selector', '.elem')
+            expect(scope.findElementFromElement).not.toBeCalled()
+        })
+
+        it('fetches element using a selector string with element scope', async () => {
+            scope.elementId = 'foobar'
+            await findElement.call(scope, '.elem')
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement)
+                .toBeCalledWith('foobar', 'css selector', '.elem')
+        })
+
+        it('fetches element using a function with browser scope', async () => {
+            scope.execute.mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope, () => { return global.document.body })
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalled()
+            expect(elem[ELEMENT_KEY]).toBe('foobar')
+        })
+
+        it('fetches element using a function with element scope', async () => {
+            scope.elementId = 'foobar'
+            scope.execute.mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope, () => { return global.document.body })
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalled()
+            expect(elem[ELEMENT_KEY]).toBe('foobar')
+            expect(scope.execute.mock.calls[0][1]).toEqual(scope)
+        })
+
+        it('should return only one element if multiple are returned', async () => {
+            scope.execute.mockReturnValue(elementsResponse)
+            const elem = await findElement.call(scope, () => { return global.document.body })
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalled()
+            expect(elem[ELEMENT_KEY]).toBe('foobar')
+        })
+
+        it('throws if element response is malformed', async () => {
+            scope.execute.mockReturnValue(malformedElementResponse)
+            const res = await findElement.call(scope, () => { return global.document.body })
+            expect(res instanceof Error)
+            expect(res.message).toMatch('did not return an HTMLElement')
+        })
+
+        it('throws if selector is neither string nor function', async () => {
+            const expectedMatch = 'selector needs to be typeof `string` or `function`'
+            await expect(findElement.call(scope, null)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElement.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElement.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElement.call(scope)).rejects.toEqual(new Error(expectedMatch))
+        })
+    })
+
+    describe('findElements', () => {
+        const malformedElementResponse = { foo: 'bar' }
+        const elementResponse = { [ELEMENT_KEY]: 'foobar' }
+        const elementsResponse = [
+            { [ELEMENT_KEY]: 'foobar' },
+            { [ELEMENT_KEY]: 'barfoo' }
+        ]
+        let scope
+
+        beforeEach(() => {
+            scope = {
+                findElementsFromElement: jest.fn(),
+                findElementFromElement: jest.fn(),
+                findElements: jest.fn(),
+                findElement: jest.fn(),
+                execute: jest.fn()
+            }
+        })
+
+        it('fetches element using a selector string with browser scope', async () => {
+            await findElements.call(scope, '.elem')
+            expect(scope.findElements).toBeCalledWith('css selector', '.elem')
+            expect(scope.findElementsFromElement).not.toBeCalled()
+        })
+
+        it('fetches element using a selector string with element scope', async () => {
+            scope.elementId = 'foobar'
+            await findElements.call(scope, '.elem')
+            expect(scope.findElements).not.toBeCalled()
+            expect(scope.findElementsFromElement)
+                .toBeCalledWith('foobar', 'css selector', '.elem')
+        })
+
+        it('fetches element using a function with browser scope', async () => {
+            scope.execute.mockReturnValue(elementResponse)
+            const elem = await findElements.call(scope, () => { return global.document.body })
+            expect(scope.findElements).not.toBeCalled()
+            expect(scope.findElementsFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalled()
+            expect(elem).toHaveLength(1)
+            expect(elem[0][ELEMENT_KEY]).toBe('foobar')
+        })
+
+        it('fetches element using a function with element scope', async () => {
+            scope.elementId = 'foobar'
+            scope.execute.mockReturnValue(elementResponse)
+            const elem = await findElements.call(scope, () => { return global.document.body })
+            expect(scope.findElements).not.toBeCalled()
+            expect(scope.findElementsFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalled()
+            expect(elem).toHaveLength(1)
+            expect(elem[0][ELEMENT_KEY]).toBe('foobar')
+            expect(scope.execute.mock.calls[0][1]).toEqual(scope)
+        })
+
+        it('should return multiple elements if multiple are returned', async () => {
+            scope.execute.mockReturnValue(elementsResponse)
+            const elem = await findElements.call(scope, () => { return global.document.body })
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalled()
+            expect(elem).toEqual(elementsResponse)
+        })
+
+        it('should filter out malformed responses', async () => {
+            scope.execute.mockReturnValue([...elementsResponse, 'foobar'])
+            const elem = await findElements.call(scope, () => { return global.document.body })
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalled()
+            expect(elem).toEqual(elementsResponse)
+        })
+
+        it('throws if element response is malformed', async () => {
+            scope.execute.mockReturnValue(malformedElementResponse)
+            const res = await findElements.call(scope, () => { return global.document.body })
+            expect(res).toHaveLength(0)
+        })
+
+        it('throws if selector is neither string nor function', async () => {
+            const expectedMatch = 'selector needs to be typeof `string` or `function`'
+            await expect(findElements.call(scope, null)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElements.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
         })
     })
 })
