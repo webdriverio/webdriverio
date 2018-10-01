@@ -9,8 +9,8 @@ services:
       - 4444:4444/tcp
     
   webdriverio:
-    image: uzzal2k5/webdriverio
-    #build: .
+    #image: uzzal2k5/webdriverio:latest
+    build: .
     hostname: webdriverio
     container_name: webdriverio
     links:
