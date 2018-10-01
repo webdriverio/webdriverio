@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  selenium-chrome:
+    image: selenium/standalone-chrome
+    hostname: selenium-chrome
+    container_name: chrome
+    ports:
+      - 4444:4444/tcp
+    
+  webdriverio:
+    #image: uzzal2k5/webdriverio:latest
+    build: .
+    hostname: webdriverio
+    container_name: webdriverio
+    links:
+      - selenium-chrome
+    depends_on: 
+      - selenium-chrome
+    tty: true
+    volumes:
+      - ${PWD}/examples:/webdriverio/examples
+      - ${PWD}/user-script.sh:/webdriverio/user-scripts.sh
+    command: bash -c "sh user-script.sh"
+    
