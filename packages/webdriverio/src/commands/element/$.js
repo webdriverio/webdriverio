@@ -7,6 +7,8 @@
  * make unnecessary requests that slow down the test (e.g. `$('body').$('div')` will trigger two request whereas
  * `$('body div')` does literary the same with just one request)
  *
+ * For more information on how to select specific elements, see [`Selectors`](/docs/selectors.html).
+ *
  * <example>
     :index.html
     <ul id="menu">
