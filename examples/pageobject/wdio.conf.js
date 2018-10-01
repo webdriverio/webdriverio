@@ -1,6 +1,10 @@
 exports.config = {
 
     //
+    hostname: 'selenium-chrome',
+    //hostname: '0.0.0.0',
+    port: 4444,
+    path: '/wd/hub',
     // ==================
     // Specify Test Files
     // ==================
@@ -25,6 +29,7 @@ exports.config = {
     //
     capabilities: [{
         browserName: 'chrome'
+
     }],
     //
     // ===================
