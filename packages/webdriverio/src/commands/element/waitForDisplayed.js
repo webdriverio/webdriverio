@@ -8,12 +8,12 @@
     :index.html
     <div id="elem" style="visibility: hidden;">Hello World!</div>
     <script type="text/javascript">
-        setTimeout(function () {
+        setTimeout(() => {
             document.getElementById('elem').style.visibility = 'visible';
         }, 2000);
     </script>
     :waitForVisibleExample.js
-    it('should detect when element is visible', function () {
+    it('should detect when element is visible', () => {
         const elem = $('#elem')
         elem.waitForDisplayed(3000);
     });

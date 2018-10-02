@@ -81,7 +81,11 @@ export default class SauceService {
             /**
              * Cucumber v2
              */
-            (typeof feature.getFailureException === 'function' && feature.getFailureException())
+            (typeof feature.getFailureException === 'function' && feature.getFailureException()) ||
+            /**
+             * Cucumber v3, v4
+             */
+            (feature.status === 'failed')
         ) {
             ++this.failures
         }

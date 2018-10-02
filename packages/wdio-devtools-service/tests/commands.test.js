@@ -13,9 +13,15 @@ jest.mock('../src/utils', () => ({
 
 test('initialization', () => {
     const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
+    const browserMock = { addCommand: jest.fn(), emit: jest.fn() }
     new CommandHandler(clientMock, browserMock)
     expect(browserMock.addCommand.mock.calls).toHaveLength(10)
+    expect(clientMock.on).toBeCalled()
+
+    const event = { method: 'foobar.bar', params: 123 }
+    expect(browserMock.emit).not.toBeCalled()
+    clientMock.on.mock.calls[4][1](event)
+    expect(browserMock.emit).toBeCalled()
 })
 
 test('cdp', async () => {
@@ -102,6 +108,15 @@ test('endTracing', async () => {
     expect(stream).toBe(42)
     expect(handler.traceEvents).toBe('foobar')
     expect(handler.isTracing).toBe(false)
+})
+
+test('endTracing throws if not tracing', async () => {
+    const clientMock = { on: jest.fn() }
+    const browserMock = new MyEmitter()
+    browserMock.addCommand = jest.fn()
+
+    const handler = new CommandHandler(clientMock, browserMock)
+    await expect(handler.endTracing()).rejects.toBeInstanceOf(Error)
 })
 
 test('getTraceLogs', () => {

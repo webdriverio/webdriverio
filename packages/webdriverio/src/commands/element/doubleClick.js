@@ -7,12 +7,11 @@
     <button id="myButton" ondblclick="document.getElementById('someText').innerHTML='I was dblclicked'">Click me</button>
     <div id="someText">I was not clicked</div>
     :doubleClick.js
-    it('should demonstrate the doubleClick command', function () {
-        var myButton = $('#myButton')
+    it('should demonstrate the doubleClick command', () => {
+        const myButton = $('#myButton')
         myButton.doubleClick()
-        // or
-        browser.doubleClick('#myButton')
-        var value = browser.getText('#someText')
+
+        const value = myButton.getText()
         assert(value === 'I was dblclicked') // true
     })
  * </example>

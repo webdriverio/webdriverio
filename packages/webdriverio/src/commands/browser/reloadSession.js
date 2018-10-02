@@ -8,10 +8,10 @@
  *
  * <example>
     :reloadSync.js
-    it('should reload my session', function () {
-        console.log(browser.sessionId); // outputs: e042b3f3cd5a479da4e171825e96e655
-        browser.reload();
-        console.log(browser.sessionId); // outputs: 9a0d9bf9d4864160aa982c50cf18a573
+    it('should reload my session', () => {
+        console.log(browser.sessionId) // outputs: e042b3f3cd5a479da4e171825e96e655
+        browser.reload()
+        console.log(browser.sessionId) // outputs: 9a0d9bf9d4864160aa982c50cf18a573
     })
  * </example>
  *

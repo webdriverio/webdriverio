@@ -132,6 +132,26 @@ const parent = paragraph.$('..');
 console.log(parent.getTagName()); // outputs: "body"
 ```
 
+## JS Function
+
+You can also use JS functions to fetch elements using web native APIs. This of course is only supported in a web environment (e.g. browser or web context in mobile). Given the following HTML structure:
+
+```html
+<html>
+    <body>
+        <p id="elem">foobar</p>
+        <p>barfoo</p>
+    </body>
+</html>
+```
+
+You can query the sibling element of `#elem` as follows:
+
+```js
+const elem = $('#elem') // or $(() => document.getElementById('elem'))
+elem.$(() => this.nextSibling.nextSibling) // (first sibling is #text with value ("↵"))
+```
+
 ## Mobile Selectors
 
 For (hybrid/native) mobile testing you have to use mobile strategies and use the underlying device automation technology directly. This is especially useful when a test needs some fine-grained control over finding elements.

@@ -8,13 +8,15 @@
  *
  * <example>
     :newWindowSync.js
-    it('should open a new tab', function () {
+    it('should open a new tab', () => {
         browser.url('http://google.com')
-        console.log(browser.getTitle()); // outputs: "Google"
+        console.log(browser.getTitle()) // outputs: "Google"
+
         browser.newWindow('http://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
-        console.log(browser.getTitle()); // outputs: "WebdriverIO - WebDriver bindings for Node.js"
+        console.log(browser.getTitle()) // outputs: "WebdriverIO - WebDriver bindings for Node.js"
+
         browser.close()
-        console.log(browser.getTitle()); // outputs: "Google"
+        console.log(browser.getTitle()) // outputs: "Google"
     });
  * </example>
  *

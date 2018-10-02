@@ -14,7 +14,8 @@ export const SUPPORTED_REPORTER = [
     ' json - https://www.npmjs.com/package/wdio-json-reporter',
     ' concise - https://www.npmjs.com/package/wdio-concise-reporter',
     ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
+    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
@@ -49,7 +50,9 @@ Usage: wdio repl <browserName>
 
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
-An optional list of spec files can be piped to wdio that will override configured specs`
+An optional list of spec files can be piped to wdio that will override configured specs.
+Same applies to the exclude option. It can take a list of specs to exclude for a given run 
+and it also overrides the exclude key from the config file.`
 
 export const CONFIG_HELPER_INTRO = `
 =========================
@@ -128,6 +131,10 @@ export const CLI_PARAMS = [{
 }, {
     name: 'spec',
     description: `run only a certain spec file - overrides specs piped from stdin`,
+    type: 'array'
+}, {
+    name: 'exclude',
+    description: `exclude certain spec file from the test run - overrides exclude piped from stdin`,
     type: 'array'
 }, {
     name: 'mochaOpts',

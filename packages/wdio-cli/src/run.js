@@ -26,7 +26,7 @@ export default function run (params) {
      * if no default wdio.conf was found and no path to a wdio config was specified
      * run the setup
      */
-    if (!wdioConf) {
+    if (!wdioConf || firstArgument === 'config') {
         return setup()
     }
 

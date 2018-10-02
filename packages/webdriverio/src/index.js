@@ -41,6 +41,12 @@ export const remote = function (params = {}, remoteModifier) {
     return WebDriver.newSession(params, modifier, prototype, wrapCommand)
 }
 
+export const attach = function ({ sessionId, options, capabilities, isW3C }) {
+    const prototype = getPrototype('browser')
+    const params = Object.assign({}, options, { sessionId }, { isW3C }, { capabilities })
+    return WebDriver.attachToSession(params, null, prototype)
+}
+
 export const multiremote = async function (params = {}) {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)

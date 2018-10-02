@@ -7,6 +7,8 @@
  * make unnecessary requests that slow down the test (e.g. `$('body').$('div')` will trigger two request whereas
  * `$('body div')` does literary the same with just one request)
  *
+ * For more information on how to select specific elements, see [`Selectors`](/docs/selectors.html).
+ *
  * <example>
     :index.html
     <ul id="menu">
@@ -16,8 +18,8 @@
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', function () {
-        var text = $('#menu');
+    it('should get text a menu link', () => {
+        const text = $('#menu');
         console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
         // same as
         console.log(text.$$('li')[2].getText('a'));
@@ -32,13 +34,12 @@
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
 import { wrapCommand } from 'wdio-config'
 
-import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { findElement, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
-    const { using, value } = findStrategy(selector, this.isW3C)
-    const res = await this.findElementFromElement(this.elementId, using, value)
+    const res = await findElement.call(this, selector)
     const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
 
     const element = webdriverMonad(this.options, (client) => {

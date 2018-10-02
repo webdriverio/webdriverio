@@ -3,6 +3,8 @@
  * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
  * it from an element scope is that the driver will look within the children of that element.
  *
+ * For more information on how to select specific elements, see [`Selectors`](/docs/selectors.html).
+ *
  * <example>
     :index.html
     <ul id="menu">
@@ -12,8 +14,8 @@
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', function () {
-        var text = $('#menu');
+    it('should get text a menu link', () => {
+        const text = $('#menu');
         console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
         // same as
         console.log(text.$$('li')[2].getText('a'));
@@ -28,13 +30,12 @@
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
 import { wrapCommand } from 'wdio-config'
 
-import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { findElements, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function $$ (selector) {
-    const { using, value } = findStrategy(selector, this.isW3C)
-    const res = await this.findElementsFromElement(this.elementId, using, value)
+    const res = await findElements.call(this, selector)
     const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
 
     const elements = res.map((res, i) => {

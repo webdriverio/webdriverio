@@ -13,7 +13,7 @@
         <option value="someValue5">seis</option>
     </select>
     :selectByIndex.js
-    it('Should demonstrate the selectByIndex command', function () {
+    it('Should demonstrate the selectByIndex command', () => {
         const selectBox = $('#selectbox');
         console.log(selectBox.getValue()); // returns "someValue0"
         selectBox.selectByIndex(4);

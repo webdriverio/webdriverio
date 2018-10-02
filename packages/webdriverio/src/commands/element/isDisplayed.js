@@ -9,7 +9,7 @@
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isDisplayed.js
-    it('should detect if an element is displayed', function () {
+    it('should detect if an element is displayed', () => {
         let elem = $('#notDisplayed');
         let isDisplayed = elem.isDisplayed();
         console.log(isDisplayed); // outputs: false

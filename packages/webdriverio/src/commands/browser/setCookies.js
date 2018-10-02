@@ -6,10 +6,11 @@
  *
  * <example>
     :setCookie.js
-    it('should set a cookie for the page', function () {
+    it('should set a cookie for the page', () => {
         browser.url('/')
-        browser.setCookie({name: 'test', value: '123'});
-        var cookies = browser.getCookie();
+        browser.setCookie({name: 'test', value: '123'})
+
+        const cookies = browser.getCookie()
         console.log(cookies); // outputs: [{ name: 'test', value: '123', domain: 'www.example.com' }]
     });
  * </example>
