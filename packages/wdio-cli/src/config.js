@@ -15,7 +15,7 @@ export const SUPPORTED_REPORTER = [
     ' concise - https://www.npmjs.com/package/wdio-concise-reporter',
     ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
     ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
-    ' timeline - https://www.npmjs.com/package/wdio-mochawesome-reporter'
+    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
