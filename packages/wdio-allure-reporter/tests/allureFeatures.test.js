@@ -50,6 +50,38 @@ describe('reporter runtime implementation', () => {
         expect(addLabel).toHaveBeenCalledWith('severity', 'foo')
     })
 
+    it('should correctly add issue label', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addLabel}
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addIssue({issue: '1'})
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('issue', '1')
+    })
+
+    it('should correctly add test id label', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addLabel}
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addTestId({testId: '2'})
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('testId', '2')
+    })
+
     it('should correct add environment', () => {
         const reporter = new AllureReporter({stdout: true})
         const addParameter = jest.fn()
@@ -171,6 +203,8 @@ describe('reporter runtime implementation', () => {
         expect(reporter.addStory({})).toEqual(false)
         expect(reporter.addFeature({})).toEqual(false)
         expect(reporter.addSeverity({})).toEqual(false)
+        expect(reporter.addIssue({})).toEqual(false)
+        expect(reporter.addTestId({})).toEqual(false)
         expect(reporter.addEnvironment({})).toEqual(false)
         expect(reporter.addDescription({})).toEqual(false)
         expect(reporter.addAttachment({})).toEqual(false)

@@ -20,6 +20,8 @@ const events = {
     addFeature: 'allure:addFeature',
     addStory: 'allure:addStory',
     addSeverity: 'allure:addSeverity',
+    addIssue: 'allure:addIssue',
+    addTestId: 'allure:addTestId',
     addEnvironment: 'allure:addEnvironment',
     addDescription: 'allure:addDescription',
     addAttachment: 'allure:addAttachment',
