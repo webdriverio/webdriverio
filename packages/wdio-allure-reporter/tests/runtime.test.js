@@ -28,6 +28,18 @@ describe('reporter runtime api', () => {
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addSeverity, {severity: 'foo'})
     })
 
+    it('should pass correct data from addIssue', () => {
+        runtime.addIssue('1')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addIssue, {issue: '1'})
+    })
+
+    it('should pass correct data from addTestId', () => {
+        runtime.addTestId('2')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addTestId, {testId: '2'})
+    })
+
     it('should pass correct data from addEnvironment', () => {
         runtime.addEnvironment('foo', 'bar')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)

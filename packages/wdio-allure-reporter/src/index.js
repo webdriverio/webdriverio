@@ -17,6 +17,8 @@ class AllureReporter extends WDIOReporter {
         process.on(events.addFeature, ::this.addFeature)
         process.on(events.addStory, ::this.addStory)
         process.on(events.addSeverity, ::this.addSeverity)
+        process.on(events.addIssue, ::this.addIssue)
+        process.on(events.addTestId, ::this.addTestId)
         process.on(events.addEnvironment, ::this.addEnvironment)
         process.on(events.addAttachment, ::this.addAttachment)
         process.on(events.addDescription, ::this.addDescription)
@@ -160,6 +162,24 @@ class AllureReporter extends WDIOReporter {
 
         const test = this.allure.getCurrentTest()
         test.addLabel('severity', severity)
+    }
+
+    addIssue({issue}) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+
+        const test = this.allure.getCurrentTest()
+        test.addLabel('issue', issue)
+    }
+
+    addTestId({testId}) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+
+        const test = this.allure.getCurrentTest()
+        test.addLabel('testId', testId)
     }
 
     addEnvironment({name, value}) {

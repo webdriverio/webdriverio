@@ -19,6 +19,8 @@ describe('Passing tests', () => {
         reporter.addStory({storyName: 'Story'})
         reporter.addFeature( {featureName: 'foo'})
         reporter.addSeverity({severity: 'baz'})
+        reporter.addIssue({issue: '1'})
+        reporter.addTestId({testId: '2'})
         reporter.addEnvironment({name: 'jenkins', value: '1.2.3'})
         reporter.addDescription({description: 'functions', type: 'html'})
         reporter.addAttachment({name: 'My attachment', content: '99thoughtz', type: 'text/plain'})
@@ -58,10 +60,12 @@ describe('Passing tests', () => {
         expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
     })
 
-    it('should add story, feature, severity, labels, thread', () => {
+    it('should add story, feature, severity, issue, testId labels, thread', () => {
         expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('foo')
         expect(allureXml('test-case label[name="story"]').eq(0).attr('value')).toEqual('Story')
         expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('baz')
+        expect(allureXml('test-case label[name="issue"]').eq(0).attr('value')).toEqual('1')
+        expect(allureXml('test-case label[name="testId"]').eq(0).attr('value')).toEqual('2')
         expect(allureXml('test-case label[name="thread"]').eq(0).attr('value')).toEqual(testStart().cid)
     })
 
