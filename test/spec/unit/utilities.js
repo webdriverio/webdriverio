@@ -110,7 +110,7 @@ describe('utilities', () => {
                 message: 'did not map to a valid resource'
             })).to.be.equal(true)
         })
-        
+
         it('should recognise unknown server-side error response', () => {
             expect(isUnknownCommand({
                 message: 'java.io.IOException: Server returned HTTP response code: 405 for URL:',
@@ -119,7 +119,7 @@ describe('utilities', () => {
                     message: 'An unknown server-side error occurred while processing the command.'
                 }
             })).to.be.equal(true)
-        });
+        })
     })
 
     describe('formatHostname', () => {
