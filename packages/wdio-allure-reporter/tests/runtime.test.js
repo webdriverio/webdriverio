@@ -90,4 +90,9 @@ describe('reporter runtime api', () => {
         expect(cb).toThrowError('Step status must be passed or failed or broken. You tried to set "canceled"')
     })
 
+    it('should pass correct data from addArgument', () => {
+        runtime.addArgument('os', 'osx')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addArgument, {name: 'os', value: 'osx'})
+    })
 })

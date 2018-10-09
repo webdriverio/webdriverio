@@ -91,3 +91,12 @@ export const addStep = (title, {content, name = 'attachment'}, status = stepStat
     }
     tellReporter(events.addStep, {step})
 }
+
+/**
+ * Add additional argument to test
+ * @param {string} name - argument name
+ * @param {string} value - argument value
+ */
+export const addArgument = (name, value) => {
+    tellReporter(events.addArgument, {name, value})
+}
