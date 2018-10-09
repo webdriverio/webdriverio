@@ -233,6 +233,22 @@ describe('reporter runtime implementation', () => {
         expect(startStep).toHaveBeenCalledWith(step.step.title)
         expect(endStep).toHaveBeenCalledWith(step.step.status)
     })
+
+    it('should correctly add argument', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addParameter = jest.fn()
+        const mock = jest.fn(() => {
+            return {addParameter}
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addArgument({name: 'os', value: 'osx'})
+        expect(addParameter).toHaveBeenCalledTimes(1)
+        expect(addParameter).toHaveBeenCalledWith('argument', 'os', 'osx')
+    })
 })
 
 describe('reporter runtime implementation', () => {
@@ -247,6 +263,7 @@ describe('reporter runtime implementation', () => {
         expect(reporter.addDescription({})).toEqual(false)
         expect(reporter.addAttachment({})).toEqual(false)
         expect(reporter.addStep({})).toEqual(false)
+        expect(reporter.addArgument({})).toEqual(false)
     })
 })
 
