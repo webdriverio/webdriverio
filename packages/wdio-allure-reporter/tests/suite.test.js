@@ -24,6 +24,7 @@ describe('Passing tests', () => {
         reporter.addEnvironment({name: 'jenkins', value: '1.2.3'})
         reporter.addDescription({description: 'functions', type: 'html'})
         reporter.addAttachment({name: 'My attachment', content: '99thoughtz', type: 'text/plain'})
+        reporter.addArgument({name: 'os', value: 'osx'})
         const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment'}, 'status': 'failed', 'title': 'foo'}}
         reporter.addStep(step)
         reporter.onTestPass(testPassed())
@@ -56,7 +57,7 @@ describe('Passing tests', () => {
     })
 
     it('should add browser name as test argument', () => {
-        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
+        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(2)
         expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
     })
 
@@ -83,6 +84,11 @@ describe('Passing tests', () => {
 
     it('should add attachment', () => {
         expect(allureXml('test-case attachment[title="My attachment"]')).toHaveLength(1)
+    })
+
+    it('should add additional argument', () => {
+        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(2)
+        expect(allureXml('test-case parameter[name="os"]').eq(0).attr('value')).toEqual('osx')
     })
 })
 

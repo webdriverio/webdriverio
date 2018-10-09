@@ -23,6 +23,7 @@ class AllureReporter extends WDIOReporter {
         process.on(events.addAttachment, ::this.addAttachment)
         process.on(events.addDescription, ::this.addDescription)
         process.on(events.addStep, ::this.addStep)
+        process.on(events.addArgument, ::this.addArgument)
     }
 
     onRunnerStart(runner) {
@@ -225,6 +226,14 @@ class AllureReporter extends WDIOReporter {
             this.addAttachment(step.attachment)
         }
         this.allure.endStep(step.status)
+    }
+
+    addArgument({name, value}) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+        const test = this.allure.getCurrentTest()
+        test.addParameter('argument', name, value)
     }
 
     isAnyTestRunning() {
