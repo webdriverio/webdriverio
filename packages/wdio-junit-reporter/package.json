@@ -37,7 +37,7 @@
     "validator": "^9.4.1"
   },
   "devDependencies": {
-    "libxmljs": "^0.18.7",
+    "libxmljs": "^0.19.5",
     "rimraf": "^2.6.2"
   }
 }
