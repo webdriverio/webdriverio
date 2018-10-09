@@ -120,7 +120,7 @@ describe('Failed tests', () => {
         expect(allureXml('test-case').attr('status')).toEqual('failed')
 
         expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
-        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(`${testStart().cid}-${testStart().cid}`)
+        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(testStart().cid)
     })
 
     it('should detect failed test case without start event', () => {
