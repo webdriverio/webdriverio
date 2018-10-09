@@ -98,6 +98,44 @@ describe('reporter runtime implementation', () => {
         expect(addParameter).toHaveBeenCalledWith('environment-variable', 'foo', 'bar')
     })
 
+    it('should correctly add argument for selenium', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addParameter = jest.fn()
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addParameter, addLabel}
+        })
+        reporter.allure = {
+            startCase: mock,
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.onRunnerStart({config: {capabilities: {browserName: 'firefox', version: '1.2.3'}}})
+        reporter.onTestStart({cid: '0-0', title: 'SomeTest'})
+        expect(addParameter).toHaveBeenCalledTimes(1)
+        expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'firefox-1.2.3')
+    })
+
+    it('should correctly add argument for appium', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addParameter = jest.fn()
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addParameter, addLabel}
+        })
+        reporter.allure = {
+            startCase: mock,
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.onRunnerStart({config: {capabilities: {deviceName: 'Android Emulator', platformVersion: '8.0'}}})
+        reporter.onTestStart({cid: '0-0', title: 'SomeTest'})
+        expect(addParameter).toHaveBeenCalledTimes(1)
+        expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Android Emulator-8.0')
+    })
+
     it('should correct add description', () => {
         const reporter = new AllureReporter({stdout: true})
         const setDescription = jest.fn()
