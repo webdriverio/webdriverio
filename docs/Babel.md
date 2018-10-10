@@ -23,11 +23,11 @@ Make sure your [`.babelrc`](https://babeljs.io/docs/en/babelrc.html) is configur
 }
 ```
 
-There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need to register Babel in the before hook of your config file
+There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need to register Babel in the before session hook of your config file
 
 ```js
-before: function() {
-    require('babel-register');
+beforeSession: function (config, capabilities, specs) {
+    require('babel-register')
 },
 ```
 
