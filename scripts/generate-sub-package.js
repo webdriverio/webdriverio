@@ -50,7 +50,7 @@ inquirer.prompt(questions).then(answers => {
   },
   "scripts": {
     "build": "run-s clean compile",
-    "clean": "rm -rf ./build",
+    "clean": "rimraf ./build",
     "compile": "babel src/ -d build/",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",

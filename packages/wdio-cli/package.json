@@ -14,9 +14,9 @@
   },
   "scripts": {
     "build": "run-s clean compile copy",
-    "clean": "rm -rf ./build",
+    "clean": "rimraf ./build",
     "compile": "babel src/ -d build/",
-    "copy": "cp -r src/templates build/",
+    "copy": "copyfiles src/templates/*.ejs ./build/",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
