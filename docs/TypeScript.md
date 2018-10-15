@@ -22,3 +22,18 @@ Similarly for mocha:
         ]
     },
 ```
+and:
+
+```json
+    //tsconfig.json
+    "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+            "*": [ "./*" ],
+            "src/*": ["./src/*"]
+        }
+    },
+    "include": [
+        "./src/**/*.ts"
+    ]
+```
