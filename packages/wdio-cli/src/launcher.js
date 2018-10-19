@@ -75,7 +75,7 @@ class Launcher {
              */
             log.info('Run multiremote onComplete hook')
             await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-            await config.onComplete(exitCode, config, caps)
+            await config.onComplete(exitCode, config, caps, this.interface.result)
 
             return exitCode
         }
@@ -132,7 +132,7 @@ class Launcher {
          */
         log.info('Run onComplete hook')
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-        await config.onComplete(exitCode, config, caps)
+        await config.onComplete(exitCode, config, caps, this.interface.result)
 
         this.interface.updateView()
         return exitCode

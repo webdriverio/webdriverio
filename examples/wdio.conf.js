@@ -307,8 +307,9 @@ exports.config = {
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities) {
+    onComplete: function (exitCode, config, capabilities, results) {
     },
     //
     // Cucumber specific hooks
