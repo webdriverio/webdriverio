@@ -3,7 +3,7 @@ WDIO Logger Utility
 
 > A helper utility for logging of WebdriverIO packages
 
-This package is used across all WebdriverIO packages to log information using the [`loglevel`](https://www.npmjs.com/package/loglevel) package. In can also be used for any other arbitrary Node.js project.
+This package is used across all WebdriverIO packages to log information using the [`loglevel`](https://www.npmjs.com/package/loglevel) package. It can also be used for any other arbitrary Node.js project.
 
 ## Install
 
