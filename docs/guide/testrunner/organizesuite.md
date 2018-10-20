@@ -111,6 +111,12 @@ or run multiple specs at once:
 $ wdio wdio.conf.js --spec ./test/specs/signup.js,./test/specs/forgot-password.js
 ```
 
+In case of a feature (Cucumber) you can specify a single scenario by adding a line number:
+
+```sh
+$ wdio wdio.conf.js --spec ./test/specs/login.feature:6
+```
+
 If the spec passed in is not a path to a spec file, it is used as a filter for the spec file names defined in your configuration file. To run all specs with the word 'dialog' in the spec file names, you could use:
 
 ```sh
