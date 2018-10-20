@@ -52,6 +52,15 @@ describe('ConfigParser', () => {
         specs.should.include(path.resolve(__dirname, '..', 'functional/end.js'))
     })
 
+    it('should allow to specify a feature file with a scenario line number', () => {
+        let configParser = new ConfigParser()
+        configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
+        let featureFileSpec = path.resolve(FIXTURES_PATH, 'dummy.feature:6')
+        configParser.merge({ specs: featureFileSpec })
+        let specs = configParser.getSpecs()
+        specs.should.include(featureFileSpec)
+    })
+
     it('should throw when suite is not defined', () => {
         let configParser = new ConfigParser()
         configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'exclude.conf.js'))
