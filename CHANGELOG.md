@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v4.14.0 (2018-10-23)
+* global:
+    * add `isKeyboardShown` command (#2848)
+    * add support for find by attribute and content, e.g. `div[data-test-name="main"]*=Hello` (#2970)
+* wdio changes:
+    * add `exclude` cli parameter
+* bugfixes:
+    * allow W3C fallbacks in IEDriver
+
 ## v4.13.2 (2018-08-17)
 * global changes:
     * docs improvements
