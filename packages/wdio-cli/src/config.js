@@ -39,6 +39,11 @@ export const SUPPORTED_RUNNERS = [
     ' lambda - https://www.npmjs.com/package/wdio-lambda-runner'
 ]
 
+export const SUPPORTED_BROWSERS = [
+    'firefox',
+    'chrome'
+]
+
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
 
 export const USAGE = `
@@ -51,7 +56,7 @@ Usage: wdio repl <browserName>
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
 An optional list of spec files can be piped to wdio that will override configured specs.
-Same applies to the exclude option. It can take a list of specs to exclude for a given run 
+Same applies to the exclude option. It can take a list of specs to exclude for a given run
 and it also overrides the exclude key from the config file.`
 
 export const CONFIG_HELPER_INTRO = `
@@ -148,6 +153,12 @@ export const CLI_PARAMS = [{
 }]
 
 export const QUESTIONNAIRE = [{
+    type: 'checkbox',
+    name: 'browsers',
+    message: 'On which browsers will you be testing?',
+    choices: SUPPORTED_BROWSERS,
+    default: SUPPORTED_BROWSERS
+}, {
     type: 'list',
     name: 'runner',
     message: 'Where should your tests be launched',
