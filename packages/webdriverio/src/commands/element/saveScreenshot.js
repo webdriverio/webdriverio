@@ -25,8 +25,8 @@ export default async function saveScreenshot (filepath) {
     /**
      * type check
      */
-    if (typeof filepath !== 'string') {
-        throw new Error('saveScreenshot expects a filepath from type string')
+    if (typeof filepath !== 'string' || !filepath.endsWith('.png')) {
+        throw new Error('saveScreenshot expects a filepath from type string and ".png" file ending')
     }
 
     const absoluteFilepath = filepath.startsWith('/')
