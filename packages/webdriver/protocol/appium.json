@@ -996,5 +996,23 @@
         }
       }
     }
+  },
+  "/session/:sessionId/appium/device/finger_print": {
+    "POST": {
+      "command": "fingerPrint",
+      "description": "Authenticate users by using their finger print scans on supported emulators.",
+      "ref": "http://appium.io/docs/en/commands/device/authentication/finger-print/",
+      "parameters": [{
+        "name": "fingerprintId",
+        "type": "number",
+        "description": "finger prints stored in Android Keystore system (from 1 to 10)",
+        "required": true
+      }],
+      "support": {
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
   }
 }
