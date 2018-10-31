@@ -18,7 +18,7 @@
     })
  * </example>
  *
- * @alias browser.addValue
+ * @alias element.addValue
  * @param {String} selector   Input element
  * @param {*}      values     value to be added
  * @uses protocol/elements, protocol/elementIdValue

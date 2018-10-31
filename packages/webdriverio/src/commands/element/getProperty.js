@@ -10,7 +10,7 @@
     })
  * </example>
  *
- * @alias browser.getProperty
+ * @alias element.getProperty
  * @param {String} property  name of the element property
  */
 
