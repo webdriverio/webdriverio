@@ -33,7 +33,7 @@
     });
  * </example>
  *
- * @alias browser.isDisplayed
+ * @alias element.isDisplayed
  * @return {Boolean} true if element(s)* [is|are] displayed
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state

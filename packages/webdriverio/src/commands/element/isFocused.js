@@ -11,13 +11,13 @@
         browser.url('/');
         const loginInput = $('[name="login"]');
         console.log(loginInput.hasFocus()); // outputs: false
-        
+
         loginInput.click();
         console.log(loginInput.hasFocus()); // outputs: true
     })
  * </example>
  *
- * @alias browser.isFocused
+ * @alias element.isFocused
  * @return {Boolean}         true if one of the matching elements has focus
  *
  * @uses protocol/execute
