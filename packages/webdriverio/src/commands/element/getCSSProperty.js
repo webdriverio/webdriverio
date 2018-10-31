@@ -40,7 +40,7 @@
         //          string: 'helvetica, arial, freesans, clean, sans-serif'
         //      }
         // }
-        
+
         var width = elem.getCssProperty('width')
         console.log(width)
         // outputs the following:
@@ -57,7 +57,7 @@
     })
  * </example>
  *
- * @alias browser.getCssProperty
+ * @alias element.getCssProperty
  * @param {String} selector    element with requested style attribute
  * @param {String} cssProperty css property name
  * @uses protocol/elements, protocol/elementIdCssProperty

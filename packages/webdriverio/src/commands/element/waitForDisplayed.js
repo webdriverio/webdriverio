@@ -19,7 +19,7 @@
     });
  * </example>
  *
- * @alias browser.waitForDisplayed
+ * @alias element.waitForDisplayed
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
  * @uses utility/waitUntil, state/isDisplayed

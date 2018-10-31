@@ -21,7 +21,7 @@
     });
  * </example>
  *
- * @alias browser.getHTML
+ * @alias element.getHTML
  * @param {String}   selector           element to get the current DOM structure from
  * @param {Boolean=} includeSelectorTag if true it includes the selector element tag (default: true)
  * @uses action/selectorExecute

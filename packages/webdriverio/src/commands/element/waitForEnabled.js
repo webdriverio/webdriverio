@@ -24,7 +24,7 @@
     });
  * </example>
  *
- * @alias browser.waitForEnabled
+ * @alias element.waitForEnabled
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
  * @uses utility/waitUntil, state/isEnabled
