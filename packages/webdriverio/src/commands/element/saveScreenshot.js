@@ -11,7 +11,7 @@
  * </example>
  *
  * @alias element.saveScreenshot
- * @param   {String}  filename  path to the generated image (relative to the execution directory)
+ * @param   {String}  filename  path to the generated image (`.png` suffix is required) relative to the execution directory
  * @return  {Buffer}            screenshot buffer
  * @type utility
  *
@@ -26,7 +26,7 @@ export default async function saveScreenshot (filepath) {
      * type check
      */
     if (typeof filepath !== 'string' || !filepath.endsWith('.png')) {
-        throw new Error('saveScreenshot expects a filepath from type string and ".png" file ending')
+        throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
     }
 
     const absoluteFilepath = filepath.startsWith('/')
