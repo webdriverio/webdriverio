@@ -21,7 +21,7 @@ describe('saveScreenshot', () => {
     })
 
     it('should fail if no filename provided', async () => {
-        const expectedError = new Error('saveScreenshot expects a filepath from type string and ".png" file ending')
+        const expectedError = new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
