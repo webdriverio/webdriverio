@@ -1,6 +1,6 @@
 import merge from 'deepmerge'
 import logger from 'wdio/logger'
-import { remote, multiremote } from 'webdriverio'
+import { remote, multiremote, attach } from 'webdriverio'
 import { initialisePlugin } from 'wdio/config'
 
 const log = logger('wdio-local-runner:utils')
@@ -56,6 +56,19 @@ export function initialiseServices (config) {
  * initialise browser instance depending whether remote or multiremote is requested
  */
 export async function initialiseInstance (config, capabilities, isMultiremote) {
+    /**
+     * check if config has sessionId and attach it to a running session if so
+     */
+    if (config.sessionId) {
+        log.debug(`attach to session with id ${config.sessionId}`)
+        return attach({
+            sessionId: config.sessionId,
+            config,
+            capabilities,
+            // isW3C - ToDo: check if session is running on WebDriver
+        })
+    }
+
     if (!isMultiremote) {
         log.debug('init remote session')
         config.capabilities = capabilities
