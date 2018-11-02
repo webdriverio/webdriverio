@@ -99,7 +99,7 @@ export default class Runner extends EventEmitter {
         try {
             failures = failures = await this.framework.run(cid, config, specs, caps, this.reporter)
             await this._fetchDriverLogs(config)
-            await this._endSession(config)
+            await this._endSession(config, argv.watch)
         } catch (e) {
             log.error(e)
             this.emit('error', e)
@@ -206,7 +206,14 @@ export default class Runner extends EventEmitter {
      *
      * @param  {Object}  config  configuration object
      */
-    async _endSession (config) {
+    async _endSession (config, inWatchMode) {
+        /**
+         * in watch mode we don't close the session and open a blank page instead
+         */
+        if (inWatchMode) {
+            return global.browser.url('about:blank')
+        }
+
         await global.browser.deleteSession()
         delete global.browser.sessionId
         await runHook('afterSession', config, this.caps, this.specs)
