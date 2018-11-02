@@ -4,6 +4,7 @@ import logger from '@wdio/logger'
 
 import Launcher from './launcher.js'
 import setup from './setup'
+import watch from './watch'
 
 const log = logger('wdio-cli:run')
 
@@ -28,6 +29,13 @@ export default function run (params) {
      */
     if (!wdioConf || firstArgument === 'config') {
         return setup()
+    }
+
+    /**
+     * if `--watch` param is set, run launcher in watch mode
+     */
+    if (params.watch) {
+        return watch(wdioConf, params)
     }
 
     /**
