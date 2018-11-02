@@ -13,6 +13,11 @@ process.on('message', (m) => {
     })
 
     runner.on('exit', ::process.exit)
+    runner.on('error', ({ name, message, stack }) => process.send({
+        origin: 'worker',
+        name: 'error',
+        content: { name, message, stack }
+    }))
 })
 
 /**
@@ -30,11 +35,12 @@ process.on('SIGINT', () => {
     runner.sigintWasCalled = true
 
     /**
-     * if session is currently in booting process don't do anythign
+     * if session is currently in booting process don't do anything
+     * and let runner close the session again
      */
     if (!global.browser) {
         return
     }
 
-    return runner.kill()
+    return process.exit(1)
 })

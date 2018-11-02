@@ -39,6 +39,7 @@
     "@wdio/interface": "^5.0.0-beta.5",
     "@wdio/logger": "^5.0.0-beta.5",
     "chalk": "^2.3.2",
+    "chokidar": "^2.0.4",
     "cli-spinners": "^1.1.0",
     "deepmerge": "^2.0.1",
     "ejs": "^2.5.7",
