@@ -23,7 +23,14 @@ export default class WDIOCLInterface extends EventEmitter {
             failed: 0
         }
         this.messages = {
-            reporter: {}
+            /**
+             * messages from worker reporters
+             */
+            reporter: {},
+            /**
+             * messages from worker itself
+             */
+            worker: {}
         }
 
         this.interface = new CLInterface()
@@ -127,6 +134,11 @@ export default class WDIOCLInterface extends EventEmitter {
             }
             if (this.interface.stderrBuffer.length) {
                 this.interface.log(chalk.bgRed.black(`Stderr:\n`) + this.interface.stderrBuffer.join(''))
+            }
+            if (this.messages.worker.error) {
+                this.interface.log(chalk.bgRed.black(`Worker Error:\n`) + this.messages.worker.error.map(
+                    (e) => e.stack
+                ).join('\n') + '\n')
             }
         }
 
