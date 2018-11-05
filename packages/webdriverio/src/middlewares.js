@@ -8,12 +8,6 @@ const log = logger('webdriverio')
  *
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
-
-/**
- * [elementErrorHandler description]
-
- * @return {[type]}      [description]
- */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
     return function (...args) {
         /**

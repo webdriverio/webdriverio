@@ -1,9 +1,10 @@
 import logger from 'wdio-logger'
+import { validateConfig } from 'wdio-config'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, validateConfig } from './utils'
+import { getPrototype } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -29,7 +30,7 @@ export default class WebDriver {
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = Boolean(response.value.capabilities)
 
-        const prototype = Object.assign(WebDriver.getPrototype(params.isW3C), proto)
+        const prototype = Object.assign(getPrototype(params.isW3C), proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
@@ -70,16 +71,12 @@ export default class WebDriver {
     static get AppiumProtocol () {
         return AppiumProtocol
     }
-    /**
-     * Helper methods consumed by webdriverio package
-     */
-    static get webdriverMonad () {
-        return webdriverMonad
-    }
-    static get getPrototype () {
-        return getPrototype
-    }
-    static get validateConfig () {
-        return validateConfig
-    }
+}
+
+/**
+ * Helper methods consumed by webdriverio package
+ */
+export {
+    webdriverMonad,
+    getPrototype
 }

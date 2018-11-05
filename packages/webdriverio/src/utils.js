@@ -148,7 +148,7 @@ const applyScopePrototype = (prototype, scope) => {
     const files = fs.readdirSync(dir)
     for (let filename of files) {
         const commandName = path.basename(filename, path.extname(filename))
-        prototype[commandName] = { value: require(path.join(dir, commandName)) }
+        prototype[commandName] = { value: require(path.join(dir, commandName)).default }
     }
 }
 
