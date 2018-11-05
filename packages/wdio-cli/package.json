@@ -15,7 +15,7 @@
   "scripts": {
     "build": "run-s clean compile copy",
     "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../.babelrc",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "copy": "copyfiles src/templates/*.ejs ./build/",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
