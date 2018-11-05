@@ -15,7 +15,7 @@
     "eslintplugin",
     "eslint-plugin",
     "webdriver",
-    "wdio",
+    "wdio"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
