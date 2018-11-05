@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "create": "node ./scripts/generate-sub-package",
-    "bootstrap": "npm run clean && lerna bootstrap && npm run link",
+    "bootstrap": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "build": "lerna run build",
     "clean": "run-p clean:*",
     "clean:build": "rimraf ./packages/*/build",
