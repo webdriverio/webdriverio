@@ -20,7 +20,7 @@ A clear and concise question that doesn't require too much conversation. Need mo
  - **NPM version:** [e.g. 5.8.0]
  - **Browser name and version:** [e.g. Chrome 68]
  - **Platform name and version:** [e.g. Windows 10]
- - **Additional wdio packages used (if applicable):** [e.g. wdio-spec-reporter, wdio-selenium-standalone-service]
+ - **Additional wdio packages used (if applicable):** [e.g. @wdio/spec-reporter, @wdio/selenium-standalone-service]
 
 
 **Additional context**

@@ -1,4 +1,4 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import request from 'request'
 
 import WebDriverRequest from '../src/request'

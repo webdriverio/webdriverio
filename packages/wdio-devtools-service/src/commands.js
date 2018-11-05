@@ -1,5 +1,5 @@
 import speedline from 'speedline'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import FirstInteractiveAudit from './lighthouse/firstInteractive'
 import TraceOfTab from './lighthouse/tabTraces'

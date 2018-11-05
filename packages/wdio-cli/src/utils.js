@@ -1,4 +1,4 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 const log = logger('wdio-cli:utils')
 
@@ -23,13 +23,13 @@ export function getLauncher (config) {
             continue
         }
 
+        const pkgName = serviceName.startsWith('@')
+            ? `${serviceName}/launcher`
+            : `wdio-${serviceName}-service/launcher`
         try {
-            const pkgName = serviceName.startsWith('@')
-                ? `${serviceName}/launcher`
-                : `wdio-${serviceName}-service/launcher`
             service = require(pkgName)
         } catch (e) {
-            if (!e.message.match(`Cannot find module 'wdio-${serviceName}-service/launcher'`)) {
+            if (!e.message.match(`Cannot find module '${pkgName}'`)) {
                 throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
             }
         }
@@ -55,4 +55,13 @@ export async function runServiceHook (launcher, hookName, ...args) {
     } catch (e) {
         log.error(`A service failed in the '${hookName}' hook\n${e.stack}\n\nContinue...`)
     }
+}
+
+/**
+ * map package names
+ */
+export function filterPackageName (type) {
+    return (pkgLabel) => pkgLabel.trim().includes('@wdio')
+        ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
+        : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`
 }
