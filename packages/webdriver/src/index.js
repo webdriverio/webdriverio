@@ -1,5 +1,5 @@
-import logger from 'wdio-logger'
-import { validateConfig } from 'wdio-config'
+import logger from '@wdio/logger'
+import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'

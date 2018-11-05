@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import { commandCallStructure } from './utils'
 

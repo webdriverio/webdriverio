@@ -5,12 +5,12 @@ Handling the Selenium server is out of scope of the actual WebdriverIO project. 
 
 ## Installation
 
-The easiest way is to keep `wdio-selenium-standalone-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-selenium-standalone-service": "^5.0.0"
+    "@wdio/selenium-standalone-service": "^5.0.0"
   }
 }
 ```
@@ -18,7 +18,7 @@ The easiest way is to keep `wdio-selenium-standalone-service` as a devDependency
 You can simple do it by:
 
 ```bash
-npm install wdio-selenium-standalone-service --save-dev
+npm install @wdio/selenium-standalone-service --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)

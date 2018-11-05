@@ -12,7 +12,7 @@ Within your spec files or step definition you can access the webdriver instance 
 First you need to install the adapter package from NPM:
 
 ```sh
-npm install wdio-mocha-framework --save-dev
+npm install @wdio/mocha-framework --save-dev
 ```
 
 If you like to use Mocha you should additionally install an assertion library to have more expressive tests, e.g. [Chai](http://chaijs.com). Initialise that library in the `before` hook in your configuration file:
@@ -64,7 +64,7 @@ If you want to run something asynchronously you can either use the [`call`](api/
 First you need to install the adapter package from NPM:
 
 ```sh
-npm install wdio-jasmine-framework --save-dev
+npm install @wdio/jasmine-framework --save-dev
 ```
 
 Jasmine already provides assertion methods you can use with WebdriverIO. So there is no need to add another one.
@@ -98,11 +98,11 @@ commands the screenshot got taken which gives you still valuable information abo
 To use Cucumber you have to use WebdriverIO v4 until the framework has been migrated to v5. First you need to install the adapter package from NPM:
 
 ```sh
-npm install wdio-cucumber-framework --save-dev
+npm install @wdio/cucumber-framework --save-dev
 ```
 
 If you want to use Cucumber set the `framework` property to cucumber, either by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md) or by adding `-f cucumber` to the command line.
 
-Options for Cucumber can be given in the config file with cucumberOpts. Check out the whole list of options [here](https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options).
+Options for Cucumber can be given in the config file with cucumberOpts. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options).
 
 To get up and running quickly with Cucumber have a look on our [cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all step definition you will probably need and allows you to start writing feature files right away.

@@ -1,5 +1,5 @@
-import logger from 'wdio-logger'
-import { runTestInFiberContext, executeHooksWithArgs } from 'wdio-config'
+import logger from '@wdio/logger'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src'
 

@@ -30,7 +30,7 @@
  *
  */
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
-import { wrapCommand } from 'wdio-config'
+import { wrapCommand } from '@wdio/config'
 
 import { findElements, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'

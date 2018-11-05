@@ -1,4 +1,4 @@
-import { detectBackend } from 'wdio-config'
+import { detectBackend } from '@wdio/config'
 
 import { remote, multiremote } from '../src'
 

@@ -1,9 +1,9 @@
 {
-  "name": "wdio-local-runner",
+  "name": "@wdio/local-runner",
   "version": "5.0.0-beta.3",
   "description": "A WebdriverIO runner to run tests locally",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-local-runner",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
@@ -31,7 +31,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "wdio-logger": "^5.0.0-beta.3",
-    "wdio-runner": "^5.0.0-beta.3"
+    "@wdio/logger": "^5.0.0-beta.3",
+    "@wdio/runner": "^5.0.0-beta.3"
   }
 }

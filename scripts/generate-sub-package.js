@@ -24,6 +24,7 @@ inquirer.prompt(questions).then(answers => {
     const {packageName, packageType} = answers
     const packagesDir = path.join(__dirname, '..', 'packages')
     const fullPackageName = `wdio-${packageName}-${packageType}`
+    const fullScopedPackageName = `@wdio/${packageName}-${packageType}`
 
     const mainPackageFolder = path.join(packagesDir, fullPackageName)
     const mainPackageFolderFiles = [
@@ -38,11 +39,11 @@ inquirer.prompt(questions).then(answers => {
         {
             name: 'package.json',
             content: `{
-  "name": "${fullPackageName}",
+  "name": "${fullScopedPackageName}",
   "version": "0.0.0",
   "description": "A WebdriverIO ${packageType} that <provide ${packageType} description>",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/${fullPackageName}",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/${fullPackageName}",
   "license": "MIT",
   "main": "./build/index",
   "engines": {

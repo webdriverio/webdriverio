@@ -5,12 +5,12 @@ WDIO Jasmine Framework Adapter
 
 ## Installation
 
-The easiest way is to keep `wdio-jasmine-framework` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-jasmine-framework": "~1.0.0"
+    "@wdio/jasmine-framework": "^5.0.0"
   }
 }
 ```
@@ -18,7 +18,7 @@ The easiest way is to keep `wdio-jasmine-framework` as a devDependency in your `
 You can simple do it by:
 
 ```bash
-npm install wdio-jasmine-framework --save-dev
+npm install @wdio/jasmine-framework --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)

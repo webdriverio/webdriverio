@@ -1,7 +1,7 @@
 import request from 'request'
 import SumoLogicReporter from '../src'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 jest.useFakeTimers()
 

@@ -2,7 +2,7 @@ import path from 'path'
 import child from 'child_process'
 import EventEmitter from 'events'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import RunnerTransformStream from './transformStream'
 
 const log = logger('wdio-local-runner')

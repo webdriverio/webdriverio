@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import CDP from 'chrome-remote-interface'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 const log = logger('wdio-devtools-service:utils')
 

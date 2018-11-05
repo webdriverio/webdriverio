@@ -3,10 +3,10 @@ id: customreporter
 title: Custom Reporter
 ---
 
-You can write your own custom reporter for the wdio test runner that fits your needs. All you need to do is to create a node module that inherits from the `wdio-reporter` package so it can receive messages from the test. The basic construction should look like:
+You can write your own custom reporter for the wdio test runner that fits your needs. All you need to do is to create a node module that inherits from the `@wdio/reporter` package so it can receive messages from the test. The basic construction should look like:
 
 ```js
-import WDIOReporter from 'wdio-reporter';
+import WDIOReporter from '@wdio/reporter';
 
 export default class CustomReporter extends WDIOReporter {
     constructor (options) {
@@ -45,7 +45,7 @@ You can also publish the reporter to NPM so everyone can use it. Name the packag
 You can register event handler for several events which get triggered during the test. All these handlers will receive payloads with useful information about the current state and progress. The structure of these payload objects depend on the event and are unified across the frameworks (Mocha, Jasmine and Cucumber). Once you implemented your custom reporter it should work for all frameworks. The following list contains all possible methods you can add to your reporter class:
 
 ```js
-import WDIOReporter from 'wdio-reporter';
+import WDIOReporter from '@wdio/reporter';
 
 export default class CustomReporter extends WDIOReporter {
     onRunnerStart () {}
@@ -68,7 +68,7 @@ export default class CustomReporter extends WDIOReporter {
 The method names are pretty self explanatory. To print something on a certain event, use the `this.write(...)` method which is provided by the parent class (`WDIOReporter`). It either streams the content to stdout or to a log file depending on the options of the reporter.
 
 ```js
-import WDIOReporter from 'wdio-reporter';
+import WDIOReporter from '@wdio/reporter';
 
 export default class CustomReporter extends WDIOReporter {
     onTestPass (test) {

@@ -1,4 +1,4 @@
-import WDIOReporter from 'wdio-reporter'
+import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
 import {getTestStatus, ignoredHooks, isEmpty} from './utils'
