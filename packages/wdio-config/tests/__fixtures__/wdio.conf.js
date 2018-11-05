@@ -8,7 +8,7 @@ exports.config = {
     specs: [path.join(TEST_ROOT, '*.test.js')],
     exclude: [
         path.join(TEST_ROOT, '/detectBackend.test.js'),
-        path.join(TEST_ROOT, '/validateConfig.test.js')
+        path.join(TEST_ROOT, '/configparser.test.js')
     ],
     capabilities: {
         browserName: 'chrome'
@@ -17,7 +17,7 @@ exports.config = {
         unit: [path.join(TEST_ROOT, 'configparser.test.js')],
         mobile: [path.join(TEST_ROOT, 'detectBackend.test.js')],
         functional: [
-            path.join(TEST_ROOT, 'validateConfig.test.js'),
+            path.join(TEST_ROOT, 'configparser.test.js'),
             path.join(TEST_ROOT, '..', 'src/index.js')
         ]
     }

@@ -1,10 +1,9 @@
 import logger from 'wdio-logger'
-import { validateConfig } from 'wdio-config'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype } from './utils'
+import { getPrototype, validateConfig } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -56,6 +55,9 @@ export default class WebDriver {
     static get DEFAULTS () {
         return DEFAULTS
     }
+    /**
+     * Protocols
+     */
     static get WebDriverProtocol () {
         return WebDriverProtocol
     }
@@ -68,10 +70,16 @@ export default class WebDriver {
     static get AppiumProtocol () {
         return AppiumProtocol
     }
+    /**
+     * Helper methods consumed by webdriverio package
+     */
     static get webdriverMonad () {
         return webdriverMonad
     }
     static get getPrototype () {
         return getPrototype
+    }
+    static get validateConfig () {
+        return validateConfig
     }
 }
