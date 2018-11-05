@@ -1,18 +1,14 @@
 {
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
       "targets": {
         "node": "6"
       }
     }]
   ],
   "plugins": [
-    "transform-function-bind",
-    "add-module-exports",
-    "transform-class-properties",
-    ["babel-plugin-stack-trace-sourcemap", {
-        "importOverride": ["source-map-support", "install", "_sourceMapSupport"],
-        "execute": true
-    }]
+    "@babel/plugin-proposal-function-bind",
+    "@babel/plugin-proposal-export-default-from",
+    "@babel/plugin-proposal-class-properties"
   ]
 }
