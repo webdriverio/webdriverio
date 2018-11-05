@@ -88,7 +88,7 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toContain(__filename)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).toContain(path.join(__dirname, 'validateConfig.test.js'))
+            expect(specs).toContain(path.join(__dirname, 'configparser.test.js'))
             expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
         })
 
