@@ -176,4 +176,8 @@ export default class WDIOCLInterface extends EventEmitter {
     getClockSymbol () {
         return clockSpinner.frames[this.clockTimer = ++this.clockTimer % clockSpinner.frames.length]
     }
+
+    log (...args) {
+        return this.interface.log(...args)
+    }
 }
