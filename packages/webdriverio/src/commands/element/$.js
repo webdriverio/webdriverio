@@ -68,6 +68,5 @@ export default async function $ (selector) {
         return client
     }, prototype)
 
-    console.log(123, wrapCommand);
     return element(this.sessionId, elementErrorHandler(wrapCommand))
 }

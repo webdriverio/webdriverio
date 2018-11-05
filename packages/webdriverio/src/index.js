@@ -1,5 +1,5 @@
-import WebDriver, { validateConfig } from 'webdriver'
-import { wrapCommand, detectBackend } from 'wdio-config'
+import WebDriver from 'webdriver'
+import { wrapCommand, detectBackend, validateConfig } from 'wdio-config'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'

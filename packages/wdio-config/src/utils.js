@@ -60,7 +60,8 @@ export function initialisePlugin (name, type) {
     const pkgName = name[0] === '@' ? name : `wdio-${name.toLowerCase()}-${type}`
 
     try {
-        return require(pkgName)
+        return require(pkgName).default
+
     } catch (e) {
         if (!e.message.match(`Cannot find module '${pkgName}'`)) {
             throw new Error(`Couldn't initialise "${name}" ${type}.\n${e.stack}`)
