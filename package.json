@@ -26,17 +26,19 @@
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/plugin-proposal-export-default-from": "^7.0.0",
     "@babel/plugin-proposal-function-bind": "^7.0.0",
+    "@babel/plugin-syntax-export-default-from": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
     "@babel/register": "^7.0.0",
+    "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
-    "babel-jest": "^23.4.2",
+    "babel-jest": "^23.6.0",
     "babel-plugin-stack-trace-sourcemap": "^1.0.2",
     "codecov": "^3.0.0",
     "copyfiles": "^2.1.0",
     "eslint": "^4.7.2",
     "eslint-plugin-import": "^2.8.0",
     "inquirer": "^5.1.0",
-    "jest": "^21.2.1",
+    "jest": "^23.6.0",
     "lerna": "^3.4.3",
     "markdox": "^0.1.10",
     "np": "^2.18.2",
@@ -48,6 +50,9 @@
     "testMatch": [
       "/**/tests/**/*.test.js"
     ],
+    "transform": {
+      "^.+\\.js?$": "babel-jest"
+    },
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "coverageThreshold": {

@@ -47,7 +47,7 @@
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../.babelrc",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -57,6 +57,7 @@
     "grapheme-splitter": "^1.0.2",
     "lodash.zip": "^4.2.0",
     "rgb2hex": "^0.1.0",
+    "wdio-cli": "^5.0.0-beta.3",
     "wdio-config": "^5.0.0-beta.3",
     "wdio-logger": "^5.0.0-beta.3",
     "webdriver": "^5.0.0-beta.3"

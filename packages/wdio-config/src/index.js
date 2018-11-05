@@ -1,11 +1,12 @@
 import ConfigParser from './lib/ConfigParser'
-import { detectBackend, initialisePlugin } from './utils'
+import { validateConfig, detectBackend, initialisePlugin } from './utils'
 import {
     wrapCommand, runFnInFiberContext, runTestInFiberContext, executeHooksWithArgs,
     hasWdioSyncSupport
 } from './shim'
 
-export default {
+export {
+    validateConfig,
     detectBackend,
     initialisePlugin,
     ConfigParser,

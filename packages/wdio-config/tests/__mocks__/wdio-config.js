@@ -29,6 +29,13 @@ const pluginMocks = {
 
 export default {
     initialisePlugin: jest.fn().mockImplementation((name, type) => pluginMocks[type][name]),
+    validateConfig: jest.fn().mockImplementation(
+        (_, config) => Object.assign(
+            DEFAULT_CONFIGS,
+            { hostname: '0.0.0.0', port: 4444, protocol: 'http', path: '/wd/hub' },
+            config
+        )
+    ),
     wrapCommand: (_, origFn) => origFn,
     ConfigParser: ConfigParserMock,
     runTestInFiberContext: jest.fn(),

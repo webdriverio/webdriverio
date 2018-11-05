@@ -41,7 +41,6 @@ import { ELEMENT_KEY } from '../../constants'
 export default async function $ (selector) {
     const res = await findElement.call(this, selector)
     const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
-
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)
 
@@ -69,5 +68,6 @@ export default async function $ (selector) {
         return client
     }, prototype)
 
+    console.log(123, wrapCommand);
     return element(this.sessionId, elementErrorHandler(wrapCommand))
 }
