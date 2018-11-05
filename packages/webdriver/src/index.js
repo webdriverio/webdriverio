@@ -45,7 +45,7 @@ export default class WebDriver {
 
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C || true
-        const prototype = Object.assign(WebDriver.getPrototype(options.isW3C), proto)
+        const prototype = Object.assign(getPrototype(options.isW3C), proto)
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }

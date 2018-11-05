@@ -37,7 +37,7 @@ describe('saveScreenshot', () => {
     })
 
     it('should fail if not existing directory', async () => {
-        const fs = require('fs')
+        const fs = require('fs').default
         fs.existsSync = () => false
 
         const browser = await remote({
