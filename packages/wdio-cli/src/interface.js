@@ -1,8 +1,8 @@
 import chalk from 'chalk'
 import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
-import CLInterface from 'wdio-interface'
-import logger from 'wdio-logger'
+import CLInterface from '@wdio/interface'
+import logger from '@wdio/logger'
 
 const log = logger('wdio-cli')
 

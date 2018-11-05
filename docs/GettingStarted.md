@@ -100,10 +100,10 @@ Yay, Congratulations! You've just run your first automation script with Webdrive
 
 *(If you haven't already, navigate back to the project root directory)*
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`wdio-cli`](https://www.npmjs.com/package/wdio-cli) NPM package. To get started, we need to install this first:
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
 
 ```sh
-$ npm i --save-dev wdio-cli
+$ npm i --save-dev @wdio/cli
 ```
 
 ### Generate Configuration File

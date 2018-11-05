@@ -10,7 +10,7 @@
  */
 
 import stableSort from 'stable'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import LHError from './errors'
 
 const log = logger('wdio-devtools-service:TraceOfTab')

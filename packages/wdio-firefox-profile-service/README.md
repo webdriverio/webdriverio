@@ -7,12 +7,12 @@ To find all possible options just open [about:config](about:config) in your Fire
 
 ## Installation
 
-The easiest way is to keep `wdio-firefox-profile-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/firefox-profile-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-firefox-profile-service": "^5.0.0"
+    "@wdio/firefox-profile-service": "^5.0.0"
   }
 }
 ```
@@ -20,7 +20,7 @@ The easiest way is to keep `wdio-firefox-profile-service` as a devDependency in 
 You can simple do it by:
 
 ```bash
-npm install wdio-firefox-profile-service --save-dev
+npm install @wdio/firefox-profile-service --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)

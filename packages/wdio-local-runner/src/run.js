@@ -1,5 +1,5 @@
-import Runner from 'wdio-runner'
-import logger from 'wdio-logger'
+import Runner from '@wdio/runner'
+import logger from '@wdio/logger'
 
 const log = logger('wdio-local-runner')
 

@@ -2,8 +2,8 @@ import request from 'request'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter from 'wdio-reporter'
-import logger from 'wdio-logger'
+import WDIOReporter from '@wdio/reporter'
+import logger from '@wdio/logger'
 
 const log = logger('wdio-sumologic-reporter')
 

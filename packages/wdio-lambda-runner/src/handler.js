@@ -1,5 +1,5 @@
-import logger from 'wdio-logger'
-import Runner from 'wdio-runner'
+import logger from '@wdio/logger'
+import Runner from '@wdio/runner'
 
 const log = logger('wdio-lambda-runner')
 

@@ -11,10 +11,10 @@ export default function setup () {
     inquirer.prompt(QUESTIONNAIRE).then((answers) => {
         let packagesToInstall = []
         if (answers.installRunner) {
-            packagesToInstall.push(`wdio-${answers.runner}-runner`)
+            packagesToInstall.push(`@wdio/${answers.runner}-runner`)
         }
         if (answers.installFramework) {
-            packagesToInstall.push(`wdio-${answers.framework}-framework`)
+            packagesToInstall.push(`@wdio/${answers.framework}-framework`)
         }
         if (answers.installReporter) {
             packagesToInstall = packagesToInstall.concat(answers.reporters)
@@ -23,7 +23,7 @@ export default function setup () {
             packagesToInstall = packagesToInstall.concat(answers.services)
         }
         if (answers.executionMode === 'sync') {
-            packagesToInstall.push('wdio-sync')
+            packagesToInstall.push('@wdio/sync')
         }
 
         if (packagesToInstall.length > 0) {

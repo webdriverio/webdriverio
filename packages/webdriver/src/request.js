@@ -3,7 +3,7 @@ import http from 'http'
 import path from 'path'
 import https from 'https'
 import request from 'request'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import EventEmitter from 'events'
 
 import { isSuccessfulResponse } from './utils'

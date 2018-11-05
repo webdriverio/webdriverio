@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import Launcher from './launcher.js'
 import setup from './setup'
