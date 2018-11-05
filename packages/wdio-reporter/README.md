@@ -3,24 +3,24 @@ WebdriverIO Reporter
 
 > A WebdriverIO utility to help reporting all events
 
-The `wdio-reporter` package can be used to create own custom reporter and publish them to NPM. They have to follow a specific convention as described below in order to work properly. First you need to add `wdio-reporter` as dependency of your custom reporter:
+The `@wdio/reporter` package can be used to create own custom reporter and publish them to NPM. They have to follow a specific convention as described below in order to work properly. First you need to add `@wdio/reporter` as dependency of your custom reporter:
 
 ```sh
-npm install wdio-reporter
+npm install @wdio/reporter
 ```
 
 or
 
 ```sh
-yarn add wdio-reporter
+yarn add @wdio/reporter
 ```
 
-Then you need to extend your reporter with the main wdio-reporter class:
+Then you need to extend your reporter with the main `@wdio/reporter` class:
 
 ```js
-import WDIOReporter from 'wdio-reporter'
+import Reporter from '@wdio/reporter'
 
-export default MyCustomeReporter extends WDIOReporter {
+export default MyCustomeReporter extends Reporter {
     constructor () {
         super()
         // your custom logic if necessary
@@ -39,7 +39,7 @@ export default MyCustomeReporter extends WDIOReporter {
 }
 ```
 
-The WDIOReporter calls your event functions if provided when an event was triggered and provides information on that event in a consistent format. You can always register your own listener to receive the raw data that was provided by the framework, e.g. instead of using the `onSuiteStart` method you can do:
+The `Reporter` parent class calls your event functions if provided when an event was triggered and provides information on that event in a consistent format. You can always register your own listener to receive the raw data that was provided by the framework, e.g. instead of using the `onSuiteStart` method you can do:
 
 ```js
 this.on('suite:start', (raw) => {
@@ -68,7 +68,7 @@ exports.config = {
 your options in your reporter class are as follows:
 
 ```js
-export default class MyReporter extends WDIOReporter {
+export default class MyReporter extends Reporter {
     constructor () {
         super()
         console.log(this.options)
@@ -84,10 +84,10 @@ export default class MyReporter extends WDIOReporter {
 }
 ```
 
-You can access all options via `this.options`. You can push logs to stdout or a log file depending of whether the `stdout` option is true or false. Please use the internal method `write` that is provided by the `WDIOReporter` parent class in order to push out logs, e.g.
+You can access all options via `this.options`. You can push logs to stdout or a log file depending of whether the `stdout` option is true or false. Please use the internal method `write` that is provided by the `Reporter` parent class in order to push out logs, e.g.
 
 ```js
-class MyReporter extends WDIOReporter {
+class MyReporter extends Reporter {
     constructor (options) {
         /**
          * make dot reporter to write to output stream by default
@@ -122,7 +122,7 @@ If `stdout` is set to `false` WebdriverIO will automatically write to a filestre
 If your reporter needs to do some async computation after the test (e.g. upload logs to a server) you can overwrite the `isSynchronised` getter method to manage this. By default this property always returns true as most of the reporters don't require to do any async work. However in case you need to handle this overwrite the getter method with an custom implementation (e.g. [wdio-sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sumologic-reporter)).
 
 ```js
-class MyReporter extends WDIOReporter {
+class MyReporter extends Reporter {
     constructor (options) {
         // ...
     }

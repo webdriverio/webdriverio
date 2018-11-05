@@ -30,7 +30,7 @@ If you want to run tests against a server that is not accessible to the Internet
 
 It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
 
-If you are using the WDIO testrunner download and configure the [`wdio-sauce-service`](https://github.com/webdriverio/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
+If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
 
 ### With Travis CI
 
@@ -40,7 +40,7 @@ If you do so, you must set the `tunnel-identifier` test configuration option in 
 
 Also if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
 
-Lastly if you set the `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`wdio-sauce-service`](https://github.com/webdriverio/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
+Lastly if you set the `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
 
 Example `desiredCapabilities`:
 
@@ -115,4 +115,4 @@ If you want to run tests against a server that is not accessible to the Internet
 
 Their tunnel support page contains the information necessary to get this up and running.
 
-If you are using the WDIO testrunner download and configure the [`wdio-testingbot-service`](https://github.com/testingbot/wdio-testingbot-service) in your `wdio.conf.js`. It helps getting TestingBot running and comes with additional features that better integrate your tests into the TestingBot service.
+If you are using the WDIO testrunner download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps getting TestingBot running and comes with additional features that better integrate your tests into the TestingBot service.

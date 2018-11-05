@@ -1,5 +1,5 @@
 import request from 'request'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 

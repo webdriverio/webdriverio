@@ -1,7 +1,7 @@
 import path from 'path'
 
-import logger from 'wdio-logger'
-import { ConfigParser, initialisePlugin } from 'wdio-config'
+import logger from '@wdio/logger'
+import { ConfigParser, initialisePlugin } from '@wdio/config'
 
 import CLInterface from './interface'
 import { getLauncher, runServiceHook } from './utils'

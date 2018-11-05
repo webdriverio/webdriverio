@@ -1,9 +1,9 @@
 {
-  "name": "wdio-config",
+  "name": "@wdio/config",
   "version": "5.0.0-beta.3",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-config",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-config",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
@@ -32,6 +32,6 @@
   "dependencies": {
     "deepmerge": "^2.0.1",
     "glob": "^7.1.2",
-    "wdio-logger": "^5.0.0-beta.3"
+    "@wdio/logger": "^5.0.0-beta.3"
   }
 }

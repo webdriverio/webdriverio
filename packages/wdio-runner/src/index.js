@@ -4,8 +4,8 @@ import util from 'util'
 import merge from 'deepmerge'
 import EventEmitter from 'events'
 
-import logger from 'wdio-logger'
-import { ConfigParser, initialisePlugin } from 'wdio-config'
+import logger from '@wdio/logger'
+import { ConfigParser, initialisePlugin } from '@wdio/config'
 import { remote, multiremote } from 'webdriverio'
 
 import BaseReporter from './reporter'

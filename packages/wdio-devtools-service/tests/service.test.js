@@ -1,6 +1,6 @@
 import DevToolsService from '../src'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 jest.mock('../src/commands', () => {
     class CommandHandlerMock {

@@ -5,12 +5,12 @@ WebdriverIO Applitools Service
 
 ## Installation
 
-The easiest way is to keep `wdio-applitools-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/applitools-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-applitools-service": "^5.0.0"
+    "@wdio/applitools-service": "^5.0.0"
   }
 }
 ```
@@ -18,7 +18,7 @@ The easiest way is to keep `wdio-applitools-service` as a devDependency in your 
 You can simple do it by:
 
 ```bash
-npm install wdio-applitools-service --save-dev
+npm install @wdio/applitools-service --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)

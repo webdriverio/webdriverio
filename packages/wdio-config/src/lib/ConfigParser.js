@@ -3,7 +3,7 @@ import path from 'path'
 import glob from 'glob'
 import merge from 'deepmerge'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import { detectBackend } from '../utils'
 

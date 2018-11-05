@@ -1,4 +1,4 @@
-import { logMock } from 'wdio-logger'
+import { logMock } from '@wdio/logger'
 
 import { runHook } from '../src/utils'
 
