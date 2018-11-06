@@ -1,5 +1,15 @@
 import AllureReporter from '../src'
 
+let processOn
+beforeAll(() => {
+    processOn = ::process.on
+    process.on = jest.fn()
+})
+
+afterAll(() => {
+    process.on = processOn
+})
+
 describe('reporter runtime implementation', () => {
     it('should correct add story label', () => {
         const reporter = new AllureReporter({stdout: true})

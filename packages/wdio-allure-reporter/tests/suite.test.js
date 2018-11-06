@@ -6,6 +6,16 @@ import {suiteEnd, suiteStart} from './__fixtures__/suite'
 import {testFailed, testPassed, testPending, testStart} from './__fixtures__/testState'
 import {commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot} from './__fixtures__/command'
 
+let processOn
+beforeAll(() => {
+    processOn = ::process.on
+    process.on = jest.fn()
+})
+
+afterAll(() => {
+    process.on = processOn
+})
+
 describe('Passing tests', () => {
     const outputDir = directory()
     let allureXml
