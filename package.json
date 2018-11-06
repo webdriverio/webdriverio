@@ -50,9 +50,6 @@
     "testMatch": [
       "/**/tests/**/*.test.js"
     ],
-    "transform": {
-      "^.+\\.js?$": "babel-jest"
-    },
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "coverageThreshold": {
@@ -67,6 +64,10 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/packages/webdriverio/src/scripts",
+      "/packages/wdio-runner/build",
+      "/packages/wdio-reporter/build",
+      "/packages/webdriverio/build",
+      "/packages/webdriver/build",
       "/packages/wdio-devtools-service/src/lighthouse"
     ]
   }
