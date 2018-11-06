@@ -1,6 +1,7 @@
 const chalkMock = {}
 chalkMock.cyanBright = jest.fn().mockImplementation((msg) => `cyanBright ${msg}`)
 chalkMock.greenBright = jest.fn().mockImplementation((msg) => `greenBright ${msg}`)
+chalkMock.whiteBright = jest.fn().mockImplementation((msg) => `whiteBright ${msg}`)
 chalkMock.redBright = jest.fn().mockImplementation((msg) => `redBright ${msg}`)
 chalkMock.cyan = jest.fn().mockImplementation((msg) => `cyan ${msg}`)
 chalkMock.green = jest.fn().mockImplementation((msg) => `green ${msg}`)

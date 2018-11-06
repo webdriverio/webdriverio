@@ -1,4 +1,4 @@
-import { DEFAULT_CONFIGS } from '../../src/constants'
+import { DEFAULT_CONFIGS } from '../../../src/constants'
 
 class DotReporter {
     constructor (options) {
