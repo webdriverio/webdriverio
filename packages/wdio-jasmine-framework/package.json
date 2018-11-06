@@ -39,5 +39,8 @@
   },
   "peerDependencies": {
     "webdriverio": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

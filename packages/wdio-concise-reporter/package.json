@@ -33,5 +33,8 @@
     "chalk": "^2.4.1",
     "pretty-ms": "^3.2.0",
     "@wdio/reporter": "^5.0.0-beta.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

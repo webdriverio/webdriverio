@@ -39,5 +39,8 @@
   "devDependencies": {
     "libxmljs": "^0.19.5",
     "rimraf": "^2.6.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
