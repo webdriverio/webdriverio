@@ -1,6 +1,6 @@
 {
   "name": "@wdio/allure-reporter",
-  "version": "5.0.0-beta.3",
+  "version": "5.0.0-beta.5",
   "description": "A WebdriverIO reporter plugin to create Allure Test Reports",
   "author": "Boris Osipov <osipov.boris@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-allure-reporter",
@@ -31,8 +31,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "allure-js-commons": "^1.3.2",
-    "@wdio/reporter": "^5.0.0-beta.3"
+    "@wdio/reporter": "^5.0.0-beta.5",
+    "allure-js-commons": "^1.3.2"
   },
   "devDependencies": {
     "cheerio": "^1.0.0-rc.2",
