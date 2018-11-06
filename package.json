@@ -65,7 +65,8 @@
       "node_modules/",
       "packages/webdriverio/src/scripts",
       "packages/wdio-devtools-service/src/lighthouse",
-      "\/(.+)\/build"
+      "packages/webdriverio/build",
+      "packages/webdriver/build"
     ]
   }
 }
