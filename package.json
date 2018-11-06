@@ -62,13 +62,10 @@
     },
     "testEnvironment": "node",
     "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/packages/webdriverio/src/scripts",
-      "/packages/wdio-runner/build",
-      "/packages/wdio-reporter/build",
-      "/packages/webdriverio/build",
-      "/packages/webdriver/build",
-      "/packages/wdio-devtools-service/src/lighthouse"
+      "node_modules/",
+      "packages/webdriverio/src/scripts",
+      "packages/wdio-devtools-service/src/lighthouse",
+      "\/(.+)\/build"
     ]
   }
 }

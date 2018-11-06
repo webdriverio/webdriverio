@@ -1,6 +1,12 @@
 import { initialisePlugin } from '../src/utils'
 
 describe('initialisePlugin', () => {
+    it('should allow to load a scoped service plugin', () => {
+        const Service = initialisePlugin('@wdio/foobar-service', 'service')
+        const service = new Service()
+        expect(service.foo).toBe('foobar')
+    })
+
     it('should allow to load a service plugin', () => {
         const Service = initialisePlugin('test', 'service')
         const service = new Service()
