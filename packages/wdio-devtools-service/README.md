@@ -14,7 +14,7 @@ The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `
 ```json
 {
   "devDependencies": {
-    "@wdio/devtools-service": "^0.1.2"
+    "@wdio/devtools-service": "^5.0.0"
   }
 }
 ```
@@ -35,7 +35,7 @@ In order to use the service you just need to add the service to your service lis
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['@wdio/devtools-service'],
+  services: ['devtools'],
   // ...
 };
 ```
