@@ -87,7 +87,7 @@ export function initialisePlugin (name, type) {
      */
     const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
     if (scopedPlugin) {
-        return scopedPlugin
+        return scopedPlugin.default
     }
 
     /**
@@ -95,7 +95,7 @@ export function initialisePlugin (name, type) {
      */
     const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
     if (plugin) {
-        return plugin
+        return plugin.default
     }
 
     throw new Error(

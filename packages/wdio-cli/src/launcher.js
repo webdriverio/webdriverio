@@ -50,8 +50,12 @@ class Launcher {
     async run () {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
-        let launcher = getLauncher(config)
+        const launcher = getLauncher(config)
 
+        /**
+         * run pre test tasks for runner plugins
+         * (e.g. deploy Lambda functio to AWS)
+         */
         await this.runner.initialise()
 
         /**
@@ -62,22 +66,42 @@ class Launcher {
         await runServiceHook(launcher, 'onPrepare', config, caps)
 
         /**
+         * catches ctrl+c event
+         */
+        process.on('SIGINT', this.exitHandler.bind(this))
+
+        /**
+         * make sure the program will not close instantly
+         */
+        if (process.stdin.isPaused()) {
+            process.stdin.resume()
+        }
+
+        const exitCode = await this.runMode(config, caps)
+
+        /**
+         * run onComplete hook
+         */
+        log.info('Run onComplete hook')
+        await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
+        await config.onComplete(exitCode, config, caps, this.interface.result)
+
+        this.interface.updateView()
+        return exitCode
+    }
+
+    /**
+     * run without triggering onPrepare/onComplete hooks
+     */
+    runMode (config, caps) {
+        /**
          * if it is an object run multiremote test
          */
         if (this.isMultiremote) {
-            let exitCode = await new Promise((resolve) => {
+            return new Promise((resolve) => {
                 this.resolve = resolve
                 this.startInstance(this.configParser.getSpecs(), caps, 0)
             })
-
-            /**
-             * run onComplete hook for multiremote
-             */
-            log.info('Run multiremote onComplete hook')
-            await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-            await config.onComplete(exitCode, config, caps, this.interface.result)
-
-            return exitCode
         }
 
         /**
@@ -95,19 +119,7 @@ class Launcher {
             })
         }
 
-        /**
-         * catches ctrl+c event
-         */
-        process.on('SIGINT', this.exitHandler.bind(this))
-
-        /**
-         * make sure the program will not close instantly
-         */
-        if (process.stdin.isPaused()) {
-            process.stdin.resume()
-        }
-
-        const exitCode = await new Promise((resolve) => {
+        return new Promise((resolve) => {
             this.resolve = resolve
 
             /**
@@ -126,16 +138,6 @@ class Launcher {
                 resolve(0)
             }
         })
-
-        /**
-         * run onComplete hook
-         */
-        log.info('Run onComplete hook')
-        await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-        await config.onComplete(exitCode, config, caps, this.interface.result)
-
-        this.interface.updateView()
-        return exitCode
     }
 
     /**
