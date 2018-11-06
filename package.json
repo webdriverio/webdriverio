@@ -32,6 +32,7 @@
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
     "babel-jest": "^23.6.0",
+    "babel-plugin-source-map-support": "^2.0.1",
     "babel-plugin-stack-trace-sourcemap": "^1.0.2",
     "codecov": "^3.0.0",
     "copyfiles": "^2.1.0",
@@ -44,7 +45,8 @@
     "np": "^2.18.2",
     "npm-run-all": "^4.0.2",
     "rimraf": "^2.6.2",
-    "shelljs": "^0.8.1"
+    "shelljs": "^0.8.1",
+    "source-map-support": "^0.5.9"
   },
   "jest": {
     "testMatch": [
