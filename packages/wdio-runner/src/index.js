@@ -3,8 +3,8 @@ import path from 'path'
 import util from 'util'
 import EventEmitter from 'events'
 
-import logger from 'wdio/logger'
-import { ConfigParser, initialisePlugin } from 'wdio/config'
+import logger from '@wdio/logger'
+import { ConfigParser, initialisePlugin } from '@wdio/config'
 
 import BaseReporter from './reporter'
 import { runHook, initialiseServices, initialiseInstance } from './utils'
