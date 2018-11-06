@@ -19,7 +19,7 @@ export default class LocalRunner extends EventEmitter {
      */
     initialise () {}
 
-    run ({ cid, command, configFile, argv, caps, processNumber, specs, server, isMultiremote }) {
+    run ({ cid, command, configFile, argv, caps, processNumber, specs, server, isMultiremote, execArgv }) {
         const runnerEnv = Object.assign(process.env, this.config.runnerEnv, {
             WDIO_LOG_LEVEL: this.config.logLevel
         })
@@ -32,7 +32,7 @@ export default class LocalRunner extends EventEmitter {
         const childProcess = child.fork(path.join(__dirname, 'run.js'), process.argv.slice(2), {
             cwd: process.cwd(),
             env: runnerEnv,
-            execArgv: this.config.execArgv,
+            execArgv: execArgv,
             silent: true
         })
 

@@ -1,7 +1,7 @@
 import merge from 'deepmerge'
-import logger from 'wdio/logger'
+import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
-import { initialisePlugin } from 'wdio/config'
+import { initialisePlugin } from '@wdio/config'
 
 const log = logger('wdio-local-runner:utils')
 
