@@ -37,5 +37,8 @@
   "dependencies": {
     "fs-extra": "^6.0.1",
     "selenium-standalone": "^6.15.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

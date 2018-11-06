@@ -36,5 +36,8 @@
   "dependencies": {
     "@applitools/eyes.webdriverio": "^2.0.0",
     "@wdio/logger": "^5.0.0-beta.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

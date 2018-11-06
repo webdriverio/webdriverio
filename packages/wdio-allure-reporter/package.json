@@ -38,5 +38,8 @@
     "cheerio": "^1.0.0-rc.2",
     "del": "^3.0.0",
     "tempy": "^0.2.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

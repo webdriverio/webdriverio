@@ -35,5 +35,8 @@
   },
   "devDependencies": {
     "tmp": "^0.0.33"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

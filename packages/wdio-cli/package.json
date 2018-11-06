@@ -52,5 +52,8 @@
   "devDependencies": {
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
