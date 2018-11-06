@@ -51,27 +51,58 @@ export function detectBackend (options = {}) {
 }
 
 /**
- * initialise WebdriverIO compliant plugins
+ * Allows to safely require a package, it only throws if the package was found
+ * but failed to load due to syntax errors
+ * @param  {string} name  of package
+ * @return {object}       package content
+ */
+function safeRequire (name) {
+    try {
+        return require(name).default
+    } catch (e) {
+        if (!e.message.match(`Cannot find module '${name}'`)) {
+            throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
+        }
+
+        return null
+    }
+}
+
+/**
+ * initialise WebdriverIO compliant plugins like reporter or services in the following way:
+ * 1. if package name is scoped (starts with "@"), require scoped package name
+ * 2. otherwise try to require "@wdio/<name>-<type>"
+ * 3. otherwise try to require "wdio-<name>-<type>"
  */
 export function initialisePlugin (name, type) {
     /**
-     * don't populate scoped package names
+     * directly import packages that are scoped (but not with @wdio)
      */
-    const pkgName = name[0] === '@' ? name : `wdio-${name.toLowerCase()}-${type}`
-
-    try {
-        return require(pkgName).default
-
-    } catch (e) {
-        if (!e.message.match(`Cannot find module '${pkgName}'`)) {
-            throw new Error(`Couldn't initialise "${name}" ${type}.\n${e.stack}`)
-        }
-
-        throw new Error(
-            `Couldn't find plugin "${pkgName}". You need to install it ` +
-            `with \`$ npm install ${pkgName}\`!\n${e.stack}`
-        )
+    if (name[0] === '@') {
+        return safeRequire(name)
     }
+
+    /**
+     * check for scoped version of plugin first (e.g. @wdio/sauce-service)
+     */
+    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
+    if (scopedPlugin) {
+        return scopedPlugin
+    }
+
+    /**
+     * check for old type of
+     */
+    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
+    if (plugin) {
+        return plugin
+    }
+
+    throw new Error(
+        `Couldn't find plugin "${name}" ${type}, neither as wdio scoped package `+
+        `"@wdio/${name.toLowerCase()}-${type}" nor as community package ` +
+        `"wdio-${name.toLowerCase()}-${type}". Please make sure you have it installed!`
+    )
 }
 
 

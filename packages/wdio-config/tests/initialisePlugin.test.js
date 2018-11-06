@@ -2,7 +2,7 @@ import { initialisePlugin } from '../src/utils'
 
 describe('initialisePlugin', () => {
     it('should allow to load a scoped service plugin', () => {
-        const Service = initialisePlugin('@wdio/foobar-service', 'service')
+        const Service = initialisePlugin('foobar', 'service')
         const service = new Service()
         expect(service.foo).toBe('foobar')
     })
@@ -19,8 +19,14 @@ describe('initialisePlugin', () => {
         expect(service.foo).toBe('barfoo')
     })
 
+    it('should prefer scoped over unscoped packages', () => {
+        const Service = initialisePlugin('scoped', 'service')
+        const service = new Service()
+        expect(service.isScoped).toBe(true)
+    })
+
     it('should throw meaningful error message', () => {
-        expect(() => initialisePlugin('lala', 'service')).toThrow(/You need to install/)
+        expect(() => initialisePlugin('lala', 'service')).toThrow(/Please make sure you have it installed!/)
         expect(() => initialisePlugin('borked', 'framework')).toThrow(/Error: foobar/)
     })
 })
