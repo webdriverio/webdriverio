@@ -216,5 +216,4 @@ adapterFactory.run = async function (...args) {
     return result
 }
 
-export default adapterFactory
-export { JasmineAdapter, adapterFactory }
+export default { JasmineAdapter, adapterFactory }

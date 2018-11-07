@@ -61,12 +61,7 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
      */
     if (config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
-        return attach({
-            sessionId: config.sessionId,
-            config,
-            capabilities,
-            // isW3C - ToDo: check if session is running on WebDriver
-        })
+        return attach({ ...config, capabilities })
     }
 
     if (!isMultiremote) {

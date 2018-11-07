@@ -25,11 +25,10 @@ export default class Runner extends EventEmitter {
      * @param  {String[]}  specs          list of spec files to run
      * @param  {Object}    caps           capabilties to run session with
      * @param  {String}    configFile     path to config file to get config from
-     * @param  {Boolean}   isMultiremote  flag to run in multiremote or not
      * @param  {Object}    server         modified WebDriver target
      * @return {Promise}                  resolves in number of failures for testrun
      */
-    async run ({ cid, argv, specs, caps, configFile, isMultiremote, server }) {
+    async run ({ cid, argv, specs, caps, configFile, server }) {
         this.cid = cid
         this.specs = specs
         this.caps = caps
@@ -49,15 +48,15 @@ export default class Runner extends EventEmitter {
          */
         this.configParser.merge(server)
 
-        let config = this.configParser.getConfig()
-        initialiseServices(config).map(::this.configParser.addService)
+        this.config = this.configParser.getConfig()
+        initialiseServices(this.config).map(::this.configParser.addService)
 
-        this.framework = initialisePlugin(config.framework, 'framework').adapterFactory
-        this.reporter = new BaseReporter(config, this.cid)
-        this.inWatchMode = Boolean(config.watch)
+        this.reporter = new BaseReporter(this.config, this.cid)
+        this.inWatchMode = Boolean(this.config.watch)
 
-        await runHook('beforeSession', config, this.caps, this.specs)
-        const browser = await this._initSession(config, this.caps, isMultiremote)
+        await runHook('beforeSession', this.config, this.caps, this.specs)
+        const browser = await this._initSession(this.config, this.caps)
+        const isMultiremote = Boolean(browser.isMultiremote)
 
         /**
          * return if session initialisation failed
@@ -76,20 +75,36 @@ export default class Runner extends EventEmitter {
         }
 
         /**
+         * initialise framework
+         */
+        this.framework = initialisePlugin(this.config.framework, 'framework').adapterFactory
+
+        /**
          * initialisation successful, send start message
          */
         this.reporter.emit('runner:start', {
-            cid: cid,
-            specs: specs,
+            cid,
+            specs,
+            config: this.config,
+            isMultiremote,
             sessionId: browser.sessionId,
-            capabilities: browser.isMultiremote
+            capabilities: isMultiremote
                 ? browser.instances.reduce((caps, browserName) => {
                     caps[browserName] = browser[browserName].capabilities
                     return caps
                 }, {})
-                : browser.options.capabilities,
-            config,
-            isMultiremote: browser.isMultiremote
+                : browser.options.capabilities
+        })
+
+        /**
+         * report sessionId and target connection information to worker
+         */
+        const { protocol, hostname, port, path, queryParams } = browser.options
+        const { isW3C, sessionId } = browser
+        process.send({
+            origin: 'worker',
+            name: 'sessionStarted',
+            content: { sessionId, isW3C, protocol, hostname, port, path, queryParams }
         })
 
         /**
@@ -97,9 +112,17 @@ export default class Runner extends EventEmitter {
          */
         let failures = 0
         try {
-            failures = failures = await this.framework.run(cid, config, specs, caps, this.reporter)
-            await this._fetchDriverLogs(config)
-            await this._endSession(config, argv.watch)
+            failures = failures = await this.framework.run(cid, this.config, specs, caps, this.reporter)
+            await this._fetchDriverLogs(this.config)
+
+            /**
+             * in watch mode we don't close the session and open a blank page instead
+             */
+            if (!argv.watch) {
+                await this._endSession(this.config)
+            } else {
+                await global.browser.url('about:blank')
+            }
         } catch (e) {
             log.error(e)
             this.emit('error', e)
@@ -111,7 +134,7 @@ export default class Runner extends EventEmitter {
             cid: this.cid
         })
 
-        this._shutdown(failures)
+        await this._shutdown(failures)
         return failures
     }
 
@@ -119,14 +142,13 @@ export default class Runner extends EventEmitter {
      * init WebDriver session
      * @param  {object}  config        configuration of sessions
      * @param  {Object}  caps          desired cabilities of session
-     * @param  {Boolean} isMultiremote flag to determine whether to run as multiremote
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
-    async _initSession (config, caps, isMultiremote) {
+    async _initSession (config, caps) {
         let browser = null
 
         try {
-            browser = global.browser = global.driver = await initialiseInstance(config, this.caps, isMultiremote)
+            browser = global.browser = global.driver = await initialiseInstance(config, caps, this.isMultiremote)
         } catch (e) {
             log.error(e)
             this.emit('error', e)
@@ -206,14 +228,7 @@ export default class Runner extends EventEmitter {
      *
      * @param  {Object}  config  configuration object
      */
-    async _endSession (config, inWatchMode) {
-        /**
-         * in watch mode we don't close the session and open a blank page instead
-         */
-        if (inWatchMode) {
-            return global.browser.url('about:blank')
-        }
-
+    async _endSession (config) {
         await global.browser.deleteSession()
         delete global.browser.sessionId
         await runHook('afterSession', config, this.caps, this.specs)
