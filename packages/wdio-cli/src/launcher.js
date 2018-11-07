@@ -10,6 +10,9 @@ const log = logger('wdio-cli:Launcher')
 
 class Launcher {
     constructor (configFile, argv) {
+        this.argv = argv
+        this.configFile = configFile
+
         this.configParser = new ConfigParser()
         this.configParser.addConfigFile(configFile)
         this.configParser.merge(argv)
@@ -27,11 +30,6 @@ class Launcher {
 
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
-        this.runner.on('end', ::this.endHandler)
-        this.runner.on('message', ::this.interface.onMessage)
-
-        this.argv = argv
-        this.configFile = configFile
 
         this.isMultiremote = !Array.isArray(capabilities)
         this.exitCode = 0
@@ -272,20 +270,21 @@ class Launcher {
         let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
 
         // prefer launcher settings in capabilities over general launcher
-        this.runner.run({
+        const worker = this.runner.run({
             cid,
             command: 'run',
             configFile: this.configFile,
             argv: this.argv,
             caps,
-            processNumber,
             specs,
             server,
-            isMultiremote: this.isMultiremote,
             execArgv
         })
+        worker.on('message', ::this.interface.onMessage)
+        worker.on('error', ::this.interface.onMessage)
+        worker.on('exit', ::this.endHandler)
 
-        this.interface.emit('job:start', { cid, caps, specs })
+        // this.interface.emit('job:start', { cid, caps, specs })
         this.runnerStarted++
     }
 
@@ -310,7 +309,7 @@ class Launcher {
         const passed = exitCode === 0
         this.exitCode = this.exitCode || exitCode
         this.runnerFailed += !passed ? 1 : 0
-        this.interface.emit('job:end', { cid, passed })
+        // this.interface.emit('job:end', { cid, passed })
 
         // Update schedule now this process has ended
         if (!this.isMultiremote) {

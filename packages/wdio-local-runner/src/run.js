@@ -7,10 +7,21 @@ let forceKillingProcess = false
 
 const runner = new Runner()
 process.on('message', (m) => {
-    runner[m.command](m).catch((e) => {
-        log.error(`Failed launching test session:`, e)
-        process.exit(1)
-    })
+    log.info(`Run worker command: ${m.command}`)
+    runner[m.command](m).then(
+        (result) => process.send({
+            origin: 'worker',
+            name: 'finisedCommand',
+            content: {
+                command: m.command,
+                result
+            }
+        }),
+        (e) => {
+            log.error(`Failed launching test session:`, e)
+            process.exit(1)
+        }
+    )
 
     runner.on('exit', ::process.exit)
     runner.on('error', ({ name, message, stack }) => process.send({
