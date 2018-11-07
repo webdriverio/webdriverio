@@ -41,10 +41,9 @@ export const remote = function (params = {}, remoteModifier) {
     return WebDriver.newSession(params, modifier, prototype, wrapCommand)
 }
 
-export const attach = function ({ sessionId, options, capabilities, isW3C }) {
+export const attach = function (params) {
     const prototype = getPrototype('browser')
-    const params = Object.assign({}, options, { sessionId }, { isW3C }, { capabilities })
-    return WebDriver.attachToSession(params, null, prototype)
+    return WebDriver.attachToSession(params, null, prototype, wrapCommand)
 }
 
 export const multiremote = async function (params = {}) {
