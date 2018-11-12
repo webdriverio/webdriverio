@@ -284,7 +284,7 @@ class Launcher {
         worker.on('error', ::this.interface.onMessage)
         worker.on('exit', ::this.endHandler)
 
-        // this.interface.emit('job:start', { cid, caps, specs })
+        this.interface.emit('job:start', { cid, caps, specs })
         this.runnerStarted++
     }
 
@@ -309,7 +309,7 @@ class Launcher {
         const passed = exitCode === 0
         this.exitCode = this.exitCode || exitCode
         this.runnerFailed += !passed ? 1 : 0
-        // this.interface.emit('job:end', { cid, passed })
+        this.interface.emit('job:end', { cid, passed })
 
         // Update schedule now this process has ended
         if (!this.isMultiremote) {

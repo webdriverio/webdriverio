@@ -28,6 +28,15 @@ export default class CLInterface {
         }
     }
 
+    clearBuffer () {
+        for (let i = this.stdoutBuffer.length; i > 0; --i) {
+            this.stdoutBuffer.pop()
+        }
+        for (let i = this.stderrBuffer.length; i > 0; --i) {
+            this.stderrBuffer.pop()
+        }
+    }
+
     clearAll () {
         this.out(ansiEscapes.clearScreen)
     }

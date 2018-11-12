@@ -28,6 +28,7 @@ export default class Watcher {
          * run initial test suite
          */
         await this.launcher.run()
+        this.launcher.interface.updateView()
     }
 
     run (params) {
@@ -45,12 +46,25 @@ export default class Watcher {
         workers = pickBy(workers, (worker) => !worker.isBusy)
 
         /**
+         * only clean up if new workers are being triggered
+         */
+        if (Object.keys(workers).length) {
+            this.cleanUp()
+        }
+
+        /**
          * trigger new run for non busy worker
          */
-        const workerCommands = []
         for (const [, worker] of Object.entries(workers)) {
+            const { cid, caps, specs } = worker
             const argv = Object.assign(params, { sessionId: worker.sessionId })
-            workerCommands.push(worker.postMessage('run', argv))
+            worker.postMessage('run', argv)
+            this.launcher.interface.emit('job:start', { cid, caps, specs })
         }
+    }
+
+    cleanUp () {
+        this.launcher.interface.setup()
+        this.launcher.interface.updateView()
     }
 }
