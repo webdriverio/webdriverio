@@ -7,9 +7,24 @@ class DotReporter {
     }
 }
 
+class RunnerMock {}
+
 class ConfigParserMock {
     constructor () {
         this.addService = jest.fn()
+        this.addConfigFile = jest.fn()
+        this.merge = jest.fn()
+        this.getConfig = jest.fn().mockReturnValue({
+            runnerEnv: {},
+            runner: 'local'
+        })
+        this.getCapabilities = jest.fn().mockReturnValue([{
+            browserName: 'chrome',
+            specs: ['./tests/test2.js']
+        }, {
+            browserName: 'firefox'
+        }])
+        this.getSpecs = jest.fn().mockReturnValue(['./tests/test1.js'])
     }
 }
 
@@ -24,6 +39,9 @@ const pluginMocks = {
     },
     service: {
         foobar: FoobarServiceMock
+    },
+    runner: {
+        local: RunnerMock
     }
 }
 

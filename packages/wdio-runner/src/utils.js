@@ -27,7 +27,7 @@ export function runHook (hookName, config, caps, specs) {
  * @param  {Object}    config  of running session
  * @return {Object[]}          list of service classes that got initialised
  */
-export function initialiseServices (config) {
+export function initialiseServices (config, caps) {
     const initialisedServices = []
 
     if (!Array.isArray(config.services)) {
@@ -46,7 +46,7 @@ export function initialiseServices (config) {
 
         log.debug(`initialise wdio service "${serviceName}"`)
         const Service = initialisePlugin(serviceName, 'service')
-        initialisedServices.push(new Service(config, this.caps))
+        initialisedServices.push(new Service(config, caps))
     }
 
     return initialisedServices

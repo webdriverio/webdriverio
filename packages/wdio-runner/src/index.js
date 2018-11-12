@@ -49,7 +49,7 @@ export default class Runner extends EventEmitter {
         this.configParser.merge(server)
 
         this.config = this.configParser.getConfig()
-        initialiseServices(this.config).map(::this.configParser.addService)
+        initialiseServices(this.config, caps).map(::this.configParser.addService)
 
         this.reporter = new BaseReporter(this.config, this.cid)
         this.inWatchMode = Boolean(this.config.watch)
