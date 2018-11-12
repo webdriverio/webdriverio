@@ -3,6 +3,24 @@ import chokidar from 'chokidar'
 
 import Watcher from '../src/watcher'
 
+jest.mock('../src/launcher', () => {
+    const { ConfigParser } = require('@wdio/config')
+
+    class LauncherMock {
+        constructor (configFile, argv) {
+            this.configParser = new ConfigParser()
+            this.configParser.addConfigFile(configFile)
+            this.configParser.merge(argv)
+            this.runner = {}
+            this.interface = {
+                setup: jest.fn(),
+                updateView: jest.fn()
+            }
+        }
+    }
+    return LauncherMock
+})
+
 class WorkerMock {
     constructor (cid, specs, sessionId, isBusy = false) {
         this.cid = cid
