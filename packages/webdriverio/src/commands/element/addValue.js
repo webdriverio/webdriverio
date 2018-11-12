@@ -30,10 +30,5 @@ import { transformToCharString } from '../../utils'
 
 export default function addValue (value) {
     let text = transformToCharString(value)
-
-    if (this.isW3C) {
-        text = text.join('')
-    }
-
     return this.elementSendKeys(this.elementId, text)
 }
