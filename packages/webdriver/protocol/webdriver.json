@@ -720,14 +720,16 @@
     "POST": {
       "command": "dismissAlert",
       "description": "The Dismiss Alert command dismisses a simple dialog if present. A request to dismiss an alert user prompt, which may not necessarily have a dismiss button, has the same effect as accepting it.",
-      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-dismiss-alert"
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-dismiss-alert",
+      "parameters": []
     }
   },
   "/session/:sessionId/alert/accept": {
     "POST": {
       "command": "acceptAlert",
       "description": "The Accept Alert command accepts a simple dialog if present.",
-      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-accept-alert"
+      "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-accept-alert",
+      "parameters": []
     }
   },
   "/session/:sessionId/alert/text": {
