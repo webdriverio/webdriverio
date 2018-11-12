@@ -77,7 +77,7 @@ export default class Runner extends EventEmitter {
         /**
          * initialise framework
          */
-        this.framework = initialisePlugin(this.config.framework, 'framework').adapterFactory
+        this.framework = initialisePlugin(this.config.framework, 'framework')
 
         /**
          * initialisation successful, send start message
@@ -189,7 +189,7 @@ export default class Runner extends EventEmitter {
         /**
          * only fetch logs if driver supports it
          */
-        if (!config.logDir || typeof global.browser.getLogs !== 'function') {
+        if (!config.logDir || typeof global.browser.getLogs === 'undefined') {
             return
         }
 
