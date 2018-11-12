@@ -33,7 +33,6 @@
     "babel-eslint": "^10.0.1",
     "babel-jest": "^23.6.0",
     "babel-plugin-source-map-support": "^2.0.1",
-    "babel-plugin-stack-trace-sourcemap": "^1.0.2",
     "codecov": "^3.0.0",
     "copyfiles": "^2.1.0",
     "eslint": "^4.7.2",

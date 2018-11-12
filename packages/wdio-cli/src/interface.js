@@ -1,4 +1,3 @@
-import fs from 'fs'
 import chalk from 'chalk'
 import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
@@ -136,12 +135,15 @@ export default class WDIOCLInterface extends EventEmitter {
          * print stdout and stderr from runners
          */
         if (isFinished) {
+            /* istanbul ignore else */
             if (this.interface.stdoutBuffer.length) {
                 this.interface.log(chalk.bgYellow.black(`Stdout:\n`) + this.interface.stdoutBuffer.join(''))
             }
+            /* istanbul ignore else */
             if (this.interface.stderrBuffer.length) {
                 this.interface.log(chalk.bgRed.black(`Stderr:\n`) + this.interface.stderrBuffer.join(''))
             }
+            /* istanbul ignore else */
             if (this.messages.worker.error) {
                 this.interface.log(chalk.bgRed.black(`Worker Error:\n`) + this.messages.worker.error.map(
                     (e) => e.stack
@@ -182,9 +184,5 @@ export default class WDIOCLInterface extends EventEmitter {
 
     getClockSymbol () {
         return clockSpinner.frames[this.clockTimer = ++this.clockTimer % clockSpinner.frames.length]
-    }
-
-    log (...args) {
-        return this.interface.log(...args)
     }
 }

@@ -32,3 +32,13 @@ test('can wrap stdout or stderr', () => {
     stream.write('foobar')
     expect(buffer).toHaveLength(1)
 })
+
+test('clearBuffer', () => {
+    iface.stdoutBuffer.push(1, 2, 3, 4)
+    iface.stderrBuffer.push(1, 2)
+    expect(iface.stdoutBuffer).toHaveLength(4)
+    expect(iface.stderrBuffer).toHaveLength(2)
+    iface.clearBuffer()
+    expect(iface.stdoutBuffer).toHaveLength(0)
+    expect(iface.stderrBuffer).toHaveLength(0)
+})

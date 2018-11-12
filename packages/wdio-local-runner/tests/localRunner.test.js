@@ -18,17 +18,17 @@ test('should fork a new process', () => {
         logDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     })
-    const childProcess = runner.run({
+    const worker = runner.run({
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
         argv: {},
         caps: {},
         processNumber: 123,
-        specs: ['/foo/bar.test.js'],
-        isMultiremote: false
+        specs: ['/foo/bar.test.js']
     })
-    runner.emit = jest.fn()
+    const childProcess = worker.childProcess
+    worker.emit = jest.fn()
 
     expect(child.fork.mock.calls[0][0].endsWith('/run.js')).toBe(true)
 
@@ -38,22 +38,24 @@ test('should fork a new process', () => {
     expect(childProcess.on).toBeCalled()
 
     expect(childProcess.send).toBeCalledWith({
+        argv: {},
+        caps: {},
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        argv: {},
-        caps: {},
-        processNumber: 123,
-        specs: [ '/foo/bar.test.js' ],
         server: undefined,
-        isMultiremote: false
+        specs: [ '/foo/bar.test.js' ]
     })
 
     const messageCb = childProcess.on.mock.calls[0][1]
     messageCb({ foo: 'bar' })
-    expect(runner.emit).toBeCalledWith('message', { foo: 'bar', cid: '0-5' })
+    expect(worker.emit).toBeCalledWith('message', { foo: 'bar', cid: '0-5' })
 
-    const exitCb = childProcess.on.mock.calls[1][1]
+    const errorCb = childProcess.on.mock.calls[1][1]
+    errorCb({ foo: 'bar' })
+    expect(worker.emit).toBeCalledWith('error', { foo: 'bar', cid: '0-5' })
+
+    const exitCb = childProcess.on.mock.calls[2][1]
     exitCb(23)
-    expect(runner.emit).toBeCalledWith('end', { cid: '0-5', exitCode: 23 })
+    expect(worker.emit).toBeCalledWith('exit', { cid: '0-5', exitCode: 23 })
 })

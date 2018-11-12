@@ -43,12 +43,36 @@ describe('cli interface', () => {
             name: 'foo',
             content: 'bar'
         })
-        expect(wdioClInterface.messages).toEqual({ reporter: { foo: ['bar'] } })
+        expect(wdioClInterface.messages).toEqual({
+            reporter: { foo: ['bar'] },
+            worker: {}
+        })
+    })
+
+    it('should allow to store worker messages', () => {
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'error',
+            content: 'foobar'
+        })
+        expect(wdioClInterface.messages).toEqual({
+            reporter: {},
+            worker: { error: ['foobar'] }
+        })
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'error',
+            content: 'foobar2'
+        })
+        expect(wdioClInterface.messages).toEqual({
+            reporter: {},
+            worker: { error: ['foobar', 'foobar2'] }
+        })
     })
 
     it('should ignore messages that do not contain a proper origin', () => {
         wdioClInterface.onMessage({ foo: 'bar' })
-        expect(wdioClInterface.messages).toEqual({ reporter: {} })
+        expect(wdioClInterface.messages).toEqual({ reporter: {}, worker: {} })
     })
 
     it('should update clock', () => {
@@ -122,12 +146,18 @@ describe('cli interface', () => {
             name: 'foo',
             content: 'some reporter output'
         })
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'error',
+            content: { stack: 'foobar' }
+        })
         wdioClInterface.updateView()
 
         const output = flatten(wdioClInterface.interface.log.mock.calls)
         expect(output).toContain('black "foo" Reporter:')
         expect(output).toContain('black Stdout:\nfoobar')
         expect(output).toContain('black Stderr:\nbarfoo')
+        expect(output).toContain('black Worker Error:\nfoobar\n')
         expect(output).toContain('(100% completed)')
     })
 })
