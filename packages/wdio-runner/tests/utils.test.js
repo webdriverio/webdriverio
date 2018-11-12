@@ -114,34 +114,5 @@ describe('utils', () => {
             multiremote.mockClear()
             remote.mockClear()
         })
-
-        // export async function initialiseInstance (config, capabilities, isMultiremote) {
-        //     /**
-        //      * check if config has sessionId and attach it to a running session if so
-        //      */
-        //     if (config.sessionId) {
-        //         log.debug(`attach to session with id ${config.sessionId}`)
-        //         return attach({ ...config, capabilities })
-        //     }
-        //
-        //     if (!isMultiremote) {
-        //         log.debug('init remote session')
-        //         config.capabilities = capabilities
-        //         return remote(config)
-        //     }
-        //
-        //     const options = {}
-        //     log.debug('init multiremote session')
-        //     for (let browserName of Object.keys(capabilities)) {
-        //         options[browserName] = merge(config, capabilities[browserName], MERGE_OPTIONS)
-        //     }
-        //
-        //     const browser = await multiremote(options)
-        //     for (let browserName of Object.keys(capabilities)) {
-        //         global[browserName] = browser[browserName]
-        //     }
-        //
-        //     return browser
-        // }
     })
 })
