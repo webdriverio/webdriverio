@@ -1,11 +1,12 @@
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
+const DEFAULT_PROTOCOL = 'http'
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}) {
-    const { port, hostname, user, key } = options
+    const { port, hostname, user, key, protocol } = options
 
     /**
      * browserstack
@@ -35,9 +36,9 @@ export function detectBackend (options = {}) {
      */
     if (typeof user === 'string' && key.length === 36) {
         return {
-            protocol: 'https',
-            hostname: 'ondemand.saucelabs.com',
-            port: 443
+            protocol: protocol || 'https',
+            hostname: hostname || 'ondemand.saucelabs.com',
+            port: port || 443
         }
     }
 
@@ -46,7 +47,8 @@ export function detectBackend (options = {}) {
      */
     return {
         hostname: hostname || DEFAULT_HOSTNAME,
-        port: port || DEFAULT_PORT
+        port: port || DEFAULT_PORT,
+        protocol: protocol || DEFAULT_PROTOCOL
     }
 }
 
