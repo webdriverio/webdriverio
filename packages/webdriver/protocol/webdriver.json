@@ -579,8 +579,8 @@
         "description": "the id of an element returned in a previous call to Find Element(s)"
       }],
       "parameters": [{
-        "name": "text",
-        "type": "string",
+        "name": "value",
+        "type": "string[]",
         "description": "string to send as keystrokes to the element",
         "required": true
       }]
