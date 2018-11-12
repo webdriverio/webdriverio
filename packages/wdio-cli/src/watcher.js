@@ -2,6 +2,7 @@ import chokidar from 'chokidar'
 import logger from '@wdio/logger'
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
+import union from 'lodash.union'
 
 import Launcher from './launcher.js'
 
@@ -12,9 +13,13 @@ export default class Watcher {
         log.info('Starting launcher in watch mode')
         this.launcher = new Launcher(configFile, argv)
         this.argv = argv
+
+        const specs = this.launcher.configParser.getSpecs()
         this.specs = [
-            ...this.launcher.configParser.getSpecs(),
-            ...flattenDeep(this.launcher.configParser.getCapabilities().map(cap => cap.specs || []))
+            ...specs,
+            ...union(flattenDeep(
+                this.launcher.configParser.getCapabilities().map(cap => cap.specs || [])
+            ))
         ]
         this.isRunningTests = false
     }

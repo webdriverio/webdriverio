@@ -298,4 +298,5 @@ adapterFactory.run = async function (...args) {
     return result
 }
 
-export default { MochaAdapter, adapterFactory }
+export default adapterFactory
+export { MochaAdapter, adapterFactory }
