@@ -28,7 +28,7 @@ export default class WebDriver {
         const response = await sessionRequest.makeRequest(params)
         params.requestedCapabilities = params.capabilities
         params.capabilities = response.value.capabilities || response.value
-        params.isW3C = Boolean(response.value.capabilities)
+        params.isW3C = Boolean(response.value.capabilities || response.value.platformName)
 
         const prototype = Object.assign(getPrototype(params.isW3C), proto)
         const monad = webdriverMonad(params, modifier, prototype)
