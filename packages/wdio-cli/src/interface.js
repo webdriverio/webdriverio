@@ -1,3 +1,4 @@
+import fs from 'fs'
 import chalk from 'chalk'
 import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
@@ -12,9 +13,18 @@ export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.clockTimer = 0
         this.specs = specs
         this.config = config
+
+        this.interface = new CLInterface()
+        this.on('job:start', ::this.addJob)
+        this.on('job:end', ::this.clearJob)
+
+        this.setup()
+    }
+
+    setup () {
+        this.clockTimer = 0
         this.jobs = new Map()
         this.start = Date.now()
         this.result = {
@@ -32,10 +42,7 @@ export default class WDIOCLInterface extends EventEmitter {
              */
             worker: {}
         }
-
-        this.interface = new CLInterface()
-        this.on('job:start', ::this.addJob)
-        this.on('job:end', ::this.clearJob)
+        this.interface.clearBuffer()
     }
 
     /**
