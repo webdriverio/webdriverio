@@ -65,8 +65,10 @@ exports.config = {
     // and 30 processes will get spawned. The property basically handles how many capabilities
     // from the same test should run tests.
     //
-    //
     maxInstances: 10,
+    //
+    // Or set a limit to run tests with a specific capability.
+    maxInstancesPerCapability: 10,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -117,6 +119,13 @@ exports.config = {
     //
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 1000,
+    //
+    // Add files to watch (e.g. application code or page objects) when running `wdio` command
+    // with `--watch` flag (globbing is supported).
+    filesToWatch: [
+        // e.g. rerun tests if I change my application code
+        // './app/**/*.js'
+    ],
     //
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
@@ -299,8 +308,9 @@ exports.config = {
     */
     onError: function(message) {
     }
-    //
-    // Cucumber specific hooks
+    /**
+     * Cucumber specific hooks
+     */
     beforeFeature: function (feature) {
     },
     beforeScenario: function (scenario) {
