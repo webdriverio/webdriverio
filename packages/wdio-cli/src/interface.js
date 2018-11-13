@@ -85,6 +85,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     updateView (wasJobCleared) {
+        const totalJobs = this.totalWorkerCnt
         const pendingJobs = this.totalWorkerCnt - this.jobs.size - this.result.finished
         const runningJobs = this.jobs.size
         const isFinished = runningJobs === 0
@@ -106,8 +107,8 @@ export default class WDIOCLInterface extends EventEmitter {
                 `${this.jobs.size} running, ` +
                 `${this.result.passed} passed, ` +
                 `${this.result.failed} failed, ` +
-                `${this.specs.length} total ` +
-                `(${Math.round((this.result.finished / this.specs.length) * 100)}% completed)`)
+                `${totalJobs} total ` +
+                `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`)
         }
 
         this.interface.clearAll()
@@ -176,8 +177,8 @@ export default class WDIOCLInterface extends EventEmitter {
         this.interface.log(
             'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
             (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
-            this.specs.length, 'total',
-            `(${this.specs.length ? Math.round((this.result.finished / this.specs.length) * 100) : 0}% completed)`
+            totalJobs, 'total',
+            `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
         )
 
         this.updateClock()
