@@ -1,8 +1,4 @@
-import logger from '@wdio/logger'
-
 import WorkerInstance from './worker'
-
-const log = logger('wdio-local-runner')
 
 export default class LocalRunner {
     constructor (configFile, config) {
@@ -33,17 +29,6 @@ export default class LocalRunner {
         const worker = new WorkerInstance(this.config, options)
         this.workerPool[options.cid] = worker
         worker.postMessage(command, argv)
-
-        /**
-         * ensure to delete worker from pool once exited
-         */
-        worker.on('exit', ({ cid }) => {
-            log.debug(`Remove worker with cid ${cid} from pool`)
-            delete this.workerPool[cid]
-            const workerCnt = this.getWorkerCount()
-            process.stdout.setMaxListeners(workerCnt + 2)
-            process.stderr.setMaxListeners(workerCnt + 2)
-        })
 
         return worker
     }
