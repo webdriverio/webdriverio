@@ -25,7 +25,13 @@ class Launcher {
             process.env.WDIO_LOG_PATH = path.join(config.logDir, `wdio.log`)
         }
 
-        this.interface = new CLInterface(config, specs)
+        const totalWorkerCnt = Array.isArray(capabilities)
+            ? capabilities
+                .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
+                .reduce((a, b) => a + b, 0)
+            : 1
+
+        this.interface = new CLInterface(config, specs, totalWorkerCnt)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         const Runner = initialisePlugin(config.runner, 'runner')

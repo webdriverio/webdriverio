@@ -7,13 +7,15 @@ import logger from '@wdio/logger'
 const log = logger('wdio-cli')
 
 const clockSpinner = cliSpinners['clock']
+const MAX_RUNNING_JOBS_DISPLAY_COUNT = 10
 
 export default class WDIOCLInterface extends EventEmitter {
-    constructor (config, specs) {
+    constructor (config, specs, totalWorkerCnt) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
         this.specs = specs
         this.config = config
+        this.totalWorkerCnt = totalWorkerCnt
 
         this.interface = new CLInterface()
         this.on('job:start', ::this.addJob)
@@ -83,8 +85,9 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     updateView (wasJobCleared) {
-        const isFinished = this.jobs.size === 0
-        const pendingJobs = this.specs.length - this.jobs.size - this.result.finished
+        const pendingJobs = this.totalWorkerCnt - this.jobs.size - this.result.finished
+        const runningJobs = this.jobs.size
+        const isFinished = runningJobs === 0
 
         /**
          * check if environment supports ansi and print a limited update if not
@@ -122,13 +125,25 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * print running jobs
          */
-        for (const [cid, job] of this.jobs.entries()) {
+        for (const [cid, job] of Array.from(this.jobs.entries()).slice(0, MAX_RUNNING_JOBS_DISPLAY_COUNT)) {
             const filename = job.specs.join(', ').replace(process.cwd(), '')
             this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
         }
 
-        if (pendingJobs) {
-            this.interface.log(chalk.yellow('...', pendingJobs, 'pending tests'))
+        /**
+         * show number of pending and running jobs
+         */
+        if (pendingJobs || runningJobs > MAX_RUNNING_JOBS_DISPLAY_COUNT) {
+            const logString = []
+            if (runningJobs > MAX_RUNNING_JOBS_DISPLAY_COUNT) {
+                logString.push(
+                    runningJobs - MAX_RUNNING_JOBS_DISPLAY_COUNT,
+                    'running tests' + (pendingJobs ? ' -' : ''))
+            }
+            if (pendingJobs) {
+                logString.push(pendingJobs, 'pending tests')
+            }
+            this.interface.log(chalk.yellow('...', ...logString.filter(l => Boolean(l))))
         }
 
         /**
