@@ -70,8 +70,9 @@ export default class WorkerInstance extends EventEmitter {
              * store sessionId and connection data to worker instance
              */
             if (payload.name === 'sessionStarted') {
-                Object.assign(this.server, payload.content)
                 this.sessionId = payload.content.sessionId
+                delete payload.content.sessionId
+                Object.assign(this.server, payload.content)
             }
 
             this.emit('message', Object.assign(payload, { cid }))
