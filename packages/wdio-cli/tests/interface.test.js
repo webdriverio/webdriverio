@@ -10,7 +10,7 @@ describe('cli interface', () => {
     let wdioClInterface
 
     beforeEach(() => {
-        wdioClInterface = new WDIOCLInterface(config, specs)
+        wdioClInterface = new WDIOCLInterface(config, specs, 5)
     })
 
     it('should add jobs', () => {

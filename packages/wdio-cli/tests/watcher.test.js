@@ -13,6 +13,7 @@ jest.mock('../src/launcher', () => {
             this.configParser.merge(argv)
             this.runner = {}
             this.interface = {
+                emit: jest.fn(),
                 setup: jest.fn(),
                 updateView: jest.fn()
             }
@@ -47,11 +48,29 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher.launcher = {
             run: jest.fn(),
-            interface: { updateView: jest.fn() }
+            interface: { updateView: jest.fn() },
+            configParser: {
+                getConfig: jest.fn().mockReturnValue({ filesToWatch: [] })
+            }
         }
         await watcher.watch()
 
         expect(chokidar.watch).toHaveBeenCalledTimes(1)
+    })
+
+    it('should run also watch `filesToWatch` files', async () => {
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, {})
+        watcher.launcher = {
+            run: jest.fn(),
+            interface: { updateView: jest.fn() },
+            configParser: {
+                getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
+            }
+        }
+        await watcher.watch()
+
+        expect(chokidar.watch).toHaveBeenCalledTimes(2)
     })
 
     it('should call run with modifed path when a new file was changed or added', async () => {
@@ -59,15 +78,42 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher.launcher = {
             run: jest.fn(),
-            interface: { updateView: jest.fn() }
+            interface: { updateView: jest.fn() },
+            configParser: {
+                getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
+            }
         }
         watcher.run = jest.fn()
         await watcher.watch()
 
         chokidar.on.mock.calls[0][1]('/some/path.js')
         chokidar.on.mock.calls[1][1]('/some/other/path.js')
-        expect(watcher.run).toHaveBeenCalledWith({ spec: '/some/path.js' })
-        expect(watcher.run).toHaveBeenCalledWith({ spec: '/some/other/path.js' })
+        chokidar.on.mock.calls[2][1]('/some/another/path.js')
+        chokidar.on.mock.calls[3][1]('/some/another/path.js')
+        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: '/some/path.js' })
+        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: '/some/other/path.js' })
+        expect(watcher.run).toHaveBeenNthCalledWith(3, {})
+        expect(watcher.run).toHaveBeenNthCalledWith(4, {})
+    })
+
+    it('should get workers by pickBy function', () => {
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, {})
+        const workerPool = {
+            '0-0': new WorkerMock('0-0', '/foo/bar.js'),
+            '0-1': new WorkerMock('0-1', '/foo/bar2.js', null, true),
+            '1-0': new WorkerMock('1-0', '/bar/foo.js')
+        }
+        watcher.launcher.runner.workerPool = workerPool
+
+        expect(watcher.getWorkers(null, true)).toEqual(workerPool)
+        expect(watcher.getWorkers()).toEqual({
+            '0-0': workerPool['0-0'],
+            '1-0': workerPool['1-0']
+        })
+        expect(watcher.getWorkers(
+            (worker) => worker.specs.includes('/bar/foo.js'))
+        ).toEqual({ '1-0': workerPool['1-0'] })
     })
 
     it('should run workers on existing session', () => {
@@ -87,7 +133,8 @@ describe('watcher', () => {
         })
 
         const { postMessage, sessionId } = watcher.launcher.runner.workerPool['0-0']
-        expect(postMessage).toHaveBeenCalledWith('run', { sessionId, spec: '/foo/bar.js' });
+        expect(postMessage).toHaveBeenCalledWith('run', { sessionId, spec: '/foo/bar.js' })
+        expect(watcher.launcher.interface.totalWorkerCnt).toBe(1)
     })
 
     it('should not clean if no watcher is running', () => {
@@ -103,7 +150,41 @@ describe('watcher', () => {
         expect(watcher.launcher.interface.emit).toHaveBeenCalledTimes(0)
     })
 
+    it('should run all tests if `filesToWatch` entry was changed', () => {
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, {})
+        watcher.launcher.interface.totalWorkerCnt = 1
+        watcher.cleanUp = jest.fn()
+        watcher.launcher.runner.workerPool = {
+            '0-0': new WorkerMock('0-0', '/foo/bar.js'),
+            '0-1': new WorkerMock('0-1', '/foo/bar2.js', null, true),
+            '1-0': new WorkerMock('1-0', '/bar/foo.js')
+        }
+        watcher.run()
+
+        expect(watcher.launcher.interface.totalWorkerCnt).toBe(2)
+
+        const worker00 = watcher.launcher.runner.workerPool['0-0']
+        expect(worker00.postMessage).toHaveBeenCalledWith(
+            'run',
+            { sessionId: worker00.sessionId })
+        expect(watcher.launcher.interface.emit).toHaveBeenCalledWith('job:start', {
+            cid: '0-0',
+            caps: { browserName: 'chrome' },
+            specs: [ '/foo/bar.js' ] })
+
+        const worker10 = watcher.launcher.runner.workerPool['0-0']
+        expect(worker10.postMessage).toHaveBeenCalledWith(
+            'run',
+            { sessionId: worker10.sessionId })
+        expect(watcher.launcher.interface.emit).toHaveBeenCalledWith('job:start', {
+            cid: '1-0',
+            caps: { browserName: 'chrome' },
+            specs: [ '/bar/foo.js' ] })
+    })
+
     afterEach(() => {
+        chokidar.watch.mockClear()
         chokidar.on.mockClear()
     })
 })
