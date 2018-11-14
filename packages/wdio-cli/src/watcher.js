@@ -31,8 +31,8 @@ export default class Watcher {
          * listen on spec changes and rerun specific spec file
          */
         chokidar.watch(this.specs, { ignoreInitial: true })
-            .on('add', path => this.run(Object.assign({}, this.argv, { spec: path })))
-            .on('change', path => this.run(Object.assign({}, this.argv, { spec: path })))
+            .on('add', this.getFileListener())
+            .on('change', this.getFileListener())
 
         /**
          * listen on filesToWatch changes an rerun complete suite
@@ -40,8 +40,8 @@ export default class Watcher {
         const { filesToWatch } = this.launcher.configParser.getConfig()
         if (filesToWatch.length) {
             chokidar.watch(filesToWatch, { ignoreInitial: true })
-                .on('add', ::this.runAll)
-                .on('change', ::this.runAll)
+                .on('add', this.getFileListener(false))
+                .on('change', this.getFileListener(false))
         }
 
         /**
@@ -51,46 +51,59 @@ export default class Watcher {
         this.launcher.interface.updateView()
     }
 
-    runAll () {
-        this.cleanUp()
-
-        /**
-         * update total worker count interface
-         * ToDo: this should have a cleaner solution
-         */
-        this.launcher.interface.totalWorkerCnt = this.totalWorkerCnt
-
-        /**
-         * rerun every worker
-         */
-        for (const [, worker] of Object.entries(this.launcher.runner.workerPool)) {
-            const { cid, caps, specs } = worker
-            const argv = Object.assign({}, this.argv, { sessionId: worker.sessionId })
-            worker.postMessage('run', argv)
-            this.launcher.interface.emit('job:start', { cid, caps, specs })
-        }
+    /**
+     * return file listener callback that calls `run` method
+     * @param  {Boolean}  [passOnFile=true]  if true pass on file change as parameter
+     * @return {Function}                    chokidar event callback
+     */
+    getFileListener (passOnFile = true) {
+        return (spec) => this.run(
+            Object.assign({}, this.argv, passOnFile ? { spec } : {})
+        )
     }
 
-    run (params) {
-        /**
-         * get worker containing same spec file
-         */
-        let workers = pickBy(
-            this.launcher.runner.workerPool,
-            (worker) => worker.specs.includes(params.spec)
-        )
+    /**
+     * helper method to get workers from worker pool of wdio runner
+     * @param  {Function} pickBy             filter by property value (see lodash.pickBy)
+     * @param  {Boolean}  includeBusyWorker  don't filter out busy worker (default: false)
+     * @return {Object}                      Object with workers, e.g. {'0-0': { ... }}
+     */
+    getWorkers (pickByFn, includeBusyWorker) {
+        let workers = this.launcher.runner.workerPool
 
-        /**
-         * filter out busy workers
-         */
-        workers = pickBy(workers, (worker) => !worker.isBusy)
-
-        /**
-         * only clean up if new workers are being triggered
-         */
-        if (Object.keys(workers).length) {
-            this.cleanUp()
+        if (typeof pickByFn === 'function') {
+            workers = pickBy(workers, pickByFn)
         }
+
+        /**
+         * filter out busy workers, only skip if explicitely desired
+         */
+        if (!includeBusyWorker) {
+            workers = pickBy(workers, (worker) => !worker.isBusy)
+        }
+
+        return workers
+    }
+
+    /**
+     * run workers with params
+     * @param  {Object} [params={}]  parameters to run the worker with
+     */
+    run (params = {}) {
+        const workers = this.getWorkers(
+            params.spec ? (worker) => worker.specs.includes(params.spec) : null)
+
+        /**
+         * don't do anything if no worker was found
+         */
+        if (Object.keys(workers).length === 0) {
+            return
+        }
+
+        /**
+         * clean up interface
+         */
+        this.cleanUp()
 
         /**
          * update total worker count interface
@@ -102,8 +115,8 @@ export default class Watcher {
          * trigger new run for non busy worker
          */
         for (const [, worker] of Object.entries(workers)) {
-            const { cid, caps, specs } = worker
-            const argv = Object.assign(params, { sessionId: worker.sessionId })
+            const { cid, caps, specs, sessionId } = worker
+            const argv = Object.assign({ sessionId }, params)
             worker.postMessage('run', argv)
             this.launcher.interface.emit('job:start', { cid, caps, specs })
         }
