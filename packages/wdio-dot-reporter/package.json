@@ -30,7 +30,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/reporter": "^5.0.0-beta.5",
+    "@wdio/reporter": "5.0.0-beta.5",
     "chalk": "^2.3.0"
   },
   "devDependencies": {
