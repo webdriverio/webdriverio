@@ -1,9 +1,11 @@
+import exitHook from 'async-exit-hook'
+
 import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
 
-const log = logger('wdio-local-runner')
+import { SHUTDOWN_TIMEOUT } from './constants'
 
-let forceKillingProcess = false
+const log = logger('wdio-local-runner')
 
 const runner = new Runner()
 process.on('message', (m) => {
@@ -32,26 +34,9 @@ process.on('message', (m) => {
 })
 
 /**
- * catches ctrl+c event
+ * catch sigint messages as they are handled by main process
  */
-process.on('SIGINT', () => {
-    /**
-     * force killing process when 2nd SIGINT comes in
-     */
-    if (forceKillingProcess) {
-        return process.exit(1)
-    }
-
-    forceKillingProcess = true
-    runner.sigintWasCalled = true
-
-    /**
-     * if session is currently in booting process don't do anything
-     * and let runner close the session again
-     */
-    if (!global.browser) {
-        return
-    }
-
-    return process.exit(1)
+exitHook((callback) => {
+    log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
+    setTimeout(callback, SHUTDOWN_TIMEOUT)
 })

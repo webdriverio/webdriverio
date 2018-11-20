@@ -119,7 +119,7 @@ export default class Runner extends EventEmitter {
              * in watch mode we don't close the session and open a blank page instead
              */
             if (!argv.watch) {
-                await this._endSession(this.config)
+                await this.endSession()
             } else {
                 await global.browser.url('about:blank')
             }
@@ -187,9 +187,22 @@ export default class Runner extends EventEmitter {
      */
     async _fetchDriverLogs (config) {
         /**
-         * only fetch logs if driver supports it
+         * only fetch logs if
          */
-        if (!config.logDir || typeof global.browser.getLogs === 'undefined') {
+        if (
+            /**
+             * a log directory is given in config
+             */
+            !config.logDir ||
+            /**
+             * the session wasn't killed during start up phase
+             */
+            !global.browser.sessionId ||
+            /**
+             * driver supports it
+             */
+            typeof global.browser.getLogs === 'undefined'
+        ) {
             return
         }
 
@@ -225,12 +238,32 @@ export default class Runner extends EventEmitter {
     /**
      * end WebDriver session, a config object can be applied if object has changed
      * within a hook by the user
-     *
-     * @param  {Object}  config  configuration object
      */
-    async _endSession (config) {
+    async endSession (shutdown) {
+        /**
+         * don't do anything if test framework returns after SIGINT
+         * if endSession is called without shutdown flag we expect a session id
+         */
+        if (!shutdown && (!global.browser || !global.browser.sessionId)) {
+            return
+        }
+
+        /**
+         * if shutdown was called but no session was created, wait until it was
+         * and try to end it
+         */
+        if (shutdown && (!global.browser || !global.browser.sessionId)) {
+            await new Promise((resolve) => setTimeout(resolve, 250))
+            return this.endSession(shutdown)
+        }
+
         await global.browser.deleteSession()
         delete global.browser.sessionId
-        await runHook('afterSession', config, this.caps, this.specs)
+
+        await runHook('afterSession', global.browser.config, this.caps, this.specs)
+
+        if (shutdown) {
+            await this._shutdown()
+        }
     }
 }

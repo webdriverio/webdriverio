@@ -32,7 +32,8 @@
   },
   "dependencies": {
     "@wdio/logger": "5.0.0-beta.5",
-    "@wdio/runner": "5.0.0-beta.5"
+    "@wdio/runner": "5.0.0-beta.5",
+    "async-exit-hook": "^2.0.1"
   },
   "publishConfig": {
     "access": "public"
