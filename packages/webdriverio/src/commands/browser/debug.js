@@ -33,17 +33,13 @@
 import vm from 'vm'
 import repl from 'repl'
 
-import logger from '@wdio/logger'
 import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/config'
 
 export default function debug(commandTimeout = 5000) {
-    const log = logger('debug')
-    logger.setLevel('debug', 1)
-
-    log.debug(`The execution has stopped!`)
-    log.debug(`You can now go into the browser or use the command line as REPL`)
-    log.debug(`(To exit, press ^C again or type .exit)\n`)
-
+    process.send({
+        origin: 'runner',
+        name: 'debug'
+    })
     let commandIsRunning = false
 
     /* istanbul ignore next */
@@ -56,6 +52,7 @@ export default function debug(commandTimeout = 5000) {
             return callback(null, '[WebdriverIO REPL client]')
         }
 
+        context.browser = this
         commandIsRunning = true
         let result
         if (hasWdioSyncSupport) {
@@ -72,7 +69,6 @@ export default function debug(commandTimeout = 5000) {
             })()
         }
 
-        context.browser = this
         try {
             result = vm.runInThisContext(cmd)
         } catch (e) {
