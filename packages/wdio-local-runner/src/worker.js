@@ -66,6 +66,7 @@ export default class WorkerInstance extends EventEmitter {
             if (payload.name === 'finisedCommand') {
                 this.isBusy = false
             }
+
             /**
              * store sessionId and connection data to worker instance
              */
@@ -107,7 +108,7 @@ export default class WorkerInstance extends EventEmitter {
     postMessage (command, argv) {
         const { cid, configFile, caps, specs, server, isBusy } = this
 
-        if (isBusy) {
+        if (isBusy && command !== 'endSession') {
             return log.info(`worker with cid ${cid} already busy and can't take new commands`)
         }
 

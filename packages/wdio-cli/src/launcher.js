@@ -1,4 +1,5 @@
 import path from 'path'
+import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { ConfigParser, initialisePlugin } from '@wdio/config'
@@ -72,7 +73,7 @@ class Launcher {
         /**
          * catches ctrl+c event
          */
-        process.on('SIGINT', this.exitHandler.bind(this))
+        exitHook(::this.exitHandler)
 
         /**
          * make sure the program will not close instantly
@@ -351,35 +352,10 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler () {
-        if (this.hasTriggeredExitRoutine || !this.hasStartedAnyProcess) {
-            log.log('\nKilling process, bye!')
-
-            // When spawned as a subprocess,
-            // SIGINT will not be forwarded to childs.
-            // Thus for the child to exit cleanly, we must force send SIGINT
-            if (!process.stdin.isTTY) {
-                this.runner.kill()
-            }
-
-            // finish with exit code 1
-            return this.resolve(1)
-        }
-
-        // When spawned as a subprocess,
-        // SIGINT will not be forwarded to childs.
-        // Thus for the child to exit cleanly, we must force send SIGINT
-        if (!process.stdin.isTTY) {
-            this.runner.kill()
-        }
-
-        log.log(`
-
-End selenium sessions properly ...
-(press ctrl+c again to hard kill the runner)
-`)
-
+    exitHandler (callback) {
         this.hasTriggeredExitRoutine = true
+        this.interface.sigintTrigger()
+        return this.runner.shutdown().then(callback)
     }
 }
 
