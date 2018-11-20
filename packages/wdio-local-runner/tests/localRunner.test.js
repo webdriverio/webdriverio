@@ -59,3 +59,46 @@ test('should fork a new process', () => {
     exitCb(23)
     expect(worker.emit).toBeCalledWith('exit', { cid: '0-5', exitCode: 23 })
 })
+
+test('should shut down worker processes', async () => {
+    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+        logDir: '/foo/bar',
+        runnerEnv: { FORCE_COLOR: 1 }
+    })
+    const worker1 = runner.run({
+        cid: '0-4',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        argv: {},
+        caps: {},
+        processNumber: 124,
+        specs: ['/foo/bar2.test.js']
+    })
+    const worker2 = runner.run({
+        cid: '0-5',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        argv: {},
+        caps: {},
+        processNumber: 123,
+        specs: ['/foo/bar.test.js']
+    })
+    setTimeout(() => {
+        worker1.isBusy = false
+        setTimeout(() => {
+            worker2.isBusy = false
+        }, 260)
+    }, 260)
+
+    const before = Date.now()
+    await runner.shutdown()
+    const after = Date.now()
+
+    expect(after - before).toBeGreaterThanOrEqual(750)
+    const call1 = worker1.childProcess.send.mock.calls.pop()[0]
+    expect(call1.cid).toBe('0-5')
+    expect(call1.command).toBe('endSession')
+    const call2 = worker1.childProcess.send.mock.calls.pop()[0]
+    expect(call2.cid).toBe('0-4')
+    expect(call2.command).toBe('endSession')
+})

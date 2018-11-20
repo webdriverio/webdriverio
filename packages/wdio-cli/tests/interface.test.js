@@ -134,6 +134,12 @@ describe('cli interface', () => {
             .toContain('(60% completed)')
 
         wdioClInterface.interface.log.mockClear()
+        wdioClInterface.sigintTrigger()
+        let output = flatten(wdioClInterface.interface.log.mock.calls)
+        expect(output).toContain(
+            'Ending WebDriver sessions gracefully ...\n(press ctrl+c again to hard kill the runner)')
+
+        wdioClInterface.interface.log.mockClear()
         wdioClInterface.jobs.delete('0-0')
         wdioClInterface.jobs.delete('0-1')
         wdioClInterface.jobs.delete('0-2')
@@ -153,11 +159,21 @@ describe('cli interface', () => {
         })
         wdioClInterface.updateView()
 
-        const output = flatten(wdioClInterface.interface.log.mock.calls)
+        output = flatten(wdioClInterface.interface.log.mock.calls)
         expect(output).toContain('black "foo" Reporter:')
         expect(output).toContain('black Stdout:\nfoobar')
         expect(output).toContain('black Stderr:\nbarfoo')
         expect(output).toContain('black Worker Error:\nfoobar\n')
         expect(output).toContain('(100% completed)')
+        expect(output).toContain('Ended WebDriver sessions gracefully after a SIGINT signal was received!')
+    })
+
+    it('should be able to mark display when SIGINT is called', () => {
+        wdioClInterface.updateView = jest.fn()
+        expect(wdioClInterface.sigintTriggered).toBe(false)
+        expect(wdioClInterface.updateView).toBeCalledTimes(0)
+        wdioClInterface.sigintTrigger()
+        expect(wdioClInterface.sigintTriggered).toBe(true)
+        expect(wdioClInterface.updateView).toBeCalledTimes(1)
     })
 })
