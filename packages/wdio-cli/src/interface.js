@@ -16,6 +16,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
+        this.sigintTriggered = false
 
         this.interface = new CLInterface()
         this.on('job:start', ::this.addJob)
@@ -82,6 +83,11 @@ export default class WDIOCLInterface extends EventEmitter {
             this.messages[params.origin][params.name] = []
         }
         this.messages[params.origin][params.name].push(params.content)
+    }
+
+    sigintTrigger () {
+        this.sigintTriggered = true
+        this.updateView()
     }
 
     updateView (wasJobCleared) {
@@ -182,6 +188,16 @@ export default class WDIOCLInterface extends EventEmitter {
         )
 
         this.updateClock()
+
+        if (this.sigintTriggered) {
+            clearTimeout(this.interval)
+            this.interface.log('\n')
+            this.interface.log(!isFinished
+                ? 'Ending WebDriver sessions gracefully ...\n' +
+                  '(press ctrl+c again to hard kill the runner)'
+                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+            )
+        }
 
         if (isFinished) {
             clearTimeout(this.interval)
