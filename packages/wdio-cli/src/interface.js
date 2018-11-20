@@ -75,6 +75,17 @@ export default class WDIOCLInterface extends EventEmitter {
      * event handler that is triggered when runner sends up events
      */
     onMessage (params) {
+        if (params.origin === 'runner' && params.name === 'debug') {
+            clearTimeout(this.interval)
+            this.interface.clearAll()
+            this.interface.inDebugMode = true
+
+            this.interface.log(chalk.yellow('The execution has stopped!'))
+            this.interface.log(chalk.yellow('You can now go into the browser or use the command line as REPL'))
+            this.interface.log(chalk.yellow('(To exit, press ^C again or type .exit)'))
+            this.interface.log()
+        }
+
         if (!params.origin || !this.messages[params.origin]) {
             return log.warn(`Can't identify message from worker: ${JSON.stringify(params)}, ignoring!`)
         }
