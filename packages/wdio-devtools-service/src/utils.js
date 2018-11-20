@@ -12,7 +12,19 @@ const RE_USER_DATA_DIR_SWITCH = /--user-data-dir=([^-]*)/
  * Find Chrome DevTools Interface port by checking Chrome switches from the chrome://version
  * page. In case a newer version is used (+v65) we check the DevToolsActivePort file
  */
-export async function findChromePort () {
+export async function findCDPInterface () {
+    /**
+     * check if interface is part of goog:chromeOptions value
+     */
+    const chromeOptions = global.browser.capabilities['goog:chromeOptions']
+    if (chromeOptions && chromeOptions.debuggerAddress) {
+        const [host, port] = chromeOptions.debuggerAddress.split(':')
+        return { host, port: parseInt(port, 10) }
+    }
+
+    /**
+     * otherwise look into chrome flags
+     */
     await global.browser.url('chrome://version')
     const cmdLineTextElem = await global.browser.$('#command_line')
     const cmdLineText = await cmdLineTextElem.getText()
@@ -27,13 +39,13 @@ export async function findChromePort () {
         port = parseInt(devToolsActivePortFile.split('\n').shift(), 10)
     }
 
-    return port
+    return { host: 'localhost', port }
 }
 
-export function getCDPClient (port) {
+export function getCDPClient (host, port) {
     return new Promise((resolve) => CDP({
+        host,
         port,
-        host: 'localhost',
         target: /* istanbul ignore next */ (targets) => targets.findIndex((t) => t.type === 'page')
     }, resolve))
 }

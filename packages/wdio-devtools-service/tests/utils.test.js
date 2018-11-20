@@ -1,5 +1,5 @@
 import { format } from 'util'
-import { findChromePort, getCDPClient, sumByKey, readIOStream } from '../src/utils'
+import { findCDPInterface, getCDPClient, sumByKey, readIOStream } from '../src/utils'
 
 import CDP from 'chrome-remote-interface'
 
@@ -11,37 +11,51 @@ jest.mock('fs', () => ({
 }))
 
 test('getCDPClient', async () => {
-    const cdp = await getCDPClient(1234)
+    const cdp = await getCDPClient('localhost', 1234)
     expect(CDP.mock.calls).toHaveLength(1)
     expect(CDP.mock.calls[0][0].port).toBe(1234)
+    expect(CDP.mock.calls[0][0].host).toBe('localhost')
     expect(typeof cdp.on).toBe('function')
 })
 
-test('findChromePort', async () => {
+test('findCDPInterface', async () => {
     const cmdLineText = format(COMMAND_LINE_TEXT, 1234)
     const elemMock = { getText: jest.fn().mockReturnValue(Promise.resolve(cmdLineText)) }
     global.browser = {
         url: jest.fn(),
-        $: jest.fn().mockReturnValue(elemMock)
+        $: jest.fn().mockReturnValue(elemMock),
+        capabilities: {}
     }
 
-    const result = await findChromePort()
+    const result = await findCDPInterface()
     expect(global.browser.url.mock.calls).toHaveLength(1)
     expect(global.browser.$.mock.calls).toHaveLength(1)
     expect(elemMock.getText.mock.calls).toHaveLength(1)
-    expect(result).toBe(1234)
+    expect(result).toEqual({ host: 'localhost', port: 1234 })
 })
 
-test('findChromePort with DevToolsActivePort', async () => {
+test('findCDPInterface with DevToolsActivePort', async () => {
     const cmdLineText = format(COMMAND_LINE_TEXT, 0)
     const elemMock = { getText: jest.fn().mockReturnValue(Promise.resolve(cmdLineText)) }
     global.browser = {
         url: jest.fn(),
-        $: jest.fn().mockReturnValue(elemMock)
+        $: jest.fn().mockReturnValue(elemMock),
+        capabilities: {}
     }
 
-    const result = await findChromePort()
-    expect(result).toBe(1234)
+    const result = await findCDPInterface()
+    expect(result).toEqual({ host: 'localhost', port: 1234 })
+})
+
+test('findCDPInterface with goog:chromeOptions data', async () => {
+    global.browser = {
+        capabilities: {
+            'goog:chromeOptions': { debuggerAddress: 'foo.bar:1234' }
+        }
+    }
+
+    const result = await findCDPInterface()
+    expect(result).toEqual({ host: 'foo.bar', port: 1234 })
 })
 
 test('sumByKey', () => {
