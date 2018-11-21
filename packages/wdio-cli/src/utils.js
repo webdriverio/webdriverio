@@ -19,7 +19,8 @@ export function getLauncher (config) {
          * allow custom services
          */
         if (typeof serviceName === 'object') {
-            launchServices.push(serviceName)
+            const { onPrepare, onComplete } = serviceName
+            launchServices.push({ onPrepare, onComplete })
             continue
         }
 
@@ -35,7 +36,8 @@ export function getLauncher (config) {
         }
 
         if (service && (typeof service.onPrepare === 'function' || typeof service.onComplete === 'function')) {
-            launchServices.push(service)
+            const { onPrepare, onComplete } = service
+            launchServices.push({ onPrepare, onComplete })
         }
     }
 
@@ -61,7 +63,8 @@ export async function runServiceHook (launcher, hookName, ...args) {
  * map package names
  */
 export function filterPackageName (type) {
-    return (pkgLabel) => pkgLabel.trim().includes('@wdio')
-        ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
-        : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`
+    return (pkgLabels) => pkgLabels.map(
+        (pkgLabel) => pkgLabel.trim().includes('@wdio')
+            ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
+            : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`)
 }
