@@ -10,7 +10,7 @@
     "clean:node_modules": "rimraf ./packages/*/node_modules ./packages/node_modules",
     "clean:website": "rimraf docs/api/**/*.md && rimraf website/sidebars.json",
     "link": "node ./scripts/link",
-    "release": "lerna publish",
+    "release": "npm run setup && lerna publish",
     "setup": "run-s bootstrap build",
     "test": "run-s test:*",
     "test:eslint": "eslint packages examples",
