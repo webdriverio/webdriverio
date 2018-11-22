@@ -12,8 +12,8 @@ First we need to define `junit` as test reporter. Also make sure you have it ins
 module.exports = {
     // ...
     reporters: [
-        '@wdio/dot',
-        ['@wdio/junit', {
+        'dot',
+        ['junit', {
             outputDir: './'
         }]
     ],

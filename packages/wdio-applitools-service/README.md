@@ -31,7 +31,7 @@ In order to use the service you need to set `applitoolsKey` in your `wdio.conf.j
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['@wdio/applitools'],
+  services: ['applitools'],
   applitools: {
     // options
     // ...

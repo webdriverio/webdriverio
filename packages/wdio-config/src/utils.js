@@ -80,7 +80,7 @@ export function initialisePlugin (name, type) {
     /**
      * directly import packages that are scoped (but not with @wdio)
      */
-    if (name[0] === '@') {
+    if (name[0] === '@' && !name.startsWith('@wdio')) {
         return safeRequire(name)
     }
 
