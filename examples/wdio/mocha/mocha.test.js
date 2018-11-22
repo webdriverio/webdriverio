@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = require('assert');
 
 describe('webdriver.io page', () => {
     it('should be a pending test')

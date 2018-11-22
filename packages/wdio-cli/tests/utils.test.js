@@ -26,7 +26,7 @@ test('getLauncher', () => {
         services: [
             inlineService,
             'unscoped',
-            '@wdio/scoped',
+            'scoped',
             'non-existing'
         ]
     })).toHaveLength(3)

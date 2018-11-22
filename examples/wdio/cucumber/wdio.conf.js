@@ -26,7 +26,7 @@ exports.config = {
     logLevel: 'error',
     framework: 'cucumber',
 
-    reporters: ['@wdio/dot'],
+    reporters: ['dot'],
 
     cucumberOpts: {
         require: ['./step-definitions.js']

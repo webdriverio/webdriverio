@@ -35,7 +35,7 @@ exports.config = {
     logDir: __dirname,
     framework: 'mocha',
 
-    reporters: ['@wdio/spec'],
+    reporters: ['spec'],
 
     mochaOpts: {
         ui: 'bdd',

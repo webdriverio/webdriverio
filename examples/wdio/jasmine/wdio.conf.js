@@ -27,7 +27,7 @@ exports.config = {
     logDir: __dirname,
     framework: 'jasmine',
 
-    reporters: ['@wdio/spec'],
+    reporters: ['spec'],
 
     jasmineNodeOpts: {
         defaultTimeoutInterval: 1000 * 60 * 3
