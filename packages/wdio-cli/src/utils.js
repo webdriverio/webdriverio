@@ -27,6 +27,14 @@ export function getLauncher (config) {
 
         try {
             const Launcher = initialisePlugin(serviceName, 'service', 'launcher')
+
+            /**
+             * abort if service has no launcher
+             */
+            if (!Launcher) {
+                continue
+            }
+
             launcher = new Launcher()
         } catch (e) {
             if (!e.message.match(`Couldn't find plugin`)) {

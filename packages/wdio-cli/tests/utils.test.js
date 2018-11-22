@@ -13,7 +13,7 @@ jest.mock('@wdio/config', () => {
             .mockImplementationOnce(
                 () => LauncherMock)
             .mockImplementationOnce(
-                () => LauncherMock)
+                () => undefined)
             .mockImplementationOnce(
                 () => { throw new Error(`Couldn't find plugin`) })
             .mockImplementationOnce(() => { throw new Error('buhh') })
@@ -49,7 +49,7 @@ test('getLauncher', () => {
             'scoped',
             'non-existing'
         ]
-    })).toHaveLength(3)
+    })).toHaveLength(2)
 })
 
 test('getLauncher failing if syntax error', () => {
