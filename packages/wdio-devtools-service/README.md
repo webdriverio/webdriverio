@@ -35,7 +35,7 @@ In order to use the service you just need to add the service to your service lis
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['@wdio/devtools'],
+  services: ['devtools'],
   // ...
 };
 ```
