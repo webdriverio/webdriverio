@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { initialisePlugin } from '@wdio/config'
 
 const log = logger('wdio-cli:utils')
 
@@ -24,13 +25,10 @@ export function getLauncher (config) {
             continue
         }
 
-        const pkgName = serviceName.startsWith('@')
-            ? `${serviceName}-service/launcher`
-            : `wdio-${serviceName}-service/launcher`
         try {
-            service = require(pkgName)
+            service = initialisePlugin(serviceName, 'service', '/launcher')
         } catch (e) {
-            if (!e.message.match(`Cannot find module '${pkgName}'`)) {
+            if (!e.message.match(`Couldn't find plugin`)) {
                 throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
             }
         }
