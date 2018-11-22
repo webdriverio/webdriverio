@@ -145,7 +145,7 @@ test('getPerformanceMetrics', () => {
         firstContentfulPaint: 735.669,
         firstMeaningfulPaint: 735.671,
         domContentLoaded: 574.546,
-        timeToFirstInteractive: null,
+        timeToFirstInteractive: 735.671,
         load: 1379.895
     });
 })
