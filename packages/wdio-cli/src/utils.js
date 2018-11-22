@@ -14,7 +14,7 @@ export function getLauncher (config) {
     }
 
     for (let serviceName of config.services) {
-        let service
+        let launcher
 
         /**
          * allow custom services
@@ -26,15 +26,16 @@ export function getLauncher (config) {
         }
 
         try {
-            service = initialisePlugin(serviceName, 'service', '/launcher')
+            const Launcher = initialisePlugin(serviceName, 'service', 'launcher')
+            launcher = new Launcher()
         } catch (e) {
             if (!e.message.match(`Couldn't find plugin`)) {
                 throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
             }
         }
 
-        if (service && (typeof service.onPrepare === 'function' || typeof service.onComplete === 'function')) {
-            const { onPrepare, onComplete } = service
+        if (launcher && (typeof launcher.onPrepare === 'function' || typeof launcher.onComplete === 'function')) {
+            const { onPrepare, onComplete } = launcher
             launchServices.push({ onPrepare, onComplete })
         }
     }

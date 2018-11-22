@@ -1,16 +1,24 @@
 import { filterPackageName, getLauncher, runServiceHook } from '../src/utils'
 
-jest.mock('@wdio/config', () => ({
-    initialisePlugin: jest.fn().mockImplementationOnce(() => ({
-        onPrepare: jest.fn(),
-        onComplete: jest.fn()
-    })).mockImplementationOnce(() => ({
-        onPrepare: jest.fn(),
-        onComplete: jest.fn()
-    })).mockImplementationOnce(
-        () => { throw new Error(`Couldn't find plugin`) }
-    ).mockImplementationOnce(() => { throw new Error('buhh') })
-}))
+jest.mock('@wdio/config', () => {
+    class LauncherMock {
+        constructor () {
+            this.onPrepare = jest.fn()
+            this.onComplete = jest.fn()
+        }
+    }
+
+    return {
+        initialisePlugin: jest.fn()
+            .mockImplementationOnce(
+                () => LauncherMock)
+            .mockImplementationOnce(
+                () => LauncherMock)
+            .mockImplementationOnce(
+                () => { throw new Error(`Couldn't find plugin`) })
+            .mockImplementationOnce(() => { throw new Error('buhh') })
+    }
+})
 
 test('filterPackageName', () => {
     const reporter = [

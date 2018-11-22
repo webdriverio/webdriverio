@@ -60,7 +60,7 @@ export function detectBackend (options = {}) {
  */
 function safeRequire (name) {
     try {
-        return require(name).default
+        return require(name)
     } catch (e) {
         if (!e.message.match(`Cannot find module '${name}'`)) {
             throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
@@ -76,28 +76,29 @@ function safeRequire (name) {
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export function initialisePlugin (name, type, pkgPath = '') {
+export function initialisePlugin (name, type, target = 'default') {
     /**
      * directly import packages that are scoped
      */
     if (name[0] === '@') {
-        return safeRequire(name)
+        const service = safeRequire(name)
+        return service[target]
     }
 
     /**
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
-    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}${pkgPath}`)
+    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
     if (scopedPlugin) {
-        return scopedPlugin
+        return scopedPlugin[target]
     }
 
     /**
      * check for old type of
      */
-    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}${pkgPath}`)
+    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
     if (plugin) {
-        return plugin
+        return plugin[target]
     }
 
     throw new Error(
