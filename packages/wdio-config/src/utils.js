@@ -76,18 +76,18 @@ function safeRequire (name) {
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export function initialisePlugin (name, type) {
+export function initialisePlugin (name, type, pkgPath = '') {
     /**
-     * directly import packages that are scoped (but not with @wdio)
+     * directly import packages that are scoped
      */
-    if (name[0] === '@' && !name.startsWith('@wdio')) {
+    if (name[0] === '@') {
         return safeRequire(name)
     }
 
     /**
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
-    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
+    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}${pkgPath}`)
     if (scopedPlugin) {
         return scopedPlugin
     }
@@ -95,7 +95,7 @@ export function initialisePlugin (name, type) {
     /**
      * check for old type of
      */
-    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
+    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}${pkgPath}`)
     if (plugin) {
         return plugin
     }
