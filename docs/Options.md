@@ -148,8 +148,8 @@ Default: `[]`
 Example:
 ```js
 reporters: [
-    'dot',
-    ['spec', {
+    '@wdio/dot',
+    ['@wdio/spec', {
         outputDir: __dirname + '/reports',
         otherOption: 'foobar'
     }]

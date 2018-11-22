@@ -33,7 +33,7 @@ Setup your profile by adding the `firefox-profile` service to your service list.
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['firefox-profile'],
+  services: ['@wdio/firefox-profile'],
   firefoxProfile: {
     extensions: [
       '/path/to/extensionA.xpi', // path to .xpi file

@@ -32,7 +32,7 @@ you just need to set `tbTunnel: true`.
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['testingbot'],
+  services: ['@wdio/testingbot'],
   user: process.env.TB_KEY,
   key: process.env.TB_SECRET,
   tbTunnel: true,

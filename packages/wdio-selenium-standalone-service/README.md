@@ -31,7 +31,7 @@ By default, Google Chrome, Firefox and PhantomJS are available when installed on
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['selenium-standalone'],
+  services: ['@wdio/selenium-standalone'],
   // ...
 };
 ```
