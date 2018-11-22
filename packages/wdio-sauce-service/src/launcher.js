@@ -1,6 +1,6 @@
 import SauceConnectLauncher from 'sauce-connect-launcher'
 
-export default class SauceLaunchService {
+export default class SauceLauncher {
     /**
      * modify config and launch sauce connect
      */

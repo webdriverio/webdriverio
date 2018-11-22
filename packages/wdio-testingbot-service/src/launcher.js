@@ -3,7 +3,7 @@ import testingbotTunnel from 'testingbot-tunnel-launcher'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
-export default class TestingBotService {
+export default class TestingBotLauncher {
     /**
      * Modify config and launch tb tunnel
      * @param   {Object} config Wdio config
