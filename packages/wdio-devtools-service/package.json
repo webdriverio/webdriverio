@@ -1,6 +1,6 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "5.0.0-beta.8",
+  "version": "5.0.0-beta.9",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devtools-service",
@@ -34,7 +34,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "^5.0.0-beta.8",
+    "@wdio/logger": "^5.0.0-beta.9",
     "chrome-remote-interface": "^0.25.5",
     "speedline": "^1.4.1",
     "stable": "^0.1.8"
