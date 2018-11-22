@@ -1,5 +1,17 @@
 import { filterPackageName, getLauncher, runServiceHook } from '../src/utils'
 
+jest.mock('@wdio/config', () => ({
+    initialisePlugin: jest.fn().mockImplementationOnce(() => ({
+        onPrepare: jest.fn(),
+        onComplete: jest.fn()
+    })).mockImplementationOnce(() => ({
+        onPrepare: jest.fn(),
+        onComplete: jest.fn()
+    })).mockImplementationOnce(
+        () => { throw new Error(`Couldn't find plugin`) }
+    ).mockImplementationOnce(() => { throw new Error('buhh') })
+}))
+
 test('filterPackageName', () => {
     const reporter = [
         ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
