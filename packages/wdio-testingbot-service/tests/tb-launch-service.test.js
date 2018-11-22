@@ -1,7 +1,7 @@
 jest.unmock('request')
 
 import request from 'request'
-import TestingBotService from '../src/tb-launch-service'
+import TestingBotService from '../src/launcher'
 
 describe('wdio-testingbot-service', () => {
     const tbService = new TestingBotService()
