@@ -33,8 +33,8 @@ to the array. To get some output during the test you can run the [WDIO Dot Repor
 module.exports = {
     // ...
     reporters: [
-        'dot',
-        ['junit', {
+        '@wdio/dot',
+        ['@wdio/junit', {
             outputDir: './',
             outputFileFormat: function(opts) { // optional
                 return `results-${opts.cid}.${opts.capabilities}.xml`
@@ -93,8 +93,8 @@ Example:
 module.exports = {
     // ...
     reporters: [
-        'dot',
-        ['junit', {
+        '@wdio/dot',
+        ['@wdio/junit', {
             outputDir: './',
             packageName: process.env.USER_ROLE // chrome.41 - administrator
         }]
@@ -130,8 +130,8 @@ Example:
 module.exports = {
     // ...
     reporters: [
-        'dot',
-        ['junit', {
+        '@wdio/dot',
+        ['@wdio/junit', {
             outputDir: './',
             errorOptions: {
                 error: 'message',

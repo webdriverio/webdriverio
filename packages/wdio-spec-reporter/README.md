@@ -34,7 +34,7 @@ to the array.
 // wdio.conf.js
 module.exports = {
   // ...
-  reporters: ['dot', 'spec'],
+  reporters: ['@wdio/dot', '@wdio/spec'],
   // ...
 };
 ```

@@ -30,7 +30,7 @@ Configure the output directory in your wdio.conf.js file:
 ```js
 exports.config = {
     // ...
-    reporters: [['allure', {
+    reporters: [['@wdio/allure', {
         outputDir: 'allure-results',
         disableWebdriverStepsReporting: true,
         disableWebdriverScreenshotsReporting: true,

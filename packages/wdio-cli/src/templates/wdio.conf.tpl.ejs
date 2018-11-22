@@ -157,7 +157,7 @@ exports.config = {
         return reporter.slice(5, -9);
     }).join("','") %>'],
     <% } else {
-    %>// reporters: ['dot'],<%
+    %>// reporters: ['@wdio/dot'],<%
     }
     if(answers.framework === 'mocha') { %>
     //

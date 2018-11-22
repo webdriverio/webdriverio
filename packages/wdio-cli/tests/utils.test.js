@@ -26,7 +26,7 @@ test('getLauncher', () => {
         services: [
             inlineService,
             'unscoped',
-            '@wdio/scoped-service',
+            '@wdio/scoped',
             'non-existing'
         ]
     })).toHaveLength(3)
@@ -50,15 +50,3 @@ test('runServiceHook', () => {
     expect(hookSuccess).toBeCalledTimes(1)
     expect(hookFailing).toBeCalledTimes(1)
 })
-
-// export async function runServiceHook (launcher, hookName, ...args) {
-//     try {
-//         return await Promise.all(launcher.map((service) => {
-//             if (typeof service[hookName] === 'function') {
-//                 return service[hookName](...args)
-//             }
-//         }))
-//     } catch (e) {
-//         log.error(`A service failed in the '${hookName}' hook\n${e.stack}\n\nContinue...`)
-//     }
-// }
