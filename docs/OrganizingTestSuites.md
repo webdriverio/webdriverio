@@ -49,7 +49,7 @@ exports.config = merge(wdioConf.config, {
     // run tests on sauce instead locally
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
-    services: ['sauce']
+    services: ['@wdio/sauce']
 }, { clone: false });
 
 // add an additional reporter

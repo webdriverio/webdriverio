@@ -57,7 +57,7 @@ User can pass in custom configurations for each reporter. Per default WebdriverI
 // wdio.conf.js
 exports.config = {
     // ...
-    reporters: ['dot', ['my-reporter', {
+    reporters: ['@wdio/dot', ['my-reporter', {
         logDir: '/some/path',
         foo: 'bar'
     }]]

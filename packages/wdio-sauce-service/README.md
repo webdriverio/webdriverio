@@ -33,7 +33,7 @@ you just need to set `sauceConnect: true`.
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['sauce'],
+  services: ['@wdio/sauce'],
   user: process.env.SAUCE_USERNAME,
   key: process.env.SAUCE_ACCESS_KEY,
   sauceConnect: true,

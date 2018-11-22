@@ -138,8 +138,8 @@ exports.config = {
     // The only one supported by default is 'dot'
     // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
     reporters: [
-        'dot',
-        ['allure', {
+        '@wdio/dot',
+        ['@wdio/allure', {
             //
             // If you are using the "allure" reporter you should define the directory where
             // WebdriverIO should save all allure reports.

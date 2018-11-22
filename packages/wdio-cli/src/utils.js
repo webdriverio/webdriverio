@@ -25,7 +25,7 @@ export function getLauncher (config) {
         }
 
         const pkgName = serviceName.startsWith('@')
-            ? `${serviceName}/launcher`
+            ? `${serviceName}-service/launcher`
             : `wdio-${serviceName}-service/launcher`
         try {
             service = require(pkgName)
