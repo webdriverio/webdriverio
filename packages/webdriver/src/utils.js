@@ -1,4 +1,4 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import command from './command'
 import WebDriverProtocol from '../protocol/webdriver.json'
@@ -9,10 +9,20 @@ import AppiumProtocol from '../protocol/appium.json'
 const log = logger('webdriver')
 
 /**
+ * check if WebDriver request is W3C (browser or native app)
+ * @param  {Object}       capabilities of session response
+ * @return {Boolean}       true if W3C (browser)
+ */
+export function isW3CSession(capabilities) {
+    return capabilities.browserName !== ""
+}
+
+/**
  * check if WebDriver requests was successful
  * @param  {Object}  body  body payload of response
  * @return {Boolean}       true if request was successful
  */
+
 export function isSuccessfulResponse ({ body, statusCode } = {}) {
     /**
      * response contains a body

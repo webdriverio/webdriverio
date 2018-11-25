@@ -1,10 +1,10 @@
-import logger from 'wdio-logger'
-import { validateConfig } from 'wdio-config'
+import logger from '@wdio/logger'
+import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype } from './utils'
+import { getPrototype, isW3CSession } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -28,9 +28,9 @@ export default class WebDriver {
         const response = await sessionRequest.makeRequest(params)
         params.requestedCapabilities = params.capabilities
         params.capabilities = response.value.capabilities || response.value
-        params.isW3C = Boolean(response.value.capabilities)
+        params.isW3C = isW3CSession(params.capabilities)
 
-        const prototype = Object.assign(WebDriver.getPrototype(params.isW3C), proto)
+        const prototype = Object.assign(getPrototype(params.isW3C), proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
@@ -45,7 +45,7 @@ export default class WebDriver {
 
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C || true
-        const prototype = Object.assign(WebDriver.getPrototype(options.isW3C), proto)
+        const prototype = Object.assign(getPrototype(options.isW3C), proto)
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }
@@ -56,6 +56,9 @@ export default class WebDriver {
     static get DEFAULTS () {
         return DEFAULTS
     }
+    /**
+     * Protocols
+     */
     static get WebDriverProtocol () {
         return WebDriverProtocol
     }
@@ -68,10 +71,12 @@ export default class WebDriver {
     static get AppiumProtocol () {
         return AppiumProtocol
     }
-    static get webdriverMonad () {
-        return webdriverMonad
-    }
-    static get getPrototype () {
-        return getPrototype
-    }
+}
+
+/**
+ * Helper methods consumed by webdriverio package
+ */
+export {
+    webdriverMonad,
+    getPrototype
 }

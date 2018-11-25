@@ -1,4 +1,5 @@
-import { isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure } from '../src/utils'
+import { isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure, isW3CSession } from '../src/utils'
+import { iosSessionResponse, w3cSessionResponse } from './fixture/sessionResponse'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -68,5 +69,12 @@ describe('utils', () => {
     it('commandCallStructure', () => {
         expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
             .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
+    })
+
+    it('isW3C', () => {
+        const iosCapabilities = iosSessionResponse.value.capabilities
+        const w3cCapabilities = w3cSessionResponse.value
+        expect(isW3CSession(w3cCapabilities)).to.be.true
+        expect(isW3CSession(iosCapabilities)).to.be.false
     })
 })
