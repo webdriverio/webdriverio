@@ -9,6 +9,15 @@ import AppiumProtocol from '../protocol/appium.json'
 const log = logger('webdriver')
 
 /**
+ * check if WebDriver request is W3C (browser or native app)
+ * @param  {Object}       capabilities of session response
+ * @return {Boolean}       true if W3C (browser)
+ */
+export function isW3CSession(capabilities) {
+    return capabilities.browserName !== ""
+}
+
+/**
  * check if WebDriver requests was successful
  * @param  {Object}  body  body payload of response
  * @return {Boolean}       true if request was successful
