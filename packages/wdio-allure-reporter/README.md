@@ -7,12 +7,12 @@ WDIO Allure Reporter
 
 ## Installation
 
-The easiest way is to keep `wdio-allure-reporter` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/allure-reporter` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-allure-reporter": "^5.0.0"
+    "@wdio/allure-reporter": "^5.0.0"
   }
 }
 ```
@@ -20,7 +20,7 @@ The easiest way is to keep `wdio-allure-reporter` as a devDependency in your `pa
 You can simple do it by:
 
 ```bash
-npm install wdio-allure-reporter --save-dev
+npm install @wdio/allure-reporter --save-dev
 ```
 
 ## Configuration
@@ -46,8 +46,11 @@ exports.config = {
 * `feature(featureName)` – assign feature to test
 * `story(storyName)` – assign user story to test
 * `severity(value)` – assign severity to test
+* `issue(value)` – assign issue id to test
+* `testId(value)` – assign TMS test id to test
 * `addEnvironment(name, value)` – save environment value
 * `addAttachment(name, content, [type])` – save attachment to test.
+* `addArgument(name, value)` - add additional argument to test
     * `name` (*String*) - attachment name.
     * `content` – attachment content.
     * `type` (*String*, optional) – attachment MIME-type, `text/plain` by default
@@ -65,13 +68,13 @@ Allure Api can be accessed using:
 ES5
 
 ```js
-const addFeature = require('wdio-allure-reporter/runtime').addFeature
+const addFeature = require('@wdio/allure-reporter/runtime').addFeature
 ```
 
 ES6
 
 ```js
-import {addFeature} from 'wdio-allure-reporter/runtime'
+import {addFeature} from '@wdio/allure-reporter/runtime'
 ```
 
 Mocha example

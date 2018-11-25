@@ -16,7 +16,7 @@
     })
  * </example>
  *
- * @alias browser.doubleClick
+ * @alias element.doubleClick
  * @param {String} selector  element to double click on. If it matches with more than one DOM-element it automatically clicks on the first element
  * @uses protocol/element, protocol/moveTo, protocol/doDoubleClick, protocol/touchDoubleClick
  * @type action

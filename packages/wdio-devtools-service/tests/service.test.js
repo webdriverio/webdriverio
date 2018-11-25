@@ -1,6 +1,6 @@
 import DevToolsService from '../src'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 jest.mock('../src/commands', () => {
     class CommandHandlerMock {
@@ -15,7 +15,7 @@ jest.mock('../src/commands', () => {
 jest.mock('../src/utils', () => {
     let wasCalled = false
     return {
-        findChromePort: jest.fn().mockImplementation(() => {
+        findCDPInterface: jest.fn().mockImplementation(() => {
             if (!wasCalled) {
                 wasCalled = true
                 return 42
@@ -63,7 +63,7 @@ test('if supported by browser', async () => {
 
 test('initialization fails', async () => {
     jest.mock('../src/utils', () => ({
-        findChromePort: () => {
+        findCDPInterface: () => {
             throw new Error('boom!')
         },
         getCDPClient: jest.fn()

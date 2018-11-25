@@ -18,7 +18,7 @@
     })
  * </example>
  *
- * @alias browser.addValue
+ * @alias element.addValue
  * @param {String} selector   Input element
  * @param {*}      values     value to be added
  * @uses protocol/elements, protocol/elementIdValue
@@ -30,10 +30,5 @@ import { transformToCharString } from '../../utils'
 
 export default function addValue (value) {
     let text = transformToCharString(value)
-
-    if (this.isW3C) {
-        text = text.join('')
-    }
-
     return this.elementSendKeys(this.elementId, text)
 }

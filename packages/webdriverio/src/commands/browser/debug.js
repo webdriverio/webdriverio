@@ -33,8 +33,8 @@
 import vm from 'vm'
 import repl from 'repl'
 
-import logger from 'wdio-logger'
-import { runFnInFiberContext, hasWdioSyncSupport } from 'wdio-config'
+import logger from '@wdio/logger'
+import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/config'
 
 export default function debug(commandTimeout = 5000) {
     const log = logger('debug')

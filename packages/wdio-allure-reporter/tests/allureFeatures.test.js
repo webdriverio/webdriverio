@@ -1,5 +1,15 @@
 import AllureReporter from '../src'
 
+let processOn
+beforeAll(() => {
+    processOn = ::process.on
+    process.on = jest.fn()
+})
+
+afterAll(() => {
+    process.on = processOn
+})
+
 describe('reporter runtime implementation', () => {
     it('should correct add story label', () => {
         const reporter = new AllureReporter({stdout: true})
@@ -50,6 +60,38 @@ describe('reporter runtime implementation', () => {
         expect(addLabel).toHaveBeenCalledWith('severity', 'foo')
     })
 
+    it('should correctly add issue label', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addLabel}
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addIssue({issue: '1'})
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('issue', '1')
+    })
+
+    it('should correctly add test id label', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addLabel}
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addTestId({testId: '2'})
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('testId', '2')
+    })
+
     it('should correct add environment', () => {
         const reporter = new AllureReporter({stdout: true})
         const addParameter = jest.fn()
@@ -64,6 +106,44 @@ describe('reporter runtime implementation', () => {
         reporter.addEnvironment({name: 'foo', value: 'bar'})
         expect(addParameter).toHaveBeenCalledTimes(1)
         expect(addParameter).toHaveBeenCalledWith('environment-variable', 'foo', 'bar')
+    })
+
+    it('should correctly add argument for selenium', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addParameter = jest.fn()
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addParameter, addLabel}
+        })
+        reporter.allure = {
+            startCase: mock,
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.onRunnerStart({config: {capabilities: {browserName: 'firefox', version: '1.2.3'}}})
+        reporter.onTestStart({cid: '0-0', title: 'SomeTest'})
+        expect(addParameter).toHaveBeenCalledTimes(1)
+        expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'firefox-1.2.3')
+    })
+
+    it('should correctly add argument for appium', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addParameter = jest.fn()
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return {addParameter, addLabel}
+        })
+        reporter.allure = {
+            startCase: mock,
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.onRunnerStart({config: {capabilities: {deviceName: 'Android Emulator', platformVersion: '8.0'}}})
+        reporter.onTestStart({cid: '0-0', title: 'SomeTest'})
+        expect(addParameter).toHaveBeenCalledTimes(1)
+        expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Android Emulator-8.0')
     })
 
     it('should correct add description', () => {
@@ -163,6 +243,22 @@ describe('reporter runtime implementation', () => {
         expect(startStep).toHaveBeenCalledWith(step.step.title)
         expect(endStep).toHaveBeenCalledWith(step.step.status)
     })
+
+    it('should correctly add argument', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const addParameter = jest.fn()
+        const mock = jest.fn(() => {
+            return {addParameter}
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addArgument({name: 'os', value: 'osx'})
+        expect(addParameter).toHaveBeenCalledTimes(1)
+        expect(addParameter).toHaveBeenCalledWith('argument', 'os', 'osx')
+    })
 })
 
 describe('reporter runtime implementation', () => {
@@ -171,10 +267,13 @@ describe('reporter runtime implementation', () => {
         expect(reporter.addStory({})).toEqual(false)
         expect(reporter.addFeature({})).toEqual(false)
         expect(reporter.addSeverity({})).toEqual(false)
+        expect(reporter.addIssue({})).toEqual(false)
+        expect(reporter.addTestId({})).toEqual(false)
         expect(reporter.addEnvironment({})).toEqual(false)
         expect(reporter.addDescription({})).toEqual(false)
         expect(reporter.addAttachment({})).toEqual(false)
         expect(reporter.addStep({})).toEqual(false)
+        expect(reporter.addArgument({})).toEqual(false)
     })
 })
 

@@ -1,5 +1,5 @@
 import speedline from 'speedline'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import FirstInteractiveAudit from './lighthouse/firstInteractive'
 import TraceOfTab from './lighthouse/tabTraces'
@@ -122,6 +122,7 @@ export default class CommandHandler {
         this.cdp('Tracing', 'end')
         const stream = await new Promise((resolve, reject) => {
             const timeout = setTimeout(
+                /* istanbul ignore next */
                 () => reject('Did not receive a Tracing.tracingComplete event'),
                 5000)
 

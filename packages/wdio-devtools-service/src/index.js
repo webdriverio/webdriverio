@@ -1,10 +1,10 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import CommandHandler from './commands'
-import { findChromePort, getCDPClient } from './utils'
+import { findCDPInterface, getCDPClient } from './utils'
 
 const log = logger('wdio-devtools-service')
-const UNSUPPORTED_ERROR_MESSAGE = 'The wdio-devtools-service currently only supports Chrome version 63 and up'
+const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up'
 
 export default class DevToolsService {
     constructor () {
@@ -27,8 +27,8 @@ export default class DevToolsService {
         }
 
         try {
-            const chromePort = await findChromePort()
-            const client = await getCDPClient(chromePort)
+            const { host, port } = await findCDPInterface()
+            const client = await getCDPClient(host, port)
             this.commandHandler = new CommandHandler(client, global.browser)
         } catch (err) {
             log.error(`Couldn't connect to chrome: ${err.stack}`)

@@ -6,6 +6,16 @@ import {suiteEnd, suiteStart} from './__fixtures__/suite'
 import {testFailed, testPassed, testPending, testStart} from './__fixtures__/testState'
 import {commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot} from './__fixtures__/command'
 
+let processOn
+beforeAll(() => {
+    processOn = ::process.on
+    process.on = jest.fn()
+})
+
+afterAll(() => {
+    process.on = processOn
+})
+
 describe('Passing tests', () => {
     const outputDir = directory()
     let allureXml
@@ -19,9 +29,12 @@ describe('Passing tests', () => {
         reporter.addStory({storyName: 'Story'})
         reporter.addFeature( {featureName: 'foo'})
         reporter.addSeverity({severity: 'baz'})
+        reporter.addIssue({issue: '1'})
+        reporter.addTestId({testId: '2'})
         reporter.addEnvironment({name: 'jenkins', value: '1.2.3'})
         reporter.addDescription({description: 'functions', type: 'html'})
         reporter.addAttachment({name: 'My attachment', content: '99thoughtz', type: 'text/plain'})
+        reporter.addArgument({name: 'os', value: 'osx'})
         const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment'}, 'status': 'failed', 'title': 'foo'}}
         reporter.addStep(step)
         reporter.onTestPass(testPassed())
@@ -54,14 +67,16 @@ describe('Passing tests', () => {
     })
 
     it('should add browser name as test argument', () => {
-        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
+        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(2)
         expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
     })
 
-    it('should add story, feature, severity, labels, thread', () => {
+    it('should add story, feature, severity, issue, testId labels, thread', () => {
         expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('foo')
         expect(allureXml('test-case label[name="story"]').eq(0).attr('value')).toEqual('Story')
         expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('baz')
+        expect(allureXml('test-case label[name="issue"]').eq(0).attr('value')).toEqual('1')
+        expect(allureXml('test-case label[name="testId"]').eq(0).attr('value')).toEqual('2')
         expect(allureXml('test-case label[name="thread"]').eq(0).attr('value')).toEqual(testStart().cid)
     })
 
@@ -79,6 +94,11 @@ describe('Passing tests', () => {
 
     it('should add attachment', () => {
         expect(allureXml('test-case attachment[title="My attachment"]')).toHaveLength(1)
+    })
+
+    it('should add additional argument', () => {
+        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(2)
+        expect(allureXml('test-case parameter[name="os"]').eq(0).attr('value')).toEqual('osx')
     })
 })
 
@@ -116,7 +136,7 @@ describe('Failed tests', () => {
         expect(allureXml('test-case').attr('status')).toEqual('failed')
 
         expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
-        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(`${testStart().cid}-${testStart().cid}`)
+        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(testStart().cid)
     })
 
     it('should detect failed test case without start event', () => {

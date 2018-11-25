@@ -18,6 +18,22 @@ export const addSeverity = (severity) => {
 }
 
 /**
+ * Assign issue id to test
+ * @param {string} issue - issue id value
+ */
+export const addIssue = (issue) => {
+    tellReporter(events.addIssue, {issue})
+}
+
+/**
+ * Assign TMS test id to test
+ * @param {string} testId - test id value
+ */
+export const addTestId = (testId) => {
+    tellReporter(events.addTestId, {testId})
+}
+
+/**
  * Assign story to test
  * @param {string} storyName - story name for test
  */
@@ -74,4 +90,13 @@ export const addStep = (title, {content, name = 'attachment'}, status = stepStat
         status
     }
     tellReporter(events.addStep, {step})
+}
+
+/**
+ * Add additional argument to test
+ * @param {string} name - argument name
+ * @param {string} value - argument value
+ */
+export const addArgument = (name, value) => {
+    tellReporter(events.addArgument, {name, value})
 }

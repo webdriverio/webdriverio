@@ -163,7 +163,7 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
@@ -182,7 +182,7 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
-    // See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
@@ -307,8 +307,9 @@ exports.config = {
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities) {
+    onComplete: function (exitCode, config, capabilities, results) {
     },
     //
     // Cucumber specific hooks

@@ -1,20 +1,32 @@
 import chalk from 'chalk'
 import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
-import CLInterface from 'wdio-interface'
-import logger from 'wdio-logger'
+import CLInterface from '@wdio/interface'
+import logger from '@wdio/logger'
 
 const log = logger('wdio-cli')
 
 const clockSpinner = cliSpinners['clock']
+const MAX_RUNNING_JOBS_DISPLAY_COUNT = 10
 
 export default class WDIOCLInterface extends EventEmitter {
-    constructor (config, specs) {
+    constructor (config, specs, totalWorkerCnt) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.clockTimer = 0
         this.specs = specs
         this.config = config
+        this.totalWorkerCnt = totalWorkerCnt
+        this.sigintTriggered = false
+
+        this.interface = new CLInterface()
+        this.on('job:start', ::this.addJob)
+        this.on('job:end', ::this.clearJob)
+
+        this.setup()
+    }
+
+    setup () {
+        this.clockTimer = 0
         this.jobs = new Map()
         this.start = Date.now()
         this.result = {
@@ -23,12 +35,16 @@ export default class WDIOCLInterface extends EventEmitter {
             failed: 0
         }
         this.messages = {
-            reporter: {}
+            /**
+             * messages from worker reporters
+             */
+            reporter: {},
+            /**
+             * messages from worker itself
+             */
+            worker: {}
         }
-
-        this.interface = new CLInterface()
-        this.on('job:start', ::this.addJob)
-        this.on('job:end', ::this.clearJob)
+        this.interface.clearBuffer()
     }
 
     /**
@@ -69,9 +85,16 @@ export default class WDIOCLInterface extends EventEmitter {
         this.messages[params.origin][params.name].push(params.content)
     }
 
+    sigintTrigger () {
+        this.sigintTriggered = true
+        this.updateView()
+    }
+
     updateView (wasJobCleared) {
-        const isFinished = this.jobs.size === 0
-        const pendingJobs = this.specs.length - this.jobs.size - this.result.finished
+        const totalJobs = this.totalWorkerCnt
+        const pendingJobs = this.totalWorkerCnt - this.jobs.size - this.result.finished
+        const runningJobs = this.jobs.size
+        const isFinished = runningJobs === 0
 
         /**
          * check if environment supports ansi and print a limited update if not
@@ -90,8 +113,8 @@ export default class WDIOCLInterface extends EventEmitter {
                 `${this.jobs.size} running, ` +
                 `${this.result.passed} passed, ` +
                 `${this.result.failed} failed, ` +
-                `${this.specs.length} total ` +
-                `(${Math.round((this.result.finished / this.specs.length) * 100)}% completed)`)
+                `${totalJobs} total ` +
+                `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`)
         }
 
         this.interface.clearAll()
@@ -109,24 +132,44 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * print running jobs
          */
-        for (const [cid, job] of this.jobs.entries()) {
+        for (const [cid, job] of Array.from(this.jobs.entries()).slice(0, MAX_RUNNING_JOBS_DISPLAY_COUNT)) {
             const filename = job.specs.join(', ').replace(process.cwd(), '')
             this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
         }
 
-        if (pendingJobs) {
-            this.interface.log(chalk.yellow('...', pendingJobs, 'pending tests'))
+        /**
+         * show number of pending and running jobs
+         */
+        if (pendingJobs || runningJobs > MAX_RUNNING_JOBS_DISPLAY_COUNT) {
+            const logString = []
+            if (runningJobs > MAX_RUNNING_JOBS_DISPLAY_COUNT) {
+                logString.push(
+                    runningJobs - MAX_RUNNING_JOBS_DISPLAY_COUNT,
+                    'running tests' + (pendingJobs ? ' -' : ''))
+            }
+            if (pendingJobs) {
+                logString.push(pendingJobs, 'pending tests')
+            }
+            this.interface.log(chalk.yellow('...', ...logString.filter(l => Boolean(l))))
         }
 
         /**
          * print stdout and stderr from runners
          */
         if (isFinished) {
+            /* istanbul ignore else */
             if (this.interface.stdoutBuffer.length) {
                 this.interface.log(chalk.bgYellow.black(`Stdout:\n`) + this.interface.stdoutBuffer.join(''))
             }
+            /* istanbul ignore else */
             if (this.interface.stderrBuffer.length) {
                 this.interface.log(chalk.bgRed.black(`Stderr:\n`) + this.interface.stderrBuffer.join(''))
+            }
+            /* istanbul ignore else */
+            if (this.messages.worker.error) {
+                this.interface.log(chalk.bgRed.black(`Worker Error:\n`) + this.messages.worker.error.map(
+                    (e) => e.stack
+                ).join('\n') + '\n')
             }
         }
 
@@ -140,11 +183,21 @@ export default class WDIOCLInterface extends EventEmitter {
         this.interface.log(
             'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
             (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
-            this.specs.length, 'total',
-            `(${this.specs.length ? Math.round((this.result.finished / this.specs.length) * 100) : 0}% completed)`
+            totalJobs, 'total',
+            `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
         )
 
         this.updateClock()
+
+        if (this.sigintTriggered) {
+            clearTimeout(this.interval)
+            this.interface.log('\n')
+            this.interface.log(!isFinished
+                ? 'Ending WebDriver sessions gracefully ...\n' +
+                  '(press ctrl+c again to hard kill the runner)'
+                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+            )
+        }
 
         if (isFinished) {
             clearTimeout(this.interval)

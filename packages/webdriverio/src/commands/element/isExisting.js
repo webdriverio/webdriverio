@@ -33,7 +33,7 @@
     });
  * </example>
  *
- * @alias browser.isExisting
+ * @alias element.isExisting
  * @param   {String}             selector  DOM-element
  * @return {Boolean|Boolean[]}            true if element(s)* [is|are] existing
  * @uses protocol/elements

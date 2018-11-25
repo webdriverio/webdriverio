@@ -1,5 +1,5 @@
 import junit from 'junit-report-builder'
-import WDIOReporter from 'wdio-reporter'
+import WDIOReporter from '@wdio/reporter'
 
 import { limit } from './utils'
 

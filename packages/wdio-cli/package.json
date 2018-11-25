@@ -1,9 +1,9 @@
 {
-  "name": "wdio-cli",
-  "version": "5.0.0-beta.3",
+  "name": "@wdio/cli",
+  "version": "5.0.0-beta.10",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-cli",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cli",
   "license": "MIT",
   "main": "./build/index",
   "bin": {
@@ -14,9 +14,9 @@
   },
   "scripts": {
     "build": "run-s clean compile copy",
-    "clean": "rm -rf ./build",
-    "compile": "babel src/ -d build/",
-    "copy": "cp -r src/templates build/",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
+    "copy": "copyfiles -u 1 src/templates/*.ejs ./build/",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -29,28 +29,31 @@
     "webdriver",
     "webdriverio",
     "wdio",
-    "wdio-cli"
+    "cli"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@wdio/config": "^5.0.0-beta.10",
+    "@wdio/interface": "^5.0.0-beta.10",
+    "@wdio/logger": "^5.0.0-beta.10",
+    "async-exit-hook": "^2.0.1",
     "chalk": "^2.3.2",
+    "chokidar": "^2.0.4",
     "cli-spinners": "^1.1.0",
     "deepmerge": "^2.0.1",
     "ejs": "^2.5.7",
     "inquirer": "^4.0.1",
+    "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
+    "lodash.union": "^4.6.0",
     "npm-install-package": "^2.1.0",
     "source-map-support": "^0.5.6",
-    "wdio-config": "^5.0.0-beta.3",
-    "wdio-interface": "^5.0.0-beta.3",
-    "wdio-logger": "^5.0.0-beta.3",
-    "webdriverio": "^5.0.0-beta.3",
+    "webdriverio": "^5.0.0-beta.10",
     "yargs": "^11.1.0"
   },
-  "devDependencies": {
-    "lodash.flattendeep": "^4.4.0",
-    "lodash.pickby": "^4.6.0"
+  "publishConfig": {
+    "access": "public"
   }
 }

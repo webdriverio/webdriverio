@@ -108,6 +108,9 @@ test('afterStep', () => {
 
     service.afterStep({ getFailureException: () => 'whatever' })
     expect(service.failures).toBe(2)
+
+    service.afterStep({ status: 'failed' })
+    expect(service.failures).toBe(3)
 })
 
 test('beforeScenario should set context', () => {

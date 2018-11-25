@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import { commandCallStructure } from './utils'
 
@@ -75,8 +75,10 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             /**
              * set name of function for better error stack
              */
-            Object.defineProperty(func, 'name', { writable: true })
-            func.name = name
+            Object.defineProperty(func, 'name', {
+                value: name,
+                writable: false,
+            })
 
             const result = func.apply(client, args)
 

@@ -5,7 +5,7 @@ import {
     hasWdioSyncSupport
 } from './shim'
 
-export default {
+export {
     validateConfig,
     detectBackend,
     initialisePlugin,

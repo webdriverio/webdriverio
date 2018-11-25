@@ -12,4 +12,4 @@ class Eyes {
     }
 }
 
-export default { Eyes, Target }
+export { Eyes, Target }

@@ -1,7 +1,8 @@
 import path from 'path'
+import exitHook from 'async-exit-hook'
 
-import logger from 'wdio-logger'
-import { ConfigParser, initialisePlugin } from 'wdio-config'
+import logger from '@wdio/logger'
+import { ConfigParser, initialisePlugin } from '@wdio/config'
 
 import CLInterface from './interface'
 import { getLauncher, runServiceHook } from './utils'
@@ -10,6 +11,9 @@ const log = logger('wdio-cli:Launcher')
 
 class Launcher {
     constructor (configFile, argv) {
+        this.argv = argv
+        this.configFile = configFile
+
         this.configParser = new ConfigParser()
         this.configParser.addConfigFile(configFile)
         this.configParser.merge(argv)
@@ -22,16 +26,17 @@ class Launcher {
             process.env.WDIO_LOG_PATH = path.join(config.logDir, `wdio.log`)
         }
 
-        this.interface = new CLInterface(config, specs)
+        const totalWorkerCnt = Array.isArray(capabilities)
+            ? capabilities
+                .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
+                .reduce((a, b) => a + b, 0)
+            : 1
+
+        this.interface = new CLInterface(config, specs, totalWorkerCnt)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
-        this.runner.on('end', ::this.endHandler)
-        this.runner.on('message', ::this.interface.onMessage)
-
-        this.argv = argv
-        this.configFile = configFile
 
         this.isMultiremote = !Array.isArray(capabilities)
         this.exitCode = 0
@@ -50,8 +55,12 @@ class Launcher {
     async run () {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
-        let launcher = getLauncher(config)
+        const launcher = getLauncher(config)
 
+        /**
+         * run pre test tasks for runner plugins
+         * (e.g. deploy Lambda functio to AWS)
+         */
         await this.runner.initialise()
 
         /**
@@ -62,22 +71,42 @@ class Launcher {
         await runServiceHook(launcher, 'onPrepare', config, caps)
 
         /**
+         * catches ctrl+c event
+         */
+        exitHook(::this.exitHandler)
+
+        /**
+         * make sure the program will not close instantly
+         */
+        if (process.stdin.isPaused()) {
+            process.stdin.resume()
+        }
+
+        const exitCode = await this.runMode(config, caps)
+
+        /**
+         * run onComplete hook
+         */
+        log.info('Run onComplete hook')
+        await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
+        await config.onComplete(exitCode, config, caps, this.interface.result)
+
+        this.interface.updateView()
+        return exitCode
+    }
+
+    /**
+     * run without triggering onPrepare/onComplete hooks
+     */
+    runMode (config, caps) {
+        /**
          * if it is an object run multiremote test
          */
         if (this.isMultiremote) {
-            let exitCode = await new Promise((resolve) => {
+            return new Promise((resolve) => {
                 this.resolve = resolve
                 this.startInstance(this.configParser.getSpecs(), caps, 0)
             })
-
-            /**
-             * run onComplete hook for multiremote
-             */
-            log.info('Run multiremote onComplete hook')
-            await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-            await config.onComplete(exitCode, config, caps)
-
-            return exitCode
         }
 
         /**
@@ -95,19 +124,7 @@ class Launcher {
             })
         }
 
-        /**
-         * catches ctrl+c event
-         */
-        process.on('SIGINT', this.exitHandler.bind(this))
-
-        /**
-         * make sure the program will not close instantly
-         */
-        if (process.stdin.isPaused()) {
-            process.stdin.resume()
-        }
-
-        const exitCode = await new Promise((resolve) => {
+        return new Promise((resolve) => {
             this.resolve = resolve
 
             /**
@@ -126,16 +143,6 @@ class Launcher {
                 resolve(0)
             }
         })
-
-        /**
-         * run onComplete hook
-         */
-        log.info('Run onComplete hook')
-        await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-        await config.onComplete(exitCode, config, caps)
-
-        this.interface.updateView()
-        return exitCode
     }
 
     /**
@@ -270,18 +277,19 @@ class Launcher {
         let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
 
         // prefer launcher settings in capabilities over general launcher
-        this.runner.run({
+        const worker = this.runner.run({
             cid,
             command: 'run',
             configFile: this.configFile,
             argv: this.argv,
             caps,
-            processNumber,
             specs,
             server,
-            isMultiremote: this.isMultiremote,
             execArgv
         })
+        worker.on('message', ::this.interface.onMessage)
+        worker.on('error', ::this.interface.onMessage)
+        worker.on('exit', ::this.endHandler)
 
         this.interface.emit('job:start', { cid, caps, specs })
         this.runnerStarted++
@@ -344,35 +352,10 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler () {
-        if (this.hasTriggeredExitRoutine || !this.hasStartedAnyProcess) {
-            log.log('\nKilling process, bye!')
-
-            // When spawned as a subprocess,
-            // SIGINT will not be forwarded to childs.
-            // Thus for the child to exit cleanly, we must force send SIGINT
-            if (!process.stdin.isTTY) {
-                this.runner.kill()
-            }
-
-            // finish with exit code 1
-            return this.resolve(1)
-        }
-
-        // When spawned as a subprocess,
-        // SIGINT will not be forwarded to childs.
-        // Thus for the child to exit cleanly, we must force send SIGINT
-        if (!process.stdin.isTTY) {
-            this.runner.kill()
-        }
-
-        log.log(`
-
-End selenium sessions properly ...
-(press ctrl+c again to hard kill the runner)
-`)
-
+    exitHandler (callback) {
         this.hasTriggeredExitRoutine = true
+        this.interface.sigintTrigger()
+        return this.runner.shutdown().then(callback)
     }
 }
 

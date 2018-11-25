@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 
+global.window.open = jest.fn()
 
 import request from 'request'
 import { remote } from '../../../src'

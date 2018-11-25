@@ -3,7 +3,7 @@ import http from 'http'
 import path from 'path'
 import https from 'https'
 import request from 'request'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import EventEmitter from 'events'
 
 import { isSuccessfulResponse } from './utils'
@@ -58,7 +58,7 @@ export default class WebDriverRequest extends EventEmitter {
         requestOptions.uri = url.parse(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            path.resolve(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
+            path.join(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
         )
 
         /**
@@ -82,7 +82,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
-            const error = new Error(err || (body.value ? body.value.message : body))
+            const error = new Error(err || (body && body.value ? body.value.message : body))
 
             /**
              * Resolve only if successful response

@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "create": "node ./scripts/generate-sub-package",
-    "bootstrap": "npm run clean && lerna bootstrap && npm run link",
+    "bootstrap": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "build": "lerna run build",
     "clean": "run-p clean:*",
     "clean:build": "rimraf ./packages/*/build",
@@ -10,7 +10,7 @@
     "clean:node_modules": "rimraf ./packages/*/node_modules ./packages/node_modules",
     "clean:website": "rimraf docs/api/**/*.md && rimraf website/sidebars.json",
     "link": "node ./scripts/link",
-    "release": "lerna publish",
+    "release": "npm run setup && lerna publish",
     "setup": "run-s bootstrap build",
     "test": "run-s test:*",
     "test:eslint": "eslint packages examples",
@@ -21,27 +21,31 @@
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-core": "^6.24.1",
-    "babel-eslint": "^8.0.3",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-plugin-array-includes": "^2.0.3",
-    "babel-plugin-stack-trace-sourcemap": "^1.0.2",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-function-bind": "^6.22.0",
-    "babel-preset-env": "^1.3.3",
-    "babel-register": "^6.24.1",
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-export-default-from": "^7.0.0",
+    "@babel/plugin-proposal-function-bind": "^7.0.0",
+    "@babel/plugin-syntax-export-default-from": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/register": "^7.0.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^10.0.1",
+    "babel-jest": "^23.6.0",
+    "babel-plugin-source-map-support": "^2.0.1",
     "codecov": "^3.0.0",
+    "copyfiles": "^2.1.0",
     "eslint": "^4.7.2",
     "eslint-plugin-import": "^2.8.0",
     "inquirer": "^5.1.0",
-    "jest": "^21.2.1",
-    "lerna": "^2.5.1",
+    "jest": "^23.6.0",
+    "lerna": "^3.4.3",
     "markdox": "^0.1.10",
     "np": "^2.18.2",
     "npm-run-all": "^4.0.2",
     "rimraf": "^2.6.2",
-    "shelljs": "^0.8.1"
+    "shelljs": "^0.8.1",
+    "source-map-support": "^0.5.9"
   },
   "jest": {
     "testMatch": [
@@ -51,17 +55,19 @@
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 92,
-        "functions": 94,
+        "branches": 93,
+        "functions": 95,
         "lines": 95,
         "statements": 95
       }
     },
     "testEnvironment": "node",
     "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/packages/webdriverio/src/scripts",
-      "/packages/wdio-devtools-service/src/lighthouse"
+      "node_modules/",
+      "packages/webdriverio/src/scripts",
+      "packages/wdio-devtools-service/src/lighthouse",
+      "packages/webdriverio/build",
+      "packages/webdriver/build"
     ]
   }
 }

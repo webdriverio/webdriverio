@@ -9,54 +9,90 @@
  * https://github.com/GoogleChrome/lighthouse
  */
 
-import stableSort from 'stable'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
+
+import TraceProcessor from './tracingProcessor'
 import LHError from './errors'
 
-const log = logger('wdio-devtools-service:TraceOfTab')
+const ACCEPTABLE_NAVIGATION_URL_REGEX = /^(chrome|https?):/
+const log = logger('TraceOfTab')
 
-/**
- * @fileoverview Singluar helper to parse a raw trace and extract the most useful data for
- * various tools. This artifact will take a trace and then:
- *
- * 1. Find the TracingStartedInPage and navigationStart events of our intended tab & frame.
- * 2. Find the firstContentfulPaint and marked firstMeaningfulPaint events
- * 3. Isolate only the trace events from the tab's process (including all threads like compositor)
- *      * Sort those trace events in chronological order (as order isn't guaranteed)
- * 4. Return all those items in one handy bundle.
- */
 export default class TraceOfTab {
+    /**
+     * Returns true if the event is a navigation start event of a document whose URL seems valid.
+     *
+     * @param {LH.TraceEvent} event
+     */
+    static isNavigationStartOfInterest (event) {
+        return (
+            event.name === 'navigationStart' &&
+            (
+                !event.args.data || !event.args.data.documentLoaderURL ||
+                ACCEPTABLE_NAVIGATION_URL_REGEX.test(event.args.data.documentLoaderURL)
+            )
+        )
+    }
+
+    /**
+     * @param {LH.TraceEvent[]} traceEvents
+     * @param {(e: LH.TraceEvent) => boolean} filter
+     */
+    static filteredStableSort (traceEvents, filter) {
+        // create an array of the indices that we want to keep
+        const indices = []
+        for (let srcIndex = 0; srcIndex < traceEvents.length; srcIndex++) {
+            if (filter(traceEvents[srcIndex])) {
+                indices.push(srcIndex)
+            }
+        }
+
+        // sort by ts, if there's no ts difference sort by index
+        indices.sort((indexA, indexB) => {
+            const result = traceEvents[indexA].ts - traceEvents[indexB].ts
+            return result || indexA - indexB
+        })
+
+        // create a new array using the target indices from previous sort step
+        const sorted = []
+        for (let i = 0; i < indices.length; i++) {
+            sorted.push(traceEvents[indices[i]])
+        }
+
+        return sorted
+    }
+
     /**
      * Finds key trace events, identifies main process/thread, and returns timings of trace events
      * in milliseconds since navigation start in addition to the standard microsecond monotonic timestamps.
-     * @param {{traceEvents: !Array}} trace
-     * @return {LH.Artifacts.TraceOfTab}
+     * @param {LH.Trace} trace
+     * @return {Promise<LH.Artifacts.TraceOfTab>}
      */
     static compute (trace) {
         // Parse the trace for our key events and sort them by timestamp. Note: sort
         // *must* be stable to keep events correctly nested.
-        const keyEvents = stableSort(trace.traceEvents.filter(e => {
-            return e.cat.includes('blink.user_timing') ||
+        const keyEvents = TraceOfTab.filteredStableSort(trace.traceEvents, e => {
+            return (
+                e.cat.includes('blink.user_timing') ||
                 e.cat.includes('loading') ||
                 e.cat.includes('devtools.timeline') ||
-                e.name === 'TracingStartedInPage'
-        }), (event0, event1) => event0.ts - event1.ts)
+                e.cat === '__metadata'
+            )
+        })
 
-        // The first TracingStartedInPage in the trace is definitely our renderer thread of interest
-        // Beware: the tracingStartedInPage event can appear slightly after a navigationStart
-        const startedInPageEvt = keyEvents.find(e => e.name === 'TracingStartedInPage')
-        if (!startedInPageEvt) throw new LHError(LHError.errors.NO_TRACING_STARTED)
+        // Find the inspected frame
+        const mainFrameIds = TraceProcessor.findMainFrameIds(keyEvents)
+
         // Filter to just events matching the frame ID for sanity
-        const frameEvents = keyEvents.filter(e => e.args.frame === startedInPageEvt.args.data.page)
+        const frameEvents = keyEvents.filter(e => e.args.frame === mainFrameIds.frameId)
 
         // Our navStart will be the last frame navigation in the trace
-        const navigationStart = frameEvents.filter(e => e.name === 'navigationStart').pop()
+        const navigationStart = frameEvents.filter(TraceOfTab.isNavigationStartOfInterest).pop()
         if (!navigationStart) throw new LHError(LHError.errors.NO_NAVSTART)
 
         // Find our first paint of this frame
         const firstPaint = frameEvents.find(e => e.name === 'firstPaint' && e.ts > navigationStart.ts)
 
-        // FCP will follow at/after the FP
+        // FCP will follow at/after the FP. Used in so many places we require it.
         const firstContentfulPaint = frameEvents.find(
             e => e.name === 'firstContentfulPaint' && e.ts > navigationStart.ts
         )
@@ -74,10 +110,10 @@ export default class TraceOfTab {
         if (!firstMeaningfulPaint) {
             const fmpCand = 'firstMeaningfulPaintCandidate'
             fmpFellBack = true
-            log.info('trace-of-tab', `No firstMeaningfulPaint found, falling back to last ${fmpCand}`)
+            log.info(`No firstMeaningfulPaint found, falling back to last ${fmpCand}`)
             const lastCandidate = frameEvents.filter(e => e.name === fmpCand).pop()
             if (!lastCandidate) {
-                log.info('trace-of-tab', 'No `firstMeaningfulPaintCandidate` events found in trace')
+                log.info('No `firstMeaningfulPaintCandidate` events found in trace')
             }
             firstMeaningfulPaint = lastCandidate
         }
@@ -89,40 +125,52 @@ export default class TraceOfTab {
 
         // subset all trace events to just our tab's process (incl threads other than main)
         // stable-sort events to keep them correctly nested.
-        const processEvents = stableSort(
-            trace.traceEvents.filter(e => e.pid === startedInPageEvt.pid),
-            (event0, event1) => event0.ts - event1.ts
-        )
+        const processEvents = TraceOfTab
+            .filteredStableSort(trace.traceEvents, e => e.pid === mainFrameIds.pid)
 
         const mainThreadEvents = processEvents
-            .filter(e => e.tid === startedInPageEvt.tid)
+            .filter(e => e.tid === mainFrameIds.tid)
 
-        const traceEnd = trace.traceEvents.reduce((max, evt) => max.ts > evt.ts ? max : evt)
+        // traceEnd must exist since at least navigationStart event was verified as existing.
+        const traceEnd = trace.traceEvents.reduce((max, evt) => {
+            return max.ts > evt.ts ? max : evt
+        })
+        const fakeEndOfTraceEvt = { ts: traceEnd.ts + (traceEnd.dur || 0) }
 
-        const metrics = {
-            navigationStart,
-            firstPaint,
-            firstContentfulPaint,
-            firstMeaningfulPaint,
-            traceEnd: {ts: traceEnd.ts + (traceEnd.dur || 0)},
-            load,
-            domContentLoaded
+        /** @param {{ts: number}=} event */
+        const getTimestamp = (event) => event && event.ts
+        /** @type {LH.Artifacts.TraceTimes} */
+        const timestamps = {
+            navigationStart: navigationStart.ts,
+            firstPaint: getTimestamp(firstPaint),
+            firstContentfulPaint: firstContentfulPaint ? firstContentfulPaint.ts : null,
+            firstMeaningfulPaint: getTimestamp(firstMeaningfulPaint),
+            traceEnd: fakeEndOfTraceEvt.ts,
+            load: getTimestamp(load),
+            domContentLoaded: getTimestamp(domContentLoaded)
         }
 
-        const timings = {}
-        const timestamps = {}
-
-        Object.keys(metrics).forEach(metric => {
-            timestamps[metric] = metrics[metric] && metrics[metric].ts
-            timings[metric] = (timestamps[metric] - navigationStart.ts) / 1000
-        })
+        /** @param {number} ts */
+        const getTiming = (ts) => (ts - navigationStart.ts) / 1000
+        /** @param {number=} ts */
+        const maybeGetTiming = (ts) => ts === undefined ? undefined : getTiming(ts)
+        /** @type {LH.Artifacts.TraceTimes} */
+        const timings = {
+            navigationStart: 0,
+            firstPaint: maybeGetTiming(timestamps.firstPaint),
+            firstContentfulPaint: firstContentfulPaint ? getTiming(timestamps.firstContentfulPaint) : null,
+            firstMeaningfulPaint: maybeGetTiming(timestamps.firstMeaningfulPaint),
+            traceEnd: getTiming(timestamps.traceEnd),
+            load: maybeGetTiming(timestamps.load),
+            domContentLoaded: maybeGetTiming(timestamps.domContentLoaded)
+        }
 
         return {
             timings,
             timestamps,
             processEvents,
             mainThreadEvents,
-            startedInPageEvt,
+            mainFrameIds,
             navigationStartEvt: navigationStart,
             firstPaintEvt: firstPaint,
             firstContentfulPaintEvt: firstContentfulPaint,
@@ -133,5 +181,3 @@ export default class TraceOfTab {
         }
     }
 }
-
-module.exports = TraceOfTab

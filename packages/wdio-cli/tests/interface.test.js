@@ -10,7 +10,7 @@ describe('cli interface', () => {
     let wdioClInterface
 
     beforeEach(() => {
-        wdioClInterface = new WDIOCLInterface(config, specs)
+        wdioClInterface = new WDIOCLInterface(config, specs, 5)
     })
 
     it('should add jobs', () => {
@@ -43,12 +43,36 @@ describe('cli interface', () => {
             name: 'foo',
             content: 'bar'
         })
-        expect(wdioClInterface.messages).toEqual({ reporter: { foo: ['bar'] } })
+        expect(wdioClInterface.messages).toEqual({
+            reporter: { foo: ['bar'] },
+            worker: {}
+        })
+    })
+
+    it('should allow to store worker messages', () => {
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'error',
+            content: 'foobar'
+        })
+        expect(wdioClInterface.messages).toEqual({
+            reporter: {},
+            worker: { error: ['foobar'] }
+        })
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'error',
+            content: 'foobar2'
+        })
+        expect(wdioClInterface.messages).toEqual({
+            reporter: {},
+            worker: { error: ['foobar', 'foobar2'] }
+        })
     })
 
     it('should ignore messages that do not contain a proper origin', () => {
         wdioClInterface.onMessage({ foo: 'bar' })
-        expect(wdioClInterface.messages).toEqual({ reporter: {} })
+        expect(wdioClInterface.messages).toEqual({ reporter: {}, worker: {} })
     })
 
     it('should update clock', () => {
@@ -110,6 +134,12 @@ describe('cli interface', () => {
             .toContain('(60% completed)')
 
         wdioClInterface.interface.log.mockClear()
+        wdioClInterface.sigintTrigger()
+        let output = flatten(wdioClInterface.interface.log.mock.calls)
+        expect(output).toContain(
+            'Ending WebDriver sessions gracefully ...\n(press ctrl+c again to hard kill the runner)')
+
+        wdioClInterface.interface.log.mockClear()
         wdioClInterface.jobs.delete('0-0')
         wdioClInterface.jobs.delete('0-1')
         wdioClInterface.jobs.delete('0-2')
@@ -122,12 +152,28 @@ describe('cli interface', () => {
             name: 'foo',
             content: 'some reporter output'
         })
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'error',
+            content: { stack: 'foobar' }
+        })
         wdioClInterface.updateView()
 
-        const output = flatten(wdioClInterface.interface.log.mock.calls)
+        output = flatten(wdioClInterface.interface.log.mock.calls)
         expect(output).toContain('black "foo" Reporter:')
         expect(output).toContain('black Stdout:\nfoobar')
         expect(output).toContain('black Stderr:\nbarfoo')
+        expect(output).toContain('black Worker Error:\nfoobar\n')
         expect(output).toContain('(100% completed)')
+        expect(output).toContain('Ended WebDriver sessions gracefully after a SIGINT signal was received!')
+    })
+
+    it('should be able to mark display when SIGINT is called', () => {
+        wdioClInterface.updateView = jest.fn()
+        expect(wdioClInterface.sigintTriggered).toBe(false)
+        expect(wdioClInterface.updateView).toBeCalledTimes(0)
+        wdioClInterface.sigintTrigger()
+        expect(wdioClInterface.sigintTriggered).toBe(true)
+        expect(wdioClInterface.updateView).toBeCalledTimes(1)
     })
 })

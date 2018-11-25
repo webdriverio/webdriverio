@@ -12,6 +12,10 @@ npm run setup
 
 Then just follow the instructions and test it out. Have fun!
 
+> **Note**
+
+> The examples don't have any `dev-dependencies`. Use one of the [boilerplates](http://www.webdriver.io/docs/boilerplate.html) to set up you project including the `dev-dependencies` and integrate the examples in that project.
+
 # Cloudservices
 
 Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:

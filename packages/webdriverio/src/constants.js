@@ -146,15 +146,34 @@ export const WDIO_DEFAULTS = {
             return true
         }
     },
+    /**
+     * amount of instances to be allowed to run in total
+     */
     maxInstances: {
         type: 'number'
     },
+    /**
+     * amount of instances to be allowed to run per capability
+     */
     maxInstancesPerCapability: {
         type: 'number'
     },
+    /**
+     * directory for log files
+     */
     logDir: {
         type: 'string',
         default: process.cwd()
+    },
+    /**
+     * list of strings to watch of `wdio` command is called with `--watch` flag
+     */
+    filesToWatch: {
+        type: (param) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "filesToWatch" options needs to be a list of strings')
+            }
+        }
     },
 
     /**

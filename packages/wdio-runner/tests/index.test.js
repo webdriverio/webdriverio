@@ -6,13 +6,12 @@ jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
 
 describe('wdio-runner', () => {
-    describe('fetchDriverLogs', () => {
+    describe('_fetchDriverLogs', () => {
         it('not do anything if driver does not support log commands', async () => {
             const runner = new WDIORunner()
-            global.browser = {}
+            global.browser = { sessionId: '123' }
 
-            runner.configParser.getConfig = () => ({ logDir: '/foo/bar' })
-            const result = await runner.fetchDriverLogs()
+            const result = await runner._fetchDriverLogs({ logDir: '/foo/bar' })
             expect(result).toBe(undefined)
         })
 
@@ -22,11 +21,11 @@ describe('wdio-runner', () => {
 
             global.browser = {
                 getLogTypes: () => Promise.resolve(['foo', 'bar']),
-                getLogs: (type) => Promise.resolve([`#1 ${type} log`, `#2 ${type} log`])
+                getLogs: (type) => Promise.resolve([`#1 ${type} log`, `#2 ${type} log`]),
+                sessionId: '123'
             }
 
-            runner.configParser.getConfig = () => ({ logDir: '/foo/bar' })
-            await runner.fetchDriverLogs()
+            await runner._fetchDriverLogs({ logDir: '/foo/bar' })
             expect(fs.writeFile.mock.calls[0]).toEqual(['/foo/bar/wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
             expect(fs.writeFile.mock.calls[1]).toEqual(['/foo/bar/wdio-0-1-bar.log', '"#1 bar log"\n"#2 bar log"', 'utf-8'])
             fs.writeFile.mockClear()
@@ -38,11 +37,11 @@ describe('wdio-runner', () => {
 
             global.browser = {
                 getLogTypes: () => Promise.resolve(['foo', 'bar']),
-                getLogs: () => Promise.resolve([])
+                getLogs: () => Promise.resolve([]),
+                sessionId: '123'
             }
 
-            runner.configParser.getConfig = () => ({ logDir: '/foo/bar' })
-            await runner.fetchDriverLogs()
+            await runner._fetchDriverLogs({ logDir: '/foo/bar' })
             expect(fs.writeFile.mock.calls).toHaveLength(0)
         })
 
@@ -51,30 +50,51 @@ describe('wdio-runner', () => {
         })
     })
 
-    describe('initialiseServices', () => {
-        it('should be able to add custom services', () => {
+    describe('endSession', () => {
+        it ('should work normally when called after framework run', async () => {
+            const hook = jest.fn()
             const runner = new WDIORunner()
-            const service = {
-                before: jest.fn(),
-                afterTest: jest.fn()
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: jest.fn(),
+                sessionId: '123',
+                config: { afterSession: [hook] }
             }
-
-            runner.initialiseServices({ services: [service] })
-            expect(runner.configParser.addService.mock.calls).toHaveLength(1)
-            expect(runner.configParser.addService.mock.calls[0][0]).toEqual(service)
+            await runner.endSession()
+            expect(hook).toBeCalledTimes(1)
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!global.browser.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(0)
         })
 
-        it('should be able to add wdio services', () => {
+        it('should do nothing when triggered by run method without session', async () => {
+            const hook = jest.fn()
             const runner = new WDIORunner()
-            runner.initialiseServices({ services: ['foobar'] })
-            expect(runner.configParser.addService.mock.calls).toHaveLength(1)
+            runner._shutdown = jest.fn()
+            await runner.endSession()
+            expect(hook).toBeCalledTimes(0)
+        })
 
-            const service = runner.configParser.addService.mock.calls[0][0]
-            // check if /packages/wdio-config/tests/__mocks__/wdio-config.js how the mock looks like
-            expect(typeof service.beforeSuite).toBe('function')
-            expect(typeof service.afterCommand).toBe('function')
-            // not defined method
-            expect(typeof service.before).toBe('undefined')
+        it('should wait for session to be created until shutting down', async () => {
+            const hook = jest.fn()
+            const runner = new WDIORunner()
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: jest.fn(),
+                config: { afterSession: [hook] }
+            }
+            setTimeout(() => {
+                global.browser.sessionId = 123
+            }, 200)
+
+            const start = Date.now()
+            await runner.endSession(true)
+            const end = Date.now()
+            expect(hook).toBeCalledTimes(1)
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!global.browser.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(1)
+            expect(end - start).toBeGreaterThanOrEqual(200)
         })
     })
 })

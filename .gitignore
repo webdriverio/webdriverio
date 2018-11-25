@@ -59,6 +59,7 @@ typings/
 
 **/build
 /*.js
+!babel.config.js
 !.eslintrc.js
 package-lock.json
 .DS_Store

@@ -18,7 +18,7 @@
     });
  * </example>
  *
- * @alias browser.waitForExist
+ * @alias element.waitForExist
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it instead waits for the selector to not match any elements (default: false)
  * @uses utility/waitUntil, state/isExisting

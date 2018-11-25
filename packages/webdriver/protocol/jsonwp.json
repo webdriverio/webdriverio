@@ -744,14 +744,16 @@
     "POST": {
       "command": "dismissAlert",
       "description": "",
-      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddismiss_alert"
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddismiss_alert",
+      "parameters": []
     }
   },
   "/session/:sessionId/accept_alert": {
     "POST": {
       "command": "acceptAlert",
       "description": "",
-      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidaccept_alert"
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidaccept_alert",
+      "parameters": []
     }
   },
   "/session/:sessionId/alert_text": {

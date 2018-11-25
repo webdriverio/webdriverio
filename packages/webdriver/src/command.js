@@ -1,4 +1,4 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import WebDriverRequest from './request'
 import { isValidParameter, commandCallStructure } from './utils'
 

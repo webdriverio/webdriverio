@@ -9,12 +9,12 @@ __Note:__ this service currently only supports Chrome v63 and up!
 
 ## Installation
 
-The easiest way is to keep `wdio-devtools-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-devtools-service": "^0.1.2"
+    "@wdio/devtools-service": "^5.0.0"
   }
 }
 ```
@@ -22,7 +22,7 @@ The easiest way is to keep `wdio-devtools-service` as a devDependency in your `p
 You can simple do it by:
 
 ```bash
-npm install wdio-devtools-service --save-dev
+npm install @wdio/devtools-service --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)

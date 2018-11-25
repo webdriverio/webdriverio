@@ -1,130 +1,208 @@
 import fs from 'fs'
 import path from 'path'
 import util from 'util'
-import merge from 'deepmerge'
 import EventEmitter from 'events'
 
-import logger from 'wdio-logger'
-import { ConfigParser, initialisePlugin } from 'wdio-config'
-import { remote, multiremote } from 'webdriverio'
+import logger from '@wdio/logger'
+import { ConfigParser, initialisePlugin } from '@wdio/config'
 
 import BaseReporter from './reporter'
-import { runHook } from './utils'
+import { runHook, initialiseServices, initialiseInstance } from './utils'
 
 const log = logger('wdio-runner')
-const MERGE_OPTIONS = { clone: false }
 
 export default class Runner extends EventEmitter {
     constructor () {
         super()
-
         this.configParser = new ConfigParser()
         this.sigintWasCalled = false
     }
 
-    async run (m) {
-        this.cid = m.cid
-        this.specs = m.specs
-        this.caps = m.caps
+    /**
+     * run test suite
+     * @param  {String}    cid            worker id (e.g. `0-0`)
+     * @param  {Object}    argv           cli arguments passed into wdio command
+     * @param  {String[]}  specs          list of spec files to run
+     * @param  {Object}    caps           capabilties to run session with
+     * @param  {String}    configFile     path to config file to get config from
+     * @param  {Object}    server         modified WebDriver target
+     * @return {Promise}                  resolves in number of failures for testrun
+     */
+    async run ({ cid, argv, specs, caps, configFile, server }) {
+        this.cid = cid
+        this.specs = specs
+        this.caps = caps
 
         /**
          * add config file
          */
-        this.configParser.addConfigFile(m.configFile)
+        this.configParser.addConfigFile(configFile)
 
         /**
          * merge cli arguments into config
          */
-        this.configParser.merge(m.argv)
+        this.configParser.merge(argv)
 
         /**
          * merge host/port changes by service launcher into config
          */
-        this.configParser.merge(m.server)
+        this.configParser.merge(server)
 
-        let config = this.configParser.getConfig()
-        this.initialiseServices(config)
+        this.config = this.configParser.getConfig()
+        initialiseServices(this.config, caps).map(::this.configParser.addService)
 
-        this.framework = initialisePlugin(config.framework, 'framework').adapterFactory
-        this.reporter = new BaseReporter(config, this.cid)
-        this.inWatchMode = Boolean(config.watch)
+        this.reporter = new BaseReporter(this.config, this.cid)
+        this.inWatchMode = Boolean(this.config.watch)
 
+        await runHook('beforeSession', this.config, this.caps, this.specs)
+        const browser = await this._initSession(this.config, this.caps)
+        const isMultiremote = Boolean(browser.isMultiremote)
+
+        /**
+         * return if session initialisation failed
+         */
+        if (!browser) {
+            return this._shutdown(1)
+        }
+
+        /**
+         * kill session of SIGINT signal showed up while trying to
+         * get a session ID
+         */
+        if (this.sigintWasCalled) {
+            log.info('SIGINT signal detected while starting session, shutting down...')
+            return this._shutdown(0)
+        }
+
+        /**
+         * initialise framework
+         */
+        this.framework = initialisePlugin(this.config.framework, 'framework')
+
+        /**
+         * initialisation successful, send start message
+         */
+        this.reporter.emit('runner:start', {
+            cid,
+            specs,
+            config: this.config,
+            isMultiremote,
+            sessionId: browser.sessionId,
+            capabilities: isMultiremote
+                ? browser.instances.reduce((caps, browserName) => {
+                    caps[browserName] = browser[browserName].capabilities
+                    return caps
+                }, {})
+                : browser.options.capabilities
+        })
+
+        /**
+         * report sessionId and target connection information to worker
+         */
+        const { protocol, hostname, port, path, queryParams } = browser.options
+        const { isW3C, sessionId } = browser
+        process.send({
+            origin: 'worker',
+            name: 'sessionStarted',
+            content: { sessionId, isW3C, protocol, hostname, port, path, queryParams }
+        })
+
+        /**
+         * kick off tests in framework
+         */
+        let failures = 0
         try {
-            await runHook('beforeSession', config, this.caps, this.specs)
-            const browser = global.browser = global.driver = await this.initialiseInstance(m.isMultiremote, this.caps)
-            browser.config = config
+            failures = failures = await this.framework.run(cid, this.config, specs, caps, this.reporter)
+            await this._fetchDriverLogs(this.config)
 
             /**
-             * register command event
+             * in watch mode we don't close the session and open a blank page instead
              */
-            browser.on('command', (command) => this.reporter.emit(
-                'client:beforeCommand',
-                Object.assign(command, { sessionId: browser.sessionId })
-            ))
-
-            /**
-             * register result event
-             */
-            browser.on('result', (result) => this.reporter.emit(
-                'client:afterCommand',
-                Object.assign(result, { sessionId: browser.sessionId })
-            ))
-
-            /**
-             * initialisation successful, send start message
-             */
-            this.reporter.emit('runner:start', {
-                cid: m.cid,
-                specs: m.specs,
-                sessionId: browser.sessionId,
-                capabilities: browser.isMultiremote
-                    ? browser.instances.reduce((caps, browserName) => {
-                        caps[browserName] = browser[browserName].capabilities
-                        return caps
-                    }, {})
-                    : browser.options.capabilities,
-                config,
-                isMultiremote: browser.isMultiremote
-            })
-
-            /**
-             * register global helper method to fetch elements
-             */
-            global.$ = (selector) => global.browser.$(selector)
-            global.$$ = (selector) => global.browser.$$(selector)
-
-            /**
-             * kill session of SIGINT signal showed up while trying to
-             * get a session ID
-             */
-            if (this.sigintWasCalled) {
-                log.info('SIGINT signal detected while starting session, shutting down...')
-                return this.shutdown(0)
+            if (!argv.watch) {
+                await this.endSession()
+            } else {
+                await global.browser.url('about:blank')
             }
-
-            const failures = await this.framework.run(m.cid, config, m.specs, this.caps, this.reporter)
-            await this.fetchDriverLogs()
-            await browser.deleteSession()
-            delete browser.sessionId
-
-            await runHook('afterSession', config, this.caps, this.specs)
-            return this.shutdown(failures)
         } catch (e) {
             log.error(e)
-            return this.shutdown(1, true)
+            this.emit('error', e)
+            failures = 1
         }
+
+        this.reporter.emit('runner:end', {
+            failures,
+            cid: this.cid
+        })
+
+        await this._shutdown(failures)
+        return failures
+    }
+
+    /**
+     * init WebDriver session
+     * @param  {object}  config        configuration of sessions
+     * @param  {Object}  caps          desired cabilities of session
+     * @return {Promise}               resolves with browser object or null if session couldn't get established
+     */
+    async _initSession (config, caps) {
+        let browser = null
+
+        try {
+            browser = global.browser = global.driver = await initialiseInstance(config, caps, this.isMultiremote)
+        } catch (e) {
+            log.error(e)
+            this.emit('error', e)
+            return browser
+        }
+
+        browser.config = config
+
+        /**
+         * register global helper method to fetch elements
+         */
+        global.$ = (selector) => browser.$(selector)
+        global.$$ = (selector) => browser.$$(selector)
+
+        /**
+         * register command event
+         */
+        browser.on('command', (command) => this.reporter.emit(
+            'client:beforeCommand',
+            Object.assign(command, { sessionId: browser.sessionId })
+        ))
+
+        /**
+         * register result event
+         */
+        browser.on('result', (result) => this.reporter.emit(
+            'client:afterCommand',
+            Object.assign(result, { sessionId: browser.sessionId })
+        ))
+
+        return browser
     }
 
     /**
      * fetch logs provided by browser driver
      */
-    async fetchDriverLogs () {
-        const config = this.configParser.getConfig()
-
+    async _fetchDriverLogs (config) {
         /**
-         * only fetch logs if driver supports it
+         * only fetch logs if
          */
-        if (!config.logDir || typeof global.browser.getLogs !== 'function') {
+        if (
+            /**
+             * a log directory is given in config
+             */
+            !config.logDir ||
+            /**
+             * the session wasn't killed during start up phase
+             */
+            !global.browser.sessionId ||
+            /**
+             * driver supports it
+             */
+            typeof global.browser.getLogs === 'undefined'
+        ) {
             return
         }
 
@@ -150,74 +228,42 @@ export default class Runner extends EventEmitter {
     }
 
     /**
-     * kill runner session and end session if one was already started
+     * kill worker session
      */
-    async shutdown (failures, noSessionStarted) {
-        if (global.browser && global.browser.sessionId) {
-            await global.browser.deleteSession()
-        }
-
-        /**
-         * only report if session was actually started
-         */
-        if (!noSessionStarted) {
-            this.reporter.emit('runner:end', {
-                failures,
-                cid: this.cid
-            })
-        }
-
+    async _shutdown (failures) {
         await this.reporter.waitForSync()
         this.emit('exit', failures === 0 ? 0 : 1)
     }
 
     /**
-     * initialise browser instance depending whether remote or multiremote is requested
+     * end WebDriver session, a config object can be applied if object has changed
+     * within a hook by the user
      */
-    async initialiseInstance (isMultiremote, capabilities) {
-        let config = this.configParser.getConfig()
-
-        if (!isMultiremote) {
-            log.debug('init remote session')
-            config.capabilities = capabilities
-            return remote(config)
-        }
-
-        const options = {}
-        log.debug('init multiremote session')
-        for (let browserName of Object.keys(capabilities)) {
-            options[browserName] = merge(config, capabilities[browserName], MERGE_OPTIONS)
-        }
-
-        const browser = await multiremote(options)
-        for (let browserName of Object.keys(capabilities)) {
-            global[browserName] = browser[browserName]
-        }
-
-        return browser
-    }
-
-    /**
-     * initialise WebdriverIO compliant services
-     */
-    initialiseServices (config) {
-        if (!Array.isArray(config.services)) {
+    async endSession (shutdown) {
+        /**
+         * don't do anything if test framework returns after SIGINT
+         * if endSession is called without shutdown flag we expect a session id
+         */
+        if (!shutdown && (!global.browser || !global.browser.sessionId)) {
             return
         }
 
-        for (let serviceName of config.services) {
-            /**
-             * allow custom services
-             */
-            if (typeof serviceName === 'object') {
-                log.debug(`initialise custom service "${serviceName}"`)
-                this.configParser.addService(serviceName)
-                continue
-            }
+        /**
+         * if shutdown was called but no session was created, wait until it was
+         * and try to end it
+         */
+        if (shutdown && (!global.browser || !global.browser.sessionId)) {
+            await new Promise((resolve) => setTimeout(resolve, 250))
+            return this.endSession(shutdown)
+        }
 
-            log.debug(`initialise wdio service "${serviceName}"`)
-            const Service = initialisePlugin(serviceName, 'service')
-            this.configParser.addService(new Service(config, this.caps))
+        await global.browser.deleteSession()
+        delete global.browser.sessionId
+
+        await runHook('afterSession', global.browser.config, this.caps, this.specs)
+
+        if (shutdown) {
+            await this._shutdown()
         }
     }
 }

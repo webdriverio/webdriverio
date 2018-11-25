@@ -65,8 +65,10 @@ exports.config = {
     // and 30 processes will get spawned. The property basically handles how many capabilities
     // from the same test should run tests.
     //
-    //
     maxInstances: 10,
+    //
+    // Or set a limit to run tests with a specific capability.
+    maxInstancesPerCapability: 10,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -118,6 +120,13 @@ exports.config = {
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 1000,
     //
+    // Add files to watch (e.g. application code or page objects) when running `wdio` command
+    // with `--watch` flag (globbing is supported).
+    filesToWatch: [
+        // e.g. rerun tests if I change my application code
+        // './app/**/*.js'
+    ],
+    //
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
     // see also: http://webdriver.io/docs/frameworks.html
@@ -145,7 +154,7 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
@@ -164,7 +173,7 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify where your step definitions are located.
-    // See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
@@ -289,8 +298,9 @@ exports.config = {
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities) {
+    onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
     * Gets executed when an error happens, good place to take a screenshot
@@ -298,8 +308,9 @@ exports.config = {
     */
     onError: function(message) {
     }
-    //
-    // Cucumber specific hooks
+    /**
+     * Cucumber specific hooks
+     */
     beforeFeature: function (feature) {
     },
     beforeScenario: function (scenario) {

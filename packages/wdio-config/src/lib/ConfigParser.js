@@ -3,7 +3,7 @@ import path from 'path'
 import glob from 'glob'
 import merge from 'deepmerge'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import { detectBackend } from '../utils'
 
@@ -92,11 +92,9 @@ export default class ConfigParser {
         if (spec.length > 0) {
             this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs)]
         }
-        
         if (exclude.length > 0) {
             this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude)]
         }
-        
 
         /**
          * user and key could get added via cli arguments so we need to detect again
@@ -206,7 +204,6 @@ export default class ConfigParser {
         if (filesToFilter.size === 0) {
             throw new Error(`spec file(s) ${cliArgFileList.join(`, `)} not found`)
         }
-        
         return filesToFilter
     }
 

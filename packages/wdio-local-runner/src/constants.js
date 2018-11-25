@@ -1,0 +1,1 @@
+export const SHUTDOWN_TIMEOUT = 5000

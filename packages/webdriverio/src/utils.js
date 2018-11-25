@@ -8,16 +8,13 @@ import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './cons
 
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
+const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C) {
     /**
      * set default selector
      */
     let using = DEFAULT_SELECTOR
-
-    if (typeof value !== 'string') {
-        throw new Error('selector needs to be typeof `string`')
-    }
 
     /**
      * check if user has specified locator strategy directly
@@ -151,7 +148,7 @@ const applyScopePrototype = (prototype, scope) => {
     const files = fs.readdirSync(dir)
     for (let filename of files) {
         const commandName = path.basename(filename, path.extname(filename))
-        prototype[commandName] = { value: require(path.join(dir, commandName)) }
+        prototype[commandName] = { value: require(path.join(dir, commandName)).default }
     }
 }
 
@@ -332,4 +329,66 @@ export function parseCSS (cssPropertyValue, cssProperty) {
  */
 export function checkUnicode (value) {
     return UNICODE_CHARACTERS.hasOwnProperty(value) ? [UNICODE_CHARACTERS[value]] : new GraphemeSplitter().splitGraphemes(value)
+}
+
+function fetchElementByJSFunction (selector, scope) {
+    if (!scope.elementId) {
+        return scope.execute(selector)
+    }
+
+    const script = ((elem) => (selector).call(elem)).toString().replace('selector', `(${selector.toString()})`)
+    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope)
+}
+
+/**
+ * logic to find an element
+ */
+export async function findElement(selector) {
+    /**
+     * fetch element using regular protocol command
+     */
+    if (typeof selector === 'string') {
+        const { using, value } = findStrategy(selector, this.isW3C)
+        return this.elementId
+            ? this.findElementFromElement(this.elementId, using, value)
+            : this.findElement(using, value)
+    }
+
+    /**
+     * fetch element with JS function
+     */
+    if (typeof selector === 'function') {
+        const notFoundError = new Error(`Function selector "${selector.toString()}" did not return an HTMLElement`)
+        let elem = await fetchElementByJSFunction(selector, this)
+        elem = Array.isArray(elem) ? elem[0] : elem
+        return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
+    throw INVALID_SELECTOR_ERROR
+}
+
+/**
+ * logic to find a elements
+ */
+export async function findElements(selector) {
+    /**
+     * fetch element using regular protocol command
+     */
+    if (typeof selector === 'string') {
+        const { using, value } = findStrategy(selector, this.isW3C)
+        return this.elementId
+            ? this.findElementsFromElement(this.elementId, using, value)
+            : this.findElements(using, value)
+    }
+
+    /**
+     * fetch element with JS function
+     */
+    if (typeof selector === 'function') {
+        let elems = await fetchElementByJSFunction(selector, this)
+        elems = Array.isArray(elems) ? elems : [elems]
+        return elems.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    throw INVALID_SELECTOR_ERROR
 }

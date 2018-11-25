@@ -1,4 +1,4 @@
-import { detectBackend } from 'wdio-config'
+import { detectBackend } from '@wdio/config'
 
 import { remote, multiremote } from '../src'
 
@@ -14,7 +14,7 @@ jest.mock('webdriver', () => {
     return { newSession: newSessionMock, attachToSession: jest.fn() }
 })
 
-jest.mock('wdio-config', () => {
+jest.mock('@wdio/config', () => {
     const validateConfigMock = {
         validateConfig: jest.fn(),
         detectBackend: jest.fn()

@@ -32,7 +32,7 @@
     });
  * </example>
  *
- * @alias browser.getText
+ * @alias element.getText
  * @return {String} content of selected element (all HTML tags are removed)
  * @uses protocol/elements, protocol/elementIdText
  * @type property

@@ -1,4 +1,5 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
+import { initialisePlugin } from '@wdio/config'
 
 const log = logger('wdio-cli:utils')
 
@@ -13,29 +14,37 @@ export function getLauncher (config) {
     }
 
     for (let serviceName of config.services) {
-        let service
+        let launcher
 
         /**
          * allow custom services
          */
         if (typeof serviceName === 'object') {
-            launchServices.push(serviceName)
+            const { onPrepare, onComplete } = serviceName
+            launchServices.push({ onPrepare, onComplete })
             continue
         }
 
         try {
-            const pkgName = serviceName.startsWith('@')
-                ? `${serviceName}/launcher`
-                : `wdio-${serviceName}-service/launcher`
-            service = require(pkgName)
+            const Launcher = initialisePlugin(serviceName, 'service', 'launcher')
+
+            /**
+             * abort if service has no launcher
+             */
+            if (!Launcher) {
+                continue
+            }
+
+            launcher = new Launcher()
         } catch (e) {
-            if (!e.message.match(`Cannot find module 'wdio-${serviceName}-service/launcher'`)) {
+            if (!e.message.match(`Couldn't find plugin`)) {
                 throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
             }
         }
 
-        if (service && (typeof service.onPrepare === 'function' || typeof service.onComplete === 'function')) {
-            launchServices.push(service)
+        if (launcher && (typeof launcher.onPrepare === 'function' || typeof launcher.onComplete === 'function')) {
+            const { onPrepare, onComplete } = launcher
+            launchServices.push({ onPrepare, onComplete })
         }
     }
 
@@ -55,4 +64,14 @@ export async function runServiceHook (launcher, hookName, ...args) {
     } catch (e) {
         log.error(`A service failed in the '${hookName}' hook\n${e.stack}\n\nContinue...`)
     }
+}
+
+/**
+ * map package names
+ */
+export function filterPackageName (type) {
+    return (pkgLabels) => pkgLabels.map(
+        (pkgLabel) => pkgLabel.trim().includes('@wdio')
+            ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
+            : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`)
 }

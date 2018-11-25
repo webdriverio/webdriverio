@@ -6,7 +6,8 @@
  *
  * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
  *
- * You can chain `$` or `$$` together in order to walk down the DOM tree.
+ * You can chain `$` or `$$` together in order to walk down the DOM tree. For more information on how
+ * to select specific elements, see [`Selectors`](/docs/selectors.html).
  *
  * <example>
     :index.html
@@ -29,15 +30,14 @@
  *
  */
 import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
-import { wrapCommand } from 'wdio-config'
+import { wrapCommand } from '@wdio/config'
 
-import { findStrategy, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { findElements, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function $$ (selector) {
-    const { using, value } = findStrategy(selector, this.isW3C)
-    const res = await this.findElements(using, value)
+    const res = await findElements.call(this, selector)
     const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
 
     const elements = res.map((res, i) => {

@@ -87,11 +87,6 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // By default WebdriverIO commands are executed in a synchronous way using
-    // the wdio-sync package. If you still want to run your tests in an async way
-    // e.g. using promises you can set the sync option to false.
-    sync: true,
-    //
     // Level of logging verbosity: trace | debug | info | warn | error
     logLevel: '<%= answers.logLevel %>',
     //
@@ -142,7 +137,7 @@ exports.config = {
     // commands. Instead, they hook themselves up into the test process.
     <% if(answers.services.length) {
     %>services: ['<%- answers.services.map(function(service) {
-        return service.slice(5, -8);
+        return service.slice(0, -8);
     }).join("','") %>'],
     <% } else {
     %>// services: [],<% } %>//
@@ -159,17 +154,18 @@ exports.config = {
     // see also: http://webdriver.io/docs/dot-reporter.html
     <% if(answers.reporters.length) {
     %>reporters: ['<%- answers.reporters.map(function(reporter) {
-        return reporter.slice(5, -9);
+        return reporter.slice(0, -9);
     }).join("','") %>'],
     <% } else {
-    %>// reporters: ['dot'],<%
+    %>// reporters: ['@wdio/dot'],<%
     }
     if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        ui: 'bdd'
+        ui: 'bdd',
+        timeout: 60000
     },<% }
     if(answers.framework === 'jasmine') { %>
     //
@@ -177,7 +173,7 @@ exports.config = {
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
-        defaultTimeoutInterval: 10000,
+        defaultTimeoutInterval: 60000,
         //
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
         // or website depending on the result. For example, it is pretty handy to take a screenshot every time
@@ -202,7 +198,7 @@ exports.config = {
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,     // <number> timeout for step definitions
+        timeout: 60000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     <% } %>
@@ -352,7 +348,8 @@ exports.config = {
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    // onComplete: function(exitCode, config, capabilities) {
+    // onComplete: function(exitCode, config, capabilities, results) {
     // }
 }

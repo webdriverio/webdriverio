@@ -3,6 +3,26 @@ WebdriverIO Sauce Service
 
 > WebdriverIO service that provides a better integration into SauceLabs. It updates the job metadata ('name', 'passed', 'tags', 'public', 'build', 'custom-data') and runs Sauce Connect if desired.
 
+## Installation
+
+The easiest way is to keep `@wdio/sauce-service` as a devDependency in your `package.json`.
+
+```json
+{
+  "devDependencies": {
+    "@wdio/sauce-service": "^5.0.0"
+  }
+}
+```
+
+You can simple do it by:
+
+```bash
+npm install @wdio/sauce-service --save-dev
+```
+
+Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)
+
 ## Configuration
 
 In order to use the service you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically

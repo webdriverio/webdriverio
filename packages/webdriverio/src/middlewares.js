@@ -1,4 +1,4 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 const log = logger('webdriverio')
 
@@ -7,12 +7,6 @@ const log = logger('webdriverio')
  * that wasn't found on the page and automatically waits for it
  *
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
- */
-
-/**
- * [elementErrorHandler description]
-
- * @return {[type]}      [description]
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
     return function (...args) {
