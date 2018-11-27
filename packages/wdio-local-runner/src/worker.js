@@ -4,8 +4,6 @@ import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
 
-import RunnerTransformStream from './transformStream'
-
 const log = logger('wdio-local-runner')
 
 /**
@@ -55,8 +53,7 @@ export default class WorkerInstance extends EventEmitter {
         const childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),
             env: runnerEnv,
-            execArgv,
-            silent: true
+            execArgv
         })
 
         childProcess.on('message', (payload) => {
@@ -93,10 +90,6 @@ export default class WorkerInstance extends EventEmitter {
             this.emit('exit', { cid, exitCode: code })
             childProcess.kill('SIGTERM')
         })
-
-        childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
-        childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
-        process.stdin.on('data', (input) => childProcess.stdin.write(input))
 
         return childProcess
     }
