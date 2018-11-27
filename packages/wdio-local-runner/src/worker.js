@@ -91,6 +91,7 @@ export default class WorkerInstance extends EventEmitter {
 
             log.debug(`Runner ${cid} finished with exit code ${code}`)
             this.emit('exit', { cid, exitCode: code })
+            childProcess.kill('SIGTERM')
         })
 
         childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)

@@ -20,6 +20,7 @@ export default class WebDriverRequest extends EventEmitter {
         super()
         this.method = method
         this.endpoint = endpoint
+        this.requiresSessionId = this.endpoint.match(/:sessionId/)
         this.defaultOptions = {
             method,
             body,
@@ -51,7 +52,7 @@ export default class WebDriverRequest extends EventEmitter {
          * example /sessions. The call to /sessions is not connected to a session itself and it therefore doesn't
          * require it
          */
-        if (this.endpoint.match(/:sessionId/) && !sessionId) {
+        if (this.requiresSessionId && !sessionId) {
             throw new Error('A sessionId is required for this command')
         }
 
@@ -92,8 +93,12 @@ export default class WebDriverRequest extends EventEmitter {
                 return resolve(body)
             }
 
-            if (retryCount >= totalRetryCount) {
-                log.error('Request failed after retry due to', error)
+            /**
+             * stop retrying if totalRetryCount was exceeded or there is no reason to
+             * retry, e.g. if sessionId is invalid
+             */
+            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+                log.error('Request failed due to', error)
                 this.emit('response', { error })
                 return reject(error)
             }
