@@ -76,6 +76,12 @@ export default class WDIOCLInterface extends EventEmitter {
      */
     onMessage (params) {
         if (params.origin === 'runner' && params.name === 'debug') {
+            if (params.event === 'end') {
+                this.interface.inDebugMode = false
+                this.sigintTriggered = false
+                return this.updateView()
+            }
+
             clearTimeout(this.interval)
             this.interface.clearAll()
             this.interface.inDebugMode = true
@@ -97,6 +103,13 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     sigintTrigger () {
+        /**
+         * allow to exit repl mode via Ctrl+C
+         */
+        if (this.interface.inDebugMode) {
+            return
+        }
+
         this.sigintTriggered = true
         this.updateView()
     }
