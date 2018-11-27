@@ -353,6 +353,10 @@ class Launcher {
      * session first before killing
      */
     exitHandler (callback) {
+        if (!callback) {
+            return
+        }
+
         this.hasTriggeredExitRoutine = true
         this.interface.sigintTrigger()
         return this.runner.shutdown().then(callback)

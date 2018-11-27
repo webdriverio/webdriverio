@@ -38,7 +38,8 @@ import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/config'
 export default function debug(commandTimeout = 5000) {
     process.send({
         origin: 'runner',
-        name: 'debug'
+        name: 'debug',
+        event: 'start'
     })
     let commandIsRunning = false
 
@@ -101,8 +102,16 @@ export default function debug(commandTimeout = 5000) {
         input: process.stdin,
         output: process.stdout,
         useGlobal: true,
+        useColors: true,
         ignoreUndefined: true
     })
 
-    return new Promise((resolve) => replServer.on('exit', resolve))
+    return new Promise((resolve) => replServer.on('exit', () => {
+        process.send({
+            origin: 'runner',
+            name: 'debug',
+            event: 'end'
+        })
+        resolve()
+    }))
 }
