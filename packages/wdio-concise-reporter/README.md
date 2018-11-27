@@ -21,7 +21,7 @@ You can simple do it by:
 $ npm install @wdio/concise-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](http://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](http://webdriver.io/guide/getstarted/install.html).
 
 ## Configuration
 
