@@ -71,6 +71,7 @@ export default class Runner extends EventEmitter {
          */
         if (this.sigintWasCalled) {
             log.info('SIGINT signal detected while starting session, shutting down...')
+            await this.endSession()
             return this._shutdown(0)
         }
 
