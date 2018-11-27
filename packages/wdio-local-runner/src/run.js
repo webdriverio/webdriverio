@@ -37,6 +37,11 @@ process.on('message', (m) => {
  * catch sigint messages as they are handled by main process
  */
 exitHook((callback) => {
+    if (!callback) {
+        return
+    }
+
+    runner.sigintWasCalled = true
     log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
     setTimeout(callback, SHUTDOWN_TIMEOUT)
 })
