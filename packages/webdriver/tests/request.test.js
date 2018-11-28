@@ -62,7 +62,7 @@ describe('webdriver request', () => {
     describe('_request', () => {
         it('should make a request', async () => {
             const expectedResponse = { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } }
-            const req = new WebDriverRequest()
+            const req = new WebDriverRequest('POST', '/session')
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/session/foobar-123/element' } })
@@ -73,7 +73,7 @@ describe('webdriver request', () => {
         })
 
         it('should retry requests but still fail', async () => {
-            const req = new WebDriverRequest()
+            const req = new WebDriverRequest('POST', '/session')
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/failing' } })
@@ -88,7 +88,7 @@ describe('webdriver request', () => {
         })
 
         it('should retry and eventually respond', async () => {
-            const req = new WebDriverRequest()
+            const req = new WebDriverRequest('POST', '/session')
             req.emit = jest.fn()
 
             request.mockClear()

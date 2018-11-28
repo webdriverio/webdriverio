@@ -27,10 +27,19 @@ test('can write', () => {
 
 test('can wrap stdout or stderr', () => {
     const buffer = []
-    const stream = {}
+    const stream = { write: jest.fn() }
     iface.wrapStdio(stream, buffer)
     stream.write('foobar')
     expect(buffer).toHaveLength(1)
+})
+
+test('writes to stream if in debug mode', () => {
+    const buffer = []
+    const stream = { write: jest.fn() }
+    iface.wrapStdio(stream, buffer)
+    iface.inDebugMode = true
+    stream.write('foobar')
+    expect(buffer).toHaveLength(0)
 })
 
 test('clearBuffer', () => {
