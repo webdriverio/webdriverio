@@ -1,4 +1,8 @@
-import { isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure } from '../src/utils'
+import { isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure, isW3CSession } from '../src/utils'
+
+import appiumResponse from './__fixtures__/appium.response.json'
+import chromedriverResponse from './__fixtures__/chromedriver.response.json'
+import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -68,5 +72,11 @@ describe('utils', () => {
     it('commandCallStructure', () => {
         expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
             .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
+    })
+
+    it('isW3CSession', () => {
+        expect(isW3CSession(appiumResponse.value)).toBe(false)
+        expect(isW3CSession(chromedriverResponse.value)).toBe(false)
+        expect(isW3CSession(geckodriverResponse.value)).toBe(true)
     })
 })

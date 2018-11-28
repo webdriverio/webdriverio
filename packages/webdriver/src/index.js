@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype } from './utils'
+import { getPrototype, isW3CSession } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -28,7 +28,7 @@ export default class WebDriver {
         const response = await sessionRequest.makeRequest(params)
         params.requestedCapabilities = params.capabilities
         params.capabilities = response.value.capabilities || response.value
-        params.isW3C = Boolean(response.value.capabilities || response.value.platformName)
+        params.isW3C = isW3CSession(response.value)
 
         const prototype = Object.assign(getPrototype(params.isW3C), proto)
         const monad = webdriverMonad(params, modifier, prototype)
