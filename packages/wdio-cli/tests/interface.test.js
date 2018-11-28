@@ -176,4 +176,40 @@ describe('cli interface', () => {
         expect(wdioClInterface.sigintTriggered).toBe(true)
         expect(wdioClInterface.updateView).toBeCalledTimes(1)
     })
+
+    it('should ignore to mark display when SIGINT is called but in debug mode', () => {
+        wdioClInterface.interface.inDebugMode = true
+        wdioClInterface.updateView = jest.fn()
+        expect(wdioClInterface.sigintTriggered).toBe(false)
+        expect(wdioClInterface.updateView).toBeCalledTimes(0)
+        wdioClInterface.sigintTrigger()
+        expect(wdioClInterface.sigintTriggered).toBe(false)
+        expect(wdioClInterface.updateView).toBeCalledTimes(0)
+    })
+
+    it('should render a debug screen when command was called', () => {
+        wdioClInterface.onMessage({
+            origin: 'runner',
+            name: 'debug'
+        })
+        expect(wdioClInterface.interface.clearAll).toHaveBeenCalledTimes(1)
+        expect(wdioClInterface.interface.inDebugMode).toBe(true)
+        expect(flatten(wdioClInterface.interface.log.mock.calls))
+            .toContain('yellow The execution has stopped!')
+    })
+
+    it('should exit from debug screen', () => {
+        wdioClInterface.updateView = jest.fn()
+        wdioClInterface.interface.inDebugMode = true
+        wdioClInterface.sigintTriggered = true
+        wdioClInterface.onMessage({
+            origin: 'runner',
+            name: 'debug',
+            event: 'end'
+        })
+        expect(wdioClInterface.interface.log).toHaveBeenCalledTimes(0)
+        expect(wdioClInterface.updateView).toHaveBeenCalledTimes(1)
+        expect(wdioClInterface.interface.inDebugMode).toBe(false)
+        expect(wdioClInterface.sigintTriggered).toBe(false)
+    })
 })
