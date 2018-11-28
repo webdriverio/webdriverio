@@ -147,3 +147,26 @@ export function commandCallStructure (commandName, args) {
 
     return `${commandName}(${callArgs})`
 }
+
+/**
+ * check if session is based on W3C protocol based on the /session response
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if W3C (browser)
+ */
+export function isW3CSession({ capabilities }) {
+    /**
+     * JSONWire protocol doesn't return a property `capabilities`.
+     * Also check for Appium response as it is using JSONWire protocol for most of the part.
+     */
+    if (!capabilities || capabilities.automationName || capabilities.deviceName) {
+        return false
+    }
+
+    /**
+     * assume session to be a WebDriver session when
+     * - capabilities are returned
+     *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
+     * - platformName is returned which is not defined in the JSONWire protocol
+     */
+    return Boolean(capabilities.platformName)
+}
