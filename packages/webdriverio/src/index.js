@@ -24,7 +24,7 @@ export const remote = function (params = {}, remoteModifier) {
     }
 
     if (params.user && params.key) {
-        params = Object.assign(detectBackend(params), params)
+        params = Object.assign({}, detectBackend(params), params)
     }
 
     const prototype = getPrototype('browser')

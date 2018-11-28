@@ -6,6 +6,7 @@ jest.mock('child_process', () => {
     const childProcessMock = {
         on: jest.fn(),
         send: jest.fn(),
+        kill: jest.fn(),
         stdout: { pipe: jest.fn().mockReturnValue({ pipe: jest.fn() }) },
         stderr: { pipe: jest.fn().mockReturnValue({ pipe: jest.fn() }) }
     }
