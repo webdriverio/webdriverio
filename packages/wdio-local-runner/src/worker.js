@@ -4,6 +4,8 @@ import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
 
+import RunnerTransformStream from './transformStream'
+
 const log = logger('wdio-local-runner')
 
 /**
@@ -53,45 +55,59 @@ export default class WorkerInstance extends EventEmitter {
         const childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),
             env: runnerEnv,
-            execArgv
+            execArgv,
+            silent: true
         })
 
-        childProcess.on('message', (payload) => {
-            /**
-             * resolve pending commands
-             */
-            if (payload.name === 'finisedCommand') {
-                this.isBusy = false
-            }
+        childProcess.on('message', ::this._handleMessage)
+        childProcess.on('error', ::this._handleError)
+        childProcess.on('exit', ::this._handleExit)
 
-            /**
-             * store sessionId and connection data to worker instance
-             */
-            if (payload.name === 'sessionStarted') {
-                this.sessionId = payload.content.sessionId
-                delete payload.content.sessionId
-                Object.assign(this.server, payload.content)
-            }
-
-            this.emit('message', Object.assign(payload, { cid }))
-        })
-
-        childProcess.on('error',
-            (payload) => this.emit('error', Object.assign(payload, { cid })))
-
-        childProcess.on('exit', (code) => {
-            /**
-             * delete process of worker
-             */
-            delete this.childProcess
-            this.isBusy = false
-
-            log.debug(`Runner ${cid} finished with exit code ${code}`)
-            this.emit('exit', { cid, exitCode: code })
-            childProcess.kill('SIGTERM')
-        })
+        childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
+        childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
 
         return childProcess
+    }
+
+    _handleMessage (payload) {
+        const { cid } = this
+
+        /**
+         * resolve pending commands
+         */
+        if (payload.name === 'finisedCommand') {
+            this.isBusy = false
+        }
+
+        /**
+         * store sessionId and connection data to worker instance
+         */
+        if (payload.name === 'sessionStarted') {
+            this.sessionId = payload.content.sessionId
+            delete payload.content.sessionId
+            Object.assign(this.server, payload.content)
+        }
+
+        this.emit('message', Object.assign(payload, { cid }))
+    }
+
+    _handleError (payload) {
+        const { cid } = this
+        this.emit('error', Object.assign(payload, { cid }))
+    }
+
+    _handleExit (exitCode) {
+        const { cid } = this
+
+        /**
+         * delete process of worker
+         */
+        delete this.childProcess
+        this.isBusy = false
+
+        log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
+        this.emit('exit', { cid, exitCode })
+        this.childProcess.kill('SIGTERM')
     }
 
     /**
