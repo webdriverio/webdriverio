@@ -10,7 +10,5 @@ export const mockLocal = jest.fn().mockImplementation( function () {
     this.stop = mockStop;
 });
 
-
-
 Browserstack.Local = mockLocal;
 module.exports = Browserstack;

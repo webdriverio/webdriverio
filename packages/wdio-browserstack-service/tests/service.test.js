@@ -103,24 +103,15 @@ describe('_printSessionURL', () => {
     });
 
     it('should throw an error if it recieves a non 200 status code', () => {
-        request.get.mockImplementationOnce((url, opts, cb) => cb(
-            null,
-            {statusCode: 404},
-            {
-            }
-        ));
+        request.get.mockImplementationOnce((url, opts, cb) => cb(null,{statusCode: 404}, { }));
 
-        expect(service._printSessionURL()).rejects.toEqual('Bad response code: Expected (200), Received (404)!');
+        expect(service._printSessionURL())
+            .rejects.toEqual('Bad response code: Expected (200), Received (404)!');
     });
 
-    it('should reject and throw an error if request recieves an error', () => {
+    it('should reject and throw an error if request receives an error', () => {
         const e = new Error(`I'm an error!`);
-        request.get.mockImplementationOnce((url, opts, cb) => cb(
-            e,
-            {},
-            {
-            }
-        ));
+        request.get.mockImplementationOnce((url, opts, cb) => cb(e, {}, {}));
         expect(service._printSessionURL()).rejects.toEqual(e);
     });
 });
@@ -162,10 +153,7 @@ describe('before', () => {
 
         expect(beforeService.sessionId).toEqual(12);
         expect(beforeService.failures).toEqual(0);
-        expect(beforeService.auth).toEqual({
-            user: 'foo',
-            pass: 'bar'
-        });
+        expect(beforeService.auth).toEqual({ user: 'foo', pass: 'bar'});
     });
 
     it('should log the url', () => {
@@ -241,4 +229,4 @@ describe('_getBody', () => {
         service.failures = 0;
         expect(service._getBody()).toEqual({ status: 'completed' });
     })
-})
+});
