@@ -22,32 +22,10 @@ beforeAll(() => {
     service = new BrowserstackService()
 });
 
-it('constructor should set auth to empty object if requestHandler is falsey', () => {
-    service = new BrowserstackService();
-    expect(service.sessionId).toEqual(12);
-    expect(service.failures).toEqual(0);
-    expect(service.auth).toEqual({});
-
-    global.browser.requestHandler = {};
-    service = new BrowserstackService();
-
-    expect(service.sessionId).toEqual(12);
-    expect(service.failures).toEqual(0);
-    expect(service.auth).toEqual({});
-});
-
 it('should initialize correctly', () => {
-    global.browser.requestHandler = {
-        auth: {
-            user: 'foo',
-            pass: 'bar'
-        }
-    };
     service = new BrowserstackService();
 
-    expect(service.sessionId).toEqual(12);
     expect(service.failures).toEqual(0);
-    expect(service.auth).toEqual({ user: 'foo', pass: 'bar'});
 });
 
 describe('onReload()', () => {
@@ -136,6 +114,48 @@ describe('_printSessionURL', () => {
 });
 
 describe('before', () => {
+    beforeAll(() => {
+        global.browser.sessionId = 12;
+
+    });
+
+    it('should set auth to empty object if requestHandler is falsey', () => {
+        let beforeService = new BrowserstackService();
+
+        beforeService.before();
+
+        expect(beforeService.sessionId).toEqual(12);
+        expect(beforeService.failures).toEqual(0);
+        expect(beforeService.auth).toEqual({});
+
+        beforeService = new BrowserstackService();
+        global.browser.requestHandler = {};
+        beforeService.before();
+
+        expect(beforeService.sessionId).toEqual(12);
+        expect(beforeService.failures).toEqual(0);
+        expect(beforeService.auth).toEqual({});
+    });
+
+    it('should initialize correctly', () => {
+        const beforeService = new BrowserstackService();
+        global.browser.requestHandler = {
+            auth: {
+                user: 'foo',
+                pass: 'bar'
+            }
+        };
+
+        beforeService.before();
+
+        expect(beforeService.sessionId).toEqual(12);
+        expect(beforeService.failures).toEqual(0);
+        expect(beforeService.auth).toEqual({
+            user: 'foo',
+            pass: 'bar'
+        });
+    });
+
     it('should log the url', () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string);
         const beforeService = new BrowserstackService();

@@ -6,7 +6,7 @@ const log = logger('wdio-browserstack-service');
 export default class BrowserstackLauncherService {
     onPrepare(config, capabilities) {
         if (!config.browserstackLocal) {
-            log.info('browserstackLocal is not enabled - skipping...')
+            log.info('browserstackLocal is not enabled - skipping...');
             return;
         }
 

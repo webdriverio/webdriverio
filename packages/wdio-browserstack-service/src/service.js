@@ -6,12 +6,12 @@ const log = logger('wdio-browserstack-service');
 export default class BrowserstackService {
     constructor (config) {
         this.config = config;
-        this.sessionId = global.browser.sessionId;
         this.failures = 0;
-        this.auth = global.browser.requestHandler ? global.browser.requestHandler.auth || {} : {};
     }
 
     before() {
+        this.sessionId = global.browser.sessionId;
+        this.auth = global.browser.requestHandler ? global.browser.requestHandler.auth || {} : {};
         return this._printSessionURL();
     }
 
@@ -63,10 +63,7 @@ export default class BrowserstackService {
         return new Promise((resolve, reject) => {
             request.put(`https://www.browserstack.com/automate/sessions/${sessionId}.json`, {
                 json: true,
-                auth: {
-                    user: this.auth.user,
-                    pass: this.auth.pass
-                },
+                auth: this.auth,
                 body: requestBody
             }, (error, response, body) => {
                 /* istanbul ignore if */
@@ -90,10 +87,7 @@ export default class BrowserstackService {
             `https://www.browserstack.com/automate/sessions/${this.sessionId}.json`,
             {
                 json: true,
-                auth: {
-                    user: this.auth.user,
-                    pass: this.auth.key
-                }
+                auth: this.auth
             },
             (error, response, body) => {
                 if (error) {
