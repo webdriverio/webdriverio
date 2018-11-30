@@ -31,6 +31,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@wdio/config": "^5.0.0-beta.10",
     "@wdio/logger": "^5.0.0-beta.10",
     "request": "^2.85.0",
     "sauce-connect-launcher": "^1.2.3"
