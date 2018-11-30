@@ -9,6 +9,10 @@ const log = logger('wdio-local-runner')
 
 const runner = new Runner()
 process.on('message', (m) => {
+    if (!m || !m.command) {
+        return log.info('Ignore message for worker:', m)
+    }
+
     log.info(`Run worker command: ${m.command}`)
     runner[m.command](m).then(
         (result) => process.send({

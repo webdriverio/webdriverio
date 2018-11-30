@@ -5,6 +5,7 @@ import EventEmitter from 'events'
 import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
+import WDIORepl from './repl'
 
 const log = logger('wdio-local-runner')
 
@@ -52,7 +53,7 @@ export default class WorkerInstance extends EventEmitter {
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)
-        const childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
+        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),
             env: runnerEnv,
             execArgv,
@@ -65,12 +66,13 @@ export default class WorkerInstance extends EventEmitter {
 
         childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
         childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
+        process.stdin.pipe(childProcess.stdin)
 
         return childProcess
     }
 
     _handleMessage (payload) {
-        const { cid } = this
+        const { cid, childProcess } = this
 
         /**
          * resolve pending commands
@@ -89,6 +91,31 @@ export default class WorkerInstance extends EventEmitter {
         }
 
         this.emit('message', Object.assign(payload, { cid }))
+
+        /**
+         * handle debug command called within worker process
+         */
+        if (payload.origin === 'debugger' && payload.name === 'start') {
+            this.repl = new WDIORepl(
+                childProcess,
+                { prompt: `[${cid}] \u203A `, ...payload.params }
+            )
+            this.repl.start().then(() => {
+                const ev = {
+                    origin: 'debugger',
+                    name: 'stop'
+                }
+                childProcess.send(ev)
+                this.emit('message', ev)
+            })
+        }
+
+        /**
+         * handle debugger results
+         */
+        if (this.repl && payload.origin === 'debugger' && payload.name === 'result') {
+            this.repl.onResult(payload.params)
+        }
     }
 
     _handleError (payload) {
@@ -97,7 +124,7 @@ export default class WorkerInstance extends EventEmitter {
     }
 
     _handleExit (exitCode) {
-        const { cid } = this
+        const { cid, childProcess } = this
 
         /**
          * delete process of worker
@@ -107,7 +134,7 @@ export default class WorkerInstance extends EventEmitter {
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
         this.emit('exit', { cid, exitCode })
-        this.childProcess.kill('SIGTERM')
+        childProcess.kill('SIGTERM')
     }
 
     /**
