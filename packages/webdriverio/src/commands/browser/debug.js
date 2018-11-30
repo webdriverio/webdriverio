@@ -53,6 +53,11 @@ export default function debug(commandTimeout = 5000) {
     }
 
     /**
+     * register worker process as debugger target
+     */
+    process._debugProcess(process.pid)
+
+    /**
      * initialise repl in testrunner
      */
     process.send({
@@ -68,6 +73,7 @@ export default function debug(commandTimeout = 5000) {
         }
 
         if (m.name === 'stop') {
+            process._debugEnd(process.pid)
             return commandResolve()
         }
 
