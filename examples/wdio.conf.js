@@ -27,8 +27,10 @@ exports.config = {
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
     // If you run your tests on SauceLabs you can specify the region you want to run your tests
-    // in via the `region` property.
-    region: 'eu', // for eu-central-1
+    // in via the `region` property. Available short handles for regions are:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
+    region: 'us',
     //
     // ==================
     // Specify Test Files
