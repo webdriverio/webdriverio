@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v4.15.0 (2018-11-30)
+* global:
+    * add config `region` that allows to specify the SauceLabs datacenter region
+* wdio changes:
+    * Allowing to specify a feature file with a scenario line number (#3019)
+* bugfixes:
+    * round values for touchMove command (#3039)
+
 ## v4.14.0 (2018-10-23)
 * global:
     * add `isKeyboardShown` command (#2848)
