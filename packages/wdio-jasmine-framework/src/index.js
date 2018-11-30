@@ -56,6 +56,12 @@ class JasmineAdapter {
         jasmine.getEnv().specFilter = ::this.customSpecFilter
 
         /**
+         * Set whether to stop suite execution when a spec fails
+         */
+        const stopOnSpecFailure = !!this.jasmineNodeOpts.stopOnSpecFailure
+        jasmine.getEnv().stopOnSpecFailure(stopOnSpecFailure)
+
+        /**
          * enable expectHandler
          */
         const { expectationResultHandler } = this.jasmineNodeOpts
