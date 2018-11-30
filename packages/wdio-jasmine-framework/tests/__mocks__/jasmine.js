@@ -6,6 +6,7 @@ class JasmineMock {
         this.jasmine = {
             addReporter: jest.fn(),
             specFilter: jest.fn(),
+            stopOnSpecFailure: jest.fn(),
             getEnv: jest.fn().mockImplementation(() => this.jasmine),
             Spec: {
                 prototype: {
