@@ -30,88 +30,75 @@
  *
  */
 
-import vm from 'vm'
-import repl from 'repl'
-
-import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/config'
+import serializeError from 'serialize-error'
+import WDIORepl from '@wdio/repl'
 
 export default function debug(commandTimeout = 5000) {
-    process.send({
-        origin: 'runner',
-        name: 'debug',
-        event: 'start'
-    })
-    let commandIsRunning = false
+    const repl = new WDIORepl()
+    const { introMessage } = WDIORepl
 
-    /* istanbul ignore next */
-    const myEval = (cmd, context, filename, callback) => {
-        if (commandIsRunning) {
+    /**
+     * run repl in standalone mode
+     */
+    if (!process.env.WDIO_WORKER) {
+        // eslint-disable-next-line
+        console.log(WDIORepl.introMessage)
+        const context = {
+            browser: this,
+            driver: this,
+            $: ::this.$,
+            $$: ::this.$$
+        }
+        return repl.start(context)
+    }
+
+    /**
+     * initialise repl in testrunner
+     */
+    process.send({
+        origin: 'debugger',
+        name: 'start',
+        params: { commandTimeout, introMessage }
+    })
+
+    let commandResolve = () => {}
+    process.on('message', (m) => {
+        if (m.origin !== 'debugger') {
             return
         }
 
-        if (cmd === 'browser\n') {
-            return callback(null, '[WebdriverIO REPL client]')
+        if (m.name === 'stop') {
+            return commandResolve()
         }
 
-        context.browser = this
-        commandIsRunning = true
-        let result
-        if (hasWdioSyncSupport) {
-            return runFnInFiberContext(() => {
-                try {
-                    result = vm.runInThisContext(cmd)
-                } catch (e) {
-                    commandIsRunning = false
-                    return callback(e)
+        if (m.name === 'eval') {
+            repl.eval(m.content.cmd, global, null, (e, result) => {
+                if (e) {
+                    process.send({
+                        origin: 'debugger',
+                        name: 'result',
+                        params: {
+                            error: true,
+                            ...serializeError(e)
+                        }
+                    })
                 }
 
-                callback(null, result)
-                commandIsRunning = false
-            })()
+                /**
+                 * try to do some smart serializations
+                 */
+                if (typeof result === 'function') {
+                    result = `[Function: ${result.name}]`
+                }
+
+                process.send({
+                    origin: 'debugger',
+                    name: 'result',
+                    params: { result }
+                })
+            })
         }
-
-        try {
-            result = vm.runInThisContext(cmd)
-        } catch (e) {
-            commandIsRunning = false
-            return callback(e)
-        }
-
-        if (!result || typeof result.then !== 'function') {
-            commandIsRunning = false
-            return callback(null, result)
-        }
-
-        const timeout = setTimeout(() => callback(new Error('Command execution timed out')), commandTimeout)
-        result.then((res) => {
-            commandIsRunning = false
-            clearTimeout(timeout)
-            return callback(null, res)
-        }, (e) => {
-            commandIsRunning = false
-            clearTimeout(timeout)
-            const commandError = new Error(e.message)
-            delete commandError.stack
-            return callback(commandError)
-        })
-    }
-
-    const replServer = repl.start({
-        prompt: '> ',
-        eval: myEval,
-        input: process.stdin,
-        output: process.stdout,
-        useGlobal: true,
-        useColors: true,
-        ignoreUndefined: true
     })
 
-    return new Promise((resolve) => replServer.on('exit', () => {
-        process.send({
-            origin: 'runner',
-            name: 'debug',
-            event: 'end'
-        })
-        resolve()
-    }))
+    return new Promise((resolve) => (commandResolve = resolve))
 }

@@ -106,9 +106,14 @@ export default class WDIORepl {
         })
     }
 
-    start () {
+    start (context) {
         if (this.replServer) {
             throw new Error('a repl was already initialised')
+        }
+
+        if (context) {
+            const evalFn = this.config.eval
+            this.config.eval = (cmd, _, filename, callback) => evalFn(cmd, context, filename, callback)
         }
 
         this.replServer = repl.start(this.config)
