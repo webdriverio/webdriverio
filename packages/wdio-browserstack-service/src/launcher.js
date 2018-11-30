@@ -28,14 +28,28 @@ export default class BrowserstackLauncherService {
             throw TypeError('Capabilities should be an object or Array!')
         }
 
-        return new Promise((resolve, reject) => {
-            this.browserstackLocal.start(opts, err => {
-                if (err) {
-                    return reject(err);
-                }
+        let timer;
+        return Promise.race([
+            new Promise((resolve, reject) => {
+                this.browserstackLocal.start(opts, err => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
                 resolve();
-            });
-            resolve();
+            }),
+            new Promise((resolve, reject) => {
+                /* istanbul ignore next */
+                timer = setTimeout(function () {
+                    reject('Browserstack Local failed to stop within 60 seconds!')}, 60000);
+            })]
+        ).then(function (result) {
+            clearTimeout(timer);
+            return Promise.resolve(result);
+        }, function (result) {
+            clearTimeout(timer);
+            return Promise.reject(result)
         });
     }
 
@@ -46,14 +60,28 @@ export default class BrowserstackLauncherService {
         if (config.browserstackLocalForcedStop) {
             return Promise.resolve(process.kill(this.browserstackLocal.pid));
         }
-        return new Promise((resolve, reject) => {
-            //setTimeout(reject('Browserstack Local failed to stop within 60 seconds!'),60000);
-            this.browserstackLocal.stop(err => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve();
-            });
+        let timer;
+        return Promise.race([
+            new Promise((resolve, reject) => {
+                this.browserstackLocal.stop(err => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
+            }),
+            new Promise((resolve, reject) => {
+                /* istanbul ignore next */
+                timer = setTimeout(function () {
+                    reject('Browserstack Local failed to stop within 60 seconds!')}, 60000);
+            })]
+        ).then(function (result) {
+            clearTimeout(timer);
+            return Promise.resolve(result);
+        }, function (result) {
+            clearTimeout(timer);
+            return Promise.reject(result)
         });
+
     }
 }
