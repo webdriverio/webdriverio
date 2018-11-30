@@ -61,20 +61,26 @@ Optional pattern to selectively select it/describe cases to run from spec files.
 Type: `RegExp | string`<br>
 Default: undefined
 
-## invertGrep
+### invertGrep
 Inverts 'grep' matches.
 
 Type: `Boolean`<br>
 Default: false
 
-## cleanStack
+### cleanStack
 Clean up stack trace and remove all traces of node module packages.
 
 Type: `Boolean`<br>
 Default: true
 
-## random
+### random
 Run specs in semi-random order.
+
+Type: `Boolean`<br>
+Default: `false`
+
+### stopOnSpecFailure
+Stops spec execution on first fail (other specs continue running)
 
 Type: `Boolean`<br>
 Default: `false`
