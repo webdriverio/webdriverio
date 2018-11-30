@@ -35,7 +35,7 @@
   "dependencies": {
     "@wdio/config": "^5.0.0-beta.10",
     "@wdio/logger": "^5.0.0-beta.10",
-    "jasmine": "^3.1.0"
+    "jasmine": "^3.2.0"
   },
   "peerDependencies": {
     "webdriverio": "5"
