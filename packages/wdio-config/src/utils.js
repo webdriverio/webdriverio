@@ -2,11 +2,20 @@ const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
 const DEFAULT_PROTOCOL = 'http'
 
+const REGION_MAPPING = {
+    'eu': 'eu-central-1'
+}
+
+export function getSauceEndpoint (region) {
+    const dc = region ? (REGION_MAPPING[region] || region) + '.' : ''
+    return `${dc}saucelabs.com`
+}
+
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}) {
-    const { port, hostname, user, key, protocol } = options
+    const { port, hostname, user, key, protocol, region } = options
 
     /**
      * browserstack
@@ -37,7 +46,7 @@ export function detectBackend (options = {}) {
     if (typeof user === 'string' && key.length === 36) {
         return {
             protocol: protocol || 'https',
-            hostname: hostname || 'ondemand.saucelabs.com',
+            hostname: hostname || `ondemand.${getSauceEndpoint(region)}`,
             port: port || 443
         }
     }
