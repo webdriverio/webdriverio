@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v4.15.0 (2018-11-30)
+## v4.14.1 (2018-11-30)
 * global:
     * add config `region` that allows to specify the SauceLabs datacenter region
 * wdio changes:
