@@ -75,13 +75,6 @@ class Launcher {
          */
         exitHook(::this.exitHandler)
 
-        /**
-         * make sure the program will not close instantly
-         */
-        if (process.stdin.isPaused()) {
-            process.stdin.resume()
-        }
-
         const exitCode = await this.runMode(config, caps)
 
         /**
