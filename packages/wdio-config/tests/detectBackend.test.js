@@ -58,6 +58,28 @@ describe('detectBackend', () => {
         expect(caps.protocol).toBe('https')
     })
 
+    it('should detect saucelabs user running in an EU DC', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'eu'
+        })
+        expect(caps.hostname).toBe('ondemand.eu-central-1.saucelabs.com')
+        expect(caps.port).toBe(443)
+        expect(caps.protocol).toBe('https')
+    })
+
+    it('should detect saucelabs user running on a random DC', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'foobar'
+        })
+        expect(caps.hostname).toBe('ondemand.foobar.saucelabs.com')
+        expect(caps.port).toBe(443)
+        expect(caps.protocol).toBe('https')
+    })
+
     it('should detect saucelabs user but recognise custom endpoint properties', () => {
         const caps = detectBackend({
             user: 'foobar',

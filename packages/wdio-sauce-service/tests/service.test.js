@@ -17,6 +17,11 @@ test('getSauceRestUrl', () => {
     service.before()
     expect(service.getSauceRestUrl('12345'))
         .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+
+    const euService = new SauceService({ user: 'foobar', region: 'eu' })
+    euService.before()
+    expect(euService.getSauceRestUrl('12345'))
+        .toBe('https://eu-central-1.saucelabs.com/rest/v1/foobar/jobs/12345')
 })
 
 test('beforeSuite', () => {

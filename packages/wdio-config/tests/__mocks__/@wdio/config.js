@@ -1,4 +1,5 @@
 import { DEFAULT_CONFIGS } from '../../../src/constants'
+import { getSauceEndpoint as getSauceEndpointMock } from '../../../src/utils'
 
 class DotReporter {
     constructor (options) {
@@ -45,6 +46,7 @@ const pluginMocks = {
     }
 }
 
+export const getSauceEndpoint = getSauceEndpointMock
 export const initialisePlugin = jest.fn().mockImplementation(
     (name, type) => pluginMocks[type][name])
 export const validateConfig = jest.fn().mockImplementation(
