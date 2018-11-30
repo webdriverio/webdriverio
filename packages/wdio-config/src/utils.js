@@ -3,11 +3,12 @@ const DEFAULT_PORT = 4444
 const DEFAULT_PROTOCOL = 'http'
 
 const REGION_MAPPING = {
-    'eu': 'eu-central-1'
+    'us': '', // default endpoint
+    'eu': 'eu-central-1.'
 }
 
 export function getSauceEndpoint (region) {
-    const dc = region ? (REGION_MAPPING[region] || region) + '.' : ''
+    const dc = region ? REGION_MAPPING[region] || (region + '.') : ''
     return `${dc}saucelabs.com`
 }
 
