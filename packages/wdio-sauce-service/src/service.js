@@ -1,5 +1,6 @@
 import request from 'request'
 import logger from '@wdio/logger'
+import { getSauceEndpoint } from '@wdio/config'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
@@ -19,12 +20,13 @@ export default class SauceService {
         this.capabilities = capabilities
         this.sauceUser = this.config.user
         this.sauceKey = this.config.key
+        this.hostname = getSauceEndpoint(this.config.region)
         this.testCnt = 0
         this.failures = 0 // counts failures between reloads
     }
 
     getSauceRestUrl (sessionId) {
-        return `https://saucelabs.com/rest/v1/${this.sauceUser}/jobs/${sessionId}`
+        return `https://${this.hostname}/rest/v1/${this.sauceUser}/jobs/${sessionId}`
     }
 
     beforeSuite (suite) {
