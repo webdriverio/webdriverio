@@ -37,6 +37,12 @@ exports.config = {
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. You can either provide the full region name or the short handle:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
+    region: 'eu', // for eu-central-1
+    //
     // ==================
     // Specify Test Files
     // ==================
@@ -82,8 +88,8 @@ exports.config = {
         chromeOptions: {
         // to run chrome headless the following flags are required
         // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
-        // args: ['--headless', '--disable-gpu'],       
-        }        
+        // args: ['--headless', '--disable-gpu'],
+        }
     }, {
         // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance available you can make sure that not more than
@@ -142,9 +148,9 @@ exports.config = {
     // Saves a screenshot to a given path if a command fails.
     screenshotPath: 'shots',
     //
-    // Set a base URL in order to shorten url command calls. If your `url` parameter starts 
-    // with `/`, the base url gets prepended, not including the path portion of your baseUrl. 
-    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url 
+    // Set a base URL in order to shorten url command calls. If your `url` parameter starts
+    // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
+    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
     baseUrl: 'http://localhost:8080',
     //
@@ -257,7 +263,7 @@ exports.config = {
      * @param {Array.<String>} specs List of spec file paths that are to be run
      */
     beforeSession: function (config, capabilities, specs) {
-    },  
+    },
     /**
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
