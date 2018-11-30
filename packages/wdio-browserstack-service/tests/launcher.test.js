@@ -109,11 +109,9 @@ describe('onComplete', () => {
     it('should kill the process if browserstackLocalForcedStop is true', () => {
         const killSpy = jest.spyOn(process, 'kill').mockImplementationOnce((pid) => pid);
         service.browserstackLocal.pid = 102;
-        return expect(service.onComplete(null,{ browserstackLocalForcedStop: true })).resolves.toEqual(102)
-            .then(() => {
-                expect(killSpy).toHaveBeenCalled();
-                expect(service.browserstackLocal.stop).not.toHaveBeenCalled();
-            });
+        expect(service.onComplete(null,{ browserstackLocalForcedStop: true })).toEqual(102)
+        expect(killSpy).toHaveBeenCalled();
+        expect(service.browserstackLocal.stop).not.toHaveBeenCalled();
     });
 
     it('should reject with an error, if local.stop throws an error', () => {

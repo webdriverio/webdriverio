@@ -11,7 +11,7 @@ export default class BrowserstackService {
 
     before() {
         this.sessionId = global.browser.sessionId;
-        this.auth = global.browser.requestHandler ? global.browser.requestHandler.auth || {} : {};
+        this.auth = (global.browser.requestHandler && global.browser.requestHandler.auth) || {};
         return this._printSessionURL();
     }
 

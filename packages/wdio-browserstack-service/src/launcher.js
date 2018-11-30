@@ -47,9 +47,9 @@ export default class BrowserstackLauncherService {
         ).then(function (result) {
             clearTimeout(timer);
             return Promise.resolve(result);
-        }, function (result) {
+        }, function (err) {
             clearTimeout(timer);
-            return Promise.reject(result)
+            return Promise.reject(err)
         });
     }
 
@@ -58,7 +58,7 @@ export default class BrowserstackLauncherService {
             return;
         }
         if (config.browserstackLocalForcedStop) {
-            return Promise.resolve(process.kill(this.browserstackLocal.pid));
+            return process.kill(this.browserstackLocal.pid);
         }
         let timer;
         return Promise.race([
@@ -78,9 +78,9 @@ export default class BrowserstackLauncherService {
         ).then(function (result) {
             clearTimeout(timer);
             return Promise.resolve(result);
-        }, function (result) {
+        }, function (err) {
             clearTimeout(timer);
-            return Promise.reject(result)
+            return Promise.reject(err)
         });
 
     }
