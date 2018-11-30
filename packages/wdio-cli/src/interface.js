@@ -74,32 +74,28 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * event handler that is triggered when runner sends up events
      */
-    onMessage (params) {
-        if (params.origin === 'runner' && params.name === 'debug') {
-            if (params.event === 'end') {
-                this.interface.inDebugMode = false
-                this.sigintTriggered = false
-                return this.updateView()
-            }
-
+    onMessage (event) {
+        if (event.origin === 'debugger' && event.name === 'start') {
             clearTimeout(this.interval)
             this.interface.clearAll()
             this.interface.inDebugMode = true
-
-            this.interface.log(chalk.yellow('The execution has stopped!'))
-            this.interface.log(chalk.yellow('You can now go into the browser or use the command line as REPL'))
-            this.interface.log(chalk.yellow('(To exit, press ^C again or type .exit)'))
-            this.interface.log()
+            this.interface.log(chalk.yellow(event.params.introMessage))
         }
 
-        if (!params.origin || !this.messages[params.origin]) {
-            return log.warn(`Can't identify message from worker: ${JSON.stringify(params)}, ignoring!`)
+        if (event.origin === 'debugger' && event.name === 'stop') {
+            this.interface.inDebugMode = false
+            this.sigintTriggered = false
+            return this.updateView()
         }
 
-        if (!this.messages[params.origin][params.name]) {
-            this.messages[params.origin][params.name] = []
+        if (!event.origin || !this.messages[event.origin]) {
+            return log.warn(`Can't identify message from worker: ${JSON.stringify(event)}, ignoring!`)
         }
-        this.messages[params.origin][params.name].push(params.content)
+
+        if (!this.messages[event.origin][event.name]) {
+            this.messages[event.origin][event.name] = []
+        }
+        this.messages[event.origin][event.name].push(event.content)
     }
 
     sigintTrigger () {
