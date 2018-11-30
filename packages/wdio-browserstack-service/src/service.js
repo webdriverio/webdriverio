@@ -123,7 +123,7 @@ export default class BrowserstackService {
                     return resolve(body);
                 }
 
-                return reject(`Bad response code: Expected (200), Received (${response.statusCode})!`)
+                return reject(Error(`Bad response code: Expected (200), Received (${response.statusCode})!`))
             }
         ));
     }

@@ -47,6 +47,7 @@ export default class BrowserstackLauncherService {
             return Promise.resolve(process.kill(this.browserstackLocal.pid));
         }
         return new Promise((resolve, reject) => {
+            //setTimeout(reject('Browserstack Local failed to stop within 60 seconds!'),60000);
             this.browserstackLocal.stop(err => {
                 if (err) {
                     return reject(err);

@@ -81,7 +81,7 @@ describe('onPrepare', () => {
             this.start = jest.fn().mockImplementationOnce((options, cb) => cb(error));
         });
 
-        return expect(service.onPrepare(config, caps)).rejects.toEqual(error)
+        return expect(service.onPrepare(config, caps)).rejects.toThrow(error)
             .then(() => expect(service.browserstackLocal.start).toHaveBeenCalled());
     });
 
@@ -118,7 +118,7 @@ describe('onComplete', () => {
 
     it('should reject with an error, if local.stop throws an error', () => {
         service.browserstackLocal.stop.mockImplementationOnce( (cb) => cb(error) );
-        return expect(service.onComplete(null,{})).rejects.toEqual(error)
+        return expect(service.onComplete(null,{})).rejects.toThrow(error)
             .then(() => expect(service.browserstackLocal.stop).toHaveBeenCalled());
     });
 

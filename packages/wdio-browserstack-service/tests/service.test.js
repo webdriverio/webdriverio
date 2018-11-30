@@ -125,13 +125,13 @@ describe('_printSessionURL', () => {
         request.get.mockImplementationOnce((url, opts, cb) => cb(null,{statusCode: 404}, { }));
 
         expect(service._printSessionURL())
-            .rejects.toEqual('Bad response code: Expected (200), Received (404)!');
+            .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'));
     });
 
     it('should reject and throw an error if request receives an error', () => {
         const e = new Error(`I'm an error!`);
         request.get.mockImplementationOnce((url, opts, cb) => cb(e, {}, {}));
-        expect(service._printSessionURL()).rejects.toEqual(e);
+        expect(service._printSessionURL()).rejects.toThrow(e);
     });
 });
 
