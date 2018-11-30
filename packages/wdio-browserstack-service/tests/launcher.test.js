@@ -1,7 +1,9 @@
 import BrowserstackLauncher from '../src/launcher'
 jest.mock('browserstack-local');
 import Browserstack from 'browserstack-local';
+import logger from "@wdio/logger";
 
+const log = logger('test');
 const error = new Error(`I'm an error!`);
 
 describe('onPrepare', () => {
@@ -11,26 +13,29 @@ describe('onPrepare', () => {
         key: '12345',
         browserstackLocal: true
     };
+    const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string);
 
     it('should not call local if browserstackLocal is undefined', () => {
         const service = new BrowserstackLauncher();
-
-        return expect(service.onPrepare({
+        service.onPrepare({
             user: 'foobaruser',
             key: '12345'
-        }, [{}])).resolves.toBe('Browserstack Local is off')
-            .then(() => expect(service.browserstackLocal).toBeUndefined());
+        }, [{}]);
+
+        expect(logInfoSpy).toHaveBeenCalledWith('browserstackLocal is not enabled - skipping...');
+        expect(service.browserstackLocal).toBeUndefined();
     });
 
     it('should not call local if browserstackLocal is false', () => {
         const service = new BrowserstackLauncher();
-
-        return expect(service.onPrepare({
+        service.onPrepare({
             user: 'foobaruser',
             key: '12345',
             browserstackLocal: false
-        },caps)).resolves.toBe('Browserstack Local is off')
-            .then(() => expect(service.browserstackLocal).toBeUndefined());
+        },caps)
+
+        expect(logInfoSpy).toHaveBeenCalledWith('browserstackLocal is not enabled - skipping...')
+        expect(service.browserstackLocal).toBeUndefined();
     });
 
     it('should initialize the opts object, and spawn a new Local instance', () =>{
@@ -62,12 +67,12 @@ describe('onPrepare', () => {
                 ]));
     });
 
-    it('should reject if "capabilities" is not an object/array', () => {
+    it('should throw an error if "capabilities" is not an object/array', () => {
         const service = new BrowserstackLauncher();
         global.capabilities = 1;
 
-        return expect(service.onPrepare(config, global.capabilities))
-            .rejects.toEqual('Unhandled capabilities type!');
+        expect(() => service.onPrepare(config, global.capabilities))
+            .toThrow(TypeError('Capabilities should be an object or Array!'));
     });
 
     it('should reject if local.start throws an error', () => {
@@ -95,17 +100,11 @@ describe('onComplete', () => {
         service.browserstackLocal = new Browserstack.Local();
     });
 
-    it('should do nothing if browserstack local is not turned on', () => {
-        const noService = new BrowserstackLauncher();
-        noService.browserstackLocal = undefined;
-        return expect(noService.onComplete(null, {})).resolves.toEqual('Browserstack Local is not running!');
-    });
-
     it('should do nothing if browserstack local is turned on, but not running', () => {
         service.browserstackLocal.isRunning.mockImplementationOnce( () => false);
-        return expect(service.onComplete(null, {})).resolves.toEqual('Browserstack Local is not running!');
+        service.onComplete(null, {});
+        expect(service.browserstackLocal.stop).not.toHaveBeenCalled();
     });
-
 
     it('should kill the process if browserstackLocalForcedStop is true', () => {
         const killSpy = jest.spyOn(process, 'kill').mockImplementationOnce((pid) => pid);
@@ -126,6 +125,5 @@ describe('onComplete', () => {
     it('should properly resolve if everything works', () => {
         return expect(service.onComplete(null,{})).resolves.toBe(undefined)
             .then(() => expect(service.browserstackLocal.stop).toHaveBeenCalled());
-
     })
 });

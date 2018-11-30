@@ -1,10 +1,15 @@
 import BrowserstackLocalLauncher from 'browserstack-local';
+import logger from "@wdio/logger";
+
+const log = logger('wdio-browserstack-service');
 
 export default class BrowserstackLauncherService {
     onPrepare(config, capabilities) {
         if (!config.browserstackLocal) {
-            return Promise.resolve('Browserstack Local is off');
+            log.info('browserstackLocal is not enabled - skipping...')
+            return;
         }
+
         const opts = {
             key: config.key,
             forcelocal: true,
@@ -20,7 +25,7 @@ export default class BrowserstackLauncherService {
         } else if (typeof capabilities === 'object') {
             capabilities['browserstack.local'] = true;
         } else {
-            return Promise.reject('Unhandled capabilities type!')
+            throw TypeError('Capabilities should be an object or Array!')
         }
 
         return new Promise((resolve, reject) => {
@@ -36,7 +41,7 @@ export default class BrowserstackLauncherService {
 
     onComplete(exitCode, config) {
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
-            return Promise.resolve('Browserstack Local is not running!');
+            return;
         }
         if (config.browserstackLocalForcedStop) {
             return Promise.resolve(process.kill(this.browserstackLocal.pid));
