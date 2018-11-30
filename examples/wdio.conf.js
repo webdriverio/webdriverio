@@ -24,6 +24,12 @@ exports.config = {
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. You can either provide the full region name or the short handle:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
+    region: 'eu', // for eu-central-1
+    //
     // ==================
     // Specify Test Files
     // ==================
