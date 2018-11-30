@@ -33,6 +33,7 @@ test('should properly set up jasmine', async () => {
     expect(result).toBe(0)
     expect(adapter.jrunner.addSpecFiles.mock.calls[0][0]).toEqual(['/foo/bar.test.js'])
     expect(adapter.jrunner.jasmine.addReporter.mock.calls).toHaveLength(1)
+    expect(adapter.jrunner.jasmine.stopOnSpecFailure.mock.calls).toHaveLength(1)
     expect(runTestInFiberContext.mock.calls).toHaveLength(7)
     expect(executeHooksWithArgs.mock.calls).toHaveLength(2)
 
