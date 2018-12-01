@@ -65,9 +65,12 @@ export default class WorkerInstance extends EventEmitter {
         childProcess.on('error', ::this._handleError)
         childProcess.on('exit', ::this._handleExit)
 
-        childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
-        childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
-        process.stdin.pipe(childProcess.stdin)
+        /* istanbul ignore if */
+        if (!process.env.JEST_WORKER_ID) {
+            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
+            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
+            process.stdin.pipe(childProcess.stdin)
+        }
 
         return childProcess
     }
