@@ -55,10 +55,10 @@
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 93,
+        "branches": 94,
         "functions": 95,
-        "lines": 95,
-        "statements": 95
+        "lines": 96,
+        "statements": 96
       }
     },
     "testEnvironment": "node",

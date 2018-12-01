@@ -7,6 +7,14 @@ jest.mock('child_process', () => {
         on: jest.fn(),
         send: jest.fn(),
         kill: jest.fn(),
+        stdin: {
+            on: jest.fn(),
+            pipe: jest.fn().mockReturnValue({
+                pipe: jest.fn()
+            }),
+            once: jest.fn(),
+            emit: jest.fn()
+        },
         stdout: { pipe: jest.fn().mockReturnValue({ pipe: jest.fn() }) },
         stderr: { pipe: jest.fn().mockReturnValue({ pipe: jest.fn() }) }
     }
@@ -31,6 +39,7 @@ test('should fork a new process', () => {
     const childProcess = worker.childProcess
     worker.emit = jest.fn()
 
+    expect(worker.isBusy).toBe(true)
     expect(child.fork.mock.calls[0][0].endsWith('/run.js')).toBe(true)
 
     const { env } = child.fork.mock.calls[0][2]
@@ -48,17 +57,7 @@ test('should fork a new process', () => {
         specs: [ '/foo/bar.test.js' ]
     })
 
-    const messageCb = childProcess.on.mock.calls[0][1]
-    messageCb({ foo: 'bar' })
-    expect(worker.emit).toBeCalledWith('message', { foo: 'bar', cid: '0-5' })
-
-    const errorCb = childProcess.on.mock.calls[1][1]
-    errorCb({ foo: 'bar' })
-    expect(worker.emit).toBeCalledWith('error', { foo: 'bar', cid: '0-5' })
-
-    const exitCb = childProcess.on.mock.calls[2][1]
-    exitCb(23)
-    expect(worker.emit).toBeCalledWith('exit', { cid: '0-5', exitCode: 23 })
+    worker.postMessage('runAgain', { foo: 'bar' })
 })
 
 test('should shut down worker processes', async () => {
