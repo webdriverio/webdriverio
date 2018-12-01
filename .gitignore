@@ -74,3 +74,13 @@ website/node_modules
 website/i18n/*
 docs/api/**/*.md
 docs/_*.md
+
+# Editor files
+.idea
+.vscode
+!.vscode/extensions.json
+.*.swp
+.history
+.gradle
+wallaby.conf.js
+tags
