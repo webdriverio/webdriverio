@@ -17,3 +17,10 @@ test('should add cid to message', () => {
     expect(stream.push).toBeCalledWith('[0-5] foobar')
     expect(cb).toBeCalled()
 })
+
+test('should ignore debugger message', () => {
+    const stream = new RunnerTransformStream('0-5')
+    const cb = jest.fn()
+    stream._transform('Debugger listening on ws://foobar.com', null, cb)
+    expect(stream.push).toBeCalledTimes(0)
+})
