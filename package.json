@@ -14,7 +14,7 @@
     "setup": "run-s bootstrap build",
     "test": "run-s test:*",
     "test:eslint": "eslint packages examples",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage --detectOpenHandles",
     "test:wdio:sync": "wdio ./test/wdio.conf.js --spec=./test/specs/sync.spec.js",
     "test:wdio:async": "wdio ./test/wdio.conf.js --spec=./test/specs/async.spec.js",
     "watch": "node ./scripts/watch",
