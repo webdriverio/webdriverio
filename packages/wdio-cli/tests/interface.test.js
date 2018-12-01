@@ -189,13 +189,14 @@ describe('cli interface', () => {
 
     it('should render a debug screen when command was called', () => {
         wdioClInterface.onMessage({
-            origin: 'runner',
-            name: 'debug'
+            origin: 'debugger',
+            name: 'start',
+            params: { introMessage: 'foobar' }
         })
         expect(wdioClInterface.interface.clearAll).toHaveBeenCalledTimes(1)
         expect(wdioClInterface.interface.inDebugMode).toBe(true)
         expect(flatten(wdioClInterface.interface.log.mock.calls))
-            .toContain('yellow The execution has stopped!')
+            .toContain('yellow foobar')
     })
 
     it('should exit from debug screen', () => {
@@ -203,9 +204,8 @@ describe('cli interface', () => {
         wdioClInterface.interface.inDebugMode = true
         wdioClInterface.sigintTriggered = true
         wdioClInterface.onMessage({
-            origin: 'runner',
-            name: 'debug',
-            event: 'end'
+            origin: 'debugger',
+            name: 'stop'
         })
         expect(wdioClInterface.interface.log).toHaveBeenCalledTimes(0)
         expect(wdioClInterface.updateView).toHaveBeenCalledTimes(1)

@@ -49,11 +49,11 @@ export default class WDIORepl {
             useColor: true
         }, config)
 
-        this.commandIsRunning = false
+        this.isCommandRunning = false
     }
 
     eval (cmd, context, filename, callback) {
-        if (this.commandIsRunning) {
+        if (this.isCommandRunning) {
             return
         }
 
@@ -62,7 +62,9 @@ export default class WDIORepl {
         }
 
         vm.createContext(context)
-        this.commandIsRunning = true
+        this.isCommandRunning = true
+
+        /* istanbul ignore if */
         if (hasWdioSyncSupport) {
             return runFnInFiberContext(() => {
                 return this._runCmd(cmd, context, callback)
@@ -77,28 +79,44 @@ export default class WDIORepl {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
         } catch (e) {
-            this.commandIsRunning = false
+            this.isCommandRunning = false
             return callback(e)
         }
     }
 
     _handleResult (result, callback) {
         if (!result || typeof result.then !== 'function') {
-            this.commandIsRunning = false
+            this.isCommandRunning = false
             return callback(null, result)
         }
 
         const timeout = setTimeout(
-            () => callback(new Error('Command execution timed out')),
+            () => {
+                callback(new Error('Command execution timed out'))
+                this.isCommandRunning = false
+            },
             this.config.commandTimeout
         )
 
         result.then((res) => {
-            this.commandIsRunning = false
+            /**
+             * don't do anything if timeout was called
+             */
+            if (timeout._called) {
+                return
+            }
+            this.isCommandRunning = false
             clearTimeout(timeout)
             return callback(null, res)
         }, (e) => {
-            this.commandIsRunning = false
+            /**
+             * don't do anything if timeout was called
+             */
+            if (timeout._called) {
+                return
+            }
+
+            this.isCommandRunning = false
             clearTimeout(timeout)
             const commandError = new Error(e.message)
             delete commandError.stack

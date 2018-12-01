@@ -66,7 +66,7 @@ export default function debug(commandTimeout = 5000) {
         params: { commandTimeout, introMessage }
     })
 
-    let commandResolve = () => {}
+    let commandResolve = /* istanbul ignore next */ () => {}
     process.on('message', (m) => {
         if (m.origin !== 'debugger') {
             return
@@ -77,6 +77,7 @@ export default function debug(commandTimeout = 5000) {
             return commandResolve()
         }
 
+        /* istanbul ignore if */
         if (m.name === 'eval') {
             repl.eval(m.content.cmd, global, null, (e, result) => {
                 if (e) {
