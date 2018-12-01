@@ -6,17 +6,7 @@ jest.mock('child_process', () => {
     const childProcessMock = {
         on: jest.fn(),
         send: jest.fn(),
-        kill: jest.fn(),
-        stdin: {
-            on: jest.fn(),
-            pipe: jest.fn().mockReturnValue({
-                pipe: jest.fn()
-            }),
-            once: jest.fn(),
-            emit: jest.fn()
-        },
-        stdout: { pipe: jest.fn().mockReturnValue({ pipe: jest.fn() }) },
-        stderr: { pipe: jest.fn().mockReturnValue({ pipe: jest.fn() }) }
+        kill: jest.fn()
     }
 
     return { fork: jest.fn().mockReturnValue(childProcessMock) }
