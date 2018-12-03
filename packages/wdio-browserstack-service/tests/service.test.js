@@ -19,11 +19,11 @@ beforeAll(() => {
         }
     };
     global.browser.sessionId = 12;
-    service = new BrowserstackService()
+    service = new BrowserstackService({})
 });
 
 it('should initialize correctly', () => {
-    service = new BrowserstackService();
+    service = new BrowserstackService({});
 
     expect(service.failures).toEqual(0);
 });
@@ -120,7 +120,7 @@ describe('before', () => {
     });
 
     it('should set auth to default values if not provided', () => {
-        let beforeService = new BrowserstackService();
+        let beforeService = new BrowserstackService({});
 
         beforeService.before();
 
@@ -168,7 +168,7 @@ describe('before', () => {
 
     it('should log the url', () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string);
-        const beforeService = new BrowserstackService();
+        const beforeService = new BrowserstackService({});
 
         beforeService.before();
         expect(logInfoSpy).toHaveBeenCalled();
