@@ -6,6 +6,7 @@ import {
     SUITES,
     SUITES_NO_TESTS,
     REPORT,
+    SUITES_NO_TESTS_WITH_HOOK_ERROR
 } from './__fixtures__/testdata'
 
 const reporter = new SpecReporter({})
@@ -127,6 +128,16 @@ describe('SpecReporter', () => {
             printReporter.printReport(RUNNER)
 
             expect(printReporter.write).toBeCalledWith(REPORT)
+        })
+
+        it('should print report for suites with no tests but failed hooks', () => {
+            printReporter.suiteUids = SUITE_UIDS
+            printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
+
+            printReporter.printReport(RUNNER)
+
+            expect(printReporter.write.mock.calls.length).toBe(1)
+            expect(printReporter.write.mock.calls[0][0]).toContain('a failed hook')
         })
 
         it('should not print the report because there are no tests', () => {

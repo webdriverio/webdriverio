@@ -271,14 +271,36 @@ test('emit properly reports to reporter', () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    adapter.formatMessage = () => ({ error: new Error('uups') })
     adapter.generateUID = () => ({ uid: 123, parentUid: 456 })
-    adapter.emit('suite:start', {})
+    adapter.emit(
+        'suite:start',
+        { title: 'foobar' },
+        new Error('uups')
+    )
 
     expect(wdioReporter.emit.mock.calls[0][0]).toBe('suite:start')
     expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
     expect(wdioReporter.emit.mock.calls[0][1].cid).toBe('0-2')
     expect(wdioReporter.emit.mock.calls[0][1].uid).toBe(123)
+})
+
+test('emits hook errors as hook:end', () => {
+    const adapter = new MochaAdapter(
+        '0-2',
+        {},
+        ['/foo/bar.test.js'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.generateUID = () => ({ uid: 123, parentUid: 456 })
+    adapter.emit(
+        'test:fail',
+        { title: '"before all" hook' },
+        new Error('uups')
+    )
+
+    expect(wdioReporter.emit.mock.calls[1][0]).toBe('hook:end')
+    expect(wdioReporter.emit.mock.calls[1][1].error.message).toBe('uups')
 })
 
 test('generateUID', () => {

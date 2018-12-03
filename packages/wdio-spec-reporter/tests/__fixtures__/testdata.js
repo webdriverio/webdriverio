@@ -17,6 +17,7 @@ export const SUITES = [
     {
         uid : SUITE_UIDS[0],
         title : SUITE_UIDS[0].slice(0, -1),
+        hooks: [],
         tests : [
             {
                 uid : 'foo1',
@@ -33,6 +34,7 @@ export const SUITES = [
     {
         uid : SUITE_UIDS[1],
         title : SUITE_UIDS[1].slice(0, -1),
+        hooks: [],
         tests : [
             {
                 uid : 'some test1',
@@ -53,6 +55,7 @@ export const SUITES = [
     {
         uid : SUITE_UIDS[2],
         title : SUITE_UIDS[2].slice(0, -1),
+        hooks: [],
         tests : [
             {
                 uid : 'foo bar baz1',
@@ -72,7 +75,26 @@ export const SUITES_NO_TESTS = [
         uid: SUITE_UIDS[0],
         title: SUITE_UIDS[0].slice(0, -1),
         tests: [],
-        suites: []
+        suites: [],
+        hooks: []
+    },
+]
+
+export const SUITES_NO_TESTS_WITH_HOOK_ERROR = [
+    {
+        uid: SUITE_UIDS[0],
+        title: SUITE_UIDS[0].slice(0, -1),
+        tests: [],
+        suites: [],
+        hooks: [{
+            uid : 'a failed hook2',
+            title : 'a failed hook',
+            state : 'failed',
+            error : {
+                message : 'expected foo to equal bar',
+                stack : 'Failed test stack trace'
+            }
+        }]
     },
 ]
 
