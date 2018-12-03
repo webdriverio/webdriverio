@@ -37,6 +37,9 @@
     "@applitools/eyes.webdriverio": "^2.0.0",
     "@wdio/logger": "^5.0.0-beta.12"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

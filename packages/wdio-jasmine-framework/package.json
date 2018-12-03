@@ -38,7 +38,7 @@
     "jasmine": "^3.2.0"
   },
   "peerDependencies": {
-    "webdriverio": "5"
+    "@wdio/cli": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"
