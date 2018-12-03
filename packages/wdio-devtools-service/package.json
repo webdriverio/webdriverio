@@ -39,6 +39,9 @@
     "speedline": "^1.4.1",
     "stable": "^0.1.8"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

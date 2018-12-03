@@ -34,6 +34,9 @@
     "chalk": "^2.4.1",
     "pretty-ms": "^3.2.0"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

@@ -40,6 +40,9 @@
     "libxmljs": "^0.19.5",
     "rimraf": "^2.6.2"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

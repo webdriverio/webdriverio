@@ -38,6 +38,9 @@
     "fs-extra": "^6.0.1",
     "selenium-standalone": "^6.15.1"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

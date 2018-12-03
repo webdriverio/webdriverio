@@ -36,6 +36,9 @@
   "devDependencies": {
     "tmp": "^0.0.33"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }
