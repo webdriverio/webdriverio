@@ -40,26 +40,29 @@ class JasmineAdapter {
 
         this.jrunner = new Jasmine()
         const { jasmine } = this.jrunner
-
-        this.jrunner.randomizeTests(Boolean(this.jasmineNodeOpts.random))
+        const jasmineEnv = jasmine.getEnv()
 
         this.jrunner.projectBaseDir = ''
         this.jrunner.specDir = ''
         this.jrunner.addSpecFiles(this.specs)
 
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this.jasmineNodeOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
-        jasmine.getEnv().addReporter(this.reporter)
-
-        /**
-         * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
-         */
-        jasmine.getEnv().specFilter = ::this.customSpecFilter
+        jasmineEnv.addReporter(this.reporter)
 
         /**
          * Set whether to stop suite execution when a spec fails
          */
         const stopOnSpecFailure = !!this.jasmineNodeOpts.stopOnSpecFailure
-        jasmine.getEnv().stopOnSpecFailure(stopOnSpecFailure)
+
+        /**
+         * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
+         */
+        jasmineEnv.configure({
+            specFilter: ::this.customSpecFilter,
+            stopOnSpecFailure: stopOnSpecFailure,
+            randomizeTests: Boolean(this.jasmineNodeOpts.random),
+            failFast: this.jasmineNodeOpts.failFast
+        })
 
         /**
          * enable expectHandler
@@ -164,7 +167,7 @@ class JasmineAdapter {
         }
 
         if (params.err) {
-            message.err = {
+            message.error = {
                 message: params.err.message,
                 stack: params.err.stack
             }
