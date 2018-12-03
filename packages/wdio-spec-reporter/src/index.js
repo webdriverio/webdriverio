@@ -113,7 +113,7 @@ class SpecReporter extends WDIOReporter {
 
         for (const suite of suites) {
             // Don't do anything if a suite has no tests or sub suites
-            if (suite.tests.length === 0 && suite.suites.length === 0) {
+            if (suite.tests.length === 0 && suite.suites.length === 0 && suite.hooks.length === 0) {
                 continue
             }
 
@@ -123,7 +123,18 @@ class SpecReporter extends WDIOReporter {
             // Display the title of the suite
             output.push(`${suiteIndent}${suite.title}`)
 
-            for (const test of suite.tests) {
+            const thingsToReport = [
+                /**
+                 * report all tests
+                 */
+                ...suite.tests,
+                /**
+                 * and only hooks that failed
+                 */
+                ...suite.hooks
+                    .filter((hook) => Boolean(hook.error))
+            ]
+            for (const test of thingsToReport) {
                 const test_title = test.title
                 const state = test.state
                 const test_indent = `${this.defaultTestIndent}${suiteIndent}`
@@ -133,7 +144,7 @@ class SpecReporter extends WDIOReporter {
             }
 
             // Put a line break after each suite (only if tests exist in that suite)
-            if (suite.tests.length) {
+            if (thingsToReport.length) {
                 output.push('')
             }
         }

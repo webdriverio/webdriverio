@@ -6,7 +6,7 @@ import RunnableStats from './runnable'
  */
 export default class TestStats extends RunnableStats {
     constructor (runner) {
-        super(runner.type || 'test')
+        super('test')
         this.uid = RunnableStats.getIdentifier(runner)
         this.cid = runner.cid
         this.title = runner.title
