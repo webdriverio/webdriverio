@@ -5,7 +5,7 @@ const log = logger('wdio-browserstack-service');
 
 export default class BrowserstackService {
     constructor (config) {
-        this.config = config || {};
+        this.config = config;
         this.failures = 0;
     }
 
