@@ -36,6 +36,9 @@
     "request": "^2.85.0",
     "sauce-connect-launcher": "^1.2.3"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }
