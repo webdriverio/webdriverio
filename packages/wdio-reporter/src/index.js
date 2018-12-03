@@ -65,7 +65,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:end',  /* istanbul ignore next */ (hook) => {
             const hookStat = this.hooks[hook.uid]
-            hookStat.complete()
+            hookStat.complete(hook.error)
             this.counts.hooks++
             this.onHookEnd(hookStat)
         })
