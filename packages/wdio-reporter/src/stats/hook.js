@@ -1,8 +1,10 @@
+import TestStats from './test'
 import RunnableStats from './runnable'
 
-export default class HookStats extends RunnableStats {
+export default class HookStats extends TestStats {
     constructor (runner) {
-        super('hook')
+        runner.type = 'hook'
+        super(runner)
         this.uid = RunnableStats.getIdentifier(runner)
         this.cid = runner.cid
         this.title = runner.title

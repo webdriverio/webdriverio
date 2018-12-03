@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { format } from 'util'
 import EventEmitter from 'events'
 
 import SuiteStats from './stats/suite'
@@ -6,6 +7,8 @@ import HookStats from './stats/hook'
 import TestStats from './stats/test'
 
 import RunnerStats from './stats/runner'
+
+import { MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
 
 export default class WDIOReporter extends EventEmitter {
     constructor (options) {
@@ -85,6 +88,17 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:fail',  /* istanbul ignore next */ (test) => {
             const testStat = this.tests[test.uid]
+
+            /**
+             * replace "Ensure the done() callback is being called in this test." with more meaningful
+             * message (Mocha only)
+             */
+            if (test.error && test.error.message && test.error.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
+                let replacement = format(MOCHA_TIMEOUT_MESSAGE_REPLACEMENT, test.parent, test.title)
+                test.error.message = test.error.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+                test.error.stack = test.error.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+            }
+
             testStat.fail(test.error)
             this.counts.failures++
             this.counts.tests++
