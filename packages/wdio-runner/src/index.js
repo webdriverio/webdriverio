@@ -115,19 +115,19 @@ export default class Runner extends EventEmitter {
         try {
             failures = failures = await this.framework.run(cid, this.config, specs, caps, this.reporter)
             await this._fetchDriverLogs(this.config)
-
-            /**
-             * in watch mode we don't close the session and open a blank page instead
-             */
-            if (!argv.watch) {
-                await this.endSession()
-            } else {
-                await global.browser.url('about:blank')
-            }
         } catch (e) {
             log.error(e)
             this.emit('error', e)
             failures = 1
+        }
+
+        /**
+         * in watch mode we don't close the session and open a blank page instead
+         */
+        if (!argv.watch) {
+            await this.endSession()
+        } else {
+            await global.browser.url('about:blank')
         }
 
         this.reporter.emit('runner:end', {
