@@ -8,7 +8,10 @@ const REGION_MAPPING = {
 }
 
 export function getSauceEndpoint (region) {
-    const dc = region ? REGION_MAPPING[region] || (region + '.') : ''
+    const dc = region ?
+        typeof REGION_MAPPING[region] !== 'undefined' ?
+            REGION_MAPPING[region] : (region + '.')
+        : ''
     return `${dc}saucelabs.com`
 }
 
