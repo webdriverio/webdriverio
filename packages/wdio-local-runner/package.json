@@ -36,6 +36,9 @@
     "@wdio/runner": "^5.0.0-beta.12",
     "async-exit-hook": "^2.0.1"
   },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

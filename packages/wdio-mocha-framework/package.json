@@ -35,7 +35,7 @@
     "mocha": "^5.0.0"
   },
   "peerDependencies": {
-    "webdriverio": "5"
+    "webdriverio": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"
