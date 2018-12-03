@@ -119,33 +119,43 @@ describe('before', () => {
 
     });
 
-    it('should set auth to empty object if requestHandler is falsey', () => {
+    it('should set auth to default values if not provided', () => {
         let beforeService = new BrowserstackService();
 
         beforeService.before();
 
         expect(beforeService.sessionId).toEqual(12);
         expect(beforeService.failures).toEqual(0);
-        expect(beforeService.auth).toEqual({});
+        expect(beforeService.auth).toEqual({
+            user: 'NotSetUser',
+            pass: 'NotSetKey'
+        });
 
-        beforeService = new BrowserstackService();
-        global.browser.requestHandler = {};
+        beforeService = new BrowserstackService({ user: 'blah'});
         beforeService.before();
 
         expect(beforeService.sessionId).toEqual(12);
         expect(beforeService.failures).toEqual(0);
-        expect(beforeService.auth).toEqual({});
+        expect(beforeService.auth).toEqual({
+            user: 'blah',
+            pass: 'NotSetKey'
+        });
+        beforeService = new BrowserstackService({ key: 'blah'});
+        beforeService.before();
+
+        expect(beforeService.sessionId).toEqual(12);
+        expect(beforeService.failures).toEqual(0);
+        expect(beforeService.auth).toEqual({
+            user: 'NotSetUser',
+            pass: 'blah'
+        });
     });
 
     it('should initialize correctly', () => {
-        const beforeService = new BrowserstackService();
-        global.browser.requestHandler = {
-            auth: {
-                user: 'foo',
-                pass: 'bar'
-            }
-        };
-
+        const beforeService = new BrowserstackService({
+            user: 'foo',
+            key: 'bar'
+        });
         beforeService.before();
 
         expect(beforeService.sessionId).toEqual(12);

@@ -5,13 +5,16 @@ const log = logger('wdio-browserstack-service');
 
 export default class BrowserstackService {
     constructor (config) {
-        this.config = config;
+        this.config = config || {};
         this.failures = 0;
     }
 
     before() {
         this.sessionId = global.browser.sessionId;
-        this.auth = (global.browser.requestHandler && global.browser.requestHandler.auth) || {};
+        this.auth = {
+            user: this.config.user || 'NotSetUser',
+            pass: this.config.key || 'NotSetKey'
+        };
         return this._printSessionURL();
     }
 
