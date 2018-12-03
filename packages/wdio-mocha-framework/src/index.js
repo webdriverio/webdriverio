@@ -156,6 +156,13 @@ class MochaAdapter {
                 expected: params.err.expected,
                 actual: params.err.actual
             }
+
+            /**
+             * hook failures are emitted as "test:fail"
+             */
+            if (params.payload && params.payload.title.match(/^"(before|after)( all)*" hook$/g)) {
+                message.type = 'hook:end'
+            }
         }
 
         if (params.payload) {
@@ -227,7 +234,7 @@ class MochaAdapter {
             this.lastError = message.error
         }
 
-        this.reporter.emit(event, message)
+        this.reporter.emit(message.type, message)
     }
 
     generateUID (message) {
