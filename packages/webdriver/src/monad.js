@@ -60,15 +60,21 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func) {
-            unit.lift(name, commandWrapper(name, func))
+        client.addCommand = function (name, func, proto) {
+            unit.lift(name, commandWrapper(name, func), proto)
         }
 
         return client
     }
 
-    unit.lift = function (name, func) {
-        prototype[name] = function next (...args) {
+    /**
+     * Enhance monad prototype with function
+     * @param  {String}   name   name of function to attach to prototype
+     * @param  {Function} func   function to be added to prototype
+     * @param  {Object}   proto  prototype to add function to (optional)
+     */
+    unit.lift = function (name, func, proto) {
+        (proto || prototype)[name] = function next (...args) {
             const client = unit(this.sessionId)
             log.info('COMMAND', commandCallStructure(name, args))
 

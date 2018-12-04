@@ -57,7 +57,7 @@ export const multiremote = async function (params = {}) {
         browserNames.map((browserName) => {
             validateConfig(WDIO_DEFAULTS, params[browserName])
             const prototype = getPrototype('browser')
-            const instance = WebDriver.newSession(params[browserName], null, prototype)
+            const instance = WebDriver.newSession(params[browserName], null, prototype, wrapCommand)
             return multibrowser.addInstance(browserName, instance)
         })
     )
@@ -70,5 +70,16 @@ export const multiremote = async function (params = {}) {
         sessionId: '',
         isW3C: multibrowser.instances[browserNames[0]].isW3C
     }
-    return WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype)
+    const driver = WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
+
+    /**
+     * in order to get custom command added to multiremote instance we need to pass
+     * in the prototype of the multibrowser
+     */
+    const origAddCommand = ::driver.addCommand
+    driver.addCommand = (name, fn) => {
+        origAddCommand(name, fn, Object.getPrototypeOf(multibrowser.baseInstance))
+    }
+
+    return driver
 }

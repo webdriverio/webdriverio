@@ -91,6 +91,35 @@ test('should be able to fetch multiple elements', async () => {
     expect(size).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
 })
 
+test('should allow to register custom commands to multiremote instance', async () => {
+    const browser = await multiremote({
+        browserA: {
+            logLevel: 'debug',
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        browserB: {
+            logLevel: 'debug',
+            port: 4445,
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+    })
+
+    expect(typeof browser.myCustomCommand).toBe('undefined')
+    browser.addCommand('myCustomCommand', async function (param) {
+        const commandResult = await this.execute(() => 'foobar')
+        return { param, commandResult }
+    })
+
+    expect(typeof browser.myCustomCommand).toBe('function')
+    const { param, commandResult } = await browser.myCustomCommand('barfoo')
+    expect(param).toBe('barfoo')
+    expect(commandResult).toEqual(['foobar', 'foobar'])
+})
+
 afterEach(() => {
     request.mockClear()
 })
