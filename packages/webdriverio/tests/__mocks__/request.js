@@ -5,6 +5,7 @@ let manualMockResponse
 const sessionId = 'foobar-123'
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
+const genericSubSubElementId = 'some-sub-sub-elem-231'
 const requestMock = jest.fn().mockImplementation((params, cb) => {
     let value = {}
     let sessionResponse = {
@@ -40,6 +41,11 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     case `/wd/hub/session/${sessionId}/element/some-elem-123/element`:
         value = {
             [ELEMENT_KEY]: genericSubElementId
+        }
+        break
+    case `/wd/hub/session/${sessionId}/element/${genericSubElementId}/element`:
+        value = {
+            [ELEMENT_KEY]: genericSubSubElementId
         }
         break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/rect`:
