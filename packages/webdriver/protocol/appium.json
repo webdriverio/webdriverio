@@ -1014,5 +1014,55 @@
         }
       }
     }
+  },
+  "/session/:sessionId/touch/perform": {
+    "POST": {
+      "command": "touchPerform",
+      "description": "This functionality is only available from within a native context. 'Touch Perform' works similarly to the other singular touch interactions, except that this allows you to chain together more than one touch action as one command. This is useful because Appium commands are sent over the network and there's latency between commands. This latency can make certain touch interactions impossible because some interactions need to be performed in one sequence. Vertical, for example, requires pressing down, moving to a different y coordinate, and then releasing. For it to work, there can't be a delay between the interactions.",
+      "ref": "http://appium.io/docs/en/commands/interactions/touch/touch-perform/",
+      "parameters": [{
+        "name": "actions",
+        "type": "object[]",
+        "description": "The type of action to perform (e.g. moveTo, release, press, tap, wait)",
+        "required": true
+      }],
+      "support": {
+        "android": {
+          "UiAutomator": "4.2+"
+        },
+        "ios": {
+          "XCUITest": "9.3+",
+          "UIAutomation": "8.0 to 9.3"
+        },
+        "windows": {
+          "Windows": "10+"
+        }
+      }
+    }
+  },
+  "/session/:sessionId/touch/multi/perform": {
+    "POST": {
+      "command": "multiTouchPerform",
+      "description": "This functionality is only available from within a native context. Perform a multi touch action sequence.",
+      "ref": "http://appium.io/docs/en/commands/interactions/touch/multi-touch-perform/",
+      "parameters": [{
+        "name": "actions",
+        "type": "object[]",
+        "description": "The type of action to perform (e.g. moveTo, release, press, tap, wait)",
+        "required": true
+      }],
+      "support": {
+        "android": {
+          "UiAutomator": "4.2+"
+        },
+        "ios": {
+          "XCUITest": "9.3+",
+          "UIAutomation": "8.0 to 9.3"
+        },
+        "windows": {
+          "Windows": "10+"
+        }
+      }
+    }
   }
 }
