@@ -136,3 +136,29 @@ Boilerplate repo for quick set up of WebdriverIO test scripts with TravisCI, Sau
     - Local notifications
     - ESLint using Semistandard style
     - WebdriverIO tuned Gitignore file
+    
+## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
+
+Boilerplate project to run Appium tests together with WebdriverIO for:
+
+- iOS/Android Native Apps
+- iOS/Android Hybrid Apps
+- Android Chrome and iOS Safari browser
+
+The boilerplate holds the following things
+- Framework: Jasmine
+- Features:
+    - Configs for:
+        - iOS and Android app
+        - iOS and Android browsers
+    - Helpers for:
+        - WebView
+        - Gestures
+        - Native alerts
+        - Pickers
+     - Tests examples for:
+        - WebView
+        - Login
+        - Forms
+        - Swipe
+        - Browsers
