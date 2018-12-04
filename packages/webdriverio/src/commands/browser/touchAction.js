@@ -21,26 +21,33 @@
         const screen = $('//UITextbox');
 
         // simple touch action on element
-        screen.touchAction('tap');
+        browser.touchAction({
+            action: 'tap',
+            element: screen
+        });
 
-        // simple touch action using selector and x y variables
-        // tap location is 30px right and 20px down relative from the center of the element
-        screen.touchAction({
-            action: 'tap', x: 30, y:20
+        // simple touch action x y variables
+        // tap location is 30px right and 20px down relative from the viewport
+        browser.touchAction({
+            action: 'tap',
+            x: 30,
+            y:20
         })
 
-        // multi action on an element (drag&drop)
-        screen.touchAction([
-            'press',
-            { action: 'moveTo', x: 200, y: 0 },
-            'release'
-        ])
+        // simple touch action x y variables
+        // tap location is 30px right and 20px down relative from the center of the element
+        browser.touchAction({
+            action: 'tap',
+            x: 30,
+            y:20,
+            element: screen
+        })
 
-        // drag&drop to element
-        const otherElement = $('//UIAApplication[1]/UIAElement[2]')
-        screen.touchAction([
-            'press',
-            { action: 'moveTo', element: otherElement },
+        // multi action on an element
+        // drag&drop from position 200x200 down 100px
+        browser.touchAction([
+            { action: 'press', x: 200, y: 200 },
+            { action: 'moveTo', x: 0, y: 100 },
             'release'
         ])
     });
