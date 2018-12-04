@@ -1,7 +1,7 @@
 import request from 'request'
 import { remote } from '../../../src'
 
-describe('isSelected test', () => {
+describe('touchAction element test', () => {
     let browser
     let elem, subElem, subSubElem
 
@@ -194,7 +194,7 @@ describe('isSelected test', () => {
         })
     })
 
-    describe.only('multi touch', () => {
+    describe('multi touch', () => {
         it('should transform to array using element as first citizen', async () => {
             await elem.touchAction([['press'], ['release']])
             expect(request.mock.calls[0][0].uri.path).toContain('/touch/multi/perform')
