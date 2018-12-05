@@ -13,7 +13,7 @@
       "returns": {
         "type": "Object",
         "name": "session",
-        "description": "Object containing sessionId and capabilties of created WebDriver session."
+        "description": "Object containing sessionId and capabilities of created WebDriver session."
       }
     }
   },
@@ -105,7 +105,7 @@
   "/session/:sessionId/refresh": {
     "POST": {
       "command": "refresh",
-      "description": "The Refresh command causes the browser to reload the page in in current top-level browsing context.",
+      "description": "The Refresh command causes the browser to reload the page in current top-level browsing context.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-refresh",
       "parameters": []
     }
@@ -247,7 +247,7 @@
   "/session/:sessionId/window/minimize": {
     "POST": {
       "command": "minimizeWindow",
-      "description": "",
+      "description": "The Minimize Window command invokes the window manager-specific \"minimize\" operation, if any, on the window containing the current top-level browsing context. This typically hides the window in the system tray.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-minimize-window",
       "parameters": [],
       "returns": {
