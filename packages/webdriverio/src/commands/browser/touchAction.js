@@ -41,7 +41,7 @@
         })
 
         // multi action on an element
-        // drag&drop from position 200x200 down 100px
+        // drag&drop from position 200x200 down 100px on the screen
         browser.touchAction([
             { action: 'press', x: 200, y: 200 },
             { action: 'moveTo', x: 200, y: 300 },
