@@ -1,10 +1,12 @@
 /**
  * Multiremote example
  * To run this script you need to have Mocha installed on your system.
- * If not try to run: $ npm install mocha babel-register
+ * If not try to run: $ npm install mocha @babel/register
  *
  * To execute it just run it as a spec with a fair amount of timeout:
- * $ ./node_modules/.bin/mocha examples/multiremote/chat.js -t 9999999 --require babel-register
+ * ```sh
+ * $ ./node_modules/.bin/mocha examples/multiremote/chat.js -t 9999999 --require @babel/register
+ * ```
  */
 
 import { multiremote } from '../../packages/webdriverio/build'
