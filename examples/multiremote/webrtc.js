@@ -1,3 +1,12 @@
+/**
+ * Multiremote example
+ * To run this script you need to have Babel installed on your system.
+ * If not try to run: `$ npm install @babel/node`
+ *
+ * To execute it just run it as a spec with a fair amount of timeout:
+ * $ ./node_modules/.bin/babel-node ./examples/multiremote/webrtc.js
+ */
+
 import { multiremote } from '../../packages/webdriverio/build'
 
 (async () => {
