@@ -5,15 +5,12 @@
  * At its core is the ability to chain together _ad hoc_ individual actions, which will then be
  * applied to an element in the application on the device. The basic actions that can be used are:
  *
- * - press (pass selector or (x,y) or both)
- * - longPress (pass selector or (x,y) or both)
- * - tap (pass selector or (x,y) or both)
- * - moveTo (pass selector or (x,y) or both)
+ * - press (pass element or (x,y) or both)
+ * - longPress (pass element or (x,y) or both)
+ * - tap (pass element or (x,y) or both)
+ * - moveTo (pass absolute x,y coordinates)
  * - wait (pass ms (as milliseconds))
  * - release (no arguments)
- *
- * If you use the touchAction command with a selector you don't need to pass the selector to each
- * action. It will be propagated by the internally (if no x or y parameters are given).
  *
  * <example>
     :touchAction.js
@@ -47,7 +44,7 @@
         // drag&drop from position 200x200 down 100px
         browser.touchAction([
             { action: 'press', x: 200, y: 200 },
-            { action: 'moveTo', x: 0, y: 100 },
+            { action: 'moveTo', x: 200, y: 300 },
             'release'
         ])
     });
