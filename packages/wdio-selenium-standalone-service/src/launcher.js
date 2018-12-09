@@ -18,8 +18,12 @@ export default class SeleniumStandaloneLauncher {
         this.seleniumArgs = config.seleniumArgs || {}
         this.seleniumInstallArgs = config.seleniumInstallArgs || {}
         this.seleniumLogs = config.seleniumLogs
+        this.skipSeleniumInstall = !!config.skipSeleniumInstall
 
-        await promisify(Selenium.install)(this.seleniumInstallArgs);
+        if (!this.skipSeleniumInstall) {
+            await promisify(Selenium.install)(this.seleniumInstallArgs);
+        }
+
         this.process = await promisify(Selenium.start)(this.seleniumArgs)
 
         if (typeof this.seleniumLogs === 'string') {
