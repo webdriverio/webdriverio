@@ -96,6 +96,13 @@ seleniumInstallArgs: {
 },
 ```
 
+### skipSeleniumInstall
+Boolean for skipping `selenium-standalone` server install.
+
+Type: `Boolean`
+
+Default: `false`
+
 ----
 
 For more information on WebdriverIO see the [homepage](http://webdriver.io).
