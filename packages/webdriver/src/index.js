@@ -43,6 +43,8 @@ export default class WebDriver {
             throw new Error('sessionId is required to attach to existing session')
         }
 
+        logger.setLevel('webdriver', options.logLevel)
+
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C || true
         const prototype = Object.assign(getPrototype(options.isW3C), proto)
