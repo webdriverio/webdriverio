@@ -16,12 +16,29 @@ export default class WebDriver {
         const params = validateConfig(DEFAULTS, options)
         logger.setLevel('webdriver', params.logLevel)
 
+        let w3cCaps, jsonwpCaps;
+
+        // the user could have passed in either w3c style or jsonwp style caps
+        // and we want to pass both styles to the server, which means we need
+        // to check what style the user sent in so we know how to construct the
+        // object for the other style
+        if (params.capabilities && params.capabilities.alwaysMatch) {
+            // user passed in w3c-style caps (multi-layer object)
+            w3cCaps = params.capabilities;
+            jsonwpCaps = params.capabilities.alwaysMatch);
+        } else {
+            // otherwise assume they passed in jsonwp-style caps (flat object)
+            w3cCaps = {alwaysMatch: params.capabilities, firstMatch: [{}]};
+            jsonwpCaps = params.capabilities;
+        }
+
+
         const sessionRequest = new WebDriverRequest(
             'POST',
             '/session',
             {
-                capabilities: params.capabilities, // W3C compliant
-                desiredCapabilities: params.capabilities // JSONWP compliant
+                capabilities: w3cCaps, // W3C compliant
+                desiredCapabilities: jsonwpCaps // JSONWP compliant
             }
         )
 
