@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import refetchElement from './utils/refetchElement'
 
 const log = logger('webdriverio')
 
@@ -9,7 +10,7 @@ const log = logger('webdriverio')
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
-    return function (...args) {
+    return async function (...args) {
         /**
          * wait on element if:
          *  - elementId couldn't be fetched in the first place
@@ -21,7 +22,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
                 `that wasn't found, waiting for it...`
             )
 
-            return fn(commandName, () => {
+            return await fn(commandName, () => {
                 /**
                  * create new promise so we can apply a custom error message in cases waitForExist fails
                  */
@@ -30,9 +31,20 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
                      * if waitForExist was successful requery element and assign elementId to the scope
                      */
                     () => {
-                        return this.parent.$(this.selector).then((elem) => {
+                        return this.parent.$(this.selector).then(async (elem) => {
                             this.elementId = elem.elementId
-                            return fn(commandName, commandFn).apply(this, args)
+                            try {
+                                return await fn(commandName, commandFn).apply(this, args)
+                            } catch(error) {
+                                if (error.message.includes("stale element reference")) {
+                                    const element = await refetchElement(this);
+                                    this.elementId = element.elementId;
+                                    this.parent = element.parent;
+
+                                    return await fn(commandName, commandFn).apply(this, args)
+                                }
+                                throw error;
+                            }
                         })
                     },
                     /**
@@ -45,7 +57,18 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
             }).apply(this)
         }
 
-        return fn(commandName, commandFn).apply(this, args)
+        try {
+            return await fn(commandName, commandFn).apply(this, args);
+        } catch(error) {
+            if (error.message.includes("stale element reference")) {
+                const element = await refetchElement(this);
+                this.elementId = element.elementId;
+                this.parent = element.parent;
+
+                return await fn(commandName, commandFn).apply(this, args)
+            }
+            throw error;
+        }
     }
 }
 
