@@ -13,7 +13,7 @@ describe('addValue test', () => {
 
         await elem.addValue('foobar')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/value')
-        expect(request.mock.calls[2][0].body.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
+        expect(request.mock.calls[2][0].body.text).toEqual('foobar')
     })
 
     it('should allow to add value to an input element using jsonwp', async () => {
