@@ -9,7 +9,7 @@
       "command": "switchContext",
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts",
       "parameters": [{
-        "name": "context",
+        "name": "name",
         "type": "string",
         "description": "a string representing an available context",
         "required": true
