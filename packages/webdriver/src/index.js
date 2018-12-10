@@ -25,7 +25,7 @@ export default class WebDriver {
         if (params.capabilities && params.capabilities.alwaysMatch) {
             // user passed in w3c-style caps (multi-layer object)
             w3cCaps = params.capabilities;
-            jsonwpCaps = params.capabilities.alwaysMatch);
+            jsonwpCaps = params.capabilities.alwaysMatch;
         } else {
             // otherwise assume they passed in jsonwp-style caps (flat object)
             w3cCaps = {alwaysMatch: params.capabilities, firstMatch: [{}]};
