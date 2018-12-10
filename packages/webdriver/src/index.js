@@ -15,11 +15,7 @@ export default class WebDriver {
     static async newSession (options = {}, modifier, proto = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
 
-        if (logger.setLevel) {
-            // we can't assume we have a node-style logger with a setLevel
-            // method, we could be running from the web
-            logger.setLevel('webdriver', params.logLevel)
-        }
+        logger.setLevel('webdriver', params.logLevel)
 
         const sessionRequest = new WebDriverRequest(
             'POST',
