@@ -2,6 +2,15 @@ import { detectBackend } from '@wdio/config'
 
 import { remote, multiremote } from '../src'
 
+jest.mock('webdriver/src/request', () => jest.fn((method, route, params) => {
+    return new Promise((resolve) => resolve({
+        value: {
+            capabilities: params.desiredCapabilities,
+            sessionId: 'foobar-123',
+        }
+    }))
+}))
+
 jest.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',
@@ -26,6 +35,7 @@ jest.mock('@wdio/config', () => {
 })
 
 const WebDriver = require('webdriver')
+const WebDriverRequest = require('webdriver/src/request')
 
 describe('WebdriverIO module interface', () => {
     it('should provide remote and multiremote access', () => {
@@ -51,6 +61,14 @@ describe('WebdriverIO module interface', () => {
         it('should try to detect the backend', async () => {
             await remote({ user: 'foo', key: 'bar', capabilities: {} })
             expect(detectBackend).toBeCalled()
+        })
+
+        it('should convert jsonwp to both jsonwp and w3c caps', async () => {
+            await remote({ capabilities: { platformName: 'foo' } })
+            expect(WebDriverRequest.mock).toBeCalledWith('POST', '/session', {
+                capabilities: { alwaysMatch: { platformName: 'foo' } },
+                desiredCapabilities: { platformName: 'foo' }
+            })
         })
     })
 
