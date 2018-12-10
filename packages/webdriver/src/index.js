@@ -14,7 +14,6 @@ import AppiumProtocol from '../protocol/appium.json'
 export default class WebDriver {
     static async newSession (options = {}, modifier, proto = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
-
         logger.setLevel('webdriver', params.logLevel)
 
         const sessionRequest = new WebDriverRequest(
