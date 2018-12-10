@@ -107,13 +107,26 @@ export function isValidParameter (arg, expectedType) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype (isW3C) {
+export function getPrototype (isW3C, isAppium) {
     const prototype = {}
-    const ProtocolCommands = Object.assign(
-        isW3C ? WebDriverProtocol : JsonWProtocol,
-        MJsonWProtocol,
-        AppiumProtocol
-    )
+
+    if (isAppium) {
+        // if we have the appium server, we want both w3c and jsonwp commands to
+        // exist on the session, since appium allows mixing of both
+        const ProtocolCommands = Object.assign(
+            JsonWProtocol,
+            WebDriverProtocol,
+            MJsonWProtocol,
+            AppiumProtocol
+        )
+    } else {
+        // otherwise we don't want to mix w3c and jsonwp
+        const ProtocolCommands = Object.assign(
+            isW3C ? WebDriverProtocol : JsonWProtocol,
+            MJsonWProtocol,
+            AppiumProtocol
+        )
+    }
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
@@ -169,4 +182,20 @@ export function isW3CSession({ capabilities }) {
      * - platformName is returned which is not defined in the JSONWire protocol
      */
     return Boolean(capabilities.platformName)
+}
+
+/**
+ * check if session is based on W3C protocol based on the /session response
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if the server is an Appium one
+ */
+export function isAppiumSession ({ capabilities }) {
+    /**
+     * Appium response should have automationName or deviceName
+     */
+    if (capabilities.automationName || capabilities.deviceName) {
+        return true
+    }
+
+    return false;
 }

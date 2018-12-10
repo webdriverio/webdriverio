@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, isW3CSession } from './utils'
+import { getPrototype, isW3CSession, isAppiumSession } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -14,6 +14,7 @@ import AppiumProtocol from '../protocol/appium.json'
 export default class WebDriver {
     static async newSession (options = {}, modifier, proto = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
+
         logger.setLevel('webdriver', params.logLevel)
 
         /**
@@ -52,8 +53,9 @@ export default class WebDriver {
          */
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = isW3CSession(response.value)
+        params.isAppium = isAppiumSession(response.value)
 
-        const prototype = Object.assign(getPrototype(params.isW3C), proto)
+        const prototype = Object.assign(getPrototype(params.isW3C, params.isAppium), proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
