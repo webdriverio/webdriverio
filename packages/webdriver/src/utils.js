@@ -109,11 +109,12 @@ export function isValidParameter (arg, expectedType) {
  */
 export function getPrototype (isW3C, isAppium) {
     const prototype = {}
+    let ProtocolCommands;
 
     if (isAppium) {
         // if we have the appium server, we want both w3c and jsonwp commands to
         // exist on the session, since appium allows mixing of both
-        const ProtocolCommands = Object.assign(
+        ProtocolCommands = Object.assign(
             JsonWProtocol,
             WebDriverProtocol,
             MJsonWProtocol,
@@ -121,7 +122,7 @@ export function getPrototype (isW3C, isAppium) {
         )
     } else {
         // otherwise we don't want to mix w3c and jsonwp
-        const ProtocolCommands = Object.assign(
+        ProtocolCommands = Object.assign(
             isW3C ? WebDriverProtocol : JsonWProtocol,
             MJsonWProtocol,
             AppiumProtocol
