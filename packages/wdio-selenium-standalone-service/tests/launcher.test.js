@@ -30,6 +30,7 @@ describe('Selenium standalone launcher', () => {
             expect(Launcher.seleniumLogs).toBe(config.seleniumLogs)
             expect(Launcher.seleniumInstallArgs).toBe(config.seleniumInstallArgs)
             expect(Launcher.seleniumArgs).toBe(config.seleniumArgs)
+            expect(Launcher.skipSeleniumInstall).toBe(false)
         })
 
         test('should set correct config properties when empty', async () => {
@@ -40,6 +41,7 @@ describe('Selenium standalone launcher', () => {
 
             expect(Launcher.seleniumInstallArgs).toEqual({})
             expect(Launcher.seleniumArgs).toEqual({})
+            expect(Launcher.skipSeleniumInstall).toEqual(false)
         })
 
         test('should call selenium install and start', async () => {
@@ -72,6 +74,30 @@ describe('Selenium standalone launcher', () => {
             await Launcher.onPrepare(config)
 
             expect(Selenium.install.mock.calls[0][0]).toBe(config.seleniumInstallArgs)
+            expect(Selenium.start.mock.calls[0][0]).toBe(config.seleniumArgs)
+            expect(Launcher._redirectLogStream).toBeCalled()
+        })
+
+        test('should skip selenium install', async () => {
+            const Launcher = new SeleniumStandaloneLauncher()
+            Launcher._redirectLogStream = jest.fn()
+
+            const config = {
+                seleniumLogs : './',
+                seleniumArgs: {
+                    version : "3.9.1",
+                    drivers : {
+                        chrome : {
+                            version : "2.38",
+                        }
+                    }
+                },
+                skipSeleniumInstall: true
+            }
+
+            await Launcher.onPrepare(config)
+
+            expect(Selenium.install).not.toBeCalled()
             expect(Selenium.start.mock.calls[0][0]).toBe(config.seleniumArgs)
             expect(Launcher._redirectLogStream).toBeCalled()
         })
