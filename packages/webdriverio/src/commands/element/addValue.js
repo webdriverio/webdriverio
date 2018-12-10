@@ -29,6 +29,9 @@
 import { transformToCharString } from '../../utils'
 
 export default function addValue (value) {
-    let text = transformToCharString(value)
-    return this.elementSendKeys(this.elementId, text)
+    if (!this.isW3C) {
+        return this.elementSendKeys(this.elementId, transformToCharString(value))
+    }
+
+    return this.elementSendKeys(this.elementId, value)
 }
