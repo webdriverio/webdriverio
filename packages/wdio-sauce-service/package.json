@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sauce-service",
-  "version": "5.0.0-beta.13",
+  "version": "5.0.0-beta.14",
   "description": "WebdriverIO service that provides a better integration into SauceLabs",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service",
@@ -31,8 +31,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "^5.0.0-beta.13",
-    "@wdio/logger": "^5.0.0-beta.13",
+    "@wdio/config": "^5.0.0-beta.14",
+    "@wdio/logger": "^5.0.0-beta.14",
     "request": "^2.85.0",
     "sauce-connect-launcher": "^1.2.3"
   },
