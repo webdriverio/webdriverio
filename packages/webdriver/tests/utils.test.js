@@ -75,7 +75,7 @@ describe('utils', () => {
     })
 
     it('isW3CSession', () => {
-        expect(isW3CSession(appiumResponse.value)).toBe(false)
+        expect(isW3CSession(appiumResponse.value)).toBe(true)
         expect(isW3CSession(chromedriverResponse.value)).toBe(false)
         expect(isW3CSession(geckodriverResponse.value)).toBe(true)
     })
