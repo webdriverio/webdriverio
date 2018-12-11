@@ -42,7 +42,14 @@ export default class WebDriver {
         )
 
         const response = await sessionRequest.makeRequest(params)
-        params.requestedCapabilities = params.capabilities
+        /**
+         * save original set capabilities to allow to request same session
+         * (e.g. for reloadSession command in WebdriverIO)
+         */
+        params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+        /**
+         * save actual receveived session details
+         */
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = isW3CSession(response.value)
 

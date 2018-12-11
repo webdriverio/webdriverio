@@ -30,12 +30,13 @@ export default async function reloadSession () {
      */
     await this.deleteSession()
 
+    const { w3cCaps, jsonwpCaps } = this.options.requestedCapabilities
     const sessionRequest = new WebDriverRequest(
         'POST',
         '/session',
         {
-            capabilities: this.options.requestedCapabilities, // W3C compliant
-            desiredCapabilities: this.options.requestedCapabilities // JSONWP compliant
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
         }
     )
 
