@@ -41,6 +41,9 @@ In order to set up this project and start contributing follow this step by step 
 
     ```sh
     $ npm run test
+
+    # run test for a specific sub project (e.g. webdriver)
+    $ ./node_modules/.bin/jest ./packages/webdriver/tests
     ```
 
     It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
@@ -68,6 +71,12 @@ If you only work on a single package you can watch only for that one by calling:
 ```sh
 # e.g. `$ npm run watch:pkg wdio-runner`
 $ npm run watch:pkg <package-name>
+```
+
+It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
+
+```sh
+$ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
 ```
 
 ## Test Your Changes
