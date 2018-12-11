@@ -53,8 +53,17 @@ test('should allow to attach to existing session', async () => {
     expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
 })
 
-it('should fail attaching to session if sessionId is not given', () => {
+test('should fail attaching to session if sessionId is not given', () => {
     expect(() => WebDriver.attachToSession({})).toThrow(/sessionId is required/)
+})
+
+test('ensure that WebDriver interface exports protocols and other objects', () => {
+    expect(WebDriver.WebDriver).not.toBe(undefined)
+    expect(WebDriver.DEFAULTS).not.toBe(undefined)
+    expect(WebDriver.WebDriverProtocol).not.toBe(undefined)
+    expect(WebDriver.JsonWProtocol).not.toBe(undefined)
+    expect(WebDriver.MJsonWProtocol).not.toBe(undefined)
+    expect(WebDriver.AppiumProtocol).not.toBe(undefined)
 })
 
 afterEach(() => {
