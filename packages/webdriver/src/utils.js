@@ -158,7 +158,7 @@ export function isW3CSession({ capabilities }) {
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
      */
-    if (!capabilities || capabilities.automationName || capabilities.deviceName) {
+    if (!capabilities) {
         return false
     }
 
@@ -168,5 +168,6 @@ export function isW3CSession({ capabilities }) {
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
      * - platformName is returned which is not defined in the JSONWire protocol
      */
-    return Boolean(capabilities.platformName)
+    const isAppium = capabilities.automationName || capabilities.deviceName
+    return Boolean(capabilities.platformName || isAppium)
 }
