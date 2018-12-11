@@ -43,7 +43,7 @@ export default class WebDriver {
 
         const response = await sessionRequest.makeRequest(params)
         /**
-         * save original set capabilities to allow to request same session
+         * save original set of capabilities to allow to request the same session again
          * (e.g. for reloadSession command in WebdriverIO)
          */
         params.requestedCapabilities = { w3cCaps, jsonwpCaps }
