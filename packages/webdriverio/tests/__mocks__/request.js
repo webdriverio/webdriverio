@@ -16,7 +16,11 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         }
     }
 
-    if (params.body && params.body.capabilities && params.body.capabilities.jsonwpMode) {
+    if (
+        params.body &&
+        params.body.capabilities &&
+        params.body.capabilities.alwaysMatch.jsonwpMode
+    ) {
         sessionResponse = {
             sessionId,
             browserName: 'mockBrowser'
@@ -27,7 +31,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     case '/wd/hub/session':
         value = sessionResponse
 
-        if (params.body.capabilities.browserName.includes('noW3C')) {
+        if (params.body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
             value.desiredCapabilities = { browserName: 'mockBrowser' }
             delete value.capabilities
         }
