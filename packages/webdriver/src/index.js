@@ -73,31 +73,25 @@ export default class WebDriver {
         return monad(options.sessionId, commandWrapper)
     }
 
-    /* istanbul ignore next */
     static get WebDriver () {
         return WebDriver
     }
-
-    /* istanbul ignore next */
     static get DEFAULTS () {
         return DEFAULTS
     }
+
     /**
      * Protocols
      */
-    /* istanbul ignore next */
     static get WebDriverProtocol () {
         return WebDriverProtocol
     }
-    /* istanbul ignore next */
     static get JsonWProtocol () {
         return JsonWProtocol
     }
-    /* istanbul ignore next */
     static get MJsonWProtocol () {
         return MJsonWProtocol
     }
-    /* istanbul ignore next */
     static get AppiumProtocol () {
         return AppiumProtocol
     }
