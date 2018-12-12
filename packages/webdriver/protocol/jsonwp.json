@@ -19,7 +19,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#session-1",
       "parameters": [{
         "name": "desiredCapabilities",
-        "type": "object",
+        "type": "Object",
         "description": "An object describing the session's desired capabilities.",
         "required": true
       }],
@@ -33,12 +33,12 @@
   "/sessions": {
     "GET": {
       "command": "getSessions",
-      "description": "Returns a list of the currently active sessions. Each session will be returned as a list of JSON objects.",
+      "description": "Returns a list of the currently active sessions. Each session will be returned as a list of JSON objects containing `id` and `capabilities`.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessions",
       "parameters": [],
       "returns": {
         "type": "Object[]",
-        "name": "capabilties",
+        "name": "capabilities",
         "description": "A list of the currently active sessions."
       }
     }
@@ -47,11 +47,11 @@
     "GET": {
       "command": "getSession",
       "description": "Retrieve the capabilities of the specified session.",
-      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionid",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionid",
       "parameters": [],
       "returns": {
         "type": "Object",
-        "name": "capabilties",
+        "name": "capabilities",
         "description": "An object describing the session's capabilities."
       }
     },
@@ -101,7 +101,7 @@
       "parameters": [{
         "name": "ms",
         "type": "number",
-        "description": "The amount of time, in milliseconds, to wait on an element",
+        "description": "The amount of time, in milliseconds, to wait on an element. ",
         "required": true
       }]
     }
@@ -202,7 +202,7 @@
     },
     "POST": {
       "command": "switchToWindow",
-      "description": "Change focus to another window. The window to change focus to may be specified by its server assigned window handle, or by the value of its name attribute.",
+      "description": "Change focus to another window. The window to change focus to may be specified by its server assigned window handle, or by the value of its `name` attribute.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindow",
       "parameters": [{
         "name": "name",
@@ -215,7 +215,7 @@
   "/session/:sessionId/frame": {
     "POST": {
       "command": "switchToFrame",
-      "description": "Change focus to another frame on the page. If the frame id is null, the server should switch to the page's default content.",
+      "description": "Change focus to another frame on the page. If the frame `id` is `null`, the server should switch to the page's default content.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidframe",
       "parameters": [{
         "name": "id",
@@ -236,18 +236,18 @@
   "/session/:sessionId/window/current/position": {
     "GET": {
       "command": "getWindowPosition",
-      "description": "Get the position of the specified window. If the :windowHandle URL parameter is \"current\", the position of the currently active window will be returned.",
+      "description": "Get the position of the current focussed window.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidwindowwindowhandleposition",
       "parameters": [],
       "returns": {
         "type": "Object",
         "name": "positon",
-        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen."
+        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen. {x: number, y: number}"
       }
     },
     "POST": {
       "command": "setWindowPosition",
-      "description": "Change the position of the specified window. If the :windowHandle URL parameter is \"current\", the currently active window will be moved.",
+      "description": "Change the position of the current focussed window.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindowwindowhandleposition",
       "parameters": [{
         "name": "x",
@@ -263,7 +263,7 @@
       "returns": {
         "type": "Object",
         "name": "positon",
-        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen."
+        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen. {x: number, y: number}"
       }
     }
   },
@@ -276,7 +276,7 @@
       "returns": {
         "type": "Object",
         "name": "size",
-        "description": "The size of the window."
+        "description": "The size of the window. {width: number, height: number}"
       }
     },
     "POST": {
@@ -286,12 +286,12 @@
       "parameters": [{
         "name": "width",
         "type": "number",
-        "description": "the new window width",
+        "description": "The new window width",
         "required": true
       }, {
         "name": "height",
         "type": "number",
-        "description": "the new window height",
+        "description": "The new window height",
         "required": true
       }]
     }
@@ -420,7 +420,7 @@
   "/session/:sessionId/element/:elementId/selected": {
     "GET": {
       "command": "isElementSelected",
-      "description": "Determine if an `OPTION` element`, or an `INPUT` element of type `checkbox` or `radiobutton` is currently selected.",
+      "description": "Determine if an `OPTION` element, or an `INPUT` element of type `checkbox` or `radiobutton` is currently selected.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidselected",
       "variables": [{
         "name": "elementId",
