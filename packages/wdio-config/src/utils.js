@@ -58,7 +58,7 @@ export function detectBackend (options = {}) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-function safeRequire (name) {
+export function safeRequire (name) {
     try {
         return require(name)
     } catch (e) {

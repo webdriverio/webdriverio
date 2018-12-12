@@ -18,6 +18,8 @@ class Launcher {
         this.configParser.addConfigFile(configFile)
         this.configParser.merge(argv)
 
+        this.dataProvidersMap = this.configParser.getDataProviders()
+
         const config = this.configParser.getConfig()
         const capabilities = this.configParser.getCapabilities()
         const specs = this.configParser.getSpecs()
@@ -151,7 +153,6 @@ class Launcher {
      */
     runSpecs () {
         let config = this.configParser.getConfig()
-
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -201,11 +202,19 @@ class Launcher {
                 break
             }
 
+            let specFile = schedulableCaps[0].specs[0];
+            let dataProvider = this.dataProvidersMap[specFile]
+            
+            if (!dataProvider || dataProvider.dataSet.length <= 1) {
+                schedulableCaps[0].specs.shift()
+            }
+
             this.startInstance(
-                [schedulableCaps[0].specs.shift()],
+                [specFile],
                 schedulableCaps[0].caps,
                 schedulableCaps[0].cid,
-                schedulableCaps[0].seleniumServer
+                schedulableCaps[0].seleniumServer,
+                dataProvider.dataSet.shift()
             )
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
@@ -235,7 +244,7 @@ class Launcher {
      * @param  {Array} specs  Specs to run
      * @param  {Number} cid  Capabilities ID
      */
-    startInstance (specs, caps, cid, server) {
+    startInstance (specs, caps, cid, server, testData = '') {
         let config = this.configParser.getConfig()
         cid = this.getRunnerId(cid)
         let processNumber = this.runnerStarted + 1
@@ -282,6 +291,7 @@ class Launcher {
             command: 'run',
             configFile: this.configFile,
             argv: this.argv,
+            testData,
             caps,
             specs,
             server,

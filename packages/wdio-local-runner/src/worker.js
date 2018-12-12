@@ -98,9 +98,10 @@ export default class WorkerInstance extends EventEmitter {
      * sends message to sub process to execute functions in wdio-runner
      * @param  {string} command  method to run in wdio-runner
      * @param  {object} argv     arguments for functions to call
+     * @param  {object} testData test data for each run
      * @return null
      */
-    postMessage (command, argv) {
+    postMessage (command, argv, testData = '') {
         const { cid, configFile, caps, specs, server, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
@@ -115,7 +116,7 @@ export default class WorkerInstance extends EventEmitter {
             this.childProcess = this.startProcess()
         }
 
-        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server })
+        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server, testData})
         this.isBusy = true
     }
 }

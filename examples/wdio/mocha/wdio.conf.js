@@ -33,7 +33,8 @@ exports.config = {
         ui: 'bdd',
         timeout: 60000
     },
-
+    
+    dataProviders: ['./mocha/dataproviders/*.js'],
     /**
      * hooks
      */
