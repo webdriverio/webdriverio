@@ -40,9 +40,10 @@
     "inquirer": "^5.1.0",
     "jest": "^23.6.0",
     "lerna": "^3.4.3",
+    "lerna-changelog": "^0.8.2",
     "markdox": "^0.1.10",
     "np": "^2.18.2",
-    "npm-run-all": "^4.0.2",
+    "npm-run-all": "^4.1.5",
     "rimraf": "^2.6.2",
     "shelljs": "^0.8.1",
     "source-map-support": "^0.5.9"
