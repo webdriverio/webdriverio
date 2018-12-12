@@ -57,6 +57,9 @@ typings/
 # dotenv environment variables file
 .env
 
+# lerna changelog cachedir
+.changelog
+
 **/build
 /*.js
 !babel.config.js
