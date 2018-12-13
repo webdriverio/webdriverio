@@ -135,7 +135,7 @@
   },
   "/session/:sessionId/appium/getPerformanceData": {
     "POST": {
-      "command": "getPerformanceDataTypes",
+      "command": "getPerformanceData",
       "description": "Returns the information of the system state which is supported to read as like cpu, memory, network traffic, and battery.",
       "ref": "http://appium.io/docs/en/commands/device/performance-data/get-performance-data/",
       "parameters": [{
