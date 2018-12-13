@@ -27,12 +27,13 @@
  * @alias element.waitForEnabled
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
+ * @param {String=}  error    if exists it overrides the default error message
  * @uses utility/waitUntil, state/isEnabled
  * @type utility
  *
  */
 
-export default async function waitForEnabled(ms, reverse = false) {
+export default async function waitForEnabled(ms, reverse = false, error) {
     // If the element doesn't already exist, wait for it to exist
     if (!this.elementId && !reverse) {
         await this.waitForExist(ms)
@@ -43,7 +44,7 @@ export default async function waitForEnabled(ms, reverse = false) {
     }
 
     const isReversed = reverse ? '' : 'not '
-    const errorMessage = `element ("${this.selector}") still ${isReversed}enabled after ${ms}ms`
+    const errorMessage = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}enabled after ${ms}ms`
 
     return this.waitUntil(async () => {
         const isEnabled = await this.isEnabled()
