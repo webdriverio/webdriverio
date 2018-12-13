@@ -19,7 +19,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#session-1",
       "parameters": [{
         "name": "desiredCapabilities",
-        "type": "Object",
+        "type": "object",
         "description": "An object describing the session's desired capabilities.",
         "required": true
       }],
@@ -101,7 +101,7 @@
       "parameters": [{
         "name": "ms",
         "type": "number",
-        "description": "The amount of time, in milliseconds, to wait on an element. ",
+        "description": "The amount of time, in milliseconds, to wait on an element.",
         "required": true
       }]
     }
@@ -242,7 +242,7 @@
       "returns": {
         "type": "Object",
         "name": "positon",
-        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen. {x: number, y: number}"
+        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen."
       }
     },
     "POST": {
@@ -263,7 +263,7 @@
       "returns": {
         "type": "Object",
         "name": "positon",
-        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen. {x: number, y: number}"
+        "description": "The X and Y coordinates for the window, relative to the upper left corner of the screen."
       }
     }
   },
@@ -276,7 +276,7 @@
       "returns": {
         "type": "Object",
         "name": "size",
-        "description": "The size of the window. {width: number, height: number}"
+        "description": "The size of the window."
       }
     },
     "POST": {
@@ -286,12 +286,12 @@
       "parameters": [{
         "name": "width",
         "type": "number",
-        "description": "The new window width",
+        "description": "the new window width",
         "required": true
       }, {
         "name": "height",
         "type": "number",
-        "description": "The new window height",
+        "description": "the new window height",
         "required": true
       }]
     }
