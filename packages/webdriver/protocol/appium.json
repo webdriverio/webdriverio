@@ -224,7 +224,7 @@
   },
   "/session/:sessionId/appium/device/rotate": {
     "POST": {
-      "command": "getPerformanceDataTypes",
+      "command": "rotateDevice",
       "description": "Rotate the device in three dimensions.",
       "ref": "http://appium.io/docs/en/commands/device/interactions/rotate/",
       "parameters": [{

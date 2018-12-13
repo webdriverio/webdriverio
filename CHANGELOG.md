@@ -151,6 +151,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
         * `launch` → `launchApp`
         * `performMultiAction` → `multiTouchPerform`
         * `pressKeycode` → `pressKeyCode`
+        * `rotate` → `rotateDevice`
         * `setImmediateValue` → `setValueImmediate`
         * `settings` → `getSettings`, `updateSettings`
         * `strings` → `getStrings`
