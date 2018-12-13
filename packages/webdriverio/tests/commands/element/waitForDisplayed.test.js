@@ -124,4 +124,23 @@ describe('waitForDisplayed', () => {
         expect(elem.waitUntil.mock.calls[0][1]).toBe(elem.options.waitforTimeout)
         expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still displayed after ${elem.options.waitforTimeout}ms`)
     })
+
+    test('should call isDisplayed and return false with custom error', async () => {
+        const tmpElem = await browser.$(`#foo`)
+        const elem = {
+            selector : '#foo',
+            waitForDisplayed : tmpElem.waitForDisplayed,
+            waitForExist : jest.fn(),
+            elementId : 123,
+            waitUntil : tmpElem.waitUntil,
+            isElementDisplayed : jest.fn(() => false),
+            options : { waitforTimeout : 500 },
+        }
+
+        try {
+            await elem.waitForDisplayed(duration, false, 'Element foo never displayed')
+        } catch (e) {
+            expect(e.message).toBe(`Element foo never displayed`)
+        }
+    })
 })

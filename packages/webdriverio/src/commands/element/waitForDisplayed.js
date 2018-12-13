@@ -22,12 +22,13 @@
  * @alias element.waitForDisplayed
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
+ * @param {String=}  error    if exists it overrides the default error message
  * @uses utility/waitUntil, state/isDisplayed
  * @type utility
  *
  */
 
-export default async function waitForDisplayed (ms, reverse = false) {
+export default async function waitForDisplayed (ms, reverse = false, error) {
     /**
      * if element wasn't found in the first place wait for its existance first
      */
@@ -43,7 +44,7 @@ export default async function waitForDisplayed (ms, reverse = false) {
     }
 
     const isReversed = reverse ? '' : 'not '
-    const errorMsg = `element ("${this.selector}") still ${isReversed}displayed after ${ms}ms`
+    const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}displayed after ${ms}ms`
 
     return this.waitUntil(async () => {
         const isVisible = await this.isElementDisplayed(this.elementId)
