@@ -21,12 +21,13 @@
  * @alias element.waitForExist
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it instead waits for the selector to not match any elements (default: false)
+ * @param {String=}  error    if exists it overrides the default error message
  * @uses utility/waitUntil, state/isExisting
  * @type utility
  *
  */
 
-export default function waitForExist (ms, reverse = false) {
+export default function waitForExist (ms, reverse = false, error) {
     /*!
      * ensure that ms is set properly
      */
@@ -35,7 +36,7 @@ export default function waitForExist (ms, reverse = false) {
     }
 
     const isReversed = reverse ? '' : 'not '
-    const errorMsg = `element ("${this.selector}") still ${isReversed}existing after ${ms}ms`
+    const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}existing after ${ms}ms`
 
     return this.waitUntil(function async () {
         return this.isExisting().then((isExisting) => isExisting !== reverse)
