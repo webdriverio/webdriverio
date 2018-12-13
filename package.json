@@ -17,6 +17,7 @@
     "test:coverage": "jest --coverage --detectOpenHandles",
     "test:wdio:sync": "wdio ./test/wdio.conf.js --spec=./test/specs/sync.spec.js",
     "test:wdio:async": "wdio ./test/wdio.conf.js --spec=./test/specs/async.spec.js",
+    "version": "node ./scripts/changelog.js && git add CHANGELOG.md",
     "watch": "node ./scripts/watch",
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
