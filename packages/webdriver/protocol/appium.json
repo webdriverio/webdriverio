@@ -494,7 +494,7 @@
   },
   "/session/:sessionId/appium/device/toggle_airplane_mode": {
     "POST": {
-      "command": "toggleFlightMode",
+      "command": "toggleAirplaneMode",
       "description": "Toggle airplane mode on device.",
       "ref": "http://appium.io/docs/en/commands/device/network/toggle-airplane-mode/",
       "parameters": [],
