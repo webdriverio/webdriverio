@@ -190,21 +190,64 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
   console.log(typeof elem.myCommand) // outputs "function"
   console.log(typeof elem2.myCommand) // outputs "undefined"
   ```
+* custom configuration for services or reporters are now directly applied to the config list, e.g.
+  ```js
+  // ...
+  reporters: [
+    'spec',
+    [
+      'junit',
+      { outputDir: __dirname + '/junit_logs' }
+    ]
+  ],
+  // ...
+  ```
 
 #### :eyeglasses: Spec Compliancy
-*
+* implemented parameter assertions for protocol commands
+* full W3C WebDriver compliancy
+* full Appium and Mobile JSONWire Protocol compliancy
+* simplified protocol command maintenance by defining commands, their parameters and response values within simple [json constructs](https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver/protocol)
+* instead of switching protocol within a running session, WebdriverIO now determines the supported protocol by the driver based on the create session response
 
 #### :rocket: New Feature
-*
+* new package `@wdio/applitools-service` for simple visual regression testing with [Applitools](https://applitools.com/)
+* new package `eslint-plugin-wdio` for WebdriverIO specific linting rules for [ESLint](https://eslint.org/)
+* `@wdio/devtools-service` now with frontend performance testing capabilities (see [example](https://github.com/christian-bromann/webdriverio-performance-testing))
+* new `region` [option](https://github.com/webdriverio/webdriverio/blob/cb-changelog/examples/wdio.conf.js#L29-L33) to simply run tests on SauceLabs in different datacenters
+* [`debug`](http://beta.webdriver.io/docs/api/browser/debug.html) command now allows to connect the runner with the [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/) application for more indepth debugging
+* decoupling of `@wdio/sync` package from framework adapters so that there is no need to install [`fibers`](https://www.npmjs.com/package/fibers) when you want to run your commands with async/await
+* autofetching of all provides log types
+* auto retry mechansim for all command requests
+* auto refetch mechanism for stale elements (still [work in progress](https://github.com/webdriverio/webdriverio/pull/3118))
+* simplified reattachment to existing sessions with `attach` functionality
+* integrated and auto maintained [TypeScript](https://www.typescriptlang.org/) definitions (still [work in progress](https://github.com/webdriverio/webdriverio/pull/2862))
+* wdio testrunner fails if no spec files were found
 
 #### :bug: Bug Fix
-*
+* fixed lost of scope when chaining elements (e.g. `$$('div')[2].$('span').getHTML()`)
+* browser scope with now updated capabilities (`browser.capabilities`)
+* improved [watch functionality](https://youtu.be/EUNoPFSomhM?t=17m4s) allows to rerun tests without starting a new session all over again
+* fixed problems with `addCommand` in multiremote
 
 #### :memo: Documentation
-*
+* brand new documentation page based on the [Docusaurus](https://docusaurus.io/) framework
+    * written in a modern web framework called [React](https://reactjs.org/)
+    * complete responsive with full support for mobile viewports
+* included blog for WebdriverIO related news and article
+* fixed links to edit certain documentation pages
+* documentation page served via HTTPS per default
 
 #### :house: Internal
-*
+* complete rearchitecturing of the whole project into a monorepo
+    * new v5 codebase with all "offical" supported packages are at [`webdriverio/webdriverio`](https://github.com/webdriverio/webdriverio)
+    * all depcrecated v4 packages can still be found at [github.com/webdriverio-boneyard](https://github.com/webdriverio-boneyard)
+* moved all protocol commands into a [`webdriver`](https://www.npmjs.com/package/webdriver) base package
+* project sub packages are now released within the `@wdio` NPM [organization](https://www.npmjs.com/org/wdio)
+* renamed services, reporters and other internal packages (e.g. `wdio-sauce-service` → `@wdio/sauce-service`)
+* removed all e2e tests from project to run as unit tests with a coverage of [~96%](https://codecov.io/gh/webdriverio/webdriverio)
+* update to [Babel](https://babeljs.io/) v7 (latest) as well as various of other dependency updates with security fixes
+* CPU and Memory improvements by reducing amount of IPC calls
 
 #### :nail_care: Polish
-*
+* laid out better [governance model](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md) for project
