@@ -72,6 +72,24 @@ describe('webdriver request', () => {
             expect(req.emit).toBeCalledWith('response', { result: expectedResponse })
         })
 
+        it('should short circuit if request throws a stale element exception', async () => {
+            const req = new WebDriverRequest('POST', 'session/:sessionId/element')
+            req.emit = jest.fn()
+
+            const opts = Object.assign(req.defaultOptions, { 
+                uri: { path: '/wd/hub/session/foobar-123/element/some-sub-sub-elem-231/click' }, body: { foo: 'bar' } })
+
+            expect(req._request(opts)).rejects.toEqual(
+                new Error('stale element reference: element is not attached to the page document'))
+            expect(req.emit.mock.calls).toHaveLength(1)
+            expect(warn.mock.calls).toHaveLength(1)
+            expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+
+            request.retryCnt = 0
+            warn.mockClear();
+            request.mockClear()
+        })
+
         it('should retry requests but still fail', async () => {
             const req = new WebDriverRequest('POST', '/session')
             req.emit = jest.fn()
