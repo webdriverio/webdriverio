@@ -46,7 +46,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies(cookieNames)
 
         expect(request.mock.calls[0][0].method).toBe('GET')
-        expect(request.mock.calls[0][0].uri.path).toBe(`/wd/hub/session/foobar-123/cookie`)
+        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie')
         expect(cookies).toEqual([
             { name: 'cookie1', value: 'dummy-value-1' },
             { name: 'cookie3', value: 'dummy-value-3' },

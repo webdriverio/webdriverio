@@ -15,6 +15,7 @@ module.exports = {
   },
   rules: {
     semi: ["error", "never"],
+    quotes: ["error", "single"],
     indent: [2, 4],
 
     "import/no-unresolved": [2, {commonjs: true, amd: true}],

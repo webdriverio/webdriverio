@@ -60,7 +60,7 @@ const DEFAULTS = {
                 return
             }
 
-            throw new Error(`logOutput needs to be a string or a writeable stream`)
+            throw new Error('logOutput needs to be a string or a writeable stream')
         }
     },
     /**

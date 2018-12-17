@@ -19,7 +19,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
         if (!this.elementId && !commandName.match(/(wait(Until|ForDisplayed|ForExist|ForEnabled)|isExisting)/)) {
             log.debug(
                 `command ${commandName} was called on an element ("${this.selector}") ` +
-                `that wasn't found, waiting for it...`
+                'that wasn\'t found, waiting for it...'
             )
 
             /**
@@ -42,7 +42,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
         try {
             return await fn(commandName, commandFn).apply(this, args)
         } catch(error) {
-            if (error.message.includes("stale element reference")) {
+            if (error.message.includes('stale element reference')) {
                 const element = await refetchElement(this)
                 this.elementId = element.elementId
                 this.parent = element.parent

@@ -4,7 +4,7 @@ export function loadModule (name, context) {
         require(name)
     } catch (e) {
         throw new Error(`Module ${name} can't get loaded. Are you sure you have installed it?\n` +
-                        `Note: if you've installed WebdriverIO globally you need to install ` +
-                        `these external modules globally too!`)
+                        'Note: if you\'ve installed WebdriverIO globally you need to install ' +
+                        'these external modules globally too!')
     }
 }

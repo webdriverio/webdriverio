@@ -3,7 +3,7 @@ import fs from 'fs-extra'
 import Selenium from 'selenium-standalone'
 import SeleniumStandaloneLauncher from '../src/launcher'
 
-jest.mock(`fs-extra`, () => ({
+jest.mock('fs-extra', () => ({
     createWriteStream : jest.fn(),
     ensureFileSync : jest.fn(),
 }))
@@ -21,8 +21,8 @@ describe('Selenium standalone launcher', () => {
 
             const config = {
                 seleniumLogs : './',
-                seleniumArgs : {foo : `foo`},
-                seleniumInstallArgs : {bar : `bar`}
+                seleniumArgs : {foo : 'foo'},
+                seleniumInstallArgs : {bar : 'bar'}
             }
 
             await Launcher.onPrepare(config)
@@ -51,21 +51,21 @@ describe('Selenium standalone launcher', () => {
             const config = {
                 seleniumLogs : './',
                 seleniumInstallArgs : {
-                    version : "3.9.1",
-                    baseURL : "https://selenium-release.storage.googleapis.com",
+                    version : '3.9.1',
+                    baseURL : 'https://selenium-release.storage.googleapis.com',
                     drivers : {
                         chrome : {
-                            version : "2.38",
+                            version : '2.38',
                             arch : process.arch,
-                            baseURL : "https://chromedriver.storage.googleapis.com",
+                            baseURL : 'https://chromedriver.storage.googleapis.com',
                         }
                     }
                 },
                 seleniumArgs: {
-                    version : "3.9.1",
+                    version : '3.9.1',
                     drivers : {
                         chrome : {
-                            version : "2.38",
+                            version : '2.38',
                         }
                     }
                 }
@@ -85,10 +85,10 @@ describe('Selenium standalone launcher', () => {
             const config = {
                 seleniumLogs : './',
                 seleniumArgs: {
-                    version : "3.9.1",
+                    version : '3.9.1',
                     drivers : {
                         chrome : {
-                            version : "2.38",
+                            version : '2.38',
                         }
                     }
                 },

@@ -101,7 +101,7 @@ describe('_printSessionURL', () => {
     })
 
     it('should reject and throw an error if request receives an error', () => {
-        const e = new Error(`I'm an error!`)
+        const e = new Error('I\'m an error!')
         request.get.mockImplementationOnce((url, opts, cb) => cb(e, {}, {}))
         expect(service._printSessionURL()).rejects.toThrow(e)
     })

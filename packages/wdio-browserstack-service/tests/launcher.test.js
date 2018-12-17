@@ -1,9 +1,9 @@
 import BrowserstackLauncher from '../src/launcher'
 import Browserstack from 'browserstack-local'
-import logger from "@wdio/logger"
+import logger from '@wdio/logger'
 
 const log = logger('test')
-const error = new Error(`I'm an error!`)
+const error = new Error('I\'m an error!')
 
 describe('onPrepare', () => {
     const caps = [{}]

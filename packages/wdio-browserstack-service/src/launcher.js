@@ -1,5 +1,5 @@
 import BrowserstackLocalLauncher from 'browserstack-local'
-import logger from "@wdio/logger"
+import logger from '@wdio/logger'
 
 const log = logger('wdio-browserstack-service')
 

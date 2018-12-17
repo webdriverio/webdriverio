@@ -13,11 +13,11 @@
  * Lighthouse string constants
  */
 export const strings = {
-    didntCollectScreenshots: `Chrome didn't collect any screenshots during the page load. Please make sure there is content visible on the page, and then try re-running the command.`,
-    badTraceRecording: `Something went wrong with recording the trace over your page load. Please run the command again.`,
-    pageLoadTookTooLong: `Your page took too long to load. Please follow the opportunities in the report to reduce your page load time, and then try re-running the command.`,
-    pageLoadFailed: `Your page failed to load. Verify that the URL is valid and re-run the command.`,
-    internalChromeError: `An internal Chrome error occurred. Please restart Chrome and try re-running the command.`,
+    didntCollectScreenshots: 'Chrome didn\'t collect any screenshots during the page load. Please make sure there is content visible on the page, and then try re-running the command.',
+    badTraceRecording: 'Something went wrong with recording the trace over your page load. Please run the command again.',
+    pageLoadTookTooLong: 'Your page took too long to load. Please follow the opportunities in the report to reduce your page load time, and then try re-running the command.',
+    pageLoadFailed: 'Your page failed to load. Verify that the URL is valid and re-run the command.',
+    internalChromeError: 'An internal Chrome error occurred. Please restart Chrome and try re-running the command.',
     requestContentTimeout: 'Fetching resource content has exceeded the allotted time'
 }
 

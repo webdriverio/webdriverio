@@ -31,14 +31,14 @@ describe('middleware', () => {
 
     it('should throw an error if the element is never found', async () => {
         waitForExist.default.mockImplementationOnce(() => {
-            throw new Error(`Promise was rejected with the following reason`)
+            throw new Error('Promise was rejected with the following reason')
         })
 
         const elem = await browser.$('#foo')
         elem.elementId = undefined
 
         await expect(elem.click())
-            .rejects.toThrow(`Can't call click on element with selector "#foo" because element wasn't found`)
+            .rejects.toThrow('Can\'t call click on element with selector "#foo" because element wasn\'t found')
     })
 
     it('should succesfully click on an element that falls stale after being refound', async () => {
