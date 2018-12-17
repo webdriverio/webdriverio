@@ -1,9 +1,13 @@
+jest.mock('../src/commands/element/waitForExist', () => ({
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => { return true })
+}));
+import waitForExist from '../src/commands/element/waitForExist';
 import logger from '@wdio/logger'
 import { remote } from '../src'
 import request from 'request'
 
 const { warn  } = logger()
-const waitForExist = require('../src/commands/element/waitForExist')
 
 describe('middleware', () => {
     let browser;
@@ -20,8 +24,7 @@ describe('middleware', () => {
     })
 
     it('should throw an error if the element is never found', async () => {
-        waitForExist.default =
-            jest.fn().mockImplementation ( ( ) => { throw new Error(`Promise was rejected with the following reason`)});
+        waitForExist.mockImplementationOnce (( ) => { throw new Error(`Promise was rejected with the following reason`)});
 
         const elem = await browser.$('#foo')
         elem.elementId = undefined
@@ -31,9 +34,6 @@ describe('middleware', () => {
     });
 
     it('should succesfully click on an element that falls stale after being refound', async () => {
-        waitForExist.default =
-            jest.fn().mockImplementation (( ) => { return true });
-
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo');
