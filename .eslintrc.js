@@ -14,6 +14,7 @@ module.exports = {
     sourceType: 'module'
   },
   rules: {
+    semi: ["error", "never"],
     indent: [2, 4],
 
     "import/no-unresolved": [2, {commonjs: true, amd: true}],

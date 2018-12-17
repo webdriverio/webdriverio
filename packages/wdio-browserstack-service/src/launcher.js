@@ -1,13 +1,12 @@
-import BrowserstackLocalLauncher from 'browserstack-local';
-import logger from "@wdio/logger";
+import BrowserstackLocalLauncher from 'browserstack-local'
+import logger from "@wdio/logger"
 
-const log = logger('wdio-browserstack-service');
+const log = logger('wdio-browserstack-service')
 
 export default class BrowserstackLauncherService {
     onPrepare(config, capabilities) {
         if (!config.browserstackLocal) {
-            log.info('browserstackLocal is not enabled - skipping...');
-            return;
+            return log.info('browserstackLocal is not enabled - skipping...')
         }
 
         const opts = {
@@ -15,73 +14,75 @@ export default class BrowserstackLauncherService {
             forcelocal: true,
             onlyAutomate: true,
             ...config.browserstackOpts
-        };
-        this.browserstackLocal = new BrowserstackLocalLauncher.Local();
+        }
+
+        this.browserstackLocal = new BrowserstackLocalLauncher.Local()
 
         if (Array.isArray(capabilities)) {
             capabilities.forEach(capability => {
-                capability['browserstack.local'] = true;
-            });
+                capability['browserstack.local'] = true
+            })
         } else if (typeof capabilities === 'object') {
-            capabilities['browserstack.local'] = true;
+            capabilities['browserstack.local'] = true
         } else {
             throw TypeError('Capabilities should be an object or Array!')
         }
 
-        let timer;
+        let timer
         return Promise.race([
             new Promise((resolve, reject) => {
                 this.browserstackLocal.start(opts, err => {
                     if (err) {
-                        return reject(err);
+                        return reject(err)
                     }
-                    resolve();
-                });
-                resolve();
+                    resolve()
+                })
+                resolve()
             }),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {
-                    reject('Browserstack Local failed to stop within 60 seconds!')}, 60000);
+                    reject('Browserstack Local failed to stop within 60 seconds!')}, 60000)
             })]
         ).then(function (result) {
-            clearTimeout(timer);
-            return Promise.resolve(result);
+            clearTimeout(timer)
+            return Promise.resolve(result)
         }, function (err) {
-            clearTimeout(timer);
+            clearTimeout(timer)
             return Promise.reject(err)
-        });
+        })
     }
 
     onComplete(exitCode, config) {
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
-            return;
+            return
         }
+
         if (config.browserstackLocalForcedStop) {
-            return process.kill(this.browserstackLocal.pid);
+            return process.kill(this.browserstackLocal.pid)
         }
-        let timer;
+
+        let timer
         return Promise.race([
             new Promise((resolve, reject) => {
                 this.browserstackLocal.stop(err => {
                     if (err) {
-                        return reject(err);
+                        return reject(err)
                     }
-                    resolve();
-                });
+                    resolve()
+                })
             }),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {
-                    reject('Browserstack Local failed to stop within 60 seconds!')}, 60000);
+                    reject('Browserstack Local failed to stop within 60 seconds!')}, 60000)
             })]
         ).then(function (result) {
-            clearTimeout(timer);
-            return Promise.resolve(result);
+            clearTimeout(timer)
+            return Promise.resolve(result)
         }, function (err) {
-            clearTimeout(timer);
+            clearTimeout(timer)
             return Promise.reject(err)
-        });
-
+        })
     }
 }
