@@ -43,7 +43,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
   const elem = await browser.$('#search_form_input_homepage')
   await elem.click()
   ```
-* every protocol command returns `value` property instead of raw driver response
+* every protocol command returns a `value` property instead of raw driver response
   ```js
   // v4
   const result = browser.execute(() => 1 + 1)
@@ -58,7 +58,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
   const result = browser.execute(() => 1 + 1)
   console.log(result) // outputs: 2
   ```
-* the `remote` and `multiremote` methods to initiate a driver instance now also start the driver session and therefor return a promise (no `init` command anymore)
+* the `remote` and `multiremote` methods to initiate a driver instance now also start the driver session and therefore return a promise (no `init` command anymore)
   ```js
   // v4
   import { remote } from 'webdriverio'
@@ -227,7 +227,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 * wdio testrunner fails if no spec files were found
 
 #### :bug: Bug Fix
-* fixed lost of scope when chaining elements (e.g. `$$('div')[2].$('span').getHTML()`)
+* fixed loss of scope when chaining elements (e.g. `$$('div')[2].$('span').getHTML()`)
 * browser scope with now updated capabilities (`browser.capabilities`)
 * improved [watch functionality](https://youtu.be/EUNoPFSomhM?t=17m4s) allows to rerun tests without starting a new session all over again
 * fixed problems with `addCommand` in multiremote
@@ -235,7 +235,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 #### :memo: Documentation
 * brand new documentation page based on the [Docusaurus](https://docusaurus.io/) framework
     * written in a modern web framework called [React](https://reactjs.org/)
-    * complete responsive with full support for mobile viewports
+    * completely responsive with full support for mobile viewports
 * included blog for WebdriverIO related news and article
 * fixed links to edit certain documentation pages
 * documentation page served via HTTPS per default
@@ -247,7 +247,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 * moved all protocol commands into a [`webdriver`](https://www.npmjs.com/package/webdriver) base package
 * project sub packages are now released within the `@wdio` NPM [organization](https://www.npmjs.com/org/wdio)
 * renamed services, reporters and other internal packages (e.g. `wdio-sauce-service` → `@wdio/sauce-service`)
-* removed all e2e tests from project to run as unit tests with a coverage of [~96%](https://codecov.io/gh/webdriverio/webdriverio)
+* removed all e2e tests from project to run as unit tests using [Jest](https://jestjs.io/) with a coverage of [~96%](https://codecov.io/gh/webdriverio/webdriverio)
 * update to [Babel](https://babeljs.io/) v7 (latest) as well as various of other dependency updates with security fixes
 * CPU and Memory improvements by reducing amount of IPC calls
 
