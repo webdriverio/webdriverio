@@ -131,6 +131,32 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     /**
+     * Simulate a stale element
+     */
+
+    if (params.uri.path === `/wd/hub/session/${sessionId}/element/${genericSubSubElementId}/click`) {
+        ++requestMock.retryCnt
+
+        if (requestMock.retryCnt > 1) {
+            const response = { value: null }
+            return cb(null, {
+                headers: { foo: 'bar' },
+                statusCode: 200,
+                body: response
+            }, response)
+        }
+
+        let error = new Error('element is not attached to the page document')
+        error.name = 'stale element reference';
+
+        return cb(error, {
+            headers: { foo: 'bar' },
+            statusCode: 404,
+            body: {}
+        }, {});
+    }
+
+    /**
      * simulate failing response
      */
     if (params.uri.path === '/wd/hub/failing') {
