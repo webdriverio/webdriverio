@@ -94,6 +94,17 @@ export default class WebDriverRequest extends EventEmitter {
             }
 
             /**
+             *  stop retrying as this will never be successful.
+             *  we will handle this at the elementErrorHandler
+             */
+
+            if(error.message.includes("stale element reference")) {
+                log.warn(`Request encountered a stale element - terminating request`);
+                this.emit('response', { error })
+                return reject(error)
+            }
+
+            /**
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
              */
