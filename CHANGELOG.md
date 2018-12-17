@@ -17,6 +17,8 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ## v5.0.0 (2018-tbd)
 
+This version comes with a variety of technical changes that might affect the functionality of 3rd party WebdriverIO packages from the community. If such a package causes problems after the update, please raise an issue in the repository of that package and __not__ in this repository. You can find a list of officially maintained packages [here](https://github.com/webdriverio/webdriverio/blob/master/README.md#packages).
+
 #### :boom: Breaking Change
 * moved `wdio` cli command from [`webdriverio`](https://www.npmjs.com/package/webdriverio) package to [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli)
 * commands are scoped to `browser` and `element` - no selector property on commands anymore
@@ -221,7 +223,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 * decoupling of `@wdio/sync` package from framework adapters so that there is no need to install [`fibers`](https://www.npmjs.com/package/fibers) when you want to run your commands with async/await
 * autofetching of all provides log types
 * auto retry mechansim for all command requests
-* auto refetch mechanism for stale elements (still [work in progress](https://github.com/webdriverio/webdriverio/pull/3118))
+* auto refetch mechanism for stale elements
 * simplified reattachment to existing sessions with `attach` functionality
 * integrated and auto maintained [TypeScript](https://www.typescriptlang.org/) definitions (still [work in progress](https://github.com/webdriverio/webdriverio/pull/2862))
 * wdio testrunner fails if no spec files were found
