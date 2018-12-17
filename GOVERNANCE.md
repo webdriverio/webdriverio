@@ -4,15 +4,12 @@ The WebdriverIO Project wants as much as possible to operate using procedures th
 
 ### The Technical Committee
 
-The project is officially led by a Technical Committee (TC), currently
-consisting of:
+The project is officially led by a Technical Committee (TC), currently consisting of:
 
+* [@abjerstedt](https://github.com/abjerstedt)
 * [@bromann](https://github.com/christian-bromann)
-* [@camme](https://github.com/camme)
-* [@vvo](https://github.com/vvo)
-* [@georgecrawford](https://github.com/georgecrawford)
 
-They all represent different companies and different types of contribution to the WebdriverIO Project. The TC is responsible for high-level decisions (like release a new version, establishing a feature roadmap, accepting sponsorship, organizing conferences, etc...), adjudicating conflicts between members of the community, and making changes to the project's governance processes.
+They all represent different companies and different types of contribution to the WebdriverIO Project. The TC is responsible for high-level decisions (like [release a new version](/CONTRIBUTING.md#release-new-version), establishing a feature roadmap, accepting sponsorship, organizing conferences, etc...), adjudicating conflicts between members of the community, and making changes to the project's governance processes.
 
 * Membership in the TC is granted by unanimous vote of current TC members.
 * TC members can step down at any time.
@@ -33,18 +30,26 @@ Most of the project maintenance is handled by committers, community members who 
 
 The current committers are (in addition to the TC members above):
 
-* [@WillBrock](https://github.com/WillBrock)
-* [@fijijavis](https://github.com/fijijavis)
-* [@TuHuynhVan](https://github.com/TuHuynhVan)
-* [@wvankuipers](https://github.com/wvankuipers)
-* [@klamping](https://github.com/klamping)
-* [@zinserjan](https://github.com/zinserjan)
-* [@TheSavior](https://github.com/TheSavior)
-* [@lgandecki](https://github.com/lgandecki)
-* [@jankcat](https://github.com/jankcat)
 * [@amitaibu](https://github.com/amitaibu)
+* [@andriilazebnyi](https://github.com/andriilazebnyi)
+* [@BorisOsipov](https://github.com/BorisOsipov)
+* [@caoxu2000](https://github.com/caoxu2000)
+* [@erwinheitzman](https://github.com/erwinheitzman)
+* [@fijijavis](https://github.com/fijijavis)
+* [@FloValence](https://github.com/FloValence)
+* [@georgecrawford](https://github.com/georgecrawford)
+* [@goofballLogic](https://github.com/goofballLogic)
+* [@jankcat](https://github.com/jankcat)
+* [@klamping](https://github.com/klamping)
+* [@lgandecki](https://github.com/lgandecki)
+* [@tborys](https://github.com/tborys)
+* [@TheSavior](https://github.com/TheSavior)
 * [@ThomasFett](https://github.com/ThomasFett)
-* [@moizjv](https://github.com/moizjv)
+* [@TuHuynhVan](https://github.com/TuHuynhVan)
+* [@WillBrock](https://github.com/WillBrock)
+* [@wswebcreation](https://github.com/wswebcreation)
+* [@wvankuipers](https://github.com/wvankuipers)
+* [@zinserjan](https://github.com/zinserjan)
 
 ### Contributors
 
