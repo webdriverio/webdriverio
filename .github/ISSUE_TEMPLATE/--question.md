@@ -7,10 +7,8 @@ about: Ask questions.
 **Describe your question with as much detail as possible**
 A clear and concise question that doesn't require too much conversation. Need more help? [Find us on Gitter](https://gitter.im/webdriverio/webdriverio)
 
-
 **If it's about a specific piece of code, try and include some of it to support your question.**
 [...]
-
 
 **Environment (please complete the following information):**
  - **WebdriverIO version:** [e.g. 4.13.2]
