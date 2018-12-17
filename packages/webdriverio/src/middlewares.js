@@ -27,7 +27,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
              */
             try {
                 await this.waitForExist()
-            } catch (error) {
+            } catch {
                 throw new Error(
                     `Can't call ${commandName} on element with selector "${this.selector}" because element wasn't found`)
             }
