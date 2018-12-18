@@ -45,6 +45,8 @@ browser.click('#elem') // throws 'browser.click is not a function'
 
 const elem = $('#elem')
 elem.click() // clicks successfully on the element
+// or
+$('#elem').click()
 
 elem.url('https://webdriver.io') // throws because the url command is scoped on the browser object
 ```
@@ -57,7 +59,7 @@ We are still in the process of finalising this effort as we want to continue pro
 
 ## How To Upgrade To v5
 
-There are much much more things that we have been working on over the last month that you might like to find out. Check out the official [changelog](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to find all changes that describe the new version. We might will update it over time since we couldn't keep a list of every detail that might have change. We would also like to ask you to have a look into the new [guide section](https://webdriver.io/docs/gettingstarted.html) and our updated docs in general.<br>
+There are many more things that we have been working on over the last month that you might like to find out. Check out the official [changelog](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to find all changes that describe the new version. We might will update it over time since we couldn't keep a list of every detail that might have change. We would also like to ask you to have a look into the new [guide section](https://webdriver.io/docs/gettingstarted.html) and our updated docs in general.<br>
 <br>
 There is unfortunatelly no easy upgrade tool that you can download and run to update your test suites from v4 to v5 (even though we would love to have such a thing, PRs are welcome 😉). If you run into any issues upgrading to v5 please join our support [![Gitter](https://badges.gitter.im/webdriverio/webdriverio.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) and reach out to us.<br>
 <br>
