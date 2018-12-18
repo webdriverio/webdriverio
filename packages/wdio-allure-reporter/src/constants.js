@@ -1,19 +1,19 @@
-const PASSED = 'passed';
-const FAILED = 'failed';
-const BROKEN = 'broken';
-const PENDING = 'pending';
+const PASSED = 'passed'
+const FAILED = 'failed'
+const BROKEN = 'broken'
+const PENDING = 'pending'
 
 const testStatuses = {
     PASSED,
     FAILED,
     BROKEN,
-    PENDING,
+    PENDING
 }
 
 const stepStatuses = {
     PASSED,
     FAILED,
-    BROKEN,
+    BROKEN
 }
 
 const events = {

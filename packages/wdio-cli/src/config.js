@@ -107,7 +107,7 @@ export const CLI_PARAMS = [{
     choices: LOG_LEVELS
 }, {
     name: 'bail',
-    description: `stop test runner after specific amount of tests have failed`,
+    description: 'stop test runner after specific amount of tests have failed',
     type: 'number'
 }, {
     name: 'baseUrl',
@@ -121,34 +121,34 @@ export const CLI_PARAMS = [{
 }, {
     name: 'framework',
     alias: 'f',
-    description: `defines the framework (Mocha, Jasmine or Cucumber) to run the specs`,
+    description: 'defines the framework (Mocha, Jasmine or Cucumber) to run the specs',
     type: 'string'
 }, {
     name: 'reporters',
     alias: 'r',
-    description: `reporters to print out the results on stdout`,
+    description: 'reporters to print out the results on stdout',
     type: 'array'
 }, {
     name: 'suite',
-    description: `overwrites the specs attribute and runs the defined suite`,
+    description: 'overwrites the specs attribute and runs the defined suite',
     type: 'array'
 }, {
     name: 'spec',
-    description: `run only a certain spec file - overrides specs piped from stdin`,
+    description: 'run only a certain spec file - overrides specs piped from stdin',
     type: 'array'
 }, {
     name: 'exclude',
-    description: `exclude certain spec file from the test run - overrides exclude piped from stdin`,
+    description: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
     type: 'array'
 }, {
     name: 'mochaOpts',
-    description: `Mocha options`
+    description: 'Mocha options'
 }, {
     name: 'jasmineOpts',
-    description: `Jasmine options`
+    description: 'Jasmine options'
 }, {
     name: 'cucumberOpts',
-    description: `Cucumber options`
+    description: 'Cucumber options'
 }]
 
 export const QUESTIONNAIRE = [{

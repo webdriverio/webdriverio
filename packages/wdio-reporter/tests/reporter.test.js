@@ -15,7 +15,7 @@ jest.mock('events', () => {
 
 describe('WDIOReporter', () => {
     it('constructor', () => {
-        const tmpobj = tmp.fileSync();
+        const tmpobj = tmp.fileSync()
         const reporter = new WDIOReporter({ logFile: tmpobj.name })
         expect(reporter.on).toBeCalledWith('client:beforeCommand', expect.any(Function))
         expect(reporter.on).toBeCalledWith('client:afterCommand', expect.any(Function))
@@ -35,7 +35,7 @@ describe('WDIOReporter', () => {
     })
 
     it('should be by default synchronised', () => {
-        const tmpobj = tmp.fileSync();
+        const tmpobj = tmp.fileSync()
         const reporter = new WDIOReporter({ logFile: tmpobj.name })
         expect(reporter.isSynchronised).toBe(true)
     })
@@ -43,7 +43,7 @@ describe('WDIOReporter', () => {
     it('should provide a function to write to output stream', () => {
         expect.assertions(1)
 
-        const tmpobj = tmp.fileSync();
+        const tmpobj = tmp.fileSync()
         const reporter = new WDIOReporter({ logFile: tmpobj.name })
         reporter.write('foobar')
 

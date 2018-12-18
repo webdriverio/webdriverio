@@ -23,7 +23,7 @@ class Launcher {
         const specs = this.configParser.getSpecs()
 
         if (config.logDir) {
-            process.env.WDIO_LOG_PATH = path.join(config.logDir, `wdio.log`)
+            process.env.WDIO_LOG_PATH = path.join(config.logDir, 'wdio.log')
         }
 
         const totalWorkerCnt = Array.isArray(capabilities)

@@ -7,5 +7,5 @@ test('loadModule with existing package', () => {
 
 test('loadModule with non existing package', () => {
     expect(() => loadModule('nonExistingModule', { foo: 'bar' }))
-        .toThrow(`Module nonExistingModule can't get loaded`)
+        .toThrow('Module nonExistingModule can\'t get loaded')
 })

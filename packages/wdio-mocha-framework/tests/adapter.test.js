@@ -158,7 +158,7 @@ test('wrapHook if failing', async () => {
     await wrappedHook()
     expect(executeHooksWithArgs.mock.calls[0][0]).toBe('somehook')
     expect(executeHooksWithArgs.mock.calls[0][1].type).toBe('beforeAll')
-    expect(logger().error.mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true);
+    expect(logger().error.mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 
 test('prepareMessage', async () => {

@@ -14,7 +14,7 @@ describe('wdio-sumologic-reporter', () => {
     })
 
     it('it should start sync when reporter gets initiated', () => {
-        expect(setInterval).toHaveBeenCalledTimes(1);
+        expect(setInterval).toHaveBeenCalledTimes(1)
         expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 100)
     })
 

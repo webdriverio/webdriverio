@@ -81,7 +81,7 @@ class SpecReporter extends WDIOReporter {
         })
 
         // Output the results
-        this.write(`${divider}\n${prefacedOutput.join(`\n`)}\n`)
+        this.write(`${divider}\n${prefacedOutput.join('\n')}\n`)
     }
 
     /**
@@ -163,21 +163,21 @@ class SpecReporter extends WDIOReporter {
         // Get the passes
         if(this.stateCounts.passed > 0) {
             const text = `${this.stateCounts.passed} passing ${duration}`
-            output.push(this.chalk[this.getColor(`passed`)](text))
+            output.push(this.chalk[this.getColor('passed')](text))
             duration = ''
         }
 
         // Get the failures
         if(this.stateCounts.failed > 0) {
             const text = `${this.stateCounts.failed} failing ${duration}`.trim()
-            output.push(this.chalk[this.getColor(`failed`)](text))
+            output.push(this.chalk[this.getColor('failed')](text))
             duration = ''
         }
 
         // Get the skipped tests
         if(this.stateCounts.skipped > 0) {
             const text = `${this.stateCounts.skipped} skipped ${duration}`.trim()
-            output.push(this.chalk[this.getColor(`skipped`)](text))
+            output.push(this.chalk[this.getColor('skipped')](text))
         }
 
         return output
