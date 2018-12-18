@@ -45,7 +45,15 @@ body .onPageNav {
     top: 40px;
 }
 
-.mainContainer article p img[alt^="Support"] {
+blockquote {
+    background: none;
+    padding-left: 15px;
+    border-left: 1px solid $footerFontColor;
+    margin: 15px;
+    font-weight: 300;
+}
+
+.mainContainer article p img[alt^='Support'] {
     width: 20px;
     margin-right: 5px;
     display: inline-block;
