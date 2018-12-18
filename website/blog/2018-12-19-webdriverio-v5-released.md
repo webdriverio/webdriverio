@@ -16,7 +16,7 @@ When I began to practically rewrite this project from scratch [one year ago](htt
 
 ## The Goal
 
-Looking into the past of the project, it is humbling to see much it has been grown within just a couple of years. From a handful of downloads a day, to now almost 50k; as well as the knowledge that big companies are relying on this tool to ship their software on daily basis, it became obvious that the next big feature had to be sustainability. The first step was made by [joining the JS.Foundation](https://twitter.com/webdriverio/status/908013968861655040) at of 2017.
+Looking into the history of the project, it is humbling to see how much it has been grown within just a few years. From a handful of downloads a day, to now almost 50k; as well as the knowledge that big companies are relying on this tool to ship their software on daily basis, it became obvious that the next big feature had to be sustainability. The first step was made by [joining the JS.Foundation](https://twitter.com/webdriverio/status/908013968861655040) at of 2017.
 
 <br><blockquote class="twitter-tweet" data-lang="de"><p lang="en" dir="ltr">Proud to announce that <a href="https://twitter.com/webdriverio?ref_src=twsrc%5Etfw">@webdriverio</a> is joining <a href="https://twitter.com/the_jsf?ref_src=twsrc%5Etfw">@the_jsf</a> to continue to grow as project and community 🎉 👏 <a href="https://t.co/N58Iv5oC9r">https://t.co/N58Iv5oC9r</a></p>&mdash; WebdriverIO (@webdriverio) <a href="https://twitter.com/webdriverio/status/908013968861655040?ref_src=twsrc%5Etfw">13. September 2017</a></blockquote><br>
 
