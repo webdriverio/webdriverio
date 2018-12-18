@@ -103,6 +103,9 @@ exports.config = {
     // Level of logging verbosity: trace | debug | info | warn | error
     logLevel: 'info',
     //
+    // Set directory to store all logs into
+    logDir: __dirname,
+    //
     // Enables colors for log output.
     coloredLogs: true,
     //
