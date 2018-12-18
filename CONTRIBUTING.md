@@ -99,6 +99,9 @@ Commits that affect all packages or are not related to any (e.g. changes to NPM 
 Package releases are made using Lerna's release capabilities and executed by [the technical committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. To run it just call:
 
 ```sh
+# ensure to have pulled the latest code
+$ git pull origin master
+# release using Lerna
 $ npm run release
 ```
 
