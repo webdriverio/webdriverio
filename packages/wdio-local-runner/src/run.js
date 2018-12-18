@@ -24,7 +24,7 @@ process.on('message', (m) => {
             }
         }),
         (e) => {
-            log.error(`Failed launching test session:`, e)
+            log.error(`Failed launching test session: ${e.stack}`)
             process.exit(1)
         }
     )

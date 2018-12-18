@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 
 exports.config = {
-
     // =====================
     // Server Configurations
     // =====================
@@ -331,4 +330,4 @@ exports.config = {
     },
     afterFeature: function (feature) {
     }
-};
+}

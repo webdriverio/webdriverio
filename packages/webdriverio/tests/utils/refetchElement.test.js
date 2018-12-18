@@ -2,9 +2,9 @@ import { remote } from '../../src'
 import refetchElement from '../../src/utils/refetchElement'
 
 describe('refetchElement', () => {
-    let browser;
+    let browser
 
-    beforeAll( async () => {
+    beforeAll(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -17,19 +17,22 @@ describe('refetchElement', () => {
 
     it('should successfully refetch a non chained element', async () => {
         const elem = await browser.$('#foo')
-        expect(refetchElement(elem)).resolves.toEqual(elem);
+        const refetchedElement = await refetchElement(elem)
+        expect(JSON.stringify(refetchedElement)).toBe(JSON.stringify(elem))
     })
 
     it('should successfully refetch a chained element', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
-        expect(refetchElement(subElem)).resolves.toEqual(subElem)
+        const refetchedElement = await refetchElement(subElem)
+        expect(JSON.stringify(refetchedElement)).toBe(JSON.stringify(subElem))
     })
 
     it('should successfully refetch a deeply chained element', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
-        const subSubElem = await subElem.$('#subsubfoo');
-        expect(refetchElement(subSubElem)).resolves.toEqual(subSubElem)
+        const subSubElem = await subElem.$('#subsubfoo')
+        const refetchedElement = await refetchElement(subSubElem)
+        expect(JSON.stringify(refetchedElement)).toBe(JSON.stringify(subSubElem))
     })
 })

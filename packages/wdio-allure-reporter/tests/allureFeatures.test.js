@@ -306,7 +306,7 @@ describe('hooks handling', () => {
             getCurrentSuite: jest.fn(() => true),
             startCase
         }
-        reporter.onHookStart({title: 'foo'});
+        reporter.onHookStart({title: 'foo'})
 
         expect(startCase).toHaveBeenCalledTimes(1)
         expect(startCase).toHaveBeenCalledWith('foo')
@@ -319,7 +319,7 @@ describe('hooks handling', () => {
             getCurrentSuite: jest.fn(() => false),
             startCase
         }
-        reporter.onHookStart({title: 'foo'});
+        reporter.onHookStart({title: 'foo'})
 
         expect(startCase).toHaveBeenCalledTimes(0)
     })
@@ -331,7 +331,7 @@ describe('hooks handling', () => {
             getCurrentSuite: jest.fn(() => true),
             startCase
         }
-        reporter.onHookStart({title: '"before all" hook'});
+        reporter.onHookStart({title: '"before all" hook'})
 
         expect(startCase).toHaveBeenCalledTimes(0)
     })
@@ -344,7 +344,7 @@ describe('hooks handling', () => {
             getCurrentTest: jest.fn(() => {return {steps: [1]}}),
             endCase
         }
-        reporter.onHookEnd({title: 'foo'});
+        reporter.onHookEnd({title: 'foo'})
 
         expect(endCase).toHaveBeenCalledTimes(1)
     })
@@ -356,7 +356,7 @@ describe('hooks handling', () => {
             getCurrentSuite: jest.fn(() => false),
             endCase
         }
-        reporter.onHookEnd({title: 'foo'});
+        reporter.onHookEnd({title: 'foo'})
 
         expect(endCase).toHaveBeenCalledTimes(0)
     })
@@ -368,7 +368,7 @@ describe('hooks handling', () => {
             getCurrentSuite: jest.fn(() => true),
             endCase
         }
-        reporter.onHookEnd({title: '"after all" hook'});
+        reporter.onHookEnd({title: '"after all" hook'})
 
         expect(endCase).toHaveBeenCalledTimes(0)
     })
@@ -382,7 +382,7 @@ describe('nested suite naming', () => {
             getCurrentSuite: jest.fn(() => {return {name: 'foo'}}),
             startSuite
         }
-        reporter.onSuiteStart({title: 'bar'});
+        reporter.onSuiteStart({title: 'bar'})
 
         expect(startSuite).toHaveBeenCalledTimes(1)
         expect(startSuite).toHaveBeenCalledWith('foo bar')

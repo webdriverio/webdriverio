@@ -147,13 +147,13 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         }
 
         let error = new Error('element is not attached to the page document')
-        error.name = 'stale element reference';
+        error.name = 'stale element reference'
 
         return cb(error, {
             headers: { foo: 'bar' },
             statusCode: 404,
             body: {}
-        }, {});
+        }, {})
     }
 
     /**

@@ -1,5 +1,4 @@
 exports.config = {
-
     /**
      * server configurations
      */
@@ -31,4 +30,4 @@ exports.config = {
     cucumberOpts: {
         require: ['./step-definitions.js']
     }
-};
+}

@@ -15,7 +15,7 @@ jest.mock('@wdio/config', () => {
             .mockImplementationOnce(
                 () => undefined)
             .mockImplementationOnce(
-                () => { throw new Error(`Couldn't find plugin`) })
+                () => { throw new Error('Couldn\'t find plugin') })
             .mockImplementationOnce(() => { throw new Error('buhh') })
     }
 })

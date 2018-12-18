@@ -44,5 +44,4 @@ exports.config = {
         // eslint-disable-next-line
         console.log('that\'s it');
     }
-
-};
+}

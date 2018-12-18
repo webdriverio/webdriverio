@@ -120,7 +120,7 @@ export const findStrategy = function (value, isW3C) {
                     attrValue
                         ? `contains(@${attrName}, "${attrValue}")`
                         : `@${attrName}`
-                );
+                )
             }
             if (partial) {
                 conditions.push(`contains(., "${query}")`)

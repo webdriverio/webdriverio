@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('assert')
 
 describe(`${testData.url} page`, () => {
     it('should be a pending test')

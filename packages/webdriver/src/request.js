@@ -98,8 +98,8 @@ export default class WebDriverRequest extends EventEmitter {
              *  we will handle this at the elementErrorHandler
              */
 
-            if(error.message.includes("stale element reference")) {
-                log.warn(`Request encountered a stale element - terminating request`);
+            if(error.message.includes('stale element reference')) {
+                log.warn('Request encountered a stale element - terminating request')
                 this.emit('response', { error })
                 return reject(error)
             }

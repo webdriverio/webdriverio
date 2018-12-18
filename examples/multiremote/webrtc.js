@@ -33,9 +33,9 @@ import { multiremote } from '../../packages/webdriverio/build'
                 }
             }
         }
-    });
+    })
 
-    var channel = Math.round(Math.random() * 10e10);
+    var channel = Math.round(Math.random() * 10e10)
 
     await matrix.url('https://apprtc.appspot.com/r/' + channel)
 

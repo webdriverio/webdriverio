@@ -150,7 +150,7 @@ describe('Firefox profile service', () => {
                 firefoxProfile : {
                     extensions : ['/foo/bar.xpi'],
                     'browser.startup.homepage': 'http://webdriver.io',
-                    proxy : `foo`
+                    proxy : 'foo'
                 }
             }
             const capabilities = [{

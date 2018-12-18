@@ -49,6 +49,6 @@ describe('saveScreenshot', () => {
 
         await expect(
             browser.saveScreenshot('/i/dont/exist.png')
-        ).rejects.toEqual(new Error(`directory (/i/dont) doesn't exist`))
+        ).rejects.toEqual(new Error('directory (/i/dont) doesn\'t exist'))
     })
 })

@@ -41,7 +41,7 @@ describe('wdio-junit-reporter', () => {
         expect(reporter.format({ a: '@'.repeat(10000) })).toBe(
             `{"a":"${'@'.repeat(200)} ... (9800 more bytes)"}`)
         expect(reporter.format({ a: '@'.repeat(100).split('') })).toBe(
-            `{"a":["@","@","@","@","@","@","@","@","@","@","(90 more items)"]}`)
+            '{"a":["@","@","@","@","@","@","@","@","@","@","(90 more items)"]}')
         expect(reporter.format([...Array(11)].map((item, i) => i).reduce((a,b) => {
             a['entry' + b] = 'foobar'
             return a

@@ -17,7 +17,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('should wait for the element to exist', async () => {
-        const tmpElem = await browser.$(`#foo`)
+        const tmpElem = await browser.$('#foo')
         const elem = {
             waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
@@ -31,7 +31,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('element should already exist on the page', async () => {
-        const tmpElem = await browser.$(`#foo`)
+        const tmpElem = await browser.$('#foo')
         const elem = {
             waitForDisplayed : tmpElem.waitForDisplayed,
             waitForExist : jest.fn(),
@@ -46,7 +46,7 @@ describe('waitForDisplayed', () => {
 
     test('should call waitUntil', async () => {
         const cb = jest.fn()
-        const tmpElem = await browser.$(`#foo`)
+        const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForDisplayed : tmpElem.waitForDisplayed,
@@ -64,7 +64,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('should call isElementDisplayed and return true', async () => {
-        const elem = await browser.$(`#foo`)
+        const elem = await browser.$('#foo')
         const result = await elem.waitForDisplayed(duration)
 
         expect(result).toBe(true)
@@ -72,7 +72,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('should call isElementDisplayed and return true', async () => {
-        const tmpElem = await browser.$(`#foo`)
+        const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForDisplayed : tmpElem.waitForDisplayed,
@@ -88,7 +88,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('should call isElementDisplayed and return false', async () => {
-        const tmpElem = await browser.$(`#foo`)
+        const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForDisplayed : tmpElem.waitForDisplayed,
@@ -108,7 +108,7 @@ describe('waitForDisplayed', () => {
 
     test('should do reverse', async () => {
         const cb = jest.fn()
-        const tmpElem = await browser.$(`#foo`)
+        const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForDisplayed : tmpElem.waitForDisplayed,
@@ -126,7 +126,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('should call isDisplayed and return false with custom error', async () => {
-        const tmpElem = await browser.$(`#foo`)
+        const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForDisplayed : tmpElem.waitForDisplayed,
@@ -140,7 +140,7 @@ describe('waitForDisplayed', () => {
         try {
             await elem.waitForDisplayed(duration, false, 'Element foo never displayed')
         } catch (e) {
-            expect(e.message).toBe(`Element foo never displayed`)
+            expect(e.message).toBe('Element foo never displayed')
         }
     })
 })

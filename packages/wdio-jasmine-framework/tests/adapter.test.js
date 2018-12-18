@@ -61,7 +61,7 @@ test('set custom ', async () => {
     )
     await adapter.run()
     adapter.jrunner.jasmine.Spec.prototype.addExpectationResult('foobar')
-    expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith('foobar');
+    expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith('foobar')
 })
 
 test('get data from beforeAll hook', async () => {
@@ -175,7 +175,7 @@ test('wrapHook if failing', async () => {
     expect(executeHooksWithArgs.mock.calls[0][0]).toBe('somehook')
     expect(executeHooksWithArgs.mock.calls[0][1].type).toBe('beforeAll')
     expect(doneCallback.mock.calls).toHaveLength(1)
-    expect(logger().info.mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true);
+    expect(logger().info.mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 
 test('formatMessage', () => {
