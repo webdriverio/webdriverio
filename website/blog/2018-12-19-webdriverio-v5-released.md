@@ -45,6 +45,8 @@ browser.click('#elem') // throws 'browser.click is not a function'
 
 const elem = $('#elem')
 elem.click() // clicks successfully on the element
+// or
+$('#elem').click()
 
 elem.url('https://webdriver.io') // throws because the url command is scoped on the browser object
 ```
