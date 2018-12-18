@@ -37,7 +37,7 @@ export function getLauncher (config) {
 
             launcher = new Launcher()
         } catch (e) {
-            if (!e.message.match(`Couldn't find plugin`)) {
+            if (!e.message.match('Couldn\'t find plugin')) {
                 throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
             }
         }

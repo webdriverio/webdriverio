@@ -314,8 +314,8 @@ describe('selenium command reporting', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        const command = commandStart();
-        delete command.body;
+        const command = commandStart()
+        delete command.body
         reporter.onBeforeCommand(command)
         reporter.onAfterCommand(commandEnd())
         reporter.onTestSkip(testPending())

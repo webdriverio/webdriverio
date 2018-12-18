@@ -44,11 +44,11 @@ describe('SpecReporter', () => {
 
         it('should add to suiteUids', () => {
             expect(reporter.suiteUids.length).toBe(1)
-            expect(reporter.suiteUids[0]).toBe(`Foo test1`)
+            expect(reporter.suiteUids[0]).toBe('Foo test1')
         })
 
         it('should increase suiteIndents', () => {
-            expect(reporter.suiteIndents[`Foo test1`]).toBe(1)
+            expect(reporter.suiteIndents['Foo test1']).toBe(1)
         })
     })
 
@@ -257,7 +257,7 @@ describe('SpecReporter', () => {
 
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
-            tmpReporter.foo = `hellooo`
+            tmpReporter.foo = 'hellooo'
             tmpReporter.suiteUids = [5, 3, 8]
             tmpReporter.suites = [{ uid : 3 }, { uid : 5 }]
 
@@ -273,7 +273,7 @@ describe('SpecReporter', () => {
         })
 
         it('should return the cached ordered suites', () => {
-            tmpReporter.foo = `hellooo boo`
+            tmpReporter.foo = 'hellooo boo'
             tmpReporter.orderedSuites = ['foo', 'bar']
             const result = tmpReporter.getOrderedSuites()
 

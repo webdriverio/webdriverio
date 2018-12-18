@@ -21,7 +21,7 @@ export default class ApplitoolsService {
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {
-            throw new Error(`Couldn't find an Applitools 'applitoolsKey' in config nor 'APPLITOOLS_KEY' in the environment`)
+            throw new Error('Couldn\'t find an Applitools "applitoolsKey" in config nor "APPLITOOLS_KEY" in the environment')
         }
 
         this.isConfigured = true

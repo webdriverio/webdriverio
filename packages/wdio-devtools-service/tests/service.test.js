@@ -74,5 +74,5 @@ test('initialization fails', async () => {
     await service.before()
 
     expect(service.commandHandler).toBe(undefined)
-    expect(logger().error.mock.calls.pop()[0]).toContain(`Couldn't connect to chrome: Error: boom`)
+    expect(logger().error.mock.calls.pop()[0]).toContain('Couldn\'t connect to chrome: Error: boom')
 })

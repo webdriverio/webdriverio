@@ -179,15 +179,15 @@ export default class WDIOCLInterface extends EventEmitter {
         if (isFinished) {
             /* istanbul ignore else */
             if (this.interface.stdoutBuffer.length) {
-                this.interface.log(chalk.bgYellow.black(`Stdout:\n`) + this.interface.stdoutBuffer.join(''))
+                this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
             }
             /* istanbul ignore else */
             if (this.interface.stderrBuffer.length) {
-                this.interface.log(chalk.bgRed.black(`Stderr:\n`) + this.interface.stderrBuffer.join(''))
+                this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
             }
             /* istanbul ignore else */
             if (this.messages.worker.error) {
-                this.interface.log(chalk.bgRed.black(`Worker Error:\n`) + this.messages.worker.error.map(
+                this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
                     (e) => e.stack
                 ).join('\n') + '\n')
             }

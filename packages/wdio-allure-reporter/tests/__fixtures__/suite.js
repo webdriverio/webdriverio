@@ -9,7 +9,7 @@ const suite = () => ({
     tests: [],
     hooks: [],
     suites: []
-});
+})
 
 export function suiteStart() {
     return Object.assign(suite())
@@ -18,4 +18,3 @@ export function suiteStart() {
 export function suiteEnd() {
     return Object.assign(suite(), {end: '2018-05-14T15:17:21.631Z', _duration: 2730})
 }
-

@@ -76,7 +76,7 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', 'session/:sessionId/element')
             req.emit = jest.fn()
 
-            const opts = Object.assign(req.defaultOptions, { 
+            const opts = Object.assign(req.defaultOptions, {
                 uri: { path: '/wd/hub/session/foobar-123/element/some-sub-sub-elem-231/click' }, body: { foo: 'bar' } })
 
             expect(req._request(opts)).rejects.toEqual(
@@ -86,7 +86,7 @@ describe('webdriver request', () => {
             expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
 
             request.retryCnt = 0
-            warn.mockClear();
+            warn.mockClear()
             request.mockClear()
         })
 

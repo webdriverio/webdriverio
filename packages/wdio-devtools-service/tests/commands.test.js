@@ -147,7 +147,7 @@ test('getPerformanceMetrics', () => {
         domContentLoaded: 574.546,
         timeToFirstInteractive: 735.671,
         load: 1379.895
-    });
+    })
 })
 
 test('getPageWeight', () => {

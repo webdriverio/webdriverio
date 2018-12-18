@@ -49,7 +49,7 @@ export default class ConciseReporter extends WDIOReporter {
             ...this.getFailureDisplay()
         ]
 
-        this.write(`${header}\n${output.join(`\n`)}\n`)
+        this.write(`${header}\n${output.join('\n')}\n`)
     }
 
     /**
