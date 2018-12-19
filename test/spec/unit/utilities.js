@@ -1,4 +1,4 @@
-import { isSuccessfulResponse, isUnknownCommand, formatHostname } from '../../../lib/helpers/utilities'
+import { isSuccessfulResponse, isUnknownCommand, isUnknownError, formatHostname } from '../../../lib/helpers/utilities'
 
 describe('utilities', () => {
     describe('isSuccessfulResponse', () => {
@@ -118,6 +118,29 @@ describe('utilities', () => {
                     type: 'UnknownError',
                     message: 'An unknown server-side error occurred while processing the command.'
                 }
+            })).to.be.equal(true)
+        })
+    })
+
+    describe('isUnknownError', () => {
+        it('no valid error', () => {
+            expect(isUnknownError()).to.be.equal(false)
+            expect(isUnknownError('foobar')).to.be.equal(false)
+        })
+
+        it('should recognise unknown command when using driver', () => {
+            expect(isUnknownError({
+                message: 'Unknown error'
+            })).to.be.equal(true)
+        })
+
+        it('should recognise unknown command as case insensitive when using driver', () => {
+            expect(isUnknownError({
+                message: 'unknown error'
+            })).to.be.equal(true)
+
+            expect(isUnknownError({
+                message: 'UNKNOWN ERROR'
             })).to.be.equal(true)
         })
     })
