@@ -51,7 +51,15 @@ export default class BrowserstackService {
         }
     }
 
-    after() {
+    after(result) {
+        /**
+         * set failures if user has bail option set in which case afterTest and
+         * afterSuite aren't executed before after hook
+         */
+        if (global.browser.config.mochaOpts && global.browser.config.mochaOpts.bail && Boolean(result)) {
+            this.failures = 1
+        }
+
         return this._update(this.sessionId, this._getBody())
     }
 
