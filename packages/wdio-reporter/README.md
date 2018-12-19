@@ -189,7 +189,6 @@ HookStats {
   cid: '0-0',
   title: '"before each" hook',
   parent: 'root suite',
-  parentUid: 'root suite2' } }
 ```
 
 ##### onHookEnd
@@ -203,7 +202,6 @@ HookStats {
   cid: '0-0',
   title: '"before each" hook',
   parent: 'root suite',
-  parentUid: 'root suite2',
   end: '2018-02-09T13:30:40.182Z' } }
 ```
 

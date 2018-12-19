@@ -271,7 +271,7 @@ test('emit properly reports to reporter', () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    adapter.generateUID = () => ({ uid: 123, parentUid: 456 })
+    adapter.getUID = () => 123
     adapter.emit(
         'suite:start',
         { title: 'foobar' },
@@ -292,7 +292,7 @@ test('emits hook errors as hook:end', () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    adapter.generateUID = () => ({ uid: 123, parentUid: 456 })
+    adapter.getUID = () => 123
     adapter.emit(
         'test:fail',
         { title: '"before all" hook' },
@@ -303,55 +303,6 @@ test('emits hook errors as hook:end', () => {
     expect(wdioReporter.emit.mock.calls[1][1].error.message).toBe('uups')
 })
 
-test('generateUID', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
-    adapter.getUID = (...args) => args
-
-    let result = adapter.generateUID({ type: 'suite:start', title: 'foobar' })
-    expect(result.uid).toEqual([ 'foobar', 'suite', true ])
-    expect(result.parentUid).toEqual([ 'foobar', 'suite', true ])
-
-    result = adapter.generateUID({ type: 'suite:end', title: 'foobar' })
-    expect(result.uid).toEqual([ 'foobar', 'suite' ])
-    expect(result.parentUid).toEqual([ 'foobar', 'suite' ])
-
-    result = adapter.generateUID({ type: 'hook:start', title: 'foobar', parent: 'barfoo' })
-    expect(result.uid).toEqual([ 'foobar', 'hook', true ])
-    expect(result.parentUid).toEqual([ 'barfoo', 'suite' ])
-
-    result = adapter.generateUID({ type: 'hook:end', title: 'foobar', parent: 'barfoo' })
-    expect(result.uid).toEqual([ 'foobar', 'hook' ])
-    expect(result.parentUid).toEqual([ 'barfoo', 'suite' ])
-
-    result = adapter.generateUID({ type: 'test:start', title: 'foobar', parent: 'barfoo' })
-    expect(result.uid).toEqual([ 'foobar', 'test', true ])
-    expect(result.parentUid).toEqual([ 'barfoo', 'suite' ])
-
-    result = adapter.generateUID({ type: 'test:pending', title: 'foobar', parent: 'barfoo' })
-    expect(result.uid).toEqual([ 'foobar', 'test' ])
-    expect(result.parentUid).toEqual([ 'barfoo', 'suite' ])
-
-    result = adapter.generateUID({ type: 'test:end', title: 'foobar', parent: 'barfoo' })
-    expect(result.uid).toEqual([ 'foobar', 'test' ])
-    expect(result.parentUid).toEqual([ 'barfoo', 'suite' ])
-
-    result = adapter.generateUID({ type: 'test:pass', title: 'foobar', parent: 'barfoo' })
-    expect(result.uid).toEqual([ 'foobar', 'test' ])
-    expect(result.parentUid).toEqual([ 'barfoo', 'suite' ])
-
-    result = adapter.generateUID({ type: 'test:fail', title: 'foobar', parent: 'barfoo' })
-    expect(result.uid).toEqual([ 'foobar', 'test' ])
-    expect(result.parentUid).toEqual([ 'barfoo', 'suite' ])
-
-    expect(() => adapter.generateUID({ type: 'test:nonexisting' })).toThrow()
-})
-
 test('getUID', () => {
     const adapter = new MochaAdapter(
         '0-2',
@@ -360,10 +311,59 @@ test('getUID', () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    expect(adapter.getUID('foobar', 'test')).toBe('foobar0')
-    expect(adapter.getUID('foobar', 'test')).toBe('foobar0')
-    expect(adapter.getUID('foobarloo', 'test')).toBe('foobarloo1')
-    expect(adapter.getUID('foobarloo', 'test', true)).toBe('foobarloo2')
+
+    // disabling indent eslint rule for better visibility
+    /*eslint-disable indent */
+    expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-0-0')
+    expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-0-0')
+    expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-0-1')
+    expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-0-1')
+    expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-0-0')
+        expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-00-0')
+        expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-00-0')
+        expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-1-0')
+            expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-2-0')
+                expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-20-0')
+                expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-20-0')
+                expect(adapter.getUID({ type: 'test:start' })).toBe('test-20-0')
+                expect(adapter.getUID({ type: 'test:pass' })).toBe('test-20-0')
+                expect(adapter.getUID({ type: 'test:start' })).toBe('test-20-1')
+                expect(adapter.getUID({ type: 'test:fail' })).toBe('test-20-1')
+                expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-20-1')
+                expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-20-1')
+            expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-2-0')
+            expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-10-0')
+            expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-10-0')
+            expect(adapter.getUID({ type: 'test:start' })).toBe('test-10-0')
+            expect(adapter.getUID({ type: 'test:fail' })).toBe('test-10-0')
+            expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-10-1')
+            expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-10-1')
+            expect(adapter.getUID({ type: 'test:start' })).toBe('test-10-1')
+            expect(adapter.getUID({ type: 'test:fail' })).toBe('test-10-1')
+        expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-1-0')
+        expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-1-1')
+        expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-1-1')
+        expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-1-2')
+            expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-2-1')
+            expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-2-1')
+            expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-12-0')
+            expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-12-0')
+            expect(adapter.getUID({ type: 'test:start' })).toBe('test-12-0')
+            expect(adapter.getUID({ type: 'test:fail' })).toBe('test-12-0')
+            expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-2-2')
+            expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-2-2')
+        expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-1-2')
+        expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-1-3')
+        expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-1-3')
+        expect(adapter.getUID({ type: 'suite:start' })).toBe('suite-1-4')
+        expect(adapter.getUID({ type: 'test:start' })).toBe('test-14-0')
+        expect(adapter.getUID({ type: 'test:fail' })).toBe('test-14-0')
+        expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-1-4')
+        expect(adapter.getUID({ type: 'test:start' })).toBe('test-00-0')
+        expect(adapter.getUID({ type: 'test:fail' })).toBe('test-00-0')
+    expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-0-0')
+    expect(() => adapter.getUID({ type: 'test:nonexisting' })).toThrow()
+    /*eslint-enable indent */
 })
 
 afterEach(() => {
