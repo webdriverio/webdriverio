@@ -142,9 +142,7 @@ exports.config = {
     // commands. Instead, they hook themselves up into the test process.
     <% if(answers.services.length) {
     %>services: ['<%- answers.services.map(function(service) {
-        const offset = service.startsWith('@wdio') ? 6 : 5;
-
-        return service.slice(0, -8).substr(offset);
+        return service.slice(service.startsWith('@wdio') ? 6 : 5, -8)
     }).join("','") %>'],
     <% } else {
     %>// services: [],<% } %>//
@@ -161,9 +159,7 @@ exports.config = {
     // see also: http://webdriver.io/docs/dot-reporter.html
     <% if(answers.reporters.length) {
     %>reporters: ['<%- answers.reporters.map(function(reporter) {
-        const offset = reporter.startsWith('@wdio') ? 6 : 5;
-
-        return reporter.slice(0, -9).substr(offset);
+        return reporter.slice(reporter.startsWith('@wdio') ? 6 : 5, -9)
     }).join("','") %>'],
     <% } else {
     %>// reporters: ['dot'],<%
