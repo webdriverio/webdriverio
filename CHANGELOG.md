@@ -40,10 +40,11 @@ This version comes with a variety of technical changes that might affect the fun
     // ...
   ```
   ```js
-  // v5
+  // v5 (standalone/async mode)
   await browser.url('https://duckduckgo.com/')
   const elem = await browser.$('#search_form_input_homepage')
   await elem.click()
+  await elem.setValue('WebdriverIO')
   ```
 * every protocol command returns a `value` property instead of raw driver response
   ```js
@@ -190,9 +191,9 @@ This version comes with a variety of technical changes that might affect the fun
   console.log(typeof browser.myCommand) // outputs "function"
   console.log(typeof elem.myCommand) // outputs "undefined"
   elem.addCommand('myElemCommand', () => { ... })
+  console.log(typeof elem.myElemCommand) // outputs "function"
   const elem2 = $('myOtherElem')
-  console.log(typeof elem.myCommand) // outputs "function"
-  console.log(typeof elem2.myCommand) // outputs "undefined"
+  console.log(typeof elem2.myElemCommand) // outputs "undefined"
   ```
 * custom configuration for services or reporters are now directly applied to the config list, e.g.
   ```js
