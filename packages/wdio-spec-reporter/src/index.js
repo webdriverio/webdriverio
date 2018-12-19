@@ -103,6 +103,25 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
+     * returns everything worth reporting from a suite
+     * @param  {Object}    suite  test suite containing tests and hooks
+     * @return {Object[]}         list of events to report
+     */
+    getEventsToReport (suite) {
+        return [
+            /**
+             * report all tests
+             */
+            ...suite.tests,
+            /**
+             * and only hooks that failed
+             */
+            ...suite.hooks
+                .filter((hook) => Boolean(hook.error))
+        ]
+    }
+
+    /**
      * Get the results from the tests
      * @param  {Array} suites Runner suites
      * @return {Array}        Display output list
@@ -123,18 +142,8 @@ class SpecReporter extends WDIOReporter {
             // Display the title of the suite
             output.push(`${suiteIndent}${suite.title}`)
 
-            const thingsToReport = [
-                /**
-                 * report all tests
-                 */
-                ...suite.tests,
-                /**
-                 * and only hooks that failed
-                 */
-                ...suite.hooks
-                    .filter((hook) => Boolean(hook.error))
-            ]
-            for (const test of thingsToReport) {
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
                 const test_title = test.title
                 const state = test.state
                 const test_indent = `${this.defaultTestIndent}${suiteIndent}`
@@ -144,7 +153,7 @@ class SpecReporter extends WDIOReporter {
             }
 
             // Put a line break after each suite (only if tests exist in that suite)
-            if (thingsToReport.length) {
+            if (eventsToReport.length) {
                 output.push('')
             }
         }
@@ -194,8 +203,8 @@ class SpecReporter extends WDIOReporter {
 
         for (const suite of suites) {
             const suiteTitle = suite.title
-
-            for (const test of suite.tests) {
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
                 if(test.state !== 'failed') {
                     continue
                 }
