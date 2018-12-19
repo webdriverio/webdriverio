@@ -40,9 +40,9 @@ This version comes with a variety of technical changes that might affect the fun
     // ...
   ```
   ```js
-  // v5
+  // v5 (standalone/async mode)
   await browser.url('https://duckduckgo.com/')
-  const elem = await $('#search_form_input_homepage')
+  const elem = await browser.$('#search_form_input_homepage')
   await elem.click()
   await elem.setValue('WebdriverIO')
   ```
