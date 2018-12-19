@@ -1,6 +1,7 @@
 import SauceService from '../src'
 
 global.browser = {
+    config: {},
     execute: jest.fn(),
     chromeA: { sessionId: 'sessionChromeA' },
     chromeB: { sessionId: 'sessionChromeB' },
@@ -150,6 +151,20 @@ test('after', () => {
     service.after()
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
+})
+
+test('after with bail set', () => {
+    const service = new SauceService({ user: 'foobar', key: '123' })
+    service.before()
+    service.failures = 5
+    service.updateJob = jest.fn()
+
+    global.browser.isMultiremote = false
+    global.browser.sessionId = 'foobar'
+    global.browser.config = { mochaOpts: { bail: 1 } }
+    service.after(1)
+
+    expect(service.updateJob).toBeCalledWith('foobar', 1)
 })
 
 test('beforeScenario should not set context if no sauce user was applied', () => {
