@@ -36,6 +36,12 @@ class SpecReporter extends WDIOReporter {
         this.suites.push(suite)
     }
 
+    onHookEnd (hook) {
+        if (hook.error) {
+            this.stateCounts.failed++
+        }
+    }
+
     onTestPass () {
         this.stateCounts.passed++
     }
