@@ -105,21 +105,31 @@ export default class SauceService {
     /**
      * update Sauce Labs job
      */
-    after () {
+    after (result) {
         if (!this.sauceUser || !this.sauceKey) {
             return
         }
 
-        const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
+        let failures = this.failures
+
+        /**
+         * set failures if user has bail option set in which case afterTest and
+         * afterSuite aren't executed before after hook
+         */
+        if (global.browser.config.mochaOpts && global.browser.config.mochaOpts.bail && Boolean(result)) {
+            failures = 1
+        }
+
+        const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
 
         if (!global.browser.isMultiremote) {
             log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
-            return this.updateJob(global.browser.sessionId, this.failures)
+            return this.updateJob(global.browser.sessionId, failures)
         }
 
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(global.browser[browserName].sessionId, this.failures, false, browserName)
+            return this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
         }))
     }
 
