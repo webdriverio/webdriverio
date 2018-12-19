@@ -10,8 +10,9 @@ jest.mock('request', () => ({
 const log = logger('test')
 let service
 
-beforeAll(() => {
+beforeEach(() => {
     global.browser = {
+        config: {},
         capabilities: {
             device: '',
             os: 'OS X',
@@ -219,7 +220,17 @@ describe('after', () => {
         const updateSpy = jest.spyOn(service, '_update')
 
         service.after()
+        expect(service.failures).toBe(0)
         expect(updateSpy).toHaveBeenCalled()
+    })
+
+    it('should set failures if error happend and bail is set', () => {
+        global.browser.config.mochaOpts = { bail: true }
+        const updateSpy = jest.spyOn(service, '_update')
+
+        service.after(1)
+        expect(updateSpy).toHaveBeenCalled()
+        expect(service.failures).toBe(1)
     })
 })
 
