@@ -141,7 +141,11 @@ exports.config = {
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
     <% if(answers.services.length) {
-    %>services: ['<%- answers.services.join("','") %>'],
+    %>services: ['<%- answers.services.map(function(service) {
+        const offset = service.startsWith('@wdio') ? 6 : 5;
+
+        return service.slice(0, -8).substr(offset);
+    }).join("','") %>'],
     <% } else {
     %>// services: [],<% } %>//
     // Framework you want to run your specs with.
@@ -156,9 +160,13 @@ exports.config = {
     // The only one supported by default is 'dot'
     // see also: http://webdriver.io/docs/dot-reporter.html
     <% if(answers.reporters.length) {
-    %>reporters: ['<%- answers.reporters.join("','") %>'],
+    %>reporters: ['<%- answers.reporters.map(function(reporter) {
+        const offset = reporter.startsWith('@wdio') ? 6 : 5;
+
+        return reporter.slice(0, -9).substr(offset);
+    }).join("','") %>'],
     <% } else {
-    %>// reporters: ['@wdio/dot-reporter'],<%
+    %>// reporters: ['dot'],<%
     }
     if(answers.framework === 'mocha') { %>
     //
