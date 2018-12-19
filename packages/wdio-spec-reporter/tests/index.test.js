@@ -52,6 +52,29 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('onHookEnd', () => {
+        it('should increase stateCount failures if hook failed', () => {
+            expect(tmpReporter.stateCounts.failed).toBe(0)
+            tmpReporter.onHookEnd({})
+            expect(tmpReporter.stateCounts.failed).toBe(0)
+            tmpReporter.onHookEnd({ error: new Error('boom!') })
+            expect(tmpReporter.stateCounts.failed).toBe(1)
+        })
+    })
+
+    describe('getEventsToReport', () => {
+        it('should return all tests and hook errors to report', () => {
+            expect(tmpReporter.getEventsToReport({
+                tests: [1, 2, 3],
+                hooks: [4, 5, 6]
+            })).toEqual([1, 2, 3])
+            expect(tmpReporter.getEventsToReport({
+                tests: [1, 2, 3],
+                hooks: [{ error: 1 }, 5, { error: 2 }]
+            })).toEqual([1, 2, 3, { error: 1 }, { error: 2 }])
+        })
+    })
+
     describe('onTestPass', () => {
         beforeAll(() => {
             reporter.onTestPass()

@@ -201,7 +201,6 @@
                 "cid": "0-0",
                 "title": "\"before each\" hook",
                 "parent": "My awesome feature",
-                "parentUid": "My awesome feature2",
                 "end": "2018-04-17T09:10:10.257Z"
             },
             {
@@ -212,7 +211,6 @@
                 "cid": "0-0",
                 "title": "\"after each\" hook",
                 "parent": "My awesome feature",
-                "parentUid": "My awesome feature2",
                 "end": "2018-04-17T09:10:10.984Z"
             },
             {
@@ -223,7 +221,6 @@
                 "cid": "0-0",
                 "title": "\"before each\" hook",
                 "parent": "My awesome feature",
-                "parentUid": "My awesome feature2",
                 "end": "2018-04-17T09:10:10.985Z"
             },
             {
@@ -234,7 +231,6 @@
                 "cid": "0-0",
                 "title": "\"after each\" hook",
                 "parent": "My awesome feature",
-                "parentUid": "My awesome feature2",
                 "end": "2018-04-17T09:10:11.000Z"
             },
             {
@@ -245,7 +241,6 @@
                 "cid": "0-0",
                 "title": "\"after all\" hook",
                 "parent": "My awesome feature",
-                "parentUid": "My awesome feature2",
                 "end": "2018-04-17T09:10:11.001Z"
             }
         ],
