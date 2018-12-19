@@ -1,6 +1,7 @@
 import SauceService from '../src'
 
 global.browser = {
+    config: {},
     execute: jest.fn(),
     chromeA: { sessionId: 'sessionChromeA' },
     chromeB: { sessionId: 'sessionChromeB' },
@@ -160,7 +161,7 @@ test('after with bail set', () => {
 
     global.browser.isMultiremote = false
     global.browser.sessionId = 'foobar'
-    global.browser.config = { bail: 1 }
+    global.browser.config = { mochaOpts: { bail: 1 } }
     service.after(1)
 
     expect(service.updateJob).toBeCalledWith('foobar', 1)

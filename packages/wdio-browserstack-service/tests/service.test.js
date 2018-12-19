@@ -10,7 +10,7 @@ jest.mock('request', () => ({
 const log = logger('test')
 let service
 
-beforeAll(() => {
+beforeEach(() => {
     global.browser = {
         config: {},
         capabilities: {
@@ -225,7 +225,7 @@ describe('after', () => {
     })
 
     it('should set failures if error happend and bail is set', () => {
-        global.browser.config.bail = true
+        global.browser.config.mochaOpts = { bail: true }
         const updateSpy = jest.spyOn(service, '_update')
 
         service.after(1)
