@@ -1,6 +1,6 @@
 import { Writable } from 'stream'
 
-const DEFAULTS = {
+export const DEFAULTS = {
     /**
      * protocol of automation driver
      */
@@ -90,5 +90,3 @@ const DEFAULTS = {
         type: 'string'
     }
 }
-
-export { DEFAULTS }

@@ -3,6 +3,8 @@ import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
 import { initialisePlugin } from '@wdio/config'
 
+import { SUPPORTED_W3C_CAPABILITIES } from './constants'
+
 const log = logger('wdio-local-runner:utils')
 
 const MERGE_OPTIONS = { clone: false }
@@ -53,6 +55,27 @@ export function initialiseServices (config, caps) {
 }
 
 /**
+ * sanitizes capability properties that are not part of the protocol
+ * @param  {Object} caps  desired session capabilities
+ * @return {Object}       sanitized caps
+ */
+export function sanitizeCaps (caps) {
+    return Object.keys(caps).filter(key => (
+        /**
+         * allow standard capabilities
+         */
+        SUPPORTED_W3C_CAPABILITIES.includes(key) ||
+        /**
+         * allow extension capabilities
+         */
+        key.includes(':')
+    )).reduce((obj, key) => {
+        obj[key] = caps[key]
+        return obj
+    }, {})
+}
+
+/**
  * initialise browser instance depending whether remote or multiremote is requested
  */
 export async function initialiseInstance (config, capabilities, isMultiremote) {
@@ -61,12 +84,15 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
      */
     if (config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
-        return attach({ ...config, capabilities })
+        return attach({
+            ...config,
+            capabilities: sanitizeCaps(capabilities)
+        })
     }
 
     if (!isMultiremote) {
         log.debug('init remote session')
-        config.capabilities = capabilities
+        config.capabilities = sanitizeCaps(capabilities)
         return remote(config)
     }
 

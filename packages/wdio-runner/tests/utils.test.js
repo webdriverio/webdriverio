@@ -1,7 +1,7 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseServices, initialiseInstance } from '../src/utils'
+import { runHook, initialiseServices, initialiseInstance, sanitizeCaps } from '../src/utils'
 
 describe('utils', () => {
     describe('runHook', () => {
@@ -114,5 +114,38 @@ describe('utils', () => {
             multiremote.mockClear()
             remote.mockClear()
         })
+    })
+
+    it('sanitizeCaps', () => {
+        const validCaps = {
+            browserName: 'chrome',
+            browserVersion: 'latest',
+            platformName: 'macOS 10.13',
+            acceptInsecureCerts: false,
+            pageLoadStrategy: 'foobar',
+            proxy: { foo: 'bar' },
+            setWindowRect: true,
+            timeouts: { bar: 'foo' },
+            unhandledPromptBehavior: 'foobar',
+            'goog:chromeOptions': { foobar: 123 },
+            'moz:firefoxOptions': { barfoo: 321 },
+            'sauce:options': {
+                extendedDebugging: false
+            }
+        }
+
+        const invalidCaps = {
+            version: 'latest',
+            platform: 'Windows 10',
+            chromeOptions: { foobar: 123 },
+            firefoxOptions: { barfoo: 321 },
+            extendedDebugging: true,
+            invalid: 'cap'
+        }
+
+        expect(sanitizeCaps({
+            ...invalidCaps,
+            ...validCaps
+        })).toEqual(validCaps)
     })
 })
