@@ -53,6 +53,14 @@ blockquote {
     font-weight: 300;
 }
 
+.blog iframe {
+    margin-left: 0;
+}
+
+.blog a img {
+    display: inline;
+}
+
 .mainContainer article p img[alt^='Support'] {
     width: 20px;
     margin-right: 5px;
