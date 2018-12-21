@@ -1,9 +1,7 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
-import { initialisePlugin } from '@wdio/config'
-
-import { SUPPORTED_W3C_CAPABILITIES } from './constants'
+import { initialisePlugin, DEFAULT_CONFIGS } from '@wdio/config'
 
 const log = logger('wdio-local-runner:utils')
 
@@ -55,20 +53,16 @@ export function initialiseServices (config, caps) {
 }
 
 /**
- * sanitizes capability properties that are not part of the protocol
+ * sanitizes wdio config from capability properties
  * @param  {Object} caps  desired session capabilities
  * @return {Object}       sanitized caps
  */
 export function sanitizeCaps (caps) {
     return Object.keys(caps).filter(key => (
         /**
-         * allow standard capabilities
+         * filter out all wdio config keys
          */
-        SUPPORTED_W3C_CAPABILITIES.includes(key) ||
-        /**
-         * allow extension capabilities
-         */
-        key.includes(':')
+        !Object.keys(DEFAULT_CONFIGS).includes(key)
     )).reduce((obj, key) => {
         obj[key] = caps[key]
         return obj

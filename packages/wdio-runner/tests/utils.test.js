@@ -120,27 +120,12 @@ describe('utils', () => {
         const validCaps = {
             browserName: 'chrome',
             browserVersion: 'latest',
-            platformName: 'macOS 10.13',
-            acceptInsecureCerts: false,
-            pageLoadStrategy: 'foobar',
-            proxy: { foo: 'bar' },
-            setWindowRect: true,
-            timeouts: { bar: 'foo' },
-            unhandledPromptBehavior: 'foobar',
-            'goog:chromeOptions': { foobar: 123 },
-            'moz:firefoxOptions': { barfoo: 321 },
-            'sauce:options': {
-                extendedDebugging: false
-            }
+            platformName: 'macOS 10.13'
         }
 
         const invalidCaps = {
-            version: 'latest',
-            platform: 'Windows 10',
-            chromeOptions: { foobar: 123 },
-            firefoxOptions: { barfoo: 321 },
-            extendedDebugging: true,
-            invalid: 'cap'
+            maxInstances: 123,
+            specs: ['./foo.test.js', './bar.test.js']
         }
 
         expect(sanitizeCaps({
