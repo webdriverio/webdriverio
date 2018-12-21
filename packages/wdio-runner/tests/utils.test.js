@@ -98,17 +98,16 @@ describe('utils', () => {
         it('should create normal remote session', () => {
             initialiseInstance({
                 foo: 'bar'
-            }, [
-                {
-                    browserName: 'chrome',
-                    maxInstances: 123
-                }
-            ])
+            },
+            {
+                browserName: 'chrome',
+                maxInstances: 123
+            })
             expect(attach).toHaveBeenCalledTimes(0)
             expect(multiremote).toHaveBeenCalledTimes(0)
             expect(remote).toBeCalledWith({
                 foo: 'bar',
-                capabilities: [{ browserName: 'chrome' }]
+                capabilities: { browserName: 'chrome' }
             })
         })
 
