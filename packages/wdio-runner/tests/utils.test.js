@@ -99,7 +99,10 @@ describe('utils', () => {
             initialiseInstance({
                 foo: 'bar'
             }, [
-                { browserName: 'chrome' }
+                {
+                    browserName: 'chrome',
+                    maxInstances: 123
+                }
             ])
             expect(attach).toHaveBeenCalledTimes(0)
             expect(multiremote).toHaveBeenCalledTimes(0)

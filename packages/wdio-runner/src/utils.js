@@ -80,13 +80,13 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
         log.debug(`attach to session with id ${config.sessionId}`)
         return attach({
             ...config,
-            capabilities: sanitizeCaps(capabilities)
+            capabilities: capabilities
         })
     }
 
     if (!isMultiremote) {
         log.debug('init remote session')
-        config.capabilities = sanitizeCaps(capabilities)
+        config.capabilities = capabilities.map(sanitizeCaps)
         return remote(config)
     }
 
