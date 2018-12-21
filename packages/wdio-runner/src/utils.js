@@ -86,7 +86,7 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
 
     if (!isMultiremote) {
         log.debug('init remote session')
-        config.capabilities = capabilities.map(sanitizeCaps)
+        config.capabilities = sanitizeCaps(capabilities)
         return remote(config)
     }
 
