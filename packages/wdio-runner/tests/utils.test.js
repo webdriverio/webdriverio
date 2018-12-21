@@ -1,7 +1,7 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseServices, initialiseInstance } from '../src/utils'
+import { runHook, initialiseServices, initialiseInstance, sanitizeCaps } from '../src/utils'
 
 describe('utils', () => {
     describe('runHook', () => {
@@ -99,7 +99,10 @@ describe('utils', () => {
             initialiseInstance({
                 foo: 'bar'
             }, [
-                { browserName: 'chrome' }
+                {
+                    browserName: 'chrome',
+                    maxInstances: 123
+                }
             ])
             expect(attach).toHaveBeenCalledTimes(0)
             expect(multiremote).toHaveBeenCalledTimes(0)
@@ -114,5 +117,23 @@ describe('utils', () => {
             multiremote.mockClear()
             remote.mockClear()
         })
+    })
+
+    it('sanitizeCaps', () => {
+        const validCaps = {
+            browserName: 'chrome',
+            browserVersion: 'latest',
+            platformName: 'macOS 10.13'
+        }
+
+        const invalidCaps = {
+            maxInstances: 123,
+            specs: ['./foo.test.js', './bar.test.js']
+        }
+
+        expect(sanitizeCaps({
+            ...invalidCaps,
+            ...validCaps
+        })).toEqual(validCaps)
     })
 })

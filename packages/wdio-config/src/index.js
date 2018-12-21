@@ -4,6 +4,7 @@ import {
     wrapCommand, runFnInFiberContext, runTestInFiberContext, executeHooksWithArgs,
     hasWdioSyncSupport
 } from './shim'
+import { DEFAULT_CONFIGS } from './constants'
 
 export {
     validateConfig,
@@ -19,5 +20,10 @@ export {
     runFnInFiberContext,
     runTestInFiberContext,
     executeHooksWithArgs,
-    hasWdioSyncSupport
+    hasWdioSyncSupport,
+
+    /**
+     * constants
+     */
+    DEFAULT_CONFIGS
 }
