@@ -53,6 +53,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             description.examples = [] // tbd
             description.returnTags = [] // tbd
             description.throwsTags = [] // tbd
+            description.protocolName = protocolName
             description.customEditUrl = `${config.repoUrl}/edit/master/packages/webdriver/protocol/${protocolName}.json`
 
             const protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`
