@@ -15,13 +15,28 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.0.2 (2018-12-22)
+
+#### :memo: Documentation
+* [#3163](https://github.com/webdriverio/webdriverio/pull/3163) Name mobile variable "driver" instead of "browser" ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
 
 
+## v5.0.1 (2018-12-21)
 
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#3162](https://github.com/webdriverio/webdriverio/pull/3162) wdio-runner: Fix looking at caps as an array ([@WillBrock](https://github.com/WillBrock))
 
+#### :memo: Documentation
+* [#3161](https://github.com/webdriverio/webdriverio/pull/3161) Update API.md ([@wobbleRed](https://github.com/wobbleRed))
 
-
-
+#### Committers: 2
+- Derek Allred ([@wobbleRed](https://github.com/wobbleRed))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
 
 ## v5.0.0 (2018-12-20)
 
