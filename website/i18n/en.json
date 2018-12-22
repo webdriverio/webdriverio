@@ -17,7 +17,6 @@
     "spec-reporter": "Spec Reporter",
     "sumologic-reporter": "Sumologic Reporter",
     "testingbot-service": "Testingbot Service",
-    "webdriver-mock-service": "Webdriver Mock Service",
     "api": "API Docs",
     "api/appium": "Appium",
     "api/browser/$": "$",
