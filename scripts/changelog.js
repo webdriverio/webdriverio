@@ -15,6 +15,13 @@ const root = path.resolve(__dirname, '..')
 const { version } = require(path.join(root,'lerna.json'))
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
+if (!process.env.GITHUB_AUTH) {
+    throw new Error(
+        'Please export a "GITHUB_AUTH" access token to generate the changelog.\n' +
+        'See also https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#release-new-version'
+    )
+}
+
 const config = load({ nextVersionFromMetadata: false })
 config.nextVersion = version
 const changelog = new Changelog(config)
