@@ -44,7 +44,7 @@
     "cli-spinners": "^1.1.0",
     "deepmerge": "^2.0.1",
     "ejs": "^2.5.7",
-    "inquirer": "^4.0.1",
+    "inquirer": "^6.2.1",
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
