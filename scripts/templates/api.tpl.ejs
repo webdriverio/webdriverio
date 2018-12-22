@@ -16,7 +16,7 @@ title: <?= method.command ?>
 ##### Usage
 
 ```js
-browser.<?= method.command ?>(<?= method.paramString ?>)
+<?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)
 ```
 
 <? if (method.paramTags.length) { ?>
