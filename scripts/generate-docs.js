@@ -24,7 +24,7 @@ const PROTOCOL_NAMES = {
     mjsonwp: 'Mobile JSON Wire Protocol',
     webdriver: 'Webdriver Protocol'
 }
-
+const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
 const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
     formatter: formatter,
@@ -53,7 +53,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             description.examples = [] // tbd
             description.returnTags = [] // tbd
             description.throwsTags = [] // tbd
-            description.protocolName = protocolName
+            description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
             description.customEditUrl = `${config.repoUrl}/edit/master/packages/webdriver/protocol/${protocolName}.json`
 
             const protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`

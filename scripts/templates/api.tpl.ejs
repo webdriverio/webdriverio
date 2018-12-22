@@ -16,7 +16,7 @@ title: <?= method.command ?>
 ##### Usage
 
 ```js
-<?= protocolName === 'appium' ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)
+<?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)
 ```
 
 <? if (method.paramTags.length) { ?>
