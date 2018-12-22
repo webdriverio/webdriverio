@@ -101,7 +101,7 @@ for (const [scope, files] of Object.entries(COMMANDS)) {
     for (const file of files) {
         const docDir = path.join(__dirname, '..', 'docs', 'api', scope)
         if (!fs.existsSync(docDir)){
-            fs.mkdirSync(docDir);
+            fs.mkdirSync(docDir)
         }
 
         const filepath = path.join(COMMAND_DIR, scope, file)
@@ -143,9 +143,9 @@ const packages = getSubPackages()
 for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
     const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
     for (const pkg of pkgs) {
-        const name = pkg.split("-").slice(1,-1)
+        const name = pkg.split('-').slice(1,-1)
         const id = `${name.join('-')}-${type}`
-        const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(" ")
+        const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
         const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'Readme.md')).toString()
         const preface = [
             '---',
