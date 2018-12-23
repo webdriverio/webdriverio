@@ -45,8 +45,12 @@ export function initialiseServices (config, caps) {
         }
 
         log.debug(`initialise wdio service "${serviceName}"`)
-        const Service = initialisePlugin(serviceName, 'service')
-        initialisedServices.push(new Service(config, caps))
+        try {
+            const Service = initialisePlugin(serviceName, 'service')
+            initialisedServices.push(new Service(config, caps))
+        } catch(e) {
+            log.error(e)
+        }
     }
 
     return initialisedServices
