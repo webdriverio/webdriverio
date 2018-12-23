@@ -56,14 +56,15 @@ export default class Runner extends EventEmitter {
 
         await runHook('beforeSession', this.config, this.caps, this.specs)
         const browser = await this._initSession(this.config, this.caps, testData)
-        const isMultiremote = Boolean(browser.isMultiremote)
-
+ 
         /**
          * return if session initialisation failed
          */
         if (!browser) {
             return this._shutdown(1)
         }
+
+        const isMultiremote = Boolean(browser.isMultiremote)
 
         /**
          * kill session of SIGINT signal showed up while trying to

@@ -15,15 +15,15 @@
     "test": "run-s test:*",
     "test:eslint": "eslint packages examples scripts",
     "test:coverage": "jest --coverage --detectOpenHandles",
-    "test:wdio:sync": "wdio ./test/wdio.conf.js --spec=./test/specs/sync.spec.js",
-    "test:wdio:async": "wdio ./test/wdio.conf.js --spec=./test/specs/async.spec.js",
+    "test:smoke": "babel-node ./tests/smoke.runner.js",
     "version": "node ./scripts/changelog.js && git add CHANGELOG.md",
     "watch": "node ./scripts/watch",
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
   "devDependencies": {
-    "@babel/cli": "^7.1.2",
+    "@babel/cli": "^7.2.3",
     "@babel/core": "^7.1.2",
+    "@babel/node": "^7.2.2",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/plugin-proposal-export-default-from": "^7.0.0",
     "@babel/plugin-proposal-function-bind": "^7.0.0",
@@ -54,6 +54,7 @@
     "testMatch": [
       "/**/tests/**/*.test.js"
     ],
+    "testPathIgnorePatterns": ["<rootDir>/tests/", "<rootDir>/node_modules/"],
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "coverageThreshold": {
