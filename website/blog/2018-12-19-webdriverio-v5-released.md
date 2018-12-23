@@ -55,7 +55,7 @@ elem.url('https://webdriver.io') // throws because the url command is scoped on 
 
 We already had an automated system that generated the docs for our website. As part of the new architecture and tech stack we however ported this from [Hexo](https://hexo.io/) to [Docusaurus](https://docusaurus.io/).<br>
 <br>
-We are still in the process of finalising this effort, as we want to continue providing everyone a way to easily [change the version](https://github.com/webdriverio/webdriverio/issues/3147) of the docs. We are also looking into [providing multiple translations](https://github.com/webdriverio/webdriverio/issues/3148) of the docs so that people who don't speak english can better understand and use WebdriverIO. Please reach out to us on [Twitter](https://twitter.com/webdriverio), or directly on the issue thread if you want to help out. This is is probably one of the best ways to get involved into an open source project.
+We are still in the process of finalising this effort, as we want to continue providing everyone a way to easily [change the version](https://github.com/webdriverio/webdriverio/issues/3147) of the docs. We are also looking into [providing multiple translations](https://github.com/webdriverio/webdriverio/issues/3148) of the docs so that people who don't speak english can better understand and use WebdriverIO. Please reach out to us on [Twitter](https://twitter.com/webdriverio), or directly on the issue thread if you want to help out. This is probably one of the best ways to get involved into an open source project.
 
 ## How To Upgrade To v5
 
@@ -71,14 +71,14 @@ Every project is different, so it is impossible to have one single guide for eve
 - install the new wdio testrunner: `$ npm install @wdio/cli --save-dev`
 - if you have a `wdio.conf.js` in your root directory, create a backup: `$ cp wdio.conf.js wdio_backup.conf.js`
 - rerun the configuration wizard: `$ ./node_modules/.bin/wdio config`
-- merge custom modifications of your old `wdio_backup.conf.js` into your new config file. Don't merge everything at once - just begin with the basic setup using no services and just the e.g. spec reporter to run tests locally and work torwards a full migration.
+- merge custom modifications of your old `wdio_backup.conf.js` into your new config file. Don't merge everything at once - just begin with the basic setup using no services and just the e.g. spec reporter to run tests locally and work torwards a full migration
 - take the simplest test in your suite and rename the commands according to the changelog
 - have your log directory set in your config (e.g. `logDir: __dirname`) to ensure you can see everything that is going on including errors (you can later set it to a proper log directory)
 - attempt to run the the test suite you modified `$ ./node_modules/.bin/wdio wdio.config.js --spec ./path/to/modified/test.js`
 - repeat on your remaining test files
-- add reporters and services back into your `wdio.conf.js`, and see if they work as expected (__Note:__ it is possible that services or reporters that you have used aren't ported to v5 yet, if so, please raise an issue in the repository if that community package or try to port it)
+- add reporters and services back into your `wdio.conf.js`, and see if they work as expected (__Note:__ it is possible that services or reporters that you have used aren't ported to v5 yet, if so, please raise an issue in the repository of that community package or try to port it)
 
-<br>If you have issues porting your test suite, check the issues thread to see if someone has already reported the same problem; and then reach out to us on our gitter channel. We may have missed porting/ not yet ported a functionality that you have been using in your test. Thanks to the new project structure, we can quickly fix this and provide an update version for you!<br>
+<br>If you have issues porting your test suite, check the issues thread to see if someone has already reported the same problem; and then reach out to us on our gitter channel. We may have missed porting / not yet ported a functionality that you have been using in your test. Thanks to the new project structure, we can quickly fix this and provide an update version for you!<br>
 <br>
 We will release further blog articles in our new blog with tutorials on how to upgrade WebdriverIO to v5 soon. You can also checkout the excellent [video series](https://www.youtube.com/watch?v=MO8xeC-w2Og&list=PL8HowI-L-3_9Ep7lxVrRDF-az5ku4sur_) from our beloved [Will Brock](https://twitter.com/willbrock) on the new release. An update to the [WebdriverIO Learning Course](https://learn.webdriver.io/) is also already in work.
 
@@ -88,7 +88,7 @@ We didn't put put all this hard work into the project to end here. Instead, we j
 
 <br><blockquote class="twitter-tweet" data-lang="de"><p lang="en" dir="ltr">To ensure that <a href="https://twitter.com/webdriverio?ref_src=twsrc%5Etfw">@webdriverio</a> is always conforming to the <a href="https://twitter.com/hashtag/WebDriver?src=hash&amp;ref_src=twsrc%5Etfw">#WebDriver</a> standard, it will sends its representatives directly to the <a href="https://twitter.com/w3c?ref_src=twsrc%5Etfw">@w3c</a> TPAC meetings so you can use the latest features as soon as they are available 🙌🏻 <a href="https://t.co/oJbHPn99Oc">pic.twitter.com/oJbHPn99Oc</a></p>&mdash; WebdriverIO (@webdriverio) <a href="https://twitter.com/webdriverio/status/1055813210480238593?ref_src=twsrc%5Etfw">26. Oktober 2018</a></blockquote><br>
 
-After the release, we will be begin working on a detailed roadmap for the next year that allows you to participate in the progress and help us priorizing features.
+After the release, we will be begin working on a detailed roadmap for the next year that allows you to participate in the progress and help us prioritizing features.
 
 ## An Open Source Project Made With ❤️
 
@@ -96,7 +96,7 @@ Before I close up this blog post, I want to address that WebdriverIO is an open 
 
 <blockquote>"[...] I can only describe it as dread when seeing a message from someone online wondering why something hasn't been released while another asks why this bug isn't fixed yet. I want to just rush it out and be done with it but I also have a desire to take this seriously."</blockquote>
 
-Please always be reminded that when you open an issue or ask for a feature that you are basically asking someone to spend his time on something to give you exactly that for free! Open source project can only work and survive if everyone participates and helps out with something. We are all humans and bugs happen, if you find them, please let us know in a way that we can easily work with the information and quickly fix it. It's even better if everyone once in a while takes sometime of his day to contribute back. We are maintaining [a list](https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+pick%22) of well described issues that anyone can claim and start working on.<br>
+Please always be reminded that when you open an issue or ask for a feature that you are basically asking someone to spend his time on something to give you exactly that for free! Open source project can only work and survive if everyone participates and helps out with something. We are all humans and bugs happen, if you find them, please let us know in a way that we can easily work with the information and quickly fix it. It's even better if everyone once in a while takes some time of his day to contribute back. We are maintaining [a list](https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+pick%22) of well described issues that anyone can claim and start working on.<br>
 <br>
 Again, this project is not sponsored nor owned by any company. It is a collaborative effort of an inclusive community that loves to help each other out. Let's continue to stay exactly that!
 
@@ -108,7 +108,7 @@ I personally want to thank [Kevin Lamping](https://twitter.com/klamping) for mak
 
 I want to thank everyone who has been deeply involved in the support channel helping people out on daily basis. With over 3500 users it became impossible for me to answer everyone on the level I did before. Thank you [Erwin Heitzman](https://github.com/erwinheitzman), [Tu Huynh](https://twitter.com/TuHuynh62224168), [Jim Davis](https://twitter.com/fijijavis), [Xu Cao](https://github.com/caoxu2000), [Boris Osipov](https://github.com/BorisOsipov) and [Wim Selles](https://twitter.com/wswebcreation).
 
-Big shoutout do [Daniel Chivescu](https://twitter.com/iamdanchiv) and [Josh Cypher](https://twitter.com/joshuacypher) who have been giving talks on WebdriverIO around the world.<br>
+Big shoutout to [Daniel Chivescu](https://twitter.com/iamdanchiv) and [Josh Cypher](https://twitter.com/joshuacypher) who have been giving talks on WebdriverIO around the world.<br>
 <br>
 And last but not least thank you [Adam Bjerstedt](https://github.com/abjerstedt), who has not only been helping out in the community channel; but also for helping to push out the v5 release at the end.<br>
 <br>
