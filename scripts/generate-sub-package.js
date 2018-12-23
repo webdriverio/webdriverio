@@ -70,6 +70,9 @@ inquirer.prompt(questions).then(answers => {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }`
         },
