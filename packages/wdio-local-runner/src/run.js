@@ -8,6 +8,13 @@ import { SHUTDOWN_TIMEOUT } from './constants'
 const log = logger('wdio-local-runner')
 
 const runner = new Runner()
+runner.on('exit', ::process.exit)
+runner.on('error', ({ name, message, stack }) => process.send({
+    origin: 'worker',
+    name: 'error',
+    content: { name, message, stack }
+}))
+
 process.on('message', (m) => {
     if (!m || !m.command) {
         return log.info('Ignore message for worker:', m)
@@ -28,13 +35,6 @@ process.on('message', (m) => {
             process.exit(1)
         }
     )
-
-    runner.on('exit', ::process.exit)
-    runner.on('error', ({ name, message, stack }) => process.send({
-        origin: 'worker',
-        name: 'error',
-        content: { name, message, stack }
-    }))
 })
 
 /**

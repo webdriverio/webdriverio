@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+
 import refetchElement from './utils/refetchElement'
 
 const log = logger('webdriverio')
@@ -10,7 +11,7 @@ const log = logger('webdriverio')
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
-    return async function (...args) {
+    return function (...args) {
         /**
          * wait on element if:
          *  - elementId couldn't be fetched in the first place
@@ -22,33 +23,49 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
                 'that wasn\'t found, waiting for it...'
             )
 
-            /**
-             * create new promise so we can apply a custom error message in cases waitForExist fails
-             */
-            try {
-                await this.waitForExist()
-            } catch {
-                throw new Error(
-                    `Can't call ${commandName} on element with selector "${this.selector}" because element wasn't found`)
-            }
-
-            /**
-             * if waitForExist was successful requery element and assign elementId to the scope
-             */
-            const element = await this.parent.$(this.selector)
-            this.elementId = element.elementId
+            return fn(commandName, () => {
+                /**
+                 * create new promise so we can apply a custom error message in cases waitForExist fails
+                 */
+                return new Promise((resolve, reject) => this.waitForExist().then(resolve, reject)).then(
+                    /**
+                     * if waitForExist was successful requery element and assign elementId to the scope
+                     */
+                    () => {
+                        return this.parent.$(this.selector).then((elem) => {
+                            this.elementId = elem.elementId
+                            return fn(commandName, commandFn).apply(this, args)
+                        })
+                    },
+                    /**
+                     * if waitForExist failes throw custom error
+                     */
+                    () => {
+                        throw new Error(`Can't call ${commandName} on element with selector "${this.selector}" because element wasn't found`)
+                    }
+                )
+            }).apply(this)
         }
 
         try {
-            return await fn(commandName, commandFn).apply(this, args)
-        } catch(error) {
+            return fn(commandName, commandFn).apply(this, args)
+        } catch (error) {
+            /**
+             * refetch element ids when stale element reference execption was thrown
+             */
             if (error.message.includes('stale element reference')) {
-                const element = await refetchElement(this)
-                this.elementId = element.elementId
-                this.parent = element.parent
+                return refetchElement(this).then((element) => {
+                    this.elementId = element.elementId
+                    this.parent = element.parent
 
-                return await fn(commandName, commandFn).apply(this, args)
+                    return fn(commandName, commandFn).apply(this, args)
+                })
             }
+
+            /**
+             * add other post command handlings here
+             */
+
             throw error
         }
     }
