@@ -59,4 +59,9 @@ export default class CLInterface {
     write (message) {
         this.out(message)
     }
+
+    reset () {
+        process.stdout.write = this.out
+        process.stderr.write = this.err
+    }
 }
