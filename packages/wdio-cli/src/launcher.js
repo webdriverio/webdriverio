@@ -327,6 +327,7 @@ class Launcher {
         if (passed) {
             return process.nextTick(() => {
                 this.interface.updateView()
+                this.interface.reset()
                 setTimeout(() => this.resolve(this.exitCode), 100)
             })
         }
@@ -336,6 +337,7 @@ class Launcher {
          */
         return process.nextTick(() => {
             this.interface.updateView()
+            this.interface.reset()
             setTimeout(() => this.resolve(1), 100)
         })
     }

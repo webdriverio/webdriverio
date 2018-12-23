@@ -14,7 +14,7 @@ export const DEFAULT_CONFIGS = {
     baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,
-    waitforTimeout: 1000,
+    waitforTimeout: 5000,
     framework: 'mocha',
     reporters: [],
     maxInstances: 100,
