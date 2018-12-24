@@ -7,15 +7,15 @@
  * <example>
     :url.js
     // navigate to a new URL
-    browser.url('http://webdriver.io');
+    browser.url('https://webdriver.io');
     // receive url
-    console.log(browser.getCurrentUrl()); // outputs: "http://webdriver.io"
+    console.log(browser.getCurrentUrl()); // outputs: "https://webdriver.io"
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
     // When providing a scheme:
-    // http://webdriver.io
-    browser.url('http://webdriver.io');
+    // https://webdriver.io
+    browser.url('https://webdriver.io');
     // When not starting with a slash, the URL resolves relative to the baseUrl
     // http://example.com/site/relative
     browser.url('relative');
