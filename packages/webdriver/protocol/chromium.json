@@ -13,7 +13,7 @@
       "parameters": [{
         "name": "enabled",
         "type": "Boolean",
-        "description": "undocumented parameter",
+        "description": "true if auto reporting should be enabled",
         "required": true
       }]
     }
@@ -21,7 +21,7 @@
   "/session/:sessionId/is_loading": {
     "GET": {
       "command": "isLoading",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Returns true/false if the active window handle is loading or not.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/session_commands.cc#L732-L751",
       "parameters": []
     }
@@ -29,7 +29,7 @@
   "/session/:sessionId/chromium/heap_snapshot": {
     "GET": {
       "command": "takeHeapSnapshot",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Take a heap snapshot of the current execution context.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L1585-L1591",
       "parameters": []
     }
@@ -37,13 +37,13 @@
   "/session/:sessionId/network_connection": {
     "GET": {
       "command": "getNetworkConnection",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Get the current network connection.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L581-L582",
       "parameters": []
     },
     "POST": {
       "command": "setNetworkConnection",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Set network connection.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L587-L589",
       "parameters": [{
         "name": "connection_type",
@@ -125,7 +125,7 @@
   "/session/:sessionId/file": {
     "POST": {
       "command": "uploadFile",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Upload a file to remote machine on which the browser is running.",
       "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L1037-L1065",
       "parameters": [{
         "name": "file",
@@ -138,7 +138,7 @@
   "/session/:sessionId/chromium/launch_app": {
     "POST": {
       "command": "launchApp",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Launch chrome app.",
       "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L521-L539",
       "parameters": [{
         "name": "id",
@@ -151,7 +151,7 @@
   "/session/:sessionId/element/:elementId/hover": {
     "POST": {
       "command": "hoverOverElement",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Hover over an element.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/element_commands.cc#L117-L137",
       "variables": [{
         "name": "elementId",
@@ -162,7 +162,7 @@
   "/session/:sessionId/element/:elementId/equals/:otherElementId": {
     "POST": {
       "command": "elementEquals",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Compare elements with each other.",
       "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L521-L539",
       "variables": [{
         "name": "elementId",
@@ -176,7 +176,7 @@
   "/session/:sessionId/touch/pinch": {
     "POST": {
       "command": "launchApp",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "Trigger a pinch zoom effect.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L903-L917",
       "parameters": [{
         "name": "x",

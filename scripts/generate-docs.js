@@ -24,7 +24,7 @@ const PROTOCOL_NAMES = {
     jsonwp: 'JSON Wire Protocol',
     mjsonwp: 'Mobile JSON Wire Protocol',
     webdriver: 'Webdriver Protocol',
-    chromium: 'Chromium Commands'
+    chromium: 'Chromium'
 }
 const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
 const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')
