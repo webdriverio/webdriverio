@@ -135,14 +135,14 @@ exports.config = {
     //
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
     framework: 'mocha',
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
+    // see also: https://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
     reporters: [
         'dot',
         ['allure', {

@@ -2,7 +2,7 @@
   "name": "webdriverio",
   "description": "Next-gen WebDriver test automation framework for Node.js",
   "version": "5.0.3",
-  "homepage": "http://webdriver.io",
+  "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
   "main": "./build/index.js",
