@@ -4,12 +4,13 @@ import { validateConfig } from '@wdio/config'
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, isW3CSession } from './utils'
+import { getPrototype, isW3CSession, isChromiumSession } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
+import ChromiumProtocol from '../protocol/chromium.json'
 
 export default class WebDriver {
     static async newSession (options = {}, modifier, proto = {}, commandWrapper) {
@@ -51,9 +52,9 @@ export default class WebDriver {
          * save actual receveived session details
          */
         params.capabilities = response.value.capabilities || response.value
-        params.isW3C = isW3CSession(response.value)
+        params.isW3C = isW3CSession(params.capabilities)
 
-        const prototype = Object.assign(getPrototype(params.isW3C), proto)
+        const prototype = Object.assign(getPrototype(params.isW3C, isChromiumSession(params.capabilities)), proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
@@ -96,6 +97,9 @@ export default class WebDriver {
     }
     static get AppiumProtocol () {
         return AppiumProtocol
+    }
+    static get ChromiumProtocol () {
+        return ChromiumProtocol
     }
 }
 
