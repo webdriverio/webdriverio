@@ -9,7 +9,7 @@
         // open url
         browser.url('https://google.com')
         // create new window
-        browser.newWindow('http://webdriver.io')
+        browser.newWindow('https://webdriver.io')
 
         // switch back via url match
         browser.switchWindow('google.com')

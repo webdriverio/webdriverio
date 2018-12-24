@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="http://webdriver.io/">
+    <a href="https://webdriver.io/">
         <img alt="WebdriverIO" src="http://www.christian-bromann.com/wdio.png" width="546">
     </a>
 </p>
@@ -23,9 +23,9 @@
 ***
 
 <p align="center">
-    <a href="http://webdriver.io">Homepage</a> |
-    <a href="http://webdriver.io/guide.html">Developer Guide</a> |
-    <a href="http://webdriver.io/docs/api.html">API Reference</a> |
+    <a href="https://webdriver.io">Homepage</a> |
+    <a href="https://webdriver.io/guide.html">Developer Guide</a> |
+    <a href="https://webdriver.io/docs/api.html">API Reference</a> |
     <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a>
 </p>
 
@@ -79,4 +79,3 @@ We are trying to put up a proper roadmap for the beta release. Until then please
 
 - [@wdio/local-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
 - [@wdio/lambda-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on AWS using Lambda functions
-
