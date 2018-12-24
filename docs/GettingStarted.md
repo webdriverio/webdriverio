@@ -73,7 +73,7 @@ const { remote } = require('webdriverio');
         }
     });
 
-    await browser.url('http://webdriver.io');
+    await browser.url('https://webdriver.io');
 
     const title = await browser.getTitle();
     console.log('Title was: ' + title);
@@ -174,7 +174,7 @@ const assert = require('assert');
 
 describe('webdriver.io page', () => {
     it('should have the right title', () => {
-        browser.url('http://webdriver.io');
+        browser.url('https://webdriver.io');
         const title = browser.getTitle();
         assert.equal(title, 'WebdriverIO - WebDriver bindings for Node.js');
     });

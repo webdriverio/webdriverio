@@ -47,7 +47,7 @@ export default function deleteCookies(names) {
     }
 
     if (namesList.every(obj => typeof obj !== 'string')) {
-        return Promise.reject(new Error('Invalid input (see http://webdriver.io/docs/api/browser/deleteCookies.html for documentation.'))
+        return Promise.reject(new Error('Invalid input (see https://webdriver.io/docs/api/browser/deleteCookies.html for documentation.'))
     }
 
     return Promise.all(namesList.map(name => this.deleteCookie(name)))

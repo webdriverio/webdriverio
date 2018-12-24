@@ -12,7 +12,7 @@
         browser.url('http://google.com')
         console.log(browser.getTitle()) // outputs: "Google"
 
-        browser.newWindow('http://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
+        browser.newWindow('https://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
         console.log(browser.getTitle()) // outputs: "WebdriverIO - WebDriver bindings for Node.js"
 
         browser.close()
