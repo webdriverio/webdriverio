@@ -112,7 +112,7 @@ test('getFailedCount', () => {
     expect(jasmineReporter.getFailedCount()).toBe(1)
 })
 
-test('do not clean stack option', () => {
+test.only('do not clean stack option', () => {
     const error = new Error('foobar')
     error.stack += '\n\tat foobar (/foo/bar/node_modules/package/test.js)'
     const error2 = new Error('foobar2')
