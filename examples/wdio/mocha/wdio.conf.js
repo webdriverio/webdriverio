@@ -25,9 +25,9 @@ exports.config = {
     logLevel: 'trace',
     coloredLogs: true,
     framework: 'mocha',
-    logDir: __dirname,
+    // logDir: __dirname,
 
-    reporters: ['spec'],
+    reporters: ['spec', 'dot', 'junit'],
 
     mochaOpts: {
         ui: 'bdd',
