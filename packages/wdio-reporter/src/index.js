@@ -14,7 +14,9 @@ export default class WDIOReporter extends EventEmitter {
     constructor (options) {
         super()
         this.options = options
-        this.outputStream = this.options.stdout ? options.writeStream : fs.createWriteStream(this.options.logFile)
+        this.outputStream = this.options.stdout || !this.options.logFile
+            ? options.writeStream
+            : fs.createWriteStream(this.options.logFile)
         this.failures = []
         this.suites = {}
         this.hooks = {}

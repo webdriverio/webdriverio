@@ -11,7 +11,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             global.browser = { sessionId: '123' }
 
-            const result = await runner._fetchDriverLogs({ logDir: '/foo/bar' })
+            const result = await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
             expect(result).toBe(undefined)
         })
 
@@ -25,7 +25,7 @@ describe('wdio-runner', () => {
                 sessionId: '123'
             }
 
-            await runner._fetchDriverLogs({ logDir: '/foo/bar' })
+            await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
             expect(fs.writeFile.mock.calls[0]).toEqual(['/foo/bar/wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
             expect(fs.writeFile.mock.calls[1]).toEqual(['/foo/bar/wdio-0-1-bar.log', '"#1 bar log"\n"#2 bar log"', 'utf-8'])
             fs.writeFile.mockClear()
@@ -41,7 +41,7 @@ describe('wdio-runner', () => {
                 sessionId: '123'
             }
 
-            await runner._fetchDriverLogs({ logDir: '/foo/bar' })
+            await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
             expect(fs.writeFile.mock.calls).toHaveLength(0)
         })
 

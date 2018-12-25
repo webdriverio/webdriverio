@@ -64,4 +64,11 @@ describe('WDIOReporter', () => {
             resolve()
         }))
     })
+
+    it('should not create log file if not file name is given', () => {
+        const options = { writeStream: { write: jest.fn() } }
+        const reporter = new WDIOReporter(options)
+        reporter.write('foobar')
+        expect(options.writeStream.write).toBeCalledWith('foobar')
+    })
 })

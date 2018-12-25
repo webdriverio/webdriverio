@@ -104,7 +104,7 @@ exports.config = {
     logLevel: 'info',
     //
     // Set directory to store all logs into
-    logDir: __dirname,
+    outputDir: __dirname,
     //
     // Enables colors for log output.
     coloredLogs: true,
@@ -125,24 +125,6 @@ exports.config = {
     // Default timeout for all waitFor* commands.
     waitforTimeout: 1000,
     //
-    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as properties. Make sure you have
-    // the plugin installed before running any tests. The following plugins are currently
-    // available:
-    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
-    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
-    // Browserevent: https://github.com/webdriverio/browserevent
-    plugins: {
-        webdrivercss: {
-            screenshotRoot: 'my-shots',
-            failedComparisonsRoot: 'diffs',
-            misMatchTolerance: 0.05,
-            screenWidth: [320,480,640,1024]
-        },
-        webdriverrtc: {},
-        browserevent: {}
-    },
-    //
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
     // see also: https://webdriver.io/docs/frameworks.html
@@ -160,7 +142,7 @@ exports.config = {
             //
             // If you are using the "allure" reporter you should define the directory where
             // WebdriverIO should save all allure reports.
-            outputDir: './'
+            outputDir: './allureReports'
         }]
     ],
     //
