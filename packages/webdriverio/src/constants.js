@@ -97,7 +97,7 @@ export const WDIO_DEFAULTS = {
      *  'dot',
      *  {
      *    name: 'spec',
-     *    outputDir: __dirname + '/reports'
+     *    logDir: __dirname + '/reports'
      *  }
      * ]
      */

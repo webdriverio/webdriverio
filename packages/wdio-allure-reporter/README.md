@@ -31,14 +31,14 @@ Configure the output directory in your wdio.conf.js file:
 exports.config = {
     // ...
     reporters: [['allure', {
-        outputDir: 'allure-results',
+        logDir: 'allure-results',
         disableWebdriverStepsReporting: true,
         disableWebdriverScreenshotsReporting: true,
     }]],
     // ...
 }
 ```
-- `outputDir` defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
+- `logDir` defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
 - `disableWebdriverStepsReporting` - optional parameter(`false` by default), in order to log only custom steps to the reporter.
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
 

@@ -9,7 +9,7 @@ class AllureReporter extends WDIOReporter {
         super(options)
         this.config = {}
         this.allure = new Allure()
-        this.allure.setOptions({targetDir: options.outputDir || 'allure-results'})
+        this.allure.setOptions({targetDir: options.logDir || 'allure-results'})
         this.registerListeners()
     }
 

@@ -240,7 +240,7 @@ This version comes with a variety of technical changes that might affect the fun
     'spec',
     [
       'junit',
-      { outputDir: __dirname + '/junit_logs' }
+      { logDir: __dirname + '/junit_logs' }
     ]
   ],
   // ...

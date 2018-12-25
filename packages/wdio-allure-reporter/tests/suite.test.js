@@ -17,11 +17,11 @@ afterAll(() => {
 })
 
 describe('Passing tests', () => {
-    const outputDir = directory()
+    const logDir = directory()
     let allureXml
 
     beforeAll(() => {
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({stdout: true, logDir})
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -41,13 +41,13 @@ describe('Passing tests', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         allureXml = results[0]
     })
 
     afterAll(() => {
-        clean(outputDir)
+        clean(logDir)
     })
 
     it('should report one suite', () => {
@@ -103,19 +103,19 @@ describe('Passing tests', () => {
 })
 
 describe('Failed tests', () => {
-    let outputDir
+    let logDir
     let allureXml
 
     beforeEach(() => {
-        outputDir = directory()
+        logDir = directory()
     })
 
     afterEach(() => {
-        clean(outputDir)
+        clean(logDir)
     })
 
     it('should detect failed test case', () => {
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({stdout: true, logDir})
 
         const runnerEvent = runnerStart()
         delete runnerEvent.config.capabilities.browserName
@@ -128,7 +128,7 @@ describe('Failed tests', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         allureXml = results[0]
 
@@ -140,7 +140,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case without start event', () => {
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({stdout: true, logDir})
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -148,7 +148,7 @@ describe('Failed tests', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         allureXml = results[0]
 
@@ -159,15 +159,15 @@ describe('Failed tests', () => {
 })
 
 describe('Pending tests', () => {
-    let outputDir
+    let logDir
 
     afterEach(() => {
-        clean(outputDir)
+        clean(logDir)
     })
 
     it('should detect started pending test case', () => {
-        outputDir = directory()
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        logDir = directory()
+        const reporter = new AllureReporter({stdout: true, logDir})
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -176,7 +176,7 @@ describe('Pending tests', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
 
@@ -185,8 +185,8 @@ describe('Pending tests', () => {
     })
 
     it('should detect not started pending test case', () => {
-        outputDir = directory()
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        logDir = directory()
+        const reporter = new AllureReporter({stdout: true, logDir})
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -194,7 +194,7 @@ describe('Pending tests', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
 
@@ -204,20 +204,20 @@ describe('Pending tests', () => {
 })
 
 describe('selenium command reporting', () => {
-    let outputDir
+    let logDir
 
     beforeEach(() => {
-        outputDir = directory()
+        logDir = directory()
     })
 
     afterEach(() => {
-        clean(outputDir)
+        clean(logDir)
     })
 
     it('should not add step if no tests started', () => {
         const allureOptions = {
             stdout: true,
-            outputDir
+            logDir
         }
         const reporter = new AllureReporter(allureOptions)
         reporter.onRunnerStart(runnerStart())
@@ -228,7 +228,7 @@ describe('selenium command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
 
@@ -238,7 +238,7 @@ describe('selenium command reporting', () => {
     it('should not add step if isMultiremote = true', () => {
         const allureOptions = {
             stdout: true,
-            outputDir
+            logDir
         }
         const reporter = new AllureReporter(allureOptions)
         reporter.onRunnerStart(Object.assign(runnerStart(), {isMultiremote: true}))
@@ -250,7 +250,7 @@ describe('selenium command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
 
@@ -260,7 +260,7 @@ describe('selenium command reporting', () => {
     it('should not add step if disableWebdriverStepsReporting = true', () => {
         const allureOptions = {
             stdout: true,
-            outputDir,
+            logDir,
             disableWebdriverStepsReporting: true
         }
         const reporter = new AllureReporter(allureOptions)
@@ -273,7 +273,7 @@ describe('selenium command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
 
@@ -283,7 +283,7 @@ describe('selenium command reporting', () => {
     it('should add step from selenium command', () => {
         const allureOptions = {
             stdout: true,
-            outputDir,
+            logDir,
         }
         const reporter = new AllureReporter(allureOptions)
         reporter.onRunnerStart(runnerStart())
@@ -295,7 +295,7 @@ describe('selenium command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
         expect(allureXml('step > name')).toHaveLength(1)
@@ -308,7 +308,7 @@ describe('selenium command reporting', () => {
     it('should not empty attach for step from selenium command', () => {
         const allureOptions = {
             stdout: true,
-            outputDir,
+            logDir,
         }
         const reporter = new AllureReporter(allureOptions)
         reporter.onRunnerStart(runnerStart())
@@ -322,7 +322,7 @@ describe('selenium command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
         expect(allureXml('step > name')).toHaveLength(1)
@@ -335,7 +335,7 @@ describe('selenium command reporting', () => {
     it('should add step with screenshot command', () => {
         const allureOptions = {
             stdout: true,
-            outputDir,
+            logDir,
         }
         const reporter = new AllureReporter(allureOptions)
         reporter.onRunnerStart(runnerStart())
@@ -347,7 +347,7 @@ describe('selenium command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
         expect(allureXml('step > name')).toHaveLength(1)
@@ -360,7 +360,7 @@ describe('selenium command reporting', () => {
     it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
         const allureOptions = {
             stdout: true,
-            outputDir,
+            logDir,
             disableWebdriverScreenshotsReporting: true
         }
         const reporter = new AllureReporter(allureOptions)
@@ -373,7 +373,7 @@ describe('selenium command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const results = getResults(outputDir)
+        const results = getResults(logDir)
         expect(results).toHaveLength(1)
         const allureXml = results[0]
         expect(allureXml('step > name')).toHaveLength(1)

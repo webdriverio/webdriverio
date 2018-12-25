@@ -275,19 +275,19 @@ export const QUESTIONNAIRE = [{
     when: (answers) => answers.services.length > 0
 }, {
     type: 'input',
-    name: 'outputDir',
+    name: 'logDir',
     message: 'In which directory should the xunit reports get stored?',
     default: './',
     when: (answers) => answers.reporters.includes('junit')
 }, {
     type: 'input',
-    name: 'outputDir',
+    name: 'logDir',
     message: 'In which directory should the json reports get stored?',
     default: './',
     when: (answers) => answers.reporters.includes('json')
 }, {
     type: 'input',
-    name: 'outputDir',
+    name: 'logDir',
     message: 'In which directory should the mochawesome json reports get stored?',
     default: './',
     when: (answers) => answers.reporters.includes('mochawesome')

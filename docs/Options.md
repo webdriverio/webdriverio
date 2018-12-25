@@ -109,6 +109,12 @@ An object describing various of suites that can be specified when applying the `
 Type: `Object`<br>
 Default: `{}`
 
+### logDir
+Directory to store all testrunner log files including reporter logs and `wdio` logs. If not set all logs are streamed to stdout. Since most reporters are made to log to stdout it is recommended to only use this option for specific reporters where it makes more sense to push report into a file (e.g. junit reporter).
+
+Type: `String`<br>
+Default: `null`
+
 ### baseUrl
 Shorten `url` command calls by setting a base url. If your `url` parameter starts with `/`, the base url gets prepended, not including the path portion of your baseUrl. If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url gets prepended directly.
 
@@ -138,20 +144,47 @@ Defines the test framework to be used by the wdio testrunner.
 
 Type: `String`<br>
 Default: `mocha`
-Options: `mocha` | `jasmine` | `cucumber`
+Options: `mocha` | `jasmine`
+
+### mochaOpts | jasmineNodeOpts
+
+Specific framework related options. See the framework adapter documentation on which options are available.
+
+Type: `Object`<br>
+Default: `{ timeout: 10000 }`
 
 ### reporters
 List of reporters to use. A reporter can be either a string or an array where the first element is a string with the reporter name and the second element an object with reporter options.
 
 Type: `String[]|Object[]`<br>
 Default: `[]`
+
 Example:
 ```js
 reporters: [
     'dot',
-    ['spec', {
-        outputDir: __dirname + '/reports',
+    'spec'
+    ['junit', {
+        logDir: __dirname + '/reports',
         otherOption: 'foobar'
     }]
 ]
+```
+
+### _Hooks_
+
+WebdriverIO allows you to set hooks to interfere into the test lifecycle in order to e.g. take screenshot if a test fails. Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). The following hooks are available: `onPrepare`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
+
+Type: `Function`<br>
+Default: `null`
+
+Example:
+```js
+// wdio.conf.js
+exports.config = {
+    // ...
+    afterTest: (test) => {
+        console.log(`Finished test "${test.parent} - ${test.title}"`);
+    }
+    // ...
 ```
