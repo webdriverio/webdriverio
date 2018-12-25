@@ -17,7 +17,7 @@
         //     { name: 'test3', value: '789' }
         // ]
 
-        browser.deleteCookie(['test3'])
+        browser.deleteCookies(['test3'])
         cookies = browser.getCookies()
         console.log(cookies)
         // outputs:
@@ -25,7 +25,7 @@
         //     { name: 'test', value: '123' },
         //     { name: 'test2', value: '456' }
         // ]
-        
+
         browser.deleteCookies()
         cookies = browser.getCookies()
         console.log(cookies) // outputs: []
