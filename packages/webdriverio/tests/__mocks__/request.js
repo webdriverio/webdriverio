@@ -120,7 +120,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         value = 'https://webdriver.io/?foo=bar'
         break
     case `/wd/hub/session/${sessionId}/title`:
-        value = 'WebdriverIO - WebDriver bindings for Node.js'
+        value = 'WebdriverIO · Next-gen WebDriver test framework for Node.js'
         break
     case `/wd/hub/session/${sessionId}/screenshot`:
         value = Buffer.from('some screenshot').toString('base64')

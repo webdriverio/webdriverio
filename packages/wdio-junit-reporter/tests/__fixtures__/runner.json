@@ -41,7 +41,7 @@
         ],
         "suites": {},
         "exclude": [],
-        "logDir": "/path/to/project/test",
+        "outputDir": "/path/to/project/test",
         "logLevel": "trace",
         "deprecationWarnings": true,
         "baseUrl": "http://localhost",

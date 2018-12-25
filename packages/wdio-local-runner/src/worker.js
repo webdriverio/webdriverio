@@ -49,8 +49,8 @@ export default class WorkerInstance extends EventEmitter {
             WDIO_WORKER: true
         })
 
-        if (this.config.logDir) {
-            runnerEnv.WDIO_LOG_PATH = path.join(this.config.logDir, `wdio-${cid}.log`)
+        if (this.config.outputDir) {
+            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)

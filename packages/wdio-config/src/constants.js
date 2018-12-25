@@ -8,7 +8,7 @@ export const DEFAULT_CONFIGS = {
     specs: [],
     suites: {},
     exclude: [],
-    logDir: undefined,
+    outputDir: undefined,
     logLevel: 'info',
     deprecationWarnings: true,
     baseUrl: undefined,

@@ -24,7 +24,7 @@ exports.config = {
      * test configurations
      */
     logLevel: 'trace',
-    logDir: __dirname,
+    outputDir: __dirname,
     framework: 'mocha',
 
     reporters: [[CustomReporter, {
