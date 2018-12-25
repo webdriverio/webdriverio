@@ -8,8 +8,8 @@ If you want to extend the browser instance with your own set of commands there i
 ```js
 browser.addCommand("getUrlAndTitle", (customVar) => {
     return {
-        url: this.getUrl(),
-        title: this.getTitle(),
+        url: this.getCurrentUrl(),
+        title: this.getCurrentTitle(),
         customVar: customVar
     };
 });

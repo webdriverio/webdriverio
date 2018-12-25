@@ -26,7 +26,7 @@ import { remote } from '../../packages/webdriverio/build'
 
     await browser.pause(1000)
 
-    const title = await browser.getTitle()
+    const title = await browser.getCurrentTitle()
     // eslint-disable-next-line
     console.log(title) // returns "should return "WebdriverIO - click""
 

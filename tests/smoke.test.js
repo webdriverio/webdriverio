@@ -2,7 +2,7 @@ import assert from 'assert'
 
 describe('smoke test', () => {
     it('should return sync value', () => {
-        assert.equal(browser.getTitle(), 'Mock Page Title')
+        assert.equal(browser.getCurrentTitle(), 'Mock Page Title')
     })
 
     it('should wait for elements if not found immediately', () => {

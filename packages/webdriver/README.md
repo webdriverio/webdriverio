@@ -26,7 +26,7 @@ import WebDriver from 'webdriver'
     const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
     await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
 
-    console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
+    console.log(await client.getCurrentTitle()) // outputs "WebDriver - Google Search"
 
     await client.deleteSession()
 })()

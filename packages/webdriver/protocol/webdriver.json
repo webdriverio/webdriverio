@@ -112,7 +112,7 @@
   },
   "/session/:sessionId/title": {
     "GET": {
-      "command": "getTitle",
+      "command": "getCurrentTitle",
       "description": "The Get Title command returns the document title of the current top-level browsing context, equivalent to calling `document.title`.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-title",
       "parameters": [],

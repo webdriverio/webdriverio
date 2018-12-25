@@ -78,7 +78,7 @@ it('should login into the application', () => {
     password.setValue('******');
     form.submit();
 
-    expect(browser.getTitle()).to.be.equal('Admin Area');
+    expect(browser.getCurrentTitle()).to.be.equal('Admin Area');
 });
 ```
 

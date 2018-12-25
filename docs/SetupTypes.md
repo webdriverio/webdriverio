@@ -28,7 +28,7 @@ const { remote } = require('webdriverio');
     const submitBtn = await browser.$('#search_button_homepage')
     await submitBtn.click()
 
-    console.log(await browser.getTitle()) // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
+    console.log(await browser.getCurrentTitle()) // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
 
     await browser.deleteSession()
 })().catch((e) => console.error(e))
@@ -48,7 +48,7 @@ describe('DuckDuckGo search', () => {
         $('#search_form_input_homepage').setValue('WebdriverIO')
         $('#search_button_homepage').click()
 
-        const title = browser.getTitle()
+        const title = browser.getCurrentTitle()
         console.log('Title is: ' + title)
         // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
     })

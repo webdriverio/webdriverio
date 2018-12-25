@@ -23,7 +23,7 @@ module.exports = () => {
     })
 
     this.Then(/^should the title of the page be "([^"]*)"$/, (expectedTitle) => {
-        var title = browser.getTitle()
+        var title = browser.getCurrentTitle()
         assert.equal(title, expectedTitle, ' title is "'+ title + '" but should be "'+ expectedTitle)
     })
 

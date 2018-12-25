@@ -156,7 +156,7 @@
   },
   "/session/:sessionId/title": {
     "GET": {
-      "command": "getTitle",
+      "command": "getCurrentTitle",
       "description": "Get the current page title.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtitle",
       "parameters": [],

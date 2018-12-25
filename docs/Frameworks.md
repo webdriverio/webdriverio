@@ -31,7 +31,7 @@ Once that is done you can write beautiful assertions like:
 describe('my awesome website', () => {
     it('should do some chai assertions', () => {
         browser.url('https://webdriver.io');
-        browser.getTitle().should.be.equal('WebdriverIO - WebDriver bindings for Node.js');
+        browser.getCurrentTitle().should.be.equal('WebdriverIO - WebDriver bindings for Node.js');
     });
 });
 ```
@@ -42,7 +42,7 @@ WebdriverIO supports Mochas `BDD` (default), `TDD` and `QUnit` [interface](https
 suite('my awesome website', () => {
     test('should do some chai assertions', () => {
         browser.url('https://webdriver.io');
-        browser.getTitle().should.be.equal('WebdriverIO - WebDriver bindings for Node.js');
+        browser.getCurrentTitle().should.be.equal('WebdriverIO - WebDriver bindings for Node.js');
     });
 });
 ```

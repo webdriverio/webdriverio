@@ -21,7 +21,7 @@
  *
  * @param {String|RegExp}  urlOrTitleToMatch  String or regular expression that matches the title or url of the page
  *
- * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getCurrentUrl, protocol/getTitle
+ * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getCurrentUrl, protocol/getCurrentTitle
  * @alias browser.switchTab
  * @type window
  *
@@ -51,7 +51,7 @@ export default async function switchWindow (urlOrTitleToMatch) {
         /**
          * check title
          */
-        const title = await this.getTitle()
+        const title = await this.getCurrentTitle()
         if (title.match(urlOrTitleToMatch)) {
             return tab
         }
