@@ -143,7 +143,7 @@ Default: `500`
 Defines the test framework to be used by the wdio testrunner.
 
 Type: `String`<br>
-Default: `mocha`
+Default: `mocha`<br>
 Options: `mocha` | `jasmine`
 
 ### mochaOpts | jasmineNodeOpts
