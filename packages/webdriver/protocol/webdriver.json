@@ -64,7 +64,7 @@
   },
   "/session/:sessionId/url": {
     "GET": {
-      "command": "getCurrentUrl",
+      "command": "getUrl",
       "description": "The Get Current URL command returns the URL of the current top-level browsing context.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get-current-url",
       "parameters": []
