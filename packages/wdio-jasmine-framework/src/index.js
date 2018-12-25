@@ -172,6 +172,7 @@ class JasmineAdapter {
             message.file = params.payload.file
 
             if (params.payload.failedExpectations && params.payload.failedExpectations.length) {
+                message.failedExpectations = params.payload.failedExpectations
                 message.error = params.payload.failedExpectations[0]
             }
 
