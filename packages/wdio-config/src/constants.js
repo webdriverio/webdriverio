@@ -9,7 +9,7 @@ export const DEFAULT_CONFIGS = {
     dataProviders: [],
     suites: {},
     exclude: [],
-    logDir: undefined,
+    outputDir: undefined,
     logLevel: 'info',
     deprecationWarnings: true,
     baseUrl: undefined,

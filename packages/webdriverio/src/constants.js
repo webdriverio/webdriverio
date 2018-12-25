@@ -161,7 +161,7 @@ export const WDIO_DEFAULTS = {
     /**
      * directory for log files
      */
-    logDir: {
+    outputDir: {
         type: 'string',
         default: process.cwd()
     },

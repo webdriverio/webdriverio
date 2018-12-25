@@ -14,7 +14,7 @@ jest.mock('child_process', () => {
 
 test('should fork a new process', () => {
     const runner = new LocalRunner('/path/to/wdio.conf.js', {
-        logDir: '/foo/bar',
+        outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     })
     const worker = runner.run({
@@ -52,7 +52,7 @@ test('should fork a new process', () => {
 
 test('should shut down worker processes', async () => {
     const runner = new LocalRunner('/path/to/wdio.conf.js', {
-        logDir: '/foo/bar',
+        outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     })
     const worker1 = runner.run({

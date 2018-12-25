@@ -197,7 +197,7 @@ export default class Runner extends EventEmitter {
             /**
              * a log directory is given in config
              */
-            !config.logDir ||
+            !config.outputDir ||
             /**
              * the session wasn't killed during start up phase
              */
@@ -224,7 +224,7 @@ export default class Runner extends EventEmitter {
 
             const stringLogs = logs.map((log) => JSON.stringify(log)).join('\n')
             return util.promisify(fs.writeFile)(
-                path.join(config.logDir, `wdio-${this.cid}-${logType}.log`),
+                path.join(config.outputDir, `wdio-${this.cid}-${logType}.log`),
                 stringLogs,
                 'utf-8'
             )
