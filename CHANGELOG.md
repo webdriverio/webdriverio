@@ -123,8 +123,7 @@ This version comes with a variety of technical changes that might affect the fun
         * `setCookie`, `getCookie`, `deleteCookie` → `setCookies`, `getCookies`, `deleteCookies`
         * `getElementSize` → `getSize`
         * `source`, `getSource` → `getPageSource`
-        * `title`, `getTitle` → `getCurrentTitle`
-        * `getUrl` → `getCurrentUrl`
+        * `title` → `getTitle`
         * `actions` → `performActions` (WebDriver protocol only)
         * `alertAccept` → `acceptAlert`
         * `alertDismiss` → `dismissAlert`
