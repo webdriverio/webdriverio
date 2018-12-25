@@ -9,7 +9,7 @@
     // navigate to a new URL
     browser.url('https://webdriver.io');
     // receive url
-    console.log(browser.getCurrentUrl()); // outputs: "https://webdriver.io"
+    console.log(browser.getUrl()); // outputs: "https://webdriver.io"
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
