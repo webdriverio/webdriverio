@@ -14,7 +14,7 @@ module.exports = {
     reporters: [
         'dot',
         ['junit', {
-            logDir: './'
+            outputDir: './'
         }]
     ],
     // ...

@@ -97,7 +97,7 @@ export const WDIO_DEFAULTS = {
      *  'dot',
      *  {
      *    name: 'spec',
-     *    logDir: __dirname + '/reports'
+     *    outputDir: __dirname + '/reports'
      *  }
      * ]
      */
@@ -161,7 +161,7 @@ export const WDIO_DEFAULTS = {
     /**
      * directory for log files
      */
-    logDir: {
+    outputDir: {
         type: 'string',
         default: process.cwd()
     },

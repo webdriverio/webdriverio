@@ -35,7 +35,7 @@ module.exports = {
     reporters: [
         'dot',
         ['junit', {
-            logDir: './',
+            outputDir: './',
             outputFileFormat: function(opts) { // optional
                 return `results-${opts.cid}.${opts.capabilities}.xml`
             }
@@ -47,7 +47,7 @@ module.exports = {
 
 The following options are supported:
 
-### logDir
+### outputDir
 Define a directory where your xml files should get stored.
 
 Type: `String`<br>
@@ -95,7 +95,7 @@ module.exports = {
     reporters: [
         'dot',
         ['junit', {
-            logDir: './',
+            outputDir: './',
             packageName: process.env.USER_ROLE // chrome.41 - administrator
         }]
     ]
@@ -132,7 +132,7 @@ module.exports = {
     reporters: [
         'dot',
         ['junit', {
-            logDir: './',
+            outputDir: './',
             errorOptions: {
                 error: 'message',
                 failure: 'message',

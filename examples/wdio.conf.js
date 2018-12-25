@@ -104,7 +104,7 @@ exports.config = {
     logLevel: 'info',
     //
     // Set directory to store all logs into
-    logDir: __dirname,
+    outputDir: __dirname,
     //
     // Enables colors for log output.
     coloredLogs: true,
@@ -142,7 +142,7 @@ exports.config = {
             //
             // If you are using the "allure" reporter you should define the directory where
             // WebdriverIO should save all allure reports.
-            logDir: './allureReports'
+            outputDir: './allureReports'
         }]
     ],
     //

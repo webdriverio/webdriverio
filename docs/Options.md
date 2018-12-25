@@ -109,7 +109,7 @@ An object describing various of suites that can be specified when applying the `
 Type: `Object`<br>
 Default: `{}`
 
-### logDir
+### outputDir
 Directory to store all testrunner log files including reporter logs and `wdio` logs. If not set all logs are streamed to stdout. Since most reporters are made to log to stdout it is recommended to only use this option for specific reporters where it makes more sense to push report into a file (e.g. junit reporter).
 
 Type: `String`<br>
@@ -165,7 +165,7 @@ reporters: [
     'dot',
     'spec'
     ['junit', {
-        logDir: __dirname + '/reports',
+        outputDir: __dirname + '/reports',
         otherOption: 'foobar'
     }]
 ]
