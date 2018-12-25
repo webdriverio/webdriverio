@@ -108,7 +108,7 @@
   },
   "/session/:sessionId/url": {
     "GET": {
-      "command": "getCurrentUrl",
+      "command": "getUrl",
       "description": "Retrieve the URL of the current page.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidurl",
       "parameters": [],

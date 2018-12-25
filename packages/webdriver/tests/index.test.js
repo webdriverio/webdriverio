@@ -48,7 +48,7 @@ test('should allow to attach to existing session', async () => {
         sessionId: 'foobar'
     })
 
-    await client.getCurrentUrl()
+    await client.getUrl()
     const req = request.mock.calls[0][0]
     expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
 })
