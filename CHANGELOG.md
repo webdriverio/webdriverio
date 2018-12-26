@@ -130,6 +130,7 @@ This version comes with a variety of technical changes that might affect the fun
         * `alertText` → `getAlertText`, `sendAlertText`
         * `applicationCacheStatus` → `getApplicationCacheStatus` (JsonWireProtocol only)
         * `cookie` → `getAllCookies`, `addCookie`, `deleteCookie`
+        * `getCssProperty` → `getCSSProperty`
         * `element` → `findElement`
         * `elements` → `findElements`
         * `elementActive` → `getActiveElement`
