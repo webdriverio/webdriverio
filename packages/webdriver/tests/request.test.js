@@ -50,12 +50,19 @@ describe('webdriver request', () => {
         })
 
         it('should add auth if user and key is given', () => {
-            const req = new WebDriverRequest('POST', '/session')
+            const req = new WebDriverRequest('POST', '/session', { some: 'body' })
             const options = req._createOptions({
                 user: 'foo',
                 key: 'bar'
             })
-            expect(options.auth).toEqual({pass: 'bar', user: 'foo'})
+            expect(options.auth).toEqual({ pass: 'bar', user: 'foo' })
+            expect(options.body).toEqual({ some: 'body' })
+        })
+
+        it('should not attach a body if none is needed', () => {
+            const req = new WebDriverRequest('POST', '/status', {})
+            const options = req._createOptions({})
+            expect(Boolean(options.body)).toEqual(false)
         })
     })
 
