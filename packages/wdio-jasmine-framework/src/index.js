@@ -166,17 +166,15 @@ class JasmineAdapter {
             type: params.type
         }
 
-        if (params.err) {
-            message.error = {
-                message: params.err.message,
-                stack: params.err.stack
-            }
-        }
-
         if (params.payload) {
             message.title = params.payload.description
             message.fullName = params.payload.fullName || null
             message.file = params.payload.file
+
+            if (params.payload.failedExpectations && params.payload.failedExpectations.length) {
+                message.failedExpectations = params.payload.failedExpectations
+                message.error = params.payload.failedExpectations[0]
+            }
 
             if (params.payload.id && params.payload.id.startsWith('spec')) {
                 message.parent = this.lastSpec.description
