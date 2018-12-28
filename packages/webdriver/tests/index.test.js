@@ -64,6 +64,7 @@ test('ensure that WebDriver interface exports protocols and other objects', () =
     expect(WebDriver.JsonWProtocol).not.toBe(undefined)
     expect(WebDriver.MJsonWProtocol).not.toBe(undefined)
     expect(WebDriver.AppiumProtocol).not.toBe(undefined)
+    expect(WebDriver.ChromiumProtocol).not.toBe(undefined)
 })
 
 afterEach(() => {
