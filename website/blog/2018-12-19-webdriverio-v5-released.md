@@ -66,8 +66,9 @@ There is unfortunately no easy upgrade tool that you can download and run to upd
 Every project is different, so it is impossible to have one single guide for everyone. However, the following step by step description will help you get closer to where you need to be:<br>
 <br>
 - read the [changelog](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to understand all breaking changes
-- remove all `wdio-*` and `webdriverio` packages from you `package.json` (except `webdriver` and `webdriverio`)
+- remove all `wdio-*` packages from your `package.json`
 - remove your `node_modules` directory
+- install the latest version of webdriverio: `$ npm install webdriverio@latest`
 - install the new wdio testrunner: `$ npm install @wdio/cli --save-dev`
 - if you have a `wdio.conf.js` in your root directory, create a backup: `$ cp wdio.conf.js wdio_backup.conf.js`
 - rerun the configuration wizard: `$ ./node_modules/.bin/wdio config`
