@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
+
+import { commandCallStructure } from './utils'
 
 const SCOPE_TYPES = {
     'browser': function Browser () {},
@@ -58,25 +60,44 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func) {
-            unit.lift(name, commandWrapper(name, func))
+        client.addCommand = function (name, func, proto) {
+            unit.lift(name, commandWrapper(name, func), proto)
         }
 
         return client
     }
 
-    unit.lift = function (name, func) {
-        prototype[name] = function next (...args) {
+    /**
+     * Enhance monad prototype with function
+     * @param  {String}   name   name of function to attach to prototype
+     * @param  {Function} func   function to be added to prototype
+     * @param  {Object}   proto  prototype to add function to (optional)
+     */
+    unit.lift = function (name, func, proto) {
+        (proto || prototype)[name] = function next (...args) {
             const client = unit(this.sessionId)
-            log.info('COMMAND', `${name}(${args.join(', ')})`)
+            log.info('COMMAND', commandCallStructure(name, args))
 
             /**
              * set name of function for better error stack
              */
-            Object.defineProperty(func, 'name', { writable: true })
-            func.name = name
+            Object.defineProperty(func, 'name', {
+                value: name,
+                writable: false,
+            })
 
-            return func.apply(client, args)
+            const result = func.apply(client, args)
+
+            /**
+             * always transform result into promise as we don't know whether or not
+             * the user is running tests with wdio-sync or not
+             */
+            Promise.resolve(result).then((res) => {
+                log.info('RESULT', res)
+                this.emit('result', { name, result: res })
+            })
+
+            return result
         }
     }
 

@@ -19,16 +19,16 @@
  *
  * <example>
     :executeAsync.js
-    it('should execute async JavaScript on the page', function () {
-        browser.timeouts('script', 5000);
-        var result = browser.executeAsync(function(a, b, c, d, done) {
+    it('should execute async JavaScript on the page', () => {
+        browser.timeouts('script', 5000)
+        const result = browser.executeAsync(function(a, b, c, d, done) {
             // browser context - you may access neither client nor console
-            setTimeout(function() {
-                done(a + b + c + d);
+            setTimeout(() => {
+                done(a + b + c + d)
             }, 3000);
         }, 1, 2, 3, 4)
         // node.js context - client and console are available
-        console.log(result.value); // outputs: 10
+        console.log(result) // outputs: 10
     });
  * </example>
  *

@@ -8,31 +8,32 @@
     :index.html
     <div id="elem" style="visibility: hidden;">Hello World!</div>
     <script type="text/javascript">
-        setTimeout(function () {
+        setTimeout(() => {
             document.getElementById('elem').style.visibility = 'visible';
         }, 2000);
     </script>
     :waitForVisibleExample.js
-    it('should detect when element is visible', function () {
+    it('should detect when element is visible', () => {
         const elem = $('#elem')
         elem.waitForDisplayed(3000);
     });
  * </example>
  *
- * @alias browser.waitForDisplayed
+ * @alias element.waitForDisplayed
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
+ * @param {String=}  error    if exists it overrides the default error message
  * @uses utility/waitUntil, state/isDisplayed
  * @type utility
  *
  */
 
-export default async function waitForDisplayed (ms, reverse = false) {
+export default async function waitForDisplayed (ms, reverse = false, error) {
     /**
      * if element wasn't found in the first place wait for its existance first
      */
     if (!this.elementId && !reverse) {
-        await this.waitForExist(ms)
+        await this.waitForExist(ms, false, error)
     }
 
     /*
@@ -42,8 +43,8 @@ export default async function waitForDisplayed (ms, reverse = false) {
         ms = this.options.waitforTimeout
     }
 
-    const isReversed = reverse ? '' : 'not'
-    const errorMsg = `element ("${this.selector}") still ${isReversed} displayed after ${ms}ms`
+    const isReversed = reverse ? '' : 'not '
+    const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}displayed after ${ms}ms`
 
     return this.waitUntil(async () => {
         const isVisible = await this.isElementDisplayed(this.elementId)

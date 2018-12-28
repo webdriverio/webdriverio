@@ -10,14 +10,14 @@
         <input type="submit" name="submit" value="submit"></input>
     </form>
     :getAttribute.js
-    it('should demonstrate the getAttribute command', function () {
+    it('should demonstrate the getAttribute command', () => {
         const form = $('form')
         const attr = form.getAttribute('method')
         console.log(attr) // outputs: "post"
     })
  * </example>
  *
- * @alias browser.getAttribute
+ * @alias element.getAttribute
  * @param {String} attributeName requested attribute
  * @return {String|null} The value of the attribute, or null if it is not set on the element.
  * @uses protocol/elements, protocol/elementIdAttribute

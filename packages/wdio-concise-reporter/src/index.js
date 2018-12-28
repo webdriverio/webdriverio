@@ -1,4 +1,4 @@
-import WDIOReporter from 'wdio-reporter'
+import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
 export default class ConciseReporter extends WDIOReporter {
@@ -49,7 +49,7 @@ export default class ConciseReporter extends WDIOReporter {
             ...this.getFailureDisplay()
         ]
 
-        this.write(`${header}\n${output.join(`\n`)}\n`)
+        this.write(`${header}\n${output.join('\n')}\n`)
     }
 
     /**

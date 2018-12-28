@@ -1,13 +1,13 @@
-import WDIOReporter from 'wdio-reporter'
+import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
 
 class SpecReporter extends WDIOReporter {
     constructor (options) {
         /**
-         * make dot reporter to write to output stream by default
+         * make spec reporter to write to output stream by default
          */
-        options = Object.assign(options, { stdout: true })
+        options = Object.assign({ stdout: true }, options)
         super(options)
 
         // Keep track of the order that suites were called
@@ -34,6 +34,12 @@ class SpecReporter extends WDIOReporter {
     onSuiteEnd (suite) {
         this.indents--
         this.suites.push(suite)
+    }
+
+    onHookEnd (hook) {
+        if (hook.error) {
+            this.stateCounts.failed++
+        }
     }
 
     onTestPass () {
@@ -81,7 +87,7 @@ class SpecReporter extends WDIOReporter {
         })
 
         // Output the results
-        this.write(`${divider}\n${prefacedOutput.join(`\n`)}\n`)
+        this.write(`${divider}\n${prefacedOutput.join('\n')}\n`)
     }
 
     /**
@@ -103,6 +109,25 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
+     * returns everything worth reporting from a suite
+     * @param  {Object}    suite  test suite containing tests and hooks
+     * @return {Object[]}         list of events to report
+     */
+    getEventsToReport (suite) {
+        return [
+            /**
+             * report all tests
+             */
+            ...suite.tests,
+            /**
+             * and only hooks that failed
+             */
+            ...suite.hooks
+                .filter((hook) => Boolean(hook.error))
+        ]
+    }
+
+    /**
      * Get the results from the tests
      * @param  {Array} suites Runner suites
      * @return {Array}        Display output list
@@ -113,7 +138,7 @@ class SpecReporter extends WDIOReporter {
 
         for (const suite of suites) {
             // Don't do anything if a suite has no tests or sub suites
-            if (suite.tests.length === 0 && suite.suites.length === 0) {
+            if (suite.tests.length === 0 && suite.suites.length === 0 && suite.hooks.length === 0) {
                 continue
             }
 
@@ -123,7 +148,8 @@ class SpecReporter extends WDIOReporter {
             // Display the title of the suite
             output.push(`${suiteIndent}${suite.title}`)
 
-            for (const test of suite.tests) {
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
                 const test_title = test.title
                 const state = test.state
                 const test_indent = `${this.defaultTestIndent}${suiteIndent}`
@@ -133,7 +159,7 @@ class SpecReporter extends WDIOReporter {
             }
 
             // Put a line break after each suite (only if tests exist in that suite)
-            if (suite.tests.length) {
+            if (eventsToReport.length) {
                 output.push('')
             }
         }
@@ -152,21 +178,21 @@ class SpecReporter extends WDIOReporter {
         // Get the passes
         if(this.stateCounts.passed > 0) {
             const text = `${this.stateCounts.passed} passing ${duration}`
-            output.push(this.chalk[this.getColor(`passed`)](text))
+            output.push(this.chalk[this.getColor('passed')](text))
             duration = ''
         }
 
         // Get the failures
         if(this.stateCounts.failed > 0) {
             const text = `${this.stateCounts.failed} failing ${duration}`.trim()
-            output.push(this.chalk[this.getColor(`failed`)](text))
+            output.push(this.chalk[this.getColor('failed')](text))
             duration = ''
         }
 
         // Get the skipped tests
         if(this.stateCounts.skipped > 0) {
             const text = `${this.stateCounts.skipped} skipped ${duration}`.trim()
-            output.push(this.chalk[this.getColor(`skipped`)](text))
+            output.push(this.chalk[this.getColor('skipped')](text))
         }
 
         return output
@@ -183,8 +209,8 @@ class SpecReporter extends WDIOReporter {
 
         for (const suite of suites) {
             const suiteTitle = suite.title
-
-            for (const test of suite.tests) {
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
                 if(test.state !== 'failed') {
                     continue
                 }

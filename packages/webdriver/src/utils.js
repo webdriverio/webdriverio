@@ -1,10 +1,11 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import command from './command'
 import WebDriverProtocol from '../protocol/webdriver.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
+import ChromiumProtocol from '../protocol/chromium.json'
 
 const log = logger('webdriver')
 
@@ -107,12 +108,13 @@ export function isValidParameter (arg, expectedType) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype (isW3C) {
+export function getPrototype (isW3C, isChrome) {
     const prototype = {}
     const ProtocolCommands = Object.assign(
         isW3C ? WebDriverProtocol : JsonWProtocol,
         MJsonWProtocol,
-        AppiumProtocol
+        AppiumProtocol,
+        isChrome ? ChromiumProtocol : {}
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
@@ -122,4 +124,64 @@ export function getPrototype (isW3C) {
     }
 
     return prototype
+}
+
+/**
+ * get command call structure
+ * (for logging purposes)
+ */
+export function commandCallStructure (commandName, args) {
+    const callArgs = args.map((arg) => {
+        if (typeof arg === 'string') {
+            arg = `"${arg}"`
+        } else if (typeof arg === 'function') {
+            arg = '<fn>'
+        } else if (arg === null) {
+            arg = 'null'
+        } else if (typeof arg === 'object') {
+            arg = '<object>'
+        } else if (typeof arg === 'undefined') {
+            arg = typeof arg
+        }
+
+        return arg
+    }).join(', ')
+
+    return `${commandName}(${callArgs})`
+}
+
+/**
+ * check if session is based on W3C protocol based on the /session response
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if W3C (browser)
+ */
+export function isW3CSession (capabilities) {
+    /**
+     * JSONWire protocol doesn't return a property `capabilities`.
+     * Also check for Appium response as it is using JSONWire protocol for most of the part.
+     */
+    if (!capabilities) {
+        return false
+    }
+
+    /**
+     * assume session to be a WebDriver session when
+     * - capabilities are returned
+     *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
+     * - platformName is returned which is not defined in the JSONWire protocol
+     */
+    const isAppium = capabilities.automationName || capabilities.deviceName
+    return Boolean(capabilities.platformName || isAppium)
+}
+
+/**
+ * check if session is run by Chromedriver
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run by Chromedriver
+ */
+export function isChromiumSession (capabilities) {
+    return (
+        Boolean(capabilities.chrome) ||
+        Boolean(capabilities['goog:chromeOptions'])
+    )
 }

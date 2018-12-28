@@ -29,6 +29,7 @@
       "debugging",
       "retry",
       "repl",
+      "watcher",
       "jenkins",
       "customreporter",
       "customservices"

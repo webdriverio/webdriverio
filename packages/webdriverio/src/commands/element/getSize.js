@@ -4,7 +4,7 @@
  *
  * <example>
     :getElementSize.js
-    it('should demonstrate the getElementSize command', function () {
+    it('should demonstrate the getElementSize command', () => {
         browser.url('http://github.com')
         const logo = $('.octicon-mark-github')
 
@@ -19,7 +19,7 @@
     })
  * </example>
  *
- * @alias browser.getElementSize
+ * @alias element.getElementSize
  * @param {String} prop     size to receive [optional] ("width" or "height")
  * @return {Object|Number}    requested element size (`{ width: <Number>, height: <Number> }`) or actual width/height as number if prop param is given
  * @uses protocol/elements, protocol/getElementRect

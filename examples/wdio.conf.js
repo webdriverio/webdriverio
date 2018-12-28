@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 
 exports.config = {
-
     // =====================
     // Server Configurations
     // =====================
@@ -25,6 +24,12 @@ exports.config = {
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+    //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. Available short handles for regions are:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
+    region: 'us',
     //
     // ==================
     // Specify Test Files
@@ -95,8 +100,11 @@ exports.config = {
     // e.g. using promises you can set the sync option to false.
     sync: true,
     //
-    // Level of logging verbosity: silent | verbose | command | data | result | error
-    logLevel: 'silent',
+    // Level of logging verbosity: trace | debug | info | warn | error
+    logLevel: 'info',
+    //
+    // Set directory to store all logs into
+    outputDir: __dirname,
     //
     // Enables colors for log output.
     coloredLogs: true,
@@ -117,27 +125,9 @@ exports.config = {
     // Default timeout for all waitFor* commands.
     waitforTimeout: 1000,
     //
-    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as properties. Make sure you have
-    // the plugin installed before running any tests. The following plugins are currently
-    // available:
-    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
-    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
-    // Browserevent: https://github.com/webdriverio/browserevent
-    plugins: {
-        webdrivercss: {
-            screenshotRoot: 'my-shots',
-            failedComparisonsRoot: 'diffs',
-            misMatchTolerance: 0.05,
-            screenWidth: [320,480,640,1024]
-        },
-        webdriverrtc: {},
-        browserevent: {}
-    },
-    //
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework
     // installed before running any tests.
@@ -145,14 +135,14 @@ exports.config = {
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html
+    // see also: https://webdriver.io/docs/dot-reporter.html
     reporters: [
         'dot',
         ['allure', {
             //
             // If you are using the "allure" reporter you should define the directory where
             // WebdriverIO should save all allure reports.
-            outputDir: './'
+            outputDir: './allureReports'
         }]
     ],
     //
@@ -163,7 +153,7 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
@@ -182,7 +172,7 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
-    // See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
@@ -307,8 +297,9 @@ exports.config = {
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities) {
+    onComplete: function (exitCode, config, capabilities, results) {
     },
     //
     // Cucumber specific hooks
@@ -324,4 +315,4 @@ exports.config = {
     },
     afterFeature: function (feature) {
     }
-};
+}

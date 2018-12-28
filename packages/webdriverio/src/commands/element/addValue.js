@@ -8,17 +8,17 @@
  *
  * <example>
     :addValue.js
-    it('should demonstrate the addValue command', function () {
-        var input = $('.input')
+    it('should demonstrate the addValue command', () => {
+        let input = $('.input')
         input.addValue('test')
         input.addValue(123)
 
-        var value = input.getValue()
+        value = input.getValue()
         assert(value === 'test123') // true
     })
  * </example>
  *
- * @alias browser.addValue
+ * @alias element.addValue
  * @param {String} selector   Input element
  * @param {*}      values     value to be added
  * @uses protocol/elements, protocol/elementIdValue
@@ -29,11 +29,9 @@
 import { transformToCharString } from '../../utils'
 
 export default function addValue (value) {
-    let text = transformToCharString(value)
-
-    if (this.isW3C) {
-        text = text.join('')
+    if (!this.isW3C) {
+        return this.elementSendKeys(this.elementId, transformToCharString(value))
     }
 
-    return this.elementSendKeys(this.elementId, text)
+    return this.elementSendKeys(this.elementId, value)
 }

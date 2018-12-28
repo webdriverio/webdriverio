@@ -45,7 +45,7 @@ Over the time our community has developed a bunch of boilerplate projects that c
     - Integration with BrowserStack
     - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
     - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON, Mochawesome), plus local view of Junit report(.html) format and Mochawesome report
+    - Multiple reporting (Spec, Junit, Allure, JSON, Mochawesome, Timeline), plus local view of Junit report(.html) format and Mochawesome report
     - Task manage through Grunt
     - Examples with demo app http://www.phptravels.net, Chai assertion liberary (expect, assert, should)
     - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
@@ -132,3 +132,29 @@ Boilerplate repo for quick set up of WebdriverIO test scripts with TravisCI, Sau
     - Local notifications
     - ESLint using Semistandard style
     - WebdriverIO tuned Gitignore file
+    
+## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
+
+Boilerplate project to run Appium tests together with WebdriverIO for:
+
+- iOS/Android Native Apps
+- iOS/Android Hybrid Apps
+- Android Chrome and iOS Safari browser
+
+The boilerplate holds the following things
+- Framework: Jasmine
+- Features:
+    - Configs for:
+        - iOS and Android app
+        - iOS and Android browsers
+    - Helpers for:
+        - WebView
+        - Gestures
+        - Native alerts
+        - Pickers
+     - Tests examples for:
+        - WebView
+        - Login
+        - Forms
+        - Swipe
+        - Browsers

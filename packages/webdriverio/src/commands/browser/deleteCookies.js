@@ -4,11 +4,11 @@
  *
  * <example>
     :deleteCookie.js
-    it('should delete cookies', function () {
+    it('should delete cookies', () => {
         browser.setCookie({name: 'test', value: '123'})
         browser.setCookie({name: 'test2', value: '456'})
         browser.setCookie({name: 'test3', value: '789'})
-        var cookies = browser.getCookies()
+        let cookies = browser.getCookies()
         console.log(cookies)
         // outputs:
         // [
@@ -16,7 +16,8 @@
         //     { name: 'test2', value: '456' }
         //     { name: 'test3', value: '789' }
         // ]
-        browser.deleteCookie(['test3'])
+
+        browser.deleteCookies(['test3'])
         cookies = browser.getCookies()
         console.log(cookies)
         // outputs:
@@ -24,6 +25,7 @@
         //     { name: 'test', value: '123' },
         //     { name: 'test2', value: '456' }
         // ]
+
         browser.deleteCookies()
         cookies = browser.getCookies()
         console.log(cookies) // outputs: []
@@ -45,7 +47,7 @@ export default function deleteCookies(names) {
     }
 
     if (namesList.every(obj => typeof obj !== 'string')) {
-        return Promise.reject(new Error('Invalid input (see http://webdriver.io/docs/api/browser/deleteCookies.html for documentation.'))
+        return Promise.reject(new Error('Invalid input (see https://webdriver.io/docs/api/browser/deleteCookies.html for documentation.'))
     }
 
     return Promise.all(namesList.map(name => this.deleteCookie(name)))

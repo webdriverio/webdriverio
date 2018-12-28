@@ -2,7 +2,15 @@ import process from 'process'
 import {getTestStatus, ignoredHooks, isEmpty, tellReporter} from '../src/utils'
 import {testStatuses} from '../src/constants'
 
-jest.mock('process')
+let processEmit
+beforeAll(() => {
+    processEmit = ::process.emit
+    process.emit = jest.fn()
+})
+
+afterAll(() => {
+    process.emit = processEmit
+})
 
 describe('utils#getTestStatus', () => {
     it('return  status for jasmine', () => {
@@ -56,4 +64,3 @@ describe('utils', () => {
         expect(process.emit).toHaveBeenCalledWith('foo', {bar: 'baz'})
     })
 })
-

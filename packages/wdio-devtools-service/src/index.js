@@ -1,9 +1,10 @@
-import logger from 'wdio-logger'
-import CDP from 'chrome-remote-interface'
+import logger from '@wdio/logger'
+
+import CommandHandler from './commands'
+import { findCDPInterface, getCDPClient } from './utils'
 
 const log = logger('wdio-devtools-service')
-
-const UNSUPPORTED_ERROR_MESSAGE = 'The wdio-devtools-service currently only supports Chrome version 63 and up'
+const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up'
 
 export default class DevToolsService {
     constructor () {
@@ -25,64 +26,19 @@ export default class DevToolsService {
             })
         }
 
-        this.chromePort = await this._findChromePort()
-        this.client = await this._getCDPClient(this.chromePort)
-
-        /**
-         * allow to easily access the CDP from the browser object
-         */
-        global.browser.addCommand('cdp', (domain, command, args = {}) => {
-            if (!this.client[domain]) {
-                throw new Error(`Domain "${domain}" doesn't exist in the Chrome DevTools protocol`)
-            }
-
-            if (!this.client[domain][command]) {
-                throw new Error(`The "${domain}" domain doesn't have a method called "${command}"`)
-            }
-
-            return new Promise((resolve, reject) => this.client[domain][command](args, (err, result) => {
-                /* istanbul ignore if */
-                if (err) {
-                    return reject(new Error(`Chrome DevTools Error: ${result.message}`))
-                }
-
-                return resolve(result)
-            }))
-        })
-
-        /**
-         * helper method to receive Chrome remote debugging connection data to
-         * e.g. use external tools like lighthouse
-         */
-        const { host, port } = this.client
-        global.browser.addCommand('cdpConnection', () => ({ host, port }))
-
-        /**
-         * propagate CDP events to the browser event listener
-         */
-        this.client.on('event', (event) => {
-            const method = event.method || 'event'
-            log.debug(`cdp event: ${method} with params ${JSON.stringify(event.params)}`)
-            global.browser.emit(method, event.params)
-        })
-    }
-
-    async _findChromePort () {
         try {
-            await global.browser.url('chrome://version')
-
-            const cmdLine = await global.browser.$('#command_line')
-            return cmdLine.getText().then((args) => parseInt(args.match(/--remote-debugging-port=(\d*)/)[1]))
+            const { host, port } = await findCDPInterface()
+            const client = await getCDPClient(host, port)
+            this.commandHandler = new CommandHandler(client, global.browser)
         } catch (err) {
             log.error(`Couldn't connect to chrome: ${err.stack}`)
+            return
         }
-    }
 
-    async _getCDPClient (port) {
-        return new Promise((resolve) => CDP({
-            port,
-            host: 'localhost',
-            target: /* istanbul ignore next */ (targets) => targets.findIndex((t) => t.type === 'page')
-        }, resolve))
+        /**
+         * enable network and page domain for resource analysis
+         */
+        await this.commandHandler.cdp('Network', 'enable')
+        await this.commandHandler.cdp('Page', 'enable')
     }
 }

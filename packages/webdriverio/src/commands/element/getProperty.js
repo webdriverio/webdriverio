@@ -3,14 +3,14 @@
  *
  * <example>
     :getProperty.js
-    it('should demonstrate the getCssProperty command', function () {
+    it('should demonstrate the getCSSProperty command', () => {
         var elem = $('body')
         var color = elem.getProperty('tagName')
         console.log(color) // outputs: "BODY"
     })
  * </example>
  *
- * @alias browser.getProperty
+ * @alias element.getProperty
  * @param {String} property  name of the element property
  */
 

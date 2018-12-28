@@ -14,7 +14,7 @@ describe('retries', function() {
     // Retry all tests in this suite up to 4 times
     this.retries(4);
 
-    beforeEach(function () {
+    beforeEach(() => {
         browser.url('http://www.yahoo.com');
     });
 
@@ -32,11 +32,11 @@ describe('retries', function() {
 To rerun a certain test block just apply the number of reruns as last parameter after the test block function:
 
 ```js
-describe('my flaky app', function () {
+describe('my flaky app', () => {
     /**
      * spec that runs max 4 times (1 actual run + 3 reruns)
      */
-    it('should rerun a test at least 3 times', function () {
+    it('should rerun a test at least 3 times', () => {
         // ...
     }, 3);
 });
@@ -45,11 +45,11 @@ describe('my flaky app', function () {
 The same works for hooks too:
 
 ```js
-describe('my flaky app', function () {
+describe('my flaky app', () => {
     /**
      * hook that runs max 2 times (1 actual run + 1 rerun)
      */
-    beforeEach(function () {
+    beforeEach(() => {
         // ...
     }, 1)
 

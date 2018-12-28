@@ -5,7 +5,7 @@ import shell from 'shelljs'
 import EventEmitter from 'events'
 import findNodeModules from 'find-node-modules'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import { DEFAULT_CONFIG } from './constants'
 
 const log = logger('wdio-lambda-runner')

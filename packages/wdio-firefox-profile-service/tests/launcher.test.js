@@ -15,7 +15,7 @@ describe('Firefox profile service', () => {
         test('should set preferences with no extensions', async () => {
             const config = {
                 firefoxProfile : {
-                    'browser.startup.homepage': 'http://webdriver.io',
+                    'browser.startup.homepage': 'https://webdriver.io',
                 }
             }
             const capabilities = [{
@@ -26,12 +26,37 @@ describe('Firefox profile service', () => {
             await service.onPrepare(config, capabilities)
 
             expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
-            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'http://webdriver.io')
+            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
             expect(service.profile.updatePreferences).toHaveBeenCalled()
             expect(service.profile.addExtensions).not.toHaveBeenCalled()
 
             expect(capabilities[0].firefox_profile).toBe('foobar')
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
+        })
+
+        test('should amend firefox capabilities', async () => {
+            const config = {
+                firefoxProfile : {
+                    'browser.startup.homepage': 'https://webdriver.io',
+                }
+            }
+            const capabilities = [{
+                browserName : 'firefox',
+                'moz:firefoxOptions': {
+                    args: ['-headless']
+                }
+            }]
+
+            const service = new Launcher()
+            await service.onPrepare(config, capabilities)
+
+            expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
+            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
+            expect(service.profile.updatePreferences).toHaveBeenCalled()
+            expect(service.profile.addExtensions).not.toHaveBeenCalled()
+
+            expect(capabilities[0].firefox_profile).toBe('foobar')
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile : 'foobar'})
         })
 
         test('should set preferences with extensions', async () => {
@@ -56,7 +81,7 @@ describe('Firefox profile service', () => {
         test('should not set capabilities when not firefox browser', async () => {
             const config = {
                 firefoxProfile : {
-                    'browser.startup.homepage': 'http://webdriver.io',
+                    'browser.startup.homepage': 'https://webdriver.io',
                 }
             }
             const capabilities = [
@@ -81,7 +106,7 @@ describe('Firefox profile service', () => {
         test('should set capabilities when an object', async () => {
             const config = {
                 firefoxProfile : {
-                    'browser.startup.homepage': 'http://webdriver.io',
+                    'browser.startup.homepage': 'https://webdriver.io',
                 }
             }
             const capabilities = {
@@ -102,7 +127,7 @@ describe('Firefox profile service', () => {
         test('should not set capabilities when an object and not firefox', async () => {
             const config = {
                 firefoxProfile : {
-                    'browser.startup.homepage': 'http://webdriver.io',
+                    'browser.startup.homepage': 'https://webdriver.io',
                 }
             }
             const capabilities = {
@@ -124,8 +149,8 @@ describe('Firefox profile service', () => {
             const config = {
                 firefoxProfile : {
                     extensions : ['/foo/bar.xpi'],
-                    'browser.startup.homepage': 'http://webdriver.io',
-                    proxy : `foo`
+                    'browser.startup.homepage': 'https://webdriver.io',
+                    proxy : 'foo'
                 }
             }
             const capabilities = [{
@@ -139,7 +164,7 @@ describe('Firefox profile service', () => {
             expect(service.profile.setProxy).toHaveBeenCalledWith(config.firefoxProfile.proxy)
 
             expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
-            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'http://webdriver.io')
+            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
             expect(service.profile.updatePreferences).toHaveBeenCalled()
         })
     })

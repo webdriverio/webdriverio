@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import WDIOReporter from 'wdio-reporter'
+import WDIOReporter from '@wdio/reporter'
 
 /**
  * Initialize a new `Dot` matrix test reporter.
@@ -9,7 +9,7 @@ export default class DotReporter extends WDIOReporter {
         /**
          * make dot reporter to write to output stream by default
          */
-        options = Object.assign(options, { stdout: true })
+        options = Object.assign({ stdout: true }, options)
         super(options)
     }
 

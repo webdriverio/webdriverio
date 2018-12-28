@@ -1,5 +1,4 @@
 exports.config = {
-
     /**
      * server configurations
      */
@@ -23,7 +22,7 @@ exports.config = {
     /**
      * test configurations
      */
-    logLevel: 'silent',
+    logLevel: 'error',
     framework: 'cucumber',
 
     reporters: ['dot'],
@@ -31,4 +30,4 @@ exports.config = {
     cucumberOpts: {
         require: ['./step-definitions.js']
     }
-};
+}

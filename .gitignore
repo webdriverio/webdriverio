@@ -57,9 +57,13 @@ typings/
 # dotenv environment variables file
 .env
 
+# lerna changelog cachedir
+.changelog
+
 **/build
 /*.js
 /*.d.ts
+!babel.config.js
 !.eslintrc.js
 package-lock.json
 .DS_Store
@@ -74,3 +78,13 @@ website/node_modules
 website/i18n/*
 docs/api/**/*.md
 docs/_*.md
+
+# Editor files
+.idea
+.vscode
+!.vscode/extensions.json
+.*.swp
+.history
+.gradle
+wallaby.conf.js
+tags

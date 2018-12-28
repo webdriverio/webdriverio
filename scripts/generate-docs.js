@@ -16,15 +16,17 @@ const PROTOCOLS = {
     webdriver: require('../packages/webdriver/protocol/webdriver.json'),
     appium: require('../packages/webdriver/protocol/appium.json'),
     jsonwp: require('../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json')
+    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json'),
+    chromium: require('../packages/webdriver/protocol/chromium.json')
 }
 const PROTOCOL_NAMES = {
     appium: 'Appium',
     jsonwp: 'JSON Wire Protocol',
     mjsonwp: 'Mobile JSON Wire Protocol',
-    webdriver: 'Webdriver Protocol'
+    webdriver: 'Webdriver Protocol',
+    chromium: 'Chromium'
 }
-
+const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
 const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
     formatter: formatter,
@@ -53,6 +55,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             description.examples = [] // tbd
             description.returnTags = [] // tbd
             description.throwsTags = [] // tbd
+            description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
             description.customEditUrl = `${config.repoUrl}/edit/master/packages/webdriver/protocol/${protocolName}.json`
 
             const protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`
@@ -100,7 +103,7 @@ for (const [scope, files] of Object.entries(COMMANDS)) {
     for (const file of files) {
         const docDir = path.join(__dirname, '..', 'docs', 'api', scope)
         if (!fs.existsSync(docDir)){
-            fs.mkdirSync(docDir);
+            fs.mkdirSync(docDir)
         }
 
         const filepath = path.join(COMMAND_DIR, scope, file)
@@ -142,9 +145,9 @@ const packages = getSubPackages()
 for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
     const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
     for (const pkg of pkgs) {
-        const name = pkg.split("-").slice(1,-1)
+        const name = pkg.split('-').slice(1,-1)
         const id = `${name.join('-')}-${type}`
-        const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(" ")
+        const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
         const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'Readme.md')).toString()
         const preface = [
             '---',

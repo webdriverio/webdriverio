@@ -1,16 +1,16 @@
 WebdriverIO Selenium Standalone Service
 =======================================
 
-Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](http://webdriver.io/docs/gettingstarted.html). It uses the well know [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
+Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/guide/testrunner/gettingstarted.html). It uses the well know [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
 
 ## Installation
 
-The easiest way is to keep `wdio-selenium-standalone-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-selenium-standalone-service": "^5.0.0"
+    "@wdio/selenium-standalone-service": "^5.0.0"
   }
 }
 ```
@@ -18,10 +18,10 @@ The easiest way is to keep `wdio-selenium-standalone-service` as a devDependency
 You can simple do it by:
 
 ```bash
-npm install wdio-selenium-standalone-service --save-dev
+npm install @wdio/selenium-standalone-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
 ## Configuration
 
@@ -96,6 +96,13 @@ seleniumInstallArgs: {
 },
 ```
 
+### skipSeleniumInstall
+Boolean for skipping `selenium-standalone` server install.
+
+Type: `Boolean`
+
+Default: `false`
+
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

@@ -1,4 +1,4 @@
-const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|wdio-sync\/(build|src)|- - - - -)/g
+const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|- - - - -)/g
 
 export default class JasmineReporter {
     constructor (reporter, params) {
@@ -42,8 +42,11 @@ export default class JasmineReporter {
             test.status = 'pending'
         }
 
-        if (test.failedExpectations.length && this.shouldCleanStack) {
-            test.failedExpectations = test.failedExpectations.map(::this.cleanStack)
+        if (test.failedExpectations.length) {
+            test.error = test.failedExpectations[0]
+            if (this.shouldCleanStack) {
+                test.error = this.cleanStack(test.error)
+            }
         }
 
         const e = 'test:' + test.status.replace(/ed/, '')
@@ -94,7 +97,7 @@ export default class JasmineReporter {
             pending: payload.status === 'pending',
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
-            error: payload.failedExpectations && payload.failedExpectations.length ? payload.failedExpectations[0] : null,
+            error: payload.error,
             duration: payload.duration || 0,
             specs: this.specs,
             start: payload.start
@@ -112,6 +115,10 @@ export default class JasmineReporter {
     }
 
     cleanStack (error) {
+        if (!error.stack) {
+            return error
+        }
+
         let stack = error.stack.split('\n')
         stack = stack.filter((line) => !line.match(STACKTRACE_FILTER))
         error.stack = stack.join('\n')

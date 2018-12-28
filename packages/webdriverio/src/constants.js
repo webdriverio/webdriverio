@@ -139,22 +139,41 @@ export const WDIO_DEFAULTS = {
                 throw new Error(
                     'a reporter should be either a string in the format "wdio-<reportername>-reporter" ' +
                     'or a function/class. Please see the docs for more information on custom reporters ' +
-                    '(http://webdriver.io/docs/customreporter.html)'
+                    '(https://webdriver.io/docs/customreporter.html)'
                 )
             }
 
             return true
         }
     },
+    /**
+     * amount of instances to be allowed to run in total
+     */
     maxInstances: {
         type: 'number'
     },
+    /**
+     * amount of instances to be allowed to run per capability
+     */
     maxInstancesPerCapability: {
         type: 'number'
     },
-    logDir: {
+    /**
+     * directory for log files
+     */
+    outputDir: {
         type: 'string',
         default: process.cwd()
+    },
+    /**
+     * list of strings to watch of `wdio` command is called with `--watch` flag
+     */
+    filesToWatch: {
+        type: (param) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "filesToWatch" options needs to be a list of strings')
+            }
+        }
     },
 
     /**

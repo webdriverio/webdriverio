@@ -1,29 +1,34 @@
+import { filterPackageName } from './utils'
+
 export const SUPPORTED_FRAMEWORKS = [
-    'mocha', // https://github.com/webdriverio/wdio-mocha-framework
-    'jasmine', // https://github.com/webdriverio/wdio-jasmine-framework
-    'cucumber' // https://github.com/webdriverio/wdio-cucumber-framework
+    'mocha', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework
+    'jasmine', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
+    'cucumber' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework
 ]
 
 export const SUPPORTED_REPORTER = [
-    ' dot - https://www.npmjs.com/package/wdio-dot-reporter',
-    ' spec - https://www.npmjs.com/package/wdio-spec-reporter',
-    ' junit - https://www.npmjs.com/package/wdio-junit-reporter',
-    ' allure - https://www.npmjs.com/package/wdio-allure-reporter',
+    ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
+    ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
+    ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
+    ' allure - https://www.npmjs.com/package/@wdio/allure-reporter',
+    ' sumologic - https://www.npmjs.com/package/@wdio/sumologic-reporter',
+    ' concise - https://www.npmjs.com/package/@wdio/concise-reporter',
     ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
-    ' sumologic - https://www.npmjs.com/package/wdio-sumologic-reporter',
     ' json - https://www.npmjs.com/package/wdio-json-reporter',
-    ' concise - https://www.npmjs.com/package/wdio-concise-reporter',
     ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
+    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
-    ' sauce - https://www.npmjs.com/package/wdio-sauce-service',
+    ' sauce - https://www.npmjs.com/package/@wdio/sauce-service',
+    ' testingbot - https://www.npmjs.com/package/@wdio/testingbot-service',
+    ' firefox-profile - https://www.npmjs.com/package/@wdio/firefox-profile-service',
+    ' selenium-standalone - https://www.npmjs.com/package/@wdio/selenium-standalone-service',
+    ' devtools - https://www.npmjs.com/package/@wdio/devtools-service',
+    ' applitools - https://www.npmjs.com/package/@wdio/applitools-service',
     ' browserstack - https://www.npmjs.com/package/wdio-browserstack-service',
-    ' testingbot - https://www.npmjs.com/package/wdio-testingbot-service',
     ' appium - https://www.npmjs.com/package/wdio-appium-service',
-    ' firefox-profile - https://www.npmjs.com/package/wdio-firefox-profile-service',
-    ' selenium-standalone - https://www.npmjs.com/package/wdio-selenium-standalone-service',
     ' phantomjs - https://www.npmjs.com/package/wdio-phantomjs-service',
     ' static-server - https://www.npmjs.com/package/wdio-static-server-service',
     ' visual-regression - https://www.npmjs.com/package/wdio-visual-regression-service',
@@ -34,8 +39,8 @@ export const SUPPORTED_SERVICES = [
 ]
 
 export const SUPPORTED_RUNNERS = [
-    ' local - https://www.npmjs.com/package/wdio-local-runner',
-    ' lambda - https://www.npmjs.com/package/wdio-lambda-runner'
+    ' local - https://www.npmjs.com/package/@wdio/local-runner',
+    ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
 ]
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
@@ -49,7 +54,9 @@ Usage: wdio repl <browserName>
 
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
-An optional list of spec files can be piped to wdio that will override configured specs`
+An optional list of spec files can be piped to wdio that will override configured specs.
+Same applies to the exclude option. It can take a list of specs to exclude for a given run
+and it also overrides the exclude key from the config file.`
 
 export const CONFIG_HELPER_INTRO = `
 =========================
@@ -100,7 +107,7 @@ export const CLI_PARAMS = [{
     choices: LOG_LEVELS
 }, {
     name: 'bail',
-    description: `stop test runner after specific amount of tests have failed`,
+    description: 'stop test runner after specific amount of tests have failed',
     type: 'number'
 }, {
     name: 'baseUrl',
@@ -114,30 +121,34 @@ export const CLI_PARAMS = [{
 }, {
     name: 'framework',
     alias: 'f',
-    description: `defines the framework (Mocha, Jasmine or Cucumber) to run the specs`,
+    description: 'defines the framework (Mocha, Jasmine or Cucumber) to run the specs',
     type: 'string'
 }, {
     name: 'reporters',
     alias: 'r',
-    description: `reporters to print out the results on stdout`,
+    description: 'reporters to print out the results on stdout',
     type: 'array'
 }, {
     name: 'suite',
-    description: `overwrites the specs attribute and runs the defined suite`,
+    description: 'overwrites the specs attribute and runs the defined suite',
     type: 'array'
 }, {
     name: 'spec',
-    description: `run only a certain spec file - overrides specs piped from stdin`,
+    description: 'run only a certain spec file - overrides specs piped from stdin',
+    type: 'array'
+}, {
+    name: 'exclude',
+    description: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
     type: 'array'
 }, {
     name: 'mochaOpts',
-    description: `Mocha options`
+    description: 'Mocha options'
 }, {
     name: 'jasmineOpts',
-    description: `Jasmine options`
+    description: 'Jasmine options'
 }, {
     name: 'cucumberOpts',
-    description: `Cucumber options`
+    description: 'Cucumber options'
 }]
 
 export const QUESTIONNAIRE = [{
@@ -243,7 +254,7 @@ export const QUESTIONNAIRE = [{
     name: 'reporters',
     message: 'Which reporter do you want to use?',
     choices: SUPPORTED_REPORTER,
-    filter: (reporters) => reporters.map((reporter) => `wdio-${reporter.split(/-/)[0].trim()}-reporter`)
+    filter: filterPackageName('reporter')
 }, {
     type: 'confirm',
     name: 'installReporter',
@@ -255,7 +266,7 @@ export const QUESTIONNAIRE = [{
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
     choices: SUPPORTED_SERVICES,
-    filter: (services) => services.map((service) => `wdio-${service.split(/- /)[0].trim()}-service`)
+    filter: filterPackageName('service')
 }, {
     type: 'confirm',
     name: 'installServices',
@@ -284,7 +295,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'logLevel',
     message: 'Level of logging verbosity',
-    default: 'silent',
+    default: 'info',
     choices: LOG_LEVELS
 }, {
     type: 'input',

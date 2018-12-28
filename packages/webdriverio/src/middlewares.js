@@ -1,4 +1,6 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
+
+import refetchElement from './utils/refetchElement'
 
 const log = logger('webdriverio')
 
@@ -7,12 +9,6 @@ const log = logger('webdriverio')
  * that wasn't found on the page and automatically waits for it
  *
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
- */
-
-/**
- * [elementErrorHandler description]
-
- * @return {[type]}      [description]
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
     return function (...args) {
@@ -24,7 +20,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
         if (!this.elementId && !commandName.match(/(wait(Until|ForDisplayed|ForExist|ForEnabled)|isExisting)/)) {
             log.debug(
                 `command ${commandName} was called on an element ("${this.selector}") ` +
-                `that wasn't found, waiting for it...`
+                'that wasn\'t found, waiting for it...'
             )
 
             return fn(commandName, () => {
@@ -51,7 +47,27 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
             }).apply(this)
         }
 
-        return fn(commandName, commandFn).apply(this, args)
+        try {
+            return fn(commandName, commandFn).apply(this, args)
+        } catch (error) {
+            /**
+             * refetch element ids when stale element reference execption was thrown
+             */
+            if (error.message.includes('stale element reference')) {
+                return refetchElement(this).then((element) => {
+                    this.elementId = element.elementId
+                    this.parent = element.parent
+
+                    return fn(commandName, commandFn).apply(this, args)
+                })
+            }
+
+            /**
+             * add other post command handlings here
+             */
+
+            throw error
+        }
     }
 }
 

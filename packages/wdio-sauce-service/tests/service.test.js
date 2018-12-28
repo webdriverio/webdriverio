@@ -1,6 +1,7 @@
 import SauceService from '../src'
 
 global.browser = {
+    config: {},
     execute: jest.fn(),
     chromeA: { sessionId: 'sessionChromeA' },
     chromeB: { sessionId: 'sessionChromeB' },
@@ -16,6 +17,16 @@ test('getSauceRestUrl', () => {
     const service = new SauceService({ user: 'foobar' })
     service.before()
     expect(service.getSauceRestUrl('12345'))
+        .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+
+    const euService = new SauceService({ user: 'foobar', region: 'eu' })
+    euService.before()
+    expect(euService.getSauceRestUrl('12345'))
+        .toBe('https://eu-central-1.saucelabs.com/rest/v1/foobar/jobs/12345')
+
+    const usService = new SauceService({ user: 'foobar', region: 'us' })
+    usService.before()
+    expect(usService.getSauceRestUrl('12345'))
         .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
 })
 
@@ -108,6 +119,9 @@ test('afterStep', () => {
 
     service.afterStep({ getFailureException: () => 'whatever' })
     expect(service.failures).toBe(2)
+
+    service.afterStep({ status: 'failed' })
+    expect(service.failures).toBe(3)
 })
 
 test('beforeScenario should set context', () => {
@@ -137,6 +151,20 @@ test('after', () => {
     service.after()
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
+})
+
+test('after with bail set', () => {
+    const service = new SauceService({ user: 'foobar', key: '123' })
+    service.before()
+    service.failures = 5
+    service.updateJob = jest.fn()
+
+    global.browser.isMultiremote = false
+    global.browser.sessionId = 'foobar'
+    global.browser.config = { mochaOpts: { bail: 1 } }
+    service.after(1)
+
+    expect(service.updateJob).toBeCalledWith('foobar', 1)
 })
 
 test('beforeScenario should not set context if no sauce user was applied', () => {

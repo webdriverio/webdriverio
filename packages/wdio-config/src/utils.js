@@ -1,11 +1,25 @@
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
+const DEFAULT_PROTOCOL = 'http'
+
+const REGION_MAPPING = {
+    'us': '', // default endpoint
+    'eu': 'eu-central-1.'
+}
+
+export function getSauceEndpoint (region) {
+    const dc = region ?
+        typeof REGION_MAPPING[region] !== 'undefined' ?
+            REGION_MAPPING[region] : (region + '.')
+        : ''
+    return `${dc}saucelabs.com`
+}
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}) {
-    const { port, hostname, user, key } = options
+    const { port, hostname, user, key, protocol, region } = options
 
     /**
      * browserstack
@@ -35,9 +49,9 @@ export function detectBackend (options = {}) {
      */
     if (typeof user === 'string' && key.length === 36) {
         return {
-            protocol: 'https',
-            hostname: 'ondemand.saucelabs.com',
-            port: 443
+            protocol: protocol || 'https',
+            hostname: hostname || `ondemand.${getSauceEndpoint(region)}`,
+            port: port || 443
         }
     }
 
@@ -46,33 +60,74 @@ export function detectBackend (options = {}) {
      */
     return {
         hostname: hostname || DEFAULT_HOSTNAME,
-        port: port || DEFAULT_PORT
+        port: port || DEFAULT_PORT,
+        protocol: protocol || DEFAULT_PROTOCOL
     }
 }
 
 /**
- * initialise WebdriverIO compliant plugins
+ * Allows to safely require a package, it only throws if the package was found
+ * but failed to load due to syntax errors
+ * @param  {string} name  of package
+ * @return {object}       package content
  */
-export function initialisePlugin (name, type) {
-    /**
-     * don't populate scoped package names
-     */
-    const pkgName = name[0] === '@' ? name : `wdio-${name.toLowerCase()}-${type}`
-
+function safeRequire (name) {
     try {
-        return require(pkgName)
+        return require(name)
     } catch (e) {
-        if (!e.message.match(`Cannot find module '${pkgName}'`)) {
-            throw new Error(`Couldn't initialise "${name}" ${type}.\n${e.stack}`)
+        if (!e.message.match(`Cannot find module '${name}'`)) {
+            throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
         }
 
-        throw new Error(
-            `Couldn't find plugin "${pkgName}". You need to install it ` +
-            `with \`$ npm install ${pkgName}\`!\n${e.stack}`
-        )
+        return null
     }
 }
 
+/**
+ * initialise WebdriverIO compliant plugins like reporter or services in the following way:
+ * 1. if package name is scoped (starts with "@"), require scoped package name
+ * 2. otherwise try to require "@wdio/<name>-<type>"
+ * 3. otherwise try to require "wdio-<name>-<type>"
+ */
+export function initialisePlugin (name, type, target = 'default') {
+    /**
+     * directly import packages that are scoped
+     */
+    if (name[0] === '@') {
+        const service = safeRequire(name)
+        return service[target]
+    }
+
+    /**
+     * check for scoped version of plugin first (e.g. @wdio/sauce-service)
+     */
+    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
+    if (scopedPlugin) {
+        return scopedPlugin[target]
+    }
+
+    /**
+     * check for old type of
+     */
+    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
+    if (plugin) {
+        return plugin[target]
+    }
+
+    throw new Error(
+        `Couldn't find plugin "${name}" ${type}, neither as wdio scoped package `+
+        `"@wdio/${name.toLowerCase()}-${type}" nor as community package ` +
+        `"wdio-${name.toLowerCase()}-${type}". Please make sure you have it installed!`
+    )
+}
+
+
+/**
+ * validates configurations based on default values
+ * @param  {Object} defaults  object describing all allowed properties
+ * @param  {Object} options   option to check agains
+ * @return {Object}           validated config enriched with default values
+ */
 export function validateConfig (defaults, options) {
     const params = {}
 

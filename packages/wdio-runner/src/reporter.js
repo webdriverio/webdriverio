@@ -1,7 +1,12 @@
 import path from 'path'
-import { initialisePlugin } from 'wdio-config'
+import logger from '@wdio/logger'
+import { initialisePlugin } from '@wdio/config'
+
+const log = logger('wdio-runner')
 
 const NOOP = () => {}
+const DEFAULT_SYNC_TIMEOUT = 5000 // 5s
+const DEFAULT_SYNC_INTERVAL = 100 // 100ms
 
 /**
  * BaseReporter
@@ -13,6 +18,12 @@ export default class BaseReporter {
         this.config = config
         this.cid = cid
         this.reporters = config.reporters.map(::this.initReporter)
+
+        /**
+         * these configurations are not publicly documented as there should be no desire for it
+         */
+        this.reporterSyncInterval = this.config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
+        this.reporterSyncTimeout = this.config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
     }
 
     /**
@@ -30,10 +41,10 @@ export default class BaseReporter {
      * returns name of log file
      */
     getLogFile (name) {
-        if (!this.config.logDir) {
+        if (!this.config.outputDir) {
             return
         }
-        return path.join(this.config.logDir, `wdio-${this.cid}-${name}-reporter.log`)
+        return path.join(this.config.outputDir, `wdio-${this.cid}-${name}-reporter.log`)
     }
 
     /**
@@ -41,12 +52,43 @@ export default class BaseReporter {
      */
     getWriteStreamObject (reporter) {
         return {
-            write: (content) => process.send({
+            write: /* istanbul ignore next */ (content) => process.send({
                 origin: 'reporter',
                 name: reporter,
                 content
             })
         }
+    }
+
+    /**
+     * wait for reporter to finish synchronization, e.g. when sending data asynchronous
+     * to a server (e.g. sumo reporter)
+     */
+    waitForSync () {
+        const startTime = Date.now()
+        return new Promise((resolve, reject) => {
+            const interval = setInterval(() => {
+                const unsyncedReporter = this.reporters
+                    .filter((reporter) => !reporter.isSynchronised)
+                    .map((reporter) => reporter.constructor.name)
+
+                if ((Date.now() - startTime) > this.reporterSyncTimeout && unsyncedReporter.length) {
+                    clearInterval(interval)
+                    return reject(new Error(`Some reporters are still unsynced: ${unsyncedReporter.join(', ')}`))
+                }
+
+                /**
+                 * no reporter are in need to sync anymore, continue
+                 */
+                if (!unsyncedReporter.length) {
+                    clearInterval(interval)
+                    return resolve(true)
+                }
+
+                log.info(`Wait for ${unsyncedReporter.length} reporter to synchronise`)
+                // wait otherwise
+            }, this.reporterSyncInterval)
+        })
     }
 
     /**

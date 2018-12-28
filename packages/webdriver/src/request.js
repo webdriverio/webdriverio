@@ -3,7 +3,7 @@ import http from 'http'
 import path from 'path'
 import https from 'https'
 import request from 'request'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import EventEmitter from 'events'
 
 import { isSuccessfulResponse } from './utils'
@@ -20,6 +20,7 @@ export default class WebDriverRequest extends EventEmitter {
         super()
         this.method = method
         this.endpoint = endpoint
+        this.requiresSessionId = this.endpoint.match(/:sessionId/)
         this.defaultOptions = {
             method,
             body,
@@ -51,14 +52,14 @@ export default class WebDriverRequest extends EventEmitter {
          * example /sessions. The call to /sessions is not connected to a session itself and it therefore doesn't
          * require it
          */
-        if (this.endpoint.match(/:sessionId/) && !sessionId) {
+        if (this.requiresSessionId && !sessionId) {
             throw new Error('A sessionId is required for this command')
         }
 
         requestOptions.uri = url.parse(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            path.resolve(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
+            path.join(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
         )
 
         /**
@@ -82,7 +83,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
-            const error = new Error(err || (body.value ? body.value.message : body))
+            const error = new Error(err || (body && body.value ? body.value.message : body))
 
             /**
              * Resolve only if successful response
@@ -92,8 +93,23 @@ export default class WebDriverRequest extends EventEmitter {
                 return resolve(body)
             }
 
-            if (retryCount >= totalRetryCount) {
-                log.error('Request failed after retry due to', error)
+            /**
+             *  stop retrying as this will never be successful.
+             *  we will handle this at the elementErrorHandler
+             */
+
+            if(error.message.includes('stale element reference')) {
+                log.warn('Request encountered a stale element - terminating request')
+                this.emit('response', { error })
+                return reject(error)
+            }
+
+            /**
+             * stop retrying if totalRetryCount was exceeded or there is no reason to
+             * retry, e.g. if sessionId is invalid
+             */
+            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+                log.error('Request failed due to', error)
                 this.emit('response', { error })
                 return reject(error)
             }

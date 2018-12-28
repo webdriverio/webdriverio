@@ -13,7 +13,7 @@
         <option value="someValue5">seis</option>
     </select>
     :selectByVisibleText.js
-    it('demonstrate the selectByVisibleText command', function () {
+    it('demonstrate the selectByVisibleText command', () => {
         const selectBox = $('#selectbox');
         console.log(selectBox.getText('option:checked')); // returns "uno"
         selectBox.selectByVisibleText('cuatro');

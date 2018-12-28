@@ -1,4 +1,4 @@
-import { hasWdioSyncSupport, runFnInFiberContext } from 'wdio-config'
+import { hasWdioSyncSupport, runFnInFiberContext } from '@wdio/config'
 
 const TIMEOUT_ERROR = 'timeout'
 

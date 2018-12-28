@@ -1,5 +1,5 @@
 import WebDriver from 'webdriver'
-import { validateConfig, wrapCommand, detectBackend } from 'wdio-config'
+import { validateConfig, wrapCommand, detectBackend } from '@wdio/config'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
@@ -24,7 +24,7 @@ export const remote = function (params = {}, remoteModifier) {
     }
 
     if (params.user && params.key) {
-        params = Object.assign(params, detectBackend(params))
+        params = Object.assign({}, detectBackend(params), params)
     }
 
     const prototype = getPrototype('browser')
@@ -41,6 +41,11 @@ export const remote = function (params = {}, remoteModifier) {
     return WebDriver.newSession(params, modifier, prototype, wrapCommand)
 }
 
+export const attach = function (params) {
+    const prototype = getPrototype('browser')
+    return WebDriver.attachToSession(params, null, prototype, wrapCommand)
+}
+
 export const multiremote = async function (params = {}) {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
@@ -52,7 +57,7 @@ export const multiremote = async function (params = {}) {
         browserNames.map((browserName) => {
             validateConfig(WDIO_DEFAULTS, params[browserName])
             const prototype = getPrototype('browser')
-            const instance = WebDriver.newSession(params[browserName], null, prototype)
+            const instance = WebDriver.newSession(params[browserName], null, prototype, wrapCommand)
             return multibrowser.addInstance(browserName, instance)
         })
     )
@@ -65,5 +70,16 @@ export const multiremote = async function (params = {}) {
         sessionId: '',
         isW3C: multibrowser.instances[browserNames[0]].isW3C
     }
-    return WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype)
+    const driver = WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
+
+    /**
+     * in order to get custom command added to multiremote instance we need to pass
+     * in the prototype of the multibrowser
+     */
+    const origAddCommand = ::driver.addCommand
+    driver.addCommand = (name, fn) => {
+        origAddCommand(name, fn, Object.getPrototypeOf(multibrowser.baseInstance))
+    }
+
+    return driver
 }

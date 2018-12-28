@@ -6,7 +6,7 @@ title: Custom Commands
 If you want to extend the browser instance with your own set of commands there is a method called `addCommand` available from the browser object. You can write your command in a synchronous (default) way the same way as in your specs or asynchronous (like when using WebdriverIO in standalone mode). The following example shows how to add a new command that returns the current url and title as one result only using synchronous commands:
 
 ```js
-browser.addCommand("getUrlAndTitle", function (customVar) {
+browser.addCommand("getUrlAndTitle", (customVar) => {
     return {
         url: this.getUrl(),
         title: this.getTitle(),
@@ -37,7 +37,7 @@ If you use external libraries (e.g. to do database calls) that support promises,
 ```js
 import request from 'request';
 
-browser.addCommand('makeRequest', async function(url) {
+browser.addCommand('makeRequest', (url) => {
     return request.get(url).then((response) => response.body)
 });
 ```
@@ -45,7 +45,7 @@ browser.addCommand('makeRequest', async function(url) {
 Then just use it in your wdio test specs synchronously:
 
 ```js
-it('execute external library in a sync way', function() {
+it('execute external library in a sync way', () => {
     browser.url('...');
     const body = browser.makeRequest('http://...');
     console.log(body); // returns response body

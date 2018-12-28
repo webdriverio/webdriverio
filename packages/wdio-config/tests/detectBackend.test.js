@@ -4,7 +4,8 @@ describe('detectBackend', () => {
     it('should not set anything if host is set in caps', () => {
         const caps = {
             hostname: '0.0.0.0',
-            port: 1234
+            port: 1234,
+            protocol: 'http'
         }
         expect(detectBackend(caps)).toEqual(caps)
     })
@@ -55,5 +56,51 @@ describe('detectBackend', () => {
         expect(caps.hostname).toBe('ondemand.saucelabs.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
+    })
+
+    it('should detect saucelabs user running in the default DC', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'us'
+        })
+        expect(caps.hostname).toBe('ondemand.saucelabs.com')
+        expect(caps.port).toBe(443)
+        expect(caps.protocol).toBe('https')
+    })
+
+    it('should detect saucelabs user running in an EU DC', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'eu'
+        })
+        expect(caps.hostname).toBe('ondemand.eu-central-1.saucelabs.com')
+        expect(caps.port).toBe(443)
+        expect(caps.protocol).toBe('https')
+    })
+
+    it('should detect saucelabs user running on a random DC', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'foobar'
+        })
+        expect(caps.hostname).toBe('ondemand.foobar.saucelabs.com')
+        expect(caps.port).toBe(443)
+        expect(caps.protocol).toBe('https')
+    })
+
+    it('should detect saucelabs user but recognise custom endpoint properties', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            hostname: 'foobar.com',
+            port: 1234,
+            protocol: 'tcp'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(1234)
+        expect(caps.protocol).toBe('tcp')
     })
 })

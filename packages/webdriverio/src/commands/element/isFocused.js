@@ -7,16 +7,17 @@
     :index.html
     <input name="login" autofocus="" />
     :hasFocus.js
-    it('should detect the focus of an element', function () {
+    it('should detect the focus of an element', () => {
         browser.url('/');
         const loginInput = $('[name="login"]');
         console.log(loginInput.hasFocus()); // outputs: false
+
         loginInput.click();
         console.log(loginInput.hasFocus()); // outputs: true
     })
  * </example>
  *
- * @alias browser.isFocused
+ * @alias element.isFocused
  * @return {Boolean}         true if one of the matching elements has focus
  *
  * @uses protocol/execute

@@ -11,21 +11,25 @@
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isVisibleWithinViewport.js
     :isVisible.js
-    it('should detect if an element is visible', function () {
-        let isVisibleWithinViewport = browser.isVisibleWithinViewport('#notDisplayed');
+    it('should detect if an element is visible', () => {
+        let isVisibleWithinViewport = $('#notDisplayed').isVisibleWithinViewport();
         console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#notVisible');
+
+        isVisibleWithinViewport = $('#notVisible').isVisibleWithinViewport();
         console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#notExisting');
+
+        isVisibleWithinViewport = $('#notExisting').isVisibleWithinViewport();
         console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#notInViewport');
+
+        isVisibleWithinViewport = $('#notInViewport').isVisibleWithinViewport();
         console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#zeroOpacity');
+
+        isVisibleWithinViewport = $('#zeroOpacity').isVisibleWithinViewport();
         console.log(isVisibleWithinViewport); // outputs: false
     });
  * </example>
  *
- * @alias browser.isVisibleWithinViewport
+ * @alias element.isVisibleWithinViewport
  * @param   {String}             selector  DOM-element
  * @return {Boolean|Boolean[]}            true if element(s)* [is|are] visible
  * @uses protocol/selectorExecute, protocol/timeoutsAsyncScript

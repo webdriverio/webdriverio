@@ -1,4 +1,11 @@
-import { isSuccessfulResponse, isValidParameter, getPrototype } from '../src/utils'
+import {
+    isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure, isW3CSession,
+    isChromiumSession
+} from '../src/utils'
+
+import appiumResponse from './__fixtures__/appium.response.json'
+import chromedriverResponse from './__fixtures__/chromedriver.response.json'
+import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -58,10 +65,33 @@ describe('utils', () => {
         const jsonWireProtocolPrototype = getPrototype()
         expect(jsonWireProtocolPrototype instanceof Object).toBe(true)
         expect(typeof jsonWireProtocolPrototype.sendKeys.value).toBe('function')
+        expect(typeof jsonWireProtocolPrototype.sendCommand).toBe('undefined')
 
         const webdriverPrototype = getPrototype(true)
         expect(webdriverPrototype instanceof Object).toBe(true)
         expect(typeof webdriverPrototype.sendKeys).toBe('undefined')
+        expect(typeof webdriverPrototype.sendCommand).toBe('undefined')
         expect(typeof webdriverPrototype.performActions.value).toBe('function')
+
+        const chromiumPrototype = getPrototype(false, true)
+        expect(chromiumPrototype instanceof Object).toBe(true)
+        expect(typeof chromiumPrototype.sendCommand.value).toBe('function')
+    })
+
+    it('commandCallStructure', () => {
+        expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
+            .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
+    })
+
+    it('isW3CSession', () => {
+        expect(isW3CSession(appiumResponse.value.capabilities)).toBe(true)
+        expect(isW3CSession(chromedriverResponse.value.capabilities)).toBe(false)
+        expect(isW3CSession(geckodriverResponse.value.capabilities)).toBe(true)
+    })
+
+    it('isChromiumSession', () => {
+        expect(isChromiumSession(appiumResponse.value.capabilities)).toBe(false)
+        expect(isChromiumSession(chromedriverResponse.value)).toBe(true)
+        expect(isChromiumSession(geckodriverResponse.value.capabilities)).toBe(false)
     })
 })

@@ -3,11 +3,11 @@ id: setuptypes
 title: How to setup WebdriverIO
 ---
 
-WebdriverIO can be used for various purposes. It implements the Webdriver protocol API and can run browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
+WebdriverIO can be used for various purposes. It implements the Webdriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
 
 ## Standalone Mode
 
-The probably simplest form to run WebdriverIO is in standalone mode. This has nothing to do with the Selenium server file which is usually called `selenium-server-standalone`. It basically just means that you require the `webdriverio` package in your project and use the API behind it to run your automation. Here is a simple example:
+Probably the simplest form to run WebdriverIO is in standalone mode. This has nothing to do with the Selenium server file which is usually called `selenium-server-standalone`. It basically just means that you require the `webdriverio` package in your project and use the API behind it to run your automation. Here is a simple example:
 
 ```js
 const { remote } = require('webdriverio');
@@ -38,7 +38,7 @@ Using WebdriverIO in standalone mode allows you to integrate this automation too
 
 ## The WDIO Testrunner
 
-The main purpose of WebdriverIO though is end to end testing on big scale. We therefore implemented a test runner that helps you to build a reliable test suite that is easy to read and maintain. The test runner takes care of many problems you are usually facing when working with plain automation libraries. For one it organizes your test runs and splits up test specs so your tests can be executed with maximum concurrency. It also handles session management and provides a lot of features that help you to debug problems and find errors in your tests. Here is an same example from above written as test spec and executed by wdio:
+The main purpose of WebdriverIO though is end to end testing on a big scale. We therefore implemented a test runner that helps you to build a reliable test suite that is easy to read and maintain. The test runner takes care of many problems you are usually facing when working with plain automation libraries. For one, it organizes your test runs and splits up test specs so your tests can be executed with maximum concurrency. It also handles session management and provides a lot of features that help you to debug problems and find errors in your tests. Here is the same example from above written as a test spec and executed by wdio:
 
 ```js
 describe('DuckDuckGo search', () => {

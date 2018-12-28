@@ -1,36 +1,60 @@
-import logger from 'wdio-logger'
-import { validateConfig } from 'wdio-config'
+import logger from '@wdio/logger'
+import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype } from './utils'
+import { getPrototype, isW3CSession, isChromiumSession } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
+import ChromiumProtocol from '../protocol/chromium.json'
 
 export default class WebDriver {
     static async newSession (options = {}, modifier, proto = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
         logger.setLevel('webdriver', params.logLevel)
 
+        /**
+         * the user could have passed in either w3c style or jsonwp style caps
+         * and we want to pass both styles to the server, which means we need
+         * to check what style the user sent in so we know how to construct the
+         * object for the other style
+         */
+        const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
+            /**
+             * in case W3C compliant capabilities are provided
+             */
+            ? [params.capabilities, params.capabilities.alwaysMatch]
+            /**
+             * otherwise assume they passed in jsonwp-style caps (flat object)
+             */
+            : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
         const sessionRequest = new WebDriverRequest(
             'POST',
             '/session',
             {
-                capabilities: params.capabilities, // W3C compliant
-                desiredCapabilities: params.capabilities // JSONWP compliant
+                capabilities: w3cCaps, // W3C compliant
+                desiredCapabilities: jsonwpCaps // JSONWP compliant
             }
         )
 
         const response = await sessionRequest.makeRequest(params)
-        params.requestedCapabilities = params.capabilities
+        /**
+         * save original set of capabilities to allow to request the same session again
+         * (e.g. for reloadSession command in WebdriverIO)
+         */
+        params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+        /**
+         * save actual receveived session details
+         */
         params.capabilities = response.value.capabilities || response.value
-        params.isW3C = Boolean(response.value.capabilities)
+        params.isW3C = isW3CSession(params.capabilities)
 
-        const prototype = Object.assign(WebDriver.getPrototype(params.isW3C), proto)
+        const prototype = Object.assign(getPrototype(params.isW3C, isChromiumSession(params.capabilities)), proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
@@ -43,9 +67,11 @@ export default class WebDriver {
             throw new Error('sessionId is required to attach to existing session')
         }
 
+        logger.setLevel('webdriver', options.logLevel)
+
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C || true
-        const prototype = Object.assign(WebDriver.getPrototype(options.isW3C), proto)
+        const prototype = Object.assign(getPrototype(options.isW3C), proto)
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }
@@ -56,6 +82,10 @@ export default class WebDriver {
     static get DEFAULTS () {
         return DEFAULTS
     }
+
+    /**
+     * Protocols
+     */
     static get WebDriverProtocol () {
         return WebDriverProtocol
     }
@@ -68,10 +98,15 @@ export default class WebDriver {
     static get AppiumProtocol () {
         return AppiumProtocol
     }
-    static get webdriverMonad () {
-        return webdriverMonad
+    static get ChromiumProtocol () {
+        return ChromiumProtocol
     }
-    static get getPrototype () {
-        return getPrototype
-    }
+}
+
+/**
+ * Helper methods consumed by webdriverio package
+ */
+export {
+    webdriverMonad,
+    getPrototype
 }

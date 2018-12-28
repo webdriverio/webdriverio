@@ -5,6 +5,8 @@ title: Getting Started
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
 
+> __Note:__ These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please us the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
+
 The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
 
 ## Taking the first step
@@ -71,7 +73,7 @@ const { remote } = require('webdriverio');
         }
     });
 
-    await browser.url('http://webdriver.io');
+    await browser.url('https://webdriver.io');
 
     const title = await browser.getTitle();
     console.log('Title was: ' + title);
@@ -100,10 +102,10 @@ Yay, Congratulations! You've just run your first automation script with Webdrive
 
 *(If you haven't already, navigate back to the project root directory)*
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`wdio-cli`](https://www.npmjs.com/package/wdio-cli) NPM package. To get started, we need to install this first:
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
 
 ```sh
-$ npm i --save-dev wdio-cli
+$ npm i --save-dev @wdio/cli
 ```
 
 ### Generate Configuration File
@@ -168,13 +170,13 @@ $ mkdir -p ./test/specs
 Now let's create a simple spec file in that new folder:
 
 ```js
-var assert = require('assert');
+const assert = require('assert');
 
-describe('webdriver.io page', function() {
-    it('should have the right title - the fancy generator way', function () {
-        browser.url('http://webdriver.io');
-        var title = browser.getTitle();
-        assert.equal(title, 'WebdriverIO - WebDriver bindings for Node.js');
+describe('webdriver.io page', () => {
+    it('should have the right title', () => {
+        browser.url('https://webdriver.io');
+        const title = browser.getTitle();
+        assert.equal(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js');
     });
 });
 ```

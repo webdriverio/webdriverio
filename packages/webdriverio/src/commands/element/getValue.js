@@ -7,14 +7,14 @@
     :index.html
     <input type="text" value="John Doe" id="username">
     :getValue.js
-    it('should demonstrate the getValue command', () {
+    it('should demonstrate the getValue command', () => {
         const inputUser = $('#username');
         const value = inputUser.getValue();
         console.log(value); // outputs: "John Doe"
     });
  * </example>
  *
- * @alias browser.getValue
+ * @alias element.getValue
  * @param  {String} selector  input, textarea, or select element
  * @return {String|String[]}  requested element(s) value
  * @uses protocol/elements, protocol/elementIdProperty

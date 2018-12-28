@@ -1,4 +1,4 @@
-import { detectBackend } from 'wdio-config'
+import { detectBackend } from '@wdio/config'
 
 import { remote, multiremote } from '../src'
 
@@ -11,10 +11,13 @@ jest.mock('webdriver', () => {
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => cb ? cb(client, params) : params)
 
-    return { newSession: newSessionMock, attachToSession: jest.fn() }
+    return {
+        newSession: newSessionMock,
+        attachToSession: jest.fn().mockReturnValue(client)
+    }
 })
 
-jest.mock('wdio-config', () => {
+jest.mock('@wdio/config', () => {
     const validateConfigMock = {
         validateConfig: jest.fn(),
         detectBackend: jest.fn()
@@ -54,8 +57,8 @@ describe('WebdriverIO module interface', () => {
     describe('multiremote', () => {
         it('register multiple clients', async () => {
             await multiremote({
-                browserA: { browserName: 'chrome' },
-                browserB: { browserName: 'firefox' }
+                browserA: { capabilities: { browserName: 'chrome' } },
+                browserB: { capabilities: { browserName: 'firefox' } }
             })
             expect(WebDriver.attachToSession).toBeCalled()
             expect(WebDriver.newSession.mock.calls).toHaveLength(2)
