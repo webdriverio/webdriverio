@@ -33,7 +33,7 @@ export default async function waitForDisplayed (ms, reverse = false, error) {
      * if element wasn't found in the first place wait for its existance first
      */
     if (!this.elementId && !reverse) {
-        await this.waitForExist(ms)
+        await this.waitForExist(ms, false, error)
     }
 
     /*
