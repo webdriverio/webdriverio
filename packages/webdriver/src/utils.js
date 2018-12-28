@@ -14,7 +14,7 @@ const log = logger('webdriver')
  * @param  {Object}  body  body payload of response
  * @return {Boolean}       true if request was successful
  */
-export function isSuccessfulResponse ({ body, statusCode } = {}) {
+export function isSuccessfulResponse (statusCode, body) {
     /**
      * response contains a body
      */

@@ -10,36 +10,17 @@ import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
         expect(isSuccessfulResponse()).toBe(false)
-        expect(isSuccessfulResponse({})).toBe(false)
-        expect(isSuccessfulResponse({
-            body: undefined,
-            statusCode: 200
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { value: { some: 'result' } },
-            statusCode: 200
-        })).toBe(true)
-        expect(isSuccessfulResponse({
-            body: { value: { error: new Error('foobar' )} },
-            statusCode: 404
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { value: { error: 'no such element' } },
-            statusCode: 404
-        })).toBe(true)
-        expect(isSuccessfulResponse({
-            body: { status: 7 },
-            statusCode: 200
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { status: 7, value: {} }
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { status: 0, value: {} }
-        })).toBe(true)
-        expect(isSuccessfulResponse({
-            body: { status: 7, value: { message: 'no such element: foobar' } }
-        })).toBe(true)
+        expect(isSuccessfulResponse(200)).toBe(false)
+        expect(isSuccessfulResponse(200, { value: { some: 'result' } })).toBe(true)
+        expect(isSuccessfulResponse(404, { value: { error: new Error('foobar' )} })).toBe(false)
+        expect(isSuccessfulResponse(404, { value: { error: 'no such element' } })).toBe(true)
+        expect(isSuccessfulResponse(200, { status: 7 })).toBe(false)
+        expect(isSuccessfulResponse(undefined, { status: 7, value: {} })).toBe(false)
+        expect(isSuccessfulResponse(undefined, { status: 0, value: {} })).toBe(true)
+        expect(isSuccessfulResponse(
+            undefined,
+            { status: 7, value: { message: 'no such element: foobar' } }
+        )).toBe(true)
     })
 
     it('isValidParameter', () => {
