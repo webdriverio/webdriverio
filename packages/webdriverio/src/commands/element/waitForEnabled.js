@@ -36,7 +36,7 @@
 export default async function waitForEnabled(ms, reverse = false, error) {
     // If the element doesn't already exist, wait for it to exist
     if (!this.elementId && !reverse) {
-        await this.waitForExist(ms)
+        await this.waitForExist(ms, false, error)
     }
 
     if (typeof ms !== 'number') {
