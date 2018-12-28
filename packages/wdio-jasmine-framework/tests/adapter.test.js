@@ -192,7 +192,9 @@ test('formatMessage', () => {
 
     message = adapter.formatMessage({
         type: 'foobar',
-        err: new Error('foobar')
+        payload: {
+            failedExpectations: [new Error('foobar')]
+        }
     })
     expect(message.error.message).toBe('foobar')
 
