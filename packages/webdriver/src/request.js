@@ -52,7 +52,7 @@ export default class WebDriverRequest extends EventEmitter {
         /**
          * only apply body property if existing
          */
-        if (Object.keys(this.body).length) {
+        if (this.body && Object.keys(this.body).length) {
             requestOptions.body = this.body
         }
 
