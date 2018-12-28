@@ -228,6 +228,15 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.resolve(FIXTURES_PATH, 'typescript.ts'))
         })
 
+        it('should include es6 files', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+
+            const es6File = path.resolve(FIXTURES_PATH, '*.es6')
+            const specs = configParser.getSpecs([es6File])
+            expect(specs).toContain(path.resolve(FIXTURES_PATH, 'test.es6'))
+        })
+
         it('should not include other file types', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
