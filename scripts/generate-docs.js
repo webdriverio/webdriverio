@@ -16,13 +16,15 @@ const PROTOCOLS = {
     webdriver: require('../packages/webdriver/protocol/webdriver.json'),
     appium: require('../packages/webdriver/protocol/appium.json'),
     jsonwp: require('../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json')
+    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json'),
+    chromium: require('../packages/webdriver/protocol/chromium.json')
 }
 const PROTOCOL_NAMES = {
     appium: 'Appium',
     jsonwp: 'JSON Wire Protocol',
     mjsonwp: 'Mobile JSON Wire Protocol',
-    webdriver: 'Webdriver Protocol'
+    webdriver: 'Webdriver Protocol',
+    chromium: 'Chromium'
 }
 const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
 const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')

@@ -1,0 +1,199 @@
+{
+  "/session/:sessionId/autoreport": {
+    "GET": {
+      "command": "isAutoReporting",
+      "description": "Non official and undocumented Chromium command.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L548-L549",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setAutoReporting",
+      "description": "Non official and undocumented Chromium command.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L551-L552",
+      "parameters": [{
+        "name": "enabled",
+        "type": "Boolean",
+        "description": "true if auto reporting should be enabled",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/is_loading": {
+    "GET": {
+      "command": "isLoading",
+      "description": "Returns true/false if the active window handle is loading or not.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/session_commands.cc#L732-L751",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/chromium/heap_snapshot": {
+    "GET": {
+      "command": "takeHeapSnapshot",
+      "description": "Take a heap snapshot of the current execution context.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L1585-L1591",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/network_connection": {
+    "GET": {
+      "command": "getNetworkConnection",
+      "description": "Get the current network connection.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L581-L582",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setNetworkConnection",
+      "description": "Set network connection.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L587-L589",
+      "parameters": [{
+        "name": "connection_type",
+        "type": "string",
+        "description": "undocumented parameter",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/chromium/network_conditions": {
+    "GET": {
+      "command": "getNetworkConditions",
+      "description": "Non official and undocumented Chromium command.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L572-L579",
+      "parameters": []
+    },
+    "POST": {
+      "command": "setNetworkConditions",
+      "description": "Non official and undocumented Chromium command.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L568-L570",
+      "parameters": [{
+        "name": "network_name",
+        "type": "string",
+        "description": "undocumented parameter",
+        "required": true
+      }]
+    },
+    "DELETE": {
+      "command": "deleteNetworkConditions",
+      "description": "Non official and undocumented Chromium command.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L584-L585",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/chromium/send_command": {
+    "GET": {
+      "command": "sendCommand",
+      "description": "Send Chrome DevTools Protocol command to the browser.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L591-L593",
+      "parameters": [{
+        "name": "cmd",
+        "type": "string",
+        "description": "name of the command (e.g. Network.enable)",
+        "required": true
+      }, {
+        "name": "params",
+        "type": "object",
+        "description": "parameters to the command",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/chromium/send_command_and_get_result": {
+    "POST": {
+      "command": "sendCommandAndGetResult",
+      "description": "Send Chrome DevTools Protocol command to the browser and wait for receiving result.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L595-L597",
+      "parameters": [{
+        "name": "cmd",
+        "type": "string",
+        "description": "name of the command (e.g. Network.enable)",
+        "required": true
+      }, {
+        "name": "params",
+        "type": "object",
+        "description": "parameters to the command",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/reporting/generate_test_report": {
+    "POST": {
+      "command": "generateTestReport",
+      "description": "Non official and undocumented Chromium command.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L621-L622",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/file": {
+    "POST": {
+      "command": "uploadFile",
+      "description": "Upload a file to remote machine on which the browser is running.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L1037-L1065",
+      "parameters": [{
+        "name": "file",
+        "type": "string",
+        "description": "base64 encoded file",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/chromium/launch_app": {
+    "POST": {
+      "command": "launchApp",
+      "description": "Launch chrome app.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L521-L539",
+      "parameters": [{
+        "name": "id",
+        "type": "string",
+        "description": "id of app to be launched",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/element/:elementId/hover": {
+    "POST": {
+      "command": "hoverOverElement",
+      "description": "Hover over an element.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/element_commands.cc#L117-L137",
+      "variables": [{
+        "name": "elementId",
+        "description": "id of element to hover over to"
+      }]
+    }
+  },
+  "/session/:sessionId/element/:elementId/equals/:otherElementId": {
+    "POST": {
+      "command": "elementEquals",
+      "description": "Compare elements with each other.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L521-L539",
+      "variables": [{
+        "name": "elementId",
+        "description": "element id to compare other element to"
+      }, {
+        "name": "otherElementId",
+        "description": "other element id to compare element to"
+      }]
+    }
+  },
+  "/session/:sessionId/touch/pinch": {
+    "POST": {
+      "command": "launchApp",
+      "description": "Trigger a pinch zoom effect.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L903-L917",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "x position to pinch on",
+        "required": true
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "y position to pinch on",
+        "required": true
+      }, {
+        "name": "scale",
+        "type": "number",
+        "description": "pinch zoom scale",
+        "required": true
+      }]
+    }
+  }
+}
