@@ -170,7 +170,7 @@ const Talks = () => (
     <Container background="light" padding={['bottom', 'top']}>
         <a className="anchor" name="watch" />
         <a className="hash-link" href="#watch" />
-        <div className="blockElement imageAlignSide twoByGridBlock">
+        <div className="blockElement imageAlignSide twoByGridBlock videoContainer">
             <div className="video">
                 <iframe
                     width="560"
