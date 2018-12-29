@@ -15,6 +15,7 @@ declare namespace WebDriver {
     type FirefoxLogLevels =
         'trace' | 'debug' | 'config' |
         'info' | 'warn' | 'error' | 'fatal';
+    type Timeouts = 'script' | 'pageLoad' | 'implicit';
 
     interface ProxyObject {
         proxyType?: ProxyTypes;
