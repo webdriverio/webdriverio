@@ -59,8 +59,14 @@ describe('webdriver request', () => {
             expect(options.body).toEqual({ some: 'body' })
         })
 
-        it('should not attach a body if none is needed (e.g. DELETE)', () => {
+        it('sets request body to "undefined" when request object is empty and DELETE is used', () => {
             const req = new WebDriverRequest('DELETE', '/session', {})
+            const options = req._createOptions({})
+            expect(Boolean(options.body)).toEqual(false)
+        })
+
+        it('sets request body to "undefined" when request object is empty and GET is used', () => {
+            const req = new WebDriverRequest('GET', '/title', {})
             const options = req._createOptions({})
             expect(Boolean(options.body)).toEqual(false)
         })
