@@ -222,8 +222,8 @@ declare namespace WebDriver {
     function newSession(
         options?: Options,
         modifier?: (...args: any[]) => any,
-        proto?: object;
-        commandWrapper?: (commandName: string, fn: (...agrs: any[])) => any
+        proto?: object,
+        commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
     ): Client<void>;
 
     // generated typings
