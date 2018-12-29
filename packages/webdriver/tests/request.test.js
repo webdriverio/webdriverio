@@ -59,10 +59,16 @@ describe('webdriver request', () => {
             expect(options.body).toEqual({ some: 'body' })
         })
 
-        it('should not attach a body if none is needed', () => {
-            const req = new WebDriverRequest('POST', '/status', {})
+        it('should not attach a body if none is needed (e.g. DELETE)', () => {
+            const req = new WebDriverRequest('DELETE', '/session', {})
             const options = req._createOptions({})
             expect(Boolean(options.body)).toEqual(false)
+        })
+
+        it('should attach an empty object body when POST is used', () => {
+            const req = new WebDriverRequest('POST', '/status', {})
+            const options = req._createOptions({})
+            expect(options.body).toEqual({})
         })
     })
 
