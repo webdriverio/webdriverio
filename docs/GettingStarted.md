@@ -160,6 +160,7 @@ That's it! The configurator now installs all required packages for you and creat
 Edit the `wdio.conf.js` file to specify the path (e.g. right after the baseUrl setting):
 
 ```
+    //
     // Override the default path of /wd/hub
     path: '/',
 ```
