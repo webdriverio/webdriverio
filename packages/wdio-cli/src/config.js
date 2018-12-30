@@ -77,7 +77,7 @@ export const CLI_PARAMS = [{
     name: 'version',
     description: 'prints WebdriverIO version'
 }, {
-    name: 'host',
+    name: 'hostname',
     alias: 'h',
     describe: 'automation driver host address',
     type: 'string'
