@@ -46,7 +46,7 @@
       "parameters": [],
       "returns": {
         "type": "Object",
-        "name": "status",
+        "name": "timeouts",
         "description": "Object containing timeout durations for `script`, `pageLoad` and `implicit` timeouts."
       }
     },
@@ -55,10 +55,20 @@
       "description": "The Set Timeouts command sets timeout durations associated with the current session. The timeouts that can be controlled are listed in the table of session timeouts below.",
       "ref": "https://w3c.github.io/webdriver/#dfn-timeouts",
       "parameters": [{
-        "name": "timeouts",
-        "type": "Object",
-        "description": "Object containing timeout values for at least one of the following keys: \"script\", \"pageLoad\" and/or \"implicit\"",
-        "required": true
+        "name": "implicit",
+        "type": "number",
+        "description": "integer in ms for session implicit wait timeout",
+        "required": false
+      }, {
+        "name": "pageLoad",
+        "type": "number",
+        "description": "integer in ms for session page load timeout",
+        "required": false
+      }, {
+        "name": "script",
+        "type": "number",
+        "description": "integer in ms for session script timeout",
+        "required": false
       }]
     }
   },
