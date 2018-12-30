@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.1.1 (2018-12-30)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3208](https://github.com/webdriverio/webdriverio/pull/3208) Fix bug where Geckodriver requires POST requests to have a valid JSON body ([@klipstein](https://github.com/klipstein))
+
+#### :memo: Documentation
+* [#3206](https://github.com/webdriverio/webdriverio/pull/3206) Docs: fix Getting Started guide (part 2) ([@goofballLogic](https://github.com/goofballLogic))
+* [#3202](https://github.com/webdriverio/webdriverio/pull/3202) fix: this PR fixes a bug on phones  ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 3
+- Andrew Stewart Gibson ([@goofballLogic](https://github.com/goofballLogic))
+- Tobias von Klipstein ([@klipstein](https://github.com/klipstein))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## 5.1.0 (2018-12-28)
 
 #### :rocket: New Feature
