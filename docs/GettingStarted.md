@@ -124,7 +124,7 @@ A: _local_<br>
 __Q: Shall I install the runner plugin for you?__<br>
 A: _Yes_<br>
 <br>
-__Q: Where do you want to execute your tests?__<br>
+__Q: Where is your automation backend located?__<br>
 A: _On my local machine_<br>
 <br>
 __Q: Which framework do you want to use?__<br>
@@ -149,15 +149,22 @@ __Q: Do you want to add a service to your test setup?__<br>
 A: none (just press enter, let's skip this for simplicity)<br>
 <br>
 __Q: Level of logging verbosity:__<br>
-A: _trace_ (just press enter)<br>
-<br>
-__Q: In which directory should screenshots gets saved if a command fails?__<br>
-A: _./errorShots/_ (just press enter)<br>
+A: _trace_<br>
 <br>
 __Q: What is the base url?__<br>
 A: _http://localhost_ (just press enter)<br>
 
-That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. Next step is to create your first spec file (test file).
+That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. As we're using Geckodriver, we need to override the default path (which uses the Selenium's default of `/wd/hub`). Then, we'll be ready to create your first spec file (test file).
+
+### Configure the path
+Edit the `wdio.conf.js` file to specify the path (e.g. right after the baseUrl setting):
+
+```
+    //
+    // Override the default path of /wd/hub
+    path: '/',
+```
+
 
 ### Create Spec Files
 
