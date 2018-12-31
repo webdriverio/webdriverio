@@ -97,7 +97,8 @@ export function isValidParameter (arg, expectedType) {
     }
 
     for (const argEntity of arg) {
-        if (!(typeof argEntity).match(expectedType)) {
+        const argEntityType = argEntity === null ? 'null' : typeof argEntity
+        if (!argEntityType.match(expectedType)) {
             return false
         }
     }
