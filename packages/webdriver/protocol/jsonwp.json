@@ -64,7 +64,7 @@
   },
   "/session/:sessionId/timeouts": {
     "POST": {
-      "command": "setTimeout",
+      "command": "setTimeouts",
       "description": "Configure the amount of time that a particular type of operation can execute for before they are aborted and a |Timeout| error is returned to the client.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeouts",
       "parameters": [{
