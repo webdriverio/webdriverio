@@ -14,10 +14,11 @@ const DEFAULT_SYNC_INTERVAL = 100 // 100ms
  * to all these reporters
  */
 export default class BaseReporter {
-    constructor (config, cid) {
+    constructor (config, cid, caps) {
         this.config = config
         this.cid = cid
         this.reporters = config.reporters.map(::this.initReporter)
+        this.caps = caps
 
         /**
          * these configurations are not publicly documented as there should be no desire for it
@@ -37,14 +38,31 @@ export default class BaseReporter {
         this.reporters.forEach((reporter) => reporter.emit(e, payload))
     }
 
-    /**
-     * returns name of log file
-     */
-    getLogFile (name) {
-        if (!this.config.outputDir) {
+    getLogFile(name) {
+        let options = this.config
+        let filename = `wdio-${this.cid}-${name}-reporter.log`
+        options.capabilities = this.caps
+
+        this.config.reporters.forEach(reporter => {
+            if (Array.isArray(reporter) && reporter[0] === name) {
+                const fileformat = reporter[1].outputFileFormat
+                options = Object.assign(options, reporter[1])
+
+                if (fileformat) {
+                    if (typeof fileformat !== 'function') {
+                        throw new Error('outputFileFormat must be a function')
+                    }
+
+                    filename = fileformat(options)
+                }
+            }
+        })
+
+        if (!options.outputDir) {
             return
         }
-        return path.join(this.config.outputDir, `wdio-${this.cid}-${name}-reporter.log`)
+
+        return path.join(options.outputDir, filename)
     }
 
     /**
