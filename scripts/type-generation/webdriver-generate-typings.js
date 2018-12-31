@@ -22,7 +22,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             const { command, parameters = [], returns } = description
             const params = parameters.map((p) => `${p.name}${p.required === false ? '?' : ''}: ${p.type.toLowerCase()}`)
             let returnValue = returns ? returns.type.toLowerCase() : 'undefined'
-            returnValue = returnValue === '*' ? 'any' : returnValue;
+            returnValue = returnValue === '*' ? 'any' : returnValue
             lines.push(`        ${command}(${params.join(', ')}): ${returnValue};`)
         }
     }
@@ -31,9 +31,9 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 }
 
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-const outputFile = path.join(__dirname, '..', '..', 'packages/webdriver/lib', 'webdriver.d.ts');
+const outputFile = path.join(__dirname, '..', '..', 'packages/webdriver/lib', 'webdriver.d.ts')
 const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
 fs.writeFileSync(outputFile, generatedTypings, { encoding: 'utf-8' })
 
 // eslint-disable-next-line no-console
-console.log(`Generated typings file at ${outputFile}`);
+console.log(`Generated typings file at ${outputFile}`)
