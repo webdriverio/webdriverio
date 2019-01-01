@@ -161,7 +161,7 @@
   },
   "/session/:sessionId/touch/pinch": {
     "POST": {
-      "command": "launchApp",
+      "command": "touchPinch",
       "description": "Trigger a pinch zoom effect.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L903-L917",
       "parameters": [{
