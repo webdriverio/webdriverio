@@ -605,6 +605,26 @@
       "parameters": []
     }
   },
+  "/session/:sessionId/element/:elementId/equals/:otherElementId": {
+    "GET": {
+      "command": "elementEquals",
+      "description": "Compare elements with each other.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidequalsother",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }, {
+        "name": "otherElementId",
+        "description": "ID of the element to compare against"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "Boolean",
+        "name": "isEqual",
+        "description": "Whether the two IDs refer to the same element."
+      }
+    }
+  },
   "/session/:sessionId/element/:elementId/submit": {
     "POST": {
       "command": "elementSubmit",
