@@ -916,6 +916,19 @@
       }]
     }
   },
+  "/session/:sessionId/click": {
+    "POST": {
+      "command": "positionClick",
+      "description": "Clicks at the current mouse coordinates (set by moveto).",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidclick",
+      "parameters": [{
+        "name": "button",
+        "type": "number",
+        "description": "which button, enum: LEFT = 0, RIGHT = 2, defaults to the left mouse button if not specified",
+        "required": false
+      }]
+    }
+  },
   "/session/:sessionId/doubleclick": {
     "POST": {
       "command": "positionDoubleClick",
@@ -960,6 +973,24 @@
       "command": "touchUp",
       "description": "Finger up on the screen.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchup",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "x coordinate on the screen",
+        "required": false
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "y coordinate on the screen",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/touch/move": {
+    "POST": {
+      "command": "touchMove",
+      "description": "Finger move on the screen.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchmove",
       "parameters": [{
         "name": "x",
         "type": "number",
