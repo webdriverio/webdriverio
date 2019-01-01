@@ -41,6 +41,8 @@ export default class BaseReporter {
     getLogFile(name) {
         let options = this.config
         let filename = `wdio-${this.cid}-${name}-reporter.log`
+
+        options.cid = this.cid
         options.capabilities = this.caps
 
         this.config.reporters.forEach(reporter => {
