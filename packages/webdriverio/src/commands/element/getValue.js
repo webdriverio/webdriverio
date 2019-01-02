@@ -15,7 +15,7 @@
  * </example>
  *
  * @alias element.getValue
- * @return {String|String[]}  requested element(s) value
+ * @return {String}  requested element(s) value
  * @uses protocol/elements, protocol/elementIdProperty
  * @type property
  *

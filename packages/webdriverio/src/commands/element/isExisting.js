@@ -34,7 +34,7 @@
  * </example>
  *
  * @alias element.isExisting
- * @return {Boolean|Boolean[]}            true if element(s)* [is|are] existing
+ * @return {Boolean}            true if element(s)* [is|are] existing
  * @uses protocol/elements
  * @type state
  *
