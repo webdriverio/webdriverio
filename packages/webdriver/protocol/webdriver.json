@@ -205,22 +205,22 @@
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-set-window-rect",
       "parameters": [{
         "name": "x",
-        "type": "number",
+        "type": "(number|null)",
         "description": "the screenX attribute of the window object",
         "required": true
       }, {
         "name": "y",
-        "type": "number",
+        "type": "(number|null)",
         "description": "the screenY attribute of the window object",
         "required": true
       }, {
         "name": "width",
-        "type": "number",
+        "type": "(number|null)",
         "description": "the width of the outer dimensions of the top-level browsing context, including browser chrome etc...",
         "required": true
       }, {
         "name": "height",
-        "type": "number",
+        "type": "(number|null)",
         "description": "the height of the outer dimensions of the top-level browsing context, including browser chrome etc...",
         "required": true
       }],
