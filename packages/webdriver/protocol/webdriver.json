@@ -403,7 +403,7 @@
   "/session/:sessionId/element/:elementId/displayed": {
     "GET": {
       "command": "isElementDisplayed",
-      "description": "The visibility of an element is guided by what is perceptually visible to the human eye. In this context, an element's displayedness does not relate to the visibility or display style properties.",
+      "description": "Is Element Displayed determines the visibility of an element which is guided by what is perceptually visible to the human eye. In this context, an element's displayedness does not relate to the `visibility` or `display` style properties.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#c-element-displayedness",
       "variables": [{
         "name": "elementId",
@@ -700,7 +700,7 @@
   "/session/:sessionId/actions": {
     "POST": {
       "command": "performActions",
-      "description": "Execute complex user actions. See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.",
+      "description": "The Perform Actions command is used to execute complex user actions. See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-perform-actions",
       "parameters": [{
         "name": "actions",
@@ -746,7 +746,7 @@
     },
     "POST": {
       "command": "sendAlertText",
-      "description": "",
+      "description": "The Send Alert Text command sets the text field of a window.prompt user prompt to the given value.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-send-alert-text",
       "parameters": [{
         "name": "text",
@@ -759,15 +759,20 @@
   "/session/:sessionId/screenshot": {
     "GET": {
       "command": "takeScreenshot",
-      "description": "The Send Alert Text command sets the text field of a window.prompt user prompt to the given value.",
+      "description": "The Take Screenshot command takes a screenshot of the top-level browsing context's viewport.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-take-screenshot",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "screenshot",
+        "description": "The base64-encoded PNG image data comprising the screenshot of the initial viewport."
+      }
     }
   },
   "/session/:sessionId/element/:elementId/screenshot": {
     "GET": {
       "command": "takeElementScreenshot",
-      "description": "The Take Screenshot command takes a screenshot of the top-level browsing context's viewport.",
+      "description": "The Take Element Screenshot command takes a screenshot of the visible region encompassed by the bounding rectangle of an element.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-take-element-screenshot",
       "variables": [{
         "name": "elementId",
@@ -777,7 +782,7 @@
       "returns": {
         "type": "String",
         "name": "screenshot",
-        "description": "The base64-encoded PNG image data comprising the screenshot of the initial viewport."
+        "description": "The base64-encoded PNG image data comprising the screenshot of the visible region of an element’s bounding rectangle after it has been scrolled into view."
       }
     }
   }
