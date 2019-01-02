@@ -2,20 +2,46 @@
   "/session/:sessionId/autoreport": {
     "GET": {
       "command": "isAutoReporting",
-      "description": "",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L548-L549",
-      "parameters": []
+      "description": "Whether it should automatically raises errors on browser logs.",
+      "ref": "https://codereview.chromium.org/101203012",
+      "parameters": [],
+      "returns": {
+        "type": "Boolean",
+        "name": "isAutoReporting",
+        "description": "`true` or `false` based on whether auto reporting is enabled."
+      }
     },
     "POST": {
       "command": "setAutoReporting",
-      "description": "",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L551-L552",
+      "description": "Toggle whether to return response with unknown error with first browser error (e.g. failed to load resource due to 403/404 response) for all subsequent commands (once enabled).",
+      "ref": "https://codereview.chromium.org/101203012",
+      "examples": [
+        [
+          "// Enable auto reporting first thing after session was initiated with empty browser logs",
+          "console.log(await browser.setAutoReporting(true)); // outputs: null",
+          "// Upon requesting an non-existing resource it will abort execution due to thrown unknown error",
+          "await browser.url('https://webdriver.io/img/404-does-not-exist.png');"
+        ],
+        [
+          "// During the session do some operations which populate the browser logs",
+          "await browser.url('https://webdriver.io/img/404-does-not-exist.png');",
+          "await browser.url('https://webdriver.io/403/no-access');",
+          "// Enable auto reporting which throws an unknown error for first browser log (404 response)",
+          "await browser.setAutoReporting(true);"
+        ]
+
+      ],
       "parameters": [{
         "name": "enabled",
-        "type": "Boolean",
-        "description": "true if auto reporting should be enabled",
+        "type": "boolean",
+        "description": "`true` if auto reporting should be enabled, use `false` to disable previously enabled auto reporting.",
         "required": true
-      }]
+      }],
+      "returns": {
+        "type": "Object|Null",
+        "name": "firstBrowserError",
+        "description": "In case first browser error already occured prior to executing this command it will throw unknown error as response, which is an object with 'message' key describing first browser error. Otherwise it returns `null` on success."
+      }
     }
   },
   "/session/:sessionId/is_loading": {
