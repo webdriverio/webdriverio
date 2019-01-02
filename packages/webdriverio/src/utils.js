@@ -140,7 +140,7 @@ export const findStrategy = function (value, isW3C) {
 //         throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
 //     }
     
-    if(!((using+":"+value).match(DIRECT_SELECTOR_REGEXP)){
+    if(!((using+":"+value).match(DIRECT_SELECTOR_REGEXP))){
        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
     }
 
