@@ -2,13 +2,13 @@
   "/session/:sessionId/autoreport": {
     "GET": {
       "command": "isAutoReporting",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L548-L549",
       "parameters": []
     },
     "POST": {
       "command": "setAutoReporting",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L551-L552",
       "parameters": [{
         "name": "enabled",
@@ -56,13 +56,13 @@
   "/session/:sessionId/chromium/network_conditions": {
     "GET": {
       "command": "getNetworkConditions",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L572-L579",
       "parameters": []
     },
     "POST": {
       "command": "setNetworkConditions",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L568-L570",
       "parameters": [{
         "name": "network_name",
@@ -73,7 +73,7 @@
     },
     "DELETE": {
       "command": "deleteNetworkConditions",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L584-L585",
       "parameters": []
     }
@@ -117,7 +117,7 @@
   "/session/:sessionId/reporting/generate_test_report": {
     "POST": {
       "command": "generateTestReport",
-      "description": "Non official and undocumented Chromium command.",
+      "description": "",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L621-L622",
       "parameters": []
     }
