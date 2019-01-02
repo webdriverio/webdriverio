@@ -53,7 +53,12 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
             description.hasHeader = true
             description.paramString = description.paramTags.map((param) => param.name).join(', ')
-            description.examples = [] // tbd
+            description.examples = (description.examples || []).map((example) => {
+                return {
+                    code: Array.isArray(example) ? example.join('\n') : example,
+                    format: 'js'
+                }
+            })
             description.returnTags = [] // tbd
             description.throwsTags = [] // tbd
             description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
