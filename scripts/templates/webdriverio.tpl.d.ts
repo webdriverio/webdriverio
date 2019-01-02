@@ -53,6 +53,21 @@ declare namespace WebdriverIO {
         }
     }
 
+    interface Options {
+        specs?: string[],
+        exclude?: string[],
+        suites?: object,
+        outputDir?: string,
+        baseUrl?: string,
+        bail?: number,
+        waitforTimeout?: number,
+        waitforInterval?: number,
+        framework?: string,
+        mochaOpts?: object,
+        jasmineNodeOpts?: object,
+        reporters?: string[] | object[],
+    }
+
     interface Element<T> {
         // ... element commands ...
     }
@@ -62,6 +77,7 @@ declare namespace WebdriverIO {
             name: string,
             func: Function
         ): any;
+        options: Options;
         waitUntil(
             condition: Function,
             timeout?: number,
