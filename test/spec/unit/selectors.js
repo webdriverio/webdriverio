@@ -9,8 +9,8 @@ describe('selector strategies helper', () => {
 
     it('should find an element using "id" method', () => {
         const element = findStrategy('#purplebox')
-        element.using.should.be.equal('id')
-        element.value.should.be.equal('purplebox')
+        element.using.should.be.equal('css selector')
+        element.value.should.be.equal('#purplebox')
     })
 
     it('should find an element using "name" method', () => {
