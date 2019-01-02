@@ -62,7 +62,6 @@ const gatherCommands = (commandPath, commandFile) => {
 
     if(specifics[commandName]){
         const specificCommand = specifics[commandName]
-        // console.log(commandName)
         specificCommand.forEach((cmd) => {
             const params = []
             cmd.parameters.forEach((p) => {
