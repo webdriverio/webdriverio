@@ -46,7 +46,7 @@
   ],
   "types": "./webdriverio.d.ts",
   "scripts": {
-    "build": "run-s clean compile generate",
+    "build": "run-s clean compile",
     "clean": "rimraf ./build",
     "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
