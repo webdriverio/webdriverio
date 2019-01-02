@@ -238,7 +238,7 @@ This version comes with a variety of technical changes that might affect the fun
         * `session` → `getSession`, `deleteSession` (JsonWireProtocol only)
         * `sessions` → `getSessions`
         * `submit` → `elementSubmit`
-        * `timeouts` → `getTimeouts`, `setTimeout`
+        * `timeouts` → `getTimeouts`, `setTimeouts`
         * `window`, `switchToWindow` → `switchWindow`
         * `windowHandle` → `closeWindow`, `getWindowHandle`
         * `windowHandles` → `getWindowHandles`
