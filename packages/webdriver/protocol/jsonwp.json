@@ -578,7 +578,7 @@
   },
   "/session/:sessionId/element/:elementId/enabled": {
     "GET": {
-      "command": "getElementEnabled",
+      "command": "isElementEnabled",
       "description": "Determine if an element is currently enabled.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidenabled",
       "variables": [{

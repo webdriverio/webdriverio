@@ -530,7 +530,7 @@
   },
   "/session/:sessionId/element/:elementId/enabled": {
     "GET": {
-      "command": "getElementEnabled",
+      "command": "isElementEnabled",
       "description": "Is Element Enabled determines if the referenced element is enabled or not. This operation only makes sense on form controls.",
       "ref": "https://w3c.github.io/webdriver/webdriver-spec.html#dfn-is-element-enabled",
       "variables": [{
