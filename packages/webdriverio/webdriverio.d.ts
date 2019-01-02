@@ -11,6 +11,48 @@ declare namespace WebdriverIO {
         options: any
     ): WebDriver.Client<void>;
 
+    type LocationParam = 'x' | 'y';
+
+    interface LocationReturn {
+        x: number,
+        y: number
+    }
+
+    type SizeParam = 'width' | 'height';
+
+    interface SizeReturn {
+        width: number,
+        height: number
+    }
+
+    interface Cookie {
+        name: string,
+        value: string,
+        path?: string,
+        expiry?: number,
+    }
+
+    interface Cookie {
+        name: string,
+        value: string,
+        domain?: string
+        path?: string,
+        expiry?: number,
+        isSecure?: boolean,
+        isHttpOnly?: boolean
+    }
+
+    interface CSSProperty {
+        property: string,
+        value: any,
+        parse: {
+            type: string,
+            string: string,
+            unit: string,
+            value: any
+        }
+    }
+
     interface Element<T> {
         addValue(
             value: any
@@ -27,26 +69,28 @@ declare namespace WebdriverIO {
         ): string;
         getCSSProperty(
             cssProperty: string
-        ): object;
+        ): CSSProperty;
         getHTML(
             includeSelectorTag?: boolean
         ): string;
         getLocation(
-            prop: string
-        ): object | number;
+            prop: LocationParam
+        ): number;
+        getLocation(): LocationReturn;
         getProperty(
             property: string
         ): object | string;
         getSize(
-            prop: string
-        ): object | number;
+            prop: SizeParam
+        ): number;
+        getSize(): SizeReturn;
         getTagName(): string;
         getText(): string;
-        getValue(): string | string[];
+        getValue(): string;
         isDisplayed(): boolean;
-        isDisplayedInViewport(): boolean | boolean[];
+        isDisplayedInViewport(): boolean;
         isEnabled(): boolean;
-        isExisting(): boolean | boolean[];
+        isExisting(): boolean;
         isFocused(): boolean;
         isSelected(): boolean;
         moveTo(
@@ -95,12 +139,18 @@ declare namespace WebdriverIO {
             name: string,
             func: Function
         ): any;
+        waitUntil(
+            condition: Function,
+            timeout?: number,
+            timeoutMsg?: string,
+            interval?: number
+        ): undefined
         call(
             callback: Function
         ): undefined;
         debug(): undefined;
         deleteCookies(
-            name?: string[]
+            names?: string[]
         ): undefined;
         execute(
             script: string | Function
@@ -111,7 +161,7 @@ declare namespace WebdriverIO {
         ): undefined;
         getCookies(
             names?: string[]
-        ): object[];
+        ): Cookie[];
         keys(
             value: string | string[]
         ): undefined;
@@ -125,10 +175,10 @@ declare namespace WebdriverIO {
         ): undefined;
         reloadSession(): undefined;
         saveScreenshot(
-            filename: string
+            filepath: string
         ): Buffer;
         setCookies(
-            cookie: object
+            cookie: Cookie
         ): undefined;
         switchWindow(
             urlOrTitleToMatch: string | RegExp
