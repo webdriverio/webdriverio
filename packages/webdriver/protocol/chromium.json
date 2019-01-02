@@ -159,23 +159,9 @@
       }]
     }
   },
-  "/session/:sessionId/element/:elementId/equals/:otherElementId": {
-    "POST": {
-      "command": "elementEquals",
-      "description": "Compare elements with each other.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L521-L539",
-      "variables": [{
-        "name": "elementId",
-        "description": "element id to compare other element to"
-      }, {
-        "name": "otherElementId",
-        "description": "other element id to compare element to"
-      }]
-    }
-  },
   "/session/:sessionId/touch/pinch": {
     "POST": {
-      "command": "launchApp",
+      "command": "touchPinch",
       "description": "Trigger a pinch zoom effect.",
       "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L903-L917",
       "parameters": [{

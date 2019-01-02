@@ -32,5 +32,5 @@
  */
 
 export default function isEnabled() {
-    return this.getElementEnabled(this.elementId)
+    return this.isElementEnabled(this.elementId)
 }
