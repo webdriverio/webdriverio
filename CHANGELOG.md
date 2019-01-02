@@ -299,6 +299,25 @@ This version comes with a variety of technical changes that might affect the fun
   const elem2 = $('myOtherElem')
   console.log(typeof elem2.myElemCommand) // outputs "undefined"
   ```
+
+* spec and suite cli arguments are now passed as an array, e.g. 
+  ```js
+  // v4
+  ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js,./tests/baz.js
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar,BarBaz
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar
+  ```
+  ```js
+  // v5
+  ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js ./tests/baz.js
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar BarBaz
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar
+  ```
+
 * custom configuration for services or reporters are now directly applied to the config list, e.g.
   ```js
   // ...
