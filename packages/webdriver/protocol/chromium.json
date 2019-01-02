@@ -47,17 +47,34 @@
   "/session/:sessionId/is_loading": {
     "GET": {
       "command": "isLoading",
-      "description": "Returns true/false if the active window handle is loading or not.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/session_commands.cc#L732-L751",
-      "parameters": []
+      "description": "Determines load status for active window handle.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L783-L802",
+      "examples": [
+        [
+          "console.log(await browser.isLoading()); // outputs: false",
+          "await browser.newWindow('https://webdriver.io');",
+          "console.log(await browser.isLoading()); // outputs: true"
+        ]
+      ],
+      "parameters": [],
+      "returns": {
+        "type": "Boolean",
+        "name": "isLoading",
+        "description": "`true` or `false` based on whether active window handle is loading or not."
+      }
     }
   },
   "/session/:sessionId/chromium/heap_snapshot": {
     "GET": {
       "command": "takeHeapSnapshot",
-      "description": "Take a heap snapshot of the current execution context.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L1585-L1591",
-      "parameters": []
+      "description": "Takes a heap snapshot of the current execution context.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/chrome/web_view.h#L198-L202",
+      "parameters": [],
+      "returns": {
+        "type": "Object",
+        "name": "heapSnapshot",
+        "description": "A JSON representation of the heap snapshot. Which can be inspected by loading as file into Chrome DevTools."
+      }
     }
   },
   "/session/:sessionId/network_connection": {
