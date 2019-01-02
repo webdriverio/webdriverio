@@ -11,6 +11,48 @@ declare namespace WebdriverIO {
         options: any
     ): WebDriver.Client<void>;
 
+    type LocationParam = 'x' | 'y';
+
+    interface LocationReturn {
+        x: number,
+        y: number
+    }
+
+    type SizeParam = 'width' | 'height';
+
+    interface SizeReturn {
+        width: number,
+        height: number
+    }
+
+    interface Cookie {
+        name: string,
+        value: string,
+        path?: string,
+        expiry?: number,
+    }
+
+    interface Cookie {
+        name: string,
+        value: string,
+        domain?: string
+        path?: string,
+        expiry?: number,
+        isSecure?: boolean,
+        isHttpOnly?: boolean
+    }
+
+    interface CSSProperty {
+        property: string,
+        value: any,
+        parse: {
+            type: string,
+            string: string,
+            unit: string,
+            value: any
+        }
+    }
+
     interface Element<T> {
         // ... element commands ...
     }
@@ -20,6 +62,12 @@ declare namespace WebdriverIO {
             name: string,
             func: Function
         ): any;
+        waitUntil(
+            condition: Function,
+            timeout?: number,
+            timeoutMsg?: string,
+            interval?: number
+        ): undefined
         // ... browser commands ...
     }
 }
