@@ -3,6 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const dox = require('dox');
+const specifics = require('./specific-types.json');
 
 const elementDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/element');
 const elementCommands = fs.readdirSync(elementDir);
@@ -54,29 +55,44 @@ const gatherCommands = (commandPath, commandFile) => {
     const commandContents = fs.readFileSync(commandPath).toString();
     const commandDocs = dox.parseComments(commandContents);
     const commandTags = commandDocs[0].tags;
+    const commandName = commandFile.substr(0, commandFile.indexOf('.js'));
     
     const allParameters = [];
     let returnType = 'undefined';
 
-    for ({type, name, optional, types} of commandTags) {
-        if (type === 'param') {
-            let commandTypes = getTypes(types, true);
+    if(specifics[commandName]){
+        const specificCommand = specifics[commandName]
+        // console.log(commandName)
+        specificCommand.forEach((cmd) => {
+            const params = [];
+            cmd.parameters.forEach((p) => {
+                params.push(`${p.name}: ${p.type}`)
+            });
+            const returns = cmd.return;
 
-            // console.log(commandTag.name)
-            if (name.indexOf('.') < 0) {
-                allParameters.push(`${name}${optional ? '?' : ''}: ${commandTypes}`);
+            allTypeLines.push(`${commandName}(${params.length > 0 ? '\n            ' : ''}${params.join(',\n            ')}${params.length > 0 ? '\n        ' : ''}): ${returns}`);
+        });
+    } else {
+        for ({type, name, optional, types} of commandTags) {
+            if (type === 'param') {
+                let commandTypes = getTypes(types, true);
+    
+                // console.log(commandTag.name)
+                if (name.indexOf('.') < 0) {
+                    allParameters.push(`${name}${optional ? '?' : ''}: ${commandTypes}`);
+                }
+            }
+    
+            if (type === 'return') {
+                returnType = getTypes(types, false);
             }
         }
-
-        if (type === 'return') {
-            returnType = getTypes(types, false);
+    
+        if (commandName !== '$' && commandName !== '$$' && commandName !== 'waitUntil') {
+            allTypeLines.push(`${commandName}(${allParameters.length > 0 ? '\n            ' : ''}${allParameters.join(',\n            ')}${allParameters.length > 0 ? '\n        ' : ''}): ${returnType}`);
         }
     }
-
-    const commandName = commandFile.substr(0, commandFile.indexOf('.js'));
-    if (commandName !== '$' && commandName !== '$$' && commandName !== 'waitUntil') {
-        allTypeLines.push(`${commandName}(${allParameters.length > 0 ? '\n            ' : ''}${allParameters.join(',\n            ')}${allParameters.length > 0 ? '\n        ' : ''}): ${returnType}`);
-    }
+    
 
     return allTypeLines;
 }
@@ -104,7 +120,7 @@ const templateContents = fs.readFileSync(templatePath, 'utf8');
 let typingsContents = templateContents.replace('// ... element commands ...', allElementCommands)
 typingsContents = typingsContents.replace('// ... browser commands ...', allBrowserCommands);
 
-const outputFile = path.join(__dirname, '..', '..', 'packages/webdriverio/lib', 'webdriverio.d.ts');
+const outputFile = path.join(__dirname, '..', '..', 'packages/webdriverio', 'webdriverio.d.ts');
 fs.writeFileSync(outputFile, typingsContents, { encoding: 'utf-8' })
 
 console.log(`Generated typings file at ${outputFile}`);
