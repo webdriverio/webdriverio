@@ -51,7 +51,7 @@ export default class Runner extends EventEmitter {
         this.config = this.configParser.getConfig()
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
-        this.reporter = new BaseReporter(this.config, this.cid)
+        this.reporter = new BaseReporter(this.config, this.cid, this.caps)
         this.inWatchMode = Boolean(this.config.watch)
 
         await runHook('beforeSession', this.config, this.caps, this.specs)
