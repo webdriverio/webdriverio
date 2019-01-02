@@ -42,23 +42,25 @@ export default class BaseReporter {
         let options = this.config
         let filename = `wdio-${this.cid}-${name}-reporter.log`
 
-        options.cid = this.cid
-        options.capabilities = this.caps
+        const reporter_options = this.config.reporters.find((reporter) => (
+            Array.isArray(reporter) && reporter[0] === name
+        ))
 
-        this.config.reporters.forEach(reporter => {
-            if (Array.isArray(reporter) && reporter[0] === name) {
-                const fileformat = reporter[1].outputFileFormat
-                options = Object.assign(options, reporter[1])
+        if(reporter_options) {
+            const fileformat = reporter_options[1].outputFileFormat
 
-                if (fileformat) {
-                    if (typeof fileformat !== 'function') {
-                        throw new Error('outputFileFormat must be a function')
-                    }
+            options.cid = this.cid
+            options.capabilities = this.caps
+            Object.assign(options, reporter_options[1])
 
-                    filename = fileformat(options)
+            if (fileformat) {
+                if (typeof fileformat !== 'function') {
+                    throw new Error('outputFileFormat must be a function')
                 }
+
+                filename = fileformat(options)
             }
-        })
+        }
 
         if (!options.outputDir) {
             return
