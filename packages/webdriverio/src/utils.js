@@ -136,8 +136,12 @@ export const findStrategy = function (value, isW3C) {
     /**
      * ensure selector strategy is supported
      */
-    if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {
-        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
+//     if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {
+//         throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
+//     }
+    
+    if(!((using+":"+value).match(DIRECT_SELECTOR_REGEXP)){
+       throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
     }
 
     return { using, value }
