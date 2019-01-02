@@ -9,6 +9,7 @@
   "engines": {
     "node": ">= 4.8.5"
   },
+  "types": "./webdriver.d.ts",
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
