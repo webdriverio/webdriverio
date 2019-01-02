@@ -31,7 +31,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 }
 
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-const outputFile = path.join(__dirname, '..', '..', 'packages/webdriver/lib', 'webdriver.d.ts');
+const outputFile = path.join(__dirname, '..', '..', 'packages/webdriver', 'webdriver.d.ts');
 const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
 fs.writeFileSync(outputFile, generatedTypings, { encoding: 'utf-8' })
 
