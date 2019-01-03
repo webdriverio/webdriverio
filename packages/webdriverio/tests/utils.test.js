@@ -290,21 +290,21 @@ describe('utils', () => {
         })
         
         it('should allow mobile selector strategies if isMobile is used', () => {
-            const element = findStrategy('android=foo', isMobile = true)
+            let element = findStrategy('android=foo', isMobile = true)
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe('foo')
             
-            const element = findStrategy('ios=foo', isMobile = true)
+            element = findStrategy('ios=foo', isMobile = true)
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
         })
         
         it('should allow mobile selector strategies if isMobile is used even when w3c is used', () => {
-            const element = findStrategy('android=foo', true, true)
+            let element = findStrategy('android=foo', true, true)
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe('foo')
             
-            const element = findStrategy('ios=foo', true, true)
+            element = findStrategy('ios=foo', true, true)
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
         })
