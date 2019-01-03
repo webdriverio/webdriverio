@@ -24,7 +24,7 @@ export const findStrategy = function (value, isW3C, isMobile) {
         /**
          * ensure selector strategy is supported
          */
-        if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
+        if (!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
 
