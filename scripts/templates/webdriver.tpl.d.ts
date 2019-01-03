@@ -229,6 +229,10 @@ declare namespace WebDriver {
 
     interface Client<T> {
         capabilities: DesiredCapabilities;
+        isW3C: boolean;
+        isAndroid: boolean;
+        isMobile: boolean;
+        isIOS: boolean;
     }
 
     // generated typings
