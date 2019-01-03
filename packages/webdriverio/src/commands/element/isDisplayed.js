@@ -41,5 +41,5 @@
  */
 
 export default function isDisplayed() {
-    return this.isElementDisplayed(this.elementId)
+    return this.elementId ? this.isElementDisplayed(this.elementId) : false
 }

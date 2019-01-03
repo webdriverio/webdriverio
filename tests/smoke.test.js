@@ -8,7 +8,8 @@ describe('smoke test', () => {
     it('should wait for elements if not found immediately', () => {
         browser.waitForElementScenario()
         const elem = $('elem')
-        assert.equal(elem.isDisplayed(), true)
+        //Element will be found
+        elem.click()
     })
 
     it('should refetch elements', () => {

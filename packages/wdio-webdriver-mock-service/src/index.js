@@ -45,7 +45,7 @@ export default class WebdriverMockService {
         this.command.findElement().times(2).reply(200, { value: elemResponse })
         this.command.findElements().times(5).reply(200, { value: [] })
         this.command.findElements().reply(200, { value: [elemResponse] })
-        this.command.isElementDisplayed(ELEMENT_ID).reply(200, { value: true })
+        this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
     }
 
     staleElementRefetchScenario () {
@@ -58,7 +58,7 @@ export default class WebdriverMockService {
         this.command.findElement().twice().reply(200, { value: elem2Response })
 
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
-        this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
+        this.command.elementClick(ELEMENT_ID).times(1).reply(500, { value: {
             error: 'stale element reference error',
             message: 'stale element reference error'
         } })
