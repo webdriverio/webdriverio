@@ -1047,7 +1047,7 @@
       "ref": "http://appium.io/docs/en/commands/interactions/touch/multi-touch-perform/",
       "parameters": [{
         "name": "actions",
-        "type": "(array|object)[]",
+        "type": "object[]",
         "description": "The type of action to perform (e.g. moveTo, release, press, tap, wait)",
         "required": true
       }],

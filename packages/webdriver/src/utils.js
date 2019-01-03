@@ -110,9 +110,6 @@ export function isValidParameter (arg, expectedType) {
  * get type of command argument
  */
 export function getArgumentType (arg) {
-    if (Array.isArray(arg)) {
-        return 'array'
-    }
     return arg === null ? 'null' : typeof arg
 }
 
