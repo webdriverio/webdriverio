@@ -10,7 +10,7 @@ const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
-export const findStrategy = function (value, isW3C) {
+export const findStrategy = function (value, isW3C, isMobile) {
     /**
      * set default selector
      */
@@ -24,7 +24,7 @@ export const findStrategy = function (value, isW3C) {
         /**
          * ensure selector strategy is supported
          */
-        if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
+        if (!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
 
@@ -136,7 +136,7 @@ export const findStrategy = function (value, isW3C) {
     /**
      * ensure selector strategy is supported
      */
-    if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {
+    if(!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)){
         throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
     }
 
@@ -348,7 +348,7 @@ export async function findElement(selector) {
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string') {
-        const { using, value } = findStrategy(selector, this.isW3C)
+        const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
         return this.elementId
             ? this.findElementFromElement(this.elementId, using, value)
             : this.findElement(using, value)
@@ -375,7 +375,7 @@ export async function findElements(selector) {
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string') {
-        const { using, value } = findStrategy(selector, this.isW3C)
+        const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
         return this.elementId
             ? this.findElementsFromElement(this.elementId, using, value)
             : this.findElements(using, value)
