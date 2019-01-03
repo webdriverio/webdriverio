@@ -290,11 +290,11 @@ describe('utils', () => {
         })
         
         it('should allow mobile selector strategies if isMobile is used', () => {
-            let element = findStrategy('android=foo', isMobile = true)
+            let element = findStrategy('android=foo', undefined, true)
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe('foo')
             
-            element = findStrategy('ios=foo', isMobile = true)
+            element = findStrategy('ios=foo', undefined, true)
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
         })
