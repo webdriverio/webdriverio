@@ -61,7 +61,7 @@ test('set custom ', async () => {
     )
     await adapter.run()
     adapter.jrunner.jasmine.Spec.prototype.addExpectationResult('foobar')
-    expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith('foobar')
+    expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith('foobar', undefined)
 })
 
 test('get data from beforeAll hook', async () => {
@@ -229,6 +229,39 @@ test('formatMessage', () => {
     expect(message.duration).toBe(123)
 })
 
+test('getExpectationResultHandler returns origHandler if none is given', () => {
+    const jasmine = { Spec: { prototype: { addExpectationResult: 'foobar' } } }
+    const config = { jasmineNodeOpts: {} }
+    const adapter = new JasmineAdapter(
+        '0-2',
+        config,
+        ['/foo/bar.test.js'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+
+    adapter.expectationResultHandler = jest.fn().mockImplementation(() => 'barfoo')
+    const handler = adapter.getExpectationResultHandler(jasmine)
+    expect(handler).toBe('foobar')
+})
+
+test('getExpectationResultHandler returns modified origHandler if expectationResultHandler is given', () => {
+    const jasmine = { Spec: { prototype: { addExpectationResult: 'foobar' } } }
+    const config = { jasmineNodeOpts: { expectationResultHandler: jest.fn() } }
+    const adapter = new JasmineAdapter(
+        '0-2',
+        config,
+        ['/foo/bar.test.js'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+
+    adapter.expectationResultHandler = jest.fn().mockImplementation(() => 'barfoo')
+    const handler = adapter.getExpectationResultHandler(jasmine)
+    expect(handler).toBe('barfoo')
+    expect(adapter.expectationResultHandler).toBeCalledWith('foobar')
+})
+
 test('expectationResultHandler', () => {
     const origHandler = jest.fn()
     const config = { jasmineNodeOpts: { expectationResultHandler: jest.fn() } }
@@ -248,8 +281,9 @@ test('expectationResultHandler', () => {
 
 test('expectationResultHandler failing', () => {
     const origHandler = jest.fn()
+    const err = new Error('uuups')
     const config = { jasmineNodeOpts: { expectationResultHandler: () => {
-        throw new Error('uuups')
+        throw err
     } } }
     const adapter = new JasmineAdapter(
         '0-2',
@@ -261,8 +295,14 @@ test('expectationResultHandler failing', () => {
 
     const resultHandler = adapter.expectationResultHandler(origHandler)
     resultHandler(true, 'foobar')
-    expect(origHandler)
-        .toBeCalledWith(false, { passed: false, message: 'expectationResultHandlerError: uuups' })
+    expect(origHandler).toBeCalledWith(
+        false,
+        {
+            passed: false,
+            message: 'expectationResultHandlerError: uuups',
+            error: err
+        }
+    )
 })
 
 test('expectationResultHandler failing with failing test', () => {
