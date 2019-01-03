@@ -15,6 +15,38 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.0 (2019-01-03)
+
+#### :rocket: New Feature
+* `webdriver`, `webdriverio`
+  * [#3215](https://github.com/webdriverio/webdriverio/pull/3215) Properly implement 'setTimeout' function and /timeouts endpoints ([@martomo](https://github.com/martomo))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3226](https://github.com/webdriverio/webdriverio/pull/3226) Updated findStrategy ([@Gilad-WT](https://github.com/Gilad-WT))
+* `wdio-runner`
+  * [#3219](https://github.com/webdriverio/webdriverio/pull/3219) wdio-runner: Fix custom reporter options not being used ([@WillBrock](https://github.com/WillBrock))
+
+#### :nail_care: Polish
+* `webdriver`, `webdriverio`
+  * [#3225](https://github.com/webdriverio/webdriverio/pull/3225) Improve command definitions for available protocols ([@martomo](https://github.com/martomo))
+* `webdriver`
+  * [#3216](https://github.com/webdriverio/webdriverio/pull/3216) Setting of just window position or size instead of both using 'setWindowRect' ([@martomo](https://github.com/martomo))
+
+#### :memo: Documentation
+* [#3231](https://github.com/webdriverio/webdriverio/pull/3231) docs: Update custom service export ([@WillBrock](https://github.com/WillBrock))
+* [#3220](https://github.com/webdriverio/webdriverio/pull/3220) webdriverio: Update changelog for cli array arguments ([@WillBrock](https://github.com/WillBrock))
+
+#### :house: Internal
+* `webdriver`, `webdriverio`
+  * [#3218](https://github.com/webdriverio/webdriverio/pull/3218) Webdriver and WebdriverIO Typing ([@StephenABoyd](https://github.com/StephenABoyd))
+
+#### Committers: 4
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- [@Gilad-WT](https://github.com/Gilad-WT)
+- [@StephenABoyd](https://github.com/StephenABoyd)
+
 ## 5.1.2 (2018-12-30)
 
 #### :bug: Bug Fix
