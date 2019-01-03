@@ -1,5 +1,5 @@
 import {
-    isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure, isW3CSession,
+    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure, isW3CSession,
     isChromiumSession
 } from '../src/utils'
 
@@ -31,11 +31,13 @@ describe('utils', () => {
         expect(isValidParameter('', 'null')).toBe(false)
         expect(isValidParameter(undefined, 'null')).toBe(false)
         expect(isValidParameter({}, 'object')).toBe(true)
+        expect(isValidParameter([], 'object')).toBe(false)
         expect(isValidParameter(null, 'object')).toBe(false)
         expect(isValidParameter(1, '(number|string|object)')).toBe(true)
         expect(isValidParameter('1', '(number|string|object)')).toBe(true)
         expect(isValidParameter({}, '(number|string|object)')).toBe(true)
         expect(isValidParameter(false, '(number|string|object)')).toBe(false)
+        expect(isValidParameter([], '(number|string|object)')).toBe(false)
         expect(isValidParameter(null, '(number|string|object)')).toBe(false)
         expect(isValidParameter(1, '(number|string|object)[]')).toBe(false)
         expect(isValidParameter('1', '(number|string|object)[]')).toBe(false)
@@ -44,9 +46,21 @@ describe('utils', () => {
         expect(isValidParameter([1], '(number|string|object)[]')).toBe(true)
         expect(isValidParameter(['1'], '(number|string|object)[]')).toBe(true)
         expect(isValidParameter([{}], '(number|string|object)[]')).toBe(true)
+        expect(isValidParameter([[]], '(number|string|object)[]')).toBe(false)
         expect(isValidParameter([null], '(number|string|object)[]')).toBe(false)
         expect(isValidParameter([false], '(number|string|object)[]')).toBe(false)
         expect(isValidParameter(['1', false], '(number|string|object)[]')).toBe(false)
+    })
+
+    it('getArgumentType', () => {
+        expect(getArgumentType(1)).toBe('number')
+        expect(getArgumentType(1.2)).toBe('number')
+        expect(getArgumentType(null)).toBe('null')
+        expect(getArgumentType('text')).toBe('string')
+        expect(getArgumentType({})).toBe('object')
+        expect(getArgumentType([])).toBe('array')
+        expect(getArgumentType(true)).toBe('boolean')
+        expect(getArgumentType(false)).toBe('boolean')
     })
 
     it('getPrototype', () => {

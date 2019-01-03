@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import WebDriverRequest from './request'
-import { isValidParameter, commandCallStructure } from './utils'
+import { isValidParameter, getArgumentType, commandCallStructure } from './utils'
 
 const log = logger('webdriver')
 
@@ -55,7 +55,7 @@ export default function (method, endpointUri, commandInfo) {
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
                     `Expected: ${commandParam.type}\n` +
-                    `Actual: ${typeof arg}` +
+                    `Actual: ${getArgumentType(arg)}` +
                     moreInfo
                 )
             }
