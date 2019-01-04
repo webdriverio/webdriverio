@@ -9,7 +9,7 @@ describe('smoke test', () => {
         browser.waitForElementScenario()
         const elem = $('elem')
         //Element will be found
-        elem.click()
+        assert.doesNotThrow(() => elem.click())
     })
 
     it('should refetch elements', () => {

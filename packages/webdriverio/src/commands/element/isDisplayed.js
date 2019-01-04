@@ -41,5 +41,8 @@
  */
 
 export default function isDisplayed() {
-    return this.elementId ? this.isElementDisplayed(this.elementId) : false
+    return this.parent.$(this.selector).then((elem) => {
+        this.elementId = elem.elementId
+        return this.elementId ? this.isElementDisplayed(this.elementId) : false
+    })
 }
