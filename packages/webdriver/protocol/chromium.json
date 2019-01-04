@@ -81,13 +81,13 @@
     "GET": {
       "command": "getNetworkConnection",
       "description": "Get the current network connection.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L581-L582",
+      "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes",
       "parameters": []
     },
     "POST": {
       "command": "setNetworkConnection",
       "description": "Set network connection.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L587-L589",
+      "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes",
       "parameters": [{
         "name": "connection_type",
         "type": "string",
@@ -100,13 +100,13 @@
     "GET": {
       "command": "getNetworkConditions",
       "description": "",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L572-L579",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L839-L859",
       "parameters": []
     },
     "POST": {
       "command": "setNetworkConditions",
       "description": "",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L568-L570",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1663-L1722",
       "parameters": [{
         "name": "network_name",
         "type": "string",
@@ -117,7 +117,7 @@
     "DELETE": {
       "command": "deleteNetworkConditions",
       "description": "",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L584-L585",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1724-L1745",
       "parameters": []
     }
   },
@@ -125,7 +125,7 @@
     "GET": {
       "command": "sendCommand",
       "description": "Send Chrome DevTools Protocol command to the browser.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L591-L593",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1290-L1304",
       "parameters": [{
         "name": "cmd",
         "type": "string",
@@ -143,7 +143,7 @@
     "POST": {
       "command": "sendCommandAndGetResult",
       "description": "Send Chrome DevTools Protocol command to the browser and wait for receiving result.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L595-L597",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1306-L1320",
       "parameters": [{
         "name": "cmd",
         "type": "string",
@@ -161,7 +161,7 @@
     "POST": {
       "command": "generateTestReport",
       "description": "",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/client/chromedriver.py#L621-L622",
+      "ref": "https://w3c.github.io/reporting/#generate-test-report-command",
       "parameters": []
     }
   },
@@ -169,7 +169,7 @@
     "POST": {
       "command": "uploadFile",
       "description": "Upload a file to remote machine on which the browser is running.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L1037-L1065",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L1037-L1065",
       "parameters": [{
         "name": "file",
         "type": "string",
@@ -182,7 +182,7 @@
     "POST": {
       "command": "launchApp",
       "description": "Launch chrome app.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2b5b43101967a01bb1d18259d946e796be3ca134/session_commands.cc#L521-L539",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L521-L539",
       "parameters": [{
         "name": "id",
         "type": "string",
@@ -195,7 +195,7 @@
     "POST": {
       "command": "hoverOverElement",
       "description": "Hover over an element.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/element_commands.cc#L117-L137",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/element_commands.cc#L126-L146",
       "variables": [{
         "name": "elementId",
         "description": "id of element to hover over to"
@@ -206,7 +206,7 @@
     "POST": {
       "command": "touchPinch",
       "description": "Trigger a pinch zoom effect.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/master/window_commands.cc#L903-L917",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L813-L827",
       "parameters": [{
         "name": "x",
         "type": "number",
