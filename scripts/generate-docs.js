@@ -148,7 +148,7 @@ for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         const name = pkg.split('-').slice(1,-1)
         const id = `${name.join('-')}-${type}`
         const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
-        const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'Readme.md')).toString()
+        const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'README.md')).toString()
         const preface = [
             '---',
             `id: ${id}`,
