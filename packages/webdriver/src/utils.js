@@ -97,13 +97,20 @@ export function isValidParameter (arg, expectedType) {
     }
 
     for (const argEntity of arg) {
-        const argEntityType = argEntity === null ? 'null' : typeof argEntity
+        const argEntityType = getArgumentType(argEntity)
         if (!argEntityType.match(expectedType)) {
             return false
         }
     }
 
     return true
+}
+
+/**
+ * get type of command argument
+ */
+export function getArgumentType (arg) {
+    return arg === null ? 'null' : typeof arg
 }
 
 /**
