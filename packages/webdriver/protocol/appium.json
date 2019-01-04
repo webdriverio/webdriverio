@@ -748,7 +748,7 @@
       "ref": "http://appium.io/docs/en/commands/device/app/background-app/",
       "parameters": [{
         "name": "duration",
-        "type": "number",
+        "type": "(number|null)",
         "description": "timeout to restore app, if 'null' app won't be restored",
         "default": "null"
       }],
