@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * This script generates new sub package with intial structure and files
+ * This script generates new sub package with initial structure and files
  */
 
 const fs = require('fs')
