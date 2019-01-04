@@ -39,6 +39,8 @@ module.exports = {
         appId: 'BH4D9OD16A'
     },
 
+    gaTrackingId: 'UA-47063382-1',
+
     // Add custom scripts here that would be placed in <script> tags
     scripts: [
         'https://buttons.github.io/buttons.js',
@@ -50,8 +52,11 @@ module.exports = {
     onPageNav: 'separate',
 
     /* Open Graph and Twitter card images */
-    ogImage: 'img/docusaurus.png',
-    twitterImage: 'img/docusaurus.png'
+    ogImage: 'img/webdriverio.png',
+    twitter: true,
+    twitterImage: 'img/webdriverio.png',
+    twitterUsername: 'webdriverio',
+    scrollToTop: true
 
     // You may provide arbitrary config keys to be used as needed by your
     // template. For example, if you need your repo's URL...
