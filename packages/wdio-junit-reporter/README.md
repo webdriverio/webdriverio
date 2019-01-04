@@ -18,6 +18,7 @@ The easiest way is to keep `@wdio/junit-reporter` as a devDependency in your `pa
 You can simple do it by:
 
 ```bash
+npm install @wdio/reporter --save-dev
 npm install @wdio/junit-reporter --save-dev
 ```
 
