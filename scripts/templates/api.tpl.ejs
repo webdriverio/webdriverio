@@ -16,7 +16,11 @@ title: <?= method.command ?>
 ##### Usage
 
 ```js
-<?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)
+<? if (method.element_scope) { ?>
+    $(selector).<?= method.command ?>(<?= method.paramString ?>)
+<? } else { ?>
+    <?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)
+<? } ?>
 ```
 
 <? if (method.paramTags.length) { ?>
