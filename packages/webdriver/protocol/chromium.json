@@ -122,7 +122,7 @@
     }
   },
   "/session/:sessionId/chromium/send_command": {
-    "GET": {
+    "POST": {
       "command": "sendCommand",
       "description": "Send Chrome DevTools Protocol command to the browser.",
       "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1290-L1304",
@@ -193,13 +193,14 @@
   },
   "/session/:sessionId/element/:elementId/hover": {
     "POST": {
-      "command": "hoverOverElement",
-      "description": "Hover over an element.",
+      "command": "elementHover",
+      "description": "Enable hover state for an element, which is reset upon next interaction.",
       "ref": "https://github.com/bayandin/chromedriver/blob/2.45/element_commands.cc#L126-L146",
       "variables": [{
         "name": "elementId",
         "description": "id of element to hover over to"
-      }]
+      }],
+      "parameters": []
     }
   },
   "/session/:sessionId/touch/pinch": {
