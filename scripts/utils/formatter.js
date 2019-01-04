@@ -165,7 +165,7 @@ module.exports = function (docfile) {
         customEditUrl: `${config.repoUrl}/edit/master/packages/webdriverio/src/commands/${scope}/${name}.js`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
-        element_scope : scope === 'element',
+        isElementScope : scope === 'element',
     }
 
     return commandDescription

@@ -16,11 +16,9 @@ title: <?= method.command ?>
 ##### Usage
 
 ```js
-<? if (method.element_scope) { ?>
-    $(selector).<?= method.command ?>(<?= method.paramString ?>)
-<? } else { ?>
-    <?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)
-<? } ?>
+<? if (method.isElementScope) {
+?>$(selector).<?= method.command ?>(<?= method.paramString ?>)<? } else {
+?><?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)<? } ?>
 ```
 
 <? if (method.paramTags.length) { ?>
@@ -29,7 +27,7 @@ title: <?= method.command ?>
 | Param | Type | Details |
 | ----- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label label-warning">optional</span><? }
+    ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label labelWarning">optional</span><? }
     ?> | <?= paramTag.type
     ?> | <?= paramTag.description ?> |
 <? }) ?>

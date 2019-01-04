@@ -16,6 +16,7 @@
 // import components
 @import '_components/content';
 @import '_components/headings';
+@import '_components/labels';
 @import '_components/lists';
 @import '_components/tables';
 
@@ -61,8 +62,12 @@ blockquote {
     display: inline;
 }
 
-.mainContainer article p img[alt^='Support'] {
-    width: 20px;
-    margin-right: 5px;
-    display: inline-block;
+.mainContainer {
+    img {
+        &[alt^='Support'] {
+            width: 20px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+    }
 }
