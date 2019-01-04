@@ -111,7 +111,7 @@ export default class WDIOReporter extends EventEmitter {
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
-            currentTest.uid = test.uid in this.tests ? 'skipped-' + this.counts.skipping : currentTest.uid;
+            currentTest.uid = test.uid in this.tests ? 'skipped-' + this.counts.skipping : currentTest.uid
 
             /**
              * In Mocha: tests that are skipped don't have a start event but a test end.
