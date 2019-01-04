@@ -15,6 +15,19 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.2 (2019-01-04)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3250](https://github.com/webdriverio/webdriverio/pull/3250) Update other commands which allow/expect 'null' as value. ([@martomo](https://github.com/martomo))
+
+#### :memo: Documentation
+* [#3227](https://github.com/webdriverio/webdriverio/pull/3227) Undefined CSS classes for optional command parameters ([@cuki](https://github.com/cuki))
+
+#### Committers: 2
+- Cuki ([@cuki](https://github.com/cuki))
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+
 ## 5.2.1 (2019-01-04)
 
 #### :bug: Bug Fix
