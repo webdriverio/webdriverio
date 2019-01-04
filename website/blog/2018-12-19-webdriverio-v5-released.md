@@ -28,7 +28,7 @@ We wanted to start this effort completely community driven, and began to gather 
 
 As we moved to a monolithic system we scoped all WebdriverIO packages into the [`@wdio`](https://www.npmjs.com/org/wdio) NPM organization. This would make it simpler to onboard contributors to release new package versions, and better clarifies which packages are "officially" maintained by the organization or are 3rd party community packages.<br>
 <br>
-If you have been using `wdio-mocha-framework` or `wdio-spec-reporter` in your project please update the packages to use the ones built for v5: `@wdio/mocha-framework` or `@wdio/spec-reporter`. Going foward the version number of all packages are now pinned to each other; meaning that you should always have the same versions for all "official" WebdriverIO packages that you use.
+If you have been using `wdio-mocha-framework` or `wdio-spec-reporter` in your project please update the packages to use the ones built for v5: `@wdio/mocha-framework` or `@wdio/spec-reporter`. Going forward the version number of all packages are now pinned to each other; meaning that you should always have the same versions for all "official" WebdriverIO packages that you use.
 
 ## We Did Some Spring Cleaning
 
