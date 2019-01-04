@@ -227,6 +227,14 @@ declare namespace WebDriver {
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
     ): Client<void>;
 
+    interface Client<T> {
+        capabilities: DesiredCapabilities;
+        isW3C: boolean;
+        isAndroid: boolean;
+        isMobile: boolean;
+        isIOS: boolean;
+    }
+
     // generated typings
     // ... insert here ...
 }
