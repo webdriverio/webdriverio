@@ -60,7 +60,7 @@ class JasmineAdapter {
         jasmineEnv.configure({
             specFilter: ::this.customSpecFilter,
             stopOnSpecFailure: stopOnSpecFailure,
-            randomizeTests: Boolean(this.jasmineNodeOpts.random),
+            random: Boolean(this.jasmineNodeOpts.random),
             failFast: this.jasmineNodeOpts.failFast
         })
 
