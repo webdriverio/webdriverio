@@ -48,6 +48,33 @@ test('should properly set up jasmine', async () => {
     adapter.jrunner.configureDefaultReporter()
 })
 
+test('should properly configure the jasmine environment', async () => {
+    const stopOnSpecFailure = false
+    const random = false
+    const failFast = false
+
+    const adapter = new JasmineAdapter(
+        '0-2',
+        {
+            jasmineNodeOpts: {
+                stopOnSpecFailure,
+                random,
+                failFast,
+            }
+        },
+        ['/foo/bar.test.js'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    await adapter.run()
+    expect(adapter.jrunner.jasmine.getEnv().configure).toBeCalledWith({
+        specFilter: expect.any(Function),
+        stopOnSpecFailure,
+        random,
+        failFast,
+    })
+})
+
 test('set custom ', async () => {
     const config = {
         jasmineNodeOpts: { expectationResultHandler: jest.fn() }
