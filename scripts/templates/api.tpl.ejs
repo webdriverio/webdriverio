@@ -24,8 +24,8 @@ title: <?= method.command ?>
 <? if (method.paramTags.length) { ?>
 ##### Parameters
 
-| Param | Type | Details |
-| ----- | ---- | ------- |
+| Name | Type | Details |
+| ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
     ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label labelWarning">optional</span><? }
     ?> | <?= paramTag.type
