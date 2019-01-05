@@ -31,7 +31,7 @@ export default class WebDriver {
             /**
              * otherwise assume they passed in jsonwp-style caps (flat object)
              */
-            : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+            : [{}, params.capabilities]
 
         const sessionRequest = new WebDriverRequest(
             'POST',
