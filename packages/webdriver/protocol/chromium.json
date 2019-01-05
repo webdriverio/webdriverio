@@ -1,4 +1,24 @@
 {
+  "/session/:sessionId/alert": {
+    "GET": {
+      "command": "isAlertOpen",
+      "description": "Whether a simple dialog is currently open.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/alert_commands.cc#L42-L49",
+      "examples": [
+        [
+          "console.log(await browser.isAlertOpen()); // outputs: false",
+          "await browser.execute('window.alert()');",
+          "console.log(await browser.isAlertOpen()); // outputs: true"
+        ]
+      ],
+      "parameters": [],
+      "returns": {
+        "type": "Boolean",
+        "name": "isAlertOpen",
+        "description": "`true` or `false` based on whether simple dialog is present or not."
+      }
+    }
+  },
   "/session/:sessionId/autoreport": {
     "GET": {
       "command": "isAutoReporting",
@@ -297,6 +317,23 @@
       }]
     }
   },
+  "/session/:sessionId/element/:elementId/value": {
+    "GET": {
+      "command": "getElementValue",
+      "description": "Retrieves the value of a given form control element.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/element_commands.cc#L431-L443",
+      "variables": [{
+        "name": "elementId",
+        "description": "id of element to get value from"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "String|Null",
+        "name": "value",
+        "description": "Current value of the element. In case specified element is not a form control element, it will return `null`."
+      }
+    }
+  },
   "/session/:sessionId/element/:elementId/hover": {
     "POST": {
       "command": "elementHover",
@@ -330,6 +367,30 @@
         "description": "pinch zoom scale",
         "required": true
       }]
+    }
+  },
+  "/session/:sessionId/goog/page/freeze": {
+    "POST": {
+      "command": "freeze",
+      "description": "Freeze the current page. Extension for [Page Lifecycle API](https://developers.google.com/web/updates/2018/07/page-lifecycle-api).",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L625-L633",
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/goog/page/resume": {
+    "POST": {
+      "command": "resume",
+      "description": "Resume the current page. Extension for [Page Lifecycle API](https://developers.google.com/web/updates/2018/07/page-lifecycle-api).",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L635-L645",
+      "parameters": []
+    }
+  },
+  "/shutdown": {
+    "POST": {
+      "command": "shutdown",
+      "description": "Shutdown ChromeDriver process and consequently terminating all active sessions.",
+      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L489-L498",
+      "parameters": []
     }
   }
 }
