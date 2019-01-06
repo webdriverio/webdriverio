@@ -32,7 +32,7 @@ export default async function saveScreenshot (filepath) {
         throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
     }
 
-    const absoluteFilepath = filepath.startsWith('/')
+    const absoluteFilepath = filepath.startsWith('/') || filepath.startsWith('\\')
         ? filepath
         : path.join(process.cwd(), filepath)
 
