@@ -24,8 +24,8 @@ title: <?= method.command ?>
 <? if (method.paramTags.length) { ?>
 ##### Parameters
 
-| Param | Type | Details |
-| ----- | ---- | ------- |
+| Name | Type | Details |
+| ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
     ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label labelWarning">optional</span><? }
     ?> | <?= paramTag.type
@@ -34,10 +34,10 @@ title: <?= method.command ?>
 <? } ?>
 
 <? if (method.examples.length) { ?>
-##### Example
+##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
 <? method.examples.forEach(function(example) { ?>
-``` <?= example.format ?> <?= example.file ?>
-<?= example.code ?>
+```<?= example.format ?><? if (example.file) { ?> <?= example.file ?><? } ?>
+<?- example.code ?>
 ```
 <? }); ?>
 <? } ?>
