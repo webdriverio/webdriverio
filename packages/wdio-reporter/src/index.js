@@ -107,7 +107,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestFail(testStat)
         })
 
-        this.on('test:pending',  /* istanbul ignore next */ (test) => {
+        this.on('test:pending', (test) => {
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
