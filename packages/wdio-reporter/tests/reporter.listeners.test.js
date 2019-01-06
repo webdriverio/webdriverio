@@ -32,7 +32,7 @@ describe('WDIOReporter Listeners', () => {
             spy = jest.spyOn(WDIOReporter.prototype, 'onTestSkip')
             spy2 = jest.spyOn(TestStats.prototype, 'skip')
         })
-        
+
         afterEach(() => {
             spy.mockClear()
             spy2.mockClear()
@@ -120,7 +120,7 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests).toHaveProperty(stats[1].uid)
             expect(reporter.tests).toHaveProperty(stats[2].uid)
 
-            // Make sure there are only 4 tests
+            // Make sure there are only 3 tests
             expect(Object.keys(reporter.tests).length).toEqual(3)
             expect(reporter.tests).not.toHaveProperty('skipped-0')
 
