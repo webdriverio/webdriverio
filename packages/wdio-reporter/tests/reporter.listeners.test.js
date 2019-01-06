@@ -47,7 +47,7 @@ describe('WDIOReporter Listeners', () => {
             expect(spy2).toHaveBeenCalledTimes(1)
         })
     
-        it.only('should allow Mocha pending tests with same UID to be added to other tests ', () => {
+        it('should allow Mocha pending tests with same UID to be added to other tests ', () => {
             const stats = []
             stats.push({ ...stat, uid: '0-0-0' })
             stats.push({ ...stat, uid: '0-0-1' })
