@@ -47,14 +47,12 @@ describe('WDIOReporter Listeners', () => {
             expect(spy2).toHaveBeenCalledTimes(1)
         })
     
-        it('should allow Mocha pending tests with same UID to be added to other tests ', () => {
+        it.only('should allow Mocha pending tests with same UID to be added to other tests ', () => {
             const stats = []
-            stat.uid = '0-0-0'
-            stats.push(Object.assign({}, stat))
-            stat.uid = '0-0-1'
-            stats.push(Object.assign({}, stat))
-            stat.uid = '0-0-2'
-            stats.push(Object.assign({}, stat))
+            stats.push({ ...stat, uid: '0-0-0' })
+            stats.push({ ...stat, uid: '0-0-1' })
+            stats.push({ ...stat, uid: '0-0-2' })
+            stats.push({ ...stat, uid: '0-0-3' })
     
             reporter.emit('test:start', stats[0])
             reporter.emit('test:pass', stats[0])
@@ -63,47 +61,52 @@ describe('WDIOReporter Listeners', () => {
     
             // If new uid is not generated for pending test
             reporter.emit('test:pending', stats[1])
+            reporter.emit('test:pending', stats[1])
 
             reporter.emit('test:pending', stats[2])
+            reporter.emit('test:pending', stats[3])
 
-            expect(spy).toHaveBeenCalledTimes(2)
-            expect(spy2).toHaveBeenCalledTimes(2)
+            expect(spy).toHaveBeenCalledTimes(4)
+            expect(spy2).toHaveBeenCalledTimes(4)
 
             // Make sure all tests are present
             expect(reporter.tests).toHaveProperty(stats[0].uid)
             expect(reporter.tests).toHaveProperty(stats[1].uid)
             expect(reporter.tests).toHaveProperty('skipped-0')
+            expect(reporter.tests).toHaveProperty('skipped-1')
             expect(reporter.tests).toHaveProperty(stats[2].uid)
+            expect(reporter.tests).toHaveProperty(stats[3].uid)
 
             // Make sure there are only 4 tests
-            expect(Object.keys(reporter.tests).length).toEqual(4)
+            expect(Object.keys(reporter.tests).length).toEqual(6)
     
             // Make sure all tests have the right state
             expect(reporter.tests[stats[0].uid].state).toEqual('passed')
             expect(reporter.tests[stats[1].uid].state).toEqual('failed')
             expect(reporter.tests['skipped-0'].state).toEqual('skipped')
+            expect(reporter.tests['skipped-1'].state).toEqual('skipped')
             expect(reporter.tests[stats[2].uid].state).toEqual('skipped')
+            expect(reporter.tests[stats[3].uid].state).toEqual('skipped')
 
             // Make sure all tests are in the suite
-            expect(reporter.currentSuites[0].tests.length).toEqual(4)
+            expect(reporter.currentSuites[0].tests.length).toEqual(6)
             expect(reporter.currentSuites[0].tests[0].uid).toEqual(stats[0].uid)
             expect(reporter.currentSuites[0].tests[1].uid).toEqual(stats[1].uid)
             expect(reporter.currentSuites[0].tests[2].uid).toEqual('skipped-0')
-            expect(reporter.currentSuites[0].tests[3].uid).toEqual(stats[2].uid)
+            expect(reporter.currentSuites[0].tests[3].uid).toEqual('skipped-1')
+            expect(reporter.currentSuites[0].tests[4].uid).toEqual(stats[2].uid)
+            expect(reporter.currentSuites[0].tests[5].uid).toEqual(stats[3].uid)
     
             // Make sure the counts are updated
-            expect(reporter.counts.skipping).toEqual(2)
-            expect(reporter.counts.tests).toEqual(4)
+            expect(reporter.counts.skipping).toEqual(4)
+            expect(reporter.counts.tests).toEqual(6)
         })
 
         it('should allow Jasmine pending tests to be added to the test list', () => {
             const stats = []
-            stat.uid = '0-0-0'
-            stats.push(Object.assign({}, stat))
-            stat.uid = '0-0-1'
-            stats.push(Object.assign({}, stat))
-            stat.uid = '0-0-2'
-            stats.push(Object.assign({}, stat))
+            stats.push({ ...stat, uid: '0-0-0' })
+            stats.push({ ...stat, uid: '0-0-1' })
+            stats.push({ ...stat, uid: '0-0-2' })
     
             reporter.emit('test:start', stats[0])
             reporter.emit('test:pass', stats[0])
