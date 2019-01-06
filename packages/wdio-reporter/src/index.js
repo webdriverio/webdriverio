@@ -107,7 +107,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestFail(testStat)
         })
 
-        this.on('test:pending',  /* istanbul ignore next */ (test) => {
+        this.on('test:pending', (test) => {
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
@@ -116,6 +116,9 @@ export default class WDIOReporter extends EventEmitter {
              * In Jasmine: tests have a start event, therefor we need to replace the
              * test instance with the pending test here
              */
+            if (test.uid in this.tests && this.tests[test.uid].state !== 'pending') {
+                currentTest.uid = test.uid in this.tests ? 'skipped-' + this.counts.skipping : currentTest.uid
+            }
             const suiteTests = currentSuite.tests
             if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {
                 currentSuite.tests.push(currentTest)
@@ -123,7 +126,7 @@ export default class WDIOReporter extends EventEmitter {
                 suiteTests[suiteTests.length - 1] = currentTest
             }
 
-            this.tests[test.uid] = currentTest
+            this.tests[currentTest.uid] = currentTest
             currentTest.skip()
             this.counts.skipping++
             this.counts.tests++
