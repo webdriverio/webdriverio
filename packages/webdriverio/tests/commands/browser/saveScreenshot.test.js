@@ -4,6 +4,8 @@ import path from 'path'
 
 describe('saveScreenshot', () => {
     jest.mock('fs')
+    const fs = require('fs').default
+
     let browser
     let spy
 
@@ -14,6 +16,9 @@ describe('saveScreenshot', () => {
                 browserName: 'foobar'
             }
         })
+
+        spy = jest.spyOn(fs, 'writeFileSync')
+        fs.existsSync.mockReturnValue(true)
     })
 
     afterEach(() => {
@@ -41,8 +46,7 @@ describe('saveScreenshot', () => {
     })
 
     it('should fail if not existing directory', async () => {
-        const fs = require('fs').default
-        fs.existsSync = () => false
+        fs.existsSync.mockReturnValue(false)
 
         await expect(
             browser.saveScreenshot('/i/dont/exist.png')
@@ -50,10 +54,6 @@ describe('saveScreenshot', () => {
     })
 
     it('should not change filepath if starts with forward slash', async () => {
-        const fs = require('fs').default
-        fs.existsSync = () => true
-        spy = jest.spyOn(fs, 'writeFileSync')
-
         await browser.saveScreenshot('/packages/bar.png')
 
         expect(spy).toHaveBeenCalledTimes(1)
@@ -61,10 +61,6 @@ describe('saveScreenshot', () => {
     })
 
     it('should not change filepath if starts with backslash slash', async () => {
-        const fs = require('fs').default
-        fs.existsSync = () => true
-        spy = jest.spyOn(fs, 'writeFileSync')
-
         await browser.saveScreenshot('\\packages\\bar.png')
 
         expect(spy).toHaveBeenCalledTimes(1)
@@ -72,10 +68,6 @@ describe('saveScreenshot', () => {
     })
 
     it('should change filepath if does not start with forward or back slash', async () => {
-        const fs = require('fs').default
-        fs.existsSync = () => true
-        spy = jest.spyOn(fs, 'writeFileSync')
-
         await browser.saveScreenshot('packages/bar.png')
 
         expect(spy).toHaveBeenCalledTimes(1)

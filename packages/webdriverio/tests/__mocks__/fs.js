@@ -1,4 +1,4 @@
 const fs = jest.genMockFromModule('fs')
-fs.writeFileSync = (path, data, options) => {path, data, options}
-fs.existsSync = () => true
+fs.writeFileSync = jest.fn()
+fs.existsSync = jest.fn(() => true)
 export default fs
