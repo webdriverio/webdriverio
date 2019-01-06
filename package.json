@@ -55,7 +55,7 @@
   },
   "jest": {
     "testMatch": [
-      "<rootDir>/**/tests/**/*.test.js"
+      "/**/tests/**/*.test.js"
     ],
     "testPathIgnorePatterns": [
       "<rootDir>/tests/",
