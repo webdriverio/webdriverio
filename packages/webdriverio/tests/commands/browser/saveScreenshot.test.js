@@ -1,5 +1,6 @@
 import request from 'request'
 import { remote } from '../../../src'
+import path from 'path'
 
 describe('saveScreenshot', () => {
     jest.mock('fs')
@@ -75,9 +76,9 @@ describe('saveScreenshot', () => {
         fs.existsSync = () => true
         spy = jest.spyOn(fs, 'writeFileSync')
 
-        await browser.saveScreenshot('packages\\bar.png')
+        await browser.saveScreenshot('packages/bar.png')
 
         expect(spy).toHaveBeenCalledTimes(1)
-        expect(spy).toHaveBeenCalledWith(process.cwd() + '\\packages\\bar.png', expect.any(Buffer))
+        expect(spy).toHaveBeenCalledWith(path.join(process.cwd(), 'packages/bar.png'), expect.any(Buffer))
     })
 })
