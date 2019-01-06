@@ -1,6 +1,6 @@
-import WDIOReporter from "../src"
+import WDIOReporter from '../src'
 import tmp from 'tmp'
-import TestStats from "../src/stats/test";
+import TestStats from '../src/stats/test'
 
 describe('WDIOReporter Listeners', () => {
     let stat
