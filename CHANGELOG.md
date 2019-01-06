@@ -15,6 +15,35 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.3 (2019-01-06)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#3249](https://github.com/webdriverio/webdriverio/pull/3249) Jasmine Framework improperly configures test randomization ([@b-smets](https://github.com/b-smets))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3251](https://github.com/webdriverio/webdriverio/pull/3251) webdriverio: updating screenshot call to handle backslash ([@StephenABoyd](https://github.com/StephenABoyd))
+* `wdio-reporter`
+  * [#3253](https://github.com/webdriverio/webdriverio/pull/3253) wdio-reporter: updating pending test uid if existing ([@StephenABoyd](https://github.com/StephenABoyd))
+
+#### :memo: Documentation
+* `webdriver`
+  * [#3262](https://github.com/webdriverio/webdriverio/pull/3262) Revised Chromium command definitions to improve usability ([@martomo](https://github.com/martomo))
+* Other
+  * [#3258](https://github.com/webdriverio/webdriverio/pull/3258) Missing install of  @babel/core ([@wswebcreation](https://github.com/wswebcreation))
+  * [#3260](https://github.com/webdriverio/webdriverio/pull/3260) Updating options docs ([@BorisOsipov](https://github.com/BorisOsipov))
+* `wdio-config`
+  * [#3254](https://github.com/webdriverio/webdriverio/pull/3254) Fix package name and fix typos ([@mo](https://github.com/mo))
+
+#### Committers: 6
+- Bart Smets ([@b-smets](https://github.com/b-smets))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@StephenABoyd](https://github.com/StephenABoyd)
+- molsson ([@mo](https://github.com/mo))
+
 ## 5.2.2 (2019-01-04)
 
 #### :eyeglasses: Spec Compliancy
