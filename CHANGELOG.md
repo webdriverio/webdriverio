@@ -464,7 +464,7 @@ This version comes with a variety of technical changes that might affect the fun
 * auto retry mechansim for all command requests
 * auto refetch mechanism for stale elements
 * simplified reattachment to existing sessions with `attach` functionality
-* integrated and auto maintained [TypeScript](https://www.typescriptlang.org/) definitions (still [work in progress](https://github.com/webdriverio/webdriverio/pull/2862))
+* integrated and auto maintained [TypeScript](https://www.typescriptlang.org/) definitions
 * wdio testrunner fails if no spec files were found
 
 #### :bug: Bug Fix
