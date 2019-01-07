@@ -197,7 +197,7 @@ export const QUESTIONNAIRE = [{
     when: (answers) => answers.backend.indexOf('In the cloud') > -1
 }, {
     type: 'input',
-    name: 'host',
+    name: 'hosthame',
     message: 'What is the IP or URI to your Selenium standalone server?',
     default: '0.0.0.0',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1

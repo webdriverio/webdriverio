@@ -20,7 +20,7 @@ export default class TestingBotLauncher {
         }, config.tbTunnelOpts)
 
         config.protocol = 'http'
-        config.host = 'localhost'
+        config.hostname = 'localhost'
         config.port = 4445
 
         return new Promise((resolve, reject) => testingbotTunnel(this.tbTunnelOpts, (err, tunnel) => {
