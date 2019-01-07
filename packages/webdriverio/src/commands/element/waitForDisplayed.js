@@ -29,13 +29,6 @@
  */
 
 export default async function waitForDisplayed (ms, reverse = false, error) {
-    /**
-     * if element wasn't found in the first place wait for its existance first
-     */
-    if (!this.elementId && !reverse) {
-        await this.waitForExist(ms, false, error)
-    }
-
     /*
      * ensure that ms is set properly
      */
@@ -47,6 +40,15 @@ export default async function waitForDisplayed (ms, reverse = false, error) {
     const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}displayed after ${ms}ms`
 
     return this.waitUntil(async () => {
+        /*
+         * If element doesn't exist, and not a negative test
+         * check for its existence
+         */
+        if (!this.elementId && !reverse)
+        {
+            this.elementId = (await this.parent.$(this.selector)).elementId
+
+        }
         const isVisible = this.elementId ? await this.isElementDisplayed(this.elementId) : false
 
         return isVisible !== reverse
