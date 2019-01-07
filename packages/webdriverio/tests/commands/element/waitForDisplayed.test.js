@@ -24,7 +24,6 @@ describe('waitForDisplayed', () => {
             waitForDisplayed : tmpElem.waitForDisplayed,
             elementId : 123,
             waitUntil : jest.fn(((cb))),
-            isElementDisplayed : jest.fn(() => Promise.resolve())
         }
 
         await elem.waitForDisplayed(duration)
@@ -42,7 +41,7 @@ describe('waitForDisplayed', () => {
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
-    test('should call isElementDisplayed and return true if eventually true', async () => {
+    test('should call isDisplayed and return true if eventually true', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
@@ -60,7 +59,7 @@ describe('waitForDisplayed', () => {
         expect(result).toBe(true)
     })
 
-    test('should call isElementDisplayed and return false', async () => {
+    test('should call isDisplayed and return false', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
@@ -78,7 +77,7 @@ describe('waitForDisplayed', () => {
         }
     })
 
-    test('should not call isElementDisplayed and return false if never found', async () => {
+    test('should not call isDisplayed and return false if never found', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
