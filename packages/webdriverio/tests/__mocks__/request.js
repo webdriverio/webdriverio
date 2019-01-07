@@ -27,6 +27,14 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         }
     }
 
+    if (
+        params.body &&
+        params.body.capabilities &&
+        params.body.capabilities.alwaysMatch.mobileMode
+    ) {
+        sessionResponse.capabilities.deviceName = 'iNode'
+    }
+
     switch (params.uri.path) {
     case '/wd/hub/session':
         value = sessionResponse

@@ -29,7 +29,7 @@
  * @type utility
  *
  */
-import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
+import { webdriverMonad } from 'webdriver'
 import { wrapCommand } from '@wdio/config'
 
 import { findElement, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
@@ -38,7 +38,7 @@ import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
     const res = await findElement.call(this, selector)
-    const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
+    const prototype = Object.assign(this.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
 
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)

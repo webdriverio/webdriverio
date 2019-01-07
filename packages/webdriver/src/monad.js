@@ -46,6 +46,11 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             }
         }
 
+        /**
+         * assign propertiesObject to itself so the client can be recreated
+         */
+        propertiesObject['__propertiesObject__'] = { value: propertiesObject }
+
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId
 
