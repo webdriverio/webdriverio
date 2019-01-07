@@ -80,7 +80,7 @@ export default class WebdriverMockService {
         this.command.findElement().twice().reply(200, { value: elem2Response })
 
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
-        this.command.elementClick(ELEMENT_ID).times(1).reply(500, { value: {
+        this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
             error: 'stale element reference error',
             message: 'stale element reference error'
         } })
