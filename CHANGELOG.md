@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.4 (2019-01-07)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3266](https://github.com/webdriverio/webdriverio/pull/3266) Properly extend base protocol with extension command definitions. ([@martomo](https://github.com/martomo))
+
+#### Committers: 1
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+
 ## 5.2.3 (2019-01-06)
 
 #### :bug: Bug Fix
