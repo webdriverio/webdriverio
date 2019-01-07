@@ -28,7 +28,7 @@ Commands:
 Options:
   --help                prints WebdriverIO help menu                   [boolean]
   --version             prints WebdriverIO version                     [boolean]
-  --host, -h            automation driver host address                  [string]
+  --hostname, -h        automation driver host address                  [string]
   --port, -p            automation driver port                          [number]
   --user, -u            username if using a cloud service as automation backend
                                                                         [string]
