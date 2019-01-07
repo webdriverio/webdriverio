@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import command from './command'
+import merge from 'lodash.merge'
 import WebDriverProtocol from '../protocol/webdriver.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -118,7 +119,7 @@ export function getArgumentType (arg) {
  */
 export function getPrototype (isW3C, isChrome) {
     const prototype = {}
-    const ProtocolCommands = Object.assign(
+    const ProtocolCommands = merge(
         isW3C ? WebDriverProtocol : JsonWProtocol,
         MJsonWProtocol,
         AppiumProtocol,
