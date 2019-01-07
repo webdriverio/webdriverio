@@ -25,15 +25,17 @@ Similarly for mocha:
 and:
 
 ```json
-    //tsconfig.json
-    "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-            "*": [ "./*" ],
-            "src/*": ["./src/*"]
+    // tsconfig.json
+        "compilerOptions": {
+            "baseUrl": ".",
+            "paths": {
+                "*": [ "./*" ],
+                "src/*": ["./src/*"]
+            },
+            "types": ["node", "webdriverio"]
+            },
+            "include": [
+                "./src/**/*.ts"
+            ]
         }
-    },
-    "include": [
-        "./src/**/*.ts"
-    ]
 ```
