@@ -28,7 +28,7 @@ describe('wdio-testingbot-service', () => {
         expect(tbService.tbTunnelOpts).toBeUndefined()
         expect(tbService.tunnel).toBeUndefined()
         expect(config.protocol).toBeUndefined()
-        expect(config.host).toBeUndefined()
+        expect(config.hostname).toBeUndefined()
         expect(config.port).toBeUndefined()
     })
 
@@ -45,7 +45,7 @@ describe('wdio-testingbot-service', () => {
         tbService.onPrepare(config)
         expect(tbService.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
         expect(config.protocol).toEqual('http')
-        expect(config.host).toEqual('localhost')
+        expect(config.hostname).toEqual('localhost')
         expect(config.port).toEqual(4445)
     })
 
