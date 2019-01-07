@@ -40,9 +40,7 @@
  *
  */
 
-export default function isDisplayed() {
-    return this.parent.$(this.selector).then((elem) => {
-        this.elementId = elem.elementId
-        return this.elementId ? this.isElementDisplayed(this.elementId) : false
-    })
+export default async function isDisplayed() {
+    this.elementId = (await this.parent.$(this.selector)).elementId
+    return this.elementId ? await this.isElementDisplayed(this.elementId) : false
 }

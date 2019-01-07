@@ -12,6 +12,13 @@ describe('smoke test', () => {
         assert.doesNotThrow(() => elem.click())
     })
 
+    it('should NOT wait for elements when isDisplayed is called', () => {
+        browser.isDisplayedScenario()
+        const elem = $('elem')
+
+        assert.equal(elem.isDisplayed(), false)
+    });
+
     it('should refetch elements', () => {
         browser.staleElementRefetchScenario()
 
