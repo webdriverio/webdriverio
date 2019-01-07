@@ -27,7 +27,6 @@ and:
 ```json
     // tsconfig.json
         "compilerOptions": {
-            ...
             "baseUrl": ".",
             "paths": {
                     "*": [ "./*" ],
@@ -38,6 +37,5 @@ and:
                 "./src/**/*.ts"
             ],
             "types": ["node", "webdriverio"]
-            ...
         }
 ```
