@@ -29,13 +29,13 @@ and:
         "compilerOptions": {
             "baseUrl": ".",
             "paths": {
-                    "*": [ "./*" ],
-                    "src/*": ["./src/*"]
-                }
+                "*": [ "./*" ],
+                "src/*": ["./src/*"]
+            },
+            "types": ["node", "webdriverio"]
             },
             "include": [
                 "./src/**/*.ts"
-            ],
-            "types": ["node", "webdriverio"]
+            ]
         }
 ```
