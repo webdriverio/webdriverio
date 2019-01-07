@@ -77,13 +77,6 @@ export const findStrategy = function (value, isW3C, isMobile) {
         using = 'tag name'
         value = value.replace(/<|>|\/|\s/g, '')
 
-    // use name strategy if value queries elements with name attributes
-    // e.g. "[name='myName']" or '[name="myName"]'
-    } else if (value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
-        using = 'name'
-        value = value.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
-
-
     // allow to move up to the parent or select current element
     } else if (value === '..' || value === '.') {
         using = 'xpath'
