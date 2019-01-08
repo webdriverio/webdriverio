@@ -21,6 +21,7 @@ export default class WebdriverMockService {
         this.command.newSession().reply(200, newSession)
         this.command.deleteSession().reply(200, deleteSession)
         this.command.getTitle().reply(200, { value: 'Mock Page Title' })
+        this.command.getLogTypes().reply(200, { value: [] })
     }
 
     before () {
