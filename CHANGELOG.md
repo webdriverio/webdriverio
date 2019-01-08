@@ -15,6 +15,34 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.6 (2019-01-08)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3276](https://github.com/webdriverio/webdriverio/pull/3276) webdriverio: waitForDisplayed() now inherits isDisplayed() logic ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 1
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+
+## 5.2.5 (2019-01-07)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-sauce-service`, `wdio-testingbot-service`, `webdriver`
+  * [#3275](https://github.com/webdriverio/webdriverio/pull/3275) Fix config key naming host =>hostname ([@BorisOsipov](https://github.com/BorisOsipov))
+* `webdriverio`
+  * [#3273](https://github.com/webdriverio/webdriverio/pull/3273) webdriverio: fixing waitForDisplayed to immediately return false ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :nail_care: Polish
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#3244](https://github.com/webdriverio/webdriverio/pull/3244) webdriverio: isDisplayed fix to return false on non existing elements ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :memo: Documentation
+* [#3272](https://github.com/webdriverio/webdriverio/pull/3272) Update TypeScript.md docs ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 2
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+
 ## 5.2.4 (2019-01-07)
 
 #### :bug: Bug Fix
