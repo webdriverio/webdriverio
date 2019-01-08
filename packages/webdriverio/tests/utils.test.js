@@ -25,10 +25,16 @@ describe('utils', () => {
             expect(element.value).toBe('#purplebox')
         })
 
-        it('should find an element using "name" method', () => {
-            const element = findStrategy('[name="searchinput"]')
+        it('should find an element using "name" method through jsonwp', () => {
+            const element = findStrategy('[name="searchinput"]', false)
             expect(element.using).toBe('name')
             expect(element.value).toBe('searchinput')
+        })
+
+        it('should find an element using "name" method through WC3', () => {
+            const element = findStrategy('[name="searchinput"]', true)
+            expect(element.using).toBe('css selector')
+            expect(element.value).toBe('[name="searchinput"]')
         })
 
         it('should find an element using "name" method with a . in the name', () => {
