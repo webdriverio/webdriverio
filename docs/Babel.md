@@ -6,7 +6,7 @@ title: Babel Setup
 To write tests using next generation JavaScript features you can add [Babel](https://babeljs.io/) as compiler for your test files. For that first, install the necessary Babel dependencies:
 
 ```
-npm install --save-dev @babel/cli @babel/preset-env @babel/register
+npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 ```
 
 Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is configured properly. The simplest setup you can use is:

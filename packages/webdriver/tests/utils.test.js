@@ -1,5 +1,5 @@
 import {
-    isSuccessfulResponse, isValidParameter, getPrototype, commandCallStructure, isW3CSession,
+    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure, isW3CSession,
     isChromiumSession
 } from '../src/utils'
 
@@ -10,46 +10,35 @@ import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
         expect(isSuccessfulResponse()).toBe(false)
-        expect(isSuccessfulResponse({})).toBe(false)
-        expect(isSuccessfulResponse({
-            body: undefined,
-            statusCode: 200
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { value: { some: 'result' } },
-            statusCode: 200
-        })).toBe(true)
-        expect(isSuccessfulResponse({
-            body: { value: { error: new Error('foobar' )} },
-            statusCode: 404
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { value: { error: 'no such element' } },
-            statusCode: 404
-        })).toBe(true)
-        expect(isSuccessfulResponse({
-            body: { status: 7 },
-            statusCode: 200
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { status: 7, value: {} }
-        })).toBe(false)
-        expect(isSuccessfulResponse({
-            body: { status: 0, value: {} }
-        })).toBe(true)
-        expect(isSuccessfulResponse({
-            body: { status: 7, value: { message: 'no such element: foobar' } }
-        })).toBe(true)
+        expect(isSuccessfulResponse(200)).toBe(false)
+        expect(isSuccessfulResponse(200, { value: { some: 'result' } })).toBe(true)
+        expect(isSuccessfulResponse(404, { value: { error: new Error('foobar' )} })).toBe(false)
+        expect(isSuccessfulResponse(404, { value: { error: 'no such element' } })).toBe(true)
+        expect(isSuccessfulResponse(200, { status: 7 })).toBe(false)
+        expect(isSuccessfulResponse(undefined, { status: 7, value: {} })).toBe(false)
+        expect(isSuccessfulResponse(undefined, { status: 0, value: {} })).toBe(true)
+        expect(isSuccessfulResponse(
+            undefined,
+            { status: 7, value: { message: 'no such element: foobar' } }
+        )).toBe(true)
     })
 
     it('isValidParameter', () => {
         expect(isValidParameter(1, 'number')).toBe(true)
         expect(isValidParameter(1, 'number[]')).toBe(false)
         expect(isValidParameter([1], 'number[]')).toBe(true)
+        expect(isValidParameter(null, 'null')).toBe(true)
+        expect(isValidParameter('', 'null')).toBe(false)
+        expect(isValidParameter(undefined, 'null')).toBe(false)
+        expect(isValidParameter({}, 'object')).toBe(true)
+        expect(isValidParameter([], 'object')).toBe(true)
+        expect(isValidParameter(null, 'object')).toBe(false)
         expect(isValidParameter(1, '(number|string|object)')).toBe(true)
         expect(isValidParameter('1', '(number|string|object)')).toBe(true)
         expect(isValidParameter({}, '(number|string|object)')).toBe(true)
         expect(isValidParameter(false, '(number|string|object)')).toBe(false)
+        expect(isValidParameter([], '(number|string|object)')).toBe(true)
+        expect(isValidParameter(null, '(number|string|object)')).toBe(false)
         expect(isValidParameter(1, '(number|string|object)[]')).toBe(false)
         expect(isValidParameter('1', '(number|string|object)[]')).toBe(false)
         expect(isValidParameter({}, '(number|string|object)[]')).toBe(false)
@@ -57,8 +46,21 @@ describe('utils', () => {
         expect(isValidParameter([1], '(number|string|object)[]')).toBe(true)
         expect(isValidParameter(['1'], '(number|string|object)[]')).toBe(true)
         expect(isValidParameter([{}], '(number|string|object)[]')).toBe(true)
+        expect(isValidParameter([[]], '(number|string|object)[]')).toBe(true)
+        expect(isValidParameter([null], '(number|string|object)[]')).toBe(false)
         expect(isValidParameter([false], '(number|string|object)[]')).toBe(false)
         expect(isValidParameter(['1', false], '(number|string|object)[]')).toBe(false)
+    })
+
+    it('getArgumentType', () => {
+        expect(getArgumentType(1)).toBe('number')
+        expect(getArgumentType(1.2)).toBe('number')
+        expect(getArgumentType(null)).toBe('null')
+        expect(getArgumentType('text')).toBe('string')
+        expect(getArgumentType({})).toBe('object')
+        expect(getArgumentType([])).toBe('object')
+        expect(getArgumentType(true)).toBe('boolean')
+        expect(getArgumentType(false)).toBe('boolean')
     })
 
     it('getPrototype', () => {
@@ -76,6 +78,8 @@ describe('utils', () => {
         const chromiumPrototype = getPrototype(false, true)
         expect(chromiumPrototype instanceof Object).toBe(true)
         expect(typeof chromiumPrototype.sendCommand.value).toBe('function')
+        expect(typeof chromiumPrototype.getElementValue.value).toBe('function')
+        expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')
     })
 
     it('commandCallStructure', () => {

@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import command from './command'
+import merge from 'lodash.merge'
 import WebDriverProtocol from '../protocol/webdriver.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -14,7 +15,7 @@ const log = logger('webdriver')
  * @param  {Object}  body  body payload of response
  * @return {Boolean}       true if request was successful
  */
-export function isSuccessfulResponse ({ body, statusCode } = {}) {
+export function isSuccessfulResponse (statusCode, body) {
     /**
      * response contains a body
      */
@@ -97,7 +98,8 @@ export function isValidParameter (arg, expectedType) {
     }
 
     for (const argEntity of arg) {
-        if (!(typeof argEntity).match(expectedType)) {
+        const argEntityType = getArgumentType(argEntity)
+        if (!argEntityType.match(expectedType)) {
             return false
         }
     }
@@ -106,11 +108,18 @@ export function isValidParameter (arg, expectedType) {
 }
 
 /**
+ * get type of command argument
+ */
+export function getArgumentType (arg) {
+    return arg === null ? 'null' : typeof arg
+}
+
+/**
  * creates the base prototype for the webdriver monad
  */
 export function getPrototype (isW3C, isChrome) {
     const prototype = {}
-    const ProtocolCommands = Object.assign(
+    const ProtocolCommands = merge(
         isW3C ? WebDriverProtocol : JsonWProtocol,
         MJsonWProtocol,
         AppiumProtocol,

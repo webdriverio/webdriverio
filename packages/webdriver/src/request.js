@@ -2,9 +2,11 @@ import url from 'url'
 import http from 'http'
 import path from 'path'
 import https from 'https'
+import merge from 'lodash.merge'
 import request from 'request'
-import logger from '@wdio/logger'
 import EventEmitter from 'events'
+
+import logger from '@wdio/logger'
 
 import { isSuccessfulResponse } from './utils'
 import pkg from '../package.json'
@@ -18,12 +20,12 @@ const agents = {
 export default class WebDriverRequest extends EventEmitter {
     constructor (method, endpoint, body) {
         super()
+        this.body = body
         this.method = method
         this.endpoint = endpoint
         this.requiresSessionId = this.endpoint.match(/:sessionId/)
         this.defaultOptions = {
             method,
-            body,
             followAllRedirects: true,
             json: true,
             headers: {
@@ -35,7 +37,7 @@ export default class WebDriverRequest extends EventEmitter {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = Object.assign(this.defaultOptions, this._createOptions(options, sessionId))
+        const fullRequestOptions = merge(this.defaultOptions, this._createOptions(options, sessionId))
         this.emit('request', fullRequestOptions)
         return this._request(fullRequestOptions, options.connectionRetryCount)
     }
@@ -44,7 +46,14 @@ export default class WebDriverRequest extends EventEmitter {
         const requestOptions = {
             agent: agents[options.protocol],
             headers: typeof options.headers === 'object' ? options.headers : {},
-            qs: typeof this.defaultOptions.queryParams === 'object' ? options.queryParams : {}
+            qs: typeof options.queryParams === 'object' ? options.queryParams : {}
+        }
+
+        /**
+         * only apply body property if existing
+         */
+        if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
+            requestOptions.body = this.body
         }
 
         /**
@@ -88,7 +97,7 @@ export default class WebDriverRequest extends EventEmitter {
             /**
              * Resolve only if successful response
              */
-            if (!err && isSuccessfulResponse(response)) {
+            if (!err && isSuccessfulResponse(response.statusCode, body)) {
                 this.emit('response', { result: body })
                 return resolve(body)
             }

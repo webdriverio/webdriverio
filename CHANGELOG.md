@@ -15,6 +15,187 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.4 (2019-01-07)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3266](https://github.com/webdriverio/webdriverio/pull/3266) Properly extend base protocol with extension command definitions. ([@martomo](https://github.com/martomo))
+
+#### Committers: 1
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+
+## 5.2.3 (2019-01-06)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#3249](https://github.com/webdriverio/webdriverio/pull/3249) Jasmine Framework improperly configures test randomization ([@b-smets](https://github.com/b-smets))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3251](https://github.com/webdriverio/webdriverio/pull/3251) webdriverio: updating screenshot call to handle backslash ([@StephenABoyd](https://github.com/StephenABoyd))
+* `wdio-reporter`
+  * [#3253](https://github.com/webdriverio/webdriverio/pull/3253) wdio-reporter: updating pending test uid if existing ([@StephenABoyd](https://github.com/StephenABoyd))
+
+#### :memo: Documentation
+* `webdriver`
+  * [#3262](https://github.com/webdriverio/webdriverio/pull/3262) Revised Chromium command definitions to improve usability ([@martomo](https://github.com/martomo))
+* Other
+  * [#3258](https://github.com/webdriverio/webdriverio/pull/3258) Missing install of  @babel/core ([@wswebcreation](https://github.com/wswebcreation))
+  * [#3260](https://github.com/webdriverio/webdriverio/pull/3260) Updating options docs ([@BorisOsipov](https://github.com/BorisOsipov))
+* `wdio-config`
+  * [#3254](https://github.com/webdriverio/webdriverio/pull/3254) Fix package name and fix typos ([@mo](https://github.com/mo))
+
+#### Committers: 6
+- Bart Smets ([@b-smets](https://github.com/b-smets))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@StephenABoyd](https://github.com/StephenABoyd)
+- molsson ([@mo](https://github.com/mo))
+
+## 5.2.2 (2019-01-04)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3250](https://github.com/webdriverio/webdriverio/pull/3250) Update other commands which allow/expect 'null' as value. ([@martomo](https://github.com/martomo))
+
+#### :memo: Documentation
+* [#3227](https://github.com/webdriverio/webdriverio/pull/3227) Undefined CSS classes for optional command parameters ([@cuki](https://github.com/cuki))
+
+#### Committers: 2
+- Cuki ([@cuki](https://github.com/cuki))
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+
+## 5.2.1 (2019-01-04)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#3240](https://github.com/webdriverio/webdriverio/pull/3240) Don't let jasmine swallow errors by ignoring its expectationResultHandler ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-junit-reporter`
+  * [#3248](https://github.com/webdriverio/webdriverio/pull/3248) Add missing @wdio/reporter dep to junit reporter ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#3239](https://github.com/webdriverio/webdriverio/pull/3239) Unable pass null value to switchToFrame command for WebDriver ([@martomo](https://github.com/martomo))
+
+#### :memo: Documentation
+* [#3243](https://github.com/webdriverio/webdriverio/pull/3243) Set google analytics script into footer of website ([@christian-bromann](https://github.com/christian-bromann))
+* [#3245](https://github.com/webdriverio/webdriverio/pull/3245) docs: Fix element commnads referencing the browser object ([@WillBrock](https://github.com/WillBrock))
+* [#3237](https://github.com/webdriverio/webdriverio/pull/3237) Update ConfigurationFile to use goog:chromeOptions ([@vinchbr](https://github.com/vinchbr))
+* [#3236](https://github.com/webdriverio/webdriverio/pull/3236) updating blog post v5 release, thank you section ([@TuHuynhVan](https://github.com/TuHuynhVan))
+
+#### :house: Internal
+* `wdio-cli`
+  * [#3242](https://github.com/webdriverio/webdriverio/pull/3242) set NODE_ENV to production to not compile source map for NPM code ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#3241](https://github.com/webdriverio/webdriverio/pull/3241) webdriver: update typing to contain capabilities ([@StephenABoyd](https://github.com/StephenABoyd))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+- Tu Huynh ([@TuHuynhVan](https://github.com/TuHuynhVan))
+- Vicenzo Naves ([@vinchbr](https://github.com/vinchbr))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- [@StephenABoyd](https://github.com/StephenABoyd)
+
+## 5.2.0 (2019-01-03)
+
+#### :rocket: New Feature
+* `webdriver`, `webdriverio`
+  * [#3215](https://github.com/webdriverio/webdriverio/pull/3215) Properly implement 'setTimeout' function and /timeouts endpoints ([@martomo](https://github.com/martomo))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3226](https://github.com/webdriverio/webdriverio/pull/3226) Updated findStrategy ([@Gilad-WT](https://github.com/Gilad-WT))
+* `wdio-runner`
+  * [#3219](https://github.com/webdriverio/webdriverio/pull/3219) wdio-runner: Fix custom reporter options not being used ([@WillBrock](https://github.com/WillBrock))
+
+#### :nail_care: Polish
+* `webdriver`, `webdriverio`
+  * [#3225](https://github.com/webdriverio/webdriverio/pull/3225) Improve command definitions for available protocols ([@martomo](https://github.com/martomo))
+* `webdriver`
+  * [#3216](https://github.com/webdriverio/webdriverio/pull/3216) Setting of just window position or size instead of both using 'setWindowRect' ([@martomo](https://github.com/martomo))
+
+#### :memo: Documentation
+* [#3231](https://github.com/webdriverio/webdriverio/pull/3231) docs: Update custom service export ([@WillBrock](https://github.com/WillBrock))
+* [#3220](https://github.com/webdriverio/webdriverio/pull/3220) webdriverio: Update changelog for cli array arguments ([@WillBrock](https://github.com/WillBrock))
+
+#### :house: Internal
+* `webdriver`, `webdriverio`
+  * [#3218](https://github.com/webdriverio/webdriverio/pull/3218) Webdriver and WebdriverIO Typing ([@StephenABoyd](https://github.com/StephenABoyd))
+
+#### Committers: 4
+- Martijn Dijkhuizen ([@martomo](https://github.com/martomo))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- [@Gilad-WT](https://github.com/Gilad-WT)
+- [@StephenABoyd](https://github.com/StephenABoyd)
+
+## 5.1.2 (2018-12-30)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#3211](https://github.com/webdriverio/webdriverio/pull/3211) fix hostname cli param ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## 5.1.1 (2018-12-30)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3208](https://github.com/webdriverio/webdriverio/pull/3208) Fix bug where Geckodriver requires POST requests to have a valid JSON body ([@klipstein](https://github.com/klipstein))
+
+#### :memo: Documentation
+* [#3206](https://github.com/webdriverio/webdriverio/pull/3206) Docs: fix Getting Started guide (part 2) ([@goofballLogic](https://github.com/goofballLogic))
+* [#3202](https://github.com/webdriverio/webdriverio/pull/3202) fix: this PR fixes a bug on phones  ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 3
+- Andrew Stewart Gibson ([@goofballLogic](https://github.com/goofballLogic))
+- Tobias von Klipstein ([@klipstein](https://github.com/klipstein))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+## 5.1.0 (2018-12-28)
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#3135](https://github.com/webdriverio/webdriverio/pull/3135) Add Chromium specific commands to browser object ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#3197](https://github.com/webdriverio/webdriverio/pull/3197) Add support for .es6 file types ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#3190](https://github.com/webdriverio/webdriverio/pull/3190) Only set body if a body is required ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-jasmine-framework`
+  * [#3179](https://github.com/webdriverio/webdriverio/pull/3179) Fix jasmine error reporting ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-reporter`, `wdio-runner`, `webdriverio`
+  * [#3178](https://github.com/webdriverio/webdriverio/pull/3178) Fix unknwon logFile issue + add documentation on logDir option ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3201](https://github.com/webdriverio/webdriverio/pull/3201) webdriverio: added error messages to the waitForExist call ([@StephenABoyd](https://github.com/StephenABoyd))
+* `webdriver`, `webdriverio`
+  * [#3176](https://github.com/webdriverio/webdriverio/pull/3176) webdriver: Change getCurrentUrl to getUrl ([@WillBrock](https://github.com/WillBrock))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#3199](https://github.com/webdriverio/webdriverio/pull/3199) Disable unsupported cli wizard options ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#3195](https://github.com/webdriverio/webdriverio/pull/3195) webdriverio: Update upgrade instructions ([@WillBrock](https://github.com/WillBrock))
+* `webdriverio`
+  * [#3184](https://github.com/webdriverio/webdriverio/pull/3184) webdriverio: getCssPropertry changed to getCSSProperty ([@WillBrock](https://github.com/WillBrock))
+  * [#3180](https://github.com/webdriverio/webdriverio/pull/3180) webdriverio: Correct deleteCookies example ([@WillBrock](https://github.com/WillBrock))
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-reporter`, `wdio-runner`, `webdriverio`
+  * [#3178](https://github.com/webdriverio/webdriverio/pull/3178) Fix unknwon logFile issue + add documentation on logDir option ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* [#3175](https://github.com/webdriverio/webdriverio/pull/3175) Garbage in npm wdio packages ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 4
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- [@StephenABoyd](https://github.com/StephenABoyd)
+
 
 
 ## 5.0.3 (2018-12-23)
@@ -141,7 +322,7 @@ This version comes with a variety of technical changes that might affect the fun
         * `elementIdDisplayed` → `isElementDisplayed`
         * `elementIdElement` → `findElementFromElement`
         * `elementIdElements` → `findElementsFromElement`
-        * `elementIdEnabled` → `getElementEnabled`
+        * `elementIdEnabled` → `isElementEnabled`
         * `elementIdLocation` → `getElementLocation`
         * `elementIdLocationInView` → `getElementLocationInView` (JsonWireProtocol only)
         * `elementIdName` → `getElementTagName`
@@ -172,7 +353,7 @@ This version comes with a variety of technical changes that might affect the fun
         * `session` → `getSession`, `deleteSession` (JsonWireProtocol only)
         * `sessions` → `getSessions`
         * `submit` → `elementSubmit`
-        * `timeouts` → `getTimeouts`, `setTimeout`
+        * `timeouts` → `getTimeouts`, `setTimeouts`
         * `window`, `switchToWindow` → `switchWindow`
         * `windowHandle` → `closeWindow`, `getWindowHandle`
         * `windowHandles` → `getWindowHandles`
@@ -233,6 +414,25 @@ This version comes with a variety of technical changes that might affect the fun
   const elem2 = $('myOtherElem')
   console.log(typeof elem2.myElemCommand) // outputs "undefined"
   ```
+
+* spec and suite cli arguments are now passed as an array, e.g. 
+  ```js
+  // v4
+  ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js,./tests/baz.js
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar,BarBaz
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar
+  ```
+  ```js
+  // v5
+  ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js ./tests/baz.js
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar BarBaz
+
+  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar
+  ```
+
 * custom configuration for services or reporters are now directly applied to the config list, e.g.
   ```js
   // ...
@@ -264,7 +464,7 @@ This version comes with a variety of technical changes that might affect the fun
 * auto retry mechansim for all command requests
 * auto refetch mechanism for stale elements
 * simplified reattachment to existing sessions with `attach` functionality
-* integrated and auto maintained [TypeScript](https://www.typescriptlang.org/) definitions (still [work in progress](https://github.com/webdriverio/webdriverio/pull/2862))
+* integrated and auto maintained [TypeScript](https://www.typescriptlang.org/) definitions
 * wdio testrunner fails if no spec files were found
 
 #### :bug: Bug Fix

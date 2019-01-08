@@ -2,8 +2,8 @@ import { filterPackageName } from './utils'
 
 export const SUPPORTED_FRAMEWORKS = [
     'mocha', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework
-    'jasmine', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
-    'cucumber' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework
+    'jasmine' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
+    // 'cucumber' not yet supported (see #2872)
 ]
 
 export const SUPPORTED_REPORTER = [
@@ -39,8 +39,8 @@ export const SUPPORTED_SERVICES = [
 ]
 
 export const SUPPORTED_RUNNERS = [
-    ' local - https://www.npmjs.com/package/@wdio/local-runner',
-    ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
+    ' local - https://www.npmjs.com/package/@wdio/local-runner'
+    // ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
 ]
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
@@ -77,7 +77,7 @@ export const CLI_PARAMS = [{
     name: 'version',
     description: 'prints WebdriverIO version'
 }, {
-    name: 'host',
+    name: 'hostname',
     alias: 'h',
     describe: 'automation driver host address',
     type: 'string'

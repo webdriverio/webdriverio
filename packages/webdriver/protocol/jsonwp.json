@@ -64,7 +64,7 @@
   },
   "/session/:sessionId/timeouts": {
     "POST": {
-      "command": "setTimeout",
+      "command": "setTimeouts",
       "description": "Configure the amount of time that a particular type of operation can execute for before they are aborted and a |Timeout| error is returned to the client.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeouts",
       "parameters": [{
@@ -219,7 +219,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidframe",
       "parameters": [{
         "name": "id",
-        "type": "(string|number|object)",
+        "type": "(string|number|object|null)",
         "description": "Identifier for the frame to change focus to",
         "required": true
       }]
@@ -578,7 +578,7 @@
   },
   "/session/:sessionId/element/:elementId/enabled": {
     "GET": {
-      "command": "getElementEnabled",
+      "command": "isElementEnabled",
       "description": "Determine if an element is currently enabled.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidenabled",
       "variables": [{
@@ -603,6 +603,26 @@
         "description": "ID of the element to route the command to"
       }],
       "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/equals/:otherElementId": {
+    "GET": {
+      "command": "elementEquals",
+      "description": "Compare elements with each other.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidequalsother",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }, {
+        "name": "otherElementId",
+        "description": "ID of the element to compare against"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "Boolean",
+        "name": "isEqual",
+        "description": "Whether the two IDs refer to the same element."
+      }
     }
   },
   "/session/:sessionId/element/:elementId/submit": {
@@ -854,7 +874,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto",
       "parameters": [{
         "name": "element",
-        "type": "string",
+        "type": "(string|null)",
         "description": "opaque ID assigned to the element to move to, as described in the WebElement JSON Object, if not specified or is null, the offset is relative to current position of the mouse",
         "required": false
       }, {
@@ -892,6 +912,19 @@
         "name": "button",
         "type": "number",
         "description": "which button, enum: LEFT = 0, MIDDLE = 1 , RIGHT = 2, defaults to the left mouse button if not specified",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/click": {
+    "POST": {
+      "command": "positionClick",
+      "description": "Clicks at the current mouse coordinates (set by moveto).",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidclick",
+      "parameters": [{
+        "name": "button",
+        "type": "number",
+        "description": "which button, enum: LEFT = 0, RIGHT = 2, defaults to the left mouse button if not specified",
         "required": false
       }]
     }
@@ -940,6 +973,24 @@
       "command": "touchUp",
       "description": "Finger up on the screen.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchup",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "x coordinate on the screen",
+        "required": false
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "y coordinate on the screen",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/touch/move": {
+    "POST": {
+      "command": "touchMove",
+      "description": "Finger move on the screen.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchmove",
       "parameters": [{
         "name": "x",
         "type": "number",

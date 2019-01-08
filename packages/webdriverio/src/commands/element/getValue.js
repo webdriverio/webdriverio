@@ -15,8 +15,7 @@
  * </example>
  *
  * @alias element.getValue
- * @param  {String} selector  input, textarea, or select element
- * @return {String|String[]}  requested element(s) value
+ * @return {String}  requested element(s) value
  * @uses protocol/elements, protocol/elementIdProperty
  * @type property
  *
