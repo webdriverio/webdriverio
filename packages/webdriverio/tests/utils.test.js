@@ -25,7 +25,7 @@ describe('utils', () => {
             expect(element.value).toBe('#purplebox')
         })
 
-        it('should find an element using "name" method', () => {
+        it('should find an element using "name" method through JSONWP', () => {
             const element = findStrategy('[name="searchinput"]', false)
             expect(element.using).toBe('name')
             expect(element.value).toBe('searchinput')
