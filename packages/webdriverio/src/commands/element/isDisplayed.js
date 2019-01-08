@@ -40,6 +40,14 @@
  *
  */
 
-export default function isDisplayed() {
-    return this.isElementDisplayed(this.elementId)
+export default async function isDisplayed() {
+
+    /*
+     * This is only necessary as isDisplayed is on the exclusion list for the middleware
+     */
+    if (!this.elementId) {
+        this.elementId = (await this.parent.$(this.selector)).elementId
+    }
+
+    return this.elementId ? await this.isElementDisplayed(this.elementId) : false
 }

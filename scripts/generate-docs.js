@@ -27,6 +27,7 @@ const PROTOCOL_NAMES = {
     chromium: 'Chromium'
 }
 const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
+const VENDOR_PROTOCOLS = ['chromium']
 const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
     formatter: formatter,
@@ -52,13 +53,27 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
             description.hasHeader = true
             description.paramString = description.paramTags.map((param) => param.name).join(', ')
-            description.examples = [] // tbd
+            description.examples = (description.examples || []).map((example) => {
+                return {
+                    code: Array.isArray(example) ? example.join('\n') : example,
+                    format: 'js'
+                }
+            })
             description.returnTags = [] // tbd
             description.throwsTags = [] // tbd
             description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
             description.customEditUrl = `${config.repoUrl}/edit/master/packages/webdriver/protocol/${protocolName}.json`
 
-            const protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`
+            let protocolNote
+            if (VENDOR_PROTOCOLS.includes(protocolName)) {
+                protocolNote = `Non official and undocumented ${protocol} command.`
+                if (description.ref) {
+                    protocolNote += ` More about this command can be found [here](${description.ref}).`
+                }
+            } else {
+                protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`
+            }
+
             if (description.description) {
                 description.description += `<br><br>${protocolNote}`
             } else {
@@ -148,7 +163,7 @@ for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         const name = pkg.split('-').slice(1,-1)
         const id = `${name.join('-')}-${type}`
         const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
-        const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'Readme.md')).toString()
+        const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'README.md')).toString()
         const preface = [
             '---',
             `id: ${id}`,

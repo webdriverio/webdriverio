@@ -28,7 +28,7 @@ We wanted to start this effort completely community driven, and began to gather 
 
 As we moved to a monolithic system we scoped all WebdriverIO packages into the [`@wdio`](https://www.npmjs.com/org/wdio) NPM organization. This would make it simpler to onboard contributors to release new package versions, and better clarifies which packages are "officially" maintained by the organization or are 3rd party community packages.<br>
 <br>
-If you have been using `wdio-mocha-framework` or `wdio-spec-reporter` in your project please update the packages to use the ones built for v5: `@wdio/mocha-framework` or `@wdio/spec-reporter`. Going foward the version number of all packages are now pinned to each other; meaning that you should always have the same versions for all "official" WebdriverIO packages that you use.
+If you have been using `wdio-mocha-framework` or `wdio-spec-reporter` in your project please update the packages to use the ones built for v5: `@wdio/mocha-framework` or `@wdio/spec-reporter`. Going forward the version number of all packages are now pinned to each other; meaning that you should always have the same versions for all "official" WebdriverIO packages that you use.
 
 ## We Did Some Spring Cleaning
 
@@ -107,7 +107,7 @@ Finally, I want to thank a few people that have helped to make this release happ
 <br>
 I personally want to thank [Kevin Lamping](https://twitter.com/klamping) for making a stellar [online learning course](https://learn.webdriver.io/) as well as so so much other great content on [YouTube](https://t.co/WX6flUsZ8e) over the last few years. As mentioned above - also a big thank you to [Will Brock](https://twitter.com/willbrock) for his [video course](https://www.youtube.com/watch?v=MO8xeC-w2Og&list=PL8HowI-L-3_9Ep7lxVrRDF-az5ku4sur_) on the new release.
 
-I want to thank everyone who has been deeply involved in the support channel helping people out on daily basis. With over 3500 users it became impossible for me to answer everyone on the level I did before. Thank you [Erwin Heitzman](https://github.com/erwinheitzman), [Tu Huynh](https://twitter.com/TuHuynh62224168), [Jim Davis](https://twitter.com/fijijavis), [Xu Cao](https://github.com/caoxu2000), [Boris Osipov](https://github.com/BorisOsipov) and [Wim Selles](https://twitter.com/wswebcreation).
+I want to thank everyone who has been deeply involved in the support channel helping people out on daily basis. With over 3500 users it became impossible for me to answer everyone on the level I did before. Thank you [Erwin Heitzman](https://github.com/erwinheitzman), [Tu Huynh](https://github.com/TuHuynhVan), [Jim Davis](https://twitter.com/fijijavis), [Xu Cao](https://github.com/caoxu2000), [Boris Osipov](https://github.com/BorisOsipov) and [Wim Selles](https://twitter.com/wswebcreation).
 
 Big shoutout to [Daniel Chivescu](https://twitter.com/iamdanchiv) and [Josh Cypher](https://twitter.com/joshuacypher) who have been giving talks on WebdriverIO around the world.<br>
 <br>

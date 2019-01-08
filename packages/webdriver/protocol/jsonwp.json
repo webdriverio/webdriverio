@@ -64,7 +64,7 @@
   },
   "/session/:sessionId/timeouts": {
     "POST": {
-      "command": "setTimeout",
+      "command": "setTimeouts",
       "description": "Configure the amount of time that a particular type of operation can execute for before they are aborted and a |Timeout| error is returned to the client.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeouts",
       "parameters": [{
@@ -219,7 +219,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidframe",
       "parameters": [{
         "name": "id",
-        "type": "(string|number|object)",
+        "type": "(string|number|object|null)",
         "description": "Identifier for the frame to change focus to",
         "required": true
       }]
@@ -874,7 +874,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto",
       "parameters": [{
         "name": "element",
-        "type": "string",
+        "type": "(string|null)",
         "description": "opaque ID assigned to the element to move to, as described in the WebElement JSON Object, if not specified or is null, the offset is relative to current position of the mouse",
         "required": false
       }, {

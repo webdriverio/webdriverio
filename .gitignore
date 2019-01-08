@@ -62,6 +62,7 @@ typings/
 
 **/build
 /*.js
+*.d.ts
 !babel.config.js
 !.eslintrc.js
 package-lock.json

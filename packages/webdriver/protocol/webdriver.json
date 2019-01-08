@@ -46,19 +46,29 @@
       "parameters": [],
       "returns": {
         "type": "Object",
-        "name": "status",
+        "name": "timeouts",
         "description": "Object containing timeout durations for `script`, `pageLoad` and `implicit` timeouts."
       }
     },
     "POST": {
-      "command": "setTimeout",
+      "command": "setTimeouts",
       "description": "The Set Timeouts command sets timeout durations associated with the current session. The timeouts that can be controlled are listed in the table of session timeouts below.",
       "ref": "https://w3c.github.io/webdriver/#dfn-timeouts",
       "parameters": [{
-        "name": "timeouts",
-        "type": "Object",
-        "description": "Object containing timeout values for at least one of the following keys: \"script\", \"pageLoad\" and/or \"implicit\"",
-        "required": true
+        "name": "implicit",
+        "type": "number",
+        "description": "integer in ms for session implicit wait timeout",
+        "required": false
+      }, {
+        "name": "pageLoad",
+        "type": "number",
+        "description": "integer in ms for session page load timeout",
+        "required": false
+      }, {
+        "name": "script",
+        "type": "number",
+        "description": "integer in ms for session script timeout",
+        "required": false
       }]
     }
   },
@@ -173,7 +183,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-switch-to-frame",
       "parameters": [{
         "name": "id",
-        "type": "(number|string|object)",
+        "type": "(number|string|object|null)",
         "description": "one of three possible types: null: this represents the top-level browsing context (i.e., not an iframe), a Number, representing the index of the window object corresponding to a frame, a string representing an element id. The element must be the frame or iframe to be selected",
         "required": true
       }]

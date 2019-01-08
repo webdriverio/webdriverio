@@ -60,18 +60,14 @@ class JasmineAdapter {
         jasmineEnv.configure({
             specFilter: ::this.customSpecFilter,
             stopOnSpecFailure: stopOnSpecFailure,
-            randomizeTests: Boolean(this.jasmineNodeOpts.random),
+            random: Boolean(this.jasmineNodeOpts.random),
             failFast: this.jasmineNodeOpts.failFast
         })
 
         /**
          * enable expectHandler
          */
-        const { expectationResultHandler } = this.jasmineNodeOpts
-        const handler = typeof expectationResultHandler === 'function'
-            ? expectationResultHandler
-            : jasmine.Spec.prototype.addExpectationResult
-        jasmine.Spec.prototype.addExpectationResult = handler
+        jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
 
         /**
          * wrap commands with wdio-sync
@@ -193,6 +189,17 @@ class JasmineAdapter {
         return message
     }
 
+    getExpectationResultHandler (jasmine) {
+        let { expectationResultHandler } = this.jasmineNodeOpts
+        const origHandler = jasmine.Spec.prototype.addExpectationResult
+
+        if (typeof expectationResultHandler !== 'function') {
+            return origHandler
+        }
+
+        return this.expectationResultHandler(origHandler)
+    }
+
     expectationResultHandler (origHandler) {
         const { expectationResultHandler } = this.jasmineNodeOpts
         return function (passed, data) {
@@ -201,12 +208,14 @@ class JasmineAdapter {
             } catch (e) {
                 /**
                  * propagate expectationResultHandler error if actual assertion passed
+                 * but the custom handler decides to throw
                  */
                 if (passed) {
                     passed = false
                     data = {
                         passed: false,
-                        message: 'expectationResultHandlerError: ' + e.message
+                        message: 'expectationResultHandlerError: ' + e.message,
+                        error: e
                     }
                 }
             }

@@ -33,6 +33,8 @@ export default class WebdriverMockService {
          * register request interceptors for specific scenarios
          */
         global.browser.addCommand('waitForElementScenario', ::this.waitForElementScenario)
+        global.browser.addCommand('isNeverDisplayedScenario', ::this.isNeverDisplayedScenario)
+        global.browser.addCommand('isEventuallyDisplayedScenario', ::this.isEventuallyDisplayedScenario)
         global.browser.addCommand('staleElementRefetchScenario', ::this.staleElementRefetchScenario)
     }
 
@@ -45,7 +47,27 @@ export default class WebdriverMockService {
         this.command.findElement().times(2).reply(200, { value: elemResponse })
         this.command.findElements().times(5).reply(200, { value: [] })
         this.command.findElements().reply(200, { value: [elemResponse] })
-        this.command.isElementDisplayed(ELEMENT_ID).reply(200, { value: true })
+        this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
+    }
+
+    isNeverDisplayedScenario() {
+        this.nockReset()
+
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+
+        this.command.findElement().times(2).reply(404, NO_SUCH_ELEMENT)
+        this.command.findElement().times(2).reply(200, { value: elemResponse })
+        this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
+    }
+
+    isEventuallyDisplayedScenario() {
+        this.nockReset()
+
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+
+        this.command.findElement().times(1).reply(404, NO_SUCH_ELEMENT)
+        this.command.findElement().times(2).reply(200, { value: elemResponse })
+        this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     staleElementRefetchScenario () {

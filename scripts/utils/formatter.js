@@ -7,7 +7,7 @@ module.exports = function (docfile) {
 
     let type = (javadoc.ctx && javadoc.ctx.type)
     const name = path.basename(docfile.filename, '.js')
-    const scope = docfile.filename.split('/').slice(-2, -1)
+    const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
     let description = ''
     let paramStr = []
@@ -164,7 +164,8 @@ module.exports = function (docfile) {
         examples: files,
         customEditUrl: `${config.repoUrl}/edit/master/packages/webdriverio/src/commands/${scope}/${name}.js`,
         hasDocusaurusHeader: true,
-        originalId: `api/${scope}/${name}`
+        originalId: `api/${scope}/${name}`,
+        isElementScope : scope === 'element',
     }
 
     return commandDescription
