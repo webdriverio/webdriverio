@@ -150,7 +150,7 @@ export default class Runner extends EventEmitter {
         let browser = null
 
         try {
-            browser = global.browser = global.driver = await initialiseInstance(config, caps, this.isMultiremote)
+            browser = global.browser = global.driver = await initialiseInstance(config, caps)
         } catch (e) {
             log.error(e)
             this.emit('error', e)

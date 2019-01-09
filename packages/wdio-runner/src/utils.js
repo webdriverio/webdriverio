@@ -82,9 +82,24 @@ export function sanitizeCaps (caps) {
 }
 
 /**
- * initialise browser instance depending whether remote or multiremote is requested
+ * checks whether capabilities contains multiple browser configurations
+ * @param  {Object}  capabilities  desired session capabilities
+ * @return {Boolean}               true if multiple browsers configured
  */
-export async function initialiseInstance (config, capabilities, isMultiremote) {
+export function hasMultiremoteOptions (capabilities) {
+    return Object.keys(capabilities).length > 0 &&
+           Object.values(capabilities).every(browserConfig => {
+               return browserConfig.hasOwnProperty('capabilities')
+           })
+}
+
+/**
+ * initialise browser instance depending whether remote or multiremote is requested
+ * @param  {Object}  config        configuration of sessions
+ * @param  {Object}  capabilities  desired session capabilities
+ * @return {Promise}               resolves with browser object
+ */
+export async function initialiseInstance (config, capabilities) {
     /**
      * check if config has sessionId and attach it to a running session if so
      */
@@ -96,7 +111,7 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
         })
     }
 
-    if (!isMultiremote) {
+    if (!hasMultiremoteOptions(capabilities)) {
         log.debug('init remote session')
         config.capabilities = sanitizeCaps(capabilities)
         return remote(config)

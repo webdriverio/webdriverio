@@ -1,7 +1,7 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseServices, initialiseInstance, sanitizeCaps } from '../src/utils'
+import { runHook, initialiseServices, initialiseInstance, sanitizeCaps, hasMultiremoteOptions } from '../src/utils'
 
 describe('utils', () => {
     beforeEach(() => {
@@ -88,7 +88,7 @@ describe('utils', () => {
         })
 
         it('should run multiremote tests if flag is given', () => {
-            const capabilities = { someBrowser: { browserName: 'chrome' } }
+            const capabilities = { someBrowser: { capabilities: { browserName: 'chrome' } } }
             initialiseInstance(
                 { foo: 'bar' },
                 capabilities,
@@ -97,7 +97,9 @@ describe('utils', () => {
             expect(attach).toHaveBeenCalledTimes(0)
             expect(multiremote).toBeCalledWith({
                 someBrowser: {
-                    browserName: 'chrome',
+                    capabilities: {
+                        browserName: 'chrome'
+                    },
                     foo: 'bar'
                 }
             })
@@ -143,5 +145,27 @@ describe('utils', () => {
             ...invalidCaps,
             ...validCaps
         })).toEqual(validCaps)
+    })
+
+    it('hasMultiremoteOptions', () => {
+        const capabilities = {
+            browserName: 'safari'
+        }
+        const multipleCapabilities = {
+            myChrome: {
+                capabilities: {
+                    browserName: 'chrome'
+                }
+            },
+            myFirefox: {
+                capabilities: {
+                    browserName: 'firefox'
+                }
+            }
+        }
+
+        expect(hasMultiremoteOptions({})).toBe(false)
+        expect(hasMultiremoteOptions(capabilities)).toBe(false)
+        expect(hasMultiremoteOptions(multipleCapabilities)).toBe(true)
     })
 })
