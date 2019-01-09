@@ -56,7 +56,7 @@ describe('validateConfig', () => {
             logLevel: {
                 type: 'string',
                 default: 'trace',
-                match: /(trace|debug|info|warn|error)/
+                match: /(trace|debug|info|warn|error|silent)/
             }
         }, {
             logLevel: 'dontknow'
@@ -66,7 +66,7 @@ describe('validateConfig', () => {
             logLevel: {
                 type: 'string',
                 default: 'trace',
-                match: /(trace|debug|info|warn|error)/
+                match: /(trace|debug|info|warn|error|silent)/
             }
         }, {
             logLevel: 'info'

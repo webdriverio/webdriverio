@@ -49,7 +49,7 @@ export const DEFAULTS = {
     logLevel: {
         type: 'string',
         default: 'info',
-        match: /(trace|debug|info|warn|error)/
+        match: /(trace|debug|info|warn|error|silent)/
     },
     /**
      * logOutput as file path or writeable stream
