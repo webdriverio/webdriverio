@@ -43,6 +43,21 @@ describe('element', () => {
         expect(subElem.ELEMENT).toBe('some-sub-elem-321')
     })
 
+    it('keeps prototype from browser object', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                'appium-version': '1.9.2'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const subElem = await elem.$('#subfoo')
+        expect(subElem.isMobile).toBe(true)
+    })
+
     afterEach(() => {
         request.mockClear()
     })

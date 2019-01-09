@@ -27,7 +27,7 @@
  *
  */
 
-export default async function getElementSize(prop = null) {
+export default async function getSize(prop = null) {
     let rect = {}
 
     if (this.isW3C) {

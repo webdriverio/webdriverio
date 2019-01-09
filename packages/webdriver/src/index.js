@@ -54,7 +54,10 @@ export default class WebDriver {
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = isW3CSession(params.capabilities)
 
-        const prototype = Object.assign(getPrototype(params.isW3C, isChromiumSession(params.capabilities)), proto)
+        const isMobile = Boolean(params.capabilities.deviceName || params.capabilities.platformVersion)
+        const prototype = Object.assign(
+            getPrototype(params.isW3C, isChromiumSession(params.capabilities), isMobile),
+            proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
