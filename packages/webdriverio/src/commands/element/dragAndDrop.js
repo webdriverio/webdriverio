@@ -4,7 +4,7 @@
  *
  * @alias element.dragAndDrop
  * @param {Element} target    destination selector
- * @param {Number}  duration  how long the drag should take place
+ * @param {Number=}  duration  how long the drag should take place
  * @uses action/moveToObject, protocol/buttonDown, protocol/buttonUp, property/getLocation, protocol/touchDown, protocol/touchMove, protocol/touchUp
  * @type action
  *
