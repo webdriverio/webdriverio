@@ -101,6 +101,40 @@ describe('addCommand', () => {
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
         })
 
+        test('should propagate custom element commands to sub elements of elements call', async () => {
+            const browser = await remote(remoteConfig)
+            const elems = await browser.$$('.someRandomElement')
+            const elem = elems[0]
+
+            expect(typeof elem.myCustomElementCommand).toBe('undefined')
+            elem.addCommand('myCustomElementCommand', async function () {
+                const result = await new Promise(
+                    (resolve) => setTimeout(() => resolve('foo'), 1))
+                return result + 'bar-' + this.selector
+            })
+
+            const subElem = await elem.$('.subElem')
+            expect(typeof subElem.myCustomElementCommand).toBe('function')
+            expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
+        })
+
+        test('should propagate custom element commands to sub elements of elements call', async () => {
+            const browser = await remote(remoteConfig)
+            const elem = await browser.$('#foo')
+            const elems = await elem.$$('.someRandomElement')
+            const subElem = elems[0]
+
+            expect(typeof subElem.myCustomElementCommand).toBe('undefined')
+            subElem.addCommand('myCustomElementCommand', async function () {
+                const result = await new Promise(
+                    (resolve) => setTimeout(() => resolve('foo'), 1))
+                return result + 'bar-' + this.selector
+            })
+
+            expect(typeof subElem.myCustomElementCommand).toBe('function')
+            expect(await subElem.myCustomElementCommand()).toBe('foobar-.someRandomElement')
+        })
+
         test('should propagate custom sub element command back to element', async () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')
