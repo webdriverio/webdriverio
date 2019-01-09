@@ -1,3 +1,5 @@
+import logger from '@wdio/logger'
+
 import { filterPackageName, getLauncher, runServiceHook } from '../src/utils'
 
 jest.mock('@wdio/config', () => {
@@ -52,10 +54,11 @@ test('getLauncher', () => {
     })).toHaveLength(2)
 })
 
-test('getLauncher failing if syntax error', () => {
+test('getLauncher not failing on syntax error', () => {
     expect(() => getLauncher({
         services: ['other-unscoped']
-    })).toThrow('buhh')
+    })).toHaveLength(0)
+    expect(logger().error).toBeCalledTimes(1)
 })
 
 test('runServiceHook', () => {

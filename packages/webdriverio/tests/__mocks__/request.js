@@ -27,6 +27,14 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         }
     }
 
+    if (
+        params.body &&
+        params.body.capabilities &&
+        params.body.capabilities.alwaysMatch.mobileMode
+    ) {
+        sessionResponse.capabilities.deviceName = 'iNode'
+    }
+
     switch (params.uri.path) {
     case '/wd/hub/session':
         value = sessionResponse
@@ -41,6 +49,11 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         value = {
             [ELEMENT_KEY]: genericElementId
         }
+
+        if (params.body && params.body.value === '#nonexisting') {
+            value = { elementId: null }
+        }
+
         break
     case `/wd/hub/session/${sessionId}/element/some-elem-123/element`:
         value = {
@@ -79,6 +92,9 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             x: 15,
             y: 20
         }
+        break
+    case `/wd/hub/session/${sessionId}/element/${genericElementId}/displayed`:
+        value = true
         break
     case `/wd/hub/session/${sessionId}/elements`:
         value = [
