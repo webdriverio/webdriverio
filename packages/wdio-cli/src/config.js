@@ -43,7 +43,7 @@ export const SUPPORTED_RUNNERS = [
     // ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
 ]
 
-const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
+const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 export const USAGE = `
 WebdriverIO CLI runner
