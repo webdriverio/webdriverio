@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import merge from 'lodash.merge'
 import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
@@ -13,7 +14,7 @@ import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
 
 export default class WebDriver {
-    static async newSession (options = {}, modifier, proto = {}, commandWrapper) {
+    static async newSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
         logger.setLevel('webdriver', params.logLevel)
 
@@ -60,13 +61,14 @@ export default class WebDriver {
          * apply mobile flags to driver scope
          */
         const { isMobile, isIOS, isAndroid } = mobileDetector(params.capabilities)
-        params.isMobile = isMobile
-        params.isIOS = isIOS
-        params.isAndroid = isAndroid
+        const mobileFlags = {
+            isMobile: { value: isMobile },
+            isIOS: { value: isIOS },
+            isAndroid: { value: isAndroid }
+        }
 
-        const prototype = Object.assign(
-            getPrototype(params.isW3C, isChromiumSession(params.capabilities), isMobile),
-            proto)
+        const protocolCommands = getPrototype(params.isW3C, isChromiumSession(params.capabilities), isMobile)
+        const prototype = merge(protocolCommands, mobileFlags, userPrototype)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
@@ -74,7 +76,7 @@ export default class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static attachToSession (options = {}, modifier, proto = {}, commandWrapper) {
+    static attachToSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
         if (typeof options.sessionId !== 'string') {
             throw new Error('sessionId is required to attach to existing session')
         }
@@ -83,7 +85,7 @@ export default class WebDriver {
 
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C || true
-        const prototype = Object.assign(getPrototype(options.isW3C), proto)
+        const prototype = Object.assign(getPrototype(options.isW3C), userPrototype)
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }
