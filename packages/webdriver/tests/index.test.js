@@ -41,20 +41,26 @@ test('should allow to create a new session using w3c compliant caps', async () =
 
 test('should allow to attach to existing session', async () => {
     const client = WebDriver.attachToSession({
-        protocol: 'http',
+        protocol: 'https',
         hostname: 'localhost',
-        port: 4444,
+        port: 9515,
         path: '/',
         sessionId: 'foobar'
     })
 
     await client.getUrl()
     const req = request.mock.calls[0][0]
-    expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
+    expect(req.uri.href).toBe('https://localhost:9515/session/foobar/url')
 })
 
-test('should fail attaching to session if sessionId is not given', () => {
-    expect(() => WebDriver.attachToSession({})).toThrow(/sessionId is required/)
+test('should allow to attach to existing session by using defaults', async () => {
+    const client = WebDriver.attachToSession({
+        sessionId: 'foobar'
+    })
+
+    await client.getUrl()
+    const req = request.mock.calls[0][0]
+    expect(req.uri.href).toBe('http://0.0.0.0:4444/wd/hub/session/foobar/url')
 })
 
 test('ensure that WebDriver interface exports protocols and other objects', () => {

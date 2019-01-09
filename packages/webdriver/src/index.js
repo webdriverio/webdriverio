@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
-import { DEFAULTS } from './constants'
+import { DEFAULTS, SESSION_DEFAULTS } from './constants'
 import { getPrototype, environmentDetector } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
@@ -78,17 +78,12 @@ export default class WebDriver {
      * allows user to attach to existing sessions
      */
     static attachToSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
-        if (typeof options.sessionId !== 'string') {
-            throw new Error('sessionId is required to attach to existing session')
-        }
+        const params = validateConfig(SESSION_DEFAULTS, options)
+        logger.setLevel('webdriver', params.logLevel)
 
-        logger.setLevel('webdriver', options.logLevel)
-
-        options.capabilities = options.capabilities || {}
-        options.isW3C = options.isW3C || true
-        const prototype = Object.assign(getPrototype(options.isW3C), userPrototype)
-        const monad = webdriverMonad(options, modifier, prototype)
-        return monad(options.sessionId, commandWrapper)
+        const prototype = Object.assign(getPrototype(params.isW3C), userPrototype)
+        const monad = webdriverMonad(params, modifier, prototype)
+        return monad(params.sessionId, commandWrapper)
     }
 
     static get WebDriver () {

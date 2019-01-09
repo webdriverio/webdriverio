@@ -90,3 +90,17 @@ export const DEFAULTS = {
         type: 'string'
     }
 }
+
+export const SESSION_DEFAULTS = Object.assign({}, DEFAULTS, {
+    // Capabilities are optional when attaching session,
+    // due to the fact drivers not always return capabilities
+    // in the initial (JsonWireProtocol) session response.
+    capabilities: {
+        type: 'object',
+        required: false
+    },
+    sessionId: {
+        type: 'string',
+        required: true
+    }
+})
