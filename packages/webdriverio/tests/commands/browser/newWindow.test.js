@@ -39,10 +39,18 @@ describe('newWindow', () => {
 
     it('should fail if browser is a mobile device', async () => {
         expect.hasAssertions()
-        browser.capabilities.browserName = 'ipad'
+
+        const mobileBrowser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                'appium-version': '1.9.2'
+            }
+        })
 
         try {
-            await browser.newWindow('https://webdriver.io', 'some name', 'some params')
+            await mobileBrowser.newWindow('https://webdriver.io', 'some name', 'some params')
         } catch (e) {
             expect(e.message).toContain('not supported on mobile')
         }

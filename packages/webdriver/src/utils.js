@@ -175,6 +175,50 @@ export function commandCallStructure (commandName, args) {
     return `${commandName}(${callArgs})`
 }
 
+
+/**
+ * check if session is run on Android device
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run on Android device
+ */
+export function isAndroid (capabilities = {}) {
+    return Boolean(
+        (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
+        (capabilities.browserName && capabilities.browserName.match(/Android/i))
+    )
+}
+
+/**
+ * check if session is run on iOS device
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run on iOS device
+ */
+export function isIOS (capabilities = {}) {
+    return Boolean(
+        (capabilities.platformName && capabilities.platformName.match(/iOS/i)) ||
+        (capabilities.deviceName && capabilities.deviceName.match(/(iPad|iPhone)/i))
+    )
+}
+
+/**
+ * check if session is run on mobile
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run on mobile
+ */
+export function isMobile (capabilities = {}) {
+    return Boolean(
+        (typeof capabilities['appium-version'] !== 'undefined') ||
+        (typeof capabilities['device-type'] !== 'undefined') || (typeof capabilities['deviceType'] !== 'undefined') ||
+        (typeof capabilities['device-orientation'] !== 'undefined') || (typeof capabilities['deviceOrientation'] !== 'undefined') ||
+        (typeof capabilities.deviceName !== 'undefined') ||
+        // Check browserName for specific values
+        (capabilities.browserName === '' ||
+             (capabilities.browserName !== undefined && (capabilities.browserName.toLowerCase() === 'ipad' ||
+                                                         capabilities.browserName.toLowerCase() === 'iphone' ||
+                                                         capabilities.browserName.toLowerCase() === 'android')))
+    )
+}
+
 /**
  * check if session is based on W3C protocol based on the /session response
  * @param  {Object}  capabilities  caps of session response
@@ -204,7 +248,7 @@ export function isW3CSession (capabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-export function isChromiumSession (capabilities) {
+export function isChromiumSession (capabilities = {}) {
     return (
         Boolean(capabilities.chrome) ||
         Boolean(capabilities['goog:chromeOptions'])

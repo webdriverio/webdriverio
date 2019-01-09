@@ -1,6 +1,6 @@
 import {
-    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure, isW3CSession,
-    isChromiumSession
+    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
+    isAndroid, isIOS, isMobile, isW3CSession, isChromiumSession
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -105,6 +105,12 @@ describe('utils', () => {
             .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
     })
 
+    it('isMobile', function() {
+        expect(isMobile(appiumResponse.value.capabilities)).toBe(true)
+        expect(isMobile(chromedriverResponse.value.capabilities)).toBe(false)
+        expect(isMobile(geckodriverResponse.value.capabilities)).toBe(false)
+    })
+
     it('isW3CSession', () => {
         expect(isW3CSession(appiumResponse.value.capabilities)).toBe(true)
         expect(isW3CSession(chromedriverResponse.value.capabilities)).toBe(false)
@@ -115,5 +121,62 @@ describe('utils', () => {
         expect(isChromiumSession(appiumResponse.value.capabilities)).toBe(false)
         expect(isChromiumSession(chromedriverResponse.value)).toBe(true)
         expect(isChromiumSession(geckodriverResponse.value.capabilities)).toBe(false)
+    })
+
+    describe('mobile detection', () => {
+        it('should not detect mobile app for browserName===undefined', function () {
+            const capabilities = {}
+            expect(isMobile(capabilities)).toEqual(false)
+            expect(isIOS(capabilities)).toEqual(false)
+            expect(isAndroid(capabilities)).toEqual(false)
+        })
+
+        it('should not detect mobile app for browserName==="firefox"', function () {
+            const capabilities = {browserName: 'firefox'}
+            expect(isMobile(capabilities)).toEqual(false)
+            expect(isIOS(capabilities)).toEqual(false)
+            expect(isAndroid(capabilities)).toEqual(false)
+        })
+
+        it('should not detect mobile app for browserName==="chrome"', function () {
+            const capabilities = {browserName: 'chrome'}
+            expect(isMobile(capabilities)).toEqual(false)
+            expect(isIOS(capabilities)).toEqual(false)
+            expect(isAndroid(capabilities)).toEqual(false)
+        })
+
+        it('should detect mobile app for browserName===""', function () {
+            const capabilities = {browserName: ''}
+            expect(isMobile(capabilities)).toEqual(true)
+            expect(isIOS(capabilities)).toEqual(false)
+            expect(isAndroid(capabilities)).toEqual(false)
+        })
+
+        it('should detect Android mobile app', function () {
+            const capabilities = {
+                platformName: 'Android',
+                platformVersion: '4.4',
+                deviceName: 'LGVS450PP2a16334',
+                app: 'foo.apk'
+            }
+            expect(isMobile(capabilities)).toEqual(true)
+            expect(isIOS(capabilities)).toEqual(false)
+            expect(isAndroid(capabilities)).toEqual(true)
+        })
+
+        it('should detect Android mobile app without upload', function () {
+            const capabilities = {
+                platformName: 'Android',
+                platformVersion: '4.4',
+                deviceName: 'LGVS450PP2a16334',
+                appPackage: 'com.example',
+                appActivity: 'com.example.gui.LauncherActivity',
+                noReset: true,
+                appWaitActivity: 'com.example.gui.LauncherActivity'
+            }
+            expect(isMobile(capabilities)).toEqual(true)
+            expect(isIOS(capabilities)).toEqual(false)
+            expect(isAndroid(capabilities)).toEqual(true)
+        })
     })
 })

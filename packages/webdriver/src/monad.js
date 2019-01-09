@@ -18,6 +18,9 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     delete propertiesObject.scope
 
     const prototype = Object.create(scopeType.prototype, {
+        isAndroid: { value: options.isAndroid },
+        isIOS: { value: options.isIOS },
+        isMobile: { value: options.isMobile },
         isW3C: { value: options.isW3C }
     })
     const log = logger('webdriver')

@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, isW3CSession, isChromiumSession } from './utils'
+import { getPrototype, isW3CSession, isChromiumSession, isMobile, isAndroid, isIOS } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -53,10 +53,15 @@ export default class WebDriver {
          */
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = isW3CSession(params.capabilities)
+        /**
+         * apply mobile check flags to browser scope
+         */
+        params.isAndroid = isAndroid(params.capabilities)
+        params.isIOS = isIOS(params.capabilities)
+        params.isMobile = isMobile(params.capabilities)
 
-        const isMobile = Boolean(params.capabilities.deviceName || params.capabilities.platformVersion)
         const prototype = Object.assign(
-            getPrototype(params.isW3C, isChromiumSession(params.capabilities), isMobile),
+            getPrototype(params.isW3C, isChromiumSession(params.capabilities), params.isMobile),
             proto)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)

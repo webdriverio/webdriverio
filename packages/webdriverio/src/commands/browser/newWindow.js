@@ -31,7 +31,6 @@
  */
 
 import newWindowHelper from '../../scripts/newWindow'
-import { mobileDetector } from '../../utils'
 
 export default async function newWindow (url, windowName = 'New Window', windowFeatures = '') {
     /*!
@@ -44,8 +43,7 @@ export default async function newWindow (url, windowName = 'New Window', windowF
     /*!
      * mobile check
      */
-    const { isMobile } = mobileDetector(this.capabilities)
-    if (isMobile) {
+    if (this.isMobile) {
         throw new Error('newWindow command is not supported on mobile platforms')
     }
 
