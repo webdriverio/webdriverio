@@ -68,18 +68,36 @@ describe('utils', () => {
         expect(jsonWireProtocolPrototype instanceof Object).toBe(true)
         expect(typeof jsonWireProtocolPrototype.sendKeys.value).toBe('function')
         expect(typeof jsonWireProtocolPrototype.sendCommand).toBe('undefined')
+        expect(typeof jsonWireProtocolPrototype.lock).toBe('undefined')
 
         const webdriverPrototype = getPrototype(true)
         expect(webdriverPrototype instanceof Object).toBe(true)
         expect(typeof webdriverPrototype.sendKeys).toBe('undefined')
         expect(typeof webdriverPrototype.sendCommand).toBe('undefined')
         expect(typeof webdriverPrototype.performActions.value).toBe('function')
+        expect(typeof webdriverPrototype.lock).toBe('undefined')
 
         const chromiumPrototype = getPrototype(false, true)
         expect(chromiumPrototype instanceof Object).toBe(true)
         expect(typeof chromiumPrototype.sendCommand.value).toBe('function')
         expect(typeof chromiumPrototype.getElementValue.value).toBe('function')
         expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')
+        expect(typeof chromiumPrototype.lock).toBe('undefined')
+
+        const mobilePrototype = getPrototype(true, false, true)
+        expect(mobilePrototype instanceof Object).toBe(true)
+        expect(typeof mobilePrototype.performActions.value).toBe('function')
+        expect(typeof mobilePrototype.sendKeys.value).toBe('function')
+        expect(typeof mobilePrototype.lock.value).toBe('function')
+        expect(typeof mobilePrototype.getNetworkConnection.value).toBe('function')
+
+        const mobileChromePrototype = getPrototype(true, true, true)
+        expect(mobileChromePrototype instanceof Object).toBe(true)
+        expect(typeof mobileChromePrototype.sendCommand.value).toBe('function')
+        expect(typeof mobileChromePrototype.performActions.value).toBe('function')
+        expect(typeof mobileChromePrototype.sendKeys.value).toBe('function')
+        expect(typeof mobileChromePrototype.lock.value).toBe('function')
+        expect(typeof mobileChromePrototype.getNetworkConnection.value).toBe('function')
     })
 
     it('commandCallStructure', () => {

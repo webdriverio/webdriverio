@@ -117,13 +117,29 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype (isW3C, isChrome) {
+export function getPrototype (isW3C, isChrome, isMobile) {
     const prototype = {}
     const ProtocolCommands = merge(
-        isW3C ? WebDriverProtocol : JsonWProtocol,
-        MJsonWProtocol,
-        AppiumProtocol,
-        isChrome ? ChromiumProtocol : {}
+        /**
+         * if mobile apply JSONWire and WebDriver protocol because
+         * some legacy JSONWire commands are still used in Appium
+         * (e.g. set/get geolocation)
+         */
+        isMobile
+            ? merge(JsonWProtocol, WebDriverProtocol)
+            : isW3C ? WebDriverProtocol : JsonWProtocol,
+        /**
+         * only apply mobile protocol if session is actually for mobile
+         */
+        isMobile
+            ? merge(MJsonWProtocol, AppiumProtocol)
+            : {},
+        /**
+         * only apply special Chrome commands if session is using Chrome
+         */
+        isChrome
+            ? ChromiumProtocol
+            : {}
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {

@@ -28,6 +28,19 @@ it('should use my custom command', () => {
 });
 ```
 
+__Note:__ if you register a custom command to the browser scope the command won't be accessible for elements. If you want to create custom commands for elements you need to call `addCommand` to an element instance:
+
+```js
+browser.addCommand("myCustomBrowserCommand", (customVar) => ...);
+
+const elem = $('body')
+elem.addCommand("myCustomElementCommand", function (customVar) {
+    return this.getTagName() + ' - ' + this.selector + ' - ' + customVar;
+});
+console.log(typeof browser.myCustomElementCommand); // outputs "undefined"
+console.log(elem.myCustomElementCommand('foobar')); // outputs "body - body - foobar"
+```
+
 Be careful to not overload the `browser` scope with custom commands. It is advised to rather define custom logic into page objects so they are bound to a specific page.
 
 ## Integrate 3rd party libraries

@@ -5,7 +5,7 @@ describe('waitForDisplayed', () => {
     const duration = 1000
     let browser
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         request.mockClear()
 
         browser = await remote({
@@ -38,7 +38,7 @@ describe('waitForDisplayed', () => {
         const result = await elem.waitForDisplayed(duration)
 
         expect(result).toBe(true)
-        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
     test('should call isDisplayed and return true if eventually true', async () => {
@@ -60,6 +60,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('should call isDisplayed and return false', async () => {
+        expect.assertions(1)
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
@@ -114,6 +115,7 @@ describe('waitForDisplayed', () => {
     })
 
     test('should call isDisplayed and return false with custom error', async () => {
+        expect.assertions(1)
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
