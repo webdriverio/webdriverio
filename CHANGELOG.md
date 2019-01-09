@@ -15,6 +15,28 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.7 (2019-01-09)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#3271](https://github.com/webdriverio/webdriverio/pull/3271) Fix instance prototype and enable custom commands for elements ([@Gilad-WT](https://github.com/Gilad-WT))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3268](https://github.com/webdriverio/webdriverio/pull/3268) webdriverio: utils.js - using "name" in element locator cause an InvalidSelector Error to be … ([@simonwilson1985](https://github.com/simonwilson1985))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3278](https://github.com/webdriverio/webdriverio/pull/3278) Typescript definition ([@StephenABoyd](https://github.com/StephenABoyd))
+* Other
+  * [#3281](https://github.com/webdriverio/webdriverio/pull/3281) Remove semicolon from Debugging.md ([@dhyey35](https://github.com/dhyey35))
+
+#### Committers: 4
+- Dhyey Thakore  ([@dhyey35](https://github.com/dhyey35))
+- Simon Wilson ([@simonwilson1985](https://github.com/simonwilson1985))
+- [@Gilad-WT](https://github.com/Gilad-WT)
+- [@StephenABoyd](https://github.com/StephenABoyd)
+
 ## 5.2.6 (2019-01-08)
 
 #### :nail_care: Polish
