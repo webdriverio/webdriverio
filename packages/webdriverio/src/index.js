@@ -58,6 +58,9 @@ export const multiremote = async function (params = {}) {
     const prototype = getPrototype('browser')
     const sessionParams = {
         sessionId: '',
+        isAndroid: multibrowser.instances[browserNames[0]].isAndroid,
+        isIOS: multibrowser.instances[browserNames[0]].isIOS,
+        isMobile: multibrowser.instances[browserNames[0]].isMobile,
         isW3C: multibrowser.instances[browserNames[0]].isW3C
     }
     const driver = WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
