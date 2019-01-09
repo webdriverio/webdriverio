@@ -7,6 +7,7 @@ import { SESSION_ID } from './constants'
 
 const protocols = [
     webdriver.JsonWProtocol,
+    webdriver.WebDriverProtocol,
     webdriver.MJsonWProtocol,
     webdriver.AppiumProtocol,
     webdriver.ChromiumProtocol
@@ -35,6 +36,31 @@ export default class WebDriverMock {
             let urlPath = path.join(this.path, endpoint).replace(':sessionId', SESSION_ID)
             for (const [i, param] of Object.entries(commandData.variables || [])) {
                 urlPath = urlPath.replace(`:${param.name}`, args[i])
+            }
+
+            if (method === 'POST') {
+                return this.scope[method.toLowerCase()](urlPath, (body) => {
+                    for (const param of commandData.parameters) {
+                        /**
+                         * check if parameter was set
+                         */
+                        if (!body[param.name]) {
+                            return false
+                        }
+
+                        /**
+                         * check if parameter has correct type
+                         */
+                        if (param.required && typeof body[param.name] !== param.type.toLowerCase()) {
+                            return false
+                        }
+                    }
+
+                    /**
+                     * all parameters are valid
+                     */
+                    return true
+                })
             }
 
             return this.scope[method.toLowerCase()](urlPath)

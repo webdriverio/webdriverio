@@ -21,6 +21,8 @@ export default class WebdriverMockService {
         this.command.newSession().reply(200, newSession)
         this.command.deleteSession().reply(200, deleteSession)
         this.command.getTitle().reply(200, { value: 'Mock Page Title' })
+        this.command.getUrl().reply(200, { value: 'https://mymockpage.com' })
+        this.command.getElementRect(ELEMENT_ID).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this.command.getLogTypes().reply(200, { value: [] })
     }
 
@@ -37,6 +39,7 @@ export default class WebdriverMockService {
         global.browser.addCommand('isNeverDisplayedScenario', ::this.isNeverDisplayedScenario)
         global.browser.addCommand('isEventuallyDisplayedScenario', ::this.isEventuallyDisplayedScenario)
         global.browser.addCommand('staleElementRefetchScenario', ::this.staleElementRefetchScenario)
+        global.browser.addCommand('customCommandScenario', ::this.customCommandScenario)
     }
 
     waitForElementScenario () {
@@ -86,6 +89,11 @@ export default class WebdriverMockService {
             message: 'stale element reference error'
         } })
         this.command.elementClick(ELEMENT_REFETCHED).once().reply(200, { value: null })
+    }
+
+    customCommandScenario () {
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+        this.command.findElement().once().reply(200, { value: elemResponse })
     }
 
     nockReset () {
