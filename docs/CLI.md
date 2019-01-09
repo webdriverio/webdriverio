@@ -35,7 +35,7 @@ Options:
   --key, -k             corresponding access key to the user            [string]
   --watch               watch specs for changes                        [boolean]
   --logLevel, -l        level of logging verbosity
-                            [choices: "trace", "debug", "info", "warn", "error"]
+                            [choices: "trace", "debug", "info", "warn", "error", "silent"]
   --bail                stop test runner after specific amount of tests have
                         failed                                          [number]
   --baseUrl             shorten url command calls by setting a base url [string]
