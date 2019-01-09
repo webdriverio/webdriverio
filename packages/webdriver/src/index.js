@@ -78,8 +78,11 @@ export default class WebDriver {
         logger.setLevel('webdriver', options.logLevel)
 
         options.capabilities = options.capabilities || {}
-        options.isW3C = options.isW3C || true
-        const prototype = Object.assign(getPrototype(options.isW3C), proto)
+        options.isAndroid = typeof options.isAndroid === 'boolean' ? options.isAndroid : false
+        options.isIOS = typeof options.isIOS === 'boolean' ? options.isIOS : false
+        options.isMobile = typeof options.isMobile === 'boolean' ? options.isMobile : false
+        options.isW3C = typeof options.isW3C === 'boolean' ? options.isW3C : true
+        const prototype = Object.assign(getPrototype(options.isW3C, isChromiumSession(options.capabilities), options.isMobile), proto)
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }

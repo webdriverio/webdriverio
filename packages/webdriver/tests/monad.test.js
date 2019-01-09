@@ -8,13 +8,16 @@ const sessionId = 'c5fa4320-07d5-48f5-b7c2-922d4405e17f'
 describe('monad', () => {
     it('should be able to initialize client with prototype with commands', () => {
         const modifier = jest.fn()
-        const monad = webdriverMonad({ isW3C: true }, (client) => {
+        const monad = webdriverMonad({ isAndroid: true, isIOS: false, isMobile: false, isW3C: true }, (client) => {
             modifier()
             return client
         }, prototype)
         const client = monad(sessionId)
 
         expect(client.sessionId).toBe(sessionId)
+        expect(client.isAndroid).toBe(true)
+        expect(client.isIOS).toBe(false)
+        expect(client.isMobile).toBe(false)
         expect(client.isW3C).toBe(true)
         expect(client.commandList).toHaveLength(1)
         expect(client.commandList[0]).toBe('someFunc')

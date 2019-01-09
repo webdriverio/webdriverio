@@ -45,8 +45,16 @@ test('should allow to attach to existing session', async () => {
         hostname: 'localhost',
         port: 4444,
         path: '/',
-        sessionId: 'foobar'
+        sessionId: 'foobar',
+        isIOS: true,
+        isMobile: true,
+        isW3C: false
     })
+
+    expect(client.isAndroid).toBe(false)
+    expect(client.isIOS).toBe(true)
+    expect(client.isMobile).toBe(true)
+    expect(client.isW3C).toBe(false)
 
     await client.getUrl()
     const req = request.mock.calls[0][0]
