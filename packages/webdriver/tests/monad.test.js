@@ -40,7 +40,6 @@ describe('monad', () => {
 
         client.addCommand('foo', fn)
         expect(client.foo()).toBe('bar')
-        expect(commandWrapperMock).toBeCalledWith('foo', fn)
     })
 
     it('allows to use custom command wrapper', () => {

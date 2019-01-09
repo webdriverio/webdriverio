@@ -50,7 +50,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             [ELEMENT_KEY]: genericElementId
         }
 
-        if (params.body.value === '#nonexisting') {
+        if (params.body && params.body.value === '#nonexisting') {
             value = { elementId: null }
         }
 
