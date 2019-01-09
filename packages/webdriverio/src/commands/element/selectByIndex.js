@@ -41,7 +41,7 @@ export default async function selectByIndex (index) {
     /**
     * get option elememnts using css
     */
-    const optionElements = await this.findElementsFromElement(this.elementId, 'css',  'option')
+    const optionElements = await this.findElementsFromElement(this.elementId, 'css selector',  'option')
 
     if (optionElements.length === 0) {
         throw new Error('Select element doesn\'t contain any option element')
