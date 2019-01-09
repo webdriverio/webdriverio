@@ -87,10 +87,12 @@ export function sanitizeCaps (caps) {
  * @return {Boolean}               true if multiple browsers configured
  */
 export function hasMultiremoteOptions (capabilities) {
-    return Object.keys(capabilities).length > 0 &&
-           Object.values(capabilities).every(browserConfig => {
-               return browserConfig.hasOwnProperty('capabilities')
-           })
+    return (
+        Object.keys(capabilities).length > 0 &&
+        Object.values(capabilities).every(
+            (browserConfig) => browserConfig.hasOwnProperty('capabilities')
+        )
+    )
 }
 
 /**
