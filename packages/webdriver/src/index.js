@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, isW3CSession, isChromiumSession } from './utils'
+import { getPrototype, isW3CSession, isChromiumSession, mobileDetector } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -43,18 +43,27 @@ export default class WebDriver {
         )
 
         const response = await sessionRequest.makeRequest(params)
+
         /**
          * save original set of capabilities to allow to request the same session again
          * (e.g. for reloadSession command in WebdriverIO)
          */
         params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+
         /**
          * save actual receveived session details
          */
         params.capabilities = response.value.capabilities || response.value
         params.isW3C = isW3CSession(params.capabilities)
 
-        const isMobile = Boolean(params.capabilities.deviceName || params.capabilities.platformVersion)
+        /**
+         * apply mobile flags to driver scope
+         */
+        const { isMobile, isIOS, isAndroid } = mobileDetector(params.capabilities)
+        params.isMobile = isMobile
+        params.isIOS = isIOS
+        params.isAndroid = isAndroid
+
         const prototype = Object.assign(
             getPrototype(params.isW3C, isChromiumSession(params.capabilities), isMobile),
             proto)
