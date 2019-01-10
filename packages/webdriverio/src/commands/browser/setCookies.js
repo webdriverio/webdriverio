@@ -5,17 +5,17 @@
  * being on that page.
  *
  * <example>
-    :setCookie.js
+    :setCookies.js
     it('should set a cookie for the page', () => {
         browser.url('/')
-        browser.setCookie({name: 'test', value: '123'})
+        browser.setCookies({name: 'test', value: '123'})
 
-        const cookies = browser.getCookie()
+        const cookies = browser.getCookies()
         console.log(cookies); // outputs: [{ name: 'test', value: '123', domain: 'www.example.com' }]
     });
  * </example>
  *
- * @alias browser.setCookie
+ * @alias browser.setCookies
  * @param {Object} cookie cookie object
  * @param {String} cookie.name The name of the cookie
  * @param {String} cookie.value The cookie value
