@@ -2,7 +2,6 @@ import { ELEMENT_KEY } from '../src/constants'
 import {
     findStrategy,
     getElementFromResponse,
-    mobileDetector,
     getBrowserObject,
     transformToCharString,
     parseCSS,
@@ -294,22 +293,22 @@ describe('utils', () => {
             expect(() => findStrategy('accessibility id:foobar accessibility id', true)).toThrow()
             expect(() => findStrategy('android=foo', true)).toThrow()
         })
-        
+
         it('should allow mobile selector strategies if isMobile is used', () => {
             let element = findStrategy('android=foo', undefined, true)
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe('foo')
-            
+
             element = findStrategy('ios=foo', undefined, true)
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
         })
-        
+
         it('should allow mobile selector strategies if isMobile is used even when w3c is used', () => {
             let element = findStrategy('android=foo', true, true)
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe('foo')
-            
+
             element = findStrategy('ios=foo', true, true)
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
@@ -327,63 +326,6 @@ describe('utils', () => {
 
         it('should throw otherwise', () => {
             expect(getElementFromResponse({ invalid: 'response '})).toBe(null)
-        })
-    })
-
-    describe('mobileDetector', () => {
-        it('should not detect mobile app for browserName===undefined', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({})
-            expect(isMobile).toEqual(false)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should not detect mobile app for browserName==="firefox"', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: 'firefox'})
-            expect(isMobile).toEqual(false)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should not detect mobile app for browserName==="chrome"', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: 'chrome'})
-            expect(isMobile).toEqual(false)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should detect mobile app for browserName===""', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: ''})
-            expect(isMobile).toEqual(true)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should detect Android mobile app', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({
-                platformName: 'Android',
-                platformVersion: '4.4',
-                deviceName: 'LGVS450PP2a16334',
-                app: 'foo.apk'
-            })
-            expect(isMobile).toEqual(true)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(true)
-        })
-
-        it('should detect Android mobile app without upload', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({
-                platformName: 'Android',
-                platformVersion: '4.4',
-                deviceName: 'LGVS450PP2a16334',
-                appPackage: 'com.example',
-                appActivity: 'com.example.gui.LauncherActivity',
-                noReset: true,
-                appWaitActivity: 'com.example.gui.LauncherActivity'
-            })
-            expect(isMobile).toEqual(true)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(true)
         })
     })
 
