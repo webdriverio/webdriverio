@@ -139,6 +139,12 @@ Default interval for all waitForXXX commands to check if an expected state (e.g.
 Type: `Number`<br>
 Default: `500`
 
+### services
+Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort. Unlike plugins, they don't add new commands. Instead, they hook themselves up into the test process.
+
+Type: `String[]`<br>
+Default: `[]`
+
 ### framework
 Defines the test framework to be used by the wdio testrunner.
 
