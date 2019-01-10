@@ -15,6 +15,29 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.2.8 (2019-01-10)
+
+#### :bug: Bug Fix
+* `webdriver`, `webdriverio`
+  * [#3290](https://github.com/webdriverio/webdriverio/pull/3290) Do mobile detection in webdriver package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3285](https://github.com/webdriverio/webdriverio/pull/3285) Select by index fix ([@simonwilson1985](https://github.com/simonwilson1985))
+
+#### :memo: Documentation
+* `wdio-cli`, `wdio-config`, `wdio-logger`, `webdriver`
+  * [#3286](https://github.com/webdriverio/webdriverio/pull/3286) Loglevel ([@StephenABoyd](https://github.com/StephenABoyd))
+
+#### :house: Internal
+* [#3284](https://github.com/webdriverio/webdriverio/pull/3284) package.json - Fixed Jest's testMatch pattern to also work in Windows ([@urig](https://github.com/urig))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Simon Wilson ([@simonwilson1985](https://github.com/simonwilson1985))
+- Uri Goldstein ([@urig](https://github.com/urig))
+- [@StephenABoyd](https://github.com/StephenABoyd)
+
 ## 5.2.7 (2019-01-09)
 
 #### :bug: Bug Fix
