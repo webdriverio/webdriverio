@@ -48,8 +48,7 @@
           " *   },",
           " *   \"timing\": {",
           " *     ...",
-          " *   },",
-          " *   ...",
+          " *   }",
           " * }, {,",
           " *   ...",
           " * }]",
@@ -89,9 +88,11 @@
       "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleNetworkCapabilities",
       "examples": [
         [
+          "// predefined network condition"
           "browser.throttleNetwork('offline')"
         ],
         [
+          "// custom network condition"
           "browser.throttleNetwork({",
           "  download: 1000,",
           "  upload: 500,",
@@ -104,8 +105,7 @@
         "type": "(string|object)",
         "description": "network condition to set (e.g. 'online', 'offline', 'GPRS', 'Regular 2G', 'Good 2G', 'Regular 3G', 'Good 3G', 'Regular 4G', 'DSL', 'Wifi')",
         "required": true
-      }],
-      "returns": {}
+      }]
     }
   },
   "/session/:sessionId/sauce/ondemand/intercept": {
@@ -151,8 +151,7 @@
         "type": "object",
         "description": "A rule describing the request interception.",
         "required": true
-      }],
-      "returns": {}
+      }]
     }
   }
 }
