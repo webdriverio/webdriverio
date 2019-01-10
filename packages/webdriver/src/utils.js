@@ -7,6 +7,7 @@ import MJsonWProtocol from '../protocol/mjsonwp.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
+import SauceLabsProtocol from '../protocol/saucelabs.json'
 
 const log = logger('webdriver')
 
@@ -117,7 +118,7 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile }) {
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
     const prototype = {}
     const ProtocolCommands = merge(
         /**
@@ -131,15 +132,15 @@ export function getPrototype ({ isW3C, isChrome, isMobile }) {
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile
-            ? merge(MJsonWProtocol, AppiumProtocol)
-            : {},
+        isMobile ? merge(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chrome commands if session is using Chrome
          */
-        isChrome
-            ? ChromiumProtocol
-            : {}
+        isChrome ? ChromiumProtocol : {},
+        /**
+         * only Sauce Labs specific vendor commands
+         */
+        isSauce ? SauceLabsProtocol : {}
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
@@ -254,16 +255,38 @@ export function isAndroid (caps) {
 }
 
 /**
+ * detects if session is run on Sauce with extended debugging enabled
+ * @param  {string}  hostname     hostname of session request
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
+ */
+export function isSauce (hostname, caps) {
+    return Boolean(
+        hostname &&
+        hostname.includes('saucelabs') &&
+        (
+            caps.extendedDebugging ||
+            (
+                caps['sauce:options'] &&
+                caps['sauce:options'].extendedDebugging
+            )
+        )
+    )
+}
+
+/**
  * returns information about the environment
+ * @param  {Object}  hostname      name of the host to run the session against
  * @param  {Object}  capabilities  caps of session response
  * @return {Object}                object with environment flags
  */
-export function environmentDetector (caps) {
+export function environmentDetector ({ hostname, capabilities, requestedCapabilities }) {
     return {
-        isW3C: isW3C(caps),
-        isChrome: isChrome(caps),
-        isMobile: isMobile(caps),
-        isIOS: isIOS(caps),
-        isAndroid: isAndroid(caps)
+        isW3C: isW3C(capabilities),
+        isChrome: isChrome(capabilities),
+        isMobile: isMobile(capabilities),
+        isIOS: isIOS(capabilities),
+        isAndroid: isAndroid(capabilities),
+        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
     }
 }
