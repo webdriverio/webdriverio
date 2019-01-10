@@ -4,8 +4,10 @@ describe('multiremote example', () => {
     })
 
     it('should login the browser', () => {
-        const nameInput = $('.usernameInput')
-        nameInput.addValue('Browser')
+        const browserANameInput = browserA.$('.usernameInput')
+        const browserBNameInput = browserB.$('.usernameInput')
+        browserANameInput.addValue('BrowserA')
+        browserBNameInput.addValue('BrowserB')
         browser.keys('Enter')
     })
 
