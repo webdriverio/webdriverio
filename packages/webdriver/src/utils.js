@@ -117,7 +117,7 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype (isW3C, isChrome, isMobile) {
+export function getPrototype ({ isW3C, isChrome, isMobile }) {
     const prototype = {}
     const ProtocolCommands = merge(
         /**
@@ -180,7 +180,7 @@ export function commandCallStructure (commandName, args) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if W3C (browser)
  */
-export function isW3CSession (capabilities) {
+export function isW3C (capabilities) {
     /**
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
@@ -204,10 +204,10 @@ export function isW3CSession (capabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-export function isChromiumSession (capabilities) {
+export function isChrome (caps) {
     return (
-        Boolean(capabilities.chrome) ||
-        Boolean(capabilities['goog:chromeOptions'])
+        Boolean(caps.chrome) ||
+        Boolean(caps['goog:chromeOptions'])
     )
 }
 
@@ -217,8 +217,8 @@ export function isChromiumSession (capabilities) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-export function mobileDetector (caps) {
-    let isMobile = Boolean(
+export function isMobile (caps) {
+    return Boolean(
         (typeof caps['appium-version'] !== 'undefined') ||
         (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
         (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
@@ -227,16 +227,43 @@ export function mobileDetector (caps) {
         (caps.browserName === '' ||
              (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
     )
+}
 
-    let isIOS = Boolean(
+/**
+ * check if session is run on iOS device
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run on iOS device
+ */
+export function isIOS (caps) {
+    return Boolean(
         (caps.platformName && caps.platformName.match(/iOS/i)) ||
         (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
     )
+}
 
-    let isAndroid = Boolean(
+/**
+ * check if session is run on Android device
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run on Android device
+ */
+export function isAndroid (caps) {
+    return Boolean(
         (caps.platformName && caps.platformName.match(/Android/i)) ||
         (caps.browserName && caps.browserName.match(/Android/i))
     )
+}
 
-    return { isMobile, isIOS, isAndroid }
+/**
+ * returns information about the environment
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Object}                object with environment flags
+ */
+export function environmentDetector (caps) {
+    return {
+        isW3C: isW3C(caps),
+        isChrome: isChrome(caps),
+        isMobile: isMobile(caps),
+        isIOS: isIOS(caps),
+        isAndroid: isAndroid(caps)
+    }
 }

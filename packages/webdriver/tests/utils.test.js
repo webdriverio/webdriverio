@@ -1,6 +1,6 @@
 import {
-    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure, isW3CSession,
-    isChromiumSession, mobileDetector
+    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
+    environmentDetector
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -64,34 +64,34 @@ describe('utils', () => {
     })
 
     it('getPrototype', () => {
-        const jsonWireProtocolPrototype = getPrototype()
+        const jsonWireProtocolPrototype = getPrototype({})
         expect(jsonWireProtocolPrototype instanceof Object).toBe(true)
         expect(typeof jsonWireProtocolPrototype.sendKeys.value).toBe('function')
         expect(typeof jsonWireProtocolPrototype.sendCommand).toBe('undefined')
         expect(typeof jsonWireProtocolPrototype.lock).toBe('undefined')
 
-        const webdriverPrototype = getPrototype(true)
+        const webdriverPrototype = getPrototype({ isW3C: true })
         expect(webdriverPrototype instanceof Object).toBe(true)
         expect(typeof webdriverPrototype.sendKeys).toBe('undefined')
         expect(typeof webdriverPrototype.sendCommand).toBe('undefined')
         expect(typeof webdriverPrototype.performActions.value).toBe('function')
         expect(typeof webdriverPrototype.lock).toBe('undefined')
 
-        const chromiumPrototype = getPrototype(false, true)
+        const chromiumPrototype = getPrototype({ isW3C: false, isChrome: true })
         expect(chromiumPrototype instanceof Object).toBe(true)
         expect(typeof chromiumPrototype.sendCommand.value).toBe('function')
         expect(typeof chromiumPrototype.getElementValue.value).toBe('function')
         expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')
         expect(typeof chromiumPrototype.lock).toBe('undefined')
 
-        const mobilePrototype = getPrototype(true, false, true)
+        const mobilePrototype = getPrototype({ isW3C: true, isChrome: false, isMobile: true })
         expect(mobilePrototype instanceof Object).toBe(true)
         expect(typeof mobilePrototype.performActions.value).toBe('function')
         expect(typeof mobilePrototype.sendKeys.value).toBe('function')
         expect(typeof mobilePrototype.lock.value).toBe('function')
         expect(typeof mobilePrototype.getNetworkConnection.value).toBe('function')
 
-        const mobileChromePrototype = getPrototype(true, true, true)
+        const mobileChromePrototype = getPrototype({ isW3C: true, isChrome: true, isMobile: true })
         expect(mobileChromePrototype instanceof Object).toBe(true)
         expect(typeof mobileChromePrototype.sendCommand.value).toBe('function')
         expect(typeof mobileChromePrototype.performActions.value).toBe('function')
@@ -105,49 +105,49 @@ describe('utils', () => {
             .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
     })
 
-    it('isW3CSession', () => {
-        expect(isW3CSession(appiumResponse.value.capabilities)).toBe(true)
-        expect(isW3CSession(chromedriverResponse.value.capabilities)).toBe(false)
-        expect(isW3CSession(geckodriverResponse.value.capabilities)).toBe(true)
-    })
+    describe('environmentDetector', () => {
+        it('isW3C', () => {
+            expect(environmentDetector(appiumResponse.value.capabilities).isW3C).toBe(true)
+            expect(environmentDetector(chromedriverResponse.value).isW3C).toBe(false)
+            expect(environmentDetector(geckodriverResponse.value.capabilities).isW3C).toBe(true)
+        })
 
-    it('isChromiumSession', () => {
-        expect(isChromiumSession(appiumResponse.value.capabilities)).toBe(false)
-        expect(isChromiumSession(chromedriverResponse.value)).toBe(true)
-        expect(isChromiumSession(geckodriverResponse.value.capabilities)).toBe(false)
-    })
+        it('isChrome', () => {
+            expect(environmentDetector(appiumResponse.value.capabilities).isChrome).toBe(false)
+            expect(environmentDetector(chromedriverResponse.value).isChrome).toBe(true)
+            expect(environmentDetector(geckodriverResponse.value.capabilities).isChrome).toBe(false)
+        })
 
-    describe('mobileDetector', () => {
         it('should not detect mobile app for browserName===undefined', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({})
+            const {isMobile, isIOS, isAndroid} = environmentDetector({})
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should not detect mobile app for browserName==="firefox"', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: 'firefox'})
+            const {isMobile, isIOS, isAndroid} = environmentDetector({browserName: 'firefox'})
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should not detect mobile app for browserName==="chrome"', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: 'chrome'})
+            const {isMobile, isIOS, isAndroid} = environmentDetector({browserName: 'chrome'})
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should detect mobile app for browserName===""', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: ''})
+            const {isMobile, isIOS, isAndroid} = environmentDetector({browserName: ''})
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should detect Android mobile app', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({
+            const {isMobile, isIOS, isAndroid} = environmentDetector({
                 platformName: 'Android',
                 platformVersion: '4.4',
                 deviceName: 'LGVS450PP2a16334',
@@ -159,7 +159,7 @@ describe('utils', () => {
         })
 
         it('should detect Android mobile app without upload', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({
+            const {isMobile, isIOS, isAndroid} = environmentDetector({
                 platformName: 'Android',
                 platformVersion: '4.4',
                 deviceName: 'LGVS450PP2a16334',
