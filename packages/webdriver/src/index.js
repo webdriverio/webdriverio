@@ -81,7 +81,7 @@ export default class WebDriver {
         const params = validateConfig(SESSION_DEFAULTS, options)
         logger.setLevel('webdriver', params.logLevel)
 
-        const prototype = Object.assign(getPrototype(params.isW3C), userPrototype)
+        const prototype = Object.assign(getPrototype(params), userPrototype)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(params.sessionId, commandWrapper)
     }
