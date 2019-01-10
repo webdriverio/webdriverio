@@ -87,18 +87,30 @@ describe('utils', () => {
             expect(remote).toHaveBeenCalledTimes(0)
         })
 
-        it('should run multiremote tests if flag is given', () => {
-            const capabilities = { someBrowser: { capabilities: { browserName: 'chrome' } } }
+        it('should run multiremote tests when configuration specified multiple browsers', () => {
+            const capabilities = {
+                someBrowser: {
+                    capabilities: { browserName: 'chrome' }
+                },
+                otherBrowser: {
+                    capabilities: { browserName: 'firefox' }
+                }
+            }
             initialiseInstance(
                 { foo: 'bar' },
-                capabilities,
-                true
+                capabilities
             )
             expect(attach).toHaveBeenCalledTimes(0)
             expect(multiremote).toBeCalledWith({
                 someBrowser: {
                     capabilities: {
                         browserName: 'chrome'
+                    },
+                    foo: 'bar'
+                },
+                otherBrowser: {
+                    capabilities: {
+                        browserName: 'firefox'
                     },
                     foo: 'bar'
                 }
