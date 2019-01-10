@@ -4,6 +4,10 @@ import { attach, remote, multiremote } from 'webdriverio'
 import { runHook, initialiseServices, initialiseInstance, sanitizeCaps } from '../src/utils'
 
 describe('utils', () => {
+    beforeEach(() => {
+        logMock.error.mockClear()
+    })
+
     describe('runHook', () => {
         it('should execute all hooks', async () => {
             const config = { before: [jest.fn(), jest.fn(), jest.fn()] }
@@ -11,7 +15,6 @@ describe('utils', () => {
 
             const args = [[config, 'foo', 'bar']]
             expect(config.before.map((hook) => hook.mock.calls)).toEqual([args, args, args])
-            logMock.error.mockClear()
         })
 
         it('should not fail if hooks throw', async () => {
@@ -58,6 +61,12 @@ describe('utils', () => {
             expect(typeof service.afterCommand).toBe('function')
             // not defined method
             expect(typeof service.before).toBe('undefined')
+        })
+
+        it('should ignore service with launcher only', () => {
+            const services = initialiseServices({ services: ['launcher-only'] })
+            expect(services).toHaveLength(0)
+            expect(logMock.error).toHaveBeenCalledTimes(0)
         })
     })
 
