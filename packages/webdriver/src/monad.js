@@ -17,9 +17,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     const scopeType = SCOPE_TYPES[propertiesObject.scope] || SCOPE_TYPES['browser']
     delete propertiesObject.scope
 
-    const prototype = Object.create(scopeType.prototype, {
-        isW3C: { value: options.isW3C }
-    })
+    const prototype = Object.create(scopeType.prototype)
     const log = logger('webdriver')
 
     const eventHandler = new EventEmitter()
