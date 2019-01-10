@@ -270,7 +270,7 @@
     }
   },
   "/session/:sessionId/appium/device/current_activity": {
-    "POST": {
+    "GET": {
       "command": "getCurrentActivity",
       "description": "Get the name of the current Android activity.",
       "ref": "http://appium.io/docs/en/commands/device/activity/current-activity/",
