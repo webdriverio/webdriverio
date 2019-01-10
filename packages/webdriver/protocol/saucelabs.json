@@ -88,11 +88,11 @@
       "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleNetworkCapabilities",
       "examples": [
         [
-          "// predefined network condition"
+          "// predefined network condition",
           "browser.throttleNetwork('offline')"
         ],
         [
-          "// custom network condition"
+          "// custom network condition",
           "browser.throttleNetwork({",
           "  download: 1000,",
           "  upload: 500,",
