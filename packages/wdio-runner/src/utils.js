@@ -86,7 +86,7 @@ export function sanitizeCaps (caps) {
  * @param  {Object}  capabilities  desired session capabilities
  * @return {Boolean}               true if multiple browsers configured
  */
-export function hasMultiremoteOptions (capabilities) {
+export function isMultiremoteConfig (capabilities) {
     return (
         Object.keys(capabilities).length > 0 &&
         Object.values(capabilities).every(
@@ -113,7 +113,7 @@ export async function initialiseInstance (config, capabilities) {
         })
     }
 
-    if (!hasMultiremoteOptions(capabilities)) {
+    if (!isMultiremoteConfig(capabilities)) {
         log.debug('init remote session')
         config.capabilities = sanitizeCaps(capabilities)
         return remote(config)

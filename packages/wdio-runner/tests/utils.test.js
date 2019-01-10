@@ -1,7 +1,7 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseServices, initialiseInstance, sanitizeCaps, hasMultiremoteOptions } from '../src/utils'
+import { runHook, initialiseServices, initialiseInstance, sanitizeCaps, isMultiremoteConfig } from '../src/utils'
 
 describe('utils', () => {
     beforeEach(() => {
@@ -147,7 +147,7 @@ describe('utils', () => {
         })).toEqual(validCaps)
     })
 
-    it('hasMultiremoteOptions', () => {
+    it('isMultiremoteConfig', () => {
         const capabilities = {
             browserName: 'safari'
         }
@@ -164,8 +164,8 @@ describe('utils', () => {
             }
         }
 
-        expect(hasMultiremoteOptions({})).toBe(false)
-        expect(hasMultiremoteOptions(capabilities)).toBe(false)
-        expect(hasMultiremoteOptions(multipleCapabilities)).toBe(true)
+        expect(isMultiremoteConfig({})).toBe(false)
+        expect(isMultiremoteConfig(capabilities)).toBe(false)
+        expect(isMultiremoteConfig(multipleCapabilities)).toBe(true)
     })
 })
