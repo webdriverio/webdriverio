@@ -72,11 +72,16 @@ declare namespace WebdriverIO {
         // ... element commands ...
     }
 
+    type Execute = <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => T;
+    type ExecuteAsync = (script: string | ((...arguments: any[]) => any), ...arguments: any[]) => any;
+
     interface Browser<T> {
         addCommand(
             name: string,
             func: Function
         ): any;
+        execute: Execute;
+        executeAsync: ExecuteAsync;
         options: Options;
         waitUntil(
             condition: Function,
@@ -89,8 +94,8 @@ declare namespace WebdriverIO {
 }
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;
-declare function $(selector: string): WebdriverIO.Element<void>;
-declare function $$(selector: string): WebdriverIO.Element<void>[];
+declare function $(selector: string | Function): WebdriverIO.Element<void>;
+declare function $$(selector: string | Function): WebdriverIO.Element<void>[];
 
 declare module "webdriverio" {
     export = WebdriverIO
