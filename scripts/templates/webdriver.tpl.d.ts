@@ -158,7 +158,7 @@ declare namespace WebDriver {
         changeMaxConnections?: boolean;
         profile?: string;
         pageLoadingStrategy?: string;
-        'moz:firefoxOptions': FirefoxOptions;
+        'moz:firefoxOptions'?: FirefoxOptions;
 
         // IE specific
         'ie.forceCreateProcessApi'?: boolean;
