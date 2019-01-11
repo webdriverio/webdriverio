@@ -21,10 +21,10 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
         for (const [, description] of Object.entries(methods)) {
             const { command, parameters = [], variables = [], returns } = description
             const vars = variables
-                .filter((v) => v.name != "sessionId" && v.name != "elementId")
+                .filter((v) => v.name != 'sessionId' && v.name != 'elementId')
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p) => `${p.name}${p.required === false ? '?' : ''}: ${p.type.toLowerCase()}`)
-            const paramsAndVars = params.concat(vars);
+            const paramsAndVars = params.concat(vars)
             let returnValue = returns ? returns.type.toLowerCase() : 'undefined'
             returnValue = returnValue === '*' ? 'any' : returnValue
             lines.push(`        ${command}(${paramsAndVars.join(', ')}): ${returnValue};`)
