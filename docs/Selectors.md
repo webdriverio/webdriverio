@@ -149,7 +149,7 @@ You can query the sibling element of `#elem` as follows:
 
 ```js
 const elem = $('#elem') // or $(() => document.getElementById('elem'))
-elem.$(() => this.nextSibling.nextSibling) // (first sibling is #text with value ("↵"))
+elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is #text with value ("↵"))
 ```
 
 ## Mobile Selectors

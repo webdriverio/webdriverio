@@ -29,6 +29,10 @@ const changeType = (text) => {
         text = 'Element<void>'
         break
     }
+    case 'Element[]': {
+        text = 'Element<void>[]'
+        break
+    }
     default: {
         text = text.toLowerCase()
     }
@@ -55,8 +59,8 @@ const gatherCommands = (commandPath, commandFile) => {
     const commandContents = fs.readFileSync(commandPath).toString()
     const commandDocs = dox.parseComments(commandContents)
     const commandTags = commandDocs[0].tags
-    const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
-    
+    const commandName = commandFile.substr(0, commandFile.indexOf('.js')).replace('$', '$$$')
+
     const allParameters = []
     let returnType = 'undefined'
 
@@ -72,7 +76,11 @@ const gatherCommands = (commandPath, commandFile) => {
             allTypeLines.push(`${commandName}(${params.length > 0 ? '\n            ' : ''}${params.join(',\n            ')}${params.length > 0 ? '\n        ' : ''}): ${returns}`)
         })
     } else {
-        for (const {type, name, optional, types} of commandTags) {
+        for (const {type, name, optional, types, string} of commandTags) {
+            // dox parse {*} as string instead of types
+            if (types && types.length === 0 && string.includes('{*}')) {
+                types.push('*')
+            }
             if (type === 'param') {
                 let commandTypes = getTypes(types, true)
     
@@ -87,7 +95,7 @@ const gatherCommands = (commandPath, commandFile) => {
             }
         }
     
-        if (commandName !== '$' && commandName !== '$$' && commandName !== 'waitUntil') {
+        if (!['execute', 'executeAsync', 'waitUntil'].includes(commandName)) {
             allTypeLines.push(`${commandName}(${allParameters.length > 0 ? '\n            ' : ''}${allParameters.join(',\n            ')}${allParameters.length > 0 ? '\n        ' : ''}): ${returnType}`)
         }
     }
