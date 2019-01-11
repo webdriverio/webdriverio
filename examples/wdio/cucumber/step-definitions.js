@@ -1,30 +1,17 @@
-/**
- * to run these tests you need install Cucumber.js on your machine
- * take a look at https://github.com/cucumber/cucumber-js for more informations
- *
- * first, install Cucumber.js via NPM
- * $ npm install -g cucumber
- *
- * then go into the cucumber directory and start the tests with
- * $ cucumber.js
- */
 
-var assert = require('assert')
+const Cucumber = require('cucumber')
+const assert = require('assert')
 
-module.exports = () => {
-    this.Given(/^I go on the website "([^"]*)"$/, (url) => {
-        browser.url(url)
-    })
+Cucumber.Given(/^I go to the website "(.*)"$/, async (url) => {
+    await browser.url(url)
+})
 
-    this.Then(/^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/, (selector, width, height) => {
-        var elemSize = browser.getElementSize(selector)
-        assert.equal(elemSize.width, width, 'width of element is ' + elemSize.width + ' but should be ' + width)
-        assert.equal(elemSize.height, height, 'height of element is ' + elemSize.height + ' but should be ' + height)
-    })
+Cucumber.Then(/^should the element "([^"]*)" have text "(.*)"$/, async (selector, expectedText) => {
+    const text = await $(selector).then(el => el.getText())
+    assert.equal(text, expectedText)
+})
 
-    this.Then(/^should the title of the page be "([^"]*)"$/, (expectedTitle) => {
-        var title = browser.getTitle()
-        assert.equal(title, expectedTitle, ' title is "'+ title + '" but should be "'+ expectedTitle)
-    })
-
-}
+Cucumber.Then(/^should the title of the page be "([^"]*)"$/, async (expectedTitle) => {
+    const title = await browser.getTitle()
+    assert.equal(title, expectedTitle, ' title is "'+ title + '" but should be "'+ expectedTitle)
+})

@@ -1,3 +1,5 @@
+const path = require('path')
+
 exports.config = {
     /**
      * server configurations
@@ -9,25 +11,27 @@ exports.config = {
      * specify test files
      */
     specs: [
-        './features/*.feature'
+        path.resolve(__dirname, './features/*.feature'),
     ],
-
+    maxInstances: 5,
     /**
      * capabilities
      */
     capabilities: [{
-        browserName: 'chrome'
+        browserName: 'chrome',
+        maxInstances: 1
     }],
 
     /**
      * test configurations
      */
-    logLevel: 'error',
+    logLevel: 'debug',
+    outputDir: path.resolve(__dirname, './logs'),
     framework: 'cucumber',
 
     reporters: ['dot'],
-
     cucumberOpts: {
-        require: ['./step-definitions.js']
+        require: [path.resolve(__dirname, './step-definitions.js')],
+        ignoreUndefinedDefinitions: false
     }
 }
