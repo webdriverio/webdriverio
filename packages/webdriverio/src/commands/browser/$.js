@@ -22,10 +22,21 @@
         const text = $('#menu');
         console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
+
+    it('should get text a menu link - JS Function', () => {
+        const text = $(function() { // Arrow function is not allowed here.
+            // this is Window https://developer.mozilla.org/en-US/docs/Web/API/Window
+            // TypeScript users may do something like this
+            // return (this as Window).document.querySelector('#menu')
+            return this.document.querySelector('#menu'); // Element
+        });
+        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+    });
  * </example>
  *
  * @alias $
- * @param {String} selector  selector to fetch a certain element
+ * @param {String|Function} selector  selector or JS Function to fetch a certain element
+ * @return {Element}
  * @type utility
  *
  */
