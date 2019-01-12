@@ -5,10 +5,73 @@ import WDIORunner from '../src'
 jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
 
+jest.mock('../src/utils', () => ({
+    initialiseInstance: jest.fn().mockImplementation((config, capabilities) => {
+        if (!Object.keys(capabilities).length > 0) {
+            throw new Error('failure')
+        }
+        return {
+            $: jest.fn(),
+            $$: jest.fn(),
+            on: jest.fn(),
+            sessionId: '123'
+        }
+    }),
+    runHook: jest.fn()
+}))
+
 describe('wdio-runner', () => {
+    describe('_initSession', () => {
+        let runner
+
+        beforeEach(() => {
+            runner = new WDIORunner()
+        })
+
+        it('should not initialise session on failure', async () => {
+            runner.emit = jest.fn()
+            const browser = await runner._initSession({}, {})
+            expect(browser).toBe(null)
+            expect(runner.emit).toBeCalledTimes(1)
+            expect(runner.emit).toHaveBeenCalledWith('error', new Error('failure'))
+            expect(global.browser).toBeUndefined()
+            expect(global.driver).toBeUndefined()
+            expect(global.$).toBeUndefined()
+            expect(global.$$).toBeUndefined()
+        })
+
+        it('should initialise session', async () => {
+            const config = { foo: 'bar' }
+            const browser = await runner._initSession(config, {
+                browserName: 'chrome'
+            })
+            expect(browser.sessionId).toBe('123')
+            expect(global.browser).toBe(browser)
+            expect(global.driver).toBe(browser)
+            global.$('element')
+            expect(browser.$).toBeCalledTimes(1)
+            expect(browser.$).toHaveBeenCalledWith('element')
+            global.$$('elements')
+            expect(browser.$$).toBeCalledTimes(1)
+            expect(browser.$$).toHaveBeenCalledWith('elements')
+        })
+
+        afterEach(() => {
+            delete global.browser
+            delete global.driver
+            delete global.$
+            delete global.$$
+        })
+    })
+
     describe('_fetchDriverLogs', () => {
+        let runner
+
+        beforeEach(() => {
+            runner = new WDIORunner()
+        })
+
         it('not do anything if driver does not support log commands', async () => {
-            const runner = new WDIORunner()
             global.browser = { sessionId: '123' }
 
             const result = await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
@@ -16,7 +79,6 @@ describe('wdio-runner', () => {
         })
 
         it('should fetch logs', async () => {
-            const runner = new WDIORunner()
             runner.cid = '0-1'
 
             global.browser = {
@@ -32,7 +94,6 @@ describe('wdio-runner', () => {
         })
 
         it('should not write to file if no logs exist', async () => {
-            const runner = new WDIORunner()
             runner.cid = '0-1'
 
             global.browser = {
@@ -51,37 +112,32 @@ describe('wdio-runner', () => {
     })
 
     describe('endSession', () => {
-        it ('should work normally when called after framework run', async () => {
-            const hook = jest.fn()
-            const runner = new WDIORunner()
+        let runner
+
+        beforeEach(() => {
+            runner = new WDIORunner()
             runner._shutdown = jest.fn()
+        })
+
+        it('should do nothing when triggered by run method without session', async () => {
+            await runner.endSession()
+            expect(runner._shutdown).toBeCalledTimes(0)
+        })
+
+        it ('should work normally when called after framework run', async () => {
             global.browser = {
                 deleteSession: jest.fn(),
-                sessionId: '123',
-                config: { afterSession: [hook] }
+                sessionId: '123'
             }
             await runner.endSession()
-            expect(hook).toBeCalledTimes(1)
             expect(global.browser.deleteSession).toBeCalledTimes(1)
             expect(!global.browser.sessionId).toBe(true)
             expect(runner._shutdown).toBeCalledTimes(0)
         })
 
-        it('should do nothing when triggered by run method without session', async () => {
-            const hook = jest.fn()
-            const runner = new WDIORunner()
-            runner._shutdown = jest.fn()
-            await runner.endSession()
-            expect(hook).toBeCalledTimes(0)
-        })
-
         it('should wait for session to be created until shutting down', async () => {
-            const hook = jest.fn()
-            const runner = new WDIORunner()
-            runner._shutdown = jest.fn()
             global.browser = {
-                deleteSession: jest.fn(),
-                config: { afterSession: [hook] }
+                deleteSession: jest.fn()
             }
             setTimeout(() => {
                 global.browser.sessionId = 123
@@ -90,11 +146,15 @@ describe('wdio-runner', () => {
             const start = Date.now()
             await runner.endSession(true)
             const end = Date.now()
-            expect(hook).toBeCalledTimes(1)
+
             expect(global.browser.deleteSession).toBeCalledTimes(1)
             expect(!global.browser.sessionId).toBe(true)
             expect(runner._shutdown).toBeCalledTimes(1)
             expect(end - start).toBeGreaterThanOrEqual(200)
+        })
+
+        afterEach(() => {
+            delete global.browser
         })
     })
 })
