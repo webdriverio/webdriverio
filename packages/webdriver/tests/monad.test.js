@@ -27,13 +27,13 @@ describe('monad', () => {
 
     it('should allow to set element scope name', () => {
         prototype.scope = 'element'
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const client = monad(sessionId)
         expect(client.constructor.name).toBe('Element')
     })
 
     it('should allow to extend base prototype', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
         const client = monad(sessionId, commandWrapperMock)
         const fn = () => 'bar'
@@ -55,7 +55,7 @@ describe('monad', () => {
 
 
     it('allows to use custom command wrapper', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const client = monad(sessionId, (commandName, commandFn) => {
             return (...args) => {
                 return `${commandName}(${args.join(', ')}) = ${commandFn(...args)}`
@@ -65,8 +65,30 @@ describe('monad', () => {
     })
 
     it('should allow empty prototype object', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client)
+        const monad = webdriverMonad({}, (client) => client)
         const client = monad(sessionId)
         expect(client.commandList).toHaveLength(0)
+    })
+
+    it('should respect specified environment flags', () => {
+        const monad = webdriverMonad({ isW3C: true, isMobile: true, isAndroid: true, isIOS: true, isChrome: true }, (client) => client, prototype)
+        const client = monad(sessionId)
+
+        expect(client.isW3C).toBe(true)
+        expect(client.isMobile).toBe(true)
+        expect(client.isAndroid).toBe(true)
+        expect(client.isIOS).toBe(true)
+        expect(client.isChrome).toBe(true)
+    })
+
+    it('should have default environment flags', () => {
+        const monad = webdriverMonad({}, (client) => client, prototype)
+        const client = monad(sessionId)
+
+        expect(client.isW3C).toBe(false)
+        expect(client.isMobile).toBe(false)
+        expect(client.isAndroid).toBe(false)
+        expect(client.isIOS).toBe(false)
+        expect(client.isChrome).toBe(false)
     })
 })

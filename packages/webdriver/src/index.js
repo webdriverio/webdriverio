@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-import merge from 'lodash.merge'
 import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
@@ -52,25 +51,14 @@ export default class WebDriver {
         params.requestedCapabilities = { w3cCaps, jsonwpCaps }
 
         /**
-         * save actual receveived session details
+         * save actual received session details
          */
         params.capabilities = response.value.capabilities || response.value
 
-        /**
-         * apply mobile flags to driver scope
-         */
-        const { isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce } = environmentDetector(params)
-        const environmentFlags = {
-            isW3C: { value: isW3C },
-            isMobile: { value: isMobile },
-            isIOS: { value: isIOS },
-            isAndroid: { value: isAndroid },
-            isChrome: { value: isChrome }
-        }
 
-        const protocolCommands = getPrototype({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce })
-        const prototype = merge(protocolCommands, environmentFlags, userPrototype)
-        const monad = webdriverMonad(params, modifier, prototype)
+        const environment = environmentDetector(params)
+        const prototype = Object.assign(getPrototype(environment), userPrototype)
+        const monad = webdriverMonad(Object.assign(params, environment), modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
 
