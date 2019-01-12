@@ -78,7 +78,6 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
      */
     unit.lift = function (name, func, proto) {
         (proto || prototype)[name] = function next (...args) {
-            const client = unit(this.sessionId)
             log.info('COMMAND', commandCallStructure(name, args))
 
             /**
@@ -89,7 +88,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 writable: false,
             })
 
-            const result = func.apply(client, args)
+            const result = func.apply(this, args)
 
             /**
              * always transform result into promise as we don't know whether or not
