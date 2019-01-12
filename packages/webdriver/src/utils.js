@@ -7,6 +7,7 @@ import MJsonWProtocol from '../protocol/mjsonwp.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
+import SauceLabsProtocol from '../protocol/saucelabs.json'
 
 const log = logger('webdriver')
 
@@ -117,7 +118,7 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype (isW3C, isChrome, isMobile) {
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
     const prototype = {}
     const ProtocolCommands = merge(
         /**
@@ -131,15 +132,15 @@ export function getPrototype (isW3C, isChrome, isMobile) {
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile
-            ? merge(MJsonWProtocol, AppiumProtocol)
-            : {},
+        isMobile ? merge(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chrome commands if session is using Chrome
          */
-        isChrome
-            ? ChromiumProtocol
-            : {}
+        isChrome ? ChromiumProtocol : {},
+        /**
+         * only Sauce Labs specific vendor commands
+         */
+        isSauce ? SauceLabsProtocol : {}
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
@@ -180,7 +181,7 @@ export function commandCallStructure (commandName, args) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if W3C (browser)
  */
-export function isW3CSession (capabilities) {
+export function isW3C (capabilities) {
     /**
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
@@ -204,9 +205,88 @@ export function isW3CSession (capabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-export function isChromiumSession (capabilities) {
+export function isChrome (caps) {
     return (
-        Boolean(capabilities.chrome) ||
-        Boolean(capabilities['goog:chromeOptions'])
+        Boolean(caps.chrome) ||
+        Boolean(caps['goog:chromeOptions'])
     )
+}
+
+/**
+ * check if current platform is mobile device
+ *
+ * @param  {Object}  caps  capabilities
+ * @return {Boolean}       true if platform is mobile device
+ */
+export function isMobile (caps) {
+    return Boolean(
+        (typeof caps['appium-version'] !== 'undefined') ||
+        (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
+        (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
+        (typeof caps.deviceName !== 'undefined') ||
+        // Check browserName for specific values
+        (caps.browserName === '' ||
+             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
+    )
+}
+
+/**
+ * check if session is run on iOS device
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run on iOS device
+ */
+export function isIOS (caps) {
+    return Boolean(
+        (caps.platformName && caps.platformName.match(/iOS/i)) ||
+        (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
+    )
+}
+
+/**
+ * check if session is run on Android device
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run on Android device
+ */
+export function isAndroid (caps) {
+    return Boolean(
+        (caps.platformName && caps.platformName.match(/Android/i)) ||
+        (caps.browserName && caps.browserName.match(/Android/i))
+    )
+}
+
+/**
+ * detects if session is run on Sauce with extended debugging enabled
+ * @param  {string}  hostname     hostname of session request
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
+ */
+export function isSauce (hostname, caps) {
+    return Boolean(
+        hostname &&
+        hostname.includes('saucelabs') &&
+        (
+            caps.extendedDebugging ||
+            (
+                caps['sauce:options'] &&
+                caps['sauce:options'].extendedDebugging
+            )
+        )
+    )
+}
+
+/**
+ * returns information about the environment
+ * @param  {Object}  hostname      name of the host to run the session against
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Object}                object with environment flags
+ */
+export function environmentDetector ({ hostname, capabilities, requestedCapabilities }) {
+    return {
+        isW3C: isW3C(capabilities),
+        isChrome: isChrome(capabilities),
+        isMobile: isMobile(capabilities),
+        isIOS: isIOS(capabilities),
+        isAndroid: isAndroid(capabilities),
+        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
+    }
 }

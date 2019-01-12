@@ -47,6 +47,14 @@ export function initialiseServices (config, caps) {
         log.debug(`initialise wdio service "${serviceName}"`)
         try {
             const Service = initialisePlugin(serviceName, 'service')
+
+            /**
+             * service only contains a launcher
+             */
+            if (!Service) {
+                continue
+            }
+
             initialisedServices.push(new Service(config, caps))
         } catch(e) {
             log.error(e)

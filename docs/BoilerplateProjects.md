@@ -117,6 +117,18 @@ This directory contains the WebdriverIO page object example written using TypeSc
     - examples of Page Object Model implementation
     - Intellisense
 
+## [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
+
+This project creates a powerful boilerplate for UI Automation Testing with WebdriverIO, TypeScript, Mocha, Chai and Allure report.
+
+- Framework: WebdriverIO (v5x), TypeScript(v3x), @Types/Mocha (v5x), Chai (v5x), @Wdio/Allure (v5x)
+- Features:
+    - TypeScript Page Object Models
+    - TypesScript Models
+    - Code Prettier
+    - HTML report with Allure
+    - Single test case for development purpose
+
 ## [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
 
 Boilerplate repo for quick set up of WebdriverIO test scripts with TravisCI, Sauce Labs and Visual Regression Testing

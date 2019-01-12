@@ -65,7 +65,7 @@ Level of logging verbosity.
 
 Type: `String`<br>
 Default: `info`<br>
-Options: `trace` | `debug` | `info` | `warn` | `error`
+Options: `trace` | `debug` | `info` | `warn` | `error` | `silent`
 
 ### logOutput
 Pipe WebdriverIO logs into a file. You can either define a directory, and WebdriverIO generates a filename for the log file or you can pass in a writeable stream, and everything gets redirected to that.
@@ -138,6 +138,12 @@ Default interval for all waitForXXX commands to check if an expected state (e.g.
 
 Type: `Number`<br>
 Default: `500`
+
+### services
+Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort. Unlike plugins, they don't add new commands. Instead, they hook themselves up into the test process.
+
+Type: `String[]`<br>
+Default: `[]`
 
 ### framework
 Defines the test framework to be used by the wdio testrunner.

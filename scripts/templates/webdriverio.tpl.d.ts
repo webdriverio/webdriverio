@@ -66,6 +66,7 @@ declare namespace WebdriverIO {
         mochaOpts?: object,
         jasmineNodeOpts?: object,
         reporters?: string[] | object[],
+        services?: string[],
     }
 
     interface Element<T> {

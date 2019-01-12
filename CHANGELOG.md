@@ -15,6 +15,51 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.3.0 (2019-01-11)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3299](https://github.com/webdriverio/webdriverio/pull/3299) Vendor specific protocol commands for Sauce Labs ([@christian-bromann](https://github.com/christian-bromann))
+  * [#3296](https://github.com/webdriverio/webdriverio/pull/3296) Fix HTTP method of getCurrentActivity ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#3303](https://github.com/webdriverio/webdriverio/pull/3303) Don't log error if service only contains a launcher ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3292](https://github.com/webdriverio/webdriverio/pull/3292) webdriverio: TypeScript defintions of $ - Closes [#3282](https://github.com/webdriverio/webdriverio/issues/3282) ([@mgrybyk](https://github.com/mgrybyk))
+* Other
+  * [#3302](https://github.com/webdriverio/webdriverio/pull/3302) Improve typings ([@ablok](https://github.com/ablok))
+
+#### Committers: 3
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## 5.2.8 (2019-01-10)
+
+#### :bug: Bug Fix
+* `webdriver`, `webdriverio`
+  * [#3290](https://github.com/webdriverio/webdriverio/pull/3290) Do mobile detection in webdriver package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3285](https://github.com/webdriverio/webdriverio/pull/3285) Select by index fix ([@simonwilson1985](https://github.com/simonwilson1985))
+
+#### :memo: Documentation
+* `wdio-cli`, `wdio-config`, `wdio-logger`, `webdriver`
+  * [#3286](https://github.com/webdriverio/webdriverio/pull/3286) Loglevel ([@StephenABoyd](https://github.com/StephenABoyd))
+
+#### :house: Internal
+* [#3284](https://github.com/webdriverio/webdriverio/pull/3284) package.json - Fixed Jest's testMatch pattern to also work in Windows ([@urig](https://github.com/urig))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Simon Wilson ([@simonwilson1985](https://github.com/simonwilson1985))
+- Uri Goldstein ([@urig](https://github.com/urig))
+- [@StephenABoyd](https://github.com/StephenABoyd)
+
 ## 5.2.7 (2019-01-09)
 
 #### :bug: Bug Fix
