@@ -1,5 +1,5 @@
 import zip from 'lodash.zip'
-import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
+import { webdriverMonad } from 'webdriver'
 import { wrapCommand } from '@wdio/config'
 
 import { multiremoteHandler } from './middlewares'
@@ -66,9 +66,9 @@ export default class MultiRemote {
          * we can't handle multi browser with different protocol support, therefor check only the
          * first registered browser and handle it similar to other browser
          */
-        const isW3C = instances[Object.keys(instances)[0]].isW3C
+        const protocolCommands = instances[Object.keys(instances)[0]].__propertiesObject__
 
-        const prototype = Object.assign(getWebdriverPrototype(isW3C), getPrototype('element'), { scope: 'element' })
+        const prototype = Object.assign(protocolCommands, getPrototype('element'), { scope: 'element' })
         const element = webdriverMonad({}, (client) => {
             /**
              * attach instances to wrapper client
