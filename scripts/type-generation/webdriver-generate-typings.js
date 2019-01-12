@@ -24,10 +24,10 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 .filter((v) => v.name != 'sessionId' && v.name != 'elementId')
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p) => `${p.name}${p.required === false ? '?' : ''}: ${p.type.toLowerCase()}`)
-            const paramsAndVars = params.concat(vars)
+            const varsAndParams = vars.concat(params)
             let returnValue = returns ? returns.type.toLowerCase() : 'undefined'
             returnValue = returnValue === '*' ? 'any' : returnValue
-            lines.push(`        ${command}(${paramsAndVars.join(', ')}): ${returnValue};`)
+            lines.push(`        ${command}(${varsAndParams.join(', ')}): ${returnValue};`)
         }
     }
 
