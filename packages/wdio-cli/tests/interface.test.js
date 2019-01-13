@@ -37,6 +37,36 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.failed).toBe(1)
     })
 
+    it('should mark jobs as retried when failing', () => {
+        wdioClInterface.updateView = jest.fn()
+        wdioClInterface.emit('job:start', { cid: '0-0' })
+        wdioClInterface.emit('job:start', { cid: '0-1' })
+        expect(wdioClInterface.result.finished).toBe(0)
+        expect(wdioClInterface.result.passed).toBe(0)
+        expect(wdioClInterface.result.retries).toBe(0)
+        expect(wdioClInterface.result.failed).toBe(0)
+        wdioClInterface.emit('job:end', { cid: '0-0', passed: false, retries: 1 })
+        expect(wdioClInterface.result.finished).toBe(0)
+        expect(wdioClInterface.result.passed).toBe(0)
+        expect(wdioClInterface.result.retries).toBe(1)
+        expect(wdioClInterface.result.failed).toBe(0)
+        wdioClInterface.emit('job:end', { cid: '0-0', passed: true, retries: 0 })
+        expect(wdioClInterface.result.finished).toBe(1)
+        expect(wdioClInterface.result.passed).toBe(1)
+        expect(wdioClInterface.result.retries).toBe(1)
+        expect(wdioClInterface.result.failed).toBe(0)
+        wdioClInterface.emit('job:end', { cid: '0-1', passed: false, retries: 1 })
+        expect(wdioClInterface.result.finished).toBe(1)
+        expect(wdioClInterface.result.passed).toBe(1)
+        expect(wdioClInterface.result.retries).toBe(2)
+        expect(wdioClInterface.result.failed).toBe(0)
+        wdioClInterface.emit('job:end', { cid: '0-1', passed: false, retries: 0 })
+        expect(wdioClInterface.result.finished).toBe(2)
+        expect(wdioClInterface.result.passed).toBe(1)
+        expect(wdioClInterface.result.retries).toBe(2)
+        expect(wdioClInterface.result.failed).toBe(1)
+    })
+
     it('should allow to store reporter messages', () => {
         wdioClInterface.onMessage({
             origin: 'reporter',
