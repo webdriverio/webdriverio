@@ -313,7 +313,8 @@ RunnerStats {
      timeouts: { implicit: 0, pageLoad: 300000, script: 30000 } },
   sanitizedCapabilities: 'firefox.59_0.darwin',
   config: [Object],
-  specs: [ '/path/to/project/test/my.test.js' ] }
+  specs: [ '/path/to/project/test/my.test.js' ] },
+  retry: 0
 ```
 
 ##### onRunnerEnd
@@ -330,6 +331,7 @@ RunnerStats {
   config: [Object],
   specs: [ '/path/to/project/test/my.test.js' ],
   failures: 1,
+  retries: 1,
   end: '2018-02-09T14:30:21.417Z' } }
 ```
 
