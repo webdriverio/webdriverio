@@ -152,7 +152,7 @@ __Q: Level of logging verbosity:__<br>
 A: _trace_<br>
 <br>
 __Q: What is the base url?__<br>
-A: _http://localhost_ (just press enter)<br>
+A: _http://_ (just press enter)<br>
 
 That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. As we're using Geckodriver, we need to override the default path (which uses the Selenium's default of `/wd/hub`). Then, we'll be ready to create your first spec file (test file).
 
