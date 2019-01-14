@@ -19,9 +19,8 @@ export function getLauncher (config) {
         /**
          * allow custom services
          */
-        if (typeof serviceName === 'object') {
-            const { onPrepare, onComplete } = serviceName
-            launchServices.push({ onPrepare, onComplete })
+        if (typeof serviceName === 'object' && (typeof serviceName.onPrepare === 'function' || typeof serviceName.onComplete === 'function')) {
+            launchServices.push(serviceName)
             continue
         }
 
@@ -44,8 +43,7 @@ export function getLauncher (config) {
         }
 
         if (launcher && (typeof launcher.onPrepare === 'function' || typeof launcher.onComplete === 'function')) {
-            const { onPrepare, onComplete } = launcher
-            launchServices.push({ onPrepare, onComplete })
+            launchServices.push(launcher)
         }
     }
 
