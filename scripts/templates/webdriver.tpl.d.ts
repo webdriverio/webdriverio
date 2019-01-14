@@ -211,7 +211,7 @@ declare namespace WebDriver {
         queryParams: {
             [name: string]: string;
         },
-        capabilities: DesiredCapabilities;
+        capabilities: DesiredCapabilities|DesiredCapabilities[];
         logLevel: WebDriverLogTypes;
         logOutput: string | NodeJS.WritableStream
         connectionRetryTimeout?: number;
