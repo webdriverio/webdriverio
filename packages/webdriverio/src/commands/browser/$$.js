@@ -42,6 +42,7 @@
  */
 import { webdriverMonad } from 'webdriver'
 import { wrapCommand } from '@wdio/config'
+import merge from 'lodash.merge'
 
 import { findElements, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
@@ -49,7 +50,7 @@ import { ELEMENT_KEY } from '../../constants'
 
 export default async function $$ (selector) {
     const res = await findElements.call(this, selector)
-    const prototype = Object.assign({}, this.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
+    const prototype = merge({}, this.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
 
     const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
