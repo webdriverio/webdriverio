@@ -43,14 +43,16 @@
  */
 import { webdriverMonad } from 'webdriver'
 import { wrapCommand } from '@wdio/config'
+import merge from 'lodash.merge'
 
-import { findElement, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { findElement, getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
     const res = await findElement.call(this, selector)
-    const prototype = Object.assign({}, this.parent.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
+    const browser = getBrowserObject(this)
+    const prototype = merge({}, browser.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
 
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)
@@ -83,7 +85,7 @@ export default async function $ (selector) {
 
     const origAddCommand = ::elementInstance.addCommand
     elementInstance.addCommand = (name, fn) => {
-        this.parent.__propertiesObject__[name] = { value: fn }
+        browser.__propertiesObject__[name] = { value: fn }
         origAddCommand(name, fn)
     }
     return elementInstance

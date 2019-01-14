@@ -15,6 +15,15 @@ browser.addCommand("getUrlAndTitle", (customVar) => {
 });
 ```
 
+Additionally, you can extend the element instance with your own set of commands, by passing 'true' as the final argument.
+
+```js
+browser.addCommand("waitAndClick", function () => {
+    this.waitForDisplayed();
+    this.click();
+}, true);
+```
+
 Custom commands give you the opportunity to bundle a specific sequence of commands that are used frequently in a handy single command call. You can define custom commands at any point in your test suite, just make sure that the command is defined before you first use it (the before hook in your wdio.conf.js might be a good point to create them). Once defined you can use them as follows:
 
 ```js
@@ -28,17 +37,23 @@ it('should use my custom command', () => {
 });
 ```
 
-__Note:__ if you register a custom command to the browser scope the command won't be accessible for elements. If you want to create custom commands for elements you need to call `addCommand` to an element instance:
+__Note:__ if you register a custom command to the browser scope the command won't be accessible for elements. Likewise, if you register a command to the element scope, it won't be accessible at the browser scope:
 
 ```js
-browser.addCommand("myCustomBrowserCommand", (customVar) => ...);
-
+browser.addCommand("myCustomBrowserCommand", function () { return 1});
 const elem = $('body')
-elem.addCommand("myCustomElementCommand", function (customVar) {
-    return this.getTagName() + ' - ' + this.selector + ' - ' + customVar;
-});
+console.log(typeof browser.myCustomBrowserCommand); // outputs "function"
+console.log(typeof elem.myCustomBrowserCommand()); // outputs "undefined"
+
+browser.addCommand("myCustomElementCommand", function () { return 1 }, true);
+const elem2 = $('body')
 console.log(typeof browser.myCustomElementCommand); // outputs "undefined"
-console.log(elem.myCustomElementCommand('foobar')); // outputs "body - body - foobar"
+console.log(elem2.myCustomElementCommand('foobar')); // outputs "function"
+
+const elem3 = $('body')
+elem3.addCommand("myCustomElementCommand2", function () { return 1})
+console.log(typeof browser.myCustomElementCommand); // outputs "undefined"
+console.log(elem3.myCustomElementCommand('foobar')); // outputs "function"
 ```
 
 Be careful to not overload the `browser` scope with custom commands. It is advised to rather define custom logic into page objects so they are bound to a specific page.

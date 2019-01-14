@@ -63,8 +63,12 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func, proto) {
-            unit.lift(name, func, proto)
+        client.addCommand = function (name, func, attachToElement = false, proto) {
+            if (attachToElement) {
+                this.__propertiesObject__[name] = { value: func }
+            } else {
+                unit.lift(name, func, proto)
+            }
         }
 
         return client
@@ -77,6 +81,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
      * @param  {Object}   proto  prototype to add function to (optional)
      */
     unit.lift = function (name, func, proto) {
+
         (proto || prototype)[name] = function next (...args) {
             log.info('COMMAND', commandCallStructure(name, args))
 
