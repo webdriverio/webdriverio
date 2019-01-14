@@ -45,7 +45,7 @@ Default: `null`
 Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support WebDriver you need to apply the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfuly run a session. Also a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 that helps you to create this object by clicking together your desired capabilities.
 
-Type: `Object`<br>
+Type: `Object`|`Object[]`<br>
 Default: `{ browserName: 'firefox' }`<br>
 
 **Example:**
