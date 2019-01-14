@@ -222,7 +222,6 @@ declare namespace WebDriver {
     }
 
     interface Hooks {
-        onError?(error: Error): void;
 
         onPrepare?(
             config: Options,

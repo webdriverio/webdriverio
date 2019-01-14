@@ -197,7 +197,6 @@ export const WDIO_DEFAULTS = {
     onComplete: {
         type: 'function'
     },
-    onError: HOOK_DEFINITION,
     onReload: HOOK_DEFINITION,
 
     /**

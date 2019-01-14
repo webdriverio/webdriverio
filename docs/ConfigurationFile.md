@@ -309,12 +309,6 @@ exports.config = {
     onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
-    * Gets executed when an error happens, good place to take a screenshot.
-    * @param {String} error message
-    */
-    onError: function(message) {
-    },
-    /**
     * Gets executed when a refresh happens.
     * @param {String} oldSessionId session ID of the old session
     * @param {String} newSessionId session ID of the new session
