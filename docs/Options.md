@@ -85,6 +85,12 @@ Count of request retries to the Selenium server
 Type: `Number`<br>
 Default: `3`
 
+### execArgv
+Node arguments to specify when launching child processes
+
+Type: `String[]`
+Default: `null`
+
 ---
 
 ## WDIO Options
