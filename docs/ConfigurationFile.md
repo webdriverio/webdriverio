@@ -12,7 +12,7 @@ exports.config = {
     // Where should your test be launched
     // ==================================
     //
-    runner: 'local'
+    runner: 'local',
     //
     // =====================
     // Server Configurations
