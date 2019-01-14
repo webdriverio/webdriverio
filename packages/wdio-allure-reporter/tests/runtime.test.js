@@ -65,23 +65,37 @@ describe('reporter reporter api', () => {
     })
 
     it('should pass correct data from addStep', () => {
-        reporter.addStep('foo', {name: 'bar', content: 'baz'}, stepStatuses.FAILED )
+        reporter.addStep('foo', {name: 'bar', content: 'baz', type: 'text/plain'}, stepStatuses.FAILED )
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        const step = {'step': {'attachment': {'content': 'baz', 'name': 'bar'}, 'status': 'failed', 'title': 'foo'}}
+        const step = {'step': {'attachment': {'content': 'baz', 'name': 'bar', 'type': 'text/plain'}, 'status': 'failed', 'title': 'foo'}}
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support default attachment name for addStep', () => {
         reporter.addStep('foo', {content: 'baz'}, stepStatuses.FAILED )
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment'}, 'status': 'failed', 'title': 'foo'}}
+        const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment', 'type': 'text/plain'}, 'status': 'failed', 'title': 'foo'}}
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addStep, step)
+    })
+
+    it('should support default attachment type for addStep', () => {
+        reporter.addStep('foo', {content: 'baz'})
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment', 'type': 'text/plain'}, 'status': 'passed', 'title': 'foo'}}
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addStep, step)
+    })
+
+    it('should support addStep without attachment', () => {
+        reporter.addStep('foo')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        const step = {'step': {'status': 'passed', 'title': 'foo'}}
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support default step status for addStep', () => {
         reporter.addStep('foo', {content: 'baz'} )
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment'}, 'status': 'passed', 'title': 'foo'}}
+        const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment', 'type': 'text/plain'}, 'status': 'passed', 'title': 'foo'}}
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addStep, step)
     })
 
