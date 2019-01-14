@@ -117,13 +117,14 @@ after(async function () {
      * if not update the job ob sauce
      */
     const failures = getFailures(this._runnable.parent)
+    const passes = getPasses(this._runnable.parent)
     const account = new SauceLabs({
         username: process.env.SAUCE_USERNAME,
         password: process.env.SAUCE_ACCESS_KEY
     })
 
     let newJobStatus = {
-        passed: failures === 0,
+        passed: failures === 0 && passes > 0,
         public: true
     }
 
@@ -151,4 +152,22 @@ function getFailures (suite) {
     }
 
     return failures
+}
+
+function getPasses (suite) {
+    let passes = 0
+
+    if (suite.suites && suite.suites.length) {
+        for (let s of suite.suites) {
+            passes += getPasses(s)
+        }
+    }
+
+    if (suite.tests && suite.tests.length) {
+        for (let t of suite.tests) {
+            passes += t.state === 'passed' ? 1 : 0
+        }
+    }
+
+    return passes
 }
