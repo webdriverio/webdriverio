@@ -5,12 +5,12 @@
  * being on that page.
  *
  * <example>
-    :setCookie.js
+    :setCookies.js
     it('should set a cookie for the page', () => {
         browser.url('/')
-        browser.setCookie({name: 'test', value: '123'})
+        browser.setCookies({name: 'test', value: '123'})
 
-        const cookies = browser.getCookie()
+        const cookies = browser.getCookies()
         console.log(cookies); // outputs: [{ name: 'test', value: '123', domain: 'www.example.com' }]
     });
  * </example>
