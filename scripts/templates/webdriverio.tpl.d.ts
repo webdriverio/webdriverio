@@ -57,7 +57,7 @@ declare namespace WebdriverIO {
         specs?: string[],
         exclude?: string[],
         suites?: object,
-        capabilities: DesiredCapabilities[],
+        capabilities: WebDriver.DesiredCapabilities|WebDriver.DesiredCapabilities[],
         outputDir?: string,
         baseUrl?: string,
         bail?: number,

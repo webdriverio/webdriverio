@@ -44,10 +44,9 @@ Default: `null`
 ### capabilities
 Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support WebDriver you need to apply the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfuly run a session. Also a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 that helps you to create this object by clicking together your desired capabilities.
-Note: `Object[]` is only used when using the wdio testrunner.
 
-Type: `Object`|`Object[]`<br>
-Default: `{ browserName: 'firefox' }`|`[{ maxInstances: 5, browserName: 'firefox' }]`
+Type: `Object`<br>
+Default: `{ browserName: 'firefox' }`
 
 **Example:**
 
@@ -109,6 +108,12 @@ An object describing various of suites that can be specified when applying the `
 
 Type: `Object`<br>
 Default: `{}`
+
+### capabilities
+Like the capabilities section described above, except with the option to specifiy either a [multiremote](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
+
+Type: `Object`|`Object[]`<br>
+Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
 
 ### outputDir
 Directory to store all testrunner log files including reporter logs and `wdio` logs. If not set all logs are streamed to stdout. Since most reporters are made to log to stdout it is recommended to only use this option for specific reporters where it makes more sense to push report into a file (e.g. junit reporter).
