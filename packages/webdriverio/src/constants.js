@@ -62,6 +62,7 @@ export const WDIO_DEFAULTS = {
     capabilities: {
         type: 'object|object[]',
         required: true
+        default: 
     },
     /**
      * Shorten navigateTo command calls by setting a base url
