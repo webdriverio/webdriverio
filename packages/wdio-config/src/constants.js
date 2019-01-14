@@ -75,5 +75,5 @@ export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterFeature',
-    'afterScenario', 'afterStep', 'onError', 'onReload'
+    'afterScenario', 'afterStep', 'onError', 'onReload', 'onPrepare', 'onComplete'
 ]

@@ -221,8 +221,87 @@ declare namespace WebDriver {
         key?: string;
     }
 
+    interface Hooks {
+        onError?(error: Error): void;
+
+        onPrepare?(
+            config: Options,
+            capabilities: DesiredCapabilities
+        ): void;
+
+        onComplete?(exitCode: number): void;
+
+        onReload?(oldSessionId: string, newSessionId: string): void;
+
+        before?(
+            capabilities: DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        beforeCommand?(
+            commandName: string,
+            args: any[]
+        ): void;
+
+        beforeHook?(): void;
+
+        beforeSession?(
+            config: Options,
+            capabilities: DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        beforeSuite?(suite: Suite): void;
+        beforeTest?(test: Test): void;
+        afterHook?(): void;
+
+        after?(
+            result: number,
+            capabilities: DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        afterCommand?(
+            commandName: string,
+            args: any[],
+            result: any,
+            error?: Error
+        ): void;
+
+        afterSession?(
+            config: Options,
+            capabilities: DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        afterSuite?(suite: Suite): void;
+        afterTest?(test: Test): void;
+
+         // cucumber specific hooks
+         beforeFeature?(feature: string): void;
+         beforeScenario?(scenario: string): void;
+         beforeStep?(step: string): void;
+         afterFeature?(feature: string): void;
+         afterScenario?(scenario: any): void;
+         afterStep?(stepResult: any): void;
+    }
+
+    interface Suite {
+        file: string;
+        parent: string;
+        pending: boolean;
+        title: string;
+        type: string;
+    }
+
+    interface Test extends Suite {
+        currentTest: string;
+        passed: boolean;
+        duration: any;
+    }
+
     function newSession(
-        options?: Options,
+        options?: Options & Hooks,
         modifier?: (...args: any[]) => any,
         proto?: object,
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
