@@ -57,6 +57,13 @@ export const WDIO_DEFAULTS = {
         type: 'object'
     },
     /**
+     * capabilities of WebDriver sessions
+     */
+    capabilities: {
+        type: 'object[]',
+        required: true
+    },
+    /**
      * Shorten navigateTo command calls by setting a base url
      */
     baseUrl: {
@@ -145,6 +152,20 @@ export const WDIO_DEFAULTS = {
 
             return true
         }
+    },
+    /**
+     * set of WDIO services to use
+     */
+    services: {
+        type: 'string[]',
+        default: []
+    },
+    /**
+     * Node arguments to specify when launching child processes
+     */
+    execArgv: {
+        type: 'string[]',
+        default: []
     },
     /**
      * amount of instances to be allowed to run in total

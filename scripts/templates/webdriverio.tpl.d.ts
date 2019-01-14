@@ -68,6 +68,7 @@ declare namespace WebdriverIO {
         jasmineNodeOpts?: object,
         reporters?: string[] | object[],
         services?: string[],
+        execArgv?: string[]
     }
 
     interface Element<T> {

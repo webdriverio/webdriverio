@@ -212,7 +212,6 @@ declare namespace WebDriver {
             [name: string]: string;
         },
         capabilities: DesiredCapabilities;
-        execArgv?: string[];
         logLevel: WebDriverLogTypes;
         logOutput: string | NodeJS.WritableStream
         connectionRetryTimeout?: number;
