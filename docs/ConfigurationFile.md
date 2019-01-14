@@ -8,6 +8,12 @@ The configuration file contains all necessary information to run your test suite
 ```js
 exports.config = {
 
+    // ==================================
+    // Where should your test be launched
+    // ==================================
+    //
+    runner: 'local'
+    //
     // =====================
     // Server Configurations
     // =====================
