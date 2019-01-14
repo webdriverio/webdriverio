@@ -94,6 +94,7 @@ export default class WDIORepl {
             () => {
                 callback(new Error('Command execution timed out'))
                 this.isCommandRunning = false
+                timeout._called = true
             },
             this.config.commandTimeout
         )
@@ -118,7 +119,8 @@ export default class WDIORepl {
 
             this.isCommandRunning = false
             clearTimeout(timeout)
-            const commandError = new Error(e.message)
+            const errorMessage = e ? e.message : 'Command execution timed out'
+            const commandError = new Error(errorMessage)
             delete commandError.stack
             return callback(commandError)
         })
