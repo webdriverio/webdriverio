@@ -157,7 +157,7 @@ export const WDIO_DEFAULTS = {
      * set of WDIO services to use
      */
     services: {
-        type: 'string[]',
+        type: 'string[]|object[]',
         default: []
     },
     /**
