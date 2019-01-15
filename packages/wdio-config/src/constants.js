@@ -75,5 +75,7 @@ export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterFeature',
-    'afterScenario', 'afterStep', 'onReload', 'onPrepare', 'onComplete'
+    'afterScenario', 'afterStep', 'onReload'
+    // the following hooks are excluded since they are part of the launcher
+    // 'onPrepare', 'onComplete'
 ]
