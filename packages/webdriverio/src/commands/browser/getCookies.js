@@ -7,10 +7,12 @@
  * <example>
     :getCookies.js
     it('should return a cookie for me', () => {
-        browser.setCookies({name: 'test', value: '123'})
-        browser.setCookies({name: 'test2', value: '456'})
+        browser.setCookies([
+            {name: 'test', value: '123'},
+            {name: 'test2', value: '456'}
+        ])
         const testCookie = browser.getCookies(['test'])
-        console.log(testCookie); // outputs: { name: 'test', value: '123' }
+        console.log(testCookie); // outputs: [{ name: 'test', value: '123' }]
 
         const allCookies = browser.getCookies()
         console.log(allCookies);
@@ -22,7 +24,7 @@
     })
  * </example>
  *
- * @alias browser.getCookie
+ * @alias browser.getCookies
  * @param {String[]=} names  names of requested cookies
  * @return {Object[]}        requested cookies if existing
  * @uses webdriver/getAllCookies
