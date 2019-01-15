@@ -10,7 +10,7 @@ WebdriverIO allows you to run multiple WebDriver/Appium sessions in a single tes
 Here is an example demonstrating a how to create a multiremote WebdriverIO instance in __standalone mode__:
 
 ```js
-import { multiremote } from 'webdriverio';
+const { multiremote } = require('webdriverio');
 
 (async () => {
     const browser = await multiremote({
