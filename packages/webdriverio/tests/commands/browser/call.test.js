@@ -12,10 +12,11 @@ describe('call command', () => {
         })
     })
 
-    it('should call a fn', () => {
-        const callFn = jest.fn()
-        browser.call(callFn)
+    it('should call a fn and return result', () => {
+        const callFn = jest.fn(() => true)
+        const result = browser.call(callFn)
         expect(callFn).toBeCalled()
+        expect(result).toEqual(true)
     })
 
     it('should not fail if nothing is applied', () => {

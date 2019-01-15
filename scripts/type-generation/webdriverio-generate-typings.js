@@ -95,7 +95,7 @@ const gatherCommands = (commandPath, commandFile) => {
             }
         }
     
-        if (!['execute', 'executeAsync', 'waitUntil'].includes(commandName)) {
+        if (!['execute', 'executeAsync', 'waitUntil', 'call'].includes(commandName)) {
             allTypeLines.push(`${commandName}(${allParameters.length > 0 ? '\n            ' : ''}${allParameters.join(',\n            ')}${allParameters.length > 0 ? '\n        ' : ''}): ${returnType}`)
         }
     }
