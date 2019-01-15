@@ -57,6 +57,7 @@ declare namespace WebdriverIO {
         specs?: string[],
         exclude?: string[],
         suites?: object,
+        capabilities: WebDriver.DesiredCapabilities|WebDriver.DesiredCapabilities[],
         outputDir?: string,
         baseUrl?: string,
         bail?: number,
@@ -66,7 +67,8 @@ declare namespace WebdriverIO {
         mochaOpts?: object,
         jasmineNodeOpts?: object,
         reporters?: string[] | object[],
-        services?: string[],
+        services?: string[] | object[],
+        execArgv?: string[]
     }
 
     interface Element<T> {
