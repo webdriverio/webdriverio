@@ -7,7 +7,7 @@ Over the time our community has developed a bunch of boilerplate projects that c
 
 ## v5 Boileplate Projects
 
-### [jpolley/WebdriverIO_v5_TypeScript](https://github.com/jpolley/WebdriverIO_v5_TypeScript/)
+### [jpolley/WebdriverIO_v5_TypeScript](https://github.com/jpolley/WebdriverIO_v5_TypeScript)
 
 The boilerplate holds the following things
 
@@ -17,6 +17,17 @@ The boilerplate holds the following things
     - Page Object Pattern
     - Chai Integration
 
+### [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
+
+This project creates a powerful boilerplate for UI Automation Testing with WebdriverIO, TypeScript, Mocha, Chai and Allure report.
+
+- Framework: WebdriverIO (v5x), TypeScript(v3x), @Types/Mocha (v5x), Chai (v5x), @Wdio/Allure (v5x)
+- Features:
+    - TypeScript Page Object Models
+    - TypesScript Models
+    - Code Prettier
+    - HTML report with Allure
+    - Single test case for development purpose
 
 ### [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
@@ -157,18 +168,6 @@ This directory contains the WebdriverIO page object example written using TypeSc
 - Features:
     - examples of Page Object Model implementation
     - Intellisense
-
-### [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
-
-This project creates a powerful boilerplate for UI Automation Testing with WebdriverIO, TypeScript, Mocha, Chai and Allure report.
-
-- Framework: WebdriverIO (v5x), TypeScript(v3x), @Types/Mocha (v5x), Chai (v5x), @Wdio/Allure (v5x)
-- Features:
-    - TypeScript Page Object Models
-    - TypesScript Models
-    - Code Prettier
-    - HTML report with Allure
-    - Single test case for development purpose
 
 ### [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
 
