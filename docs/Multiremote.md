@@ -47,12 +47,12 @@ export.config = {
     // ...
     capabilities: {
         myChromeBrowser: {
-            desiredCapabilities: {
+            capabilities: {
                 browserName: 'chrome'
             }
         },
         myFirefoxBrowser: {
-            desiredCapabilities: {
+            capabilities: {
                 browserName: 'firefox'
             }
         }
