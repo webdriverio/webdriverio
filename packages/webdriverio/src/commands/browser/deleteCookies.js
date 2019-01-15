@@ -5,9 +5,11 @@
  * <example>
     :deleteCookie.js
     it('should delete cookies', () => {
-        browser.setCookies({name: 'test', value: '123'})
-        browser.setCookies({name: 'test2', value: '456'})
-        browser.setCookies({name: 'test3', value: '789'})
+        browser.setCookies([
+            {name: 'test', value: '123'},
+            {name: 'test2', value: '456'},
+            {name: 'test3', value: '789'}
+        ])
         let cookies = browser.getCookies()
         console.log(cookies)
         // outputs:

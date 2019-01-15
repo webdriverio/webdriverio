@@ -15,7 +15,7 @@
     });
  * </example>
  *
- * @alias browser.setCookie
+ * @alias browser.setCookies
  * @param {Object} cookie cookie object
  * @param {String} cookie.name The name of the cookie
  * @param {String} cookie.value The cookie value
