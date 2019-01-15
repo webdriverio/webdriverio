@@ -255,6 +255,19 @@ export function isAndroid (caps) {
 }
 
 /**
+ * check if current session runs a Mobile Browser test 
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if runs a Mobile Browser test
+ */
+export function isMobileBrowser (caps) {
+    return Boolean(
+        (caps.automationName || caps.deviceName) && 
+        (caps.browserName)
+    )
+}
+
+
+/**
  * detects if session is run on Sauce with extended debugging enabled
  * @param  {string}  hostname     hostname of session request
  * @param  {object}  capabilities session capabilities
@@ -285,6 +298,7 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
         isMobile: isMobile(capabilities),
+        isMobileBrowser: isMobileBrowser(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
