@@ -2,7 +2,6 @@
 ## unreleased
 * wdio changes
     * add W3C actions protocol fallback for when moveTo protocol returns an error
-    * add W3C actions protocol fallback for when leftClick, middleClick or rightClick command / buttonDown, buttonPress, or buttonUp protocol returns an error
 
 ## v4.14.2 (2019-01-11)
 * bugfix:
