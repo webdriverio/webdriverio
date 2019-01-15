@@ -214,6 +214,7 @@ export const WDIO_DEFAULTS = {
                 throw new Error('the "specs" options needs to be a list of strings')
             }
         }
+        default: []
     },
     /**
      * amount of instances to be allowed to run in total
