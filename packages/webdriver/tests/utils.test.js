@@ -1,6 +1,6 @@
 import {
     isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector
+    environmentDetector, getErrorFromResponseBody
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -212,5 +212,21 @@ describe('utils', () => {
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(true)
         })
+    })
+
+    it('getErrorFromResponseBody', () => {
+        expect(getErrorFromResponseBody()).toBe(null)
+        expect(getErrorFromResponseBody('')).toBe(null)
+        expect(getErrorFromResponseBody(null)).toBe(null)
+
+        const unknownError = new Error('unknown error')
+        expect(getErrorFromResponseBody('foobar')).toEqual(unknownError)
+        expect(getErrorFromResponseBody({})).toEqual(unknownError)
+
+        const expectedError = new Error('expected')
+        expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
+            .toEqual(expectedError)
+        expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
+            .toEqual(expectedError)
     })
 })
