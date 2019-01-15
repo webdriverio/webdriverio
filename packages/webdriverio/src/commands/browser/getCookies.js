@@ -5,10 +5,10 @@
  * retrieve all.
  *
  * <example>
-    :getCookie.js
+    :getCookies.js
     it('should return a cookie for me', () => {
-        browser.setCookie({name: 'test', value: '123'})
-        browser.setCookie({name: 'test2', value: '456'})
+        browser.setCookies({name: 'test', value: '123'})
+        browser.setCookies({name: 'test2', value: '456'})
         const testCookie = browser.getCookies(['test'])
         console.log(testCookie); // outputs: { name: 'test', value: '123' }
 
