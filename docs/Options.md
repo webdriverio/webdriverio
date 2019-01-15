@@ -42,11 +42,10 @@ Type: `Object`<br>
 Default: `null`
 
 ### capabilities
-Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support WebDriver you need to apply the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfuly run a session. Also a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
-that helps you to create this object by clicking together your desired capabilities.
+Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support WebDriver you need to apply the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfuly run a session. Also a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/) that helps you to create this object by clicking together your desired capabilities.
 
 Type: `Object`<br>
-Default: `{ browserName: 'firefox' }`<br>
+Default: `null`
 
 **Example:**
 
@@ -109,6 +108,12 @@ An object describing various of suites that can be specified when applying the `
 Type: `Object`<br>
 Default: `{}`
 
+### capabilities
+Like the capabilities section described above, except with the option to specifiy either a [multiremote](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
+
+Type: `Object`|`Object[]`<br>
+Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
+
 ### outputDir
 Directory to store all testrunner log files including reporter logs and `wdio` logs. If not set all logs are streamed to stdout. Since most reporters are made to log to stdout it is recommended to only use this option for specific reporters where it makes more sense to push report into a file (e.g. junit reporter).
 
@@ -142,7 +147,7 @@ Default: `500`
 ### services
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort. Unlike plugins, they don't add new commands. Instead, they hook themselves up into the test process.
 
-Type: `String[]`<br>
+Type: `String[]|Object[]`<br>
 Default: `[]`
 
 ### framework
@@ -177,9 +182,15 @@ reporters: [
 ]
 ```
 
+### execArgv
+Node arguments to specify when launching child processes
+
+Type: `String[]`
+Default: `null`
+
 ## Hooks
 
-WebdriverIO allows you to set hooks to interfere into the test lifecycle in order to e.g. take screenshot if a test fails. Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). The following hooks are available: `onPrepare`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
+WebdriverIO allows you to set hooks to interfere into the test lifecycle in order to e.g. take screenshot if a test fails. Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). The following hooks are available: `onPrepare`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
 
 Type: `Function`<br>
 Default: `null`

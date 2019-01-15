@@ -111,7 +111,7 @@ describe('Firefox profile service', () => {
             }
             const capabilities = {
                 firefox : {
-                    desiredCapabilities : {
+                    capabilities : {
                         browserName : 'firefox',
                     }
                 }
@@ -120,8 +120,8 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities.firefox.desiredCapabilities.firefox_profile).toBe('foobar')
-            expect(capabilities.firefox.desiredCapabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
+            expect(capabilities.firefox.capabilities.firefox_profile).toBe('foobar')
+            expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
         })
 
         test('should not set capabilities when an object and not firefox', async () => {
@@ -132,7 +132,7 @@ describe('Firefox profile service', () => {
             }
             const capabilities = {
                 foo : {
-                    desiredCapabilities : {
+                    capabilities : {
                         browserName : 'chrome',
                     }
                 }
@@ -141,8 +141,8 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities.foo.desiredCapabilities).not.toHaveProperty('firefox_profile')
-            expect(capabilities.foo.desiredCapabilities).not.toHaveProperty('moz:firefoxOptions')
+            expect(capabilities.foo.capabilities).not.toHaveProperty('firefox_profile')
+            expect(capabilities.foo.capabilities).not.toHaveProperty('moz:firefoxOptions')
         })
 
         test('should set proxy', async () => {

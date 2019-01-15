@@ -11,7 +11,7 @@ const webviewApp = '/path/to/app'
     const driver = await remote({
         port: 4723,
         logLevel: 'debug',
-        desiredCapabilities: {
+        capabilities: {
             platformName: 'iOS',
             platformVersion: '8.4',
             deviceName: 'iPhone 6',

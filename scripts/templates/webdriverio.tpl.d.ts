@@ -57,6 +57,7 @@ declare namespace WebdriverIO {
         specs?: string[],
         exclude?: string[],
         suites?: object,
+        capabilities?: WebDriver.DesiredCapabilities|WebDriver.DesiredCapabilities[],
         outputDir?: string,
         baseUrl?: string,
         bail?: number,
@@ -66,7 +67,86 @@ declare namespace WebdriverIO {
         mochaOpts?: object,
         jasmineNodeOpts?: object,
         reporters?: string[] | object[],
-        services?: string[],
+        services?: (string|[])[],
+        execArgv?: string[]
+    }
+
+    interface Hooks {
+
+        onPrepare?(
+            config: Options,
+            capabilities: WebDriver.DesiredCapabilities
+        ): void;
+
+        onComplete?(exitCode: number): void;
+
+        onReload?(oldSessionId: string, newSessionId: string): void;
+
+        before?(
+            capabilities: WebDriver.DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        beforeCommand?(
+            commandName: string,
+            args: any[]
+        ): void;
+
+        beforeHook?(): void;
+
+        beforeSession?(
+            config: Options,
+            capabilities: WebDriver.DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        beforeSuite?(suite: Suite): void;
+        beforeTest?(test: Test): void;
+        afterHook?(): void;
+
+        after?(
+            result: number,
+            capabilities: WebDriver.DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        afterCommand?(
+            commandName: string,
+            args: any[],
+            result: any,
+            error?: Error
+        ): void;
+
+        afterSession?(
+            config: Options,
+            capabilities: WebDriver.DesiredCapabilities,
+            specs: string[]
+        ): void;
+
+        afterSuite?(suite: Suite): void;
+        afterTest?(test: Test): void;
+
+         // cucumber specific hooks
+         beforeFeature?(feature: string): void;
+         beforeScenario?(scenario: string): void;
+         beforeStep?(step: string): void;
+         afterFeature?(feature: string): void;
+         afterScenario?(scenario: any): void;
+         afterStep?(stepResult: any): void;
+    }
+
+    interface Suite {
+        file: string;
+        parent: string;
+        pending: boolean;
+        title: string;
+        type: string;
+    }
+
+    interface Test extends Suite {
+        currentTest: string;
+        passed: boolean;
+        duration: any;
     }
 
     interface Element<T> {
@@ -75,6 +155,7 @@ declare namespace WebdriverIO {
 
     type Execute = <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => T;
     type ExecuteAsync = (script: string | ((...arguments: any[]) => any), ...arguments: any[]) => any;
+    type Call = <T>(callback: Function) => T;
 
     interface Browser<T> {
         addCommand(
@@ -83,6 +164,7 @@ declare namespace WebdriverIO {
         ): any;
         execute: Execute;
         executeAsync: ExecuteAsync;
+        call: Call;
         options: Options;
         waitUntil(
             condition: Function,
@@ -92,6 +174,8 @@ declare namespace WebdriverIO {
         ): undefined
         // ... browser commands ...
     }
+
+    type Config = WebDriver.Options & Options & Hooks;
 }
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;

@@ -5,17 +5,17 @@
  * being on that page.
  *
  * <example>
-    :setCookie.js
+    :setCookies.js
     it('should set a cookie for the page', () => {
         browser.url('/')
-        browser.setCookie({name: 'test', value: '123'})
+        browser.setCookies({name: 'test', value: '123'})
 
-        const cookies = browser.getCookie()
+        const cookies = browser.getCookies()
         console.log(cookies); // outputs: [{ name: 'test', value: '123', domain: 'www.example.com' }]
     });
  * </example>
  *
- * @alias browser.setCookie
+ * @alias browser.setCookies
  * @param {Object} cookie cookie object
  * @param {String} cookie.name The name of the cookie
  * @param {String} cookie.value The cookie value
@@ -31,7 +31,7 @@
 export default async function setCookies(cookieObjs) {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
-    if (cookieObjsList.some(obj => !(obj instanceof Object))) {
+    if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies.html for documentation.')
     }
 
