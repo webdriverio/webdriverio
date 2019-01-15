@@ -42,7 +42,7 @@ Also if you want to have Sauce Labs group your tests by build number, you can se
 
 Lastly if you set the `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
 
-Example `desiredCapabilities`:
+Example `capabilities`:
 
 ```javascript
 browserName: 'chrome',
@@ -92,7 +92,7 @@ sleep 3
 
 Also, you might wanna set the `build` to the Travis build number.
 
-Example `desiredCapabilities`:
+Example `capabilities`:
 
 ```javascript
 browserName: 'chrome',

@@ -60,7 +60,7 @@ export const WDIO_DEFAULTS = {
      * capabilities of WebDriver sessions
      */
     capabilities: {
-        type: 'object|object[]',
+        type: 'object',
         required: true
     },
     /**
@@ -157,14 +157,14 @@ export const WDIO_DEFAULTS = {
      * set of WDIO services to use
      */
     services: {
-        type: 'string[]|object[]',
+        type: 'object',
         default: []
     },
     /**
      * Node arguments to specify when launching child processes
      */
     execArgv: {
-        type: 'string[]',
+        type: 'object',
         default: []
     },
     /**
