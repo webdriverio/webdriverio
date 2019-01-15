@@ -98,8 +98,14 @@ describe('webdriver request', () => {
             const opts = Object.assign(req.defaultOptions, {
                 uri: { path: '/wd/hub/session/foobar-123/element/some-sub-sub-elem-231/click' }, body: { foo: 'bar' } })
 
-            expect(req._request(opts)).rejects.toEqual(
-                new Error('stale element reference: element is not attached to the page document'))
+            let error
+            try {
+                await req._request(opts)
+            } catch (e) {
+                error = e
+            }
+
+            expect(error.message).toBe('element is not attached to the page document')
             expect(req.emit.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
@@ -114,7 +120,7 @@ describe('webdriver request', () => {
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/failing' } })
-            expect(req._request(opts, 2)).rejects.toEqual(new Error('Error: Could not send request'))
+            await expect(req._request(opts, 2)).rejects.toEqual(new Error('Could not send request'))
             expect(req.emit.mock.calls).toHaveLength(3)
             expect(warn.mock.calls).toHaveLength(2)
             expect(error.mock.calls).toHaveLength(1)
