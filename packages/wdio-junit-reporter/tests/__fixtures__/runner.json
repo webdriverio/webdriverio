@@ -85,7 +85,6 @@
         "afterSuite": [],
         "afterSession": [],
         "after": [],
-        "onError": [],
         "onReload": [],
         "beforeFeature": [],
         "beforeScenario": [],
