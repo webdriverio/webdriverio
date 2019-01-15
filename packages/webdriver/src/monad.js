@@ -63,8 +63,12 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func, proto) {
-            unit.lift(name, func, proto)
+        client.addCommand = function (name, func, attachToElement = false, proto) {
+            if (attachToElement) {
+                this.__propertiesObject__[name] = { value: func }
+            } else {
+                unit.lift(name, func, proto)
+            }
         }
 
         return client
@@ -77,8 +81,8 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
      * @param  {Object}   proto  prototype to add function to (optional)
      */
     unit.lift = function (name, func, proto) {
+
         (proto || prototype)[name] = function next (...args) {
-            const client = unit(this.sessionId)
             log.info('COMMAND', commandCallStructure(name, args))
 
             /**
@@ -89,7 +93,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 writable: false,
             })
 
-            const result = func.apply(client, args)
+            const result = func.apply(this, args)
 
             /**
              * always transform result into promise as we don't know whether or not

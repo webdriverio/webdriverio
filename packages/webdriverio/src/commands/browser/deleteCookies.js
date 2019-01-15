@@ -5,7 +5,7 @@
  * <example>
     :deleteCookie.js
     it('should delete cookies', () => {
-        browser.setCookie([
+        browser.setCookies([
             {name: 'test', value: '123'},
             {name: 'test2', value: '456'},
             {name: 'test3', value: '789'}
@@ -34,7 +34,7 @@
     })
  * </example>
  *
- * @alias browser.deleteCookie
+ * @alias browser.deleteCookies
  * @param {String[]=} names  names of cookies to be deleted
  * @uses webdriver/deleteAllCookies,webdriver/deleteCookie
  * @type cookie

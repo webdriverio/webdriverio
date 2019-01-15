@@ -158,7 +158,7 @@ declare namespace WebDriver {
         changeMaxConnections?: boolean;
         profile?: string;
         pageLoadingStrategy?: string;
-        'moz:firefoxOptions': FirefoxOptions;
+        'moz:firefoxOptions'?: FirefoxOptions;
 
         // IE specific
         'ie.forceCreateProcessApi'?: boolean;
@@ -208,12 +208,12 @@ declare namespace WebDriver {
         hostname?: string;
         port?: number;
         path?: string;
-        queryParams: {
+        queryParams?: {
             [name: string]: string;
         },
-        capabilities: DesiredCapabilities;
-        logLevel: WebDriverLogTypes;
-        logOutput: string | NodeJS.WritableStream
+        capabilities?: DesiredCapabilities;
+        logLevel?: WebDriverLogTypes;
+        logOutput?: string | NodeJS.WritableStream
         connectionRetryTimeout?: number;
         connectionRetryCount?: number;
         user?: string;

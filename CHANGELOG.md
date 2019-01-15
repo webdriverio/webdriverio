@@ -15,6 +15,84 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.3.2 (2019-01-15)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#3334](https://github.com/webdriverio/webdriverio/pull/3334) fix hook bug - Closes [#3333](https://github.com/webdriverio/webdriverio/issues/3333) ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## 5.3.1 (2019-01-15)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriverio`
+  * [#3331](https://github.com/webdriverio/webdriverio/pull/3331) webdriverio: Fixes webdriverio constants and adds tests for services, execArgv and capabilities ([@ablok](https://github.com/ablok))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3325](https://github.com/webdriverio/webdriverio/pull/3325) Don't do instanceof check for set cookie and rather look for type ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-repl`
+  * [#3315](https://github.com/webdriverio/webdriverio/pull/3315) Bugfix service scope ([@stsvilik](https://github.com/stsvilik))
+* `wdio-webdriver-mock-service`, `webdriver`
+  * [#3312](https://github.com/webdriverio/webdriverio/pull/3312) Keep scope when calling custom command on browser ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#3321](https://github.com/webdriverio/webdriverio/pull/3321) wdio-allure-reporter: make step attachments optional ([@sskorol](https://github.com/sskorol))
+* `webdriver`, `webdriverio`
+  * [#3313](https://github.com/webdriverio/webdriverio/pull/3313) ability for addCommand to add to element scope ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :memo: Documentation
+* `wdio-firefox-profile-service`, `webdriver`, `webdriverio`
+  * [#3329](https://github.com/webdriverio/webdriverio/pull/3329) Remove desiredCapabilities in docs ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#3330](https://github.com/webdriverio/webdriverio/pull/3330) Mention isSelected for checkbox and radio inputs ([@kimek](https://github.com/kimek))
+  * [#3326](https://github.com/webdriverio/webdriverio/pull/3326) webdriverio: Changed setCookie => setCookies in examples ([@ayoolaao](https://github.com/ayoolaao))
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`, `webdriverio`
+  * [#3319](https://github.com/webdriverio/webdriverio/pull/3319) Add missing typings ([@ablok](https://github.com/ablok))
+* Other
+  * [#3320](https://github.com/webdriverio/webdriverio/pull/3320) Update ConfigurationFile.md ([@TuHuynhVan](https://github.com/TuHuynhVan))
+  * [#3311](https://github.com/webdriverio/webdriverio/pull/3311) Fixes type generation for URL variables ([@ablok](https://github.com/ablok))
+  * [#3308](https://github.com/webdriverio/webdriverio/pull/3308) Added new TypeScript boilerplate for WebdriverIO ([@dalenguyen](https://github.com/dalenguyen))
+* `wdio-allure-reporter`
+  * [#3247](https://github.com/webdriverio/webdriverio/pull/3247) README fix: move addAttachment args into a correct place ([@vgrigoruk](https://github.com/vgrigoruk))
+
+#### Committers: 10
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Ayoola Abimbola ([@ayoolaao](https://github.com/ayoolaao))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dale Nguyen ([@dalenguyen](https://github.com/dalenguyen))
+- Kimek ([@kimek](https://github.com/kimek))
+- Sergey Korol ([@sskorol](https://github.com/sskorol))
+- Simon Tsvilik ([@stsvilik](https://github.com/stsvilik))
+- Tu Huynh ([@TuHuynhVan](https://github.com/TuHuynhVan))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+
+## 5.3.0 (2019-01-11)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3299](https://github.com/webdriverio/webdriverio/pull/3299) Vendor specific protocol commands for Sauce Labs ([@christian-bromann](https://github.com/christian-bromann))
+  * [#3296](https://github.com/webdriverio/webdriverio/pull/3296) Fix HTTP method of getCurrentActivity ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#3303](https://github.com/webdriverio/webdriverio/pull/3303) Don't log error if service only contains a launcher ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3292](https://github.com/webdriverio/webdriverio/pull/3292) webdriverio: TypeScript defintions of $ - Closes [#3282](https://github.com/webdriverio/webdriverio/issues/3282) ([@mgrybyk](https://github.com/mgrybyk))
+* Other
+  * [#3302](https://github.com/webdriverio/webdriverio/pull/3302) Improve typings ([@ablok](https://github.com/ablok))
+
+#### Committers: 3
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## 5.2.8 (2019-01-10)
 
 #### :bug: Bug Fix

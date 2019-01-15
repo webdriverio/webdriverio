@@ -21,26 +21,38 @@
     it('should get text a menu link', () => {
         const text = $('#menu');
         console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
-        // same as
-        console.log(text.$$('li')[2].getText('a'));
+    });
+    
+    it('should get text a menu link - JS Function', () => {
+        const text = $('#menu');
+        console.log(text.$$('li')[2].$(function() { // Arrow function is not allowed here.
+            // this is Element https://developer.mozilla.org/en-US/docs/Web/API/Element
+            // in this particular example it is HTMLLIElement
+            // TypeScript users may do something like this
+            // return (this as Element).querySelector('a')
+            return this.querySelector('a'); // Element
+        }).getText()); // outputs: "API"
     });
  * </example>
  *
  * @alias $
- * @param {String} selector  selector to fetch a certain element
+ * @param {String|Function} selector  selector or JS Function to fetch a certain element
+ * @return {Element}
  * @type utility
  *
  */
 import { webdriverMonad } from 'webdriver'
 import { wrapCommand } from '@wdio/config'
+import merge from 'lodash.merge'
 
-import { findElement, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { findElement, getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
     const res = await findElement.call(this, selector)
-    const prototype = Object.assign({}, this.parent.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
+    const browser = getBrowserObject(this)
+    const prototype = merge({}, browser.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
 
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)
@@ -73,7 +85,7 @@ export default async function $ (selector) {
 
     const origAddCommand = ::elementInstance.addCommand
     elementInstance.addCommand = (name, fn) => {
-        this.parent.__propertiesObject__[name] = { value: fn }
+        browser.__propertiesObject__[name] = { value: fn }
         origAddCommand(name, fn)
     }
     return elementInstance

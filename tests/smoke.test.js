@@ -77,5 +77,14 @@ describe('smoke test', () => {
                 })
             )
         })
+
+        it('should keep the scope', () => {
+            browser.customCommandScenario()
+            browser.addCommand('customFn', function (elem) {
+                return this.execute('1+1') + '-' + elem.selector
+            })
+
+            assert.equal(browser.customFn($('body')), '2-body')
+        })
     })
 })

@@ -59,7 +59,7 @@ export default class WebDriver {
         /**
          * apply mobile flags to driver scope
          */
-        const { isW3C, isMobile, isIOS, isAndroid, isChrome } = environmentDetector(params.capabilities)
+        const { isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce } = environmentDetector(params)
         const environmentFlags = {
             isW3C: { value: isW3C },
             isMobile: { value: isMobile },
@@ -68,7 +68,7 @@ export default class WebDriver {
             isChrome: { value: isChrome }
         }
 
-        const protocolCommands = getPrototype({ isW3C, isMobile, isIOS, isAndroid, isChrome })
+        const protocolCommands = getPrototype({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce })
         const prototype = merge(protocolCommands, environmentFlags, userPrototype)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
