@@ -213,7 +213,7 @@ export const WDIO_DEFAULTS = {
             if (!Array.isArray(param)) {
                 throw new Error('the "specs" options needs to be a list of strings')
             }
-        }
+        },
         default: []
     },
     /**
