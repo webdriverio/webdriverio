@@ -8,7 +8,7 @@ import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
 
-import { isSuccessfulResponse } from './utils'
+import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
 
 const log = logger('webdriver')
@@ -92,7 +92,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
-            const error = new Error(err || (body && body.value ? body.value.message : body))
+            const error = err || getErrorFromResponseBody(body)
 
             /**
              * Resolve only if successful response

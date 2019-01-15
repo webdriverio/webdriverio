@@ -290,3 +290,24 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
         isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
     }
 }
+
+/**
+ * helper method to determine the error from webdriver response
+ * @param  {Object} body body object
+ * @return {String}      error message
+ */
+export function getErrorFromResponseBody (body) {
+    if (!body) {
+        return null
+    }
+
+    if (typeof body !== 'object' || !body.value) {
+        return new Error('unknown error')
+    }
+
+    return new Error(
+        body.value.message ||
+        body.value.class ||
+        'unknown error'
+    )
+}
