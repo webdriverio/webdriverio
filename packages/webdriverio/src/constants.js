@@ -211,7 +211,7 @@ export const WDIO_DEFAULTS = {
     execArgv: {
         type: (param) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "specs" options needs to be a list of strings')
+                throw new Error('the "execArgv" options needs to be a list of strings')
             }
         },
         default: []
