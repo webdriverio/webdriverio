@@ -22,6 +22,10 @@
         "type": "object",
         "description": "An object describing the session's desired capabilities.",
         "required": true
+      }, {
+        "name": "requiredCapabilities",
+        "type": "object",
+        "description": "An object describing the session's required capabilities (Optional)."
       }],
       "returns": {
         "type": "Object",
