@@ -28,9 +28,9 @@
 import { transformToCharString } from '../../utils'
 
 export default function addValue (value) {
-    if (!this.isW3C) {
+    if (!this.isW3C || this.isMobileBrowser) {
         return this.elementSendKeys(this.elementId, transformToCharString(value))
-    }
+    }         
 
     return this.elementSendKeys(this.elementId, value)
 }
