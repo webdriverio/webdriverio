@@ -36,5 +36,17 @@
             "parameters": [{"name": "cssProperty", "type": "string"}],
             "return": "CSSProperty"
         }
+    ],
+    "setTimeout": [
+        {
+            "parameters": [{"name": "timeouts", "type": "Timeouts"}],
+            "return": "undefined"
+        }
+    ],
+    "touchAction": [
+        {
+            "parameters": [{"name": "action", "type": "TouchActions"}],
+            "return": "undefined"
+        }
     ]
 }
