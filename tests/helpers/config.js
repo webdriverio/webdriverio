@@ -7,11 +7,6 @@ exports.config = {
     path: '/',
 
     /**
-     * specify test files in your smoke test
-     */
-    specs: [],
-
-    /**
      * capabilities
      */
     capabilities: [{

@@ -24,6 +24,10 @@ export default class WebdriverMockService {
         this.command.getUrl().reply(200, { value: 'https://mymockpage.com' })
         this.command.getElementRect(ELEMENT_ID).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this.command.getLogTypes().reply(200, { value: [] })
+
+        // in case run with multiremote
+        this.command.newSession().reply(200, newSession)
+        this.command.getTitle().reply(200, { value: 'Mock Page Other Title' })
     }
 
     before () {
