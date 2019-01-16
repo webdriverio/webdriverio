@@ -150,6 +150,10 @@ declare namespace WebdriverIO {
     }
 
     interface Element<T> {
+        addCommand(
+            name: string,
+            func: Function
+        ): undefined;
         // ... element commands ...
     }
 
@@ -160,8 +164,9 @@ declare namespace WebdriverIO {
     interface Browser<T> {
         addCommand(
             name: string,
-            func: Function
-        ): any;
+            func: Function,
+            attachToElement?: boolean
+        ): undefined;
         execute: Execute;
         executeAsync: ExecuteAsync;
         call: Call;
