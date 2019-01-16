@@ -54,6 +54,7 @@ declare namespace WebdriverIO {
     }
 
     interface Options {
+        runner?: string,
         specs?: string[],
         exclude?: string[],
         suites?: object,
