@@ -15,6 +15,38 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.3.3 (2019-01-16)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriverio`
+  * [#3340](https://github.com/webdriverio/webdriverio/pull/3340) Fix error message in webdriverio constants ([@ablok](https://github.com/ablok))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3349](https://github.com/webdriverio/webdriverio/pull/3349) missing lodash in dependencies require('lodash') node_modules/webdriverio/build/commands/element/$.js ([@jimmielemontgomery](https://github.com/jimmielemontgomery))
+* `wdio-local-runner`, `wdio-runner`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#3348](https://github.com/webdriverio/webdriverio/pull/3348) Fix multiremote with wdio testrunner ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-local-runner`
+  * [#3341](https://github.com/webdriverio/webdriverio/pull/3341) Fix VSCode debug mode marking tests as failed ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#3338](https://github.com/webdriverio/webdriverio/pull/3338) Better error handling for webdriver responses ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#3343](https://github.com/webdriverio/webdriverio/pull/3343) Fix addCommand typings and docs ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#3336](https://github.com/webdriverio/webdriverio/pull/3336) Tiny fixes of docs ([@yepninja](https://github.com/yepninja))
+  * [#3335](https://github.com/webdriverio/webdriverio/pull/3335) More typings improvements ([@ablok](https://github.com/ablok))
+
+#### Committers: 5
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jim Montgomery ([@jimmielemontgomery](https://github.com/jimmielemontgomery))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Yevgeny Petukhov ([@yepninja](https://github.com/yepninja))
+
 ## 5.3.2 (2019-01-15)
 
 #### :bug: Bug Fix

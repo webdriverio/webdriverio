@@ -37,7 +37,6 @@ export default class BrowserstackLauncherService {
                     }
                     resolve()
                 })
-                resolve()
             }),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */

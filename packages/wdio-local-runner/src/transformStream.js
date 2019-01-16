@@ -1,4 +1,5 @@
 import { Transform } from 'stream'
+import { DEBUGGER_MESSAGES } from './constants'
 
 export default class RunnerTransformStream extends Transform {
     constructor (cid, emitter) {
@@ -10,7 +11,7 @@ export default class RunnerTransformStream extends Transform {
     _transform(chunk, encoding, callback) {
         const logMsg = chunk.toString()
 
-        if (logMsg.startsWith('Debugger listening on ws')) {
+        if (DEBUGGER_MESSAGES.some(m => logMsg.startsWith(m))) {
             return callback()
         }
 
