@@ -57,6 +57,8 @@ declare namespace WebdriverIO {
         specs?: string[],
         exclude?: string[],
         suites?: object,
+        maxInstances?: number,
+        maxInstancesPerCapability?: number,
         capabilities?: WebDriver.DesiredCapabilities | WebDriver.DesiredCapabilities[],
         outputDir?: string,
         baseUrl?: string,
@@ -66,15 +68,15 @@ declare namespace WebdriverIO {
         framework?: string,
         mochaOpts?: object,
         jasmineNodeOpts?: object,
-        reporters?: string[] | object[],
-        services?: (string | [])[],
+        reporters?: (string | object)[],
+        services?: (string | object)[],
         execArgv?: string[]
     }
 
     interface Hooks {
 
         onPrepare?(
-            config: Options,
+            config: Config,
             capabilities: WebDriver.DesiredCapabilities
         ): void;
 
@@ -95,7 +97,7 @@ declare namespace WebdriverIO {
         beforeHook?(): void;
 
         beforeSession?(
-            config: Options,
+            config: Config,
             capabilities: WebDriver.DesiredCapabilities,
             specs: string[]
         ): void;
@@ -118,7 +120,7 @@ declare namespace WebdriverIO {
         ): void;
 
         afterSession?(
-            config: Options,
+            config: Config,
             capabilities: WebDriver.DesiredCapabilities,
             specs: string[]
         ): void;
@@ -194,7 +196,9 @@ declare namespace WebdriverIO {
         // ... browser commands ...
     }
 
-    type Config = WebDriver.Options & Options & Hooks;
+    type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+    type Config = Options & Omit<WebDriver.Options, "capabilities"> & Hooks;
 }
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;

@@ -84,7 +84,7 @@ declare namespace WebDriver {
     }
 
     interface Capabilities {
-        browserName: string;
+        browserName?: string;
         browserVersion?: string;
         platformName?: string;
         acceptInsecureCerts?: boolean;
