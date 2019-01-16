@@ -83,6 +83,9 @@ export function sanitizeCaps (caps) {
 
 /**
  * initialise browser instance depending whether remote or multiremote is requested
+ * @param  {Object}  config        configuration of sessions
+ * @param  {Object}  capabilities  desired session capabilities
+ * @return {Promise}               resolves with browser object
  */
 export async function initialiseInstance (config, capabilities, isMultiremote) {
     /**
@@ -104,6 +107,7 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
 
     const options = {}
     log.debug('init multiremote session')
+    delete config.capabilities
     for (let browserName of Object.keys(capabilities)) {
         options[browserName] = merge(config, capabilities[browserName], MERGE_OPTIONS)
     }

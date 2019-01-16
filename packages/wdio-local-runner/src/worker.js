@@ -32,7 +32,7 @@ export default class WorkerInstance extends EventEmitter {
         this.configFile = configFile
         this.caps = caps
         this.specs = specs
-        this.server = server
+        this.server = server || {}
         this.execArgv = execArgv
         this.isBusy = false
     }

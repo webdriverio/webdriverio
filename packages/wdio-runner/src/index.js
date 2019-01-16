@@ -23,7 +23,7 @@ export default class Runner extends EventEmitter {
      * @param  {String}    cid            worker id (e.g. `0-0`)
      * @param  {Object}    argv           cli arguments passed into wdio command
      * @param  {String[]}  specs          list of spec files to run
-     * @param  {Object}    caps           capabilties to run session with
+     * @param  {Object}    caps           capabilities to run session with
      * @param  {String}    configFile     path to config file to get config from
      * @param  {Object}    server         modified WebDriver target
      * @param  {object}    testData          test data for each run
@@ -49,6 +49,7 @@ export default class Runner extends EventEmitter {
         this.configParser.merge(server)
 
         this.config = this.configParser.getConfig()
+        this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
         this.reporter = new BaseReporter(this.config, this.cid, this.caps)
