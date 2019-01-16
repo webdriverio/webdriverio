@@ -13,6 +13,8 @@ const browserCommands = fs.readdirSync(browserDir)
 
 let allTypeLines = []
 
+const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
+
 const changeType = (text) => {
     if (text.indexOf('Array.') > -1) {
         const arrayText = 'Array.<'
@@ -83,23 +85,23 @@ const gatherCommands = (commandPath, commandFile) => {
             }
             if (type === 'param') {
                 let commandTypes = getTypes(types, true)
-    
+
                 // console.log(commandTag.name)
                 if (name.indexOf('.') < 0) {
                     allParameters.push(`${name}${optional ? '?' : ''}: ${commandTypes}`)
                 }
             }
-    
+
             if (type === 'return') {
                 returnType = getTypes(types, false)
             }
         }
-    
-        if (!['execute', 'executeAsync', 'waitUntil', 'call'].includes(commandName)) {
+
+        if (!EXCLUDED_COMMANDS.includes(commandName)) {
             allTypeLines.push(`${commandName}(${allParameters.length > 0 ? '\n            ' : ''}${allParameters.join(',\n            ')}${allParameters.length > 0 ? '\n        ' : ''}): ${returnType}`)
         }
     }
-    
+
 
     return allTypeLines
 }

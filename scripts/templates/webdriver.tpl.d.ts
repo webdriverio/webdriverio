@@ -201,6 +201,12 @@ declare namespace WebDriver {
 
         // wdio-sauce-service specific
         build?: string;
+
+        // Appium
+        deviceName?: string;
+        platformVersion?: string;
+        app?: string;
+        udid?: string;
     }
 
     interface Options {

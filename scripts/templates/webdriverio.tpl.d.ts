@@ -57,7 +57,7 @@ declare namespace WebdriverIO {
         specs?: string[],
         exclude?: string[],
         suites?: object,
-        capabilities?: WebDriver.DesiredCapabilities|WebDriver.DesiredCapabilities[],
+        capabilities?: WebDriver.DesiredCapabilities | WebDriver.DesiredCapabilities[],
         outputDir?: string,
         baseUrl?: string,
         bail?: number,
@@ -67,7 +67,7 @@ declare namespace WebdriverIO {
         mochaOpts?: object,
         jasmineNodeOpts?: object,
         reporters?: string[] | object[],
-        services?: (string|[])[],
+        services?: (string | [])[],
         execArgv?: string[]
     }
 
@@ -126,13 +126,13 @@ declare namespace WebdriverIO {
         afterSuite?(suite: Suite): void;
         afterTest?(test: Test): void;
 
-         // cucumber specific hooks
-         beforeFeature?(feature: string): void;
-         beforeScenario?(scenario: string): void;
-         beforeStep?(step: string): void;
-         afterFeature?(feature: string): void;
-         afterScenario?(scenario: any): void;
-         afterStep?(stepResult: any): void;
+        // cucumber specific hooks
+        beforeFeature?(feature: string): void;
+        beforeScenario?(scenario: string): void;
+        beforeStep?(step: string): void;
+        afterFeature?(feature: string): void;
+        afterScenario?(scenario: any): void;
+        afterStep?(stepResult: any): void;
     }
 
     interface Suite {
@@ -149,6 +149,15 @@ declare namespace WebdriverIO {
         duration: any;
     }
 
+    type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
+    interface TouchAction {
+        action: ActionTypes,
+        x?: number,
+        y?: number,
+        element?: Element<void>
+    }
+    type TouchActions = string | TouchAction | TouchAction[];
+
     interface Element<T> {
         addCommand(
             name: string,
@@ -160,6 +169,11 @@ declare namespace WebdriverIO {
     type Execute = <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => T;
     type ExecuteAsync = (script: string | ((...arguments: any[]) => any), ...arguments: any[]) => any;
     type Call = <T>(callback: Function) => T;
+    interface Timeouts {
+        implicit?: number,
+        pageLoad?: number,
+        script?: number
+    }
 
     interface Browser<T> {
         addCommand(
@@ -172,7 +186,7 @@ declare namespace WebdriverIO {
         call: Call;
         options: Options;
         waitUntil(
-            condition: Function,
+            condition: () => boolean,
             timeout?: number,
             timeoutMsg?: string,
             interval?: number
