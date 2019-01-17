@@ -285,7 +285,6 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
         isMobile: isMobile(capabilities),
-        isMobileBrowser: isMobileBrowser(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
