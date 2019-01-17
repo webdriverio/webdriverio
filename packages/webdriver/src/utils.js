@@ -255,18 +255,6 @@ export function isAndroid (caps) {
 }
 
 /**
- * check if current session runs a Mobile Browser test 
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if runs a Mobile Browser test
- */
-export function isMobileBrowser (caps) {
-    return Boolean(
-        (caps.automationName || caps.deviceName) && 
-        (caps.browserName)
-    )
-}
-
-/**
  * detects if session is run on Sauce with extended debugging enabled
  * @param  {string}  hostname     hostname of session request
  * @param  {object}  capabilities session capabilities
