@@ -84,7 +84,7 @@ declare namespace WebDriver {
     }
 
     interface Capabilities {
-        browserName: string;
+        browserName?: string;
         browserVersion?: string;
         platformName?: string;
         acceptInsecureCerts?: boolean;
@@ -201,6 +201,12 @@ declare namespace WebDriver {
 
         // wdio-sauce-service specific
         build?: string;
+
+        // Appium
+        deviceName?: string;
+        platformVersion?: string;
+        app?: string;
+        udid?: string;
     }
 
     interface Options {

@@ -39,7 +39,7 @@
  */
 import { webdriverMonad } from 'webdriver'
 import { wrapCommand } from '@wdio/config'
-import { merge } from 'lodash'
+import merge from 'lodash.merge'
 
 import {findElements, getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse} from '../../utils'
 import { elementErrorHandler } from '../../middlewares'

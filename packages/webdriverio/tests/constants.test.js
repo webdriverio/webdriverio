@@ -36,7 +36,7 @@ describe('constants', () => {
         it('should validate services correctly', () => {
             WDIO_DEFAULTS.services.type(['foobar'])
             WDIO_DEFAULTS.services.type([[]])
-            WDIO_DEFAULTS.services.type([[], 'foobar'])
+            WDIO_DEFAULTS.services.type([['service', {}], 'foobar'])
 
             expect(() => WDIO_DEFAULTS.services.type('foobar')).toThrow()
             expect(() => WDIO_DEFAULTS.services.type(false)).toThrow()

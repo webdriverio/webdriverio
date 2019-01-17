@@ -43,7 +43,7 @@ test('should fork a new process', () => {
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        server: undefined,
+        server: {},
         specs: [ '/foo/bar.test.js' ]
     })
 
