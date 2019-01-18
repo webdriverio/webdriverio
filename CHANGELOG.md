@@ -15,6 +15,34 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.3.4 (2019-01-18)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3368](https://github.com/webdriverio/webdriverio/pull/3368) Acknowledge responses with body as string ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#3352](https://github.com/webdriverio/webdriverio/pull/3352) wdio-browserstack-service: Remove erroneous call to resolve ([@torgeilo](https://github.com/torgeilo))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#3353](https://github.com/webdriverio/webdriverio/pull/3353) wdio-browserstack-service: correcting error message ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :memo: Documentation
+* `wdio-allure-reporter`
+  * [#3363](https://github.com/webdriverio/webdriverio/pull/3363) Update allure docs ([@BorisOsipov](https://github.com/BorisOsipov))
+* `webdriverio`
+  * [#3356](https://github.com/webdriverio/webdriverio/pull/3356) Multiple fixes in typings ([@ablok](https://github.com/ablok))
+* `webdriver`
+  * [#3355](https://github.com/webdriverio/webdriverio/pull/3355) Fix some webdriver and webdriverio typings ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 6
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Torgeir Lorange Østby ([@torgeilo](https://github.com/torgeilo))
+
 ## 5.3.3 (2019-01-16)
 
 #### :eyeglasses: Spec Compliancy
