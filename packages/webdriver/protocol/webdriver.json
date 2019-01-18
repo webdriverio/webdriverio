@@ -788,7 +788,12 @@
         "name": "elementId",
         "description": "the id of an element returned in a previous call to Find Element(s)"
       }],
-      "parameters": [],
+      "parameters": [{
+        "name": "scroll",
+        "type": "boolean",
+        "description": "scroll into view the element. Default: true",
+        "required": false
+      }],
       "returns": {
         "type": "String",
         "name": "screenshot",
