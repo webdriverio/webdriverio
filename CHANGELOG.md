@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.3.5 (2019-01-18)
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#3364](https://github.com/webdriverio/webdriverio/pull/3364) Webdriver truncate log screenshot ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## 5.3.4 (2019-01-18)
 
 #### :bug: Bug Fix
