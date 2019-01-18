@@ -220,7 +220,6 @@ describe('utils', () => {
         expect(getErrorFromResponseBody(null)).toBe(null)
 
         const unknownError = new Error('unknown error')
-        expect(getErrorFromResponseBody('foobar')).toEqual(unknownError)
         expect(getErrorFromResponseBody({})).toEqual(unknownError)
 
         const expectedError = new Error('expected')

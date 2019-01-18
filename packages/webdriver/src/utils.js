@@ -301,7 +301,7 @@ export function getErrorFromResponseBody (body) {
         return null
     }
 
-    if (typeof body === 'string') {
+    if (typeof body === 'string' && body.length) {
         return new Error(body)
     }
 
