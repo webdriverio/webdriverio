@@ -301,6 +301,10 @@ export function getErrorFromResponseBody (body) {
         return null
     }
 
+    if (typeof body === 'string') {
+        return new Error(body)
+    }
+
     if (typeof body !== 'object' || !body.value) {
         return new Error('unknown error')
     }

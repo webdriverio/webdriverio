@@ -224,6 +224,7 @@ describe('utils', () => {
         expect(getErrorFromResponseBody({})).toEqual(unknownError)
 
         const expectedError = new Error('expected')
+        expect(getErrorFromResponseBody('expected')).toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
             .toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
