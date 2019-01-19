@@ -34,8 +34,7 @@ and your `tsconfig.json` needs to look like:
         "*": [ "./*" ],
         "src/*": ["./src/*"]
     },
-    "types": ["node", "webdriverio"]
-    },
+    "types": ["node", "webdriverio"],
     "include": [
         "./src/**/*.ts"
     ]
