@@ -14,7 +14,7 @@ A clear and concise question that doesn't require too much conversation. Need mo
  - **WebdriverIO version:** [e.g. 4.13.2]
  - **Mode:** [Standalone mode or WDIO Testrunner]
  - **If WDIO Testrunner, running sync/async:** [e.g. sync/async]
- - **Node.js version**: [e.g. 8.9.1]
+ - **Node.js version:** [e.g. 8.9.1]
  - **NPM version:** [e.g. 5.8.0]
  - **Browser name and version:** [e.g. Chrome 68]
  - **Platform name and version:** [e.g. Windows 10]
