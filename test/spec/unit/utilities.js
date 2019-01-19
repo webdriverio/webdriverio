@@ -87,6 +87,10 @@ describe('utilities', () => {
             expect(isUnknownCommand({
                 message: 'POST /session/foobar/keys did not match a known command'
             })).to.be.equal(true)
+
+            expect(isUnknownCommand({
+                message: 'Command not found: ...'
+            })).to.be.equal(true)
         })
 
         it('should recognise unknown command when using selenium standalone', () => {
