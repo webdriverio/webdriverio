@@ -29,10 +29,7 @@ class Launcher {
         }
 
         const totalWorkerCnt = Array.isArray(capabilities)
-            ? capabilities
-                .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
-                .reduce((a, b) => a + b, 0)
-            : 1
+            ? (capabilities.map((c) => this.calculateWorkerCountForCapability(c), this).reduce((a, b) => a + b, 0)): 1
 
         this.interface = new CLInterface(config, specs, totalWorkerCnt)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
@@ -49,6 +46,21 @@ class Launcher {
         this.runnerStarted = 0
         this.runnerFailed = 0
     }
+
+    /**
+     * calculates the worker count based on dataprovider injected for each spec file
+     * @return {Number} the worker count required for each capability
+     */
+    calculateWorkerCountForCapability(c) {
+        let capabilityWorkerCount = 0
+        let specs = this.configParser.getSpecs(c.specs, c.exclude)
+        specs.forEach(function(spec) {
+            let dataProvider = this.dataProvidersMap[spec]
+            let dataProviderSpecsCount = (dataProvider === undefined) ? 1 : dataProvider.dataSet.length
+            capabilityWorkerCount += dataProviderSpecsCount
+        }, this)
+        return capabilityWorkerCount
+    } 
 
     /**
      * run sequence
@@ -202,11 +214,21 @@ class Launcher {
                 break
             }
 
-            let specFile = schedulableCaps[0].specs[0];
+            let specFile = schedulableCaps[0].specs[0]
             let dataProvider = this.dataProvidersMap[specFile]
+            let testData = ""
             
-            if (!dataProvider || dataProvider.dataSet.length <= 1) {
+            if (dataProvider === undefined) {
                 schedulableCaps[0].specs.shift()
+            }
+            else {
+                if (dataProvider.dataSet.length <= 1) {
+                    schedulableCaps[0].specs.shift()
+                }  
+
+                if (dataProvider.dataSet.length > 0) {
+                    testData = dataProvider.dataSet.shift()
+                }
             }
 
             this.startInstance(
@@ -214,7 +236,7 @@ class Launcher {
                 schedulableCaps[0].caps,
                 schedulableCaps[0].cid,
                 schedulableCaps[0].seleniumServer,
-                dataProvider.dataSet.shift()
+                testData
             )
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
