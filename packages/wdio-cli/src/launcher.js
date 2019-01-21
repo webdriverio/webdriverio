@@ -18,6 +18,8 @@ class Launcher {
         this.configParser.addConfigFile(configFile)
         this.configParser.merge(argv)
 
+        this.dataProvidersMap = this.configParser.getDataProviders()
+
         const config = this.configParser.getConfig()
         const capabilities = this.configParser.getCapabilities()
         const specs = this.configParser.getSpecs()
@@ -27,10 +29,7 @@ class Launcher {
         }
 
         const totalWorkerCnt = Array.isArray(capabilities)
-            ? capabilities
-                .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
-                .reduce((a, b) => a + b, 0)
-            : 1
+            ? (capabilities.map((c) => this.calculateWorkerCountForCapability(c), this).reduce((a, b) => a + b, 0)): 1
 
         this.interface = new CLInterface(config, specs, totalWorkerCnt)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
@@ -47,6 +46,21 @@ class Launcher {
         this.runnerStarted = 0
         this.runnerFailed = 0
     }
+
+    /**
+     * calculates the worker count based on dataprovider injected for each spec file
+     * @return {Number} the worker count required for each capability
+     */
+    calculateWorkerCountForCapability(c) {
+        let capabilityWorkerCount = 0
+        let specs = this.configParser.getSpecs(c.specs, c.exclude)
+        specs.forEach(function(spec) {
+            let dataProvider = this.dataProvidersMap[spec]
+            let dataProviderSpecsCount = (dataProvider === undefined) ? 1 : dataProvider.dataSet.length
+            capabilityWorkerCount += dataProviderSpecsCount
+        }, this)
+        return capabilityWorkerCount
+    } 
 
     /**
      * run sequence
@@ -151,7 +165,6 @@ class Launcher {
      */
     runSpecs () {
         let config = this.configParser.getConfig()
-
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -201,11 +214,29 @@ class Launcher {
                 break
             }
 
+            let specFile = schedulableCaps[0].specs[0]
+            let dataProvider = this.dataProvidersMap[specFile]
+            let testData = ""
+            
+            if (dataProvider === undefined) {
+                schedulableCaps[0].specs.shift()
+            }
+            else {
+                if (dataProvider.dataSet.length <= 1) {
+                    schedulableCaps[0].specs.shift()
+                }  
+
+                if (dataProvider.dataSet.length > 0) {
+                    testData = dataProvider.dataSet.shift()
+                }
+            }
+
             this.startInstance(
-                [schedulableCaps[0].specs.shift()],
+                [specFile],
                 schedulableCaps[0].caps,
                 schedulableCaps[0].cid,
-                schedulableCaps[0].seleniumServer
+                schedulableCaps[0].seleniumServer,
+                testData
             )
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
@@ -235,7 +266,7 @@ class Launcher {
      * @param  {Array} specs  Specs to run
      * @param  {Number} cid  Capabilities ID
      */
-    startInstance (specs, caps, cid, server) {
+    startInstance (specs, caps, cid, server, testData = '') {
         let config = this.configParser.getConfig()
         cid = this.getRunnerId(cid)
         let processNumber = this.runnerStarted + 1
@@ -282,6 +313,7 @@ class Launcher {
             command: 'run',
             configFile: this.configFile,
             argv: this.argv,
+            testData,
             caps,
             specs,
             server,

@@ -9,6 +9,8 @@ import { detectBackend } from '../utils'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
 
+import { initializeDataProviders } from '../dataproviders'
+
 const log = logger('wdio-config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
@@ -16,6 +18,7 @@ export default class ConfigParser {
     constructor () {
         this._config = DEFAULT_CONFIGS
         this._capabilities = []
+        this._dataProvidersMap = null
     }
 
     /**
@@ -262,5 +265,12 @@ export default class ConfigParser {
         }
 
         return files
+    }
+
+    getDataProviders () {
+        if (!this._dataProvidersMap) {
+            this._dataProvidersMap = initializeDataProviders(this._config.dataProviders)
+        }
+        return this._dataProvidersMap
     }
 }

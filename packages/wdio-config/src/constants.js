@@ -6,6 +6,7 @@ const NOOP = function () {}
 export const DEFAULT_CONFIGS = {
     sync: true,
     specs: [],
+    dataProviders: [],
     suites: {},
     exclude: [],
     logDir: undefined,
