@@ -13,7 +13,7 @@ export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs, totalWorkerCnt) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.isTTY = process.stdout.isTTY
+        this.isTTY = !!process.stdout.isTTY
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
@@ -117,10 +117,23 @@ export default class WDIOCLInterface extends EventEmitter {
         const runningJobs = this.jobs.size
         const isFinished = runningJobs === 0
 
+        if (this.sigintTriggered) {
+            clearTimeout(this.interval)
+            this.interface.log('\n')
+            return this.interface.log(!isFinished
+                ? 'Ending WebDriver sessions gracefully ...\n' +
+                '(press ctrl+c again to hard kill the runner)'
+                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+            )
+        } else if(isFinished) {
+            return
+        }
+
         /**
-         * check if environment supports ansi and print a limited update if not
+         * check if environment supports ansi or does not
+         * support TTY and print a limited update if not
          */
-        if (!this.hasAnsiSupport && !isFinished) {
+        if (!this.hasAnsiSupport || !this.isTTY) {
             /**
              * only update if a job finishes
              */
@@ -138,11 +151,11 @@ export default class WDIOCLInterface extends EventEmitter {
                 `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`)
         }
 
-        if(!isFinished) {
-            this.interface.clearAll()
-            this.interface.log()
-        }
+        this.interface.clearAll()
 
+        /**
+         * print running jobs
+         */
         for (const [cid, job] of Array.from(this.jobs.entries()).slice(0, MAX_RUNNING_JOBS_DISPLAY_COUNT)) {
             const filename = job.specs.join(', ').replace(process.cwd(), '')
             this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
@@ -171,34 +184,20 @@ export default class WDIOCLInterface extends EventEmitter {
             this.interface.log()
         }
 
-        if (this.interface.isTTY || isFinished  ) {
-            this.interface.log(
-                'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
-                (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
-                totalJobs, 'total',
-                `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
-            )
-        }
+        this.interface.log(
+            'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
+            (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
+            totalJobs, 'total',
+            `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
+        )
 
         this.updateClock()
-
-        if (this.sigintTriggered) {
-            clearTimeout(this.interval)
-            this.interface.log('\n')
-            this.interface.log(!isFinished
-                ? 'Ending WebDriver sessions gracefully ...\n' +
-                  '(press ctrl+c again to hard kill the runner)'
-                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
-            )
-        }
-
-        if (isFinished) {
-            clearTimeout(this.interval)
-            this.interface.log('\n')
-        }
     }
 
     printReporters() {
+        const totalJobs = this.totalWorkerCnt
+
+        this.interface.clearAll()
 
         /**
          * print reporter output
@@ -226,6 +225,14 @@ export default class WDIOCLInterface extends EventEmitter {
                 (e) => e.stack
             ).join('\n') + '\n')
         }
+
+        this.interface.log(
+            'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
+            (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
+            totalJobs, 'total',
+            `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
+        )
+        this.interface.log('Time:\t\t ' + this.getClockSymbol() + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
     }
 
     updateClock (interval = 100) {
