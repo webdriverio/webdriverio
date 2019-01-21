@@ -29,7 +29,7 @@ exports.config = {
     outputDir: path.resolve(__dirname, './logs'),
     framework: 'cucumber',
 
-    reporters: ['dot'],
+    reporters: ['dot', 'spec'],
     cucumberOpts: {
         require: [path.resolve(__dirname, './step-definitions.js')],
         ignoreUndefinedDefinitions: false
