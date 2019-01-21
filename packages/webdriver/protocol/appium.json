@@ -974,7 +974,7 @@
       }
     }
   },
-  "/session/:sessionId/appium/device/gsm_voice": {
+  "/session/:sessionId/appium/device/send_sms": {
     "POST": {
       "command": "sendSms",
       "description": "Simulate an SMS message (Emulator only).",
