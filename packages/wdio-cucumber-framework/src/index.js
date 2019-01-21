@@ -65,6 +65,7 @@ class CucumberAdapter {
         const eventTranslator = new CucumberWdioEventTranslator(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
         // eslint-disable-next-line no-unused-vars
         const hookRunner = new HookRunner(eventBroadcaster, this.config)
+        this.attachCucumberSpecificEventListeners(eventBroadcaster)
 
         const pickleFilter = new Cucumber.PickleFilter({
             featurePaths: this.spec,
@@ -131,6 +132,15 @@ class CucumberAdapter {
             require(absolutePath)
         })
         mockery.disable()
+    }
+
+    attachCucumberSpecificEventListeners(eventBroadcaster) {
+        const listener = new CucumberEventListener(eventBroadcaster)
+        const reporter = this.reporter
+        const cucumberEvents = ['feature:start', 'feature:end', 'scenario:start', 'scenario:end', 'step:start', 'step:end']
+        cucumberEvents.forEach((step) => {
+            listener.on(step, (payload) => reporter.emit(step, payload))
+        })
     }
 }
 

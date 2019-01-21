@@ -152,6 +152,33 @@ export default class WDIOReporter extends EventEmitter {
             this.onRunnerEnd(this.runnerStat)
         })
 
+
+        // Cucumber-specific events
+        this.on('feature:start', /* istanbul ignore next */ ({feature, uri}) => {
+            this.onBeforeFeature(feature, uri)
+        })
+
+        this.on('feature:end', /* istanbul ignore next */ ({feature, uri}) => {
+            this.onAfterFeature(feature, uri)
+        })
+
+        this.on('scenario:start', /* istanbul ignore next */ ({scenario, feature, uri}) => {
+            this.onBeforeScenario(scenario, feature, uri)
+        })
+
+        this.on('scneario:end', /* istanbul ignore next */ ({scenario, feature, uri}) => {
+            this.onAfterScenario(scenario, feature, uri)
+        })
+
+
+        this.on('step:start', /* istanbul ignore next */ ({uri, feature, scenario, step}) => {
+            this.onBeforeStep({...step, feature: feature.name, scenario: scenario.name}, scenario, feature, uri)
+        })
+
+        this.on('setp:end', /* istanbul ignore next */ ({uri, feature, scenario, step, result}) => {
+            this.onAfterStep({...step, feature: feature.name, scenario: scenario.name, status: result.status}, result, scenario, feature, uri)
+        })
+
         /**
          * browser client event handlers
          */
@@ -212,4 +239,19 @@ export default class WDIOReporter extends EventEmitter {
     onSuiteEnd () {}
     /* istanbul ignore next */
     onRunnerEnd () {}
+
+    // Special hooks for cucumber
+
+    /* istanbul ignore next */
+    onBeforeFeature() {}
+    /* istanbul ignore next */
+    onAfterFeature() {}
+    /* istanbul ignore next */
+    onBeforeScenario() {}
+    /* istanbul ignore next */
+    onAfterScenario() {}
+    /* istanbul ignore next */
+    onBeforeStep() {}
+    /* istanbul ignore next */
+    onAfterStep() {}
 }
