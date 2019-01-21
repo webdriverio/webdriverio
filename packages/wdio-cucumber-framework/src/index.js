@@ -6,6 +6,7 @@ import path from 'path'
 import { executeHooksWithArgs } from '@wdio/config'
 import logger from '@wdio/logger'
 import CucumberWdioEventTranslator from './wdioEventTranslator'
+import HookRunner from './hookRunner'
 // import HookRunner from './hookRunner'
 import { EventEmitter } from 'events'
 import { CucumberEventListener } from './eventListener'
@@ -62,6 +63,8 @@ class CucumberAdapter {
         }
 
         const eventTranslator = new CucumberWdioEventTranslator(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+        // eslint-disable-next-line no-unused-vars
+        const hookRunner = new HookRunner(eventBroadcaster, this.config)
 
         const pickleFilter = new Cucumber.PickleFilter({
             featurePaths: this.spec,
