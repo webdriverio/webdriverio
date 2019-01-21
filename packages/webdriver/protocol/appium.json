@@ -666,7 +666,7 @@
         "required": true
       }],
       "support": {
-        "android": {
+        "ios": {
           "XCUITest": "9.3+"
         }
       }
@@ -684,7 +684,7 @@
         "default": true
       }],
       "support": {
-        "android": {
+        "ios": {
           "XCUITest": "9.3+"
         }
       }
