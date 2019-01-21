@@ -21,8 +21,9 @@ The boilerplate holds the following things
 
 This project creates a powerful boilerplate for UI Automation Testing with WebdriverIO, TypeScript, Mocha, Chai and Allure report.
 
-- Framework: WebdriverIO (v5x), TypeScript(v3x), @Types/Mocha (v5x), Chai (v5x), @Wdio/Allure (v5x)
+- Framework: WebdriverIO (v5x), TypeScript(v3x), @Types/Mocha (v5x), Chai (v5x), @Wdio/Allure (v5x), Axe-core(v3x)
 - Features:
+    - Accessibility test with Axe-core
     - TypeScript Page Object Models
     - TypesScript Models
     - Code Prettier
