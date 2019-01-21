@@ -12,7 +12,6 @@ export class CucumberEventListener extends EventEmitter {
 
     constructor (eventBroadcaster) {
         super()
-        // attachEventLogger(eventBroadcaster)
 
         eventBroadcaster
             .on('gherkin-document', this.onGherkinDocument.bind(this))
@@ -65,7 +64,7 @@ export class CucumberEventListener extends EventEmitter {
         const doc = gherkinDocEvent.document
         const feature = doc.feature
 
-        this.emit('before-feature', uri, feature)
+        this.emit('feature:start', {uri, feature})
     }
 
     // pickleEvent = {
@@ -95,7 +94,7 @@ export class CucumberEventListener extends EventEmitter {
 
         this.currentPickle = scenario
 
-        this.emit('before-scenario', uri, feature, scenario)
+        this.emit('scenario:start', {uri, feature, scenario})
     }
 
     // testStepStartedEvent = {
@@ -113,7 +112,7 @@ export class CucumberEventListener extends EventEmitter {
         const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
         const step = getStepFromFeature(feature, this.currentPickle, testStepStartedEvent.index, sourceLocation)
 
-        this.emit('before-step', uri, feature, scenario, step, sourceLocation)
+        this.emit('step:start', {uri, feature, scenario, step, sourceLocation})
     }
 
     // testCasePreparedEvent = {
@@ -171,7 +170,7 @@ export class CucumberEventListener extends EventEmitter {
         const step = getStepFromFeature(feature, this.currentPickle, testStepFinishedEvent.index, sourceLocation)
         const result = testStepFinishedEvent.result
 
-        this.emit('after-step', uri, feature, scenario, step, result, sourceLocation)
+        this.emit('step:end', {uri, feature, scenario, step, result, sourceLocation})
     }
 
     // testCaseFinishedEvent = {
@@ -186,7 +185,7 @@ export class CucumberEventListener extends EventEmitter {
         const feature = doc.feature
         const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
 
-        this.emit('after-scenario', uri, feature, scenario, sourceLocation)
+        this.emit('scenario:end', {uri, feature, scenario, sourceLocation})
 
         this.currentPickle = null
     }
@@ -194,41 +193,15 @@ export class CucumberEventListener extends EventEmitter {
     // testRunFinishedEvent = {
     //     result: { duration: 4004, success: true }
     // }
+    // eslint-disable-next-line no-unused-vars
     onTestRunFinished (testRunFinishedEvent) {
         const gherkinDocEvent = this.gherkinDocEvents.pop() // see .push() in `handleBeforeFeature()`
         const uri = gherkinDocEvent.uri
         const doc = gherkinDocEvent.document
         const feature = doc.feature
 
-        this.emit('after-feature', uri, feature)
+        this.emit('feature:end', {uri, feature})
     }
-}
-
-// eslint-disable-next-line no-unused-vars
-function attachEventLogger (eventBroadcaster) {
-    // for debugging purposed
-    // from https://github.com/cucumber/cucumber-js/blob/v4.1.0/src/formatter/event_protocol_formatter.js
-    const EVENTS = [
-        'source',
-        'attachment',
-        'gherkin-document',
-        'pickle',
-        'pickle-accepted',
-        'pickle-rejected',
-        'test-run-started',
-        'test-case-prepared',
-        'test-case-started',
-        'test-step-started',
-        'test-step-attachment',
-        'test-step-finished',
-        'test-case-finished',
-        'test-run-finished'
-    ]
-    EVENTS.forEach(e => {
-        eventBroadcaster.on(e, x => {
-            console.log('\n-----' + e + ' -----\n' + JSON.stringify(x, null, 2))
-        })
-    })
 }
 
 export function compareScenarioLineWithSourceLine (scenario, sourceLocation) {

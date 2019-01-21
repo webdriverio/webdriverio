@@ -5,10 +5,28 @@ import * as path from 'path'
 import logger from '@wdio/logger'
 
 const SETTLE_TIMEOUT = 5000
-const log = logger('wdio-cucumber-framework')
+const log = logger('wdio-cucumber-framework:CucumberWdioEventTranslator')
 
-class CucumberReporter {
-    gherkinDocEvents = []
+/**
+ * CucumberReporter
+ * responsible for accepting the cucumber specific events emitted by CucumberEventListener
+ * and emitting the standard WebdriverIO test runtime events
+ * The translation is:
+ *
+ * before-feature/after-feature -> suite:start/suite:end
+ * before-scenario/after-scenario -> suite:start/suite:end
+ * before-step/after-step -> test:start/test:end
+ *
+ * The step == test translation doesn't map the semantics of cucumber very well,
+ * but does allow WebdriverIO to maintain behavior that's more consistent with Cucumber's
+ * expected behavior
+ *
+ * Note that if you are building Cucumber-specific functionality, you probably
+ * want to instead rely directly on the Cucumber-specific events
+ */
+// TODO - this class name isn't great, becuase it doesn't capture that this propogates the events
+// as well as translating
+class CucumberWdioEventTranslator {
 
     constructor (eventBroadcaster, options, cid, specs, reporter) {
         this.capabilities = options.capabilities
@@ -22,15 +40,15 @@ class CucumberReporter {
         this.receivedMessages = 0 // number of messages received by the parent
 
         new CucumberEventListener(eventBroadcaster)
-            .on('before-feature', this.handleBeforeFeature.bind(this))
-            .on('before-scenario', this.handleBeforeScenario.bind(this))
-            .on('before-step', this.handleBeforeStep.bind(this))
-            .on('after-step', this.handleAfterStep.bind(this))
-            .on('after-scenario', this.handleAfterScenario.bind(this))
-            .on('after-feature', this.handleAfterFeature.bind(this))
+            .on('feature:start', this.handleBeforeFeature.bind(this))
+            .on('scenario:start', this.handleBeforeScenario.bind(this))
+            .on('step:start', this.handleBeforeStep.bind(this))
+            .on('step:end', this.handleAfterStep.bind(this))
+            .on('scenario:end', this.handleAfterScenario.bind(this))
+            .on('feature:end', this.handleAfterFeature.bind(this))
     }
 
-    handleBeforeFeature (uri, feature) {
+    handleBeforeFeature ({uri, feature}) {
         this.featureStart = new Date()
 
         this.emit('suite:start', {
@@ -42,12 +60,13 @@ class CucumberReporter {
             description: feature.description,
             keyword: feature.keyword
         })
+        this.emit('feature:start', feature)
     }
 
-    handleBeforeScenario (uri, feature, scenario) {
+    handleBeforeScenario ({uri, feature, scenario}) {
         this.scenarioStart = new Date()
         this.testStart = new Date()
-        log.debug(`handling before-scenario event from cucumber: ${JSON.stringify({feature, scenario})}`)
+        log.trace(`handling before-scenario event from cucumber: ${JSON.stringify({feature, scenario})}`)
         this.emit('suite:start', {
             uid: this.getUniqueIdentifier(scenario),
             title: this.getTitle(scenario),
@@ -58,7 +77,7 @@ class CucumberReporter {
         })
     }
 
-    handleBeforeStep (uri, feature, scenario, step, sourceLocation) {
+    handleBeforeStep ({uri, feature, scenario, step, sourceLocation}) {
         this.testStart = new Date()
         log.debug(`handling before-step event from cucumber: ${JSON.stringify({feature, scenario, step})}`)
         this.emit('test:start', {
@@ -75,7 +94,7 @@ class CucumberReporter {
         })
     }
 
-    handleAfterStep (uri, feature, scenario, step, result, sourceLocation) {
+    handleAfterStep ({uri, feature, scenario, step, result, sourceLocation}) {
         log.debug(`handling after-step event from cucumber: ${JSON.stringify({feature, scenario, step, result})}`)
         let e = 'undefined'
         switch (result.status) {
@@ -159,7 +178,7 @@ class CucumberReporter {
         })
     }
 
-    handleAfterScenario (uri, feature, scenario, sourceLocation) {
+    handleAfterScenario ({uri, feature, scenario, sourceLocation}) {
         log.debug(`Handling after-scenario event from cucumber ${JSON.stringify({feature, scenario, sourceLocation})}`)
         this.emit('suite:end', {
             uid: this.getUniqueIdentifier(scenario, sourceLocation),
@@ -172,7 +191,7 @@ class CucumberReporter {
         })
     }
 
-    handleAfterFeature (uri, feature) {
+    handleAfterFeature ({uri, feature}) {
         this.emit('suite:end', {
             uid: this.getUniqueIdentifier(feature),
             title: this.getTitle(feature),
@@ -193,7 +212,7 @@ class CucumberReporter {
             parent: payload.parent || null,
             type: payload.type,
             file: payload.file,
-            err: payload.error || {},
+            error: payload.error || {},
             duration: payload.duration,
             runner: {
                 [this.cid]: this.capabilities
@@ -207,6 +226,7 @@ class CucumberReporter {
             argument: payload.argument
         }
 
+        log.trace(`Emitting WDIO event of type ${event} with payload: ${JSON.stringify(message)}`)
         this.reporter.emit(event, message)
     }
 
@@ -275,4 +295,4 @@ class CucumberReporter {
     }
 }
 
-export default CucumberReporter
+export default CucumberWdioEventTranslator

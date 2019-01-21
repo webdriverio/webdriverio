@@ -5,10 +5,10 @@ import glob from 'glob'
 import path from 'path'
 import { executeHooksWithArgs } from '@wdio/config'
 import logger from '@wdio/logger'
-import CucumberReporter from './reporter'
-
+import CucumberWdioEventTranslator from './wdioEventTranslator'
 // import HookRunner from './hookRunner'
 import { EventEmitter } from 'events'
+import { CucumberEventListener } from './eventListener'
 
 const DEFAULT_TIMEOUT = 30000
 const DEFAULT_OPTS = {
@@ -30,7 +30,7 @@ const DEFAULT_OPTS = {
     timeout: DEFAULT_TIMEOUT // <number> timeout for step definitions in milliseconds
 }
 
-const log = logger('wdio-cucumber-framework')
+const log = logger('wdio-cucumber-framework:CucumberAdapter')
 
 class CucumberAdapter {
     constructor (cid, config, specs, capabilities, reporter) {
@@ -60,7 +60,8 @@ class CucumberAdapter {
             failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
             tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
         }
-        const reporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+
+        const eventTranslator = new CucumberWdioEventTranslator(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
 
         const pickleFilter = new Cucumber.PickleFilter({
             featurePaths: this.spec,
@@ -84,7 +85,7 @@ class CucumberAdapter {
         await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
         const result = await runtime.start()
         await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
-        await reporter.waitUntilSettled()
+        await eventTranslator.waitUntilSettled()
         log.debug(`full result from cucumber ${JSON.stringify(runtime.result)}`)
         return result ? 0 : 1
     }
