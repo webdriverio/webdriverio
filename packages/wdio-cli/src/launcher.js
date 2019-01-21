@@ -324,21 +324,10 @@ class Launcher {
             return
         }
 
-        if (passed) {
-            return process.nextTick(() => {
-                this.interface.updateView()
-                this.interface.reset()
-                setTimeout(() => this.resolve(this.exitCode), 100)
-            })
-        }
-
-        /**
-         * finish with exit code 1
-         */
         return process.nextTick(() => {
-            this.interface.updateView()
-            this.interface.reset()
-            setTimeout(() => this.resolve(1), 100)
+            //this.interface.reset()
+            this.interface.printReporters()
+            setTimeout(() => this.resolve(passed ? this.exitCode: 1), 100)
         })
     }
 

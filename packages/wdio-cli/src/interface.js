@@ -13,6 +13,7 @@ export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs, totalWorkerCnt) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
+        this.isTTY = process.stdout.isTTY
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
@@ -137,21 +138,11 @@ export default class WDIOCLInterface extends EventEmitter {
                 `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`)
         }
 
-        this.interface.clearAll()
-        this.interface.log()
-
-        /**
-         * print reporter output
-         */
-        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
-            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
-            this.interface.log(messages.join(''))
+        if(!isFinished) {
+            this.interface.clearAll()
             this.interface.log()
         }
 
-        /**
-         * print running jobs
-         */
         for (const [cid, job] of Array.from(this.jobs.entries()).slice(0, MAX_RUNNING_JOBS_DISPLAY_COUNT)) {
             const filename = job.specs.join(', ').replace(process.cwd(), '')
             this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
@@ -174,38 +165,20 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         /**
-         * print stdout and stderr from runners
-         */
-        if (isFinished) {
-            /* istanbul ignore else */
-            if (this.interface.stdoutBuffer.length) {
-                this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
-            }
-            /* istanbul ignore else */
-            if (this.interface.stderrBuffer.length) {
-                this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
-            }
-            /* istanbul ignore else */
-            if (this.messages.worker.error) {
-                this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
-                    (e) => e.stack
-                ).join('\n') + '\n')
-            }
-        }
-
-        /**
          * add empty line between "pending tests" and results
          */
         if (this.jobs.size) {
             this.interface.log()
         }
 
-        this.interface.log(
-            'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
-            (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
-            totalJobs, 'total',
-            `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
-        )
+        if (this.interface.isTTY || isFinished  ) {
+            this.interface.log(
+                'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
+                (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
+                totalJobs, 'total',
+                `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
+            )
+        }
 
         this.updateClock()
 
@@ -222,6 +195,36 @@ export default class WDIOCLInterface extends EventEmitter {
         if (isFinished) {
             clearTimeout(this.interval)
             this.interface.log('\n')
+        }
+    }
+
+    printReporters() {
+
+        /**
+         * print reporter output
+         */
+        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
+            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
+            this.interface.log(messages.join(''))
+            this.interface.log()
+        }
+
+        /**
+         * print stdout and stderr from runners
+         */
+        /* istanbul ignore else */
+        if (this.interface.stdoutBuffer.length) {
+            this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
+        }
+        /* istanbul ignore else */
+        if (this.interface.stderrBuffer.length) {
+            this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
+        }
+        /* istanbul ignore else */
+        if (this.messages.worker.error) {
+            this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
+                (e) => e.stack
+            ).join('\n') + '\n')
         }
     }
 
