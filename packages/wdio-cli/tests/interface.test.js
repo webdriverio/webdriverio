@@ -112,6 +112,7 @@ describe('cli interface', () => {
     })
 
     it('should update view if ansi is supported', () => {
+        wdioClInterface.isTTY = true
         wdioClInterface.hasAnsiSupport = true
         wdioClInterface.updateClock = jest.fn()
         wdioClInterface.specs = [1, 2, 3, 4, 5]
@@ -125,12 +126,12 @@ describe('cli interface', () => {
         }
 
         wdioClInterface.updateView()
-        expect(wdioClInterface.interface.log.mock.calls).toHaveLength(7)
+        expect(wdioClInterface.interface.log.mock.calls).toHaveLength(6)
         expect(wdioClInterface.interface.log.mock.calls[1][0])
             .toBe('black  RUNNING ', '0-0', 'in', 'chrome', '-', '/foo/bar.js')
         expect(wdioClInterface.interface.log.mock.calls[1][0])
             .toBe('black  RUNNING ', '0-1', 'in', 'firefox', '-', '/bar/foo.js')
-        expect(wdioClInterface.interface.log.mock.calls[6].join(' '))
+        expect(wdioClInterface.interface.log.mock.calls[5].join(' '))
             .toContain('(60% completed)')
 
         wdioClInterface.interface.log.mockClear()
@@ -160,12 +161,37 @@ describe('cli interface', () => {
         wdioClInterface.updateView()
 
         output = flatten(wdioClInterface.interface.log.mock.calls)
+        expect(output).toContain('Ended WebDriver sessions gracefully after a SIGINT signal was received!')
+    })
+
+    it('should print the reporters when printReporters is called', () => {
+        wdioClInterface.onMessage({
+            origin: 'reporter',
+            name: 'foo',
+            content: 'some reporter output'
+        })
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'error',
+            content: { stack: 'foobar' }
+        })
+        wdioClInterface.result.finished = 5
+        wdioClInterface.result.passed = 3
+        wdioClInterface.interface.stdoutBuffer = ['foo', 'bar']
+        wdioClInterface.interface.stderrBuffer = ['bar', 'foo']
+
+        wdioClInterface.updateView()
+        let output = flatten(wdioClInterface.interface.log.mock.calls)
+        expect(output.length).toBe(0)
+
+        wdioClInterface.printReporters()
+
+        output = flatten(wdioClInterface.interface.log.mock.calls)
         expect(output).toContain('black "foo" Reporter:')
         expect(output).toContain('black Stdout:\nfoobar')
         expect(output).toContain('black Stderr:\nbarfoo')
         expect(output).toContain('black Worker Error:\nfoobar\n')
         expect(output).toContain('(100% completed)')
-        expect(output).toContain('Ended WebDriver sessions gracefully after a SIGINT signal was received!')
     })
 
     it('should be able to mark display when SIGINT is called', () => {
