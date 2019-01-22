@@ -326,7 +326,7 @@ class Launcher {
 
         return process.nextTick(() => {
             this.interface.printReporters()
-            setTimeout(() => this.resolve(passed ? this.exitCode: 1), 100)
+            setTimeout(() => this.resolve(passed ? this.exitCode : 1), 100)
         })
     }
 

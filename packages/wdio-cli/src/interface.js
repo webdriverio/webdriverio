@@ -184,19 +184,11 @@ export default class WDIOCLInterface extends EventEmitter {
             this.interface.log()
         }
 
-        this.interface.log(
-            'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
-            (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
-            totalJobs, 'total',
-            `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
-        )
-
+        this.printSummary()
         this.updateClock()
     }
 
     printReporters() {
-        const totalJobs = this.totalWorkerCnt
-
         this.interface.clearAll()
 
         /**
@@ -226,13 +218,19 @@ export default class WDIOCLInterface extends EventEmitter {
             ).join('\n') + '\n')
         }
 
-        this.interface.log(
+        this.printSummary()
+        this.interface.log('Time:\t\t ' + this.getClockSymbol() + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
+    }
+
+    printSummary() {
+        const totalJobs = this.totalWorkerCnt
+
+        return this.interface.log(
             'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
             (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
             totalJobs, 'total',
             `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
         )
-        this.interface.log('Time:\t\t ' + this.getClockSymbol() + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
     }
 
     updateClock (interval = 100) {
