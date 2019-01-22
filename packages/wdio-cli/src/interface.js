@@ -125,7 +125,9 @@ export default class WDIOCLInterface extends EventEmitter {
                 '(press ctrl+c again to hard kill the runner)'
                 : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
             )
-        } else if(isFinished) {
+        }
+
+        if(isFinished) {
             return
         }
 
@@ -190,6 +192,7 @@ export default class WDIOCLInterface extends EventEmitter {
 
     printReporters() {
         this.interface.clearAll()
+        this.interface.log()
 
         /**
          * print reporter output
@@ -203,15 +206,12 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * print stdout and stderr from runners
          */
-        /* istanbul ignore else */
         if (this.interface.stdoutBuffer.length) {
             this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
         }
-        /* istanbul ignore else */
         if (this.interface.stderrBuffer.length) {
             this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
         }
-        /* istanbul ignore else */
         if (this.messages.worker.error) {
             this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
                 (e) => e.stack
