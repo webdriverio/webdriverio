@@ -68,7 +68,7 @@ export default class WebDriverRequest extends EventEmitter {
         requestOptions.uri = url.parse(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            path.join(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
+            path.join(options.path, this.endpoint.replace(':sessionId', sessionId))
         )
 
         /**

@@ -154,6 +154,7 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         this.interface.clearAll()
+        this.interface.log()
 
         /**
          * print running jobs
@@ -220,6 +221,9 @@ export default class WDIOCLInterface extends EventEmitter {
 
         this.printSummary()
         this.interface.log('Time:\t\t ' + this.getClockSymbol() + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
+
+        clearTimeout(this.interval)
+        this.interface.log()
     }
 
     printSummary() {
