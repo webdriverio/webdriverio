@@ -163,6 +163,24 @@
       }]
     }
   },
+  "/session/:sessionId/window/new": {
+    "GET": {
+      "command": "createWindow",
+      "description": "Create a new top-level browsing context.",
+      "ref": "https://w3c.github.io/webdriver/#new-window",
+      "parameters": [{
+        "name": "type",
+        "type": "string",
+        "description": "Set to 'tab' if the newly created window shares an OS-level window with the current browsing context, or 'window' otherwise.",
+        "required": true
+      }],
+      "returns": {
+        "type": "Object",
+        "name": "window",
+        "description": "New window object containing 'handle' with the value of the handle and 'type' with the value of the created window type"
+      }
+    }
+  },
   "/session/:sessionId/window/handles": {
     "GET": {
       "command": "getWindowHandles",
