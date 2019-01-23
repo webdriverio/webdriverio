@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.1 (2019-01-23)
+
+#### :nail_care: Polish
+* `wdio-logger`
+  * [#3398](https://github.com/webdriverio/webdriverio/pull/3398) guard against bad console method access in web version of logger ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 1
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
 ## 5.4.0 (2019-01-23)
 
 #### :eyeglasses: Spec Compliancy
