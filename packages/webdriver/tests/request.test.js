@@ -53,7 +53,8 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', '/session', { some: 'body' })
             const options = req._createOptions({
                 user: 'foo',
-                key: 'bar'
+                key: 'bar',
+                path: '/'
             })
             expect(options.auth).toEqual({ pass: 'bar', user: 'foo' })
             expect(options.body).toEqual({ some: 'body' })
@@ -61,19 +62,19 @@ describe('webdriver request', () => {
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', () => {
             const req = new WebDriverRequest('DELETE', '/session', {})
-            const options = req._createOptions({})
+            const options = req._createOptions({ path: '/' })
             expect(Boolean(options.body)).toEqual(false)
         })
 
         it('sets request body to "undefined" when request object is empty and GET is used', () => {
             const req = new WebDriverRequest('GET', '/title', {})
-            const options = req._createOptions({})
+            const options = req._createOptions({ path: '/' })
             expect(Boolean(options.body)).toEqual(false)
         })
 
         it('should attach an empty object body when POST is used', () => {
             const req = new WebDriverRequest('POST', '/status', {})
-            const options = req._createOptions({})
+            const options = req._createOptions({ path: '/' })
             expect(options.body).toEqual({})
         })
     })
