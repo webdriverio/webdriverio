@@ -126,12 +126,12 @@ describe('cli interface', () => {
         }
 
         wdioClInterface.updateView()
-        expect(wdioClInterface.interface.log.mock.calls).toHaveLength(6)
+        expect(wdioClInterface.interface.log.mock.calls).toHaveLength(7)
         expect(wdioClInterface.interface.log.mock.calls[1][0])
             .toBe('black  RUNNING ', '0-0', 'in', 'chrome', '-', '/foo/bar.js')
         expect(wdioClInterface.interface.log.mock.calls[1][0])
             .toBe('black  RUNNING ', '0-1', 'in', 'firefox', '-', '/bar/foo.js')
-        expect(wdioClInterface.interface.log.mock.calls[5].join(' '))
+        expect(wdioClInterface.interface.log.mock.calls[6].join(' '))
             .toContain('(60% completed)')
 
         wdioClInterface.interface.log.mockClear()
