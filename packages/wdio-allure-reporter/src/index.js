@@ -117,6 +117,12 @@ class AllureReporter extends WDIOReporter {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
                 this.dumpJSON('Response', command.result.value)
             }
+
+            const suite = this.allure.getCurrentSuite()
+            if (!suite || !(suite.currentStep instanceof Step)) {
+                return
+            }
+
             this.allure.endStep(testStatuses.PASSED)
         }
     }
