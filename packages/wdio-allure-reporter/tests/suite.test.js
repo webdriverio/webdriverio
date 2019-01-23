@@ -257,6 +257,27 @@ describe('selenium command reporting', () => {
         expect(allureXml('step > name')).toHaveLength(0)
     })
 
+    it('should not end step if it was not started', () => {
+        const allureOptions = {
+            stdout: true,
+            outputDir
+        }
+        const reporter = new AllureReporter(allureOptions)
+        reporter.onRunnerStart(Object.assign(runnerStart(), {isMultiremote: true}))
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onAfterCommand(commandEnd())
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const results = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        const allureXml = results[0]
+
+        expect(allureXml('step > name')).toHaveLength(0)
+    })
+
     it('should not add step if disableWebdriverStepsReporting = true', () => {
         const allureOptions = {
             stdout: true,
