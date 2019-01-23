@@ -1,6 +1,6 @@
 import {
     isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody
+    environmentDetector, getErrorFromResponseBody, isW3C
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -119,6 +119,7 @@ describe('utils', () => {
             expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(false)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
+            expect(isW3C()).toBe(false)
         })
 
         it('isChrome', () => {

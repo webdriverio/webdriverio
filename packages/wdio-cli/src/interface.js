@@ -13,6 +13,7 @@ export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs, totalWorkerCnt) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
+        this.isTTY = !!process.stdout.isTTY
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
@@ -116,10 +117,25 @@ export default class WDIOCLInterface extends EventEmitter {
         const runningJobs = this.jobs.size
         const isFinished = runningJobs === 0
 
+        if (this.sigintTriggered) {
+            clearTimeout(this.interval)
+            this.interface.log('\n')
+            return this.interface.log(!isFinished
+                ? 'Ending WebDriver sessions gracefully ...\n' +
+                '(press ctrl+c again to hard kill the runner)'
+                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+            )
+        }
+
+        if(isFinished) {
+            return
+        }
+
         /**
-         * check if environment supports ansi and print a limited update if not
+         * check if environment supports ansi or does not
+         * support TTY and print a limited update if not
          */
-        if (!this.hasAnsiSupport && !isFinished) {
+        if (!this.hasAnsiSupport || !this.isTTY) {
             /**
              * only update if a job finishes
              */
@@ -139,15 +155,6 @@ export default class WDIOCLInterface extends EventEmitter {
 
         this.interface.clearAll()
         this.interface.log()
-
-        /**
-         * print reporter output
-         */
-        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
-            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
-            this.interface.log(messages.join(''))
-            this.interface.log()
-        }
 
         /**
          * print running jobs
@@ -174,55 +181,60 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         /**
-         * print stdout and stderr from runners
-         */
-        if (isFinished) {
-            /* istanbul ignore else */
-            if (this.interface.stdoutBuffer.length) {
-                this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
-            }
-            /* istanbul ignore else */
-            if (this.interface.stderrBuffer.length) {
-                this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
-            }
-            /* istanbul ignore else */
-            if (this.messages.worker.error) {
-                this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
-                    (e) => e.stack
-                ).join('\n') + '\n')
-            }
-        }
-
-        /**
          * add empty line between "pending tests" and results
          */
         if (this.jobs.size) {
             this.interface.log()
         }
 
-        this.interface.log(
+        this.printSummary()
+        this.updateClock()
+    }
+
+    printReporters() {
+        this.interface.clearAll()
+        this.interface.log()
+
+        /**
+         * print reporter output
+         */
+        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
+            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
+            this.interface.log(messages.join(''))
+            this.interface.log()
+        }
+
+        /**
+         * print stdout and stderr from runners
+         */
+        if (this.interface.stdoutBuffer.length) {
+            this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
+        }
+        if (this.interface.stderrBuffer.length) {
+            this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
+        }
+        if (this.messages.worker.error) {
+            this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
+                (e) => e.stack
+            ).join('\n') + '\n')
+        }
+
+        this.printSummary()
+        this.interface.log('Time:\t\t ' + this.getClockSymbol() + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
+
+        clearTimeout(this.interval)
+        this.interface.log()
+    }
+
+    printSummary() {
+        const totalJobs = this.totalWorkerCnt
+
+        return this.interface.log(
             'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
             (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
             totalJobs, 'total',
             `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
         )
-
-        this.updateClock()
-
-        if (this.sigintTriggered) {
-            clearTimeout(this.interval)
-            this.interface.log('\n')
-            this.interface.log(!isFinished
-                ? 'Ending WebDriver sessions gracefully ...\n' +
-                  '(press ctrl+c again to hard kill the runner)'
-                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
-            )
-        }
-
-        if (isFinished) {
-            clearTimeout(this.interval)
-            this.interface.log('\n')
-        }
     }
 
     updateClock (interval = 100) {

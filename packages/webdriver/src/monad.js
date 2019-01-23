@@ -4,8 +4,8 @@ import logger from '@wdio/logger'
 import { commandCallStructure } from './utils'
 
 const SCOPE_TYPES = {
-    'browser': function Browser () {},
-    'element': function Element () {}
+    'browser': /* istanbul ignore next */ function Browser () {},
+    'element': /* istanbul ignore next */ function Element () {}
 }
 
 export default function WebDriver (options, modifier, propertiesObject = {}) {
