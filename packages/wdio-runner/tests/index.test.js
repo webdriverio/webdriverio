@@ -97,4 +97,52 @@ describe('wdio-runner', () => {
             expect(end - start).toBeGreaterThanOrEqual(200)
         })
     })
+
+    describe('run', () => {
+        it('should fail if log file is corrupted', async () => {
+            const runner = new WDIORunner()
+            runner._shutdown = jest.fn()
+            runner.configParser.addConfigFile = jest.fn().mockImplementation(
+                () => { throw new Error('boom') })
+            await runner.run({})
+
+            expect(runner._shutdown).toBeCalledWith(1)
+        })
+
+        it('should fail if init session fails', async () => {
+            const runner = new WDIORunner()
+            const beforeSession = jest.fn()
+            const caps = { browserName: '123' }
+            const specs = ['foobar']
+            const config = {
+                reporters: [],
+                beforeSession: [beforeSession]
+            }
+            runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner._shutdown = jest.fn()
+            runner._initSession = jest.fn().mockReturnValue(null)
+            await runner.run({
+                argv: { reporters: [] },
+                cid: '0-0',
+                caps,
+                specs
+            })
+
+            expect(runner._shutdown).toBeCalledWith(1)
+            expect(beforeSession).toBeCalledWith(config, caps, specs)
+        })
+    })
+
+    describe('_shutdown', () => {
+        it('should emit exit', async () => {
+            const runner = new WDIORunner()
+            runner.reporter = { waitForSync: jest.fn()
+                .mockReturnValue(Promise.resolve()) }
+            runner.emit = jest.fn()
+
+            expect(await runner._shutdown(123)).toBe(123)
+            expect(runner.reporter.waitForSync).toBeCalledTimes(1)
+            expect(runner.emit).toBeCalledWith('exit', 1)
+        })
+    })
 })

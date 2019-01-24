@@ -36,7 +36,11 @@ export default class Runner extends EventEmitter {
         /**
          * add config file
          */
-        this.configParser.addConfigFile(configFile)
+        try {
+            this.configParser.addConfigFile(configFile)
+        } catch (e) {
+            return this._shutdown(1)
+        }
 
         /**
          * merge cli arguments into config
@@ -137,8 +141,7 @@ export default class Runner extends EventEmitter {
             cid: this.cid
         })
 
-        await this._shutdown(failures)
-        return failures
+        return this._shutdown(failures)
     }
 
     /**
@@ -236,6 +239,7 @@ export default class Runner extends EventEmitter {
     async _shutdown (failures) {
         await this.reporter.waitForSync()
         this.emit('exit', failures === 0 ? 0 : 1)
+        return failures
     }
 
     /**
@@ -266,7 +270,7 @@ export default class Runner extends EventEmitter {
         await runHook('afterSession', global.browser.config, this.caps, this.specs)
 
         if (shutdown) {
-            await this._shutdown()
+            return this._shutdown()
         }
     }
 }
