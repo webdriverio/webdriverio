@@ -68,13 +68,13 @@ Allure Api can be accessed using:
 ES5
 
 ```js
-const addFeature = require('@wdio/allure-reporter').addFeature
+const { addFeature } = require('@wdio/allure-reporter').default
 ```
 
 ES6
 
 ```js
-import {addFeature} from '@wdio/allure-reporter'
+import { addFeature } from '@wdio/allure-reporter'
 ```
 
 Mocha example
