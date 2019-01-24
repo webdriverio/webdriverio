@@ -86,5 +86,37 @@ describe('smoke test', () => {
 
             assert.equal(browser.customFn($('body')), '2-body')
         })
+
+        it('should respect promises', () => {
+            browser.addCommand('customFn', () => {
+                return Promise.resolve('foobar')
+            })
+
+            assert.equal(browser.customFn(), 'foobar')
+        })
+
+        it('should throw if promise rejects', () => {
+            browser.addCommand('customFn', () => {
+                return Promise.reject('Boom!')
+            })
+
+            let err = null
+            try {
+                browser.customFn()
+            } catch (e) {
+                err = e
+            }
+            assert.equal(err.message, 'Boom!')
+        })
+
+        it('allows to create custom commands on elements that respects promises', () => {
+            browser.customCommandScenario()
+            browser.addCommand('myCustomPromiseCommand', function () {
+                return Promise.resolve('foobar')
+            }, true)
+            const elem = $('elem')
+
+            assert.equal(elem.myCustomPromiseCommand(), 'foobar')
+        })
     })
 })
