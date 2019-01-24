@@ -5,6 +5,11 @@ describe('smoke test', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
     })
 
+    it('should be able to wait for an element', () => {
+        browser.waitForDisplayedScenario()
+        assert($('elem').waitForDisplayed(), true)
+    })
+
     describe('middleware', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()
