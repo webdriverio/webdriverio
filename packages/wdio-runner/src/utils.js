@@ -35,17 +35,36 @@ export function initialiseServices (config, caps) {
     }
 
     for (let serviceName of config.services) {
+        let serviceConfig = config
+
         /**
          * allow custom services that are already initialised
          */
-        if (typeof serviceName === 'object') {
-            log.debug(`initialise custom service "${serviceName}"`)
+        if (typeof serviceName === 'object' && !Array.isArray(serviceName)) {
+            log.debug('initialise custom initiated service')
             initialisedServices.push(serviceName)
             continue
         }
 
-        log.debug(`initialise wdio service "${serviceName}"`)
+        /**
+         * allow custom services with custom options
+         */
+        if (Array.isArray(serviceName)) {
+            serviceConfig = merge(config, serviceName[1] || {})
+            serviceName = serviceName[0]
+        }
+
         try {
+            /**
+             * allow custom service classes
+             */
+            if (typeof serviceName === 'function') {
+                log.debug(`initialise custom service "${serviceName.name}"`)
+                initialisedServices.push(new serviceName(serviceConfig, caps))
+                continue
+            }
+
+            log.debug(`initialise wdio service "${serviceName}"`)
             const Service = initialisePlugin(serviceName, 'service')
 
             /**
@@ -55,7 +74,7 @@ export function initialiseServices (config, caps) {
                 continue
             }
 
-            initialisedServices.push(new Service(config, caps))
+            initialisedServices.push(new Service(serviceConfig, caps))
         } catch(e) {
             log.error(e)
         }
