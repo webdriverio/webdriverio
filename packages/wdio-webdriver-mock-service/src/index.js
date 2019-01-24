@@ -105,6 +105,8 @@ export default class WebdriverMockService {
     }
 
     waitForDisplayedScenario () {
+        this.nockReset()
+
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
         this.command.findElement().once().reply(200, { value: elemResponse })
         this.command.isElementDisplayed(ELEMENT_ID).times(4).reply(200, { value: false })
