@@ -215,7 +215,13 @@ export default class Runner extends EventEmitter {
         const logTypes = await global.browser.getLogTypes()
         log.debug(`Fetching logs for ${logTypes.join(', ')}`)
         return Promise.all(logTypes.map(async (logType) => {
-            const logs = await global.browser.getLogs(logType)
+            let logs
+
+            try {
+                logs = await global.browser.getLogs(logType)
+            } catch (e) {
+                return log.warn(`Couldn't fetch logs for ${logType}: ${e.message}`)
+            }
 
             /**
              * don't write to file if no logs were captured
