@@ -31,6 +31,20 @@ describe('wdio-runner', () => {
             fs.writeFile.mockClear()
         })
 
+        it('should not fail if logs can not be received', async () => {
+            const runner = new WDIORunner()
+            runner.cid = '0-1'
+
+            global.browser = {
+                getLogTypes: () => Promise.resolve(['corrupt']),
+                getLogs: () => Promise.reject(new Error('boom')),
+                sessionId: '123'
+            }
+
+            await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
+            expect(fs.writeFile).toHaveBeenCalledTimes(0)
+        })
+
         it('should not write to file if no logs exist', async () => {
             const runner = new WDIORunner()
             runner.cid = '0-1'
