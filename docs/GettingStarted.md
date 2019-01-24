@@ -11,7 +11,7 @@ The following will give you a short step by step introduction to get your first 
 
 ## Taking the first step
 
-Let's suppose you have [Node.js](http://nodejs.org/) already installed. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
+Let's suppose you have [Node.js](http://nodejs.org/) already installed. If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
 
 ### Create a simple test folder
 
@@ -35,6 +35,35 @@ OSX
 
 ```sh
 $ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-macos.tar.gz | tar xz
+```
+
+Windows 64 bit
+
+Simple setup: ([Chocolatey](https://chocolatey.org/))
+```sh
+choco install selenium-gecko-driver
+```
+
+For advanced users (Powershell):
+```sh
+# Run as privileged session. Right-click and set 'Run as Administrator'
+# Use geckodriver-v0.21.0-win32.zip for 32 bit Windows
+$url = "https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-win64.zip"
+$output = "geckodriver.zip" # will drop into current directory unless defined otherwise
+$unzipped_file = "geckodriver" # will unzip to this folder name
+
+# By default, Powershell uses TLS 1.0 the site security requires TLS 1.2
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Downloads Geckodriver
+Invoke-WebRequest -Uri $url -OutFile $output
+
+# Unzip Geckodriver
+Expand-Archive $output -DestinationPath $unzipped_file
+cd $unzipped_file
+
+# Globally Set Geckodriver to PATH
+[System.Environment]::SetEnvironmentVariable("PATH", "$Env:Path;$pwd\geckodriver.exe", [System.EnvironmentVariableTarget]::Machine)
 ```
 
 Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases). In order to automate other browser you need to run different drivers. You can find a list with all drivers in the [awesome-selenium](https://github.com/christian-bromann/awesome-selenium#driver) readme.

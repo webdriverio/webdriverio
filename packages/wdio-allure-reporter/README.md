@@ -43,11 +43,11 @@ exports.config = {
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
 
 ## Supported Allure API
-* `feature(featureName)` – assign feature to test
-* `story(storyName)` – assign user story to test
-* `severity(value)` – assign severity to test
-* `issue(value)` – assign issue id to test
-* `testId(value)` – assign TMS test id to test
+* `addFeature(featureName)` – assign feature to test
+* `addStory(storyName)` – assign user story to test
+* `addSeverity(value)` – assign severity to test
+* `addIssue(value)` – assign issue id to test
+* `addTestId(value)` – assign TMS test id to test
 * `addEnvironment(name, value)` – save environment value
 * `addAttachment(name, content, [type])` – save attachment to test.
     * `name` (*String*) - attachment name.

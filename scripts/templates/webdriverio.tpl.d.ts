@@ -3,9 +3,9 @@
 
 declare namespace WebdriverIO {
     function remote(
-        options: any,
-        modifier: any
-    ): WebDriver.Client<void>;
+        options?: WebDriver.Options,
+        modifier?: (...args: any[]) => any
+    ): WebDriver.Client<void> & WebdriverIO.Browser<void>;
 
     function multiremote(
         options: any

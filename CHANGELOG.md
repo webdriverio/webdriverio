@@ -15,6 +15,109 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.2 (2019-01-24)
+
+#### :bug: Bug Fix
+* `wdio-config`, `wdio-repl`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#3403](https://github.com/webdriverio/webdriverio/pull/3403) Run custom commands in fiber context ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#3401](https://github.com/webdriverio/webdriverio/pull/3401) webdriverio: improve typing for remote() function ([@CrispusDH](https://github.com/CrispusDH))
+* [#3402](https://github.com/webdriverio/webdriverio/pull/3402) Update TypeScript.md ([@domoritz](https://github.com/domoritz))
+* [#3391](https://github.com/webdriverio/webdriverio/pull/3391) Updated Boilerplate Projects ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+
+#### Committers: 4
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dominik Moritz ([@domoritz](https://github.com/domoritz))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+
+## 5.4.1 (2019-01-23)
+
+#### :nail_care: Polish
+* `wdio-logger`
+  * [#3398](https://github.com/webdriverio/webdriverio/pull/3398) guard against bad console method access in web version of logger ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 1
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
+## 5.4.0 (2019-01-23)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3383](https://github.com/webdriverio/webdriverio/pull/3383) Add command to open a new top-level browsing context ([@christian-bromann](https://github.com/christian-bromann))
+  * [#3374](https://github.com/webdriverio/webdriverio/pull/3374) Webdriver: Fix support on touchId documentation ([@marthinus-engelbrecht](https://github.com/marthinus-engelbrecht))
+  * [#3375](https://github.com/webdriverio/webdriverio/pull/3375) Webdriver: Fix endpoint for Appium sendSms ([@marthinus-engelbrecht](https://github.com/marthinus-engelbrecht))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `webdriver`
+  * [#3377](https://github.com/webdriverio/webdriverio/pull/3377) Logging Changes ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :memo: Documentation
+* Other
+  * [#3397](https://github.com/webdriverio/webdriverio/pull/3397) webdriverio: update types for remote() ([@CrispusDH](https://github.com/CrispusDH))
+  * [#3376](https://github.com/webdriverio/webdriverio/pull/3376) Added Accessibility Test to TypeScript boilerplate ([@dalenguyen](https://github.com/dalenguyen))
+  * [#3261](https://github.com/webdriverio/webdriverio/pull/3261) Update GettingStarted.md ([@dmhalejr](https://github.com/dmhalejr))
+  * [#3369](https://github.com/webdriverio/webdriverio/pull/3369) Update TypeScript.md ([@domoritz](https://github.com/domoritz))
+* `wdio-allure-reporter`
+  * [#3380](https://github.com/webdriverio/webdriverio/pull/3380) Fix allure docs ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### :house: Internal
+* `wdio-mocha-framework`
+  * [#3394](https://github.com/webdriverio/webdriverio/pull/3394) wdio-mocha-framework: upgrading mocha version ([@abjerstedt](https://github.com/abjerstedt))
+* `wdio-testingbot-service`
+  * [#3382](https://github.com/webdriverio/webdriverio/pull/3382) Removing flaky test - this should not be a UT ([@abjerstedt](https://github.com/abjerstedt))
+* Other
+  * [#3371](https://github.com/webdriverio/webdriverio/pull/3371) Update --question.md ([@domoritz](https://github.com/domoritz))
+
+#### Committers: 9
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dale Nguyen ([@dalenguyen](https://github.com/dalenguyen))
+- David Hale ([@dmhalejr](https://github.com/dmhalejr))
+- Dominik Moritz ([@domoritz](https://github.com/domoritz))
+- Marthinus Engelbrecht ([@marthinus-engelbrecht](https://github.com/marthinus-engelbrecht))
+- Nami Varthakavi ([@nami-varthakavi](https://github.com/nami-varthakavi))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+
+## 5.3.5 (2019-01-18)
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#3364](https://github.com/webdriverio/webdriverio/pull/3364) Webdriver truncate log screenshot ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## 5.3.4 (2019-01-18)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3368](https://github.com/webdriverio/webdriverio/pull/3368) Acknowledge responses with body as string ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#3352](https://github.com/webdriverio/webdriverio/pull/3352) wdio-browserstack-service: Remove erroneous call to resolve ([@torgeilo](https://github.com/torgeilo))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#3353](https://github.com/webdriverio/webdriverio/pull/3353) wdio-browserstack-service: correcting error message ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :memo: Documentation
+* `wdio-allure-reporter`
+  * [#3363](https://github.com/webdriverio/webdriverio/pull/3363) Update allure docs ([@BorisOsipov](https://github.com/BorisOsipov))
+* `webdriverio`
+  * [#3356](https://github.com/webdriverio/webdriverio/pull/3356) Multiple fixes in typings ([@ablok](https://github.com/ablok))
+* `webdriver`
+  * [#3355](https://github.com/webdriverio/webdriverio/pull/3355) Fix some webdriver and webdriverio typings ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 6
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Torgeir Lorange Østby ([@torgeilo](https://github.com/torgeilo))
+
 ## 5.3.3 (2019-01-16)
 
 #### :eyeglasses: Spec Compliancy

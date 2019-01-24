@@ -66,9 +66,8 @@ export default class WDIORepl {
 
         /* istanbul ignore if */
         if (hasWdioSyncSupport) {
-            return runFnInFiberContext(() => {
-                return this._runCmd(cmd, context, callback)
-            })()
+            return runFnInFiberContext(
+                () => this._runCmd(cmd, context, callback))()
         }
 
         return this._runCmd(cmd, context, callback)
