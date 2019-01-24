@@ -15,6 +15,23 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.2 (2019-01-24)
+
+#### :bug: Bug Fix
+* `wdio-config`, `wdio-repl`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#3403](https://github.com/webdriverio/webdriverio/pull/3403) Run custom commands in fiber context ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#3401](https://github.com/webdriverio/webdriverio/pull/3401) webdriverio: improve typing for remote() function ([@CrispusDH](https://github.com/CrispusDH))
+* [#3402](https://github.com/webdriverio/webdriverio/pull/3402) Update TypeScript.md ([@domoritz](https://github.com/domoritz))
+* [#3391](https://github.com/webdriverio/webdriverio/pull/3391) Updated Boilerplate Projects ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+
+#### Committers: 4
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dominik Moritz ([@domoritz](https://github.com/domoritz))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+
 ## 5.4.1 (2019-01-23)
 
 #### :nail_care: Polish
