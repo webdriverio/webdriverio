@@ -38,7 +38,7 @@
  *
  */
 import { webdriverMonad } from 'webdriver'
-import { wrapCommand } from '@wdio/config'
+import { wrapCommand, runFnInFiberContext } from '@wdio/config'
 import merge from 'lodash.merge'
 
 import {findElements, getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse} from '../../utils'
@@ -84,7 +84,7 @@ export default async function $$ (selector) {
         const origAddCommand = ::elementInstance.addCommand
         elementInstance.addCommand = (name, fn) => {
             browser.__propertiesObject__[name] = { value: fn }
-            origAddCommand(name, fn)
+            origAddCommand(name, runFnInFiberContext(fn))
         }
         return elementInstance
     })
