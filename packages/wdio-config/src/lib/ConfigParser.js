@@ -57,7 +57,7 @@ export default class ConfigParser {
              */
             this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
         } catch (e) {
-            log.error(`Failed loading configuration file: ${filePath}`)
+            log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e
         }
     }
