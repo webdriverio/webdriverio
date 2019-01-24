@@ -28,13 +28,15 @@ mochaOpts: {
 and your `tsconfig.json` needs to look like:
 
 ```json
-"compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-        "*": [ "./*" ],
-        "src/*": ["./src/*"]
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "*": [ "./*" ],
+            "src/*": ["./src/*"]
+        },
+        "types": ["node", "webdriverio"]
     },
-    "types": ["node", "webdriverio"],
     "include": [
         "./src/**/*.ts"
     ]
