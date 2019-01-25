@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { Eyes, Target } from '@applitools/eyes.webdriverio'
+import { Eyes, Target } from '@wdio/eyes.webdriverio'
 
 const log = logger('wdio-applitools-service')
 
