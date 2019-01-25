@@ -84,7 +84,7 @@ class Launcher {
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
         await config.onComplete(exitCode, config, caps, this.interface.result)
 
-        this.interface.updateView()
+        this.interface.finalise()
         return exitCode
     }
 
@@ -324,11 +324,7 @@ class Launcher {
             return
         }
 
-        return process.nextTick(() => {
-            this.interface.printReporters()
-            this.interface.reset()
-            setTimeout(() => this.resolve(passed ? this.exitCode : 1), 100)
-        })
+        this.resolve(passed ? this.exitCode : 1)
     }
 
     /**

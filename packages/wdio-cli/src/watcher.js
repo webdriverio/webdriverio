@@ -14,6 +14,7 @@ export default class Watcher {
         log.info('Starting launcher in watch mode')
         this.launcher = new Launcher(configFile, argv)
         this.totalWorkerCnt = this.launcher.interface.totalWorkerCnt
+        this.launcher.interface.isWatchMode = true
         this.argv = argv
 
         const specs = this.launcher.configParser.getSpecs()
@@ -49,6 +50,23 @@ export default class Watcher {
          */
         await this.launcher.run()
         this.launcher.interface.updateView()
+
+        /**
+         * clean interface once all worker finish
+         */
+        const workers = this.getWorkers()
+        this.launcher.interface.finalise()
+        Object.values(workers).forEach((worker) => worker.on('exit', () => {
+            this.launcher.interface.finalise()
+            /**
+             * check if all workers have finished
+             */
+            if (Object.values(workers).find((w) => w.isBusy)) {
+                return
+            }
+
+            this.launcher.interface.finalise()
+        }))
     }
 
     /**
