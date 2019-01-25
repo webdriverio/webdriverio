@@ -167,7 +167,7 @@ export default class WDIOCLInterface extends EventEmitter {
                 chalk.bgYellow.black(' RUNNING '),
                 cid,
                 'in',
-                getRunnerName(job.caps.browserName),
+                getRunnerName(job.caps),
                 '-',
                 filename
             )
