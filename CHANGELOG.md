@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.4 (2019-01-25)
+
+#### :house: Internal
+* `wdio-applitools-service`
+  * [#3419](https://github.com/webdriverio/webdriverio/pull/3419) use eyes.webdriverio fork version to support v5 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
 ## 5.4.3 (2019-01-24)
 
 #### :bug: Bug Fix
