@@ -4,6 +4,8 @@ import EventEmitter from 'events'
 import CLInterface from '@wdio/interface'
 import logger from '@wdio/logger'
 
+import { getRunnerName } from './utils'
+
 const log = logger('wdio-cli')
 
 const clockSpinner = cliSpinners['clock']
@@ -161,7 +163,14 @@ export default class WDIOCLInterface extends EventEmitter {
          */
         for (const [cid, job] of Array.from(this.jobs.entries()).slice(0, MAX_RUNNING_JOBS_DISPLAY_COUNT)) {
             const filename = job.specs.join(', ').replace(process.cwd(), '')
-            this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
+            this.interface.log(
+                chalk.bgYellow.black(' RUNNING '),
+                cid,
+                'in',
+                getRunnerName(job.caps),
+                '-',
+                filename
+            )
         }
 
         /**

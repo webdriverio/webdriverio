@@ -1,6 +1,7 @@
 export const RUNNER = {
     cid : '0-0',
     _duration : 5032,
+    config: { hostname: 'localhost' },
     capabilities : {
         browserName : 'loremipsum',
     },
@@ -121,4 +122,8 @@ export const REPORT = `---------------------------------------------------------
 [loremipsum #0-0] 1) Bar test a failed test
 [loremipsum #0-0] red expected foo to equal bar
 [loremipsum #0-0] gray Failed test stack trace
+`
+
+export const SAUCELABS_REPORT = REPORT + `[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 `

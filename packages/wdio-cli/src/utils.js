@@ -74,3 +74,17 @@ export function filterPackageName (type) {
             ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
             : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`)
 }
+
+/**
+ * get runner identification by caps
+ */
+export function getRunnerName (caps) {
+    return (
+        caps.browserName ||
+        caps.appPackage ||
+        caps.appWaitActivity ||
+        caps.app ||
+        caps.platformName ||
+        'undefined'
+    )
+}

@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import { filterPackageName, getLauncher, runServiceHook } from '../src/utils'
+import { filterPackageName, getLauncher, runServiceHook, getRunnerName } from '../src/utils'
 
 jest.mock('@wdio/config', () => {
     class LauncherMock {
@@ -94,3 +94,11 @@ test('runServiceHook', () => {
     expect(hookFailing).toBeCalledTimes(1)
 })
 
+test('getRunnerName', () => {
+    expect(getRunnerName({ browserName: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ appPackage: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ appWaitActivity: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ app: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ platformName: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({})).toBe('undefined')
+})

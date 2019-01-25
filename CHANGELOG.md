@@ -15,6 +15,49 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.5 (2019-01-25)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#3420](https://github.com/webdriverio/webdriverio/pull/3420) Fix param for getRunnerName ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## 5.4.4 (2019-01-25)
+
+#### :house: Internal
+* `wdio-applitools-service`
+  * [#3419](https://github.com/webdriverio/webdriverio/pull/3419) use eyes.webdriverio fork version to support v5 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## 5.4.3 (2019-01-24)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`, `wdio-runner`
+  * [#3418](https://github.com/webdriverio/webdriverio/pull/3418) Allow custom services with options ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#3415](https://github.com/webdriverio/webdriverio/pull/3415) Fix waitForXXX calls ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-reporter`, `wdio-spec-reporter`
+  * [#3417](https://github.com/webdriverio/webdriverio/pull/3417) Include link to job details page from Sauce Labs ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`
+  * [#3414](https://github.com/webdriverio/webdriverio/pull/3414) Ignore if logs can't be received ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#3413](https://github.com/webdriverio/webdriverio/pull/3413) Better identify runner when running mobile tests ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`, `wdio-runner`
+  * [#3411](https://github.com/webdriverio/webdriverio/pull/3411) Better error handling when config file is corrupted ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#3409](https://github.com/webdriverio/webdriverio/pull/3409) Update typescript setup docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## 5.4.2 (2019-01-24)
 
 #### :bug: Bug Fix
