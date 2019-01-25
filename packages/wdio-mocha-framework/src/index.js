@@ -166,16 +166,17 @@ class MochaAdapter {
         if (params.payload) {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
-
+            
             /**
              * get title for hooks in root suite
              */
             if (message.parent === '' && params.payload.parent && params.payload.parent.suites) {
                 message.parent = params.payload.parent.suites[0].title
             }
-
+            
             message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
             message.pending = params.payload.pending || false
+            message.file = params.payload.file
 
             /**
              * Add the current test title to the payload for cases where it helps to
