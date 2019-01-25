@@ -127,7 +127,7 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? merge(JsonWProtocol, WebDriverProtocol)
+            ? merge(WebDriverProtocol, JsonWProtocol)
             : isW3C ? WebDriverProtocol : JsonWProtocol,
         /**
          * only apply mobile protocol if session is actually for mobile
@@ -197,7 +197,7 @@ export function isW3C (capabilities) {
      * - platformName is returned which is not defined in the JSONWire protocol
      */
     const isAppium = capabilities.automationName || capabilities.deviceName
-    return Boolean(capabilities.platformName || isAppium)
+    return Boolean(capabilities.platformName && !isAppium)
 }
 
 /**
