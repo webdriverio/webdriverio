@@ -172,7 +172,7 @@ class MochaAdapter {
             if (message.parent === '' && params.payload.parent && params.payload.parent.suites) {
                 message.parent = params.payload.parent.suites[0].title
             }
-            
+
             message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
             message.pending = params.payload.pending || false
             message.file = params.payload.file
