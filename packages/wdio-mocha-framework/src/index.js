@@ -166,7 +166,6 @@ class MochaAdapter {
         if (params.payload) {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
-            
             /**
              * get title for hooks in root suite
              */
