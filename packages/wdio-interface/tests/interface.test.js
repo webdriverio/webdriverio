@@ -54,13 +54,3 @@ test('clearBuffer', () => {
     expect(iface.stdoutBuffer).toHaveLength(0)
     expect(iface.stderrBuffer).toHaveLength(0)
 })
-
-test('allows to reset stdout and stderr', () => {
-    global._stdout = jest.fn()
-    global._stderr = jest.fn()
-    iface.reset(global._stdout, global._stderr)
-    global._stdout('foo')
-    global._stderr('bar')
-    expect(iface.out).toBeCalledTimes(0)
-    expect(iface.err).toBeCalledTimes(0)
-})

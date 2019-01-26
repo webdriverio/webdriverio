@@ -286,7 +286,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     finalise () {
-        this.clearAll()
+        this.interface.clearAll()
         this.printReporters()
         this.printStdout()
         this.printSummary()

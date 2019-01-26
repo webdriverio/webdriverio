@@ -63,9 +63,8 @@ export default class CLInterface extends EventEmitter {
         this.out(message)
     }
 
-    reset (stdout = process.stdout.write, stderr = process.stderr.write) {
-        stdout = this.out
-        stderr = this.err
-        return [stdout, stderr]
+    reset () {
+        process.stdout.write = this.out
+        process.stderr.write = this.err
     }
 }
