@@ -15,6 +15,18 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.6 (2019-01-26)
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-interface`, `webdriverio`
+  * [#3430](https://github.com/webdriverio/webdriverio/pull/3430) Allow displaying logs in realtime ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-logger`
+  * [#3427](https://github.com/webdriverio/webdriverio/pull/3427) change logger imports/exports for optimized webpack bundling ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
 ## 5.4.5 (2019-01-25)
 
 #### :nail_care: Polish
