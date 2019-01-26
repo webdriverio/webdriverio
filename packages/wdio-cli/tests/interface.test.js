@@ -269,7 +269,6 @@ describe('cli interface', () => {
         wdioClInterface.updateClock = jest.fn()
         wdioClInterface.reset = jest.fn()
         wdioClInterface.finalise()
-        expect(wdioClInterface.clearAll).toBeCalledTimes(1)
         expect(wdioClInterface.printReporters).toBeCalledTimes(1)
         expect(wdioClInterface.printStdout).toBeCalledTimes(1)
         expect(wdioClInterface.printSummary).toBeCalledTimes(1)
