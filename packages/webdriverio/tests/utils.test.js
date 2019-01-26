@@ -179,6 +179,12 @@ describe('utils', () => {
             expect(element.using).toBe('xpath')
             expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]')
         })
+        
+        it('should find an custom element by tag name + content', () => {
+            const element = findStrategy('custom-element=some random text with "§$%&/()div=or others')
+            expect(element.using).toBe('xpath')
+            expect(element.value).toBe('.//custom-element[normalize-space() = "some random text with "§$%&/()div=or others"]')
+        })
 
         it('should allow to go up and down the DOM tree with xpath', () => {
             let element = findStrategy('..')
