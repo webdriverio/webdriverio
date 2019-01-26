@@ -8,6 +8,7 @@ beforeEach(() => {
     iface = new WDIOInterface()
     iface.out = jest.fn()
     iface.err = jest.fn()
+    iface.emit = jest.fn()
 })
 
 test('can clear lines', () => {
@@ -27,8 +28,29 @@ test('can write', () => {
 
 test('can wrap stdout or stderr', () => {
     const buffer = []
-    const stream = {}
+    const stream = { write: jest.fn() }
     iface.wrapStdio(stream, buffer)
     stream.write('foobar')
+    expect(iface.emit).toBeCalledTimes(1)
     expect(buffer).toHaveLength(1)
+})
+
+test('writes to stream if in debug mode', () => {
+    const buffer = []
+    const stream = { write: jest.fn() }
+    iface.wrapStdio(stream, buffer)
+    iface.inDebugMode = true
+    stream.write('foobar')
+    expect(buffer).toHaveLength(0)
+    expect(iface.emit).toBeCalledTimes(0)
+})
+
+test('clearBuffer', () => {
+    iface.stdoutBuffer.push(1, 2, 3, 4)
+    iface.stderrBuffer.push(1, 2)
+    expect(iface.stdoutBuffer).toHaveLength(4)
+    expect(iface.stderrBuffer).toHaveLength(2)
+    iface.clearBuffer()
+    expect(iface.stdoutBuffer).toHaveLength(0)
+    expect(iface.stderrBuffer).toHaveLength(0)
 })

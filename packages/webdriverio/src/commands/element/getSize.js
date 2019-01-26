@@ -19,15 +19,15 @@
     })
  * </example>
  *
- * @alias browser.getElementSize
- * @param {String} prop     size to receive [optional] ("width" or "height")
+ * @alias element.getElementSize
+ * @param {String=} prop     size to receive [optional] ("width" or "height")
  * @return {Object|Number}    requested element size (`{ width: <Number>, height: <Number> }`) or actual width/height as number if prop param is given
  * @uses protocol/elements, protocol/getElementRect
  * @type property
  *
  */
 
-export default async function getElementSize(prop = null) {
+export default async function getSize(prop = null) {
     let rect = {}
 
     if (this.isW3C) {

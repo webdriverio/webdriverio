@@ -9,12 +9,12 @@ __Note:__ this service currently only supports Chrome v63 and up!
 
 ## Installation
 
-The easiest way is to keep `wdio-devtools-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-devtools-service": "^0.1.2"
+    "@wdio/devtools-service": "^5.0.0"
   }
 }
 ```
@@ -22,10 +22,10 @@ The easiest way is to keep `wdio-devtools-service` as a devDependency in your `p
 You can simple do it by:
 
 ```bash
-npm install wdio-devtools-service --save-dev
+npm install @wdio/devtools-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
 ## Configuration
 
@@ -169,7 +169,7 @@ Returns page weight information of the last page load.
 
 ```js
 browser.startTracing()
-browser.url('http://webdriver.io')
+browser.url('https://webdriver.io')
 browser.endTracing()
 
 console.log(browser.getPageWeight())
@@ -204,4 +204,4 @@ it('should listen on network events', () => {
 
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

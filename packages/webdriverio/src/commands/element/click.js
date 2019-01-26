@@ -36,7 +36,7 @@
     });
  * </example>
  *
- * @alias browser.click
+ * @alias element.click
  * @uses protocol/element, protocol/elementIdClick
  * @type action
  *

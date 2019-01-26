@@ -1,6 +1,6 @@
 import Jasmine from 'jasmine'
-import { runTestInFiberContext, executeHooksWithArgs } from 'wdio-config'
-import logger from 'wdio-logger'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
+import logger from '@wdio/logger'
 
 import JasmineReporter from './reporter'
 
@@ -40,29 +40,34 @@ class JasmineAdapter {
 
         this.jrunner = new Jasmine()
         const { jasmine } = this.jrunner
-
-        this.jrunner.randomizeTests(Boolean(this.jasmineNodeOpts.random))
+        const jasmineEnv = jasmine.getEnv()
 
         this.jrunner.projectBaseDir = ''
         this.jrunner.specDir = ''
         this.jrunner.addSpecFiles(this.specs)
 
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this.jasmineNodeOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
-        jasmine.getEnv().addReporter(this.reporter)
+        jasmineEnv.addReporter(this.reporter)
+
+        /**
+         * Set whether to stop suite execution when a spec fails
+         */
+        const stopOnSpecFailure = !!this.jasmineNodeOpts.stopOnSpecFailure
 
         /**
          * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
          */
-        jasmine.getEnv().specFilter = ::this.customSpecFilter
+        jasmineEnv.configure({
+            specFilter: ::this.customSpecFilter,
+            stopOnSpecFailure: stopOnSpecFailure,
+            random: Boolean(this.jasmineNodeOpts.random),
+            failFast: this.jasmineNodeOpts.failFast
+        })
 
         /**
          * enable expectHandler
          */
-        const { expectationResultHandler } = this.jasmineNodeOpts
-        const handler = typeof expectationResultHandler === 'function'
-            ? expectationResultHandler
-            : jasmine.Spec.prototype.addExpectationResult
-        jasmine.Spec.prototype.addExpectationResult = handler
+        jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
 
         /**
          * wrap commands with wdio-sync
@@ -157,17 +162,15 @@ class JasmineAdapter {
             type: params.type
         }
 
-        if (params.err) {
-            message.err = {
-                message: params.err.message,
-                stack: params.err.stack
-            }
-        }
-
         if (params.payload) {
             message.title = params.payload.description
             message.fullName = params.payload.fullName || null
             message.file = params.payload.file
+
+            if (params.payload.failedExpectations && params.payload.failedExpectations.length) {
+                message.failedExpectations = params.payload.failedExpectations
+                message.error = params.payload.failedExpectations[0]
+            }
 
             if (params.payload.id && params.payload.id.startsWith('spec')) {
                 message.parent = this.lastSpec.description
@@ -186,6 +189,17 @@ class JasmineAdapter {
         return message
     }
 
+    getExpectationResultHandler (jasmine) {
+        let { expectationResultHandler } = this.jasmineNodeOpts
+        const origHandler = jasmine.Spec.prototype.addExpectationResult
+
+        if (typeof expectationResultHandler !== 'function') {
+            return origHandler
+        }
+
+        return this.expectationResultHandler(origHandler)
+    }
+
     expectationResultHandler (origHandler) {
         const { expectationResultHandler } = this.jasmineNodeOpts
         return function (passed, data) {
@@ -194,12 +208,14 @@ class JasmineAdapter {
             } catch (e) {
                 /**
                  * propagate expectationResultHandler error if actual assertion passed
+                 * but the custom handler decides to throw
                  */
                 if (passed) {
                     passed = false
                     data = {
                         passed: false,
-                        message: 'expectationResultHandlerError: ' + e.message
+                        message: 'expectationResultHandlerError: ' + e.message,
+                        error: e
                     }
                 }
             }

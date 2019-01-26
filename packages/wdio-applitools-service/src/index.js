@@ -1,5 +1,5 @@
-import logger from 'wdio-logger'
-import { Eyes, Target } from '@applitools/eyes.webdriverio'
+import logger from '@wdio/logger'
+import { Eyes, Target } from '@wdio/eyes.webdriverio'
 
 const log = logger('wdio-applitools-service')
 
@@ -21,7 +21,7 @@ export default class ApplitoolsService {
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {
-            throw new Error(`Couldn't find an Applitools 'applitoolsKey' in config nor 'APPLITOOLS_KEY' in the environment`)
+            throw new Error('Couldn\'t find an Applitools "applitoolsKey" in config nor "APPLITOOLS_KEY" in the environment')
         }
 
         this.isConfigured = true

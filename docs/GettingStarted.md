@@ -5,11 +5,13 @@ title: Getting Started
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
 
+> __Note:__ These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please us the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
+
 The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
 
 ## Taking the first step
 
-Let's suppose you have [Node.js](http://nodejs.org/) already installed. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
+Let's suppose you have [Node.js](http://nodejs.org/) already installed. If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
 
 ### Create a simple test folder
 
@@ -33,6 +35,35 @@ OSX
 
 ```sh
 $ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-macos.tar.gz | tar xz
+```
+
+Windows 64 bit
+
+Simple setup: ([Chocolatey](https://chocolatey.org/))
+```sh
+choco install selenium-gecko-driver
+```
+
+For advanced users (Powershell):
+```sh
+# Run as privileged session. Right-click and set 'Run as Administrator'
+# Use geckodriver-v0.21.0-win32.zip for 32 bit Windows
+$url = "https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-win64.zip"
+$output = "geckodriver.zip" # will drop into current directory unless defined otherwise
+$unzipped_file = "geckodriver" # will unzip to this folder name
+
+# By default, Powershell uses TLS 1.0 the site security requires TLS 1.2
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Downloads Geckodriver
+Invoke-WebRequest -Uri $url -OutFile $output
+
+# Unzip Geckodriver
+Expand-Archive $output -DestinationPath $unzipped_file
+cd $unzipped_file
+
+# Globally Set Geckodriver to PATH
+[System.Environment]::SetEnvironmentVariable("PATH", "$Env:Path;$pwd\geckodriver.exe", [System.EnvironmentVariableTarget]::Machine)
 ```
 
 Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases). In order to automate other browser you need to run different drivers. You can find a list with all drivers in the [awesome-selenium](https://github.com/christian-bromann/awesome-selenium#driver) readme.
@@ -71,7 +102,7 @@ const { remote } = require('webdriverio');
         }
     });
 
-    await browser.url('http://webdriver.io');
+    await browser.url('https://webdriver.io');
 
     const title = await browser.getTitle();
     console.log('Title was: ' + title);
@@ -100,10 +131,10 @@ Yay, Congratulations! You've just run your first automation script with Webdrive
 
 *(If you haven't already, navigate back to the project root directory)*
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`wdio-cli`](https://www.npmjs.com/package/wdio-cli) NPM package. To get started, we need to install this first:
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
 
 ```sh
-$ npm i --save-dev wdio-cli
+$ npm i --save-dev @wdio/cli
 ```
 
 ### Generate Configuration File
@@ -122,7 +153,7 @@ A: _local_<br>
 __Q: Shall I install the runner plugin for you?__<br>
 A: _Yes_<br>
 <br>
-__Q: Where do you want to execute your tests?__<br>
+__Q: Where is your automation backend located?__<br>
 A: _On my local machine_<br>
 <br>
 __Q: Which framework do you want to use?__<br>
@@ -147,15 +178,22 @@ __Q: Do you want to add a service to your test setup?__<br>
 A: none (just press enter, let's skip this for simplicity)<br>
 <br>
 __Q: Level of logging verbosity:__<br>
-A: _trace_ (just press enter)<br>
-<br>
-__Q: In which directory should screenshots gets saved if a command fails?__<br>
-A: _./errorShots/_ (just press enter)<br>
+A: _trace_<br>
 <br>
 __Q: What is the base url?__<br>
 A: _http://localhost_ (just press enter)<br>
 
-That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. Next step is to create your first spec file (test file).
+That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. As we're using Geckodriver, we need to override the default path (which uses the Selenium's default of `/wd/hub`). Then, we'll be ready to create your first spec file (test file).
+
+### Configure the path
+Edit the `wdio.conf.js` file to specify the path (e.g. right after the baseUrl setting):
+
+```
+    //
+    // Override the default path of /wd/hub
+    path: '/',
+```
+
 
 ### Create Spec Files
 
@@ -171,10 +209,10 @@ Now let's create a simple spec file in that new folder:
 const assert = require('assert');
 
 describe('webdriver.io page', () => {
-    it('should have the right title - the fancy generator way', () => {
-        browser.url('http://webdriver.io');
+    it('should have the right title', () => {
+        browser.url('https://webdriver.io');
         const title = browser.getTitle();
-        assert.equal(title, 'WebdriverIO - WebDriver bindings for Node.js');
+        assert.equal(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js');
     });
 });
 ```

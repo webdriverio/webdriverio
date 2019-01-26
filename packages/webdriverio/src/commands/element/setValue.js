@@ -17,9 +17,8 @@
     });
  * </example>
  *
- * @alias browser.setValue
- * @param {String} selector   Input element
- * @param {*}      values    Value to be added
+ * @alias element.setValue
+ * @param {*}      value    Value to be added
  * @uses protocol/elements, protocol/elementIdClear, protocol/elementIdValue
  * @type action
  *

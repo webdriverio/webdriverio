@@ -60,7 +60,7 @@ export default function wrapCommand (commandName, fn) {
              * in case we run commands where no fiber function was used
              * e.g. when we call deleteSession
              */
-            if (e.message.includes(`Can't wait without a fiber`)) {
+            if (e.message.includes('Can\'t wait without a fiber')) {
                 return result
             }
 

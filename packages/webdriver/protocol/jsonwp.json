@@ -22,6 +22,10 @@
         "type": "object",
         "description": "An object describing the session's desired capabilities.",
         "required": true
+      }, {
+        "name": "requiredCapabilities",
+        "type": "object",
+        "description": "An object describing the session's required capabilities (Optional)."
       }],
       "returns": {
         "type": "Object",
@@ -33,12 +37,12 @@
   "/sessions": {
     "GET": {
       "command": "getSessions",
-      "description": "Returns a list of the currently active sessions. Each session will be returned as a list of JSON objects.",
+      "description": "Returns a list of the currently active sessions. Each session will be returned as a list of JSON objects containing `id` and `capabilities`.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessions",
       "parameters": [],
       "returns": {
         "type": "Object[]",
-        "name": "capabilties",
+        "name": "capabilities",
         "description": "A list of the currently active sessions."
       }
     }
@@ -47,11 +51,11 @@
     "GET": {
       "command": "getSession",
       "description": "Retrieve the capabilities of the specified session.",
-      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionid",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionid",
       "parameters": [],
       "returns": {
         "type": "Object",
-        "name": "capabilties",
+        "name": "capabilities",
         "description": "An object describing the session's capabilities."
       }
     },
@@ -64,7 +68,7 @@
   },
   "/session/:sessionId/timeouts": {
     "POST": {
-      "command": "setTimeout",
+      "command": "setTimeouts",
       "description": "Configure the amount of time that a particular type of operation can execute for before they are aborted and a |Timeout| error is returned to the client.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtimeouts",
       "parameters": [{
@@ -101,14 +105,14 @@
       "parameters": [{
         "name": "ms",
         "type": "number",
-        "description": "The amount of time, in milliseconds, to wait on an element",
+        "description": "The amount of time, in milliseconds, to wait on an element.",
         "required": true
       }]
     }
   },
   "/session/:sessionId/url": {
     "GET": {
-      "command": "getCurrentUrl",
+      "command": "getUrl",
       "description": "Retrieve the URL of the current page.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidurl",
       "parameters": [],
@@ -202,7 +206,7 @@
     },
     "POST": {
       "command": "switchToWindow",
-      "description": "Change focus to another window. The window to change focus to may be specified by its server assigned window handle, or by the value of its name attribute.",
+      "description": "Change focus to another window. The window to change focus to may be specified by its server assigned window handle, or by the value of its `name` attribute.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindow",
       "parameters": [{
         "name": "name",
@@ -215,11 +219,11 @@
   "/session/:sessionId/frame": {
     "POST": {
       "command": "switchToFrame",
-      "description": "Change focus to another frame on the page. If the frame id is null, the server should switch to the page's default content.",
+      "description": "Change focus to another frame on the page. If the frame `id` is `null`, the server should switch to the page's default content.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidframe",
       "parameters": [{
         "name": "id",
-        "type": "(string|number|object)",
+        "type": "(string|number|object|null)",
         "description": "Identifier for the frame to change focus to",
         "required": true
       }]
@@ -236,7 +240,7 @@
   "/session/:sessionId/window/current/position": {
     "GET": {
       "command": "getWindowPosition",
-      "description": "Get the position of the specified window. If the :windowHandle URL parameter is \"current\", the position of the currently active window will be returned.",
+      "description": "Get the position of the current focussed window.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidwindowwindowhandleposition",
       "parameters": [],
       "returns": {
@@ -247,7 +251,7 @@
     },
     "POST": {
       "command": "setWindowPosition",
-      "description": "Change the position of the specified window. If the :windowHandle URL parameter is \"current\", the currently active window will be moved.",
+      "description": "Change the position of the current focussed window.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindowwindowhandleposition",
       "parameters": [{
         "name": "x",
@@ -420,7 +424,7 @@
   "/session/:sessionId/element/:elementId/selected": {
     "GET": {
       "command": "isElementSelected",
-      "description": "Determine if an `OPTION` element`, or an `INPUT` element of type `checkbox` or `radiobutton` is currently selected.",
+      "description": "Determine if an `OPTION` element, or an `INPUT` element of type `checkbox` or `radiobutton` is currently selected.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidselected",
       "variables": [{
         "name": "elementId",
@@ -578,7 +582,7 @@
   },
   "/session/:sessionId/element/:elementId/enabled": {
     "GET": {
-      "command": "getElementEnabled",
+      "command": "isElementEnabled",
       "description": "Determine if an element is currently enabled.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidenabled",
       "variables": [{
@@ -603,6 +607,26 @@
         "description": "ID of the element to route the command to"
       }],
       "parameters": []
+    }
+  },
+  "/session/:sessionId/element/:elementId/equals/:otherElementId": {
+    "GET": {
+      "command": "elementEquals",
+      "description": "Compare elements with each other.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidequalsother",
+      "variables": [{
+        "name": "elementId",
+        "description": "ID of the element to route the command to"
+      }, {
+        "name": "otherElementId",
+        "description": "ID of the element to compare against"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "Boolean",
+        "name": "isEqual",
+        "description": "Whether the two IDs refer to the same element."
+      }
     }
   },
   "/session/:sessionId/element/:elementId/submit": {
@@ -744,14 +768,16 @@
     "POST": {
       "command": "dismissAlert",
       "description": "",
-      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddismiss_alert"
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddismiss_alert",
+      "parameters": []
     }
   },
   "/session/:sessionId/accept_alert": {
     "POST": {
       "command": "acceptAlert",
       "description": "",
-      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidaccept_alert"
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidaccept_alert",
+      "parameters": []
     }
   },
   "/session/:sessionId/alert_text": {
@@ -778,7 +804,12 @@
       "command": "takeScreenshot",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidscreenshot",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "screenshot",
+        "description": "screenshot as a base64 encoded PNG"
+      }
     }
   },
   "/session/:sessionId/ime/available_engines": {
@@ -852,7 +883,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto",
       "parameters": [{
         "name": "element",
-        "type": "string",
+        "type": "(string|null)",
         "description": "opaque ID assigned to the element to move to, as described in the WebElement JSON Object, if not specified or is null, the offset is relative to current position of the mouse",
         "required": false
       }, {
@@ -890,6 +921,19 @@
         "name": "button",
         "type": "number",
         "description": "which button, enum: LEFT = 0, MIDDLE = 1 , RIGHT = 2, defaults to the left mouse button if not specified",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/click": {
+    "POST": {
+      "command": "positionClick",
+      "description": "Clicks at the current mouse coordinates (set by moveto).",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidclick",
+      "parameters": [{
+        "name": "button",
+        "type": "number",
+        "description": "which button, enum: LEFT = 0, RIGHT = 2, defaults to the left mouse button if not specified",
         "required": false
       }]
     }
@@ -938,6 +982,24 @@
       "command": "touchUp",
       "description": "Finger up on the screen.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchup",
+      "parameters": [{
+        "name": "x",
+        "type": "number",
+        "description": "x coordinate on the screen",
+        "required": false
+      }, {
+        "name": "y",
+        "type": "number",
+        "description": "y coordinate on the screen",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/touch/move": {
+    "POST": {
+      "command": "touchMove",
+      "description": "Finger move on the screen.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidtouchmove",
       "parameters": [{
         "name": "x",
         "type": "number",

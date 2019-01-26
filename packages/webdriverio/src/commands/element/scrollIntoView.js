@@ -11,7 +11,7 @@
     });
  * </example>
  *
- * @alias browser.scrollIntoView
+ * @alias element.scrollIntoView
  * @uses protocol/execute
  * @type utility
  *

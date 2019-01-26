@@ -33,9 +33,8 @@
     });
  * </example>
  *
- * @alias browser.isExisting
- * @param   {String}             selector  DOM-element
- * @return {Boolean|Boolean[]}            true if element(s)* [is|are] existing
+ * @alias element.isExisting
+ * @return {Boolean}            true if element(s)* [is|are] existing
  * @uses protocol/elements
  * @type state
  *

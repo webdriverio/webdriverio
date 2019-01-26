@@ -29,6 +29,7 @@
       "debugging",
       "retry",
       "repl",
+      "watcher",
       "jenkins",
       "customreporter",
       "customservices"
@@ -37,6 +38,7 @@
   "api": {
     "Introduction": [
       "api"
-    ]
+    ],
+    "Protocols": []
   }
 }

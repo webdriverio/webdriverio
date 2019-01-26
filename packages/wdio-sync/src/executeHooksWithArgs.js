@@ -1,5 +1,5 @@
 import Fiber from 'fibers'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 const log = logger('wdio-sync')
 

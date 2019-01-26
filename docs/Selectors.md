@@ -18,7 +18,7 @@ To get an anchor element with a specific text in it, query the text starting wit
 For example:
 
 ```html
-<a href="http://webdriver.io">WebdriverIO</a>
+<a href="https://webdriver.io">WebdriverIO</a>
 ```
 
 You can query this element by calling:
@@ -26,7 +26,7 @@ You can query this element by calling:
 ```js
 const link = $('=WebdriverIO');
 console.log(link.getText()); // outputs: "WebdriverIO"
-console.log(link.getAttribute('href')); // outputs: "http://webdriver.io"
+console.log(link.getAttribute('href')); // outputs: "https://webdriver.io"
 ```
 
 ## Partial Link Text
@@ -35,7 +35,7 @@ To find a anchor element whose visible text partially matches your search value,
 in front of the query string (e.g. `*=driver`)
 
 ```html
-<a href="http://webdriver.io">WebdriverIO</a>
+<a href="https://webdriver.io">WebdriverIO</a>
 ```
 
 You can query this element by calling:
@@ -149,7 +149,7 @@ You can query the sibling element of `#elem` as follows:
 
 ```js
 const elem = $('#elem') // or $(() => document.getElementById('elem'))
-elem.$(() => this.nextSibling.nextSibling) // (first sibling is #text with value ("↵"))
+elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is #text with value ("↵"))
 ```
 
 ## Mobile Selectors

@@ -15,7 +15,7 @@
     })
  * </example>
  *
- * @alias browser.getTagName
+ * @alias element.getTagName
  * @return {String} the element's tag name, as a lowercase string
  * @uses protocol/elements, protocol/elementIdName
  * @type property

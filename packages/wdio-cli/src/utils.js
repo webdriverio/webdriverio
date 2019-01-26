@@ -1,4 +1,5 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
+import { initialisePlugin } from '@wdio/config'
 
 const log = logger('wdio-cli:utils')
 
@@ -13,29 +14,36 @@ export function getLauncher (config) {
     }
 
     for (let serviceName of config.services) {
-        let service
+        let launcher
 
         /**
          * allow custom services
          */
-        if (typeof serviceName === 'object') {
+        if (typeof serviceName === 'object' && (typeof serviceName.onPrepare === 'function' || typeof serviceName.onComplete === 'function')) {
             launchServices.push(serviceName)
             continue
         }
 
         try {
-            const pkgName = serviceName.startsWith('@')
-                ? `${serviceName}/launcher`
-                : `wdio-${serviceName}-service/launcher`
-            service = require(pkgName)
+            const Launcher = initialisePlugin(serviceName, 'service', 'launcher')
+
+            /**
+             * abort if service has no launcher
+             */
+            if (!Launcher) {
+                continue
+            }
+
+            launcher = new Launcher()
         } catch (e) {
-            if (!e.message.match(`Cannot find module 'wdio-${serviceName}-service/launcher'`)) {
-                throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
+            if (e.message.startsWith('Couldn\'t find plugin')) {
+                log.error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
+                continue
             }
         }
 
-        if (service && (typeof service.onPrepare === 'function' || typeof service.onComplete === 'function')) {
-            launchServices.push(service)
+        if (launcher && (typeof launcher.onPrepare === 'function' || typeof launcher.onComplete === 'function')) {
+            launchServices.push(launcher)
         }
     }
 
@@ -55,4 +63,28 @@ export async function runServiceHook (launcher, hookName, ...args) {
     } catch (e) {
         log.error(`A service failed in the '${hookName}' hook\n${e.stack}\n\nContinue...`)
     }
+}
+
+/**
+ * map package names
+ */
+export function filterPackageName (type) {
+    return (pkgLabels) => pkgLabels.map(
+        (pkgLabel) => pkgLabel.trim().includes('@wdio')
+            ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
+            : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`)
+}
+
+/**
+ * get runner identification by caps
+ */
+export function getRunnerName (caps) {
+    return (
+        caps.browserName ||
+        caps.appPackage ||
+        caps.appWaitActivity ||
+        caps.app ||
+        caps.platformName ||
+        'undefined'
+    )
 }

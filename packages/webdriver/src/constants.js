@@ -1,6 +1,6 @@
 import { Writable } from 'stream'
 
-const DEFAULTS = {
+export const DEFAULTS = {
     /**
      * protocol of automation driver
      */
@@ -49,7 +49,7 @@ const DEFAULTS = {
     logLevel: {
         type: 'string',
         default: 'info',
-        match: /(trace|debug|info|warn|error)/
+        match: /(trace|debug|info|warn|error|silent)/
     },
     /**
      * logOutput as file path or writeable stream
@@ -60,7 +60,7 @@ const DEFAULTS = {
                 return
             }
 
-            throw new Error(`logOutput needs to be a string or a writeable stream`)
+            throw new Error('logOutput needs to be a string or a writeable stream')
         }
     },
     /**
@@ -90,5 +90,3 @@ const DEFAULTS = {
         type: 'string'
     }
 }
-
-export { DEFAULTS }

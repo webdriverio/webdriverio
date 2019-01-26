@@ -78,13 +78,13 @@ Logo.propTypes = {
 const Badges = () => (
     <section>
         <div className="badges">
-            <a href="http://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
+            <a href="https://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
             <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg" alt="Build Status" /></a>
             <a href="https://codecov.io/gh/webdriverio/webdriverio"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
             <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameBorder="0" allow="encrypted-media" id="fblike"></iframe>
-            <iframe src="http://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameBorder="0" scrolling="0" style={{ width: '118px', height: '20px' }}></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameBorder="0" scrolling="0" style={{ width: '118px', height: '20px' }}></iframe>
             <a href="https://twitter.com/share" className="twitter-share-button" data-via="bromann" data-hashtags="webdriverio">Tweet</a>
             <a href="https://twitter.com/webdriverio" className="twitter-follow-button" data-show-count="true" data-lang="en">Follow @webdriverio</a>
         </div>
@@ -170,7 +170,7 @@ const Talks = () => (
     <Container background="light" padding={['bottom', 'top']}>
         <a className="anchor" name="watch" />
         <a className="hash-link" href="#watch" />
-        <div className="blockElement imageAlignSide twoByGridBlock">
+        <div className="blockElement imageAlignSide twoByGridBlock videoContainer">
             <div className="video">
                 <iframe
                     width="560"

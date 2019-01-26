@@ -3,7 +3,7 @@ import fs from 'fs-extra'
 import Selenium from 'selenium-standalone'
 import SeleniumStandaloneLauncher from '../src/launcher'
 
-jest.mock(`fs-extra`, () => ({
+jest.mock('fs-extra', () => ({
     createWriteStream : jest.fn(),
     ensureFileSync : jest.fn(),
 }))
@@ -21,8 +21,8 @@ describe('Selenium standalone launcher', () => {
 
             const config = {
                 seleniumLogs : './',
-                seleniumArgs : {foo : `foo`},
-                seleniumInstallArgs : {bar : `bar`}
+                seleniumArgs : {foo : 'foo'},
+                seleniumInstallArgs : {bar : 'bar'}
             }
 
             await Launcher.onPrepare(config)
@@ -30,6 +30,7 @@ describe('Selenium standalone launcher', () => {
             expect(Launcher.seleniumLogs).toBe(config.seleniumLogs)
             expect(Launcher.seleniumInstallArgs).toBe(config.seleniumInstallArgs)
             expect(Launcher.seleniumArgs).toBe(config.seleniumArgs)
+            expect(Launcher.skipSeleniumInstall).toBe(false)
         })
 
         test('should set correct config properties when empty', async () => {
@@ -40,6 +41,7 @@ describe('Selenium standalone launcher', () => {
 
             expect(Launcher.seleniumInstallArgs).toEqual({})
             expect(Launcher.seleniumArgs).toEqual({})
+            expect(Launcher.skipSeleniumInstall).toEqual(false)
         })
 
         test('should call selenium install and start', async () => {
@@ -49,21 +51,21 @@ describe('Selenium standalone launcher', () => {
             const config = {
                 seleniumLogs : './',
                 seleniumInstallArgs : {
-                    version : "3.9.1",
-                    baseURL : "https://selenium-release.storage.googleapis.com",
+                    version : '3.9.1',
+                    baseURL : 'https://selenium-release.storage.googleapis.com',
                     drivers : {
                         chrome : {
-                            version : "2.38",
+                            version : '2.38',
                             arch : process.arch,
-                            baseURL : "https://chromedriver.storage.googleapis.com",
+                            baseURL : 'https://chromedriver.storage.googleapis.com',
                         }
                     }
                 },
                 seleniumArgs: {
-                    version : "3.9.1",
+                    version : '3.9.1',
                     drivers : {
                         chrome : {
-                            version : "2.38",
+                            version : '2.38',
                         }
                     }
                 }
@@ -72,6 +74,30 @@ describe('Selenium standalone launcher', () => {
             await Launcher.onPrepare(config)
 
             expect(Selenium.install.mock.calls[0][0]).toBe(config.seleniumInstallArgs)
+            expect(Selenium.start.mock.calls[0][0]).toBe(config.seleniumArgs)
+            expect(Launcher._redirectLogStream).toBeCalled()
+        })
+
+        test('should skip selenium install', async () => {
+            const Launcher = new SeleniumStandaloneLauncher()
+            Launcher._redirectLogStream = jest.fn()
+
+            const config = {
+                seleniumLogs : './',
+                seleniumArgs: {
+                    version : '3.9.1',
+                    drivers : {
+                        chrome : {
+                            version : '2.38',
+                        }
+                    }
+                },
+                skipSeleniumInstall: true
+            }
+
+            await Launcher.onPrepare(config)
+
+            expect(Selenium.install).not.toBeCalled()
             expect(Selenium.start.mock.calls[0][0]).toBe(config.seleniumArgs)
             expect(Launcher._redirectLogStream).toBeCalled()
         })

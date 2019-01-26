@@ -1,5 +1,5 @@
 import speedline from 'speedline'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import FirstInteractiveAudit from './lighthouse/firstInteractive'
 import TraceOfTab from './lighthouse/tabTraces'
@@ -70,7 +70,7 @@ export default class CommandHandler {
      * get nodeId to use for other commands
      */
     async getNodeId (selector) {
-        const document = await this.cdp('DOM', 'getDocument');
+        const document = await this.cdp('DOM', 'getDocument')
         const { nodeId } = await this.cdp(
             'DOM', 'querySelector',
             { nodeId: document.root.nodeId, selector }
@@ -82,7 +82,7 @@ export default class CommandHandler {
      * get nodeIds to use for other commands
      */
     async getNodeIds (selector) {
-        const document = await this.cdp('DOM', 'getDocument');
+        const document = await this.cdp('DOM', 'getDocument')
         const { nodeIds } = await this.cdp(
             'DOM', 'querySelectorAll',
             { nodeId: document.root.nodeId, selector }

@@ -9,7 +9,7 @@
  * https://github.com/GoogleChrome/lighthouse
  */
 
-import TracingProcessor from './tracingProcessor'
+import TraceProcessor from './tracingProcessor'
 import LHError from './errors'
 
 const LONG_TASK_THRESHOLD = 50
@@ -104,7 +104,7 @@ export default class FirstInteractiveAudit {
                 const start = tasks[0].start
                 const end = tasks[tasks.length - 1].end
                 const duration = end - start
-                return {start, end, duration}
+                return { start, end, duration }
             })
             // filter out clusters that started after the window because of our clusteringWindowEnd
             .filter(cluster => cluster.start < windowEnd)
@@ -171,7 +171,7 @@ export default class FirstInteractiveAudit {
             throw new LHError(FMP ? LHError.errors.NO_DCL : LHError.errors.NO_FMP)
         }
 
-        const longTasksAfterFMP = TracingProcessor.getMainThreadTopLevelEvents(traceOfTab, FMP)
+        const longTasksAfterFMP = TraceProcessor.getMainThreadTopLevelEvents(traceOfTab, FMP)
             .filter(evt => evt.duration >= LONG_TASK_THRESHOLD)
         const firstInteractive = FirstInteractiveAudit.findQuietWindow(FMP, traceEnd, longTasksAfterFMP)
 

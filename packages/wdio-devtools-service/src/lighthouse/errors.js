@@ -13,11 +13,11 @@
  * Lighthouse string constants
  */
 export const strings = {
-    didntCollectScreenshots: `Chrome didn't collect any screenshots during the page load. Please make sure there is content visible on the page, and then try re-running the command.`,
-    badTraceRecording: `Something went wrong with recording the trace over your page load. Please run the command again.`,
-    pageLoadTookTooLong: `Your page took too long to load. Please follow the opportunities in the report to reduce your page load time, and then try re-running the command.`,
-    pageLoadFailed: `Your page failed to load. Verify that the URL is valid and re-run the command.`,
-    internalChromeError: `An internal Chrome error occurred. Please restart Chrome and try re-running the command.`,
+    didntCollectScreenshots: 'Chrome didn\'t collect any screenshots during the page load. Please make sure there is content visible on the page, and then try re-running the command.',
+    badTraceRecording: 'Something went wrong with recording the trace over your page load. Please run the command again.',
+    pageLoadTookTooLong: 'Your page took too long to load. Please follow the opportunities in the report to reduce your page load time, and then try re-running the command.',
+    pageLoadFailed: 'Your page failed to load. Verify that the URL is valid and re-run the command.',
+    internalChromeError: 'An internal Chrome error occurred. Please restart Chrome and try re-running the command.',
     requestContentTimeout: 'Fetching resource content has exceeded the allotted time'
 }
 
@@ -52,7 +52,7 @@ class LighthouseError extends Error {
 
     /**
      * @param {string} method
-     * @param {{message: string, data?: string|undefined}} protocolError
+     * @param {{ message: string, data ?: string|undefined}} protocolError
      * @return {!Error|LighthouseError}
      */
     static fromProtocolMessage (method, protocolError) {
@@ -71,40 +71,40 @@ class LighthouseError extends Error {
         let errMsg = `(${method}): ${protocolError.message}`
         if (protocolError.data) errMsg += ` (${protocolError.data})`
         const error = new Error(`Protocol error ${errMsg}`)
-        return Object.assign(error, {protocolMethod: method, protocolError: protocolError.message})
+        return Object.assign(error, { protocolMethod: method, protocolError: protocolError.message })
     }
 }
 
 const ERRORS = {
     // Screenshot/speedline errors
-    NO_SPEEDLINE_FRAMES: {message: strings.didntCollectScreenshots},
-    SPEEDINDEX_OF_ZERO: {message: strings.didntCollectScreenshots},
-    NO_SCREENSHOTS: {message: strings.didntCollectScreenshots},
+    NO_SPEEDLINE_FRAMES: { message: strings.didntCollectScreenshots },
+    SPEEDINDEX_OF_ZERO: { message: strings.didntCollectScreenshots },
+    NO_SCREENSHOTS: { message: strings.didntCollectScreenshots },
 
     // Trace parsing errors
-    NO_TRACING_STARTED: {message: strings.badTraceRecording},
-    NO_NAVSTART: {message: strings.badTraceRecording},
-    NO_FCP: {message: strings.badTraceRecording},
-    NO_FMP: {message: strings.badTraceRecording},
-    NO_DCL: {message: strings.badTraceRecording},
+    NO_TRACING_STARTED: { message: strings.badTraceRecording },
+    NO_NAVSTART: { message: strings.badTraceRecording },
+    NO_FCP: { message: strings.badTraceRecording },
+    NO_FMP: { message: strings.badTraceRecording },
+    NO_DCL: { message: strings.badTraceRecording },
 
     // TTFI/TTCI calculation failures
-    FMP_TOO_LATE_FOR_FCPUI: {message: strings.pageLoadTookTooLong},
-    NO_FCPUI_IDLE_PERIOD: {message: strings.pageLoadTookTooLong},
-    NO_TTI_CPU_IDLE_PERIOD: {message: strings.pageLoadTookTooLong},
-    NO_TTI_NETWORK_IDLE_PERIOD: {message: strings.pageLoadTookTooLong},
+    FMP_TOO_LATE_FOR_FCPUI: { message: strings.pageLoadTookTooLong },
+    NO_FCPUI_IDLE_PERIOD: { message: strings.pageLoadTookTooLong },
+    NO_TTI_CPU_IDLE_PERIOD: { message: strings.pageLoadTookTooLong },
+    NO_TTI_NETWORK_IDLE_PERIOD: { message: strings.pageLoadTookTooLong },
 
     // Page load failures
-    NO_DOCUMENT_REQUEST: {message: strings.pageLoadFailed},
-    FAILED_DOCUMENT_REQUEST: {message: strings.pageLoadFailed},
+    NO_DOCUMENT_REQUEST: { message: strings.pageLoadFailed },
+    FAILED_DOCUMENT_REQUEST: { message: strings.pageLoadFailed },
 
     // Protocol internal failures
-    TRACING_ALREADY_STARTED: {message: strings.internalChromeError, pattern: /Tracing.*started/},
-    PARSING_PROBLEM: {message: strings.internalChromeError, pattern: /Parsing problem/},
-    READ_FAILED: {message: strings.internalChromeError, pattern: /Read failed/},
+    TRACING_ALREADY_STARTED: { message: strings.internalChromeError, pattern: /Tracing.*started/ },
+    PARSING_PROBLEM: { message: strings.internalChromeError, pattern: /Parsing problem/ },
+    READ_FAILED: { message: strings.internalChromeError, pattern: /Read failed/ },
 
     // Protocol timeout failures
-    REQUEST_CONTENT_TIMEOUT: {message: strings.requestContentTimeout}
+    REQUEST_CONTENT_TIMEOUT: { message: strings.requestContentTimeout }
 }
 
 Object.keys(ERRORS).forEach(code => (ERRORS[code].code = code))

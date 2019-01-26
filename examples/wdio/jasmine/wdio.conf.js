@@ -24,7 +24,7 @@ exports.config = {
      * test configurations
      */
     logLevel: 'trace',
-    logDir: __dirname,
+    outputDir: __dirname,
     framework: 'jasmine',
 
     reporters: ['spec'],
@@ -44,5 +44,4 @@ exports.config = {
         // eslint-disable-next-line
         console.log('that\'s it');
     }
-
-};
+}

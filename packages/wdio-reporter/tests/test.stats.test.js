@@ -11,8 +11,7 @@ describe('TestStats', () => {
             pending: false,
             cid: '0-0',
             specs: [ '/path/to/test/specs/sync.spec.js' ],
-            uid: 'should can do something3',
-            parentUid: 'My awesome feature2'
+            uid: 'should can do something3'
         })
 
         stat.complete = jest.fn()

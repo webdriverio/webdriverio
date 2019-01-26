@@ -41,6 +41,9 @@ In order to set up this project and start contributing follow this step by step 
 
     ```sh
     $ npm run test
+
+    # run test for a specific sub project (e.g. webdriver)
+    $ ./node_modules/.bin/jest ./packages/webdriver/tests
     ```
 
     It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
@@ -70,6 +73,12 @@ If you only work on a single package you can watch only for that one by calling:
 $ npm run watch:pkg <package-name>
 ```
 
+It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
+
+```sh
+$ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
+```
+
 ## Test Your Changes
 
 In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md).
@@ -87,10 +96,19 @@ Commits that affect all packages or are not related to any (e.g. changes to NPM 
 
 ## Release New Version
 
-Package releases are made using Lerna's release capabilities and executed by [the technical committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. To run it just call:
+Package releases are made using Lerna's release capabilities and executed by [the technical committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. Before you can start please export an `GITHUB_AUTH` token into your environment in order to allow [`lerna-changelog`](https://www.npmjs.com/package/lerna-changelog#github-token) to gather data about the upcoming release and autogenerate the [CHANGELOG.md](/CHANGELOG.md). Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such token with only having the `public_repo` field enabled. Then export it into your environment:
 
 ```sh
+export GITHUB_AUTH=...
+```
+
+You are now all set and just need to call:
+
+```sh
+# ensure to have pulled the latest code
+$ git pull origin master
+# release using Lerna
 $ npm run release
 ```
 
-and choose the appropiate version upgrade based on the [Semantic Versioning](https://semver.org/).
+and choose the appropriate version upgrade based on the [Semantic Versioning](https://semver.org/).

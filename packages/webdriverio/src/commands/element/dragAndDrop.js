@@ -2,9 +2,9 @@
  *
  * Drag an item to a destination element.
  *
- * @alias browser.dragAndDrop
+ * @alias element.dragAndDrop
  * @param {Element} target    destination selector
- * @param {Number}  duration  how long the drag should take place
+ * @param {Number=}  duration  how long the drag should take place
  * @uses action/moveToObject, protocol/buttonDown, protocol/buttonUp, property/getLocation, protocol/touchDown, protocol/touchMove, protocol/touchUp
  * @type action
  *
@@ -42,11 +42,11 @@ export default async function dragAndDrop (target, duration = 100) {
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
         actions: [
-            {type: "pointerMove", duration: 0, x: sourceX, y: sourceY},
-            {type: "pointerDown", button: ACTION_BUTTON},
-            {type: "pause", duration: 10}, // emulate human pause
-            {type: "pointerMove", duration, origin: "pointer", x: targetX, y: targetY},
-            {type: "pointerUp", button: ACTION_BUTTON}
+            { type: 'pointerMove', duration: 0, x: sourceX, y: sourceY },
+            { type: 'pointerDown', button: ACTION_BUTTON },
+            { type: 'pause', duration: 10 }, // emulate human pause
+            { type: 'pointerMove', duration, origin: 'pointer', x: targetX, y: targetY },
+            { type: 'pointerUp', button: ACTION_BUTTON }
         ]
     }]).then(() => this.releaseActions())
 }

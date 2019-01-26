@@ -1,6 +1,6 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 import WebDriverRequest from './request'
-import { isValidParameter, commandCallStructure } from './utils'
+import { isValidParameter, getArgumentType, commandCallStructure } from './utils'
 
 const log = logger('webdriver')
 
@@ -55,7 +55,7 @@ export default function (method, endpointUri, commandInfo) {
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
                     `Expected: ${commandParam.type}\n` +
-                    `Actual: ${typeof arg}` +
+                    `Actual: ${getArgumentType(arg)}` +
                     moreInfo
                 )
             }
@@ -78,8 +78,10 @@ export default function (method, endpointUri, commandInfo) {
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (result.value) {
-                log.info('RESULT', result.value)
+            if (result.value != null) {
+                log.info('RESULT', command.toLowerCase().includes('screenshot')
+                    && typeof result.value === 'string' && result.value.length > 64
+                    ? `${result.value.substr(0, 61)}...` : result.value)
             }
 
             this.emit('result', { method, endpoint, body, result })

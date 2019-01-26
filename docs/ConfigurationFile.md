@@ -8,6 +8,12 @@ The configuration file contains all necessary information to run your test suite
 ```js
 exports.config = {
 
+    // ==================================
+    // Where should your test be launched
+    // ==================================
+    //
+    runner: 'local',
+    //
     // =====================
     // Server Configurations
     // =====================
@@ -18,7 +24,7 @@ exports.config = {
     // according to your user and key information. However if you are using a private Selenium
     // backend you should define the host address, port, and path here.
     //
-    host: '0.0.0.0',
+    hostname: '0.0.0.0',
     port: 4444,
     path: '/wd/hub',
     //
@@ -31,6 +37,12 @@ exports.config = {
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+    //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. Available short handles for regions are:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
+    region: 'us',
     //
     // ==================
     // Specify Test Files
@@ -65,8 +77,10 @@ exports.config = {
     // and 30 processes will get spawned. The property basically handles how many capabilities
     // from the same test should run tests.
     //
-    //
     maxInstances: 10,
+    //
+    // Or set a limit to run tests with a specific capability.
+    maxInstancesPerCapability: 10,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -74,7 +88,7 @@ exports.config = {
     //
     capabilities: [{
         browserName: 'chrome',
-        chromeOptions: {
+        'goog:chromeOptions': {
         // to run chrome headless the following flags are required
         // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
         // args: ['--headless', '--disable-gpu'],
@@ -118,16 +132,23 @@ exports.config = {
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 1000,
     //
+    // Add files to watch (e.g. application code or page objects) when running `wdio` command
+    // with `--watch` flag (globbing is supported).
+    filesToWatch: [
+        // e.g. rerun tests if I change my application code
+        // './app/**/*.js'
+    ],
+    //
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
     framework: 'mocha',
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
+    // see also: https://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
     reporters: [
         'dot',
         ['allure', {
@@ -145,7 +166,7 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
@@ -164,7 +185,7 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify where your step definitions are located.
-    // See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
@@ -289,17 +310,20 @@ exports.config = {
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities) {
+    onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
-    * Gets executed when an error happens, good place to take a screenshot
-    * @ {String} error message
+    * Gets executed when a refresh happens.
+    * @param {String} oldSessionId session ID of the old session
+    * @param {String} newSessionId session ID of the new session
     */
-    onError: function(message) {
-    }
-    //
-    // Cucumber specific hooks
+    onReload: function(oldSessionId, newSessionId) {
+    },
+    /**
+     * Cucumber specific hooks
+     */
     beforeFeature: function (feature) {
     },
     beforeScenario: function (scenario) {

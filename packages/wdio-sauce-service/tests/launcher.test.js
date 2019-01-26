@@ -71,7 +71,7 @@ test('onPrepare multiremote', () => {
     expect(service.sauceConnectProcess).not.toBeUndefined()
     expect(config.port).toBe(4446)
     expect(config.protocol).toBe('http')
-    expect(config.host).toBe('localhost')
+    expect(config.hostname).toBe('localhost')
 })
 
 test('onPrepare if sauceTunnel is not set', () => {

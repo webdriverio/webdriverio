@@ -1,13 +1,16 @@
 import util from 'util'
+import EventEmitter from 'events'
 import ansiEscapes from 'ansi-escapes'
 
-export default class CLInterface {
+export default class CLInterface extends EventEmitter {
     constructor () {
+        super()
         this.i = 0
         this.stdoutBuffer = []
         this.stderrBuffer = []
         this.out = ::process.stdout.write
         this.err = ::process.stderr.write
+        this.inDebugMode = false
 
         this.clearAll()
 
@@ -22,9 +25,24 @@ export default class CLInterface {
     }
 
     wrapStdio(stream, buffer) {
+        const out = ::stream.write
         stream.write = chunk => {
+            if (this.inDebugMode) {
+                return out(chunk)
+            }
+
             buffer.push(chunk)
+            this.emit('bufferchange', chunk)
             return true
+        }
+    }
+
+    clearBuffer () {
+        for (let i = this.stdoutBuffer.length; i > 0; --i) {
+            this.stdoutBuffer.pop()
+        }
+        for (let i = this.stderrBuffer.length; i > 0; --i) {
+            this.stderrBuffer.pop()
         }
     }
 
@@ -43,5 +61,10 @@ export default class CLInterface {
 
     write (message) {
         this.out(message)
+    }
+
+    reset () {
+        process.stdout.write = this.out
+        process.stderr.write = this.err
     }
 }

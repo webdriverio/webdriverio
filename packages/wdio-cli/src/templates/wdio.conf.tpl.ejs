@@ -32,6 +32,11 @@ exports.config = {
     //
     user: process.env.<%= answers.env_user %>,
     key: process.env.<%= answers.env_key %>,
+    //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. Available short handles for regions are:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
     <% }
     if(answers.backend.indexOf('In the cloud') > -1) { %>
     <% } %>
@@ -87,11 +92,6 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // By default WebdriverIO commands are executed in a synchronous way using
-    // the wdio-sync package. If you still want to run your tests in an async way
-    // e.g. using promises you can set the sync option to false.
-    sync: true,
-    //
     // Level of logging verbosity: trace | debug | info | warn | error
     logLevel: '<%= answers.logLevel %>',
     //
@@ -118,37 +118,19 @@ exports.config = {
     // Default request retries count
     connectionRetryCount: 3,
     //
-    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as properties. Make sure you have
-    // the plugin installed before running any tests. The following plugins are currently
-    // available:
-    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
-    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
-    // Browserevent: https://github.com/webdriverio/browserevent
-    // plugins: {
-    //     webdrivercss: {
-    //         screenshotRoot: 'my-shots',
-    //         failedComparisonsRoot: 'diffs',
-    //         misMatchTolerance: 0.05,
-    //         screenWidth: [320,480,640,1024]
-    //     },
-    //     webdriverrtc: {},
-    //     browserevent: {}
-    // },
-    //
     // Test runner services
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
     <% if(answers.services.length) {
     %>services: ['<%- answers.services.map(function(service) {
-        return service.slice(5, -8);
+        return service.slice(service.startsWith('@wdio') ? 6 : 5, -8)
     }).join("','") %>'],
     <% } else {
     %>// services: [],<% } %>//
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
@@ -156,10 +138,10 @@ exports.config = {
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html
+    // see also: https://webdriver.io/docs/dot-reporter.html
     <% if(answers.reporters.length) {
     %>reporters: ['<%- answers.reporters.map(function(reporter) {
-        return reporter.slice(5, -9);
+        return reporter.slice(reporter.startsWith('@wdio') ? 6 : 5, -9)
     }).join("','") %>'],
     <% } else {
     %>// reporters: ['dot'],<%
@@ -169,7 +151,8 @@ exports.config = {
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        ui: 'bdd'
+        ui: 'bdd',
+        timeout: 60000
     },<% }
     if(answers.framework === 'jasmine') { %>
     //
@@ -177,7 +160,7 @@ exports.config = {
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
-        defaultTimeoutInterval: 10000,
+        defaultTimeoutInterval: 60000,
         //
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
         // or website depending on the result. For example, it is pretty handy to take a screenshot every time
@@ -202,7 +185,7 @@ exports.config = {
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,     // <number> timeout for step definitions
+        timeout: 60000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     <% } %>
@@ -352,7 +335,15 @@ exports.config = {
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    // onComplete: function(exitCode, config, capabilities) {
-    // }
+    // onComplete: function(exitCode, config, capabilities, results) {
+    // },
+    /**
+    * Gets executed when a refresh happens.
+    * @param {String} oldSessionId session ID of the old session
+    * @param {String} newSessionId session ID of the new session
+    */
+    //onReload: function(oldSessionId, newSessionId) {
+    //}
 }

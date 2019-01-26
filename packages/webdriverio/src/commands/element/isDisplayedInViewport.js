@@ -29,9 +29,8 @@
     });
  * </example>
  *
- * @alias browser.isVisibleWithinViewport
- * @param   {String}             selector  DOM-element
- * @return {Boolean|Boolean[]}            true if element(s)* [is|are] visible
+ * @alias element.isVisibleWithinViewport
+ * @return {Boolean}            true if element(s)* [is|are] visible
  * @uses protocol/selectorExecute, protocol/timeoutsAsyncScript
  * @type state
  *

@@ -6,6 +6,8 @@ import {
     SUITES,
     SUITES_NO_TESTS,
     REPORT,
+    SAUCELABS_REPORT,
+    SUITES_NO_TESTS_WITH_HOOK_ERROR
 } from './__fixtures__/testdata'
 
 const reporter = new SpecReporter({})
@@ -43,11 +45,34 @@ describe('SpecReporter', () => {
 
         it('should add to suiteUids', () => {
             expect(reporter.suiteUids.length).toBe(1)
-            expect(reporter.suiteUids[0]).toBe(`Foo test1`)
+            expect(reporter.suiteUids[0]).toBe('Foo test1')
         })
 
         it('should increase suiteIndents', () => {
-            expect(reporter.suiteIndents[`Foo test1`]).toBe(1)
+            expect(reporter.suiteIndents['Foo test1']).toBe(1)
+        })
+    })
+
+    describe('onHookEnd', () => {
+        it('should increase stateCount failures if hook failed', () => {
+            expect(tmpReporter.stateCounts.failed).toBe(0)
+            tmpReporter.onHookEnd({})
+            expect(tmpReporter.stateCounts.failed).toBe(0)
+            tmpReporter.onHookEnd({ error: new Error('boom!') })
+            expect(tmpReporter.stateCounts.failed).toBe(1)
+        })
+    })
+
+    describe('getEventsToReport', () => {
+        it('should return all tests and hook errors to report', () => {
+            expect(tmpReporter.getEventsToReport({
+                tests: [1, 2, 3],
+                hooks: [4, 5, 6]
+            })).toEqual([1, 2, 3])
+            expect(tmpReporter.getEventsToReport({
+                tests: [1, 2, 3],
+                hooks: [{ error: 1 }, 5, { error: 2 }]
+            })).toEqual([1, 2, 3, { error: 1 }, { error: 2 }])
         })
     })
 
@@ -127,6 +152,34 @@ describe('SpecReporter', () => {
             printReporter.printReport(RUNNER)
 
             expect(printReporter.write).toBeCalledWith(REPORT)
+        })
+
+        it('should print link to SauceLabs job details page', () => {
+            printReporter.suiteUids = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.stateCounts = {
+                passed : 4,
+                failed : 1,
+                skipped : 1,
+            }
+
+            const runner = Object.assign({}, RUNNER, {
+                config: { hostname: 'ondemand.saucelabs.com' },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            })
+            printReporter.printReport(runner)
+
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+        })
+
+        it('should print report for suites with no tests but failed hooks', () => {
+            printReporter.suiteUids = SUITE_UIDS
+            printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
+
+            printReporter.printReport(RUNNER)
+
+            expect(printReporter.write.mock.calls.length).toBe(1)
+            expect(printReporter.write.mock.calls[0][0]).toContain('a failed hook')
         })
 
         it('should not print the report because there are no tests', () => {
@@ -246,7 +299,7 @@ describe('SpecReporter', () => {
 
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
-            tmpReporter.foo = `hellooo`
+            tmpReporter.foo = 'hellooo'
             tmpReporter.suiteUids = [5, 3, 8]
             tmpReporter.suites = [{ uid : 3 }, { uid : 5 }]
 
@@ -262,7 +315,7 @@ describe('SpecReporter', () => {
         })
 
         it('should return the cached ordered suites', () => {
-            tmpReporter.foo = `hellooo boo`
+            tmpReporter.foo = 'hellooo boo'
             tmpReporter.orderedSuites = ['foo', 'bar']
             const result = tmpReporter.getOrderedSuites()
 

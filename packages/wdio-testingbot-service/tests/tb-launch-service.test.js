@@ -1,7 +1,6 @@
 jest.unmock('request')
 
-import request from 'request'
-import TestingBotService from '../src/tb-launch-service'
+import TestingBotService from '../src/launcher'
 
 describe('wdio-testingbot-service', () => {
     const tbService = new TestingBotService()
@@ -28,7 +27,7 @@ describe('wdio-testingbot-service', () => {
         expect(tbService.tbTunnelOpts).toBeUndefined()
         expect(tbService.tunnel).toBeUndefined()
         expect(config.protocol).toBeUndefined()
-        expect(config.host).toBeUndefined()
+        expect(config.hostname).toBeUndefined()
         expect(config.port).toBeUndefined()
     })
 
@@ -45,7 +44,7 @@ describe('wdio-testingbot-service', () => {
         tbService.onPrepare(config)
         expect(tbService.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
         expect(config.protocol).toEqual('http')
-        expect(config.host).toEqual('localhost')
+        expect(config.hostname).toEqual('localhost')
         expect(config.port).toEqual(4445)
     })
 
@@ -267,16 +266,8 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('getRestUrl', () => {
-        expect(tbService.getRestUrl('testSessionId')).toEqual(`https://api.testingbot.com/v1/tests/testSessionId`)
-    })
-
-    it('updateJob: returns 401 error when no API key or/and API user set', () => {
-        const putSpy = jest.spyOn(request, 'put')
-        const updateJob = tbService.updateJob('sessionId', 2, true)
-
-        expect(putSpy).toBeCalled()
-        return (expect(updateJob)).resolves
-            .toEqual({ error: '401 Unauthorized. Please supply the correct API key and API secret' })
+        expect(tbService.getRestUrl('testSessionId'))
+            .toEqual('https://api.testingbot.com/v1/tests/testSessionId')
     })
 
     it('getBody', () => {

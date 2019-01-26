@@ -16,7 +16,7 @@ class CustomReporter {
 describe('BaseReporter', () => {
     it('should load all reporters', () => {
         const reporter = new BaseReporter({
-            logDir: '/foo/bar',
+            outputDir: '/foo/bar',
             reporters: [
                 'dot',
                 ['dot', { foo: 'bar' }]
@@ -28,7 +28,7 @@ describe('BaseReporter', () => {
 
     it('getLogFile', () => {
         const reporter = new BaseReporter({
-            logDir: '/foo/bar',
+            outputDir: '/foo/bar',
             reporters: [
                 'dot',
                 ['dot', { foo: 'bar' }]
@@ -38,7 +38,54 @@ describe('BaseReporter', () => {
         expect(reporter.getLogFile('foobar')).toBe('/foo/bar/wdio-0-0-foobar-reporter.log')
     })
 
-    test('getLogFile returns undefined if logDir is not defined', () => {
+    it('should output log file to custom outputDir', () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [
+                'dot',
+                ['dot', {
+                    foo: 'bar',
+                    outputDir: '/foo/bar/baz'
+                }]
+            ]
+        }, '0-0')
+
+        expect(reporter.getLogFile('foobar')).toBe('/foo/bar/baz/wdio-0-0-foobar-reporter.log')
+    })
+
+    it('should return custom log file name', () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [
+                'dot',
+                ['dot', {
+                    foo: 'bar',
+                    outputFileFormat: (options) => {
+                        return `wdio-results-${options.cid}.xml`
+                    }
+                }]
+            ]
+        }, '0-0')
+
+        expect(reporter.getLogFile('dot')).toBe('/foo/bar/wdio-results-0-0.xml')
+    })
+
+    it('should throw error if outputFileFormat is not a function', () => {
+        expect(() => {
+            new BaseReporter({
+                outputDir: '/foo/bar',
+                reporters: [
+                    'dot',
+                    ['dot', {
+                        foo: 'bar',
+                        outputFileFormat: 'foo'
+                    }]
+                ]
+            }, '0-0')
+        }).toThrow('outputFileFormat must be a function')
+    })
+
+    test('getLogFile returns undefined if outputDir is not defined', () => {
         const reporter = new BaseReporter({
             reporters: [
                 'dot',
@@ -51,7 +98,7 @@ describe('BaseReporter', () => {
 
     it('should emit events to all reporters', () => {
         const reporter = new BaseReporter({
-            logDir: '/foo/bar',
+            outputDir: '/foo/bar',
             reporters: [
                 'dot',
                 ['dot', { foo: 'bar' }]
@@ -68,7 +115,7 @@ describe('BaseReporter', () => {
 
     it('should allow to load custom reporters', () => {
         const reporter = new BaseReporter({
-            logDir: '/foo/bar',
+            outputDir: '/foo/bar',
             reporters: [CustomReporter]
         })
         expect(reporter.reporters).toHaveLength(1)
@@ -79,7 +126,7 @@ describe('BaseReporter', () => {
         expect.hasAssertions()
         try {
             new BaseReporter({
-                logDir: '/foo/bar',
+                outputDir: '/foo/bar',
                 reporters: [{foo: 'bar'}]
             })
         } catch (e) {
@@ -92,7 +139,7 @@ describe('BaseReporter', () => {
 
         const start = Date.now()
         const reporter = new BaseReporter({
-            logDir: '/foo/bar',
+            outputDir: '/foo/bar',
             reporters: [CustomReporter, CustomReporter]
         })
 
@@ -106,7 +153,7 @@ describe('BaseReporter', () => {
         expect.assertions(1)
 
         const reporter = new BaseReporter({
-            logDir: '/foo/bar',
+            outputDir: '/foo/bar',
             reporters: [CustomReporter],
             reporterSyncInterval: 10,
             reporterSyncTimeout: 100

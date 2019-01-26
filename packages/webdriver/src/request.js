@@ -2,11 +2,13 @@ import url from 'url'
 import http from 'http'
 import path from 'path'
 import https from 'https'
+import merge from 'lodash.merge'
 import request from 'request'
-import logger from 'wdio-logger'
 import EventEmitter from 'events'
 
-import { isSuccessfulResponse } from './utils'
+import logger from '@wdio/logger'
+
+import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
 
 const log = logger('webdriver')
@@ -18,11 +20,12 @@ const agents = {
 export default class WebDriverRequest extends EventEmitter {
     constructor (method, endpoint, body) {
         super()
+        this.body = body
         this.method = method
         this.endpoint = endpoint
+        this.requiresSessionId = this.endpoint.match(/:sessionId/)
         this.defaultOptions = {
             method,
-            body,
             followAllRedirects: true,
             json: true,
             headers: {
@@ -34,7 +37,7 @@ export default class WebDriverRequest extends EventEmitter {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = Object.assign(this.defaultOptions, this._createOptions(options, sessionId))
+        const fullRequestOptions = merge(this.defaultOptions, this._createOptions(options, sessionId))
         this.emit('request', fullRequestOptions)
         return this._request(fullRequestOptions, options.connectionRetryCount)
     }
@@ -43,7 +46,14 @@ export default class WebDriverRequest extends EventEmitter {
         const requestOptions = {
             agent: agents[options.protocol],
             headers: typeof options.headers === 'object' ? options.headers : {},
-            qs: typeof this.defaultOptions.queryParams === 'object' ? options.queryParams : {}
+            qs: typeof options.queryParams === 'object' ? options.queryParams : {}
+        }
+
+        /**
+         * only apply body property if existing
+         */
+        if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
+            requestOptions.body = this.body
         }
 
         /**
@@ -51,14 +61,14 @@ export default class WebDriverRequest extends EventEmitter {
          * example /sessions. The call to /sessions is not connected to a session itself and it therefore doesn't
          * require it
          */
-        if (this.endpoint.match(/:sessionId/) && !sessionId) {
+        if (this.requiresSessionId && !sessionId) {
             throw new Error('A sessionId is required for this command')
         }
 
         requestOptions.uri = url.parse(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            path.resolve(`${options.path}${this.endpoint.replace(':sessionId', sessionId)}`)
+            path.join(options.path, this.endpoint.replace(':sessionId', sessionId))
         )
 
         /**
@@ -82,18 +92,32 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
-            const error = new Error(err || (body.value ? body.value.message : body))
+            const error = err || getErrorFromResponseBody(body)
 
             /**
              * Resolve only if successful response
              */
-            if (!err && isSuccessfulResponse(response)) {
+            if (!err && isSuccessfulResponse(response.statusCode, body)) {
                 this.emit('response', { result: body })
                 return resolve(body)
             }
 
-            if (retryCount >= totalRetryCount) {
-                log.error('Request failed after retry due to', error)
+            /**
+             *  stop retrying as this will never be successful.
+             *  we will handle this at the elementErrorHandler
+             */
+            if(error.stack.includes('stale element reference')) {
+                log.warn('Request encountered a stale element - terminating request')
+                this.emit('response', { error })
+                return reject(error)
+            }
+
+            /**
+             * stop retrying if totalRetryCount was exceeded or there is no reason to
+             * retry, e.g. if sessionId is invalid
+             */
+            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+                log.error('Request failed due to', error)
                 this.emit('response', { error })
                 return reject(error)
             }

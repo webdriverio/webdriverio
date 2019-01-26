@@ -3,7 +3,7 @@ import path from 'path'
 import glob from 'glob'
 import merge from 'deepmerge'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
 import { detectBackend } from '../utils'
 
@@ -57,7 +57,7 @@ export default class ConfigParser {
              */
             this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
         } catch (e) {
-            log.error(`Failed loading configuration file: ${filePath}`)
+            log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e
         }
     }
@@ -92,11 +92,9 @@ export default class ConfigParser {
         if (spec.length > 0) {
             this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs)]
         }
-        
         if (exclude.length > 0) {
             this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude)]
         }
-        
 
         /**
          * user and key could get added via cli arguments so we need to detect again
@@ -204,9 +202,8 @@ export default class ConfigParser {
             }
         })
         if (filesToFilter.size === 0) {
-            throw new Error(`spec file(s) ${cliArgFileList.join(`, `)} not found`)
+            throw new Error(`spec file(s) ${cliArgFileList.join(', ')} not found`)
         }
-        
         return filesToFilter
     }
 
@@ -250,6 +247,7 @@ export default class ConfigParser {
 
             filenames = filenames.filter(filename =>
                 filename.slice(-3) === '.js' ||
+                filename.slice(-4) === '.es6' ||
                 filename.slice(-3) === '.ts' ||
                 filename.slice(-8) === '.feature' ||
                 filename.slice(-7) === '.coffee')

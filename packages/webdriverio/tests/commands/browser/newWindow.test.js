@@ -2,23 +2,20 @@
  * @jest-environment jsdom
  */
 
+global.window.open = jest.fn()
 
 import request from 'request'
 import { remote } from '../../../src'
 
 describe('newWindow', () => {
-    let browser
-
-    beforeEach(async () => {
-        browser = await remote({
+    it('should allow to create a new window handle', async () => {
+        const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
             }
         })
-    })
 
-    it('should allow to create a new window handle', async () => {
         await browser.newWindow('https://webdriver.io', 'some name', 'some params')
         expect(request.mock.calls).toHaveLength(4)
         expect(request.mock.calls[1][0].body.args).toEqual(['https://webdriver.io', 'some name', 'some params'])
@@ -27,6 +24,12 @@ describe('newWindow', () => {
     })
 
     it('should fail if url is invalid', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
         expect.hasAssertions()
 
         try {
@@ -37,8 +40,14 @@ describe('newWindow', () => {
     })
 
     it('should fail if browser is a mobile device', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'ipad',
+                mobileMode: true
+            }
+        })
         expect.hasAssertions()
-        browser.capabilities.browserName = 'ipad'
 
         try {
             await browser.newWindow('https://webdriver.io', 'some name', 'some params')
