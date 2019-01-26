@@ -8,6 +8,7 @@ beforeEach(() => {
     iface = new WDIOInterface()
     iface.out = jest.fn()
     iface.err = jest.fn()
+    iface.emit = jest.fn()
 })
 
 test('can clear lines', () => {
@@ -30,6 +31,7 @@ test('can wrap stdout or stderr', () => {
     const stream = { write: jest.fn() }
     iface.wrapStdio(stream, buffer)
     stream.write('foobar')
+    expect(iface.emit).toBeCalledTimes(1)
     expect(buffer).toHaveLength(1)
 })
 
@@ -40,6 +42,7 @@ test('writes to stream if in debug mode', () => {
     iface.inDebugMode = true
     stream.write('foobar')
     expect(buffer).toHaveLength(0)
+    expect(iface.emit).toBeCalledTimes(0)
 })
 
 test('clearBuffer', () => {
@@ -50,4 +53,14 @@ test('clearBuffer', () => {
     iface.clearBuffer()
     expect(iface.stdoutBuffer).toHaveLength(0)
     expect(iface.stderrBuffer).toHaveLength(0)
+})
+
+test('allows to reset stdout and stderr', () => {
+    global._stdout = jest.fn()
+    global._stderr = jest.fn()
+    iface.reset(global._stdout, global._stderr)
+    global._stdout('foo')
+    global._stderr('bar')
+    expect(iface.out).toBeCalledTimes(0)
+    expect(iface.err).toBeCalledTimes(0)
 })

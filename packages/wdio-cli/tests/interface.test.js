@@ -188,10 +188,19 @@ describe('cli interface', () => {
 
         output = flatten(wdioClInterface.interface.log.mock.calls)
         expect(output).toContain('black "foo" Reporter:')
-        expect(output).toContain('black Stdout:\nfoobar')
-        expect(output).toContain('black Stderr:\nbarfoo')
-        expect(output).toContain('black Worker Error:\nfoobar\n')
-        expect(output).toContain('(100% completed)')
+    })
+
+    it('should allow to print stdout logs', () => {
+        wdioClInterface.interface.stdoutBuffer = ['out-1', 'out-2', 'out-3', 'out-4', 'out-5']
+        wdioClInterface.interface.stderrBuffer = ['err-1', 'err-2', 'err-3', 'err-4', 'err-5']
+        wdioClInterface.messages.worker.error = ['worker-1', 'worker-2', 'worker-3', 'worker-4', 'worker-5']
+        wdioClInterface.printStdout(3)
+        expect(wdioClInterface.interface.log.mock.calls[0][0])
+            .toBe('black Stdout:\nout-3out-4out-5')
+        expect(wdioClInterface.interface.log.mock.calls[1][0])
+            .toBe('black Stderr:\nerr-3err-4err-5')
+        expect(wdioClInterface.interface.log.mock.calls[2][0])
+            .toBe('black Worker Error:\n\n\n\n')
     })
 
     it('should be able to mark display when SIGINT is called', () => {
@@ -237,5 +246,34 @@ describe('cli interface', () => {
         expect(wdioClInterface.updateView).toHaveBeenCalledTimes(1)
         expect(wdioClInterface.interface.inDebugMode).toBe(false)
         expect(wdioClInterface.sigintTriggered).toBe(false)
+    })
+
+    it('should allow to reset', () => {
+        wdioClInterface.reset()
+        expect(wdioClInterface.interface.reset).toBeCalledTimes(1)
+        expect(wdioClInterface.interface.log).toHaveBeenCalledWith('\n')
+    })
+
+    it('should not call reset in watch mode', () => {
+        wdioClInterface.isWatchMode = true
+        wdioClInterface.reset()
+        expect(wdioClInterface.interface.reset).toBeCalledTimes(0)
+        expect(wdioClInterface.interface.log).toHaveBeenCalledWith('\n')
+    })
+
+    it('has finalise to create a final display', () => {
+        wdioClInterface.clearAll = jest.fn()
+        wdioClInterface.printReporters = jest.fn()
+        wdioClInterface.printStdout = jest.fn()
+        wdioClInterface.printSummary = jest.fn()
+        wdioClInterface.updateClock = jest.fn()
+        wdioClInterface.reset = jest.fn()
+        wdioClInterface.finalise()
+        expect(wdioClInterface.clearAll).toBeCalledTimes(1)
+        expect(wdioClInterface.printReporters).toBeCalledTimes(1)
+        expect(wdioClInterface.printStdout).toBeCalledTimes(1)
+        expect(wdioClInterface.printSummary).toBeCalledTimes(1)
+        expect(wdioClInterface.updateClock).toBeCalledTimes(1)
+        expect(wdioClInterface.reset).toBeCalledTimes(1)
     })
 })

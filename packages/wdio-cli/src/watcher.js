@@ -55,9 +55,7 @@ export default class Watcher {
          * clean interface once all worker finish
          */
         const workers = this.getWorkers()
-        this.launcher.interface.finalise()
         Object.values(workers).forEach((worker) => worker.on('exit', () => {
-            this.launcher.interface.finalise()
             /**
              * check if all workers have finished
              */
