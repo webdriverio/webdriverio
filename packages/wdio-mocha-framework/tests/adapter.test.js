@@ -28,7 +28,7 @@ test('comes with a factory', async () => {
     expect(result).toBe(0)
 })
 
-test('should properly set up Mocha', async () => {
+test('should properly set up mocha', async () => {
     const adapter = new MochaAdapter(
         '0-2',
         {},
