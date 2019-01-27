@@ -92,7 +92,7 @@ export const findStrategy = function (value, isW3C, isMobile) {
     } else {
         const match = value.match(new RegExp([
             // HTML tag
-            /^([a-z0-9]*-?[a-z0-9]*)/,
+            /^([a-z0-9|-]*)/,
             // optional . or # + class or id
             /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
             // optional [attribute-name="attribute-value"]
