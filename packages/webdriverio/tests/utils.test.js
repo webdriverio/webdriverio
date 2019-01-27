@@ -181,9 +181,9 @@ describe('utils', () => {
         })
         
         it('should find an custom element by tag name + content', () => {
-            const element = findStrategy('custom-element=some random text with "§$%&/()div=or others')
+            const element = findStrategy('custom-element-with-multiple-dashes=some random text with "§$%&/()div=or others')
             expect(element.using).toBe('xpath')
-            expect(element.value).toBe('.//custom-element[normalize-space() = "some random text with "§$%&/()div=or others"]')
+            expect(element.value).toBe('.//custom-element-with-multiple-dashes[normalize-space() = "some random text with "§$%&/()div=or others"]')
         })
 
         it('should allow to go up and down the DOM tree with xpath', () => {
