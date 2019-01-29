@@ -47,6 +47,29 @@ describe('addCommand', () => {
             expect(typeof elem.mytest).toBe('undefined')
         })
 
+        test('should still work on browser calls after fetching an element', async () => {
+            const browser = await remote(remoteConfig)
+            await browser.$('#foo')
+
+            browser.addCommand('myCustomElementCommand', async function () {
+                return this.execute(function () {return 1})
+            })
+
+            expect(await browser.myCustomElementCommand()).toBe(1)
+        })
+
+        test('should be able to add a command to and element from the browser', async () => {
+            const browser = await remote(remoteConfig)
+
+            browser.addCommand('myCustomElementCommand', async function () {
+                return this.execute(function () {return 1})
+            }, true)
+
+            const elem = await browser.$('#foo')
+
+            expect(await elem.myCustomElementCommand()).toBe(1)
+        })
+
         test('should allow to add custom commands to elements', async () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')

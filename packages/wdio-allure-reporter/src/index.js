@@ -46,12 +46,16 @@ class AllureReporter extends WDIOReporter {
 
         const currentTest = this.allure.getCurrentTest()
 
-        const { browserName, deviceName } = this.config.capabilities
-        const targetName = browserName || deviceName || test.cid
-        const version = this.config.capabilities.version || this.config.capabilities.platformVersion || ''
-        const paramName = deviceName ? 'device' : 'browser'
-        const paramValue = version ? `${targetName}-${version}` : targetName
-        currentTest.addParameter('argument', paramName, paramValue)
+        if (!this.isMultiremote) {
+            const {browserName, deviceName} = this.config.capabilities
+            const targetName = browserName || deviceName || test.cid
+            const version = this.config.capabilities.version || this.config.capabilities.platformVersion || ''
+            const paramName = deviceName ? 'device' : 'browser'
+            const paramValue = version ? `${targetName}-${version}` : targetName
+            currentTest.addParameter('argument', paramName, paramValue)
+        } else {
+            currentTest.addParameter('argument', 'isMultiremote', 'true')
+        }
 
         // Allure analytics labels. See https://github.com/allure-framework/allure2/blob/master/Analytics.md
         currentTest.addLabel('language', 'javascript')
@@ -117,6 +121,12 @@ class AllureReporter extends WDIOReporter {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
                 this.dumpJSON('Response', command.result.value)
             }
+
+            const suite = this.allure.getCurrentSuite()
+            if (!suite || !(suite.currentStep instanceof Step)) {
+                return
+            }
+
             this.allure.endStep(testStatuses.PASSED)
         }
     }
@@ -240,7 +250,7 @@ class AllureReporter extends WDIOReporter {
         return this.allure.getCurrentSuite() && this.allure.getCurrentTest()
     }
 
-    isScreenshotCommand(command){
+    isScreenshotCommand(command) {
         const isScrenshotEndpoint = /\/session\/[^/]*\/screenshot/
         return isScrenshotEndpoint.test(command.endpoint)
     }
@@ -320,24 +330,18 @@ class AllureReporter extends WDIOReporter {
     /**
      * Create allure step
      * @param {string} title - step name in report
-     * @param {Object} attachmentObject - attachment for step
+     * @param {Object} [attachmentObject={}] - attachment for step
      * @param {string} attachmentObject.content - attachment content
      * @param {string} [attachmentObject.name='attachment'] - attachment name
+     * @param {string} [attachmentObject.type='text/plain'] - attachment type
      * @param {string} [status='passed'] - step status
      */
-    static addStep = (title, {content, name = 'attachment'}, status = stepStatuses.PASSED) => {
+    static addStep = (title, {content, name = 'attachment', type = 'text/plain'} = {}, status = stepStatuses.PASSED) => {
         if (!Object.values(stepStatuses).includes(status)) {
             throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
         }
 
-        const step = {
-            title,
-            attachment: {
-                content,
-                name
-            },
-            status
-        }
+        const step = content ? {title, attachment: {content, name, type}, status} : {title, status}
         tellReporter(events.addStep, {step})
     }
 

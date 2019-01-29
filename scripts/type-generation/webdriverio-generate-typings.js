@@ -13,6 +13,8 @@ const browserCommands = fs.readdirSync(browserDir)
 
 let allTypeLines = []
 
+const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
+
 const changeType = (text) => {
     if (text.indexOf('Array.') > -1) {
         const arrayText = 'Array.<'
@@ -27,6 +29,10 @@ const changeType = (text) => {
     }
     case 'Element': {
         text = 'Element<void>'
+        break
+    }
+    case 'Element[]': {
+        text = 'Element<void>[]'
         break
     }
     default: {
@@ -55,8 +61,8 @@ const gatherCommands = (commandPath, commandFile) => {
     const commandContents = fs.readFileSync(commandPath).toString()
     const commandDocs = dox.parseComments(commandContents)
     const commandTags = commandDocs[0].tags
-    const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
-    
+    const commandName = commandFile.substr(0, commandFile.indexOf('.js')).replace('$', '$$$')
+
     const allParameters = []
     let returnType = 'undefined'
 
@@ -72,26 +78,30 @@ const gatherCommands = (commandPath, commandFile) => {
             allTypeLines.push(`${commandName}(${params.length > 0 ? '\n            ' : ''}${params.join(',\n            ')}${params.length > 0 ? '\n        ' : ''}): ${returns}`)
         })
     } else {
-        for (const {type, name, optional, types} of commandTags) {
+        for (const {type, name, optional, types, string} of commandTags) {
+            // dox parse {*} as string instead of types
+            if (types && types.length === 0 && string.includes('{*}')) {
+                types.push('*')
+            }
             if (type === 'param') {
                 let commandTypes = getTypes(types, true)
-    
+
                 // console.log(commandTag.name)
                 if (name.indexOf('.') < 0) {
                     allParameters.push(`${name}${optional ? '?' : ''}: ${commandTypes}`)
                 }
             }
-    
+
             if (type === 'return') {
                 returnType = getTypes(types, false)
             }
         }
-    
-        if (commandName !== '$' && commandName !== '$$' && commandName !== 'waitUntil') {
+
+        if (!EXCLUDED_COMMANDS.includes(commandName)) {
             allTypeLines.push(`${commandName}(${allParameters.length > 0 ? '\n            ' : ''}${allParameters.join(',\n            ')}${allParameters.length > 0 ? '\n        ' : ''}): ${returnType}`)
         }
     }
-    
+
 
     return allTypeLines
 }

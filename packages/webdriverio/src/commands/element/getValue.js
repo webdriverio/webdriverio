@@ -2,6 +2,7 @@
  *
  * Get the value of a `<textarea>`, `<select>` or text `<input>` found by given selector.
  * If multiple elements are found via the given selector, an array of values is returned instead.
+ * For input with checkbox or radio type use isSelected.
  *
  * <example>
     :index.html

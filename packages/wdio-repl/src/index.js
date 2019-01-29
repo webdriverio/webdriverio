@@ -66,9 +66,8 @@ export default class WDIORepl {
 
         /* istanbul ignore if */
         if (hasWdioSyncSupport) {
-            return runFnInFiberContext(() => {
-                return this._runCmd(cmd, context, callback)
-            })()
+            return runFnInFiberContext(
+                () => this._runCmd(cmd, context, callback))()
         }
 
         return this._runCmd(cmd, context, callback)
@@ -94,6 +93,7 @@ export default class WDIORepl {
             () => {
                 callback(new Error('Command execution timed out'))
                 this.isCommandRunning = false
+                timeout._called = true
             },
             this.config.commandTimeout
         )
@@ -118,7 +118,8 @@ export default class WDIORepl {
 
             this.isCommandRunning = false
             clearTimeout(timeout)
-            const commandError = new Error(e.message)
+            const errorMessage = e ? e.message : 'Command execution timed out'
+            const commandError = new Error(errorMessage)
             delete commandError.stack
             return callback(commandError)
         })

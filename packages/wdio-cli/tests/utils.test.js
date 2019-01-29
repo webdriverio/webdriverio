@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import { filterPackageName, getLauncher, runServiceHook } from '../src/utils'
+import { filterPackageName, getLauncher, runServiceHook, getRunnerName } from '../src/utils'
 
 jest.mock('@wdio/config', () => {
     class LauncherMock {
@@ -61,6 +61,26 @@ test('getLauncher not failing on syntax error', () => {
     expect(logger().error).toBeCalledTimes(1)
 })
 
+test('getLauncher sets correct service scope', () => {
+    const hookSuccess = jest.fn()
+
+    const inlineService = {
+        onPrepare() {
+            this._otherMethod()
+        },
+        _otherMethod: hookSuccess
+    }
+
+    const launcher = getLauncher({
+        services: [
+            inlineService
+        ]
+    })
+
+    runServiceHook(launcher, 'onPrepare', 1, true, 'abc')
+    expect(hookSuccess).toBeCalledTimes(1)
+})
+
 test('runServiceHook', () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
@@ -72,4 +92,13 @@ test('runServiceHook', () => {
     ], 'onPrepare', 1, true, 'abc')
     expect(hookSuccess).toBeCalledTimes(1)
     expect(hookFailing).toBeCalledTimes(1)
+})
+
+test('getRunnerName', () => {
+    expect(getRunnerName({ browserName: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ appPackage: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ appWaitActivity: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ app: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ platformName: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({})).toBe('undefined')
 })

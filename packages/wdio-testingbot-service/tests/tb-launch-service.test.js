@@ -1,6 +1,5 @@
 jest.unmock('request')
 
-import request from 'request'
 import TestingBotService from '../src/launcher'
 
 describe('wdio-testingbot-service', () => {
@@ -269,15 +268,6 @@ describe('wdio-testingbot-service', () => {
     it('getRestUrl', () => {
         expect(tbService.getRestUrl('testSessionId'))
             .toEqual('https://api.testingbot.com/v1/tests/testSessionId')
-    })
-
-    it('updateJob: returns 401 error when no API key or/and API user set', () => {
-        const putSpy = jest.spyOn(request, 'put')
-        const updateJob = tbService.updateJob('sessionId', 2, true)
-
-        expect(putSpy).toBeCalled()
-        return (expect(updateJob)).resolves
-            .toEqual({ error: '401 Unauthorized. Please supply the correct API key and API secret' })
     })
 
     it('getBody', () => {

@@ -1,6 +1,6 @@
 import {
     isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector
+    environmentDetector, getErrorFromResponseBody, isW3C
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -98,6 +98,10 @@ describe('utils', () => {
         expect(typeof mobileChromePrototype.sendKeys.value).toBe('function')
         expect(typeof mobileChromePrototype.lock.value).toBe('function')
         expect(typeof mobileChromePrototype.getNetworkConnection.value).toBe('function')
+
+        const saucePrototype = getPrototype({ isW3C: true, isSauce: true })
+        expect(saucePrototype instanceof Object).toBe(true)
+        expect(typeof saucePrototype.getPageLogs.value).toBe('function')
     })
 
     it('commandCallStructure', () => {
@@ -106,60 +110,95 @@ describe('utils', () => {
     })
 
     describe('environmentDetector', () => {
+        const chromeCaps = chromedriverResponse.value
+        const appiumCaps = appiumResponse.value.capabilities
+        const geckoCaps = geckodriverResponse.value.capabilities
+
         it('isW3C', () => {
-            expect(environmentDetector(appiumResponse.value.capabilities).isW3C).toBe(true)
-            expect(environmentDetector(chromedriverResponse.value).isW3C).toBe(false)
-            expect(environmentDetector(geckodriverResponse.value.capabilities).isW3C).toBe(true)
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(false)
+            expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
+            expect(isW3C()).toBe(false)
         })
 
         it('isChrome', () => {
-            expect(environmentDetector(appiumResponse.value.capabilities).isChrome).toBe(false)
-            expect(environmentDetector(chromedriverResponse.value).isChrome).toBe(true)
-            expect(environmentDetector(geckodriverResponse.value.capabilities).isChrome).toBe(false)
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
+            expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
+        })
+
+        it('isSauce', () => {
+            const capabilities = { browserName: 'chrome' }
+            let requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            let hostname = 'ondemand.saucelabs.com'
+
+            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+            expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
+
+            requestedCapabilities.w3cCaps.alwaysMatch.extendedDebugging = true
+            expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
+            requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
+
+            requestedCapabilities.w3cCaps.alwaysMatch['sauce:options'] = { extendedDebugging: true }
+            expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
+            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
         })
 
         it('should not detect mobile app for browserName===undefined', function () {
-            const {isMobile, isIOS, isAndroid} = environmentDetector({})
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            const capabilities = {}
+            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should not detect mobile app for browserName==="firefox"', function () {
-            const {isMobile, isIOS, isAndroid} = environmentDetector({browserName: 'firefox'})
+            const capabilities = { browserName: 'firefox' }
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should not detect mobile app for browserName==="chrome"', function () {
-            const {isMobile, isIOS, isAndroid} = environmentDetector({browserName: 'chrome'})
+            const capabilities = { browserName: 'chrome' }
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should detect mobile app for browserName===""', function () {
-            const {isMobile, isIOS, isAndroid} = environmentDetector({browserName: ''})
+            const capabilities = { browserName: '' }
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
         })
 
         it('should detect Android mobile app', function () {
-            const {isMobile, isIOS, isAndroid} = environmentDetector({
+            const capabilities = {
                 platformName: 'Android',
                 platformVersion: '4.4',
                 deviceName: 'LGVS450PP2a16334',
                 app: 'foo.apk'
-            })
+            }
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(true)
         })
 
         it('should detect Android mobile app without upload', function () {
-            const {isMobile, isIOS, isAndroid} = environmentDetector({
+            const capabilities = {
                 platformName: 'Android',
                 platformVersion: '4.4',
                 deviceName: 'LGVS450PP2a16334',
@@ -167,10 +206,28 @@ describe('utils', () => {
                 appActivity: 'com.example.gui.LauncherActivity',
                 noReset: true,
                 appWaitActivity: 'com.example.gui.LauncherActivity'
-            })
+            }
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(true)
         })
+    })
+
+    it('getErrorFromResponseBody', () => {
+        expect(getErrorFromResponseBody()).toBe(null)
+        expect(getErrorFromResponseBody('')).toBe(null)
+        expect(getErrorFromResponseBody(null)).toBe(null)
+
+        const unknownError = new Error('unknown error')
+        expect(getErrorFromResponseBody({})).toEqual(unknownError)
+
+        const expectedError = new Error('expected')
+        expect(getErrorFromResponseBody('expected')).toEqual(expectedError)
+        expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
+            .toEqual(expectedError)
+        expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
+            .toEqual(expectedError)
     })
 })

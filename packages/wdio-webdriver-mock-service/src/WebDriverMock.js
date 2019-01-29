@@ -51,7 +51,7 @@ export default class WebDriverMock {
                         /**
                          * check if parameter has correct type
                          */
-                        if (param.required && typeof body[param.name] !== param.type.toLowerCase()) {
+                        if (param.required && typeof body[param.name] === 'undefined') {
                             return false
                         }
                     }

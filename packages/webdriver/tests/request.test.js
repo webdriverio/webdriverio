@@ -53,7 +53,8 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', '/session', { some: 'body' })
             const options = req._createOptions({
                 user: 'foo',
-                key: 'bar'
+                key: 'bar',
+                path: '/'
             })
             expect(options.auth).toEqual({ pass: 'bar', user: 'foo' })
             expect(options.body).toEqual({ some: 'body' })
@@ -61,19 +62,19 @@ describe('webdriver request', () => {
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', () => {
             const req = new WebDriverRequest('DELETE', '/session', {})
-            const options = req._createOptions({})
+            const options = req._createOptions({ path: '/' })
             expect(Boolean(options.body)).toEqual(false)
         })
 
         it('sets request body to "undefined" when request object is empty and GET is used', () => {
             const req = new WebDriverRequest('GET', '/title', {})
-            const options = req._createOptions({})
+            const options = req._createOptions({ path: '/' })
             expect(Boolean(options.body)).toEqual(false)
         })
 
         it('should attach an empty object body when POST is used', () => {
             const req = new WebDriverRequest('POST', '/status', {})
-            const options = req._createOptions({})
+            const options = req._createOptions({ path: '/' })
             expect(options.body).toEqual({})
         })
     })
@@ -98,8 +99,14 @@ describe('webdriver request', () => {
             const opts = Object.assign(req.defaultOptions, {
                 uri: { path: '/wd/hub/session/foobar-123/element/some-sub-sub-elem-231/click' }, body: { foo: 'bar' } })
 
-            expect(req._request(opts)).rejects.toEqual(
-                new Error('stale element reference: element is not attached to the page document'))
+            let error
+            try {
+                await req._request(opts)
+            } catch (e) {
+                error = e
+            }
+
+            expect(error.message).toBe('element is not attached to the page document')
             expect(req.emit.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
@@ -114,7 +121,7 @@ describe('webdriver request', () => {
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/failing' } })
-            expect(req._request(opts, 2)).rejects.toEqual(new Error('Error: Could not send request'))
+            await expect(req._request(opts, 2)).rejects.toEqual(new Error('Could not send request'))
             expect(req.emit.mock.calls).toHaveLength(3)
             expect(warn.mock.calls).toHaveLength(2)
             expect(error.mock.calls).toHaveLength(1)

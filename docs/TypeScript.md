@@ -8,7 +8,7 @@ Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.
 ```js
 // wdio.conf.js
 before: function() {
-    require('ts-node/register');
+    require('ts-node').register({ files: true });
 },
 ```
 
@@ -18,8 +18,7 @@ Similarly for mocha:
 // wdio.conf.js
 mochaOpts: {
     ui: 'bdd',
-    compilers: [
-        'ts-node/register',
+    require: [
         'tsconfig-paths/register'
     ]
 },
@@ -28,13 +27,14 @@ mochaOpts: {
 and your `tsconfig.json` needs to look like:
 
 ```json
-"compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-        "*": [ "./*" ],
-        "src/*": ["./src/*"]
-    },
-    "types": ["node", "webdriverio"]
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "*": [ "./*" ],
+            "src/*": ["./src/*"]
+        },
+        "types": ["node", "webdriverio"]
     },
     "include": [
         "./src/**/*.ts"

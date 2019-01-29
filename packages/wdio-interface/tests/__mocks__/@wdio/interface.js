@@ -5,6 +5,8 @@ export default class CLInterfaceMock {
         this.log = jest.fn()
         this.clearAll = jest.fn()
         this.clearBuffer = jest.fn()
+        this.on = jest.fn()
+        this.reset = jest.fn()
         this.stdoutBuffer = []
         this.stderrBuffer = []
     }

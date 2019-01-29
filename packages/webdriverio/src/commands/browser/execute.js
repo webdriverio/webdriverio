@@ -25,7 +25,7 @@
  * </example>
  *
  * @param {String|Function} script                     The script to execute.
- * @param {*}               [argument1,...,argumentN]  script arguments
+ * @param {*}               arguments  script arguments
  *
  * @return {*}             The script result.
  *

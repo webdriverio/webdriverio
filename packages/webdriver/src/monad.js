@@ -4,8 +4,8 @@ import logger from '@wdio/logger'
 import { commandCallStructure } from './utils'
 
 const SCOPE_TYPES = {
-    'browser': function Browser () {},
-    'element': function Element () {}
+    'browser': /* istanbul ignore next */ function Browser () {},
+    'element': /* istanbul ignore next */ function Element () {}
 }
 
 export default function WebDriver (options, modifier, propertiesObject = {}) {
@@ -63,8 +63,15 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func, proto) {
-            unit.lift(name, func, proto)
+        client.addCommand = function (name, func, attachToElement = false, proto) {
+            const customCommand = typeof commandWrapper === 'function'
+                ? commandWrapper(name, func)
+                : func
+            if (attachToElement) {
+                this.__propertiesObject__[name] = { value: customCommand }
+            } else {
+                unit.lift(name, customCommand, proto)
+            }
         }
 
         return client
@@ -77,8 +84,8 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
      * @param  {Object}   proto  prototype to add function to (optional)
      */
     unit.lift = function (name, func, proto) {
+
         (proto || prototype)[name] = function next (...args) {
-            const client = unit(this.sessionId)
             log.info('COMMAND', commandCallStructure(name, args))
 
             /**
@@ -89,7 +96,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 writable: false,
             })
 
-            const result = func.apply(client, args)
+            const result = func.apply(this, args)
 
             /**
              * always transform result into promise as we don't know whether or not

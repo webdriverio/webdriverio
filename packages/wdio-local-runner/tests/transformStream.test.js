@@ -1,4 +1,5 @@
 import RunnerTransformStream from '../src/transformStream'
+import { DEBUGGER_MESSAGES } from '../src/constants'
 
 jest.mock('stream', () => {
     class TransformMock {
@@ -18,9 +19,9 @@ test('should add cid to message', () => {
     expect(cb).toBeCalled()
 })
 
-test('should ignore debugger message', () => {
+test('should ignore debugger messages', () => {
     const stream = new RunnerTransformStream('0-5')
     const cb = jest.fn()
-    stream._transform('Debugger listening on ws://foobar.com', null, cb)
+    DEBUGGER_MESSAGES.forEach(m => stream._transform(`${m} foobar`, null, cb))
     expect(stream.push).toBeCalledTimes(0)
 })

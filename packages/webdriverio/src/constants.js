@@ -57,6 +57,37 @@ export const WDIO_DEFAULTS = {
         type: 'object'
     },
     /**
+     * capabilities of WebDriver sessions
+     */
+    capabilities: {
+        type: (param) => {
+            /**
+             * should be an object
+             */
+            if (!Array.isArray(param)) {
+                if (typeof param === 'object') {
+                    return true
+                }
+                
+                throw new Error('the "capabilities" options needs to be an object or a list of objects')
+            }
+
+            /**
+             * or an array of objects
+             */
+            for (const option of param) {
+                if (typeof option === 'object') { // Check does not work recursively
+                    continue
+                }
+    
+                throw new Error('expected every item of a list of capabilities to be of type object')
+            }
+    
+            return true
+        },
+        required: true
+    },
+    /**
      * Shorten navigateTo command calls by setting a base url
      */
     baseUrl: {
@@ -147,6 +178,45 @@ export const WDIO_DEFAULTS = {
         }
     },
     /**
+     * set of WDIO services to use
+     */
+    services: {
+        type: (param) => {
+            /**
+             * should be an array
+             */
+            if (!Array.isArray(param)) {
+                throw new Error('the "services" options needs to be a list of strings and/or arrays')
+            }
+
+            /**
+             * with arrays and/or strings
+             */
+            for (const option of param) {
+                if (!Array.isArray(option)) {         
+                    if (typeof option === 'string') {
+                        continue
+                    }
+                    throw new Error('the "services" options needs to be a list of strings and/or arrays')
+                }
+            }
+    
+            return true
+        },
+        default: []
+    },
+    /**
+     * Node arguments to specify when launching child processes
+     */
+    execArgv: {
+        type: (param) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "execArgv" options needs to be a list of strings')
+            }
+        },
+        default: []
+    },
+    /**
      * amount of instances to be allowed to run in total
      */
     maxInstances: {
@@ -197,7 +267,6 @@ export const WDIO_DEFAULTS = {
     onComplete: {
         type: 'function'
     },
-    onError: HOOK_DEFINITION,
     onReload: HOOK_DEFINITION,
 
     /**
