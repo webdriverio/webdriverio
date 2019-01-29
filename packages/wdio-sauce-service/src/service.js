@@ -23,9 +23,13 @@ export default class SauceService {
         this.hostname = getSauceEndpoint(this.config.region)
         this.testCnt = 0
         this.failures = 0 // counts failures between reloads
+        this.isRDC = 'testobject_api_key' in this.capabilities
     }
 
     getSauceRestUrl (sessionId) {
+        if (this.isRDC){
+            return `https://app.testobject.com/api/rest/v2/appium/session/${sessionId}/test`
+        }
         return `https://${this.hostname}/rest/v1/${this.sauceUser}/jobs/${sessionId}`
     }
 
@@ -106,7 +110,7 @@ export default class SauceService {
      * update Sauce Labs job
      */
     after (result) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
             return
         }
 
@@ -134,7 +138,7 @@ export default class SauceService {
     }
 
     onReload (oldSessionId, newSessionId) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
             return
         }
 
@@ -152,6 +156,29 @@ export default class SauceService {
     }
 
     updateJob (sessionId, failures, calledOnReload = false, browserName) {
+        if (this.isRDC) {
+            return this.updateRdcJob (sessionId, failures)
+        }
+
+        return this.updateVmJob (sessionId, failures, calledOnReload, browserName)
+    }
+
+    updateRdcJob (sessionId, failures) {
+        return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
+            json: true,
+            body: { 'passed': failures === 0 },
+        }, (e, res, body) => {
+            /* istanbul ignore if */
+            if (e) {
+                return reject(e)
+            }
+            global.browser.jobData = body
+            this.failures = 0
+            return resolve(body)
+        }))
+    }
+
+    updateVmJob (sessionId, failures, calledOnReload = false, browserName) {
         return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
             json: true,
             auth: {
@@ -171,7 +198,7 @@ export default class SauceService {
     }
 
     /**
-     * massage data
+     * VM message data
      */
     getBody (failures, calledOnReload = false, browserName) {
         let body = {}
