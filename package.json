@@ -18,7 +18,7 @@
     "test:coverage": "jest --coverage --detectOpenHandles",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
     "version": "node ./scripts/changelog.js && git add CHANGELOG.md && npm run generate:typings",
-    "generate:typings": "node ./scripts/type-generation/webdriver-generate-typings.js && node ./scripts/type-generation/webdriverio-generate-typings.js",
+    "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
     "watch": "node ./scripts/watch",
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
