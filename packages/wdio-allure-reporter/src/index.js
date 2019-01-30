@@ -262,6 +262,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Assign feature to test
+     * @name addFeature
      * @param {(string)} featureName - feature name or an array of names
      */
     static addFeature = (featureName) => {
@@ -270,6 +271,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Assign severity to test
+     * @name addSeverity
      * @param {string} severity - severity value
      */
     static addSeverity = (severity) => {
@@ -278,6 +280,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Assign issue id to test
+     * @name addIssue
      * @param {string} issue - issue id value
      */
     static addIssue = (issue) => {
@@ -286,6 +289,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Assign TMS test id to test
+     * @name addTestId
      * @param {string} testId - test id value
      */
     static addTestId = (testId) => {
@@ -294,6 +298,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Assign story to test
+     * @name addStory
      * @param {string} storyName - story name for test
      */
     static addStory = (storyName) => {
@@ -302,6 +307,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Add environment value
+     * @name addEnvironment
      * @param {string} name - environment name
      * @param {string} value - environment value
      */
@@ -311,6 +317,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Assign test description to test
+     * @name addDescription
      * @param {string} description - description for test
      * @param {string} type - description type 'text'\'html'\'markdown'
      */
@@ -320,6 +327,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Add attachment
+     * @name addAttachment
      * @param {string} name - attachment file name
      * @param {string} content - attachment content
      * @param {string} [type='text/plain'] - attachment mime type
@@ -329,6 +337,7 @@ class AllureReporter extends WDIOReporter {
     }
     /**
      * Create allure step
+     * @name addStep
      * @param {string} title - step name in report
      * @param {Object} [attachmentObject={}] - attachment for step
      * @param {string} attachmentObject.content - attachment content
@@ -347,6 +356,7 @@ class AllureReporter extends WDIOReporter {
 
     /**
      * Add additional argument to test
+     * @name addArgument
      * @param {string} name - argument name
      * @param {string} value - argument value
      */
