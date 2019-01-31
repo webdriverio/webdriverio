@@ -45,11 +45,11 @@ declare namespace WebdriverIO {
     interface CSSProperty {
         property: string,
         value: any,
-        parse: {
+        parsed: {
+            hex: string,
+            alpha: number,
             type: string,
-            string: string,
-            unit: string,
-            value: any
+            rgba: string
         }
     }
 
