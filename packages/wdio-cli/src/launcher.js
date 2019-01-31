@@ -27,6 +27,8 @@ class Launcher {
             process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
         }
 
+        logger.setLogLevelsConfig(config.logLevels)
+
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
                 .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
