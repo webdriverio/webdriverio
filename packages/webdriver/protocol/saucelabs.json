@@ -164,7 +164,12 @@
         "type": "object",
         "description": "Assert options containing the name of the test and the metrics you want to assert against.",
         "required": true
-      }]
+      }],
+      "returns": {
+        "type": "Boolean",
+        "name": "hasRegression",
+        "description": "Returns true if any metrics have a regression."
+      }
     }
   }
 }
