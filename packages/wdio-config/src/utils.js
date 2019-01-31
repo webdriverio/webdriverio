@@ -14,7 +14,7 @@ export function getSauceEndpoint (region, isRDC) {
         return `${dcRegion}1.appium.testobject.com`
     }
 
-    return `ondemand.${REGION_MAPPING[dcRegion]}saucelabs.com`
+    return `${REGION_MAPPING[dcRegion]}saucelabs.com`
 }
 
 /**
@@ -56,9 +56,12 @@ export function detectBackend (options = {}) {
         // Or only RDC
         isRDC
     ) {
+        // For the VM cloud a prefix needs to be added, the RDC cloud doesn't have that
+        const preFix = isRDC ? '' : 'ondemand.'
+
         return {
             protocol: protocol || 'https',
-            hostname: hostname || getSauceEndpoint(region, isRDC),
+            hostname: hostname || `${preFix}${getSauceEndpoint(region, isRDC)}`,
             port: port || 443
         }
     }
