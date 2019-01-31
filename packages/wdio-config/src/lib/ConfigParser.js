@@ -53,9 +53,16 @@ export default class ConfigParser {
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
             /**
+             * For Sauce Labs RDC we need to determine if the config file has a `testobject_api_key`
+             * If so, we need to provide a capabilities object to the config to set the hostname
+             */
+            const isRDC = this._capabilities.find(capability => 'testobject_api_key' in capability)
+            const capabilities = {capabilities: isRDC ? {testobject_api_key: 1} : {}}
+
+            /**
              * detect Selenium backend
              */
-            this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
+            this._config = merge(detectBackend({...this._config,...capabilities}), this._config, MERGE_OPTIONS)
         } catch (e) {
             log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e

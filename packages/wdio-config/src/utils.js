@@ -7,19 +7,21 @@ const REGION_MAPPING = {
     'eu': 'eu-central-1.'
 }
 
-export function getSauceEndpoint (region) {
-    const dc = region ?
-        typeof REGION_MAPPING[region] !== 'undefined' ?
-            REGION_MAPPING[region] : (region + '.')
-        : ''
-    return `${dc}saucelabs.com`
+export function getSauceEndpoint (region, isRDC) {
+    const dcRegion = REGION_MAPPING[region] ? region : 'us'
+
+    if (isRDC){
+        return `${dcRegion}1.appium.testobject.com`
+    }
+
+    return `ondemand.${REGION_MAPPING[dcRegion]}saucelabs.com`
 }
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}) {
-    const { port, hostname, user, key, protocol, region } = options
+    const { port, hostname, user, key, protocol, region, capabilities } = options
 
     /**
      * browserstack
@@ -47,10 +49,16 @@ export function detectBackend (options = {}) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    if (typeof user === 'string' && key.length === 36) {
+    const isRDC = capabilities && 'testobject_api_key' in capabilities
+    if ((typeof user === 'string' && key.length === 36) ||
+        // When SC is used a user needs to be provided and `isRDC` needs to be true
+        (typeof user === 'string' && isRDC) ||
+        // Or only RDC
+        isRDC
+    ) {
         return {
             protocol: protocol || 'https',
-            hostname: hostname || `ondemand.${getSauceEndpoint(region)}`,
+            hostname: hostname || getSauceEndpoint(region, isRDC),
             port: port || 443
         }
     }
