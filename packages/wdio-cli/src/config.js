@@ -35,7 +35,8 @@ export const SUPPORTED_SERVICES = [
     ' webpack - https://www.npmjs.com/package/wdio-webpack-service',
     ' webpack-dev-server - https://www.npmjs.com/package/wdio-webpack-dev-server-service',
     ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
-    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service'
+    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service',
+    ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
