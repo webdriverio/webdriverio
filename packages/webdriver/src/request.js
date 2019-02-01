@@ -106,11 +106,16 @@ export default class WebDriverRequest extends EventEmitter {
              *  stop retrying as this will never be successful.
              *  we will handle this at the elementErrorHandler
              */
-            if(error.stack.includes('stale')) {
+            if(error.name === 'stale element reference') {
                 log.warn('Request encountered a stale element - terminating request')
                 this.emit('response', { error })
                 return reject(error)
-            }
+            } /*else {
+                /*
+                 * Firefox isn't adhering to the
+                 *
+                if (error.message.includes('stale'))
+            }*/
 
             /**
              * stop retrying if totalRetryCount was exceeded or there is no reason to

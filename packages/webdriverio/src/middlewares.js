@@ -43,7 +43,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
             try {
                 return await fn(commandName, commandFn).apply(this, args)
             } catch (error) {
-                if (error.message.includes('stale')) {
+                if (error.name === 'stale element reference') {
                     const element = await refetchElement(this)
                     this.elementId = element.elementId
                     this.parent = element.parent

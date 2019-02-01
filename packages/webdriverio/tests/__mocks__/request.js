@@ -166,7 +166,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         let error = {
             value: {
                 'error': 'stale element reference',
-                'message': 'stale element reference: element is not attached to the page document'
+                'message': 'element is not attached to the page document'
             }
         }
 

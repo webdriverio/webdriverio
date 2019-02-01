@@ -90,8 +90,8 @@ export default class WebdriverMockService {
 
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
         this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
-            error: 'stale element reference error',
-            message: 'stale element reference error'
+            error: 'stale element reference',
+            message: 'element is not attached to the page document'
         } })
         this.command.elementClick(ELEMENT_REFETCHED).once().reply(200, { value: null })
     }

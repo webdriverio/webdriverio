@@ -294,7 +294,7 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
 /**
  * helper method to determine the error from webdriver response
  * @param  {Object} body body object
- * @return {String}      error message
+ * @return {Object}      error message
  */
 export function getErrorFromResponseBody (body) {
     if (!body) {
@@ -309,9 +309,12 @@ export function getErrorFromResponseBody (body) {
         return new Error('unknown error')
     }
 
-    return new Error(
-        body.value.message ||
-        body.value.class ||
-        'unknown error'
-    )
+    class CustomError extends Error {
+        constructor(value) {
+            super(value.message || value.class || 'unknown error')
+            if (value.error) this.name = value.error
+        }
+    }
+
+    return new CustomError (body.value)
 }
