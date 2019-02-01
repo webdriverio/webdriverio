@@ -86,5 +86,5 @@ Instead of having all type definitions globally available, you can also import o
 * These import the type definition for the `test` and `suite` variables that are available in
 * the beforeTest, afterTest, beforeSuite and afterSuite hooks.
 */
-import { Suite, Test } from "mocha-framework"  
+import { Suite, Test } from "@wdio/mocha-framework"  
 ```
