@@ -20,8 +20,8 @@ export function getSauceEndpoint (region, isRDC) {
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export function detectBackend (options = {}) {
-    const { port, hostname, user, key, protocol, region, capabilities } = options
+export function detectBackend (options = {}, isRDC = false) {
+    const { port, hostname, user, key, protocol, region } = options
 
     /**
      * browserstack
@@ -49,7 +49,6 @@ export function detectBackend (options = {}) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    const isRDC = capabilities && 'testobject_api_key' in capabilities
     if ((typeof user === 'string' && key.length === 36) ||
         // When SC is used a user needs to be provided and `isRDC` needs to be true
         (typeof user === 'string' && isRDC) ||

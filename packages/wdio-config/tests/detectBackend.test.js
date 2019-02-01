@@ -105,35 +105,21 @@ describe('detectBackend', () => {
     })
 
     it('should detect saucelabs rdc user that had not defaulted a region', () => {
-        const caps = detectBackend({
-            capabilities:{
-                testobject_api_key: 1,
-            }
-        })
+        const caps = detectBackend({}, true)
         expect(caps.hostname).toBe('us1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
     })
 
     it('should detect saucelabs us rdc user', () => {
-        const caps = detectBackend({
-            region: 'us',
-            capabilities:{
-                testobject_api_key: 1,
-            }
-        })
+        const caps = detectBackend({ region: 'us'}, true)
         expect(caps.hostname).toBe('us1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
     })
 
     it('should detect saucelabs eu rdc user', () => {
-        const caps = detectBackend({
-            region: 'eu',
-            capabilities:{
-                testobject_api_key: 1,
-            }
-        })
+        const caps = detectBackend({ region: 'eu'}, true)
         expect(caps.hostname).toBe('eu1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
