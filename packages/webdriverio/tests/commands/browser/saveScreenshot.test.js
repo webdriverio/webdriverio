@@ -67,6 +67,13 @@ describe('saveScreenshot', () => {
         expect(spy).toHaveBeenCalledWith('\\packages\\bar.png', expect.any(Buffer))
     })
 
+    it('should not change filepath if starts with windows drive letter', async () => {
+        await browser.saveScreenshot('E:\\foo\\bar.png')
+
+        expect(spy).toHaveBeenCalledTimes(1)
+        expect(spy).toHaveBeenCalledWith('E:\\foo\\bar.png', expect.any(Buffer))
+    })
+
     it('should change filepath if does not start with forward or back slash', async () => {
         await browser.saveScreenshot('packages/bar.png')
 
