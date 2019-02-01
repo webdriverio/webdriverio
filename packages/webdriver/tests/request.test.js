@@ -106,7 +106,7 @@ describe('webdriver request', () => {
                 error = e
             }
 
-            expect(error.message).toBe('element is not attached to the page document')
+            expect(error.message).toBe('stale element reference: element is not attached to the page document')
             expect(req.emit.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])

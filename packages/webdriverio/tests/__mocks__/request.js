@@ -162,14 +162,19 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             }, response)
         }
 
-        let error = new Error('element is not attached to the page document')
-        error.name = 'stale element reference'
+        // https://www.w3.org/TR/webdriver1/#handling-errors
+        let error = {
+            value: {
+                'error': 'stale element reference',
+                'message': 'stale element reference: element is not attached to the page document'
+            }
+        }
 
-        return cb(error, {
+        return cb(null, {
             headers: { foo: 'bar' },
             statusCode: 404,
-            body: {}
-        }, {})
+            body: error
+        }, error)
     }
 
     /**

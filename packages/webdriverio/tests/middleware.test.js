@@ -44,7 +44,7 @@ describe('middleware', () => {
     /**
      * skipped because they don't work after refactoring
      */
-    it.skip('should succesfully click on an element that falls stale after being refound', async () => {
+    it('should succesfully click on an element that falls stale after being refound', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo')
@@ -60,7 +60,7 @@ describe('middleware', () => {
     /**
      * skipped because they don't work after refactoring
      */
-    it.skip('should succesfully click on a stale element', async () => {
+    it('should succesfully click on a stale element', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo')
