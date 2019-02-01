@@ -43,13 +43,12 @@ and your `tsconfig.json` needs to look like:
 ```
 
 You can even use a typed configuration if you desire.
-Al you have to do is create a plain js config file that registers typescript and requires the typed config:
+All you have to do is create a plain js config file that registers typescript and requires the typed config:
 
 ```javascript
 require("ts-node/register")
 module.exports = require("wdio.conf.ts")
 ```
-
 
 And in your typed configuration file:
 
@@ -60,7 +59,6 @@ const config: WebdriverIO.Config = {
 
 export { config }
 ```
-
 
 Depending on the framework you use, you will need to add the typings for that framework to your `tsconfig.json` types property.
 For instance, if we decide to use the mocha framework, we need to add it like this to have all typings globally available:
@@ -80,7 +78,6 @@ For instance, if we decide to use the mocha framework, we need to add it like th
     ]
 }
 ```
-
 
 Instead of having all type definitions globally available, you can also import only the typings that you need like this:
 
