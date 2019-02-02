@@ -15,6 +15,20 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.13 (2019-02-02)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`
+  * [#3468](https://github.com/webdriverio/webdriverio/pull/3468) Add automatically determination of the RDC hostname for US/EU ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3487](https://github.com/webdriverio/webdriverio/pull/3487) Fixing element not found for iPhone ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 2
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## 5.4.12 (2019-02-02)
 
 #### :bug: Bug Fix
