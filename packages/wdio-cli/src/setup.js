@@ -2,7 +2,7 @@ import fs from 'fs'
 import ejs from 'ejs'
 import path from 'path'
 import inquirer from 'inquirer'
-import { default as npmInstallPackage } from 'yarn-install'
+import yarnInstall from 'yarn-install'
 
 import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
 
@@ -28,7 +28,7 @@ export default function setup () {
 
         if (packagesToInstall.length > 0) {
             console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
-            const result = npmInstallPackage({deps: packagesToInstall, dev: true })
+            const result = yarnInstall({ deps: packagesToInstall, dev: true })
             if (result.status != 0) {
                 throw new Error(result.stderr)
             }
