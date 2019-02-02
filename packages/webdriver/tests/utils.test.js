@@ -1,6 +1,6 @@
 import {
     isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody, isW3C
+    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -229,5 +229,28 @@ describe('utils', () => {
             .toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
             .toEqual(expectedError)
+    })
+
+    it('CustomRequestError', function () {
+        let error = new CustomRequestError({
+            value: {
+                error: 'foo',
+                message: 'bar'
+            }
+        })
+        expect(error.name).toBe('foo')
+        expect(error.message).toBe('bar')
+
+        error = new CustomRequestError({ value: { message: 'message' } } )
+        expect(error.name).toBe('Error')
+        expect(error.message).toBe('message')
+
+        error = new CustomRequestError({ value: { class: 'class' } } )
+        expect(error.name).toBe('Error')
+        expect(error.message).toBe('class')
+
+        error = new CustomRequestError({ value: { } } )
+        expect(error.name).toBe('Error')
+        expect(error.message).toBe('unknown error')
     })
 })
