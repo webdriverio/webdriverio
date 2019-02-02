@@ -121,7 +121,7 @@ It is also possible to query elements via a specific [xPath](https://developer.m
 You can query the second paragraph by calling:
 
 ```js
-const paragraph = $('//BODY/P[1]');
+const paragraph = $('//BODY/P[2]');
 console.log(paragraph.getText()); // outputs: "barfoo"
 ```
 

@@ -45,12 +45,18 @@ declare namespace WebdriverIO {
     interface CSSProperty {
         property: string,
         value: any,
-        parse: {
-            type: string,
+        parsed?: {
+            // other
+            unit?: string,
+            // font-family
+            value?: any,
             string: string,
-            unit: string,
-            value: any
-        }
+            // color
+            hex?: string,
+            alpha?: number,
+            type?: string,
+            rgba?: string
+       }
     }
 
     interface Options {
@@ -136,20 +142,6 @@ declare namespace WebdriverIO {
         afterFeature?(feature: string): void;
         afterScenario?(scenario: any): void;
         afterStep?(stepResult: any): void;
-    }
-
-    interface Suite {
-        file: string;
-        parent: string;
-        pending: boolean;
-        title: string;
-        type: string;
-    }
-
-    interface Test extends Suite {
-        currentTest: string;
-        passed: boolean;
-        duration: any;
     }
 
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';

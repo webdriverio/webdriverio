@@ -20,8 +20,10 @@ export default class WDIOCLInterface extends EventEmitter {
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
         this.sigintTriggered = false
+        this.isWatchMode = false
 
         this.interface = new CLInterface()
+        this.interface.on('bufferchange', ::this.updateView)
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
 
@@ -99,6 +101,7 @@ export default class WDIOCLInterface extends EventEmitter {
             this.messages[event.origin][event.name] = []
         }
         this.messages[event.origin][event.name].push(event.content)
+        this.updateView()
     }
 
     sigintTrigger () {
@@ -190,18 +193,25 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         /**
+         * print reporters in watch mode
+         */
+        if (this.isWatchMode) {
+            this.printReporters()
+        }
+
+        /**
          * add empty line between "pending tests" and results
          */
         if (this.jobs.size) {
             this.interface.log()
         }
 
+        this.printStdout(5)
         this.printSummary()
         this.updateClock()
     }
 
-    printReporters() {
-        this.interface.clearAll()
+    printReporters () {
         this.interface.log()
 
         /**
@@ -212,27 +222,32 @@ export default class WDIOCLInterface extends EventEmitter {
             this.interface.log(messages.join(''))
             this.interface.log()
         }
+    }
 
-        /**
-         * print stdout and stderr from runners
-         */
+    /**
+     * print stdout and stderr from runners
+     */
+    printStdout (length) {
         if (this.interface.stdoutBuffer.length) {
-            this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
+            const bufferLength = this.interface.stdoutBuffer.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.interface.stdoutBuffer.slice(bufferLength - maxBufferLength)
+            this.interface.log(chalk.bgYellow.black('Stdout:\n') + buffer.join(''))
         }
         if (this.interface.stderrBuffer.length) {
-            this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
+            const bufferLength = this.interface.stderrBuffer.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.interface.stderrBuffer.slice(bufferLength - maxBufferLength)
+            this.interface.log(chalk.bgRed.black('Stderr:\n') + buffer.join(''))
         }
         if (this.messages.worker.error) {
-            this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
+            const bufferLength = this.messages.worker.error.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.messages.worker.error.slice(bufferLength - maxBufferLength)
+            this.interface.log(chalk.bgRed.black('Worker Error:\n') + buffer.map(
                 (e) => e.stack
             ).join('\n') + '\n')
         }
-
-        this.printSummary()
-        this.interface.log('Time:\t\t ' + this.getClockSymbol() + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
-
-        clearTimeout(this.interval)
-        this.interface.log()
     }
 
     printSummary() {
@@ -260,6 +275,22 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     reset () {
+        clearTimeout(this.interval)
+        this.interface.log('\n')
+
+        if (this.isWatchMode) {
+            return
+        }
+
         this.interface.reset()
+    }
+
+    finalise () {
+        this.interface.clearAll()
+        this.printReporters()
+        this.printStdout()
+        this.printSummary()
+        this.updateClock()
+        this.reset()
     }
 }

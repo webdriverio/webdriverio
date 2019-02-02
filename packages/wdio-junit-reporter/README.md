@@ -146,9 +146,9 @@ module.exports = {
 
 ## Jenkins Setup
 
-Last but not least you nead to tell your CI job (e.g. Jenkins) where it can find the xml file. To do that add a post-build action to your job that gets executed after the test has run and point Jenkins (or your desired CI system) to your XML test results:
+Last but not least you need to tell your CI job (e.g. Jenkins) where it can find the xml file. To do that, add a post-build action to your job that gets executed after the test has run and point Jenkins (or your desired CI system) to your XML test results:
 
-![Point Jenkins to XML files](https://webdriver.io/images/jenkins-postjob.png "Point Jenkins to XML files")
+![Point Jenkins to XML files](https://webdriver.io/img/jenkins-postjob.png "Point Jenkins to XML files")
 
 If there is no such post-build step in your CI system there is probably a plugin for that somewhere on the internet.
 

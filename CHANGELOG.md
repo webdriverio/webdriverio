@@ -15,6 +15,79 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.9 (2019-01-31)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3465](https://github.com/webdriverio/webdriverio/pull/3465) Fix type generation ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#3464](https://github.com/webdriverio/webdriverio/pull/3464) Exit program on next tick ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-junit-reporter`
+  * [#3463](https://github.com/webdriverio/webdriverio/pull/3463) Fix image path for jenkins job ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#3461](https://github.com/webdriverio/webdriverio/pull/3461) wdio-allure-reporter: generate typings ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## 5.4.8 (2019-01-29)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#3444](https://github.com/webdriverio/webdriverio/pull/3444) Fix allure multiremote ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`
+  * [#3453](https://github.com/webdriverio/webdriverio/pull/3453) Fix jasmine logger name ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#3446](https://github.com/webdriverio/webdriverio/pull/3446) feat: add RDC API to service ([@wswebcreation](https://github.com/wswebcreation))
+* `webdriver`, `webdriverio`
+  * [#3428](https://github.com/webdriverio/webdriverio/pull/3428) Temporary workaround for addValue and setValue ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-mocha-framework`
+  * [#3423](https://github.com/webdriverio/webdriverio/pull/3423) mocha-framework: add file property ([@ablok](https://github.com/ablok))
+* `webdriverio`
+  * [#3436](https://github.com/webdriverio/webdriverio/pull/3436) Improve regexp to support custom elements that contain multiple dashes ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#3435](https://github.com/webdriverio/webdriverio/pull/3435) Fix the findStrategy for querying elements by tagname and content ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* `wdio-junit-reporter`
+  * [#3452](https://github.com/webdriverio/webdriverio/pull/3452) Update README.md ([@bearnecessities](https://github.com/bearnecessities))
+* Other
+  * [#3438](https://github.com/webdriverio/webdriverio/pull/3438) doc: fix xpath position ([@morokosi](https://github.com/morokosi))
+
+#### Committers: 7
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Danny ([@bearnecessities](https://github.com/bearnecessities))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- Yohei Kishimoto ([@morokosi](https://github.com/morokosi))
+
+## 5.4.7 (2019-01-26)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3432](https://github.com/webdriverio/webdriverio/pull/3432) Add new performance command for sauce protocol ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## 5.4.6 (2019-01-26)
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-interface`, `webdriverio`
+  * [#3430](https://github.com/webdriverio/webdriverio/pull/3430) Allow displaying logs in realtime ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-logger`
+  * [#3427](https://github.com/webdriverio/webdriverio/pull/3427) change logger imports/exports for optimized webpack bundling ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
 ## 5.4.5 (2019-01-25)
 
 #### :nail_care: Polish
