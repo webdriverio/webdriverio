@@ -316,6 +316,10 @@ export function getErrorFromResponseBody (body) {
 export class CustomRequestError extends Error {
     constructor(body) {
         super(body.value.message || body.value.class || 'unknown error')
-        if (body.value.error) this.name = body.value.error
+        if (body.value.error) {
+            this.name = body.value.error
+        } else if (body.value.message && body.value.message.includes('stale element reference')) {
+            this.name = 'stale element reference'
+        }
     }
 }
