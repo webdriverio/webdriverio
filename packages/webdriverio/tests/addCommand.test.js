@@ -237,8 +237,8 @@ describe('addCommand', () => {
             }, true)
             const elem = await browser.$('#foo')
 
-            await expect(() => elem.function1()).toThrow(error1)
-            await expect(() => elem.function2()).toThrow(error2)
+            await expect(elem.function1()).rejects.toThrow(error1)
+            await expect(elem.function2()).rejects.toThrow(error2)
         })
 
         test('should be able to catch exceptions from the element scope', async () => {
