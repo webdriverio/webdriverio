@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.12 (2019-02-02)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3486](https://github.com/webdriverio/webdriverio/pull/3486) Fixing Regression for chrome stale elements ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 1
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+
 ## 5.4.11 (2019-02-02)
 
 #### :nail_care: Polish
