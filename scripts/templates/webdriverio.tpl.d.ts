@@ -45,12 +45,18 @@ declare namespace WebdriverIO {
     interface CSSProperty {
         property: string,
         value: any,
-        parse: {
-            type: string,
+        parsed?: {
+            // other
+            unit?: string,
+            // font-family
+            value?: any,
             string: string,
-            unit: string,
-            value: any
-        }
+            // color
+            hex?: string,
+            alpha?: number,
+            type?: string,
+            rgba?: string
+       }
     }
 
     interface Options {
