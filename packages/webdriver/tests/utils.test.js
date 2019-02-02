@@ -14,6 +14,9 @@ describe('utils', () => {
         expect(isSuccessfulResponse(200, { value: { some: 'result' } })).toBe(true)
         expect(isSuccessfulResponse(404, { value: { error: new Error('foobar' )} })).toBe(false)
         expect(isSuccessfulResponse(404, { value: { error: 'no such element' } })).toBe(true)
+        expect(isSuccessfulResponse(404, { value: {
+            message: 'An element could not be located on the page using the given search parameters.'}
+        })).toBe(true)
         expect(isSuccessfulResponse(200, { status: 7 })).toBe(false)
         expect(isSuccessfulResponse(undefined, { status: 7, value: {} })).toBe(false)
         expect(isSuccessfulResponse(undefined, { status: 0, value: {} })).toBe(true)
