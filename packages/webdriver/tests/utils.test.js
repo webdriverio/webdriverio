@@ -232,6 +232,7 @@ describe('utils', () => {
     })
 
     it('CustomRequestError', function () {
+        //Firefox
         let error = new CustomRequestError({
             value: {
                 error: 'foo',
@@ -240,6 +241,11 @@ describe('utils', () => {
         })
         expect(error.name).toBe('foo')
         expect(error.message).toBe('bar')
+
+        //Chrome
+        error = new CustomRequestError({ value: { message: 'stale element reference'}})
+        expect(error.name).toBe('stale element reference')
+        expect(error.message).toBe('stale element reference')
 
         error = new CustomRequestError({ value: { message: 'message' } } )
         expect(error.name).toBe('Error')
