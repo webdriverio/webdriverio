@@ -138,20 +138,6 @@ declare namespace WebdriverIO {
         afterStep?(stepResult: any): void;
     }
 
-    interface Suite {
-        file: string;
-        parent: string;
-        pending: boolean;
-        title: string;
-        type: string;
-    }
-
-    interface Test extends Suite {
-        currentTest: string;
-        passed: boolean;
-        duration: any;
-    }
-
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
     interface TouchAction {
         action: ActionTypes,
