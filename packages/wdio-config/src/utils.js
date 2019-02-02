@@ -27,8 +27,9 @@ export function detectBackend (options = {}) {
      */
     if (typeof user === 'string' && key.length === 20) {
         return {
-            hostname: 'hub.browserstack.com',
-            port: 80
+            protocol: 'https',
+            hostname: 'hub-cloud.browserstack.com',
+            port: 443
         }
     }
 
