@@ -199,6 +199,18 @@ describe('addCommand', () => {
 
             await expect(() => browser.function1()).toThrow(error1)
             await expect(() => browser.function2()).toThrow(error2)
+        })
+
+        test('should be able to catch exceptions from the element scope', async () => {
+            const browser = await remote(remoteConfig)
+            browser.addCommand('function1', function () {
+                throw error1
+            })
+
+            browser.addCommand('function2', function () {
+                browser.$('#foo')
+                throw error2
+            })
 
             try {
                 await browser.function1()
@@ -211,6 +223,7 @@ describe('addCommand', () => {
             } catch (error) {
                 expect(error).toBe(error2)
             }
+            expect.assertions(2)
         })
 
         test('should properly throw exceptions on the element scope', async () => {
@@ -226,6 +239,18 @@ describe('addCommand', () => {
 
             await expect(() => elem.function1()).toThrow(error1)
             await expect(() => elem.function2()).toThrow(error2)
+        })
+
+        test('should be able to catch exceptions from the element scope', async () => {
+            const browser = await remote(remoteConfig)
+            browser.addCommand('function1', function () {
+                throw error1
+            }, true)
+            browser.addCommand('function2', function () {
+                browser.$('#foo')
+                throw error2
+            }, true)
+            const elem = await browser.$('#foo')
 
             try {
                 await elem.function1()
@@ -238,7 +263,7 @@ describe('addCommand', () => {
             } catch (error) {
                 expect(error).toBe(error2)
             }
-
+            expect.assertions(2)
         })
     })
 
