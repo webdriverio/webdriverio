@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.11 (2019-02-02)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-config`
+  * [#3485](https://github.com/webdriverio/webdriverio/pull/3485) Updating Browserstack to use SSL ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 1
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+
 ## 5.4.10 (2019-02-02)
 
 #### :bug: Bug Fix
