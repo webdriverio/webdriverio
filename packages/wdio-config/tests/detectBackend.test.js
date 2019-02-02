@@ -35,8 +35,9 @@ describe('detectBackend', () => {
             user: 'foobar',
             key: 'zHcv9sZ39ip8ZPsxBVJ2'
         })
-        expect(caps.hostname).toBe('hub.browserstack.com')
-        expect(caps.port).toBe(80)
+        expect(caps.hostname).toBe('hub-cloud.browserstack.com')
+        expect(caps.port).toBe(443)
+        expect(caps.protocol).toBe('https')
     })
 
     it('should detect testingbot user', () => {
