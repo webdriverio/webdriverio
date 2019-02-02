@@ -60,7 +60,7 @@ export function detectBackend (options = {}, isRDC = false) {
 
         return {
             protocol: protocol || 'https',
-            hostname: hostname || `${preFix}${getSauceEndpoint(region, isRDC)}`,
+            hostname: hostname || (preFix + getSauceEndpoint(region, isRDC)),
             port: port || 443
         }
     }
