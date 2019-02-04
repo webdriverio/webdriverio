@@ -1,6 +1,6 @@
 /// <reference types="jasmine"/>
 
-declare namespace WebDriverIO {
+declare namespace WebdriverIO {
     interface Suite {
         title: string;
         fullName: string;
@@ -11,4 +11,8 @@ declare namespace WebDriverIO {
         parent: string;
         passed: boolean;
     }
+}
+
+declare module "@wdio/jasmine-framework" {
+    export default WebdriverIO
 }

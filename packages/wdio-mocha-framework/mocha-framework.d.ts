@@ -1,7 +1,8 @@
 /// <reference types="mocha"/>
 
-declare namespace WebDriverIO {
+declare namespace WebdriverIO {
     interface Suite {
+        file: string;
         title: string;
         parent: string;
         fullTitle: string;
@@ -11,6 +12,10 @@ declare namespace WebDriverIO {
     interface Test extends Suite {
         currentTest: string;
         passed: boolean;
-        duration: any;
+        duration?: number;
     }
+}
+
+declare module "@wdio/mocha-framework" {
+    export default WebdriverIO
 }
