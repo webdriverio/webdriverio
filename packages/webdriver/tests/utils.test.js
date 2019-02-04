@@ -1,6 +1,7 @@
 import {
     isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError
+    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError,
+    buildCapabilities, buildSessionRequest
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -261,5 +262,64 @@ describe('utils', () => {
         error = new CustomRequestError({ value: { } } )
         expect(error.name).toBe('Error')
         expect(error.message).toBe('unknown error')
+    })
+
+    describe('buildCapabilities', () => {
+        const scenarios = [{
+            name: 'undefined',
+            capabilities: undefined,
+            w3cCaps: { alwaysMatch: undefined, firstMatch: [{}] },
+            jsonwpCaps: undefined
+        }, {
+            name: 'jsonwp',
+            capabilities: {},
+            w3cCaps: { alwaysMatch: {}, firstMatch: [{}] },
+            jsonwpCaps: {}
+        }, {
+            name: 'W3C',
+            capabilities: { alwaysMatch: true },
+            w3cCaps: { alwaysMatch: true },
+            jsonwpCaps: true
+        }]
+
+        scenarios.forEach(scenario => {
+            it(scenario.name, () => {
+                const result = buildCapabilities(scenario.capabilities)
+                expect(result.w3cCaps).toEqual(scenario.w3cCaps)
+                expect(result.jsonwpCaps).toEqual(scenario.jsonwpCaps)
+            })
+        })
+    })
+
+    describe('buildSessionRequest', () => {
+        const scenarios = [{
+            name: 'no w3cCaps and jsonwpCaps',
+            w3cCaps: undefined,
+            jsonwpCaps: undefined
+        }, {
+            name: 'no w3cCaps',
+            w3cCaps: undefined,
+            jsonwpCaps: { jsonwpCap: true }
+        }, {
+            name: 'no jsonwpCaps',
+            w3cCaps: { w3cCap: true },
+            jsonwpCaps: undefined
+        }, {
+            name: 'w3cCaps and jsonwpCaps',
+            w3cCaps: { w3cCap: true },
+            jsonwpCaps: { jsonwpCap: true }
+        }]
+
+        scenarios.forEach(scenario => {
+            it(scenario.name, () => {
+                const result = buildSessionRequest(scenario.w3cCaps, scenario.jsonwpCaps)
+                expect(result.method).toBe('POST')
+                expect(result.endpoint).toBe('/session')
+                expect(result.body).toEqual({
+                    capabilities: scenario.w3cCaps,
+                    desiredCapabilities: scenario.jsonwpCaps
+                })
+            })
+        })
     })
 })

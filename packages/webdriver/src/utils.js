@@ -8,6 +8,7 @@ import JsonWProtocol from '../protocol/jsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
 import SauceLabsProtocol from '../protocol/saucelabs.json'
+import WebDriverRequest from './request'
 
 const log = logger('webdriver')
 
@@ -326,4 +327,46 @@ export class CustomRequestError extends Error {
             this.name = 'stale element reference'
         }
     }
+}
+
+/**
+ * helper method to get w3cCaps and jsonwpCaps from capabilities
+ * @param  {object} capabilities    capabilities
+ * @return {object}                 { w3cCaps, jsonwpCaps }
+ */
+export function buildCapabilities (capabilities) {
+    /**
+     * the user could have passed in either w3c style or jsonwp style caps
+     * and we want to pass both styles to the server, which means we need
+     * to check what style the user sent in so we know how to construct the
+     * object for the other style
+     */
+    const [w3cCaps, jsonwpCaps] = capabilities && capabilities.alwaysMatch
+        /**
+         * in case W3C compliant capabilities are provided
+         */
+        ? [capabilities, capabilities.alwaysMatch]
+        /**
+         * otherwise assume they passed in jsonwp-style caps (flat object)
+         */
+        : [{ alwaysMatch: capabilities, firstMatch: [{}] }, capabilities]
+
+    return { w3cCaps, jsonwpCaps }
+}
+
+/**
+ * helper method to build WebDriver session request
+ * @param  {object} w3cCaps         WebDriverRequest
+ * @param  {object} jsonwpCaps      WebDriverRequest
+ * @return {WebDriverRequest}       WebDriver session request
+ */
+export function buildSessionRequest (w3cCaps, jsonwpCaps) {
+    return new WebDriverRequest(
+        'POST',
+        '/session',
+        {
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
+        }
+    )
 }
