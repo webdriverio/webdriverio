@@ -191,8 +191,7 @@ declare namespace WebdriverIO {
 
     type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-    type Config = Options & Omit<WebDriver.Options, "capabilities"> & Hooks;
-}
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;
 declare function $(selector: string | Function): WebdriverIO.Element<void>;
