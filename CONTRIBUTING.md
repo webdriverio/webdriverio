@@ -17,8 +17,6 @@ In order to set up this project and start contributing follow this step by step 
     $ git clone git@github.com:<your-username>/webdriverio.git
     ```
 
-    _Note_: this is currently a dev repository to keep making releases in the [original](https://github.com/webdriverio/webdriverio) project. Once we are at a state where this can be released we will force push this master branch to the webdriverio/webdriverio#master branch.
-
 * Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
 
 * Setup project:
