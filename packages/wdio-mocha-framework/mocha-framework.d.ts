@@ -1,7 +1,8 @@
 /// <reference types="mocha"/>
 
-declare namespace WebDriverIO {
+declare namespace WebdriverIO {
     interface Suite {
+        file: string;
         title: string;
         parent: string;
         fullTitle: string;

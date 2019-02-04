@@ -1,6 +1,6 @@
 /// <reference types="jasmine"/>
 
-declare namespace WebDriverIO {
+declare namespace WebdriverIO {
     interface Suite {
         title: string;
         fullName: string;
