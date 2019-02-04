@@ -10,9 +10,9 @@ exports.config = {
         path.join(TEST_ROOT, '/detectBackend.test.js'),
         path.join(TEST_ROOT, '/validateConfig.test.js')
     ],
-    capabilities: {
+    capabilities: [{
         browserName: 'chrome'
-    },
+    }],
     suites: {
         unit: [path.join(TEST_ROOT, 'configparser.test.js')],
         mobile: [path.join(TEST_ROOT, 'detectBackend.test.js')],

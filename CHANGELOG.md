@@ -15,6 +15,75 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.13 (2019-02-02)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`
+  * [#3468](https://github.com/webdriverio/webdriverio/pull/3468) Add automatically determination of the RDC hostname for US/EU ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3487](https://github.com/webdriverio/webdriverio/pull/3487) Fixing element not found for iPhone ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 2
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+## 5.4.12 (2019-02-02)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3486](https://github.com/webdriverio/webdriverio/pull/3486) Fixing Regression for chrome stale elements ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 1
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+
+## 5.4.11 (2019-02-02)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-config`
+  * [#3485](https://github.com/webdriverio/webdriverio/pull/3485) Updating Browserstack to use SSL ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 1
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+
+## 5.4.10 (2019-02-02)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#3422](https://github.com/webdriverio/webdriverio/pull/3422) Fix handling of yarn-managed node_modules ([@ccope](https://github.com/ccope))
+
+#### :nail_care: Polish
+* `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#3482](https://github.com/webdriverio/webdriverio/pull/3482) Updating stale element handling ([@abjerstedt](https://github.com/abjerstedt))
+* `wdio-cli`
+  * [#3469](https://github.com/webdriverio/webdriverio/pull/3469) Update config.js ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+* `webdriverio`
+  * [#3481](https://github.com/webdriverio/webdriverio/pull/3481) Fix 3480 ([@needforspeed](https://github.com/needforspeed))
+
+#### :memo: Documentation
+* Other
+  * [#3474](https://github.com/webdriverio/webdriverio/pull/3474) Fixed type error for CSSProperty #3473 ([@dalenguyen](https://github.com/dalenguyen))
+  * [#3470](https://github.com/webdriverio/webdriverio/pull/3470) add missing allure-reporter typings template ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-selenium-standalone-service`
+  * [#3477](https://github.com/webdriverio/webdriverio/pull/3477) Extendable typings ([@ablok](https://github.com/ablok))
+* `webdriverio`
+  * [#3478](https://github.com/webdriverio/webdriverio/pull/3478) changed browser.close() to browser.closeWindow() ([@balukov](https://github.com/balukov))
+
+#### :house: Internal
+* `webdriverio`
+  * [#3484](https://github.com/webdriverio/webdriverio/pull/3484) webdriverio: adding more addCommand UTs ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 8
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Cam Cope ([@ccope](https://github.com/ccope))
+- Dale Nguyen ([@dalenguyen](https://github.com/dalenguyen))
+- Daphne Magsby ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Yuncong Zhang ([@needforspeed](https://github.com/needforspeed))
+- [@balukov](https://github.com/balukov)
+
 ## 5.4.9 (2019-01-31)
 
 #### :bug: Bug Fix

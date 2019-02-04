@@ -12,62 +12,48 @@ const log = logger('webdriverio')
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
     return function (...args) {
-        /**
-         * wait on element if:
-         *  - elementId couldn't be fetched in the first place
-         *  - command is not explicit wait command for existance or displayedness
-         */
-        if (!this.elementId && !commandName.match(/(wait(Until|ForDisplayed|ForExist|ForEnabled)|isExisting|isDisplayed)/)) {
-            log.debug(
-                `command ${commandName} was called on an element ("${this.selector}") ` +
-                'that wasn\'t found, waiting for it...'
-            )
+        return fn(commandName, async () => {
+            /**
+             * wait on element if:
+             *  - elementId couldn't be fetched in the first place
+             *  - command is not explicit wait command for existance or displayedness
+             */
+            if (!this.elementId && !commandName.match(/(wait(Until|ForDisplayed|ForExist|ForEnabled)|isExisting|isDisplayed)/)) {
+                log.debug(
+                    `command ${commandName} was called on an element ("${this.selector}") ` +
+                    'that wasn\'t found, waiting for it...'
+                )
 
-            return fn(commandName, () => {
                 /**
                  * create new promise so we can apply a custom error message in cases waitForExist fails
                  */
-                return new Promise((resolve, reject) => this.waitForExist().then(resolve, reject)).then(
+                try {
+                    await this.waitForExist()
                     /**
                      * if waitForExist was successful requery element and assign elementId to the scope
                      */
-                    () => {
-                        return this.parent.$(this.selector).then((elem) => {
-                            this.elementId = elem.elementId
-                            return fn(commandName, commandFn).apply(this, args)
-                        })
-                    },
-                    /**
-                     * if waitForExist failes throw custom error
-                     */
-                    () => {
-                        throw new Error(`Can't call ${commandName} on element with selector "${this.selector}" because element wasn't found`)
-                    }
-                )
-            }).apply(this)
-        }
+                    const element = await this.parent.$(this.selector)
+                    this.elementId = element.elementId
+                } catch {
+                    throw new Error(
+                        `Can't call ${commandName} on element with selector "${this.selector}" because element wasn't found`)
+                }
+            }
 
-        try {
-            return fn(commandName, commandFn).apply(this, args)
-        } catch (error) {
-            /**
-             * refetch element ids when stale element reference execption was thrown
-             */
-            if (error.message.includes('stale element reference')) {
-                return refetchElement(this).then((element) => {
+            try {
+                return await fn(commandName, commandFn).apply(this, args)
+            } catch (error) {
+                if (error.name === 'stale element reference') {
+                    const element = await refetchElement(this)
                     this.elementId = element.elementId
                     this.parent = element.parent
 
-                    return fn(commandName, commandFn).apply(this, args)
-                })
+                    return await fn(commandName, commandFn).apply(this, args)
+                }
+                throw error
             }
+        }).apply(this)
 
-            /**
-             * add other post command handlings here
-             */
-
-            throw error
-        }
     }
 }
 

@@ -41,10 +41,7 @@ describe('middleware', () => {
             .rejects.toThrow('Can\'t call click on element with selector "#foo" because element wasn\'t found')
     })
 
-    /**
-     * skipped because they don't work after refactoring
-     */
-    it.skip('should succesfully click on an element that falls stale after being refound', async () => {
+    it('should successfully click on an element that falls stale after being re-found', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo')
@@ -57,10 +54,7 @@ describe('middleware', () => {
         request.retryCnt = 0
     })
 
-    /**
-     * skipped because they don't work after refactoring
-     */
-    it.skip('should succesfully click on a stale element', async () => {
+    it('should succesfully click on a stale element', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo')
