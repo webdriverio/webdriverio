@@ -16,8 +16,8 @@ export const SUPPORTED_REPORTER = [
     ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
     ' json - https://www.npmjs.com/package/wdio-json-reporter',
     ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
-    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter'
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
+    // ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter' not supported yet see https://github.com/QualityOps/wdio-timeline-reporter/issues/9
 ]
 
 export const SUPPORTED_SERVICES = [
