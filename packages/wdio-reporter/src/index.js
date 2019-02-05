@@ -31,6 +31,14 @@ export default class WDIOReporter extends EventEmitter {
             failures: 0
         }
 
+        const outputDir = this.options.outputDir
+        if (outputDir) {
+            // make sure report directory exists
+            if (!fs.existsSync(outputDir)){
+                fs.mkdirSync(outputDir)
+            }
+        }
+
         let currentTest
 
         const rootSuite = new SuiteStats({

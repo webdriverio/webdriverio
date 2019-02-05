@@ -71,4 +71,24 @@ describe('WDIOReporter', () => {
         reporter.write('foobar')
         expect(options.writeStream.write).toBeCalledWith('foobar')
     })
+
+    it('should create directory if outputDir given and not existing', () => {
+        const outputDir = `./tempDir-${Date.now()}`
+
+        // ensure directory isn't somehow there to begin with
+        expect(fs.existsSync(outputDir)).toBe(false)
+
+        const options = { outputDir }
+        new WDIOReporter(options)
+
+        const dirExists = fs.existsSync(outputDir)
+
+        // remove directory before assertion so it doesn't pollute our tests,
+        // even if the assertion fails
+        if (dirExists){
+            fs.rmdirSync(outputDir)
+        }
+
+        expect(dirExists).toBe(true)
+    })
 })
