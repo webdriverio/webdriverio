@@ -159,7 +159,7 @@ describe('BaseReporter', () => {
             reporterSyncTimeout: 100
         })
 
-        setTimeout(() => (reporter.reporters[0].inSync = true), 110)
+        setTimeout(() => (reporter.reporters[0].inSync = true), 112)
         await expect(reporter.waitForSync())
             .rejects.toEqual(new Error('Some reporters are still unsynced: CustomReporter'))
     })
