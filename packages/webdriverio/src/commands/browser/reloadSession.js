@@ -8,14 +8,14 @@
  *
  * <example>
     :reloadSync.js
-    it('should reload my session', () => {
+    it('should reload my session with current capabilities', () => {
         console.log(browser.sessionId) // outputs: e042b3f3cd5a479da4e171825e96e655
-        browser.reload()
+        browser.reloadSession()
         console.log(browser.sessionId) // outputs: 9a0d9bf9d4864160aa982c50cf18a573
     })
  * </example>
  *
- * @alias browser.reload
+ * @alias browser.reloadSession
  * @type utility
  *
  */
@@ -41,7 +41,7 @@ export default async function reloadSession () {
     )
 
     const response = await sessionRequest.makeRequest(this.options)
-    const newSessionId = response.sessionId
+    const newSessionId = response.sessionId || (response.value && response.value.sessionId)
     this.sessionId = newSessionId
 
     if (Array.isArray(this.options.onReload) && this.options.onReload.length) {

@@ -56,7 +56,7 @@ declare namespace WebdriverIO {
             alpha?: number,
             type?: string,
             rgba?: string
-       }
+        }
     }
 
     interface Options {
@@ -79,6 +79,9 @@ declare namespace WebdriverIO {
         services?: (string | object)[],
         execArgv?: string[]
     }
+
+    interface Suite {}
+    interface Test {}
 
     interface Hooks {
 
@@ -191,7 +194,7 @@ declare namespace WebdriverIO {
 
     type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-    type Config = Options & Omit<WebDriver.Options, "capabilities"> & Hooks;
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 }
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;

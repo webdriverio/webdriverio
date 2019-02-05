@@ -1,6 +1,6 @@
 import { InstallOpts, StartOpts } from "selenium-standalone";
 
-declare namespace WebdriverIO {
+declare module "webdriverio" {
     interface Config {
         seleniumLogs?: string;
         seleniumInstallArgs?: InstallOpts;
