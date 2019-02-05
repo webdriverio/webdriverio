@@ -58,8 +58,10 @@ export default class ConfigParser {
             /**
              * For Sauce Labs RDC we need to determine if the config file has a `testobject_api_key`
              * If so, we need to provide a boolean to the `detectBackend` to set the correct hostname
+             *
+             * NOTE: This will not work for multi remote
              */
-            const isRDC = this._capabilities.some(capability => 'testobject_api_key' in capability)
+            const isRDC = Array.isArray(this._capabilities) && this._capabilities.some(capability => 'testobject_api_key' in capability)
 
             /**
              * detect Selenium backend
