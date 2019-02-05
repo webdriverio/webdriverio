@@ -8,19 +8,19 @@
  *
  * <example>
     :reloadSync.js
-    it('should reload my session with current capabilities', () => {
+    it('should reload my session', () => {
         console.log(browser.sessionId) // outputs: e042b3f3cd5a479da4e171825e96e655
-        browser.reloadSession()
+        browser.reload()
         console.log(browser.sessionId) // outputs: 9a0d9bf9d4864160aa982c50cf18a573
     })
  * </example>
  *
- * @alias browser.reloadSession
+ * @alias browser.reload
  * @type utility
  *
  */
 
-import { buildSessionRequest } from 'webdriver/build/utils'
+import WebDriverRequest from 'webdriver/build/request'
 
 export default async function reloadSession () {
     const oldSessionId = this.sessionId
@@ -31,10 +31,17 @@ export default async function reloadSession () {
     await this.deleteSession()
 
     const { w3cCaps, jsonwpCaps } = this.options.requestedCapabilities
-    const sessionRequest = buildSessionRequest(w3cCaps, jsonwpCaps)
+    const sessionRequest = new WebDriverRequest(
+        'POST',
+        '/session',
+        {
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
+        }
+    )
 
     const response = await sessionRequest.makeRequest(this.options)
-    const newSessionId = response.sessionId || (response.value && response.value.sessionId)
+    const newSessionId = response.sessionId
     this.sessionId = newSessionId
 
     if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
