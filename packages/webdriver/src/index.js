@@ -3,8 +3,9 @@ import merge from 'lodash.merge'
 import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
+import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, environmentDetector, buildCapabilities, buildSessionRequest } from './utils'
+import { getPrototype, environmentDetector } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -17,8 +18,30 @@ export default class WebDriver {
         const params = validateConfig(DEFAULTS, options)
         logger.setLevel('webdriver', params.logLevel)
 
-        const { w3cCaps, jsonwpCaps } = buildCapabilities(params.capabilities)
-        const sessionRequest = buildSessionRequest(w3cCaps, jsonwpCaps)
+        /**
+         * the user could have passed in either w3c style or jsonwp style caps
+         * and we want to pass both styles to the server, which means we need
+         * to check what style the user sent in so we know how to construct the
+         * object for the other style
+         */
+        const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
+            /**
+             * in case W3C compliant capabilities are provided
+             */
+            ? [params.capabilities, params.capabilities.alwaysMatch]
+            /**
+             * otherwise assume they passed in jsonwp-style caps (flat object)
+             */
+            : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
+        const sessionRequest = new WebDriverRequest(
+            'POST',
+            '/session',
+            {
+                capabilities: w3cCaps, // W3C compliant
+                desiredCapabilities: jsonwpCaps // JSONWP compliant
+            }
+        )
 
         const response = await sessionRequest.makeRequest(params)
 
