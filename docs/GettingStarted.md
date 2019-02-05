@@ -5,7 +5,7 @@ title: Getting Started
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
 
-> __Note:__ These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please us the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
+> __Note:__ These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please use the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
 
 The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
 
