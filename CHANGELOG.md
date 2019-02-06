@@ -15,6 +15,20 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.15 (2019-02-06)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3511](https://github.com/webdriverio/webdriverio/pull/3511) webdriver: hack to make chrome support element.saveScreenshot() ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `wdio-reporter`
+  * [#3510](https://github.com/webdriverio/webdriverio/pull/3510) wdio-reporter: create outputDir directory if does not exist ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+
 ## 5.4.14 (2019-02-05)
 
 #### :bug: Bug Fix
