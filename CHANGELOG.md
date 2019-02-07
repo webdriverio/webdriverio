@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.16 (2019-02-07)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#3521](https://github.com/webdriverio/webdriverio/pull/3521) wdio-allure-reporter: fix test skip ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3522](https://github.com/webdriverio/webdriverio/pull/3522) Highlight talk from Selenium meetup ([@christian-bromann](https://github.com/christian-bromann))
+* [#3519](https://github.com/webdriverio/webdriverio/pull/3519) Webdriverio: fix Hooks interface ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## 5.4.15 (2019-02-06)
 
 #### :eyeglasses: Spec Compliancy
