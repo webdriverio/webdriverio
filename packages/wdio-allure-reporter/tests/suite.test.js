@@ -201,6 +201,38 @@ describe('Pending tests', () => {
         expect(allureXml('test-case > name').text()).toEqual('should can do something')
         expect(allureXml('test-case').attr('status')).toEqual('pending')
     })
+
+    it('should detect not started pending test case after completed test', () => {
+        outputDir = directory()
+        const reporter = new AllureReporter({stdout: true, outputDir})
+        let passed = testStart()
+        passed = {
+            ...passed,
+            title: passed.title + '2',
+            uid: passed.uid + '2',
+            fullTitle: passed.fullTitle + '2'
+        }
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(passed)
+        reporter.onTestPass({ ...passed, state: 'passed' })
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const results = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        const allureXml = results[0]
+
+        expect(allureXml('test-case > name').length).toEqual(2)
+
+        expect(allureXml('test-case > name').last().text()).toEqual('should can do something')
+        expect(allureXml('test-case').last().attr('status')).toEqual('pending')
+
+        expect(allureXml('test-case > name').first().text()).toEqual(passed.title)
+        expect(allureXml('test-case').first().attr('status')).toEqual('passed')
+    })
 })
 
 describe('selenium command reporting', () => {
