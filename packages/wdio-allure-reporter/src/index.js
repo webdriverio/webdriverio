@@ -89,10 +89,10 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test) {
-        if (this.allure.getCurrentTest() && this.allure.getCurrentTest().status !== testStatuses.PENDING) {
-            this.allure.endCase(testStatuses.PENDING)
-        } else {
+        if (!this.allure.getCurrentTest() || this.allure.getCurrentTest().name !== test.title) {
             this.allure.pendingCase(test.title)
+        } else {
+            this.allure.endCase(testStatuses.PENDING)
         }
     }
 
