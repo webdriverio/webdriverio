@@ -175,7 +175,7 @@ const Talks = () => (
                 <iframe
                     width="560"
                     height="315"
-                    src="https://www.youtube.com/embed/FHxXMeDh7Co"
+                    src="https://www.youtube.com/embed/1x8eUCBg_wk"
                     frameBorder="0"
                     allow="autoplay; encrypted-media"
                     allowFullScreen
@@ -196,8 +196,9 @@ const Talks = () => (
                         <translate>
                             The community around WebdriverIO is actively speaking on various user groups or
                             conferences about specific topics around automated testing with WebdriverIO. Check out
-                            this talk about [Building Scalable And Stable e2e Test Suites](https://www.youtube.com/watch?v=FHxXMeDh7Co&t=935s)
-                            by [@bromann](https://twitter.com/bromann) at SauceCon 2018. There is also a whole
+                            this talk from the latest Selenium Meetup in San Francisco about [BWebdriverIO Cribs: A
+                            Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk)
+                            by [@bromann](https://twitter.com/bromann). There is also a whole
                             [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
                             about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).
                         </translate>
