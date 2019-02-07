@@ -6,10 +6,16 @@ import {events, stepStatuses, testStatuses} from './constants'
 
 class AllureReporter extends WDIOReporter {
     constructor(options) {
-        super(options)
+        const outputDir = options.outputDir || 'allure-results'
+
+        super({
+            ...options,
+            outputDir
+        })
         this.config = {}
         this.allure = new Allure()
-        this.allure.setOptions({targetDir: options.outputDir || 'allure-results'})
+
+        this.allure.setOptions({targetDir: outputDir})
         this.registerListeners()
     }
 

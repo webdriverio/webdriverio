@@ -15,6 +15,47 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.15 (2019-02-06)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3511](https://github.com/webdriverio/webdriverio/pull/3511) webdriver: hack to make chrome support element.saveScreenshot() ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `wdio-reporter`
+  * [#3510](https://github.com/webdriverio/webdriverio/pull/3510) wdio-reporter: create outputDir directory if does not exist ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+
+## 5.4.14 (2019-02-05)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#3496](https://github.com/webdriverio/webdriverio/pull/3496) Fix/3492 fix multi remote ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-runner`, `webdriverio`
+  * [#3506](https://github.com/webdriverio/webdriverio/pull/3506) Fix Appium reload session ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* Other
+  * [#3503](https://github.com/webdriverio/webdriverio/pull/3503) Update GettingStarted.md ([@pablopaul](https://github.com/pablopaul))
+  * [#3508](https://github.com/webdriverio/webdriverio/pull/3508) Update GettingStarted.md ([@goatsy](https://github.com/goatsy))
+  * [#3500](https://github.com/webdriverio/webdriverio/pull/3500) Update contributing docs now that v5 is fully released ([@klamping](https://github.com/klamping))
+* `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-selenium-standalone-service`
+  * [#3497](https://github.com/webdriverio/webdriverio/pull/3497) fix Suite and Test typings for #3495 ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `wdio-cli`
+  * [#3501](https://github.com/webdriverio/webdriverio/pull/3501) wdio-cli: remove timeline option from reporters ([@klamping](https://github.com/klamping))
+
+#### Committers: 5
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Paul Vincent Beigang ([@pablopaul](https://github.com/pablopaul))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@goatsy](https://github.com/goatsy)
+
 ## 5.4.13 (2019-02-02)
 
 #### :rocket: New Feature

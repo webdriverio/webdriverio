@@ -1,4 +1,5 @@
 import fs from 'fs'
+import fse from 'fs-extra'
 import { format } from 'util'
 import EventEmitter from 'events'
 
@@ -29,6 +30,11 @@ export default class WDIOReporter extends EventEmitter {
             passes: 0,
             skipping: 0,
             failures: 0
+        }
+
+        // ensure the report directory exists
+        if (this.options.outputDir) {
+            fse.ensureDirSync(this.options.outputDir)
         }
 
         let currentTest
