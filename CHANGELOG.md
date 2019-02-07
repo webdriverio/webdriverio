@@ -15,6 +15,168 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.15 (2019-02-06)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3511](https://github.com/webdriverio/webdriverio/pull/3511) webdriver: hack to make chrome support element.saveScreenshot() ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `wdio-reporter`
+  * [#3510](https://github.com/webdriverio/webdriverio/pull/3510) wdio-reporter: create outputDir directory if does not exist ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+
+## 5.4.14 (2019-02-05)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#3496](https://github.com/webdriverio/webdriverio/pull/3496) Fix/3492 fix multi remote ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-runner`, `webdriverio`
+  * [#3506](https://github.com/webdriverio/webdriverio/pull/3506) Fix Appium reload session ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* Other
+  * [#3503](https://github.com/webdriverio/webdriverio/pull/3503) Update GettingStarted.md ([@pablopaul](https://github.com/pablopaul))
+  * [#3508](https://github.com/webdriverio/webdriverio/pull/3508) Update GettingStarted.md ([@goatsy](https://github.com/goatsy))
+  * [#3500](https://github.com/webdriverio/webdriverio/pull/3500) Update contributing docs now that v5 is fully released ([@klamping](https://github.com/klamping))
+* `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-selenium-standalone-service`
+  * [#3497](https://github.com/webdriverio/webdriverio/pull/3497) fix Suite and Test typings for #3495 ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `wdio-cli`
+  * [#3501](https://github.com/webdriverio/webdriverio/pull/3501) wdio-cli: remove timeline option from reporters ([@klamping](https://github.com/klamping))
+
+#### Committers: 5
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Paul Vincent Beigang ([@pablopaul](https://github.com/pablopaul))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@goatsy](https://github.com/goatsy)
+
+## 5.4.13 (2019-02-02)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`
+  * [#3468](https://github.com/webdriverio/webdriverio/pull/3468) Add automatically determination of the RDC hostname for US/EU ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3487](https://github.com/webdriverio/webdriverio/pull/3487) Fixing element not found for iPhone ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 2
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+## 5.4.12 (2019-02-02)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3486](https://github.com/webdriverio/webdriverio/pull/3486) Fixing Regression for chrome stale elements ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 1
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+
+## 5.4.11 (2019-02-02)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-config`
+  * [#3485](https://github.com/webdriverio/webdriverio/pull/3485) Updating Browserstack to use SSL ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 1
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+
+## 5.4.10 (2019-02-02)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#3422](https://github.com/webdriverio/webdriverio/pull/3422) Fix handling of yarn-managed node_modules ([@ccope](https://github.com/ccope))
+
+#### :nail_care: Polish
+* `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#3482](https://github.com/webdriverio/webdriverio/pull/3482) Updating stale element handling ([@abjerstedt](https://github.com/abjerstedt))
+* `wdio-cli`
+  * [#3469](https://github.com/webdriverio/webdriverio/pull/3469) Update config.js ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+* `webdriverio`
+  * [#3481](https://github.com/webdriverio/webdriverio/pull/3481) Fix 3480 ([@needforspeed](https://github.com/needforspeed))
+
+#### :memo: Documentation
+* Other
+  * [#3474](https://github.com/webdriverio/webdriverio/pull/3474) Fixed type error for CSSProperty #3473 ([@dalenguyen](https://github.com/dalenguyen))
+  * [#3470](https://github.com/webdriverio/webdriverio/pull/3470) add missing allure-reporter typings template ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-selenium-standalone-service`
+  * [#3477](https://github.com/webdriverio/webdriverio/pull/3477) Extendable typings ([@ablok](https://github.com/ablok))
+* `webdriverio`
+  * [#3478](https://github.com/webdriverio/webdriverio/pull/3478) changed browser.close() to browser.closeWindow() ([@balukov](https://github.com/balukov))
+
+#### :house: Internal
+* `webdriverio`
+  * [#3484](https://github.com/webdriverio/webdriverio/pull/3484) webdriverio: adding more addCommand UTs ([@abjerstedt](https://github.com/abjerstedt))
+
+#### Committers: 8
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Cam Cope ([@ccope](https://github.com/ccope))
+- Dale Nguyen ([@dalenguyen](https://github.com/dalenguyen))
+- Daphne Magsby ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Yuncong Zhang ([@needforspeed](https://github.com/needforspeed))
+- [@balukov](https://github.com/balukov)
+
+## 5.4.9 (2019-01-31)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3465](https://github.com/webdriverio/webdriverio/pull/3465) Fix type generation ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#3464](https://github.com/webdriverio/webdriverio/pull/3464) Exit program on next tick ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-junit-reporter`
+  * [#3463](https://github.com/webdriverio/webdriverio/pull/3463) Fix image path for jenkins job ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#3461](https://github.com/webdriverio/webdriverio/pull/3461) wdio-allure-reporter: generate typings ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## 5.4.8 (2019-01-29)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#3444](https://github.com/webdriverio/webdriverio/pull/3444) Fix allure multiremote ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`
+  * [#3453](https://github.com/webdriverio/webdriverio/pull/3453) Fix jasmine logger name ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#3446](https://github.com/webdriverio/webdriverio/pull/3446) feat: add RDC API to service ([@wswebcreation](https://github.com/wswebcreation))
+* `webdriver`, `webdriverio`
+  * [#3428](https://github.com/webdriverio/webdriverio/pull/3428) Temporary workaround for addValue and setValue ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-mocha-framework`
+  * [#3423](https://github.com/webdriverio/webdriverio/pull/3423) mocha-framework: add file property ([@ablok](https://github.com/ablok))
+* `webdriverio`
+  * [#3436](https://github.com/webdriverio/webdriverio/pull/3436) Improve regexp to support custom elements that contain multiple dashes ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#3435](https://github.com/webdriverio/webdriverio/pull/3435) Fix the findStrategy for querying elements by tagname and content ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* `wdio-junit-reporter`
+  * [#3452](https://github.com/webdriverio/webdriverio/pull/3452) Update README.md ([@bearnecessities](https://github.com/bearnecessities))
+* Other
+  * [#3438](https://github.com/webdriverio/webdriverio/pull/3438) doc: fix xpath position ([@morokosi](https://github.com/morokosi))
+
+#### Committers: 7
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Danny ([@bearnecessities](https://github.com/bearnecessities))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- Yohei Kishimoto ([@morokosi](https://github.com/morokosi))
+
 ## 5.4.7 (2019-01-26)
 
 #### :eyeglasses: Spec Compliancy

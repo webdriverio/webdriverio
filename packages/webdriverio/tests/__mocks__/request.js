@@ -2,12 +2,14 @@ import { ELEMENT_KEY } from '../../src/constants'
 
 let manualMockResponse
 
-const sessionId = 'foobar-123'
+const defaultSessionId = 'foobar-123'
+let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
 const genericSubSubElementId = 'some-sub-sub-elem-231'
 const requestMock = jest.fn().mockImplementation((params, cb) => {
     let value = {}
+    let jsonwpMode = false
     let sessionResponse = {
         sessionId,
         capabilities: {
@@ -21,6 +23,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         params.body.capabilities &&
         params.body.capabilities.alwaysMatch.jsonwpMode
     ) {
+        jsonwpMode = true
         sessionResponse = {
             sessionId,
             browserName: 'mockBrowser'
@@ -162,14 +165,19 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             }, response)
         }
 
-        let error = new Error('element is not attached to the page document')
-        error.name = 'stale element reference'
+        // https://www.w3.org/TR/webdriver1/#handling-errors
+        let error = {
+            value: {
+                'error': 'stale element reference',
+                'message': 'element is not attached to the page document'
+            }
+        }
 
-        return cb(error, {
+        return cb(null, {
             headers: { foo: 'bar' },
             statusCode: 404,
-            body: {}
-        }, {})
+            body: error
+        }, error)
     }
 
     /**
@@ -212,7 +220,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     let response = { value }
-    if (params.jsonwpMode) {
+    if (jsonwpMode) {
         response = { value, sessionId, status: 0 }
     }
 
@@ -226,6 +234,14 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
 requestMock.retryCnt = 0
 requestMock.setMockResponse = (value) => {
     manualMockResponse = value
+}
+
+requestMock.getSessionId = () => sessionId
+requestMock.setSessionId = (newSessionId) => {
+    sessionId = newSessionId
+}
+requestMock.resetSessionId = () => {
+    sessionId = defaultSessionId
 }
 
 export default requestMock

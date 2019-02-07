@@ -1,5 +1,7 @@
 import fs from 'fs'
+import fse from 'fs-extra'
 import tmp from 'tmp'
+import path from 'path'
 
 import WDIOReporter from '../src'
 
@@ -70,5 +72,31 @@ describe('WDIOReporter', () => {
         const reporter = new WDIOReporter(options)
         reporter.write('foobar')
         expect(options.writeStream.write).toBeCalledWith('foobar')
+    })
+
+    it('should create directory if outputDir given and not existing', () => {
+        const outputDir = path.join(__dirname, `./tempDir-${Date.now()}`, 'multiLevel')
+
+        // ensure directory isn't somehow there to begin with
+        expect(fs.existsSync(outputDir)).toBe(false)
+
+        const options = { outputDir }
+        new WDIOReporter(options)
+
+        const dirExists = fs.existsSync(outputDir)
+
+        // remove directory before assertion so it doesn't pollute the test directory,
+        // even if the assertion fails
+        if (dirExists){
+            fse.removeSync(outputDir)
+        }
+
+        expect(dirExists).toBe(true)
+    })
+
+    it('should handle invalid directory for outputDir', () => {
+        expect(() => {
+            new WDIOReporter({ outputDir: true })
+        }).toThrow()
     })
 })

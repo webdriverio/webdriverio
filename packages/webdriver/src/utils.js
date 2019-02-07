@@ -28,7 +28,11 @@ export function isSuccessfulResponse (statusCode, body) {
     /**
      * ignore failing element request to enable lazy loading capability
      */
-    if (body.status && body.status === 7 && body.value.message && body.value.message.startsWith('no such element')) {
+    if (body.status && body.status === 7 && body.value.message &&
+        (body.value.message.startsWith('no such element') ||
+            //Appium
+            body.value.message ===
+            'An element could not be located on the page using the given search parameters.')) {
         return true
     }
 
@@ -294,7 +298,7 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
 /**
  * helper method to determine the error from webdriver response
  * @param  {Object} body body object
- * @return {String}      error message
+ * @return {Object} error
  */
 export function getErrorFromResponseBody (body) {
     if (!body) {
@@ -309,9 +313,17 @@ export function getErrorFromResponseBody (body) {
         return new Error('unknown error')
     }
 
-    return new Error(
-        body.value.message ||
-        body.value.class ||
-        'unknown error'
-    )
+    return new CustomRequestError(body)
+}
+
+//Exporting for testability
+export class CustomRequestError extends Error {
+    constructor(body) {
+        super(body.value.message || body.value.class || 'unknown error')
+        if (body.value.error) {
+            this.name = body.value.error
+        } else if (body.value.message && body.value.message.includes('stale element reference')) {
+            this.name = 'stale element reference'
+        }
+    }
 }
