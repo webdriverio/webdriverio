@@ -196,7 +196,7 @@ const Talks = () => (
                         <translate>
                             The community around WebdriverIO is actively speaking on various user groups or
                             conferences about specific topics around automated testing with WebdriverIO. Check out
-                            this talk from the latest Selenium Meetup in San Francisco about [BWebdriverIO Cribs: A
+                            this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A
                             Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk)
                             by [@bromann](https://twitter.com/bromann). There is also a whole
                             [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
