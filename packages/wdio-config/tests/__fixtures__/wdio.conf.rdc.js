@@ -11,7 +11,8 @@ exports.config = {
         path.join(TEST_ROOT, '/validateConfig.test.js')
     ],
     capabilities: [{
-        browserName: 'chrome'
+        browserName: 'chrome',
+        testobject_api_key: '1',
     }],
     suites: {
         unit: [path.join(TEST_ROOT, 'configparser.test.js')],

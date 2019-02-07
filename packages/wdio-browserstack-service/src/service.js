@@ -51,15 +51,7 @@ export default class BrowserstackService {
         }
     }
 
-    after(result) {
-        /**
-         * set failures if user has bail option set in which case afterTest and
-         * afterSuite aren't executed before after hook
-         */
-        if (global.browser.config.mochaOpts && global.browser.config.mochaOpts.bail && Boolean(result)) {
-            this.failures = 1
-        }
-
+    after() {
         return this._update(this.sessionId, this._getBody())
     }
 
@@ -72,7 +64,7 @@ export default class BrowserstackService {
 
     _update(sessionId, requestBody) {
         return new Promise((resolve, reject) => {
-            request.put(`https://www.browserstack.com/automate/sessions/${sessionId}.json`, {
+            request.put(`https://api.browserstack.com/automate/sessions/${sessionId}.json`, {
                 json: true,
                 auth: this.auth,
                 body: requestBody
@@ -95,7 +87,7 @@ export default class BrowserstackService {
     _printSessionURL() {
         const capabilities = global.browser.capabilities
         return new Promise((resolve,reject) => request.get(
-            `https://www.browserstack.com/automate/sessions/${this.sessionId}.json`,
+            `https://api.browserstack.com/automate/sessions/${this.sessionId}.json`,
             {
                 json: true,
                 auth: this.auth

@@ -45,11 +45,17 @@ declare namespace WebdriverIO {
     interface CSSProperty {
         property: string,
         value: any,
-        parse: {
-            type: string,
+        parsed?: {
+            // other
+            unit?: string,
+            // font-family
+            value?: any,
             string: string,
-            unit: string,
-            value: any
+            // color
+            hex?: string,
+            alpha?: number,
+            type?: string,
+            rgba?: string
         }
     }
 
@@ -73,6 +79,9 @@ declare namespace WebdriverIO {
         services?: (string | object)[],
         execArgv?: string[]
     }
+
+    interface Suite {}
+    interface Test {}
 
     interface Results {
         finished: number,
@@ -144,20 +153,6 @@ declare namespace WebdriverIO {
         afterStep?(stepResult: any): void;
     }
 
-    interface Suite {
-        file: string;
-        parent: string;
-        pending: boolean;
-        title: string;
-        type: string;
-    }
-
-    interface Test extends Suite {
-        currentTest: string;
-        passed: boolean;
-        duration: any;
-    }
-
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
     interface TouchAction {
         action: ActionTypes,
@@ -205,7 +200,7 @@ declare namespace WebdriverIO {
 
     type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-    type Config = Options & Omit<WebDriver.Options, "capabilities"> & Hooks;
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 }
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;

@@ -71,6 +71,6 @@ function launch (wdioConf, params) {
     log.debug('Run suite with config', wdioConf, 'and params', params)
     const launcher = new Launcher(wdioConf, params)
     launcher.run().then(
-        (code) => process.exit(code),
+        (code) => process.nextTick(() => process.exit(code)),
         (e) => process.nextTick(() => { throw e }))
 }

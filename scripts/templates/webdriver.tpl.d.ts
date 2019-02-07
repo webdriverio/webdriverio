@@ -239,6 +239,7 @@ declare namespace WebDriver {
         isAndroid: boolean;
         isMobile: boolean;
         isIOS: boolean;
+        sessionId: string;
     }
 
     // generated typings

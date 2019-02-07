@@ -10,8 +10,14 @@ exports.config = {
         path.join(TEST_ROOT, '/detectBackend.test.js'),
         path.join(TEST_ROOT, '/validateConfig.test.js')
     ],
+    region: 'eu',
     capabilities: [{
-        browserName: 'chrome'
+        myChromeBrowser: {
+            capabilities: {
+                browserName: 'chrome',
+                testobject_api_key: '1',
+            }
+        }
     }],
     suites: {
         unit: [path.join(TEST_ROOT, 'configparser.test.js')],

@@ -1,6 +1,6 @@
 import {
     isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody, isW3C
+    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -14,6 +14,9 @@ describe('utils', () => {
         expect(isSuccessfulResponse(200, { value: { some: 'result' } })).toBe(true)
         expect(isSuccessfulResponse(404, { value: { error: new Error('foobar' )} })).toBe(false)
         expect(isSuccessfulResponse(404, { value: { error: 'no such element' } })).toBe(true)
+        expect(isSuccessfulResponse(404, { value: {
+            message: 'An element could not be located on the page using the given search parameters.'}
+        })).toBe(true)
         expect(isSuccessfulResponse(200, { status: 7 })).toBe(false)
         expect(isSuccessfulResponse(undefined, { status: 7, value: {} })).toBe(false)
         expect(isSuccessfulResponse(undefined, { status: 0, value: {} })).toBe(true)
@@ -229,5 +232,34 @@ describe('utils', () => {
             .toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
             .toEqual(expectedError)
+    })
+
+    it('CustomRequestError', function () {
+        //Firefox
+        let error = new CustomRequestError({
+            value: {
+                error: 'foo',
+                message: 'bar'
+            }
+        })
+        expect(error.name).toBe('foo')
+        expect(error.message).toBe('bar')
+
+        //Chrome
+        error = new CustomRequestError({ value: { message: 'stale element reference'}})
+        expect(error.name).toBe('stale element reference')
+        expect(error.message).toBe('stale element reference')
+
+        error = new CustomRequestError({ value: { message: 'message' } } )
+        expect(error.name).toBe('Error')
+        expect(error.message).toBe('message')
+
+        error = new CustomRequestError({ value: { class: 'class' } } )
+        expect(error.name).toBe('Error')
+        expect(error.message).toBe('class')
+
+        error = new CustomRequestError({ value: { } } )
+        expect(error.name).toBe('Error')
+        expect(error.message).toBe('unknown error')
     })
 })
