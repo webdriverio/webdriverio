@@ -43,7 +43,6 @@
         "exclude": [],
         "outputDir": "/path/to/project/test",
         "logLevel": "trace",
-        "deprecationWarnings": true,
         "baseUrl": "http://localhost",
         "bail": 0,
         "waitforInterval": 500,

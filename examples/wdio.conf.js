@@ -109,9 +109,6 @@ exports.config = {
     // Enables colors for log output.
     coloredLogs: true,
     //
-    // Warns when a deprecated command is used
-    deprecationWarnings: true,
-    //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
