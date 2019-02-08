@@ -69,7 +69,6 @@ console.log(browser.config);
         waitforTimeout: 10000,
         waitforInterval: 250,
         coloredLogs: true,
-        deprecationWarnings: true,
         logLevel: 'debug',
         baseUrl: 'http://localhost',
         connectionRetryTimeout: 90000,
