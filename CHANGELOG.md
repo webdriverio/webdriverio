@@ -1,4 +1,12 @@
 # CHANGELOG
+## unreleased
+* wdio changes
+    * add W3C actions protocol fallback for when moveTo protocol returns an error
+
+## v4.14.2 (2019-01-11)
+* bugfix:
+    * fix css-id selector
+    * fix a nullref exception on network failures where response had no body
 
 ## v4.14.1 (2018-11-30)
 * global:
