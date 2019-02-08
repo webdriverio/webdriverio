@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const { PROTOCOLS } = require('../constants')
 
 const PROTOCOLS = {
     appium: require('../../packages/webdriver/protocol/appium.json'),
@@ -12,7 +13,7 @@ const PROTOCOLS = {
     webdriver: require('../../packages/webdriver/protocol/webdriver.json')
 }
 
-const TEMPLATE_PATH = path.join(__dirname, '../templates', 'webdriver.tpl.d.ts')
+const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.ts')
 
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
@@ -37,7 +38,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 }
 
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-const outputFile = path.join(__dirname, '..', '..', 'packages/webdriver', 'webdriver.d.ts')
+const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'webdriver.d.ts')
 const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
 fs.writeFileSync(outputFile, generatedTypings, { encoding: 'utf-8' })
 
