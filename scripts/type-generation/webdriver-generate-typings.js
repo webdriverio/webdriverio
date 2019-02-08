@@ -2,16 +2,9 @@
 
 const fs = require('fs')
 const path = require('path')
+const { PROTOCOLS } = require('../constants')
 
-const PROTOCOLS = {
-    webdriver: require('../../packages/webdriver/protocol/webdriver.json'),
-    appium: require('../../packages/webdriver/protocol/appium.json'),
-    jsonwp: require('../../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../../packages/webdriver/protocol/mjsonwp.json'),
-    saucelabs: require('../../packages/webdriver/protocol/saucelabs.json')
-}
-
-const TEMPLATE_PATH = path.join(__dirname, '../templates', 'webdriver.tpl.d.ts')
+const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.ts')
 
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
@@ -36,7 +29,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 }
 
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-const outputFile = path.join(__dirname, '..', '..', 'packages/webdriver', 'webdriver.d.ts')
+const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'webdriver.d.ts')
 const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
 fs.writeFileSync(outputFile, generatedTypings, { encoding: 'utf-8' })
 
