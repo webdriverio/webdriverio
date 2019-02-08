@@ -4,15 +4,6 @@ const fs = require('fs')
 const path = require('path')
 const { PROTOCOLS } = require('../constants')
 
-const PROTOCOLS = {
-    appium: require('../../packages/webdriver/protocol/appium.json'),
-    chromium: require('../../packages/webdriver/protocol/chromium.json'),
-    jsonwp: require('../../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../../packages/webdriver/protocol/mjsonwp.json'),
-    saucelabs: require('../../packages/webdriver/protocol/saucelabs.json'),
-    webdriver: require('../../packages/webdriver/protocol/webdriver.json')
-}
-
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.ts')
 
 const lines = []
