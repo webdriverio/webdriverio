@@ -164,7 +164,7 @@
     }
   },
   "/session/:sessionId/window/new": {
-    "GET": {
+    "POST": {
       "command": "createWindow",
       "description": "Create a new top-level browsing context.",
       "ref": "https://w3c.github.io/webdriver/#new-window",
