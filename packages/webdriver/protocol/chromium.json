@@ -246,7 +246,7 @@
         "required": true
       }],
       "returns": {
-        "type": "\\*",
+        "type": "*",
         "name": "result",
         "description": "Either the return value of your command, or the error which was the reason for your command's failure."
       }
