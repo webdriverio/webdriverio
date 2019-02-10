@@ -27,19 +27,16 @@ import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromRespo
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
-export default function shadowRoot () {
-    const root = this.getProperty('shadowRoot')
+export default async function shadowRoot () {
+    const root = await this.getProperty('shadowRoot')
     if (!root) {
         return null
     }
     // wrap root as an element
-    const res = root
     const browser = getBrowserObject(this)
     const prototype = merge({}, browser.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
-
     const element = webdriverMonad(this.options, (client) => {
-        const elementId = getElementFromResponse(res)
-
+        const elementId = getElementFromResponse(root)
         if (elementId) {
             /**
              * set elementId for easy access
@@ -55,10 +52,10 @@ export default function shadowRoot () {
                 client.ELEMENT = elementId
             }
         } else {
-            client.error = res
+            client.error = root
         }
 
-        // client.selector = selector // JR: we don't have a selector
+        // client.selector = selector // JR: we don't have a selector?!
         client.parent = this
         client.emit = ::this.emit
         return client
