@@ -103,10 +103,10 @@ class Launcher {
         }
 
         /**
-         * fail if no or incorrect caps were found or specified
+         * fail if no caps were found
          */
         if (!caps.length) {
-            log.error('Missing or incorrect capabilities, exiting with failure')
+            log.error('Missing capabilities, exiting with failure')
             this.interface.updateView()
             return
         }
