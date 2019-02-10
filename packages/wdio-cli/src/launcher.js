@@ -103,6 +103,15 @@ class Launcher {
         }
 
         /**
+         * fail if no or incorrect caps were found or specified
+         */
+        if (!caps.length) {
+            log.error('Missing or incorrect capabilities, exiting with failure')
+            this.interface.updateView()
+            return
+        }
+
+        /**
          * schedule test runs
          */
         let cid = 0
