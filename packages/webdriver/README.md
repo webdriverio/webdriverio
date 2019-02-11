@@ -54,7 +54,7 @@ Level of logging verbosity.
 
 Type: `String`<br>
 Default: *info*<br>
-Options: *trace* | *debug* | *info* | *warn* | *error*
+Options: *trace* | *debug* | *info* | *warn* | *error* | *silent*
 
 ### logOutput
 Pipe logs into a file.
