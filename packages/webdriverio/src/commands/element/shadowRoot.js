@@ -26,7 +26,7 @@ import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function shadowRoot (selector) {
-    // get the element inside this element's shadowRoot,
+    // attempt to get the element inside this element's shadowRoot,
     // or light dom if shadowRoot does not exist.
     const root = await this.execute((el, selector) => {
         if(el.shadowRoot) {

@@ -1,7 +1,8 @@
 import { remote } from '../../../src'
+import request from 'request'
 
-fdescribe('shadowRoot', () => {
-    it('should return an elements shadow root as an element', async () => {
+describe('shadowRoot', () => {
+    it('should return an element', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -10,7 +11,26 @@ fdescribe('shadowRoot', () => {
         })
         const el = await browser.$('#foo')
         const subElem = await el.shadowRoot('#subfoo')
-        expect(subElem.elementId).toBe('some-sub-elem-321')
+        expect(subElem.elementId).toBeDefined()
+    })
+
+    it('keeps prototype from browser object', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                'appium-version': '1.9.2'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const subElem = await elem.shadowRoot('#subfoo')
+        expect(subElem.$).toBeDefined()
+    })
+
+    afterEach(() => {
+        request.mockClear()
     })
 
 })
