@@ -47,8 +47,32 @@ describe('selectByVisibleText test', () => {
         })
     })
 
+    it('should select value by visible text with leading and trailing white-space', async () => {
+        await elem.selectByVisibleText(' someValue1 ')
+
+        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
+        expect(request.mock.calls[2][0].body.value).toBe('./option[. = "someValue1"]|./optgroup/option[. = "someValue1"]')
+        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
+        expect(getElementFromResponseSpy).toBeCalledWith({
+            [ELEMENT_KEY]: 'some-sub-elem-321'
+        })
+    })
+
+    it('should select value by visible text with sequences of whitespace characters', async () => {
+        await elem.selectByVisibleText('some    Value1')
+
+        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
+        expect(request.mock.calls[2][0].body.value).toBe('./option[. = "some Value1"]|./optgroup/option[. = "some Value1"]')
+        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
+        expect(getElementFromResponseSpy).toBeCalledWith({
+            [ELEMENT_KEY]: 'some-sub-elem-321'
+        })
+    })
+
     it('should select value by visible text with quotes', async () => {
-        await elem.selectByVisibleText(' "someValue1"" ')
+        await elem.selectByVisibleText('"someValue1""')
 
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')

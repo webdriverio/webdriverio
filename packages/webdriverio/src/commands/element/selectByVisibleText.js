@@ -41,9 +41,14 @@ export default async function selectByVisibleText (text) {
     /**
     * find option element using xpath
     */
-    const formatted = /"/.test(text)
-        ? 'concat("' + text.trim().split('"').join('", \'"\', "') + '")'
-        : `"${text.trim()}"`
+
+    const normalized = text
+        .trim() // strip leading and trailing white-space characters
+        .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
+
+    const formatted = /"/.test(normalized)
+        ? 'concat("' + normalized.trim().split('"').join('", \'"\', "') + '")'
+        : `"${normalized.trim()}"`
     const value = `[. = ${formatted}]`
     const optionElement = await this.findElementFromElement(this.elementId, 'xpath', `./option${value}|./optgroup/option${value}`)
 
