@@ -28,10 +28,13 @@ import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
 export default async function shadowRoot () {
-    const root = await this.getProperty('shadowRoot')
+    // get the shadowRoot property, or the element if not found
+    const root = await this.execute((el) => el.shadowRoot ? el.shadowRoot : el, this)
     if (!root) {
+        // would this ever happen?
         return null
     }
+
     // wrap root as an element
     const browser = getBrowserObject(this)
     const prototype = merge({}, browser.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
