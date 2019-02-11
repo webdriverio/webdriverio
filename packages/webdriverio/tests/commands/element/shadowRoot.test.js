@@ -9,8 +9,8 @@ fdescribe('shadowRoot', () => {
             }
         })
         const el = await browser.$('#foo')
-        const root = await el.shadowRoot()
-        expect(root.$).not.toEqual(undefined)
+        const subElem = await el.shadowRoot('#subfoo')
+        expect(subElem.elementId).toBe('some-sub-elem-321')
     })
 
 })

@@ -6,9 +6,7 @@
     :shadowRoot.js
     it('should interact with shadowRoot as an Element', () => {
         const input = $('.input');
-        const root = input.shadowRoot();
-        const innerEl = root.$('#innerEl');
-
+        const innerEl = input.shadowRoot('#innerEl');
         console.log(innerEl.getValue()); // outputs: 'test123'
     });
  * </example>
@@ -27,11 +25,17 @@ import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromRespo
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
 
-export default async function shadowRoot () {
+export default async function shadowRoot (selector) {
     // get the shadowRoot property, or the element if not found
-    const root = await this.execute((el) => el.shadowRoot ? el.shadowRoot : el, this)
+    const root = await this.execute((el, selector) => {
+        if(el.shadowRoot) {
+            return el.shadowRoot.querySelector(selector)
+        } else {
+            return el.querySelector(selector)
+        }
+    }, this, selector)
     if (!root) {
-        // would this ever happen?
+        // JR: not 100% sure how to handle not finding the element
         return null
     }
 
