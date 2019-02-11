@@ -11,7 +11,7 @@ describe('shadowRoot', () => {
         })
         const el = await browser.$('#foo')
         const subElem = await el.shadowRoot('#subfoo')
-        expect(subElem.elementId).toBeDefined()
+        expect(subElem.elementId).toBe('some-sub-elem-321')
     })
 
     it('keeps prototype from browser object', async () => {
@@ -26,7 +26,7 @@ describe('shadowRoot', () => {
 
         const elem = await browser.$('#foo')
         const subElem = await elem.shadowRoot('#subfoo')
-        expect(subElem.$).toBeDefined()
+        expect(subElem.$).not.toEqual(undefined)
     })
 
     afterEach(() => {
