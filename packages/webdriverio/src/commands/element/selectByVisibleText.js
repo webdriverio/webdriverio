@@ -38,14 +38,14 @@ export default async function selectByVisibleText (text) {
         ? text.toString()
         : text
 
-    /**
-    * find option element using xpath
-    */
 
     const normalized = text
         .trim() // strip leading and trailing white-space characters
         .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
 
+    /**
+    * find option element using xpath
+    */
     const formatted = /"/.test(normalized)
         ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
         : `"${normalized}"`
