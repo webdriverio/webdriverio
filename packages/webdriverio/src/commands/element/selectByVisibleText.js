@@ -47,8 +47,8 @@ export default async function selectByVisibleText (text) {
         .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
 
     const formatted = /"/.test(normalized)
-        ? 'concat("' + normalized.trim().split('"').join('", \'"\', "') + '")'
-        : `"${normalized.trim()}"`
+        ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
+        : `"${normalized}"`
     const value = `[. = ${formatted}]`
     const optionElement = await this.findElementFromElement(this.elementId, 'xpath', `./option${value}|./optgroup/option${value}`)
 
