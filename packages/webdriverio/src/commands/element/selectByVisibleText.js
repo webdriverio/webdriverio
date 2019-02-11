@@ -44,8 +44,8 @@ export default async function selectByVisibleText (text) {
     const formatted = /"/.test(text)
         ? 'concat("' + text.trim().split('"').join('", \'"\', "') + '")'
         : `"${text.trim()}"`
-    const normalized = `[. = ${formatted}]`
-    const optionElement = await this.findElementFromElement(this.elementId, 'xpath', `./option${normalized}|./optgroup/option${normalized}`)
+    const value = `[. = ${formatted}]`
+    const optionElement = await this.findElementFromElement(this.elementId, 'xpath', `./option${value}|./optgroup/option${value}`)
 
     /**
     * select option
