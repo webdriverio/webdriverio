@@ -108,6 +108,17 @@ Our very own boilerplate for Cucumber test suites. We created over 150 predefine
     - integration of WebdriverIO's Multiremote functionality
     - own demo app
 
+
+### [DaleNguyen/WebdriverIOv4-Cucumber-TypeScript](https://github.com/dalenguyen/WebdriverIOv4-Cucumber-TypeScript)
+
+This repository shows an example of how to combine WebdriverIO (v4), Cucumber and TypeScript in order to create a robust BDD test cases.
+
+- Framework: Cucumber v5
+- Features:
+    - Page Object usage, Spec and Allure report
+    - Chai v4
+    - TypeScript v3
+
 ### [saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium](https://github.com/saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium)
 
 Simple boilerplate project that runs multiple browser on [SauceLabs](https://saucelabs.com/) in parallel.
