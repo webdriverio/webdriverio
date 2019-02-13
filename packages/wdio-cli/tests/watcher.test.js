@@ -48,9 +48,17 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher.launcher = {
             run: jest.fn(),
-            interface: { updateView: jest.fn() },
+            interface: {
+                finalise: jest.fn(),
+                updateView: jest.fn()
+            },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: [] })
+            },
+            runner: {
+                workerPool: {
+                    '0-0': { on: jest.fn(), isBusy: false }
+                }
             }
         }
         await watcher.watch()
@@ -63,14 +71,34 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher.launcher = {
             run: jest.fn(),
-            interface: { updateView: jest.fn() },
+            interface: {
+                finalise: jest.fn(),
+                updateView: jest.fn()
+            },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
+            },
+            runner: {
+                workerPool: {
+                    '0-0': { on: jest.fn(), isBusy: false }
+                }
             }
         }
         await watcher.watch()
 
         expect(chokidar.watch).toHaveBeenCalledTimes(2)
+
+        const worker = watcher.launcher.runner.workerPool['0-0']
+        expect(worker.on).toBeCalledTimes(1)
+
+        const eventHandler = worker.on.mock.calls[0][1]
+        expect(watcher.launcher.interface.finalise).toBeCalledTimes(0)
+        worker.isBusy = true
+        eventHandler()
+        expect(watcher.launcher.interface.finalise).toBeCalledTimes(0)
+        worker.isBusy = false
+        eventHandler()
+        expect(watcher.launcher.interface.finalise).toBeCalledTimes(1)
     })
 
     it('should call run with modifed path when a new file was changed or added', async () => {
@@ -78,9 +106,17 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher.launcher = {
             run: jest.fn(),
-            interface: { updateView: jest.fn() },
+            interface: {
+                finalise: jest.fn(),
+                updateView: jest.fn()
+            },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
+            },
+            runner: {
+                workerPool: {
+                    '0-0': { on: jest.fn(), isBusy: false }
+                }
             }
         }
         watcher.run = jest.fn()

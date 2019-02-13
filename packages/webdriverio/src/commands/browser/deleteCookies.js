@@ -1,6 +1,6 @@
 /**
  *
- * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie.
+ * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
  *
  * <example>
     :deleteCookie.js
@@ -10,6 +10,7 @@
             {name: 'test2', value: '456'},
             {name: 'test3', value: '789'}
         ])
+
         let cookies = browser.getCookies()
         console.log(cookies)
         // outputs:

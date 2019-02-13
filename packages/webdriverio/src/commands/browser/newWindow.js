@@ -15,7 +15,7 @@
         browser.newWindow('https://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
         console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen WebDriver test framework for Node.js"
 
-        browser.close()
+        browser.closeWindow()
         console.log(browser.getTitle()) // outputs: "Google"
     });
  * </example>

@@ -4,6 +4,8 @@ import EventEmitter from 'events'
 import CLInterface from '@wdio/interface'
 import logger from '@wdio/logger'
 
+import { getRunnerName } from './utils'
+
 const log = logger('wdio-cli')
 
 const clockSpinner = cliSpinners['clock']
@@ -13,12 +15,15 @@ export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs, totalWorkerCnt) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
+        this.isTTY = !!process.stdout.isTTY
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
         this.sigintTriggered = false
+        this.isWatchMode = false
 
         this.interface = new CLInterface()
+        this.interface.on('bufferchange', ::this.updateView)
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
 
@@ -96,6 +101,7 @@ export default class WDIOCLInterface extends EventEmitter {
             this.messages[event.origin][event.name] = []
         }
         this.messages[event.origin][event.name].push(event.content)
+        this.updateView()
     }
 
     sigintTrigger () {
@@ -116,10 +122,25 @@ export default class WDIOCLInterface extends EventEmitter {
         const runningJobs = this.jobs.size
         const isFinished = runningJobs === 0
 
+        if (this.sigintTriggered) {
+            clearTimeout(this.interval)
+            this.interface.log('\n')
+            return this.interface.log(!isFinished
+                ? 'Ending WebDriver sessions gracefully ...\n' +
+                '(press ctrl+c again to hard kill the runner)'
+                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+            )
+        }
+
+        if(isFinished) {
+            return
+        }
+
         /**
-         * check if environment supports ansi and print a limited update if not
+         * check if environment supports ansi or does not
+         * support TTY and print a limited update if not
          */
-        if (!this.hasAnsiSupport && !isFinished) {
+        if (!this.hasAnsiSupport || !this.isTTY) {
             /**
              * only update if a job finishes
              */
@@ -141,20 +162,18 @@ export default class WDIOCLInterface extends EventEmitter {
         this.interface.log()
 
         /**
-         * print reporter output
-         */
-        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
-            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
-            this.interface.log(messages.join(''))
-            this.interface.log()
-        }
-
-        /**
          * print running jobs
          */
         for (const [cid, job] of Array.from(this.jobs.entries()).slice(0, MAX_RUNNING_JOBS_DISPLAY_COUNT)) {
             const filename = job.specs.join(', ').replace(process.cwd(), '')
-            this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
+            this.interface.log(
+                chalk.bgYellow.black(' RUNNING '),
+                cid,
+                'in',
+                getRunnerName(job.caps),
+                '-',
+                filename
+            )
         }
 
         /**
@@ -174,23 +193,10 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         /**
-         * print stdout and stderr from runners
+         * print reporters in watch mode
          */
-        if (isFinished) {
-            /* istanbul ignore else */
-            if (this.interface.stdoutBuffer.length) {
-                this.interface.log(chalk.bgYellow.black('Stdout:\n') + this.interface.stdoutBuffer.join(''))
-            }
-            /* istanbul ignore else */
-            if (this.interface.stderrBuffer.length) {
-                this.interface.log(chalk.bgRed.black('Stderr:\n') + this.interface.stderrBuffer.join(''))
-            }
-            /* istanbul ignore else */
-            if (this.messages.worker.error) {
-                this.interface.log(chalk.bgRed.black('Worker Error:\n') + this.messages.worker.error.map(
-                    (e) => e.stack
-                ).join('\n') + '\n')
-            }
+        if (this.isWatchMode) {
+            this.printReporters()
         }
 
         /**
@@ -200,29 +206,59 @@ export default class WDIOCLInterface extends EventEmitter {
             this.interface.log()
         }
 
-        this.interface.log(
+        this.printStdout(5)
+        this.printSummary()
+        this.updateClock()
+    }
+
+    printReporters () {
+        this.interface.log()
+
+        /**
+         * print reporter output
+         */
+        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
+            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
+            this.interface.log(messages.join(''))
+            this.interface.log()
+        }
+    }
+
+    /**
+     * print stdout and stderr from runners
+     */
+    printStdout (length) {
+        if (this.interface.stdoutBuffer.length) {
+            const bufferLength = this.interface.stdoutBuffer.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.interface.stdoutBuffer.slice(bufferLength - maxBufferLength)
+            this.interface.log(chalk.bgYellow.black('Stdout:\n') + buffer.join(''))
+        }
+        if (this.interface.stderrBuffer.length) {
+            const bufferLength = this.interface.stderrBuffer.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.interface.stderrBuffer.slice(bufferLength - maxBufferLength)
+            this.interface.log(chalk.bgRed.black('Stderr:\n') + buffer.join(''))
+        }
+        if (this.messages.worker.error) {
+            const bufferLength = this.messages.worker.error.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.messages.worker.error.slice(bufferLength - maxBufferLength)
+            this.interface.log(chalk.bgRed.black('Worker Error:\n') + buffer.map(
+                (e) => e.stack
+            ).join('\n') + '\n')
+        }
+    }
+
+    printSummary() {
+        const totalJobs = this.totalWorkerCnt
+
+        return this.interface.log(
             'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
             (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
             totalJobs, 'total',
             `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
         )
-
-        this.updateClock()
-
-        if (this.sigintTriggered) {
-            clearTimeout(this.interval)
-            this.interface.log('\n')
-            this.interface.log(!isFinished
-                ? 'Ending WebDriver sessions gracefully ...\n' +
-                  '(press ctrl+c again to hard kill the runner)'
-                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
-            )
-        }
-
-        if (isFinished) {
-            clearTimeout(this.interval)
-            this.interface.log('\n')
-        }
     }
 
     updateClock (interval = 100) {
@@ -239,6 +275,22 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     reset () {
+        clearTimeout(this.interval)
+        this.interface.log('\n')
+
+        if (this.isWatchMode) {
+            return
+        }
+
         this.interface.reset()
+    }
+
+    finalise () {
+        this.interface.clearAll()
+        this.printReporters()
+        this.printStdout()
+        this.printSummary()
+        this.updateClock()
+        this.reset()
     }
 }

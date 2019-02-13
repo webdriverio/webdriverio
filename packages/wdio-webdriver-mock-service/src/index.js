@@ -44,6 +44,7 @@ export default class WebdriverMockService {
         global.browser.addCommand('isEventuallyDisplayedScenario', ::this.isEventuallyDisplayedScenario)
         global.browser.addCommand('staleElementRefetchScenario', ::this.staleElementRefetchScenario)
         global.browser.addCommand('customCommandScenario', ::this.customCommandScenario)
+        global.browser.addCommand('waitForDisplayedScenario', ::this.waitForDisplayedScenario)
     }
 
     waitForElementScenario () {
@@ -89,16 +90,27 @@ export default class WebdriverMockService {
 
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
         this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
-            error: 'stale element reference error',
-            message: 'stale element reference error'
+            error: 'stale element reference',
+            message: 'element is not attached to the page document'
         } })
         this.command.elementClick(ELEMENT_REFETCHED).once().reply(200, { value: null })
     }
 
     customCommandScenario () {
+        this.nockReset()
+
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
         this.command.findElement().once().reply(200, { value: elemResponse })
         this.command.executeScript().once().reply(200, { value: '2' })
+    }
+
+    waitForDisplayedScenario () {
+        this.nockReset()
+
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+        this.command.findElement().once().reply(200, { value: elemResponse })
+        this.command.isElementDisplayed(ELEMENT_ID).times(4).reply(200, { value: false })
+        this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     nockReset () {

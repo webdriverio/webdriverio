@@ -3,9 +3,9 @@
 
 declare namespace WebdriverIO {
     function remote(
-        options: any,
-        modifier: any
-    ): WebDriver.Client<void>;
+        options?: WebDriver.Options,
+        modifier?: (...args: any[]) => any
+    ): WebDriver.Client<void> & WebdriverIO.Browser<void>;
 
     function multiremote(
         options: any
@@ -56,7 +56,7 @@ declare namespace WebdriverIO {
             alpha?: number,
             type?: string,
             rgba?: string
-       }
+        }
     }
 
     interface Options {
@@ -80,6 +80,15 @@ declare namespace WebdriverIO {
         execArgv?: string[]
     }
 
+    interface Suite {}
+    interface Test {}
+
+    interface Results {
+        finished: number,
+        passed: number,
+        failed: number
+    }
+
     interface Hooks {
 
         onPrepare?(
@@ -87,7 +96,7 @@ declare namespace WebdriverIO {
             capabilities: WebDriver.DesiredCapabilities
         ): void;
 
-        onComplete?(exitCode: number): void;
+        onComplete?(exitCode: number, config: Config, capabilities: WebDriver.DesiredCapabilities, results: Results): void;
 
         onReload?(oldSessionId: string, newSessionId: string): void;
 
@@ -144,20 +153,6 @@ declare namespace WebdriverIO {
         afterStep?(stepResult: any): void;
     }
 
-    interface Suite {
-        file: string;
-        parent: string;
-        pending: boolean;
-        title: string;
-        type: string;
-    }
-
-    interface Test extends Suite {
-        currentTest: string;
-        passed: boolean;
-        duration: any;
-    }
-
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
     interface TouchAction {
         action: ActionTypes,
@@ -205,7 +200,7 @@ declare namespace WebdriverIO {
 
     type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-    type Config = Options & Omit<WebDriver.Options, "capabilities"> & Hooks;
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 }
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;
