@@ -111,7 +111,7 @@ Our very own boilerplate for Cucumber test suites. We created over 150 predefine
 
 ### [DaleNguyen/WebdriverIOv4-Cucumber-TypeScript](https://github.com/dalenguyen/WebdriverIOv4-Cucumber-TypeScript)
 
-This repository shows an example of how to combine WebdriverIO (v4), Cucumber and TypeScript in order to create a robust BDD test cases.
+This repository shows an example of how to combine WebdriverIO (v4), Cucumber and TypeScript in order to write robust BDD test cases.
 
 - Framework: Cucumber v5
 - Features:
