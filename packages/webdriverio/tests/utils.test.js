@@ -179,7 +179,7 @@ describe('utils', () => {
             expect(element.using).toBe('xpath')
             expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]')
         })
-        
+
         it('should find an custom element by tag name + content', () => {
             const element = findStrategy('custom-element-with-multiple-dashes=some random text with "§$%&/()div=or others')
             expect(element.using).toBe('xpath')
@@ -203,6 +203,18 @@ describe('utils', () => {
             const element = findStrategy('ios=foo')
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
+        })
+
+        it('should find an element by predicate strategy (ios only)', () => {
+            const element = findStrategy('-ios predicate string:type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+            expect(element.using).toBe('-ios predicate string')
+            expect(element.value).toBe('type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+        })
+
+        it('should find an element by class chain strategy (ios only)', () => {
+            const element = findStrategy('-ios class chain:**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
+            expect(element.using).toBe('-ios class chain')
+            expect(element.value).toBe('**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
         })
 
         it('should find an element by accessibility id', () => {
