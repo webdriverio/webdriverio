@@ -77,6 +77,24 @@ It is also a good idea to run jest in watch mode while developing on a single pa
 $ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
 ```
 
+## Link changes to your current project
+
+When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
+
+If you are working on a package, lets say the @wdio/cli package, you can link this in the following way from the WebdriverIO repositority.
+
+```
+cd packages/wdio-cli
+npm link
+```
+
+Then in your current project you can link your changes from the the @wdio/cli package to your current project.
+
+```
+cd your-main-test-code
+npm link @wdio/cli
+```
+
 ## Test Your Changes
 
 In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md).
