@@ -121,7 +121,7 @@ describe('webdriver request', () => {
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/empty' } })
-            await expect(req._request(opts)).rejects.toEqual(new Error('empty response body'))
+            await expect(req._request(opts)).rejects.toEqual(new Error('unknown error'))
             expect(req.emit.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toHaveLength(0)
             expect(error.mock.calls).toHaveLength(1)

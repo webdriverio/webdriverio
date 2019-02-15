@@ -219,11 +219,10 @@ describe('utils', () => {
     })
 
     it('getErrorFromResponseBody', () => {
-        expect(getErrorFromResponseBody()).toBe(null)
-        expect(getErrorFromResponseBody('')).toBe(null)
-        expect(getErrorFromResponseBody(null)).toBe(null)
-
         const unknownError = new Error('unknown error')
+        expect(getErrorFromResponseBody()).toEqual(unknownError)
+        expect(getErrorFromResponseBody('')).toEqual(unknownError)
+        expect(getErrorFromResponseBody(null)).toEqual(unknownError)
         expect(getErrorFromResponseBody({})).toEqual(unknownError)
 
         const expectedError = new Error('expected')
