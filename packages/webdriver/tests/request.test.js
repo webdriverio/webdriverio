@@ -116,6 +116,21 @@ describe('webdriver request', () => {
             request.mockClear()
         })
 
+        it('should not fail code due to an empty server response', async () => {
+            const req = new WebDriverRequest('POST', '/session')
+            req.emit = jest.fn()
+
+            const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/empty' } })
+            await expect(req._request(opts)).rejects.toEqual(new Error('empty response body'))
+            expect(req.emit.mock.calls).toHaveLength(1)
+            expect(warn.mock.calls).toHaveLength(0)
+            expect(error.mock.calls).toHaveLength(1)
+
+            request.retryCnt = 0
+            warn.mockClear()
+            error.mockClear()
+        })
+
         it('should retry requests but still fail', async () => {
             const req = new WebDriverRequest('POST', '/session')
             req.emit = jest.fn()

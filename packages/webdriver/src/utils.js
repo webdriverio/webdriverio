@@ -302,7 +302,7 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
  */
 export function getErrorFromResponseBody (body) {
     if (!body) {
-        return null
+        return new Error('empty response body')
     }
 
     if (typeof body === 'string' && body.length) {
