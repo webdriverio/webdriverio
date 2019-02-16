@@ -77,6 +77,28 @@ describe('webdriver request', () => {
             const options = req._createOptions({ path: '/' })
             expect(options.body).toEqual({})
         })
+
+        it('should add the Content-Length header when a request object has a body', () => {
+            const req = new WebDriverRequest('POST', '/session', { foo: 'bar' })
+            const options = req._createOptions({ path: '/' })
+            expect(Object.keys(options.headers)).toContain('Content-Length')
+            expect(options.headers['Content-Length']).toBe(13)
+        })
+
+        it('should add Content-Length as well any other header provided in the request options if there is body in the request object', () => {
+            const req = new WebDriverRequest('POST', '/session', { foo: 'bar' })
+            const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+            expect(Object.keys(options.headers)).toContain('Content-Length')
+            expect(options.headers.foo).toContain('bar')
+            expect(options.headers['Content-Length']).toBe(13)
+        })
+
+        it('should add only the headers provided if the request body is empty', () => {
+            const req = new WebDriverRequest('POST', '/session')
+            const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+            expect(Object.keys(options.headers)).not.toContain('Content-Length')
+            expect(options.headers.foo).toContain('bar')
+        })
     })
 
     describe('_request', () => {
