@@ -158,11 +158,11 @@ declare namespace WebdriverIO {
         action: ActionTypes,
         x?: number,
         y?: number,
-        element?: Element<void>
+        element?: Element
     }
     type TouchActions = string | TouchAction | TouchAction[];
 
-    interface Element<T> {
+    interface Element {
         addCommand(
             name: string,
             func: Function
@@ -204,8 +204,8 @@ declare namespace WebdriverIO {
 }
 
 declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;
-declare function $(selector: string | Function): WebdriverIO.Element<void>;
-declare function $$(selector: string | Function): WebdriverIO.Element<void>[];
+declare function $(selector: string | Function): WebdriverIO.Element;
+declare function $$(selector: string | Function): WebdriverIO.Element[];
 
 declare module "webdriverio" {
     export = WebdriverIO
