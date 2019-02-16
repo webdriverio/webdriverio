@@ -54,6 +54,9 @@ export default class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             requestOptions.body = this.body
+            requestOptions.headers = merge(requestOptions.headers, {
+                'Content-Length': Buffer.byteLength(JSON.stringify(requestOptions.body), 'UTF-8')
+            })
         }
 
         /**
