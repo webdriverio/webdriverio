@@ -7,7 +7,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
 const DEFAULT_SELECTOR = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
+const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C, isMobile) {

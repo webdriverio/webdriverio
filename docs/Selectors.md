@@ -184,7 +184,7 @@ With iOS 10 and above (using the XCUITest driver), you can use [predicate string
 
 ```js
 const selector = 'type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'';
-const Switch = $(`ios=predicate=${selector}`);
+const Switch = $(`-ios predicate string:${selector}`);
 Switch.click();
 ```
 
@@ -192,7 +192,7 @@ And [class chains](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Q
 
 ```js
 const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton';
-const Button = $(`ios=chain=${selector}`);
+const Button = $(`-ios class chain:${selector}`);
 Button.click();
 ```
 
