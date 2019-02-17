@@ -5,11 +5,11 @@ declare namespace WebdriverIO {
     function remote(
         options?: WebDriver.Options,
         modifier?: (...args: any[]) => any
-    ): WebDriver.Client<void> & WebdriverIO.Browser<void>;
+    ): WebDriver.Client & WebdriverIO.Browser;
 
     function multiremote(
         options: any
-    ): WebDriver.Client<void>;
+    ): WebDriver.Client;
 
     type LocationParam = 'x' | 'y';
 
@@ -179,7 +179,7 @@ declare namespace WebdriverIO {
         script?: number
     }
 
-    interface Browser<T> {
+    interface Browser {
         addCommand(
             name: string,
             func: Function,
@@ -203,7 +203,7 @@ declare namespace WebdriverIO {
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 }
 
-declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;
+declare var browser: WebDriver.Client & WebdriverIO.Browser;
 declare function $(selector: string | Function): WebdriverIO.Element;
 declare function $$(selector: string | Function): WebdriverIO.Element[];
 

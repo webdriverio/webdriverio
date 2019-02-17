@@ -9,7 +9,7 @@ const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.t
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     lines.push(`    // ${protocolName} types`)
-    lines.push('    interface Client<T> {')
+    lines.push('    interface Client {')
 
     for (const [, methods] of Object.entries(definition)) {
         for (const [, description] of Object.entries(methods)) {
