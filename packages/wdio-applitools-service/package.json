@@ -35,7 +35,8 @@
   },
   "dependencies": {
     "@wdio/eyes.webdriverio": "^2.0.2",
-    "@wdio/logger": "^5.4.6"
+    "@wdio/logger": "^5.4.6",
+    "geckodriver": "1.14.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"
