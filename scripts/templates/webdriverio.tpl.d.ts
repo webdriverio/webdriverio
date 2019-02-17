@@ -83,6 +83,12 @@ declare namespace WebdriverIO {
     interface Suite {}
     interface Test {}
 
+    interface Results {
+        finished: number,
+        passed: number,
+        failed: number
+    }
+
     interface Hooks {
 
         onPrepare?(
@@ -90,7 +96,7 @@ declare namespace WebdriverIO {
             capabilities: WebDriver.DesiredCapabilities
         ): void;
 
-        onComplete?(exitCode: number): void;
+        onComplete?(exitCode: number, config: Config, capabilities: WebDriver.DesiredCapabilities, results: Results): void;
 
         onReload?(oldSessionId: string, newSessionId: string): void;
 
