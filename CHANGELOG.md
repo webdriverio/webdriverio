@@ -15,6 +15,52 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.18 (2019-02-18)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3533](https://github.com/webdriverio/webdriverio/pull/3533) webdriver: Fix HTTP method for createWindow command ([@catalandavid](https://github.com/catalandavid))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3559](https://github.com/webdriverio/webdriverio/pull/3559) webdriver: unhandled promise rejection ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3540](https://github.com/webdriverio/webdriverio/pull/3540) Fix selectByVisibleText when element has multiple textNodes ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#3558](https://github.com/webdriverio/webdriverio/pull/3558) webdriverio: add ios predicate and class chain direct selectors ([@janvennemann](https://github.com/janvennemann))
+* `wdio-allure-reporter`, `wdio-mocha-framework`
+  * [#3536](https://github.com/webdriverio/webdriverio/pull/3536) wdio-allure-reporter: capture before each and all hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#3555](https://github.com/webdriverio/webdriverio/pull/3555) webdriver: Adding a standard header 'Content-Length' to the headers list ([@nami-varthakavi](https://github.com/nami-varthakavi))
+
+#### :memo: Documentation
+* Other
+  * [#3566](https://github.com/webdriverio/webdriverio/pull/3566) webdriverio: remove redundant Generic from Element ([@CrispusDH](https://github.com/CrispusDH))
+  * [#3564](https://github.com/webdriverio/webdriverio/pull/3564) docs: Update CustomService example ([@WillBrock](https://github.com/WillBrock))
+  * [#3550](https://github.com/webdriverio/webdriverio/pull/3550) docs: Add npm link to contributing guide ([@WillBrock](https://github.com/WillBrock))
+* `webdriverio`
+  * [#3549](https://github.com/webdriverio/webdriverio/pull/3549) docs: Remove reference to wdio-screenshot that is not compatible with v5 ([@WillBrock](https://github.com/WillBrock))
+* `webdriver`
+  * [#3525](https://github.com/webdriverio/webdriverio/pull/3525) Streamline typings ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `webdriver`, `webdriverio`
+  * [#3560](https://github.com/webdriverio/webdriverio/pull/3560) Fix error due to empty wd response ([@yepninja](https://github.com/yepninja))
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`
+  * [#3528](https://github.com/webdriverio/webdriverio/pull/3528) Remove obsolete config prop deprecationWarnings ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 9
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Catalan ([@catalandavid](https://github.com/catalandavid))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Jan Vennemann ([@janvennemann](https://github.com/janvennemann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nami Varthakavi ([@nami-varthakavi](https://github.com/nami-varthakavi))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- Yevgeny Petukhov ([@yepninja](https://github.com/yepninja))
+
 
 
 ## 5.4.16 (2019-02-07)
