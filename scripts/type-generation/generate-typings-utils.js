@@ -8,15 +8,9 @@ const changeType = (text) => {
     switch (text) {
     case 'Buffer':
     case 'Function':
-    case 'RegExp': {
-        break
-    }
-    case 'Element': {
-        text = 'Element<void>'
-        break
-    }
+    case 'RegExp':
+    case 'Element':
     case 'Element[]': {
-        text = 'Element<void>[]'
         break
     }
     default: {
