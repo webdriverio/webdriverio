@@ -220,7 +220,7 @@ test('formatMessage', () => {
         parent: { title: '', suites: [{ title: 'first suite' }] }
     } }
     message = adapter.formatMessage(params)
-    expect(message.parent).toEqual('first suite')
+    expect(message.parent).toEqual('')
 
     params = { type: 'foobar', payload: {
         title: 'barfoo',
