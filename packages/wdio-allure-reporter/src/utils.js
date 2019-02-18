@@ -1,5 +1,5 @@
 import process from 'process'
-import {testStatuses, mochaIgnoredHooks} from './constants'
+import {testStatuses, mochaEachHooks} from './constants'
 /**
  * Get allure test status by TestStat object
  * @param test {Object} - TestStat object
@@ -28,12 +28,12 @@ export const getTestStatus = (test, config) => {
 export const isEmpty = (object) => !object || Object.keys(object).length === 0
 
 /**
- * Filter unnecessary mocha hooks
+ * Is mocha beforeEach / afterEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const ignoredHooks = title => mochaIgnoredHooks.some(hook => title.includes(hook))
+export const isMochaEachHooks = title => mochaEachHooks.some(hook => title.includes(hook))
 
 /**
  * Call reporter
