@@ -219,9 +219,10 @@ describe('utils', () => {
     })
 
     it('getErrorFromResponseBody', () => {
-        expect(getErrorFromResponseBody()).toBe(null)
-        expect(getErrorFromResponseBody('')).toBe(null)
-        expect(getErrorFromResponseBody(null)).toBe(null)
+        const emptyBodyError = new Error('Response has empty body')
+        expect(getErrorFromResponseBody()).toEqual(emptyBodyError)
+        expect(getErrorFromResponseBody('')).toEqual(emptyBodyError)
+        expect(getErrorFromResponseBody(null)).toEqual(emptyBodyError)
 
         const unknownError = new Error('unknown error')
         expect(getErrorFromResponseBody({})).toEqual(unknownError)
