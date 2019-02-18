@@ -181,6 +181,17 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     /**
+     * empty response
+     */
+    if (params.uri.path === '/wd/hub/empty') {
+        return cb(null, {
+            headers: { foo: 'bar' },
+            statusCode: 500,
+            body: ''
+        })
+    }
+
+    /**
      * simulate failing response
      */
     if (params.uri.path === '/wd/hub/failing') {
