@@ -231,9 +231,9 @@ declare namespace WebDriver {
         modifier?: (...args: any[]) => any,
         proto?: object,
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
-    ): Client<void>;
+    ): Client;
 
-    interface Client<T> {
+    interface Client {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
         isAndroid: boolean;
