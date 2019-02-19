@@ -57,7 +57,18 @@ describe('waitUntil', () => {
         } catch(e) {
             error = e
         } finally{
-            expect(error.message).toContain('Promise was rejected with the following reason: Error: foobar')
+            expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
+        }
+    })
+
+    it('Should throw an error when the promise is rejected without error message', async () => {
+        expect.assertions(1)
+        try {
+            await browser.waitUntil(() => new Promise((resolve,reject) => 
+                setTimeout(() => reject(new Error()), 200)),
+            500)
+        } catch(e) {
+            expect(e.message).toContain('waitUntil condition failed with the following reason: Error')
         }
     })
 
@@ -70,11 +81,11 @@ describe('waitUntil', () => {
                     setTimeout(
                         () => resolve(false),
                         500)),
-            'blah','Timed Out',200)
+            'blah', undefined, 200)
         } catch(e) {
             error = e
         } finally{
-            expect(error.message).toContain('Timed Out')
+            expect(error.message).toMatch(/waitUntil condition timed out after \d+ms/)
         }
     })
 
