@@ -15,6 +15,22 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.4.19 (2019-02-19)
+
+#### :nail_care: Polish
+* `wdio-sync`
+  * [#3565](https://github.com/webdriverio/webdriverio/pull/3565) show better stack trace for commands ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#3571](https://github.com/webdriverio/webdriverio/pull/3571) webdriverio: user friendly waitUntil messages ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3573](https://github.com/webdriverio/webdriverio/pull/3573) Add waitForX 'reverse' examples to docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## 5.4.18 (2019-02-18)
 
 #### :eyeglasses: Spec Compliancy
