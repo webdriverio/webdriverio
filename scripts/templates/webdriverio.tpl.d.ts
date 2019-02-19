@@ -28,14 +28,7 @@ declare namespace WebdriverIO {
     interface Cookie {
         name: string,
         value: string,
-        path?: string,
-        expiry?: number,
-    }
-
-    interface Cookie {
-        name: string,
-        value: string,
-        domain?: string
+        domain?: string,
         path?: string,
         expiry?: number,
         isSecure?: boolean,
