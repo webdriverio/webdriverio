@@ -1,5 +1,7 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
+/// <reference types="./webdriverio-promise"/>
+/// <reference types="./webdriverio-sync"/>
 
 declare namespace WebdriverIO {
     function remote(
@@ -196,10 +198,7 @@ declare namespace WebdriverIO {
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 }
 
-declare var browser: WebDriver.Client & WebdriverIO.Browser;
-declare function $(selector: string | Function): WebdriverIO.Element;
-declare function $$(selector: string | Function): WebdriverIO.Element[];
-
 declare module "webdriverio" {
-    export = WebdriverIO
+    export namespace WebdriverIOSync {}
+    export namespace WebdriverIOPromise {}
 }
