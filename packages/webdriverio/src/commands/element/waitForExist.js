@@ -13,8 +13,15 @@
         const form = $('form');
         const notification = $('.notification');
         form.submit();
-        notification.waitForExist(5000); // same as `browser.waitForExist('.notification', 5000)`
+        notification.waitForExist(5000);
         expect(notification.getText()).to.be.equal('Data transmitted successfully!')
+    });
+    it('should remove a message after successful form submit', function () {
+        const form = $('form');
+        const message = $('.message');
+        form.submit();
+        // passing 'undefined' allows us to keep the default timeout value without overwriting it 
+        message.waitForExist(undefined, true);
     });
  * </example>
  *
