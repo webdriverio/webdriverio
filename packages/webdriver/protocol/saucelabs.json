@@ -168,7 +168,7 @@
         "name": "metrics",
         "type": "string[]",
         "description": "Name of metrics you want to assert agains the baseline.",
-        "required": true
+        "required": false
       }],
       "returns": {
         "type": "Boolean",
