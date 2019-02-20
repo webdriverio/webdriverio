@@ -4,7 +4,6 @@ import { validateConfig, wrapCommand, runFnInFiberContext, detectBackend } from 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
 import { getPrototype } from './utils'
-import path from 'path'
 
 /**
  * A method to create a new session with WebdriverIO
@@ -28,10 +27,6 @@ export const remote = async function (params = {}, remoteModifier) {
         params = Object.assign({}, detectBackend(params), params)
     }
 
-    if(params.outputDir){
-        process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
-    }
-
     const prototype = getPrototype('browser')
     const instance = await WebDriver.newSession(params, modifier, prototype, wrapCommand)
 
@@ -43,7 +38,7 @@ export const remote = async function (params = {}, remoteModifier) {
     instance.addCommand = (name, fn, attachToElement) => (
         origAddCommand(name, runFnInFiberContext(fn), attachToElement)
     )
-
+    
     return instance
 }
 

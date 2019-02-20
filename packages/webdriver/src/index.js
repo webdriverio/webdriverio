@@ -1,3 +1,4 @@
+import path from 'path'
 import logger from '@wdio/logger'
 import merge from 'lodash.merge'
 import { validateConfig } from '@wdio/config'
@@ -16,6 +17,11 @@ import ChromiumProtocol from '../protocol/chromium.json'
 export default class WebDriver {
     static async newSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
+        
+        if(params.outputDir){
+            process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
+        }
+
         logger.setLevel('webdriver', params.logLevel)
 
         /**
