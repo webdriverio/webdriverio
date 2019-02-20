@@ -15,6 +15,12 @@ export default class WDIOReporter extends EventEmitter {
     constructor (options) {
         super()
         this.options = options
+
+        // ensure the report directory exists
+        if (this.options.outputDir) {
+            fse.ensureDirSync(this.options.outputDir)
+        }
+        
         this.outputStream = this.options.stdout || !this.options.logFile
             ? options.writeStream
             : fs.createWriteStream(this.options.logFile)
@@ -30,11 +36,6 @@ export default class WDIOReporter extends EventEmitter {
             passes: 0,
             skipping: 0,
             failures: 0
-        }
-
-        // ensure the report directory exists
-        if (this.options.outputDir) {
-            fse.ensureDirSync(this.options.outputDir)
         }
 
         let currentTest
