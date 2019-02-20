@@ -1,5 +1,3 @@
-import { Writable } from 'stream'
-
 export const DEFAULTS = {
     /**
      * protocol of automation driver
@@ -50,18 +48,6 @@ export const DEFAULTS = {
         type: 'string',
         default: 'info',
         match: /(trace|debug|info|warn|error|silent)/
-    },
-    /**
-     * logOutput as file path or writeable stream
-     */
-    logOutput: {
-        type: (param) => {
-            if (typeof param === 'string' || param instanceof Writable) {
-                return
-            }
-
-            throw new Error('logOutput needs to be a string or a writeable stream')
-        }
     },
     /**
      * Timeout for any request to the Selenium server
