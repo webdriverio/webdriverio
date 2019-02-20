@@ -20,5 +20,4 @@ describe('shadow$$', () => {
         expect(spy).toHaveBeenCalledWith(expect.any(Function))
         spy.mockClear()
     })
-
 })
