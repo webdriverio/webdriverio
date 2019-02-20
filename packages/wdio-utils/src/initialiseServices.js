@@ -33,7 +33,7 @@ export default function initialiseServices (config, caps, type) {
         /**
          * allow custom services that are already initialised
          */
-        if (typeof serviceName === 'object' && !Array.isArray(serviceName)) {
+        if (serviceName && typeof serviceName === 'object' && !Array.isArray(serviceName)) {
             log.debug('initialise custom initiated service')
             initialisedServices.push(serviceName)
             continue
