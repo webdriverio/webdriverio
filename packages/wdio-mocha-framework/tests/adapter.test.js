@@ -28,7 +28,7 @@ test('comes with a factory', async () => {
     expect(result).toBe(0)
 })
 
-test('should properly set up jasmine', async () => {
+test('should properly set up mocha', async () => {
     const adapter = new MochaAdapter(
         '0-2',
         {},
@@ -176,10 +176,11 @@ test('prepareMessage', async () => {
     expect(result.type).toBe('beforeSuite')
     expect(result.error.message).toBe('uuups')
 
-    adapter.runner.test = { title: 'foobar' }
+    adapter.runner.test = { title: 'foobar', file: '/foo/bar.test.js' }
     result = adapter.prepareMessage('afterTest')
     expect(result.type).toBe('afterTest')
     expect(result.title).toBe('foobar')
+    expect(result.file).toBe('/foo/bar.test.js')
 })
 
 test('formatMessage', () => {
@@ -204,20 +205,22 @@ test('formatMessage', () => {
         title: 'barfoo',
         parent: { title: 'parentfoo' },
         context: 'some context',
-        ctx: { currentTest: { title: 'current test' } }
+        ctx: { currentTest: { title: 'current test' } },
+        file: '/foo/bar.test.js'
     } }
     message = adapter.formatMessage(params)
     expect(message.title).toEqual('barfoo')
     expect(message.parent).toEqual('parentfoo')
     expect(message.currentTest).toEqual('current test')
     expect(message.fullTitle).toBe('parentfoo barfoo')
+    expect(message.file).toBe('/foo/bar.test.js')
 
     params = { type: 'foobar', payload: {
         title: 'barfoo',
         parent: { title: '', suites: [{ title: 'first suite' }] }
     } }
     message = adapter.formatMessage(params)
-    expect(message.parent).toEqual('first suite')
+    expect(message.parent).toEqual('')
 
     params = { type: 'foobar', payload: {
         title: 'barfoo',

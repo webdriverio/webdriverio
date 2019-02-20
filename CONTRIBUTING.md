@@ -17,8 +17,6 @@ In order to set up this project and start contributing follow this step by step 
     $ git clone git@github.com:<your-username>/webdriverio.git
     ```
 
-    _Note_: this is currently a dev repository to keep making releases in the [original](https://github.com/webdriverio/webdriverio) project. Once we are at a state where this can be released we will force push this master branch to the webdriverio/webdriverio#master branch.
-
 * Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
 
 * Setup project:
@@ -77,6 +75,24 @@ It is also a good idea to run jest in watch mode while developing on a single pa
 
 ```sh
 $ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
+```
+
+## Link changes to your current project
+
+When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
+
+If you are working on a package, lets say the @wdio/cli package, you can link this in the following way from the WebdriverIO repositority.
+
+```
+cd packages/wdio-cli
+npm link
+```
+
+Then in your current project you can link your changes from the the @wdio/cli package to your current project.
+
+```
+cd your-main-test-code
+npm link @wdio/cli
 ```
 
 ## Test Your Changes

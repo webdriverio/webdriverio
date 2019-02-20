@@ -1,9 +1,9 @@
 import WebDriver from 'webdriver'
-import { validateConfig, wrapCommand, detectBackend } from '@wdio/config'
+import { validateConfig, wrapCommand, runFnInFiberContext, detectBackend } from '@wdio/config'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
-import { getPrototype, mobileDetector } from './utils'
+import { getPrototype } from './utils'
 
 /**
  * A method to create a new session with WebdriverIO
@@ -12,7 +12,7 @@ import { getPrototype, mobileDetector } from './utils'
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-export const remote = function (params = {}, remoteModifier) {
+export const remote = async function (params = {}, remoteModifier) {
     const config = validateConfig(WDIO_DEFAULTS, params)
     const modifier = (client, options) => {
         if (typeof remoteModifier === 'function') {
@@ -28,17 +28,18 @@ export const remote = function (params = {}, remoteModifier) {
     }
 
     const prototype = getPrototype('browser')
+    const instance = await WebDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
-     * apply mobile check flags to browser scope
+     * we need to overwrite the original addCommand in order to wrap the
+     * function within Fibers
      */
-    const mobileDetection = mobileDetector(params.capabilities)
-    Object.assign(prototype, Object.keys(mobileDetection).reduce((proto, flag) => {
-        proto[flag] = { value: mobileDetection[flag] }
-        return proto
-    }, {}))
+    const origAddCommand = ::instance.addCommand
+    instance.addCommand = (name, fn, attachToElement) => (
+        origAddCommand(name, runFnInFiberContext(fn), attachToElement)
+    )
 
-    return WebDriver.newSession(params, modifier, prototype, wrapCommand)
+    return instance
 }
 
 export const attach = function (params) {
@@ -68,7 +69,8 @@ export const multiremote = async function (params = {}) {
     const prototype = getPrototype('browser')
     const sessionParams = {
         sessionId: '',
-        isW3C: multibrowser.instances[browserNames[0]].isW3C
+        isW3C: multibrowser.instances[browserNames[0]].isW3C,
+        logLevel: multibrowser.instances[browserNames[0]].options.logLevel
     }
     const driver = WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
 
@@ -77,8 +79,8 @@ export const multiremote = async function (params = {}) {
      * in the prototype of the multibrowser
      */
     const origAddCommand = ::driver.addCommand
-    driver.addCommand = (name, fn) => {
-        origAddCommand(name, fn, Object.getPrototypeOf(multibrowser.baseInstance))
+    driver.addCommand = (name, fn, attachToElement) => {
+        origAddCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance))
     }
 
     return driver

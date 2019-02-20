@@ -1,13 +1,16 @@
 /**
  *
- * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie.
+ * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
  *
  * <example>
     :deleteCookie.js
     it('should delete cookies', () => {
-        browser.setCookie({name: 'test', value: '123'})
-        browser.setCookie({name: 'test2', value: '456'})
-        browser.setCookie({name: 'test3', value: '789'})
+        browser.setCookies([
+            {name: 'test', value: '123'},
+            {name: 'test2', value: '456'},
+            {name: 'test3', value: '789'}
+        ])
+
         let cookies = browser.getCookies()
         console.log(cookies)
         // outputs:
@@ -32,7 +35,7 @@
     })
  * </example>
  *
- * @alias browser.deleteCookie
+ * @alias browser.deleteCookies
  * @param {String[]=} names  names of cookies to be deleted
  * @uses webdriver/deleteAllCookies,webdriver/deleteCookie
  * @type cookie

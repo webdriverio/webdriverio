@@ -84,7 +84,7 @@ declare namespace WebDriver {
     }
 
     interface Capabilities {
-        browserName: string;
+        browserName?: string;
         browserVersion?: string;
         platformName?: string;
         acceptInsecureCerts?: boolean;
@@ -158,7 +158,7 @@ declare namespace WebDriver {
         changeMaxConnections?: boolean;
         profile?: string;
         pageLoadingStrategy?: string;
-        'moz:firefoxOptions': FirefoxOptions;
+        'moz:firefoxOptions'?: FirefoxOptions;
 
         // IE specific
         'ie.forceCreateProcessApi'?: boolean;
@@ -201,6 +201,12 @@ declare namespace WebDriver {
 
         // wdio-sauce-service specific
         build?: string;
+
+        // Appium
+        deviceName?: string;
+        platformVersion?: string;
+        app?: string;
+        udid?: string;
     }
 
     interface Options {
@@ -208,12 +214,12 @@ declare namespace WebDriver {
         hostname?: string;
         port?: number;
         path?: string;
-        queryParams: {
+        queryParams?: {
             [name: string]: string;
         },
-        capabilities: DesiredCapabilities;
-        logLevel: WebDriverLogTypes;
-        logOutput: string | NodeJS.WritableStream
+        capabilities?: DesiredCapabilities;
+        logLevel?: WebDriverLogTypes;
+        logOutput?: string | NodeJS.WritableStream
         connectionRetryTimeout?: number;
         connectionRetryCount?: number;
         user?: string;
@@ -225,14 +231,15 @@ declare namespace WebDriver {
         modifier?: (...args: any[]) => any,
         proto?: object,
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
-    ): Client<void>;
+    ): Client;
 
-    interface Client<T> {
+    interface Client {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
         isAndroid: boolean;
         isMobile: boolean;
         isIOS: boolean;
+        sessionId: string;
     }
 
     // generated typings

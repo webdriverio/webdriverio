@@ -79,6 +79,7 @@ class SpecReporter extends WDIOReporter {
             ...results,
             ...this.getCountDisplay(duration),
             ...this.getFailureDisplay(),
+            ...this.getTestLink(runner)
         ]
 
         // Prefix all values with the browser information
@@ -88,6 +89,17 @@ class SpecReporter extends WDIOReporter {
 
         // Output the results
         this.write(`${divider}\n${prefacedOutput.join('\n')}\n`)
+    }
+
+    /**
+     * get link to saucelabs job
+     */
+    getTestLink ({ config, sessionId }) {
+        if (config.hostname.includes('saucelabs')) {
+            return ['', `Check out job at https://app.saucelabs.com/tests/${sessionId}`]
+        }
+
+        return []
     }
 
     /**

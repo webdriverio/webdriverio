@@ -167,15 +167,10 @@ class MochaAdapter {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
 
-            /**
-             * get title for hooks in root suite
-             */
-            if (message.parent === '' && params.payload.parent && params.payload.parent.suites) {
-                message.parent = params.payload.parent.suites[0].title
-            }
-
             message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
             message.pending = params.payload.pending || false
+            message.file = params.payload.file
+            message.duration = params.payload.duration
 
             /**
              * Add the current test title to the payload for cases where it helps to
@@ -187,7 +182,6 @@ class MochaAdapter {
 
             if (params.type.match(/Test/)) {
                 message.passed = (params.payload.state === 'passed')
-                message.duration = params.payload.duration
             }
 
             if (params.payload.context) { message.context = params.payload.context }

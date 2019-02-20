@@ -9,7 +9,8 @@ describe('touchAction test', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'foobar',
+                mobileMode: true
             }
         })
         elem = await browser.$('#foo')

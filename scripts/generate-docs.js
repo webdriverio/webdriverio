@@ -8,26 +8,11 @@ const formatter = require('./utils/formatter')
 const compiler = require('./utils/compiler')
 const ejs = require('../packages/wdio-cli/node_modules/ejs')
 const { getSubPackages } = require('./utils/helpers')
+const { PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS } = require('./constants')
 
 const config = require('../website/siteConfig')
 const sidebars = require('../website/_sidebars.json')
 
-const PROTOCOLS = {
-    webdriver: require('../packages/webdriver/protocol/webdriver.json'),
-    appium: require('../packages/webdriver/protocol/appium.json'),
-    jsonwp: require('../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json'),
-    chromium: require('../packages/webdriver/protocol/chromium.json')
-}
-const PROTOCOL_NAMES = {
-    appium: 'Appium',
-    jsonwp: 'JSON Wire Protocol',
-    mjsonwp: 'Mobile JSON Wire Protocol',
-    webdriver: 'Webdriver Protocol',
-    chromium: 'Chromium'
-}
-const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
-const VENDOR_PROTOCOLS = ['chromium']
 const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
     formatter: formatter,
@@ -100,7 +85,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     // eslint-disable-next-line no-console
     console.log(`Generated docs for ${protocolName} protocol`)
 
-    sidebars.api.Introduction.push(`api/${protocolName}`)
+    sidebars.api.Protocols.push(`api/${protocolName}`)
 }
 
 /**

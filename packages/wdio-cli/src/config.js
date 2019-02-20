@@ -16,8 +16,8 @@ export const SUPPORTED_REPORTER = [
     ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
     ' json - https://www.npmjs.com/package/wdio-json-reporter',
     ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
-    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter'
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
+    // ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter' not supported yet see https://github.com/QualityOps/wdio-timeline-reporter/issues/9
 ]
 
 export const SUPPORTED_SERVICES = [
@@ -35,7 +35,8 @@ export const SUPPORTED_SERVICES = [
     ' webpack - https://www.npmjs.com/package/wdio-webpack-service',
     ' webpack-dev-server - https://www.npmjs.com/package/wdio-webpack-dev-server-service',
     ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
-    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service'
+    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service',
+    ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
@@ -43,7 +44,7 @@ export const SUPPORTED_RUNNERS = [
     // ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
 ]
 
-const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
+const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 export const USAGE = `
 WebdriverIO CLI runner

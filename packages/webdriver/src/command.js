@@ -78,8 +78,10 @@ export default function (method, endpointUri, commandInfo) {
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (result.value) {
-                log.info('RESULT', result.value)
+            if (result.value != null) {
+                log.info('RESULT', command.toLowerCase().includes('screenshot')
+                    && typeof result.value === 'string' && result.value.length > 64
+                    ? `${result.value.substr(0, 61)}...` : result.value)
             }
 
             this.emit('result', { method, endpoint, body, result })

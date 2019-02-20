@@ -28,7 +28,7 @@ title: <?= method.command ?>
 | ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
     ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label labelWarning">optional</span><? }
-    ?> | <?= paramTag.type
+    ?> | <?= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
 <? } ?>

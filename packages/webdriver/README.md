@@ -56,12 +56,6 @@ Type: `String`<br>
 Default: *info*<br>
 Options: *trace* | *debug* | *info* | *warn* | *error*
 
-### logOutput
-Pipe logs into a file.
-
-Type: `String|Writable`<br>
-Default: *null*
-
 ### protocol
 Protocol to use when communicating with the Selenium standalone server (or driver).
 

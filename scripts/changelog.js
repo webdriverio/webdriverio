@@ -5,8 +5,8 @@
  */
 const fs = require('fs')
 const path = require('path')
-
 const chalk = require('chalk')
+const shell = require('shelljs')
 const { highlight } = require('cli-highlight')
 const { Changelog } = require('lerna-changelog')
 const { load } = require('lerna-changelog/lib/configuration')
@@ -16,6 +16,7 @@ const { version } = require(path.join(root,'lerna.json'))
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
 if (!process.env.GITHUB_AUTH) {
+    shell.exec('git checkout -- .')
     throw new Error(
         'Please export a "GITHUB_AUTH" access token to generate the changelog.\n' +
         'See also https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#release-new-version'

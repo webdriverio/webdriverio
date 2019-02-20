@@ -59,7 +59,7 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const browser in this.capabilities) {
-            const capability = this.capabilities[browser].desiredCapabilities
+            const capability = this.capabilities[browser].capabilities
 
             if (!capability || capability.browserName !== 'firefox') {
                 continue

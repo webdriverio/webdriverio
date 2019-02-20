@@ -22,15 +22,27 @@
         const text = $('#menu');
         console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
+
+    it('should get text a menu link - JS Function', () => {
+        const text = $(function() { // Arrow function is not allowed here.
+            // this is Window https://developer.mozilla.org/en-US/docs/Web/API/Window
+            // TypeScript users may do something like this
+            // return (this as Window).document.querySelector('#menu')
+            return this.document.querySelector('#menu'); // Element
+        });
+        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+    });
  * </example>
  *
  * @alias $
- * @param {String} selector  selector to fetch a certain element
+ * @param {String|Function} selector  selector or JS Function to fetch a certain element
+ * @return {Element}
  * @type utility
  *
  */
-import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
-import { wrapCommand } from '@wdio/config'
+import { webdriverMonad } from 'webdriver'
+import { wrapCommand, runFnInFiberContext } from '@wdio/config'
+import merge from 'lodash.merge'
 
 import { findElement, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
@@ -38,7 +50,7 @@ import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
     const res = await findElement.call(this, selector)
-    const prototype = Object.assign(getWebdriverPrototype(this.isW3C), getWDIOPrototype('element'), { scope: 'element' })
+    const prototype = merge({}, this.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
 
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)
@@ -67,5 +79,12 @@ export default async function $ (selector) {
         return client
     }, prototype)
 
-    return element(this.sessionId, elementErrorHandler(wrapCommand))
+    const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
+
+    const origAddCommand = ::elementInstance.addCommand
+    elementInstance.addCommand = (name, fn) => {
+        this.__propertiesObject__[name] = { value: fn }
+        origAddCommand(name, runFnInFiberContext(fn))
+    }
+    return elementInstance
 }

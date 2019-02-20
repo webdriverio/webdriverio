@@ -3,6 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const dox = require('dox')
+const { buildCommand } = require('./generate-typings-utils')
 const specifics = require('./specific-types.json')
 
 const elementDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/element')
@@ -13,52 +14,10 @@ const browserCommands = fs.readdirSync(browserDir)
 
 let allTypeLines = []
 
-const changeType = (text) => {
-    if (text.indexOf('Array.') > -1) {
-        const arrayText = 'Array.<'
-        text = text.substring(arrayText.length, text.length - 1) + '[]'
-    }
-
-    switch (text) {
-    case 'Buffer':
-    case 'Function':
-    case 'RegExp': {
-        break
-    }
-    case 'Element': {
-        text = 'Element<void>'
-        break
-    }
-    default: {
-        text = text.toLowerCase()
-    }
-
-    }
-    return text
-}
-
-const getTypes = (types, alwaysType) => {
-    types.forEach((type, index, array) => {
-        array[index] = changeType(type)
-    })
-    types = types.join(' | ')
-    if (types === '' && !alwaysType) {
-        types = 'undefined'
-    } else if (types === '*' || (types === '' && alwaysType)) {
-        types = 'any'
-    }
-
-    return types
-}
+const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
 
 const gatherCommands = (commandPath, commandFile) => {
-    const commandContents = fs.readFileSync(commandPath).toString()
-    const commandDocs = dox.parseComments(commandContents)
-    const commandTags = commandDocs[0].tags
-    const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
-    
-    const allParameters = []
-    let returnType = 'undefined'
+    const commandName = commandFile.substr(0, commandFile.indexOf('.js')).replace('$', '$$$')
 
     if(specifics[commandName]){
         const specificCommand = specifics[commandName]
@@ -71,27 +30,15 @@ const gatherCommands = (commandPath, commandFile) => {
 
             allTypeLines.push(`${commandName}(${params.length > 0 ? '\n            ' : ''}${params.join(',\n            ')}${params.length > 0 ? '\n        ' : ''}): ${returns}`)
         })
-    } else {
-        for (const {type, name, optional, types} of commandTags) {
-            if (type === 'param') {
-                let commandTypes = getTypes(types, true)
-    
-                // console.log(commandTag.name)
-                if (name.indexOf('.') < 0) {
-                    allParameters.push(`${name}${optional ? '?' : ''}: ${commandTypes}`)
-                }
-            }
-    
-            if (type === 'return') {
-                returnType = getTypes(types, false)
-            }
-        }
-    
-        if (commandName !== '$' && commandName !== '$$' && commandName !== 'waitUntil') {
-            allTypeLines.push(`${commandName}(${allParameters.length > 0 ? '\n            ' : ''}${allParameters.join(',\n            ')}${allParameters.length > 0 ? '\n        ' : ''}): ${returnType}`)
-        }
+    } else if (!EXCLUDED_COMMANDS.includes(commandName)) {
+        const commandContents = fs.readFileSync(commandPath).toString()
+        const commandDocs = dox.parseComments(commandContents)
+        const commandTags = commandDocs[0].tags
+        const command = buildCommand(commandName, commandTags, 4)
+
+        allTypeLines.push(command)
     }
-    
+
 
     return allTypeLines
 }

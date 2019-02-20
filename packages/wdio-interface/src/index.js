@@ -1,8 +1,10 @@
 import util from 'util'
+import EventEmitter from 'events'
 import ansiEscapes from 'ansi-escapes'
 
-export default class CLInterface {
+export default class CLInterface extends EventEmitter {
     constructor () {
+        super()
         this.i = 0
         this.stdoutBuffer = []
         this.stderrBuffer = []
@@ -30,6 +32,7 @@ export default class CLInterface {
             }
 
             buffer.push(chunk)
+            this.emit('bufferchange', chunk)
             return true
         }
     }

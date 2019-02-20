@@ -61,3 +61,8 @@ export const wrapCommand = (_, origFn) => origFn
 export const ConfigParser = ConfigParserMock
 export const runTestInFiberContext = jest.fn()
 export const executeHooksWithArgs = jest.fn()
+export const runFnInFiberContext = (fn) => {
+    return function (...args) {
+        return Promise.resolve(fn.apply(this, args))
+    }
+}

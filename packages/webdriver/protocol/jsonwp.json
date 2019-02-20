@@ -22,6 +22,10 @@
         "type": "object",
         "description": "An object describing the session's desired capabilities.",
         "required": true
+      }, {
+        "name": "requiredCapabilities",
+        "type": "object",
+        "description": "An object describing the session's required capabilities (Optional)."
       }],
       "returns": {
         "type": "Object",
@@ -800,7 +804,12 @@
       "command": "takeScreenshot",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidscreenshot",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "screenshot",
+        "description": "screenshot as a base64 encoded PNG"
+      }
     }
   },
   "/session/:sessionId/ime/available_engines": {

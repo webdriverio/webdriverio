@@ -8,6 +8,12 @@ The configuration file contains all necessary information to run your test suite
 ```js
 exports.config = {
 
+    // ==================================
+    // Where should your test be launched
+    // ==================================
+    //
+    runner: 'local',
+    //
     // =====================
     // Server Configurations
     // =====================
@@ -33,9 +39,9 @@ exports.config = {
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
     // If you run your tests on SauceLabs you can specify the region you want to run your tests
-    // in via the `region` property. Available short handles for regions are:
-    // us: us-west-1 (default)
-    // eu: eu-central-1
+    // in via the `region` property. Available short handles for regions are `us` (default) and `eu`.
+    // These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud.
+    // If you don't provide the region it will default for the `us`
     region: 'us',
     //
     // ==================
@@ -309,11 +315,12 @@ exports.config = {
     onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
-    * Gets executed when an error happens, good place to take a screenshot
-    * @ {String} error message
+    * Gets executed when a refresh happens.
+    * @param {String} oldSessionId session ID of the old session
+    * @param {String} newSessionId session ID of the new session
     */
-    onError: function(message) {
-    }
+    onReload: function(oldSessionId, newSessionId) {
+    },
     /**
      * Cucumber specific hooks
      */

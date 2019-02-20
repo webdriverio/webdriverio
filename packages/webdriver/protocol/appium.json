@@ -270,7 +270,7 @@
     }
   },
   "/session/:sessionId/appium/device/current_activity": {
-    "POST": {
+    "GET": {
       "command": "getCurrentActivity",
       "description": "Get the name of the current Android activity.",
       "ref": "http://appium.io/docs/en/commands/device/activity/current-activity/",
@@ -666,7 +666,7 @@
         "required": true
       }],
       "support": {
-        "android": {
+        "ios": {
           "XCUITest": "9.3+"
         }
       }
@@ -684,7 +684,7 @@
         "default": true
       }],
       "support": {
-        "android": {
+        "ios": {
           "XCUITest": "9.3+"
         }
       }
@@ -974,7 +974,7 @@
       }
     }
   },
-  "/session/:sessionId/appium/device/gsm_voice": {
+  "/session/:sessionId/appium/device/send_sms": {
     "POST": {
       "command": "sendSms",
       "description": "Simulate an SMS message (Emulator only).",

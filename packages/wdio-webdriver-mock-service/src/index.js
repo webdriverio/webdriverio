@@ -21,6 +21,13 @@ export default class WebdriverMockService {
         this.command.newSession().reply(200, newSession)
         this.command.deleteSession().reply(200, deleteSession)
         this.command.getTitle().reply(200, { value: 'Mock Page Title' })
+        this.command.getUrl().reply(200, { value: 'https://mymockpage.com' })
+        this.command.getElementRect(ELEMENT_ID).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
+        this.command.getLogTypes().reply(200, { value: [] })
+
+        // in case run with multiremote
+        this.command.newSession().reply(200, newSession)
+        this.command.getTitle().reply(200, { value: 'Mock Page Other Title' })
     }
 
     before () {
@@ -36,6 +43,8 @@ export default class WebdriverMockService {
         global.browser.addCommand('isNeverDisplayedScenario', ::this.isNeverDisplayedScenario)
         global.browser.addCommand('isEventuallyDisplayedScenario', ::this.isEventuallyDisplayedScenario)
         global.browser.addCommand('staleElementRefetchScenario', ::this.staleElementRefetchScenario)
+        global.browser.addCommand('customCommandScenario', ::this.customCommandScenario)
+        global.browser.addCommand('waitForDisplayedScenario', ::this.waitForDisplayedScenario)
     }
 
     waitForElementScenario () {
@@ -81,10 +90,27 @@ export default class WebdriverMockService {
 
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
         this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
-            error: 'stale element reference error',
-            message: 'stale element reference error'
+            error: 'stale element reference',
+            message: 'element is not attached to the page document'
         } })
         this.command.elementClick(ELEMENT_REFETCHED).once().reply(200, { value: null })
+    }
+
+    customCommandScenario () {
+        this.nockReset()
+
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+        this.command.findElement().once().reply(200, { value: elemResponse })
+        this.command.executeScript().once().reply(200, { value: '2' })
+    }
+
+    waitForDisplayedScenario () {
+        this.nockReset()
+
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+        this.command.findElement().once().reply(200, { value: elemResponse })
+        this.command.isElementDisplayed(ELEMENT_ID).times(4).reply(200, { value: false })
+        this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     nockReset () {

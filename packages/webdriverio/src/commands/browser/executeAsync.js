@@ -20,7 +20,7 @@
  * <example>
     :executeAsync.js
     it('should execute async JavaScript on the page', () => {
-        browser.timeouts('script', 5000)
+        browser.setTimeout({ script: 5000 })
         const result = browser.executeAsync(function(a, b, c, d, done) {
             // browser context - you may access neither client nor console
             setTimeout(() => {

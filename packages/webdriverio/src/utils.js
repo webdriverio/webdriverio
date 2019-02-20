@@ -7,7 +7,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
 const DEFAULT_SELECTOR = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
+const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C, isMobile) {
@@ -77,12 +77,11 @@ export const findStrategy = function (value, isW3C, isMobile) {
         using = 'tag name'
         value = value.replace(/<|>|\/|\s/g, '')
 
-    // use name strategy if value queries elements with name attributes
+    // use name strategy if value queries elements with name attributes for JSONWP
     // e.g. "[name='myName']" or '[name="myName"]'
-    } else if (value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
+    } else if (!isW3C && value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
         using = 'name'
         value = value.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
-
 
     // allow to move up to the parent or select current element
     } else if (value === '..' || value === '.') {
@@ -93,7 +92,7 @@ export const findStrategy = function (value, isW3C, isMobile) {
     } else {
         const match = value.match(new RegExp([
             // HTML tag
-            /^([a-z0-9]*)/,
+            /^([a-z0-9|-]*)/,
             // optional . or # + class or id
             /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
             // optional [attribute-name="attribute-value"]
@@ -186,36 +185,6 @@ export const getElementFromResponse = (res) => {
     }
 
     return null
-}
-
-/**
- * check if current platform is mobile device
- *
- * @param  {Object}  caps  capabilities
- * @return {Boolean}       true if platform is mobile device
- */
-export function mobileDetector (caps) {
-    let isMobile = Boolean(
-        (typeof caps['appium-version'] !== 'undefined') ||
-        (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
-        (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
-        (typeof caps.deviceName !== 'undefined') ||
-        // Check browserName for specific values
-        (caps.browserName === '' ||
-             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
-    )
-
-    let isIOS = Boolean(
-        (caps.platformName && caps.platformName.match(/iOS/i)) ||
-        (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
-    )
-
-    let isAndroid = Boolean(
-        (caps.platformName && caps.platformName.match(/Android/i)) ||
-        (caps.browserName && caps.browserName.match(/Android/i))
-    )
-
-    return { isMobile, isIOS, isAndroid }
 }
 
 /**

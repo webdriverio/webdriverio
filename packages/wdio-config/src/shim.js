@@ -46,15 +46,9 @@ export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks
 }
 
 export let runTestInFiberContext = NOOP
-export let runFnInFiberContext = (fn, done) => {
+export let runFnInFiberContext = (fn) => {
     return function (...args) {
-        const result = fn.apply(this, args)
-
-        if (typeof done === 'function') {
-            return done(result)
-        }
-
-        return result
+        return Promise.resolve(fn.apply(this, args))
     }
 }
 export let wrapCommand = (_, origFn) => origFn

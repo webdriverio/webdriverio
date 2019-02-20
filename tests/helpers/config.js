@@ -7,11 +7,6 @@ exports.config = {
     path: '/',
 
     /**
-     * specify test files in your smoke test
-     */
-    specs: [],
-
-    /**
      * capabilities
      */
     capabilities: [{
@@ -31,7 +26,7 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 60000,
+        timeout: 10000,
         compilers: ['js:@babel/register']
     }
 }
