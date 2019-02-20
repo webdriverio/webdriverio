@@ -14,7 +14,7 @@ describe('initialiseServices', () => {
         expect(initialiseServices({})).toHaveLength(0)
     })
 
-    it('should be able to add custom services', () => {
+    it('should be able to add initialised services', () => {
         const service = {
             before: jest.fn(),
             afterTest: jest.fn()
@@ -24,18 +24,6 @@ describe('initialiseServices', () => {
         expect(services).toHaveLength(1)
         expect(services[0].before).toBeTruthy()
         expect(services[0].afterTest).toBeTruthy()
-    })
-
-    it('should be able to add wdio services', () => {
-        const services = initialiseServices({ services: ['foobar'] })
-        expect(services).toHaveLength(1)
-
-        const service = services[0]
-        // check if /packages/wdio-config/tests/__mocks__/wdio-config.js how the mock looks like
-        expect(typeof service.beforeSuite).toBe('function')
-        expect(typeof service.afterCommand).toBe('function')
-        // not defined method
-        expect(typeof service.before).toBe('undefined')
     })
 
     it('should allow custom services without options', () => {
@@ -56,9 +44,30 @@ describe('initialiseServices', () => {
         expect(services[0].config.foo).toBe('foo')
     })
 
+    it('should allow custom services with empty options', () => {
+        const services = initialiseServices(
+            { services: [[CustomService]], foo: 'bar' },
+            ['./spec.js']
+        )
+        expect(services).toHaveLength(1)
+        expect(services[0].config.foo).toBe('bar')
+    })
+
     it('should ignore service with launcher only', () => {
         const services = initialiseServices({ services: ['launcher-only'] })
         expect(services).toHaveLength(0)
         expect(logMock.error).toHaveBeenCalledTimes(0)
+    })
+
+    it('should not ignore service with launcher if type is given', () => {
+        const services = initialiseServices({ services: ['launcher-only'] }, {}, 'launcher')
+        expect(services).toHaveLength(1)
+        expect(services[0].isLauncher).toBe(true)
+    })
+
+    it('should not fail if service is borked', () => {
+        const services = initialiseServices({ services: ['borked'] })
+        expect(services).toHaveLength(0)
+        expect(logMock.error).toHaveBeenCalledTimes(1)
     })
 })
