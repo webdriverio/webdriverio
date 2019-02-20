@@ -30,6 +30,7 @@ jest.mock('@wdio/config', () => {
 })
 
 const WebDriver = require('webdriver')
+import path from 'path'
 
 describe('WebdriverIO module interface', () => {
     it('should provide remote and multiremote access', () => {
@@ -55,6 +56,12 @@ describe('WebdriverIO module interface', () => {
         it('should try to detect the backend', async () => {
             await remote({ user: 'foo', key: 'bar', capabilities: {} })
             expect(detectBackend).toBeCalled()
+        })
+
+        it('should set process.env.WDIO_LOG_PATH if outputDir in options', async()=>{
+            let testDirPath = './logs'
+            await remote({outputDir: testDirPath, capabilities: {} })
+            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
     })
 
