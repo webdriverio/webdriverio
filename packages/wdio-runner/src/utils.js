@@ -1,7 +1,7 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
-import { initialisePlugin, DEFAULT_CONFIGS } from '@wdio/config'
+import { DEFAULT_CONFIGS } from '@wdio/config'
 
 const log = logger('wdio-local-runner:utils')
 
@@ -20,67 +20,6 @@ export function runHook (hookName, config, caps, specs) {
             return catchFn(e)
         }
     })).catch(catchFn)
-}
-
-/**
- * initialise services based on configuration
- * @param  {Object}    config  of running session
- * @return {Object[]}          list of service classes that got initialised
- */
-export function initialiseServices (config, caps) {
-    const initialisedServices = []
-
-    if (!Array.isArray(config.services)) {
-        return initialisedServices
-    }
-
-    for (let serviceName of config.services) {
-        let serviceConfig = config
-
-        /**
-         * allow custom services that are already initialised
-         */
-        if (typeof serviceName === 'object' && !Array.isArray(serviceName)) {
-            log.debug('initialise custom initiated service')
-            initialisedServices.push(serviceName)
-            continue
-        }
-
-        /**
-         * allow custom services with custom options
-         */
-        if (Array.isArray(serviceName)) {
-            serviceConfig = merge(config, serviceName[1] || {})
-            serviceName = serviceName[0]
-        }
-
-        try {
-            /**
-             * allow custom service classes
-             */
-            if (typeof serviceName === 'function') {
-                log.debug(`initialise custom service "${serviceName.name}"`)
-                initialisedServices.push(new serviceName(serviceConfig, caps))
-                continue
-            }
-
-            log.debug(`initialise wdio service "${serviceName}"`)
-            const Service = initialisePlugin(serviceName, 'service')
-
-            /**
-             * service only contains a launcher
-             */
-            if (!Service) {
-                continue
-            }
-
-            initialisedServices.push(new Service(serviceConfig, caps))
-        } catch(e) {
-            log.error(e)
-        }
-    }
-
-    return initialisedServices
 }
 
 /**

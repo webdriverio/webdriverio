@@ -2,10 +2,11 @@ import path from 'path'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
-import { ConfigParser, initialisePlugin } from '@wdio/config'
+import { ConfigParser } from '@wdio/config'
+import { initialisePlugin, initialiseServices } from '@wdio/utils'
 
 import CLInterface from './interface'
-import { getLauncher, runServiceHook } from './utils'
+import { runServiceHook } from './utils'
 
 const log = logger('wdio-cli:Launcher')
 
@@ -55,7 +56,7 @@ class Launcher {
     async run () {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
-        const launcher = getLauncher(config)
+        const launcher = initialiseServices(config, caps, 'launcher')
 
         /**
          * run pre test tasks for runner plugins

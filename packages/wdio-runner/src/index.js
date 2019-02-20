@@ -4,10 +4,11 @@ import util from 'util'
 import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
-import { ConfigParser, initialisePlugin } from '@wdio/config'
+import { initialiseServices, initialisePlugin } from '@wdio/utils'
+import { ConfigParser } from '@wdio/config'
 
 import BaseReporter from './reporter'
-import { runHook, initialiseServices, initialiseInstance } from './utils'
+import { runHook, initialiseInstance } from './utils'
 
 const log = logger('wdio-runner')
 
