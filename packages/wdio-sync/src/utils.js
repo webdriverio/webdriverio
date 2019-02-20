@@ -1,46 +1,40 @@
 import { STACKTRACE_FILTER_FN } from './constants'
 
 /**
- * helper function that cleans up the stacktrace to remove all fibers and wdio-sync
- * execution entries
+ * Cleanup stack traces, merge and remove duplicates
+ * @param {Error|*} commandError    Error object or anything else including undefined
+ * @param {Error}   savedError      Error with root stack trace
+ * @returns {Error}
  */
-export function sanitizeErrorMessage (e) {
-    let stack = e.stack.split(/\n/g)
-    let errorMsg = stack.shift()
-    let cwd = process.cwd()
-
-    /**
-     * filter out stack traces to wdio-sync and fibers
-     * and transform absolute path to relative
-     */
-    stack = stack.filter(STACKTRACE_FILTER_FN)
-    stack = stack.map((e) => '    ' + e.replace(cwd + '/', '').trim())
-
-    /**
-     * error stack can be empty when test execution is aborted and
-     * the application is not running
-     */
-    let errorLine = 'unknown error line'
-    if (stack && stack.length) {
-        errorLine = stack.shift().trim()
-    }
-
-    /**
-     * correct error occurence
-     */
-    let lineToFix = stack[stack.length - 1]
-    if (lineToFix && lineToFix.indexOf('index.js') > -1) {
-        stack[stack.length - 1] = lineToFix.slice(0, lineToFix.indexOf('index.js')) + errorLine
+export function sanitizeErrorMessage (commandError, savedError) {
+    let name, stack, message
+    if (commandError instanceof Error) {
+        ({ name, message, stack } = commandError)
     } else {
-        stack.unshift('    ' + errorLine)
+        ({ name } = savedError)
+        message = commandError
     }
 
-    /**
-     * add back error message
-     */
-    stack.unshift(errorMsg)
+    const err = new Error(message)
+    err.name = name
+    err.stack = savedError.stack
 
-    return stack.join('\n')
+    // merge stack traces if Error has stack trace
+    if (stack) {
+        err.stack = stack + '\n' + err.stack
+    }
+
+    let stackArr = err.stack.split('\n')
+
+    // filter stack trace
+    stackArr = stackArr.filter(STACKTRACE_FILTER_FN)
+
+    // remove duplicates from stack traces
+    err.stack = stackArr.reduce((acc, currentValue) => {
+        return acc.includes(currentValue) ? acc : `${acc}\n${currentValue}`
+    }, '').trim()
+
+    return err
 }
 
 /**

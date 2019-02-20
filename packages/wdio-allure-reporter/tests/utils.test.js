@@ -1,5 +1,5 @@
 import process from 'process'
-import {getTestStatus, ignoredHooks, isEmpty, tellReporter} from '../src/utils'
+import {getTestStatus, isEmpty, tellReporter, isMochaEachHooks} from '../src/utils'
 import {testStatuses} from '../src/constants'
 
 let processEmit
@@ -43,11 +43,11 @@ describe('utils#getTestStatus', () => {
 })
 
 describe('utils', () => {
-    it('ignoredHook filter hook by title', () => {
-        expect(ignoredHooks('"before all" hook')).toEqual(true)
-        expect(ignoredHooks('"after all" hook')).toEqual(true)
-        expect(ignoredHooks('"before each" hook')).toEqual(true)
-        expect(ignoredHooks('"after each" hook')).toEqual(true)
+    it('isMochaEachHooks filter hook by title', () => {
+        expect(isMochaEachHooks('"before all" hook')).toEqual(false)
+        expect(isMochaEachHooks('"after all" hook')).toEqual(false)
+        expect(isMochaEachHooks('"before each" hook')).toEqual(true)
+        expect(isMochaEachHooks('"after each" hook')).toEqual(true)
     })
 
     it('isEmpty filter empty objects', () => {
@@ -57,10 +57,20 @@ describe('utils', () => {
         expect(isEmpty(null)).toEqual(true)
         expect(isEmpty('')).toEqual(true)
     })
+})
 
-    it('tellReporter', () => {
+describe('utils#tellReporter', () => {
+    afterEach(() => {
+        process.emit.mockClear()
+    })
+    it('should accept message', () => {
         tellReporter('foo', {bar: 'baz'})
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith('foo', {bar: 'baz'})
+    })
+    it('should accept no message', () => {
+        tellReporter('foo')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith('foo', {})
     })
 })

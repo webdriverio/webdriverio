@@ -66,12 +66,6 @@ Type: `String`<br>
 Default: `info`<br>
 Options: `trace` | `debug` | `info` | `warn` | `error` | `silent`
 
-### logOutput
-Pipe WebdriverIO logs into a file. You can either define a directory, and WebdriverIO generates a filename for the log file or you can pass in a writeable stream, and everything gets redirected to that.
-
-Type: `String|writeable stream`<br>
-Default: `null`
-
 ### connectionRetryTimeout
 Timeout for any request to the Selenium server
 

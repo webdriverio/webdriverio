@@ -1,6 +1,6 @@
 import path from 'path'
 import logger from '@wdio/logger'
-import { initialisePlugin } from '@wdio/config'
+import { initialisePlugin } from '@wdio/utils'
 
 const log = logger('wdio-runner')
 

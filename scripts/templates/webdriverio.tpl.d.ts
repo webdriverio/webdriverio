@@ -5,11 +5,11 @@ declare namespace WebdriverIO {
     function remote(
         options?: WebDriver.Options,
         modifier?: (...args: any[]) => any
-    ): WebDriver.Client<void> & WebdriverIO.Browser<void>;
+    ): WebDriver.Client & WebdriverIO.Browser;
 
     function multiremote(
         options: any
-    ): WebDriver.Client<void>;
+    ): WebDriver.Client;
 
     type LocationParam = 'x' | 'y';
 
@@ -28,14 +28,7 @@ declare namespace WebdriverIO {
     interface Cookie {
         name: string,
         value: string,
-        path?: string,
-        expiry?: number,
-    }
-
-    interface Cookie {
-        name: string,
-        value: string,
-        domain?: string
+        domain?: string,
         path?: string,
         expiry?: number,
         isSecure?: boolean,
@@ -83,6 +76,12 @@ declare namespace WebdriverIO {
     interface Suite {}
     interface Test {}
 
+    interface Results {
+        finished: number,
+        passed: number,
+        failed: number
+    }
+
     interface Hooks {
 
         onPrepare?(
@@ -90,7 +89,7 @@ declare namespace WebdriverIO {
             capabilities: WebDriver.DesiredCapabilities
         ): void;
 
-        onComplete?(exitCode: number): void;
+        onComplete?(exitCode: number, config: Config, capabilities: WebDriver.DesiredCapabilities, results: Results): void;
 
         onReload?(oldSessionId: string, newSessionId: string): void;
 
@@ -152,11 +151,11 @@ declare namespace WebdriverIO {
         action: ActionTypes,
         x?: number,
         y?: number,
-        element?: Element<void>
+        element?: Element
     }
     type TouchActions = string | TouchAction | TouchAction[];
 
-    interface Element<T> {
+    interface Element {
         addCommand(
             name: string,
             func: Function
@@ -173,7 +172,7 @@ declare namespace WebdriverIO {
         script?: number
     }
 
-    interface Browser<T> {
+    interface Browser {
         addCommand(
             name: string,
             func: Function,
@@ -197,9 +196,9 @@ declare namespace WebdriverIO {
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 }
 
-declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;
-declare function $(selector: string | Function): WebdriverIO.Element<void>;
-declare function $$(selector: string | Function): WebdriverIO.Element<void>[];
+declare var browser: WebDriver.Client & WebdriverIO.Browser;
+declare function $(selector: string | Function): WebdriverIO.Element;
+declare function $$(selector: string | Function): WebdriverIO.Element[];
 
 declare module "webdriverio" {
     export = WebdriverIO

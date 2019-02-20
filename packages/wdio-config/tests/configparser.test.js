@@ -72,10 +72,10 @@ describe('ConfigParser', () => {
         it('should allow to specify partial matching spec file', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec : ['Plugin']})
+            configParser.merge({ spec : ['Backend']})
 
             const specs = configParser.getSpecs()
-            expect(specs).toContain(path.join(__dirname, 'initialisePlugin.test.js'))
+            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
         })
 
         it('should exclude duplicate spec files', () => {
@@ -182,7 +182,7 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ exclude: [INDEX_PATH] })
             const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(4)
+            expect(specs).toHaveLength(3)
         })
     })
 
@@ -220,7 +220,7 @@ describe('ConfigParser', () => {
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(__filename)
-            expect(specs).not.toContain(path.join(__dirname, 'detectBackend.test.js'))
+            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.js'))
         })
 
         it('should exclude/include capability excludes', () => {
@@ -229,7 +229,7 @@ describe('ConfigParser', () => {
 
             const specs = configParser.getSpecs([INDEX_PATH], [__filename])
             expect(specs).not.toContain(__filename)
-            expect(specs).not.toContain(path.join(__dirname, 'detectBackend.test.js'))
+            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.js'))
             expect(specs).toContain(INDEX_PATH)
         })
 

@@ -56,10 +56,13 @@ export default function (condition, timeout, timeoutMsg, interval) {
     let timer = new Timer(interval, timeout, fn, true)
 
     return timer.catch((e) => {
-        if (e.message === 'timeout' && typeof timeoutMsg === 'string') {
-            throw new Error(timeoutMsg)
+        if (e.message === 'timeout') {
+            if (typeof timeoutMsg === 'string') {
+                throw new Error(timeoutMsg)
+            }
+            throw new Error(`waitUntil condition timed out after ${timeout}ms`)
         }
 
-        throw new Error(`Promise was rejected with the following reason: ${e}`)
+        throw new Error(`waitUntil condition failed with the following reason: ${(e && e.message) || e}`)
     })
 }

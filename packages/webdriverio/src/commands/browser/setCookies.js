@@ -1,6 +1,6 @@
 /**
  *
- * Sets a [cookie](https://w3c.github.io/webdriver/#cookies) for current page. Make sure you are
+ * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page. Make sure you are
  * on the page that should receive the cookie. You can't set a cookie for an arbitrary page without
  * being on that page.
  *
@@ -8,10 +8,17 @@
     :setCookies.js
     it('should set a cookie for the page', () => {
         browser.url('/')
-        browser.setCookies({name: 'test', value: '123'})
+        browser.setCookies({name: 'test1', value: 'one'}) // set a single cookie
+        browser.setCookies([{name: 'test2', value: 'two'}, {name: 'test3', value: 'three'}]) // set multiple cookies
 
         const cookies = browser.getCookies()
-        console.log(cookies); // outputs: [{ name: 'test', value: '123', domain: 'www.example.com' }]
+        console.log(cookies);
+        // outputs:
+        // [
+        //      {name: 'test1', value: 'one', domain: 'www.example.com'},
+        //      {name: 'test2', value: 'two', domain: 'www.example.com'},
+        //      {name: 'test3', value: 'three', domain: 'www.example.com'}
+        // ]
     });
  * </example>
  *

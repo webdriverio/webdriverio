@@ -3,7 +3,9 @@ id: gettingstarted
 title: Getting Started
 ---
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
+Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+
+Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
 
 > __Note:__ These are the docs for the latest version (>= v5.0.0) of WebdriverIO. If you are still using v4 or older please use the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
 
@@ -11,7 +13,9 @@ The following will give you a short step by step introduction to get your first 
 
 ## Taking the first step
 
-Let's suppose you have [Node.js](http://nodejs.org/) already installed. If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
+Let's suppose you have [Node.js](http://nodejs.org/) already installed. If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions.
+
+First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
 
 ### Create a simple test folder
 
@@ -22,6 +26,8 @@ $ mkdir webdriverio-test && cd webdriverio-test
 *While still in this test folder:*
 
 ### Download Geckodriver
+
+**Note: You must have [Firefox](https://www.mozilla.org/en-US/firefox/new/) installed to use Geckodriver.**
 
 Download the latest version of geckodriver for your environment and unpack it in your project directory:
 
@@ -76,7 +82,16 @@ Start Geckodriver by running:
 $ /path/to/binary/geckodriver --port 4444
 ```
 
-This will start Geckodriver on `localhost:4444` with the WebDriver endpoint set to `/`. Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
+For example, if you ran the curl command from above, you should have a `geckodriver` binary available in the current folder. You can run the following to start it:
+
+
+```sh
+$ ./geckodriver --port 4444
+```
+
+This will start Geckodriver on `localhost:4444` with the WebDriver endpoint set to `/`.
+
+Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
 
 ### Download WebdriverIO
 
@@ -131,7 +146,19 @@ Yay, Congratulations! You've just run your first automation script with Webdrive
 
 *(If you haven't already, navigate back to the project root directory)*
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
+This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend using the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up, the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package.
+
+Before installing the test runner, we need to initialize an empty NPM project (this will allow us to the cli to install needed dependencies).
+
+To do this, run:
+
+```sh
+$ npm init -y
+```
+
+The `-y` will answer 'yes' to all the prompts, giving us a standard NPM project. Feel free to omit the `-y` if you'd like to specify your own project details.
+
+Now we need to install the cli. Do that by running:
 
 ```sh
 $ npm i --save-dev @wdio/cli
@@ -139,7 +166,7 @@ $ npm i --save-dev @wdio/cli
 
 ### Generate Configuration File
 
-To do that just run the configuration utility:
+We'll next want to generate a configuration file that stores all of our WebdriverIO settings. To do that just run the configuration utility:
 
 ```sh
 $ ./node_modules/.bin/wdio config
@@ -186,24 +213,51 @@ A: _http://localhost_ (just press enter)<br>
 That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. As we're using Geckodriver, we need to override the default path (which uses the Selenium's default of `/wd/hub`). Then, we'll be ready to create your first spec file (test file).
 
 ### Configure the path
-Edit the `wdio.conf.js` file to specify the path (e.g. right after the baseUrl setting):
+
+Because we're using geckodriver, the 'path' to it is different from the expected default (which is `/wd/hub`). To change that, we need to edit the `wdio.conf.js` file.
+
+At the top of the file, right after the `exports.config = {` line, add a section to specify the path:
 
 ```
-    //
     // Override the default path of /wd/hub
     path: '/',
 ```
 
+So the top of your file should look like:
+
+```
+exports.config = {
+    // Override the default path of /wd/hub
+    path: '/',
+    //
+    // ====================
+    // Runner Configuration
+    // ====================
+    //
+    // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
+    // on a remote machine).
+    runner: 'local',
+    ... the rest of the settings ...
+}
+```
+
+Be sure to save the file afte your changes.
 
 ### Create Spec Files
 
-For that create a test folder like this:
+Now it's time to create our test file. We're going to store all of our files in a new folder. Create the test folder like this:
 
 ```sh
 $ mkdir -p ./test/specs
 ```
 
-Now let's create a simple spec file in that new folder:
+Create a new file in that folder (we'll call it `basic.js`):
+
+```sh
+$ touch ./test/specs/basic.js
+```
+
+Open that file up and add the following code to it:
 
 ```js
 const assert = require('assert');
@@ -217,6 +271,8 @@ describe('webdriver.io page', () => {
 });
 ```
 
+Once added, save, then return to your terminal.
+
 ### Kick Off Testrunner
 
 The last step is to execute the test runner. To do so just run:
@@ -225,4 +281,9 @@ The last step is to execute the test runner. To do so just run:
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](BoilerplateProjects.md) that can help you to get started.
+Hurray! The test should pass and you can start writing integration tests with WebdriverIO.
+
+If you ran into any issue, reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) and post the error you're seeing, plus the step you're currently on.
+
+If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](BoilerplateProjects.md) that can help you to get started.
+

@@ -10,7 +10,6 @@ export const DEFAULT_CONFIGS = {
     exclude: [],
     outputDir: undefined,
     logLevel: 'info',
-    deprecationWarnings: true,
     baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,

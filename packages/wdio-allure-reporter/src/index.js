@@ -1,7 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import {getTestStatus, ignoredHooks, isEmpty, tellReporter} from './utils'
+import {getTestStatus, isEmpty, tellReporter, isMochaEachHooks} from './utils'
 import {events, stepStatuses, testStatuses} from './constants'
 
 class AllureReporter extends WDIOReporter {
@@ -89,10 +89,10 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test) {
-        if (this.allure.getCurrentTest() && this.allure.getCurrentTest().status !== testStatuses.PENDING) {
-            this.allure.endCase(testStatuses.PENDING)
-        } else {
+        if (!this.allure.getCurrentTest() || this.allure.getCurrentTest().name !== test.title) {
             this.allure.pendingCase(test.title)
+        } else {
+            this.allure.endCase(testStatuses.PENDING)
         }
     }
 
@@ -138,22 +138,49 @@ class AllureReporter extends WDIOReporter {
     }
 
     onHookStart(hook) {
-        if (!this.allure.getCurrentSuite() || ignoredHooks(hook.title)) {
+        // ignore global hooks
+        if (!hook.parent || !this.allure.getCurrentSuite()) {
             return false
         }
 
-        this.allure.startCase(hook.title)
+        // add beforeEach / afterEach hook as step to test
+        if (isMochaEachHooks(hook.title)) {
+            if (this.allure.getCurrentTest()) {
+                this.allure.startStep(hook.title)
+            }
+            return
+        }
+        
+        // add hook as test to suite
+        this.onTestStart(hook)
     }
 
     onHookEnd(hook) {
-        if (!this.allure.getCurrentSuite() || ignoredHooks(hook.title)) {
+        // ignore global hooks
+        if (!hook.parent || !this.allure.getCurrentSuite() || !this.allure.getCurrentTest()) {
             return false
         }
 
-        this.allure.endCase(testStatuses.PASSED)
+        // set beforeEach / afterEach hook (step) status
+        if (isMochaEachHooks(hook.title)) {
+            if (hook.error) {
+                this.allure.endStep(stepStatuses.FAILED)
+            } else {
+                this.allure.endStep(stepStatuses.PASSED)
+            }
+            return
+        }
 
-        if (this.allure.getCurrentTest().steps.length === 0) {
-            this.allure.getCurrentSuite().testcases.pop()
+        // set hook (test) status
+        if (hook.error) {
+            this.onTestFail(hook)
+        } else {
+            this.onTestPass()
+
+            // remove hook from suite if it has no steps
+            if (this.allure.getCurrentTest().steps.length === 0) {
+                this.allure.getCurrentSuite().testcases.pop()
+            }
         }
     }
 

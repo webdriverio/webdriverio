@@ -15,6 +15,132 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.5.0 (2019-02-20)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3587](https://github.com/webdriverio/webdriverio/pull/3587) Make metrics param in assertPerformance not required ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3586](https://github.com/webdriverio/webdriverio/pull/3586) webdriverio: shadow$ and shadow$ commands ([@jrobinson01](https://github.com/jrobinson01))
+
+#### :bug: Bug Fix
+* `wdio-reporter`
+  * [#3578](https://github.com/webdriverio/webdriverio/pull/3578) Move reporter directory creation up ([@klamping](https://github.com/klamping))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- John Robinson ([@jrobinson01](https://github.com/jrobinson01))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+
+## 5.4.20 (2019-02-20)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3585](https://github.com/webdriverio/webdriverio/pull/3585) Fix parameter definition for assertPerformance command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-runner`, `wdio-smoke-test-service`, `wdio-utils`
+  * [#3584](https://github.com/webdriverio/webdriverio/pull/3584) Move initialiseServices and initialisePlugin into utils package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#3581](https://github.com/webdriverio/webdriverio/pull/3581) Remove old logOutput option ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#3576](https://github.com/webdriverio/webdriverio/pull/3576) Update getting started doc ([@klamping](https://github.com/klamping))
+* [#3575](https://github.com/webdriverio/webdriverio/pull/3575) webdriverio: merge Coockie interface in .tpl.d.ts ([@CrispusDH](https://github.com/CrispusDH))
+
+#### :house: Internal
+* `wdio-jasmine-framework`
+  * [#3582](https://github.com/webdriverio/webdriverio/pull/3582) Bump Jasmine to 3.3.0 ([@tritethunder](https://github.com/tritethunder))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+- hassan ([@tritethunder](https://github.com/tritethunder))
+
+## 5.4.19 (2019-02-19)
+
+#### :nail_care: Polish
+* `wdio-sync`
+  * [#3565](https://github.com/webdriverio/webdriverio/pull/3565) show better stack trace for commands ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#3571](https://github.com/webdriverio/webdriverio/pull/3571) webdriverio: user friendly waitUntil messages ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3573](https://github.com/webdriverio/webdriverio/pull/3573) Add waitForX 'reverse' examples to docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## 5.4.18 (2019-02-18)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3533](https://github.com/webdriverio/webdriverio/pull/3533) webdriver: Fix HTTP method for createWindow command ([@catalandavid](https://github.com/catalandavid))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#3559](https://github.com/webdriverio/webdriverio/pull/3559) webdriver: unhandled promise rejection ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3540](https://github.com/webdriverio/webdriverio/pull/3540) Fix selectByVisibleText when element has multiple textNodes ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#3558](https://github.com/webdriverio/webdriverio/pull/3558) webdriverio: add ios predicate and class chain direct selectors ([@janvennemann](https://github.com/janvennemann))
+* `wdio-allure-reporter`, `wdio-mocha-framework`
+  * [#3536](https://github.com/webdriverio/webdriverio/pull/3536) wdio-allure-reporter: capture before each and all hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#3555](https://github.com/webdriverio/webdriverio/pull/3555) webdriver: Adding a standard header 'Content-Length' to the headers list ([@nami-varthakavi](https://github.com/nami-varthakavi))
+
+#### :memo: Documentation
+* Other
+  * [#3566](https://github.com/webdriverio/webdriverio/pull/3566) webdriverio: remove redundant Generic from Element ([@CrispusDH](https://github.com/CrispusDH))
+  * [#3564](https://github.com/webdriverio/webdriverio/pull/3564) docs: Update CustomService example ([@WillBrock](https://github.com/WillBrock))
+  * [#3550](https://github.com/webdriverio/webdriverio/pull/3550) docs: Add npm link to contributing guide ([@WillBrock](https://github.com/WillBrock))
+* `webdriverio`
+  * [#3549](https://github.com/webdriverio/webdriverio/pull/3549) docs: Remove reference to wdio-screenshot that is not compatible with v5 ([@WillBrock](https://github.com/WillBrock))
+* `webdriver`
+  * [#3525](https://github.com/webdriverio/webdriverio/pull/3525) Streamline typings ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `webdriver`, `webdriverio`
+  * [#3560](https://github.com/webdriverio/webdriverio/pull/3560) Fix error due to empty wd response ([@yepninja](https://github.com/yepninja))
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`
+  * [#3528](https://github.com/webdriverio/webdriverio/pull/3528) Remove obsolete config prop deprecationWarnings ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 9
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Catalan ([@catalandavid](https://github.com/catalandavid))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Jan Vennemann ([@janvennemann](https://github.com/janvennemann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nami Varthakavi ([@nami-varthakavi](https://github.com/nami-varthakavi))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- Yevgeny Petukhov ([@yepninja](https://github.com/yepninja))
+
+
+
+## 5.4.16 (2019-02-07)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#3521](https://github.com/webdriverio/webdriverio/pull/3521) wdio-allure-reporter: fix test skip ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3522](https://github.com/webdriverio/webdriverio/pull/3522) Highlight talk from Selenium meetup ([@christian-bromann](https://github.com/christian-bromann))
+* [#3519](https://github.com/webdriverio/webdriverio/pull/3519) Webdriverio: fix Hooks interface ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## 5.4.15 (2019-02-06)
 
 #### :eyeglasses: Spec Compliancy

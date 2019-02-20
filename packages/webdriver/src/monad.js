@@ -105,7 +105,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             Promise.resolve(result).then((res) => {
                 log.info('RESULT', res)
                 this.emit('result', { name, result: res })
-            })
+            }).catch(() => {})
 
             return result
         }
