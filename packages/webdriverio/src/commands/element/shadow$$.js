@@ -1,4 +1,4 @@
-import {shadowFnFactory} from '../constant'
+import {shadowFnFactory} from '../../scripts/shadowFnFactory'
 /**
  *
  * Access elements inside a given element's shadowRoot

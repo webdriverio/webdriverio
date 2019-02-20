@@ -1,4 +1,4 @@
-import {shadowFnFactory} from '../constant'
+import {shadowFnFactory} from '../../scripts/shadowFnFactory'
 
 /**
  *
