@@ -1,5 +1,3 @@
-import { Writable } from 'stream'
-
 export const DEFAULTS = {
     /**
      * protocol of automation driver
