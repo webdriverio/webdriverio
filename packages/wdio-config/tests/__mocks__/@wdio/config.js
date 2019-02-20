@@ -1,15 +1,6 @@
 import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../../src/constants'
 import { getSauceEndpoint as getSauceEndpointMock } from '../../../src/utils'
 
-class DotReporter {
-    constructor (options) {
-        this.options = options
-        this.emit = jest.fn()
-    }
-}
-
-class RunnerMock {}
-
 class ConfigParserMock {
     constructor () {
         this.addService = jest.fn()
@@ -29,27 +20,8 @@ class ConfigParserMock {
     }
 }
 
-class FoobarServiceMock {
-    beforeSuite () {}
-    afterCommand () {}
-}
-
-const pluginMocks = {
-    reporter: {
-        dot: DotReporter
-    },
-    service: {
-        foobar: FoobarServiceMock
-    },
-    runner: {
-        local: RunnerMock
-    }
-}
-
 export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT
 export const getSauceEndpoint = getSauceEndpointMock
-export const initialisePlugin = jest.fn().mockImplementation(
-    (name, type) => pluginMocks[type][name])
 export const validateConfig = jest.fn().mockImplementation(
     (_, config) => Object.assign(
         DEFAULT_CONFIGS_IMPORT,

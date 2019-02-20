@@ -10,7 +10,7 @@ const getSubPackages = () => shell.ls(path.join(__dirname, '..', '..', 'packages
     /**
      * ignore packages that don't need to be compiled
      */
-    !['eslint-plugin-wdio'].includes(pkg)
+    !['eslint-plugin-wdio', 'wdio-smoke-test-service', 'wdio-webdriver-mock-service'].includes(pkg)
 ))
 
 module.exports = { getSubPackages }
