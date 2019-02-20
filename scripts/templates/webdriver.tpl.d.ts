@@ -4,6 +4,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
 type ArgumentTypes<T> = T extends (...args: infer U) => infer R ? U : never;
 type WrapWithPromise<T> = (...args: ArgumentTypes<T>) => Promise<[T]>;
 
@@ -234,9 +236,9 @@ declare namespace WebDriver {
         modifier?: (...args: any[]) => any,
         proto?: object,
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
-    ): Client;
+    ): Promise<Client>;
 
-    interface Client {
+    interface ClientOptions {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
         isAndroid: boolean;
