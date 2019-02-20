@@ -1,7 +1,5 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
-/// <reference types="./webdriverio-promise"/>
-/// <reference types="./webdriverio-sync"/>
 
 declare namespace WebdriverIO {
     function remote(
@@ -196,9 +194,4 @@ declare namespace WebdriverIO {
     type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
-}
-
-declare module "webdriverio" {
-    export namespace WebdriverIOSync {}
-    export namespace WebdriverIOPromise {}
 }

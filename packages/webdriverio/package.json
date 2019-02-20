@@ -44,7 +44,7 @@
     "cucumber",
     "testingbot"
   ],
-  "types": "./webdriverio.d.ts",
+  "types": "./webdriverio-async.d.ts",
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
