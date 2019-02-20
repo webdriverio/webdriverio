@@ -27,6 +27,10 @@ export const remote = async function (params = {}, remoteModifier) {
         params = Object.assign({}, detectBackend(params), params)
     }
 
+    if(params.outputDir){
+        process.env.WDIO_LOG_PATH = params.outputDir+"\\wdio.log"
+    }
+
     const prototype = getPrototype('browser')
     const instance = await WebDriver.newSession(params, modifier, prototype, wrapCommand)
 
