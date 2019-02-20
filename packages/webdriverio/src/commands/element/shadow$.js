@@ -1,5 +1,3 @@
-import {shadowFnFactory} from '../../scripts/shadowFnFactory'
-
 /**
  *
  * Access an element inside a given element's shadowRoot
@@ -17,6 +15,8 @@ import {shadowFnFactory} from '../../scripts/shadowFnFactory'
  * @type action
  *
  */
+
+import {shadowFnFactory} from '../../scripts/shadowFnFactory'
 
 export default async function shadowRoot (selector) {
     return await this.$(shadowFnFactory(selector))
