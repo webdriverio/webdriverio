@@ -72,10 +72,10 @@ describe('ConfigParser', () => {
         it('should allow to specify partial matching spec file', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec : ['Plugin']})
+            configParser.merge({ spec : ['Backend']})
 
             const specs = configParser.getSpecs()
-            expect(specs).toContain(path.join(__dirname, 'initialisePlugin.test.js'))
+            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
         })
 
         it('should exclude duplicate spec files', () => {
