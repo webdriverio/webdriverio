@@ -35,4 +35,37 @@ describe('Dot Reporter', () => {
         reporter.write(1)
         expect(reporter.outputStream.write.mock.calls[0]).toEqual([1])
     })
+
+    describe('onRunnerEnd', () => {
+        const reporter = new DotReporter({})
+
+        it('should call printReport method', () => {
+            reporter.printErrors = jest.fn()
+            reporter.onRunnerEnd({})
+
+            expect(reporter.printErrors.mock.calls.length).toBe(1)
+        })
+    })
+
+    describe('printErrors', () => {
+        let reporter
+
+        beforeEach(() => {
+            reporter = new DotReporter({})
+        })
+
+        it('should not return any errors', () => {
+            reporter.getFailureDisplay = jest.fn(() => [])
+
+            expect(reporter.printErrors()).toBe(undefined)
+        })
+
+        it('should return errors', () => {
+            reporter.getFailureDisplay = jest.fn(() => ['foo', 'bar'])
+            reporter.write = jest.fn()
+            reporter.printErrors()
+
+            expect(reporter.write).toHaveBeenCalled()
+        })
+    })
 })

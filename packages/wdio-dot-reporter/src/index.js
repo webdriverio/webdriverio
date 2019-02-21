@@ -38,6 +38,10 @@ export default class DotReporter extends WDIOReporter {
      * Test run is complete
      */
     onRunnerEnd () {
+        this.printErrors()
+    }
+
+    printErrors() {
         const results = this.getFailureDisplay()
 
         if(results.length === 0) {
