@@ -17,6 +17,7 @@
     "test:eslint": "eslint src test",
     "test:unit": "jest"
   },
+  "types": "./webdriverio.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"
