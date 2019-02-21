@@ -1,4 +1,3 @@
-import path from 'path'
 import request from 'request'
 
 import WebDriver from '../src'
