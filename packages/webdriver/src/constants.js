@@ -50,13 +50,6 @@ export const DEFAULTS = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
-     * directory for log files
-     */
-    outputDir: {
-        type: 'string',
-        default: process.cwd()
-    },
-    /**
      * Timeout for any request to the Selenium server
      */
     connectionRetryTimeout: {

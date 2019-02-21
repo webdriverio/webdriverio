@@ -1,3 +1,4 @@
+import path from 'path'
 import WebDriver from 'webdriver'
 import { validateConfig, wrapCommand, runFnInFiberContext, detectBackend } from '@wdio/config'
 
@@ -27,6 +28,10 @@ export const remote = async function (params = {}, remoteModifier) {
         params = Object.assign({}, detectBackend(params), params)
     }
 
+    if(params.outputDir){
+        process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
+    }
+
     const prototype = getPrototype('browser')
     const instance = await WebDriver.newSession(params, modifier, prototype, wrapCommand)
 
@@ -38,7 +43,7 @@ export const remote = async function (params = {}, remoteModifier) {
     instance.addCommand = (name, fn, attachToElement) => (
         origAddCommand(name, runFnInFiberContext(fn), attachToElement)
     )
-    
+
     return instance
 }
 

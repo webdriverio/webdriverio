@@ -40,19 +40,6 @@ test('should allow to create a new session using w3c compliant caps', async () =
     })
 })
 
-test('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
-    let testDirPath = './logs'
-    await WebDriver.newSession(
-        {
-            outputDir: testDirPath, 
-            path: '/',
-            capabilities: { 
-                browserName: 'firefox' 
-            }
-        })
-    expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
-})
-
 test('should allow to attach to existing session', async () => {
     const client = WebDriver.attachToSession({
         protocol: 'http',
