@@ -42,6 +42,16 @@ and your `tsconfig.json` needs to look like:
 }
 ```
 
+For sync mode (@wdio/sync) `webdriverio` types have to be replaced with `@wdio/sync`:
+
+```json
+{
+    "compilerOptions": {
+        "types": ["node", "@wdio/sync"]
+    }
+}
+```
+
 You can even use a typed configuration if you desire.
 All you have to do is create a plain js config file that registers typescript and requires the typed config:
 
