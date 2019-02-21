@@ -15,6 +15,26 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.6.0 (2019-02-21)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3583](https://github.com/webdriverio/webdriverio/pull/3583) Adding outputDir to standalone ([@Gilad-WT](https://github.com/Gilad-WT))
+  * [#3548](https://github.com/webdriverio/webdriverio/pull/3548) webdriverio: extend wait command prefixes ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriverio`
+  * [#3577](https://github.com/webdriverio/webdriverio/pull/3577) typescript promise commands ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `wdio-repl`, `wdio-utils`
+  * [#3590](https://github.com/webdriverio/webdriverio/pull/3590) Update package list in readme ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@Gilad-WT](https://github.com/Gilad-WT)
+
 ## 5.5.0 (2019-02-20)
 
 #### :eyeglasses: Spec Compliancy
