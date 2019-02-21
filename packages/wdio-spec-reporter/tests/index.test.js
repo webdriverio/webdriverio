@@ -63,19 +63,6 @@ describe('SpecReporter', () => {
         })
     })
 
-    describe('getEventsToReport', () => {
-        it('should return all tests and hook errors to report', () => {
-            expect(tmpReporter.getEventsToReport({
-                tests: [1, 2, 3],
-                hooks: [4, 5, 6]
-            })).toEqual([1, 2, 3])
-            expect(tmpReporter.getEventsToReport({
-                tests: [1, 2, 3],
-                hooks: [{ error: 1 }, 5, { error: 2 }]
-            })).toEqual([1, 2, 3, { error: 1 }, { error: 2 }])
-        })
-    })
-
     describe('onTestPass', () => {
         beforeAll(() => {
             reporter.onTestPass()
@@ -143,6 +130,7 @@ describe('SpecReporter', () => {
         it('should print the report to the console', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES
+            printReporter.all_suites = SUITES
             printReporter.stateCounts = {
                 passed : 4,
                 failed : 1,
@@ -157,6 +145,7 @@ describe('SpecReporter', () => {
         it('should print link to SauceLabs job details page', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES
+            printReporter.all_suites = SUITES
             printReporter.stateCounts = {
                 passed : 4,
                 failed : 1,
@@ -273,51 +262,30 @@ describe('SpecReporter', () => {
         })
     })
 
-    describe('getFailureDisplay', () => {
-        it('should return failing results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES)
-            tmpReporter.suites = SUITES
-
-            const result = tmpReporter.getFailureDisplay()
-
-            expect(result.length).toBe(4)
-            expect(result[0]).toBe('')
-            expect(result[1]).toBe('1) Bar test a failed test')
-            expect(result[2]).toBe('red expected foo to equal bar')
-            expect(result[3]).toBe('gray Failed test stack trace')
-        })
-
-        it('should return no results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_NO_TESTS)
-            tmpReporter.suites = SUITES_NO_TESTS
-
-            const result = tmpReporter.getFailureDisplay()
-
-            expect(result.length).toBe(0)
-        })
-    })
-
     describe('getOrderedSuites', () => {
-        it('should return the suites in order based on uids', () => {
-            tmpReporter.foo = 'hellooo'
-            tmpReporter.suiteUids = [5, 3, 8]
-            tmpReporter.suites = [{ uid : 3 }, { uid : 5 }]
+        const reporter = new SpecReporter({})
 
-            const result = tmpReporter.getOrderedSuites()
+        it('should return the suites in order based on uids', () => {
+            reporter.foo = 'hellooo'
+            reporter.suiteUids = [5, 3, 8]
+            reporter.suites = [{ uid : 3 }, { uid : 5 }]
+            reporter.all_suites = [{ uid : 3 }, { uid : 5 }]
+
+            const result = reporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
             expect(result[0]).toEqual({ uid : 5 })
             expect(result[1]).toEqual({ uid : 3 })
 
-            expect(tmpReporter.orderedSuites.length).toBe(2)
-            expect(tmpReporter.orderedSuites[0]).toEqual({ uid : 5 })
-            expect(tmpReporter.orderedSuites[1]).toEqual({ uid : 3 })
+            expect(reporter.orderedSuites.length).toBe(2)
+            expect(reporter.orderedSuites[0]).toEqual({ uid : 5 })
+            expect(reporter.orderedSuites[1]).toEqual({ uid : 3 })
         })
 
         it('should return the cached ordered suites', () => {
-            tmpReporter.foo = 'hellooo boo'
-            tmpReporter.orderedSuites = ['foo', 'bar']
-            const result = tmpReporter.getOrderedSuites()
+            reporter.foo = 'hellooo boo'
+            reporter.orderedSuites = ['foo', 'bar']
+            const result = reporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
             expect(result[0]).toBe('foo')
@@ -325,7 +293,9 @@ describe('SpecReporter', () => {
         })
 
         it('should return no suites', () => {
-            expect(tmpReporter.getOrderedSuites().length).toBe(0)
+            reporter.suites = []
+            reporter.orderedSuites = []
+            expect(reporter.getOrderedSuites().length).toBe(0)
         })
     })
 

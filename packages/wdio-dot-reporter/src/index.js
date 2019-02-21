@@ -33,4 +33,17 @@ export default class DotReporter extends WDIOReporter {
     onTestFail () {
         this.write(chalk.redBright('F'))
     }
+
+    /**
+     * Test run is complete
+     */
+    onRunnerEnd () {
+        const results = this.getFailureDisplay()
+
+        if(results.length === 0) {
+            return
+        }
+
+        this.write(`${results.join('\n')}\n`)
+    }
 }

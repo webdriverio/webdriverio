@@ -1,4 +1,5 @@
 import EventEmitter from 'events'
+import chalk from 'chalk'
 
 export default class WDIOReporter extends EventEmitter {
     constructor (options) {
@@ -6,7 +7,7 @@ export default class WDIOReporter extends EventEmitter {
         this.options = options
         this.outputStream = { write: jest.fn() }
         this.failures = []
-        this.suites = {}
+        this.all_suites = {}
         this.hooks = {}
         this.tests = {}
         this.currentSuites = []
@@ -22,6 +23,47 @@ export default class WDIOReporter extends EventEmitter {
 
     get isSynchronised () {
         return true
+    }
+
+    getEventsToReport (suite) {
+        return [
+            /**
+             * report all tests
+             */
+            ...suite.tests,
+            /**
+             * and only hooks that failed
+             */
+            ...suite.hooks
+                .filter((hook) => Boolean(hook.error))
+        ]
+    }
+
+    getFailureDisplay () {
+        let failureLength = 0
+        const output = []
+
+        for (const [ , suite ] of Object.entries(this.all_suites)) {
+            const suiteTitle = suite.title
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
+                if(test.state !== 'failed') {
+                    continue
+                }
+
+                const testTitle = test.title
+
+                // If we get here then there is a failed test
+                output.push(
+                    '',
+                    `${++failureLength}) ${suiteTitle} ${testTitle}`,
+                    chalk.red(test.error.message),
+                    ...test.error.stack.split(/\n/g).map(value => chalk.gray(value))
+                )
+            }
+        }
+
+        return output
     }
 
     write (content) {

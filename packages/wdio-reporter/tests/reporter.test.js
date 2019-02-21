@@ -5,6 +5,11 @@ import path from 'path'
 
 import WDIOReporter from '../src'
 
+import {
+    SUITES,
+    SUITES_NO_TESTS,
+} from './__fixtures__/testdata'
+
 jest.mock('events', () => {
     class EventEmitterMock {
         constructor () {
@@ -98,5 +103,45 @@ describe('WDIOReporter', () => {
         expect(() => {
             new WDIOReporter({ outputDir: true })
         }).toThrow()
+    })
+
+    describe('getFailureDisplay', () => {
+        const reporter = new WDIOReporter({})
+
+        it('should return failing results', () => {
+            reporter.all_suites = SUITES
+
+            const result = reporter.getFailureDisplay()
+
+            expect(result.length).toBe(4)
+            expect(result[0]).toBe('')
+            expect(result[1]).toBe('1) Bar test a failed test')
+            expect(result[2]).toBe('red expected foo to equal bar')
+            expect(result[3]).toBe('gray Failed test stack trace')
+        })
+
+        it('should return no results', () => {
+            reporter.all_suites = SUITES_NO_TESTS
+
+            const result = reporter.getFailureDisplay()
+
+            expect(result.length).toBe(0)
+        })
+    })
+
+    describe('getEventsToReport', () => {
+        const reporter = new WDIOReporter({})
+
+        it('should return all tests and hook errors to report', () => {
+            expect(reporter.getEventsToReport({
+                tests: [1, 2, 3],
+                hooks: [4, 5, 6]
+            })).toEqual([1, 2, 3])
+
+            expect(reporter.getEventsToReport({
+                tests: [1, 2, 3],
+                hooks: [{ error: 1 }, 5, { error: 2 }]
+            })).toEqual([1, 2, 3, { error: 1 }, { error: 2 }])
+        })
     })
 })

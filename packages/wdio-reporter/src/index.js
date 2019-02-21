@@ -1,5 +1,6 @@
 import fs from 'fs'
 import fse from 'fs-extra'
+import chalk from 'chalk'
 import { format } from 'util'
 import EventEmitter from 'events'
 
@@ -19,7 +20,7 @@ export default class WDIOReporter extends EventEmitter {
             ? options.writeStream
             : fs.createWriteStream(this.options.logFile)
         this.failures = []
-        this.suites = {}
+        this.all_suites = {}
         this.hooks = {}
         this.tests = {}
         this.currentSuites = []
@@ -59,7 +60,7 @@ export default class WDIOReporter extends EventEmitter {
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)
             this.currentSuites.push(suite)
-            this.suites[suite.uid] = suite
+            this.all_suites[suite.uid] = suite
             this.onSuiteStart(suite)
         })
 
@@ -145,7 +146,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('suite:end',  /* istanbul ignore next */ (suite) => {
-            const suiteStat = this.suites[suite.uid]
+            const suiteStat = this.all_suites[suite.uid]
             suiteStat.complete()
             this.currentSuites.pop()
             this.onSuiteEnd(suiteStat)
@@ -181,6 +182,56 @@ export default class WDIOReporter extends EventEmitter {
      */
     get isSynchronised () {
         return true
+    }
+
+    /**
+     * Returns everything worth reporting from a suite
+     * @param  {Object}    suite  test suite containing tests and hooks
+     * @return {Object[]}         list of events to report
+     */
+    getEventsToReport (suite) {
+        return [
+            /**
+             * report all tests
+             */
+            ...suite.tests,
+            /**
+             * and only hooks that failed
+             */
+            ...suite.hooks
+                .filter((hook) => Boolean(hook.error))
+        ]
+    }
+
+    /**
+     * Get display for failed tests, e.g. stack trace
+     * @return {Array} Stack trace output
+     */
+    getFailureDisplay () {
+        let failureLength = 0
+        const output = []
+
+        for (const [ , suite ] of Object.entries(this.all_suites)) {
+            const suiteTitle = suite.title
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
+                if(test.state !== 'failed') {
+                    continue
+                }
+
+                const testTitle = test.title
+
+                // If we get here then there is a failed test
+                output.push(
+                    '',
+                    `${++failureLength}) ${suiteTitle} ${testTitle}`,
+                    chalk.red(test.error.message),
+                    ...test.error.stack.split(/\n/g).map(value => chalk.gray(value))
+                )
+            }
+        }
+
+        return output
     }
 
     /**

@@ -121,25 +121,6 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * returns everything worth reporting from a suite
-     * @param  {Object}    suite  test suite containing tests and hooks
-     * @return {Object[]}         list of events to report
-     */
-    getEventsToReport (suite) {
-        return [
-            /**
-             * report all tests
-             */
-            ...suite.tests,
-            /**
-             * and only hooks that failed
-             */
-            ...suite.hooks
-                .filter((hook) => Boolean(hook.error))
-        ]
-    }
-
-    /**
      * Get the results from the tests
      * @param  {Array} suites Runner suites
      * @return {Array}        Display output list
@@ -205,38 +186,6 @@ class SpecReporter extends WDIOReporter {
         if(this.stateCounts.skipped > 0) {
             const text = `${this.stateCounts.skipped} skipped ${duration}`.trim()
             output.push(this.chalk[this.getColor('skipped')](text))
-        }
-
-        return output
-    }
-
-    /**
-     * Get display for failed tests, e.g. stack trace
-     * @return {Array} Stack trace output
-     */
-    getFailureDisplay () {
-        let failureLength = 0
-        const output = []
-        const suites = this.getOrderedSuites()
-
-        for (const suite of suites) {
-            const suiteTitle = suite.title
-            const eventsToReport = this.getEventsToReport(suite)
-            for (const test of eventsToReport) {
-                if(test.state !== 'failed') {
-                    continue
-                }
-
-                const testTitle = test.title
-
-                // If we get here then there is a failed test
-                output.push(
-                    '',
-                    `${++failureLength}) ${suiteTitle} ${testTitle}`,
-                    this.chalk.red(test.error.message),
-                    ...test.error.stack.split(/\n/g).map(value => this.chalk.gray(value))
-                )
-            }
         }
 
         return output
