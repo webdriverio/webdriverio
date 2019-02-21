@@ -1,3 +1,4 @@
+import path from 'path'
 import { detectBackend } from '@wdio/config'
 
 import { remote, multiremote } from '../src'
@@ -55,6 +56,12 @@ describe('WebdriverIO module interface', () => {
         it('should try to detect the backend', async () => {
             await remote({ user: 'foo', key: 'bar', capabilities: {} })
             expect(detectBackend).toBeCalled()
+        })
+
+        it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
+            let testDirPath = './logs'
+            await remote({outputDir: testDirPath, capabilities: { browserName: 'firefox' } })
+            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
     })
 
