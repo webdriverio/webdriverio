@@ -173,9 +173,10 @@ export const getElementFromResponse = (res) => {
     /**
     * a function selector can return null
     */
-    if (res === null || res === undefined) {
+    if (!res) {
         return null
     }
+    
     /**
      * deprecated JSONWireProtocol response
      */
