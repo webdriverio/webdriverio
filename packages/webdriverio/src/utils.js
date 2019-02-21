@@ -166,10 +166,16 @@ export const getPrototype = (scope) => {
 
 /**
  * get element id from WebDriver response
- * @param  {object} res         body object from response
- * @return {string|undefined}   element id or null if element couldn't be found
+ * @param  {?Object|undefined} res         body object from response or null
+ * @return {?string}   element id or null if element couldn't be found
  */
 export const getElementFromResponse = (res) => {
+    /**
+    * a function selector can return null
+    */
+    if (res === null || res === undefined) {
+        return null
+    }
     /**
      * deprecated JSONWireProtocol response
      */
