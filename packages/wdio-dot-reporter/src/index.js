@@ -48,6 +48,6 @@ export default class DotReporter extends WDIOReporter {
             return
         }
 
-        this.write(`${results.join('\n')}\n`)
+        this.writeEnd(`${results.join('\n')}\n`)
     }
 }

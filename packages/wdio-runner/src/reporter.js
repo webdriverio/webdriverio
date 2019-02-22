@@ -74,11 +74,12 @@ export default class BaseReporter {
      */
     getWriteStreamObject (reporter) {
         return {
-            write: /* istanbul ignore next */ (content) => process.send({
+            write: /* istanbul ignore next */ (content, outputType = 'standard') => process.send({
                 origin: 'reporter',
                 name: reporter,
+                outputType,
                 content
-            })
+            }),
         }
     }
 

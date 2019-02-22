@@ -98,9 +98,21 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         if (!this.messages[event.origin][event.name]) {
-            this.messages[event.origin][event.name] = []
+            this.messages[event.origin][event.name] = event.origin !== 'reporter' ? [] : {}
         }
-        this.messages[event.origin][event.name].push(event.content)
+
+        if(event.origin !== 'reporter') {
+            this.messages[event.origin][event.name].push(event.content)
+        }
+        // Treat reporters differently to allow for them to print data at the end of a report
+        else {
+            if(!this.messages[event.origin][event.name][event.outputType]) {
+                this.messages[event.origin][event.name][event.outputType] = []
+            }
+
+            this.messages[event.origin][event.name][event.outputType].push(event.content)
+        }
+
         this.updateView()
     }
 
@@ -217,10 +229,20 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * print reporter output
          */
-        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
+        for (const [reporterName, types] of Object.entries(this.messages.reporter)) {
             this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
-            this.interface.log(messages.join(''))
-            this.interface.log()
+
+            for(const type of ['standard', 'end']) {
+                if(!types[type]) {
+                    continue
+                }
+
+                this.interface.log(types[type].join(''))
+
+                if (type === 'end') {
+                    this.interface.log()
+                }
+            }
         }
     }
 
