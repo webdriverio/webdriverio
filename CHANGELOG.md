@@ -15,6 +15,23 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.6.2 (2019-02-22)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3603](https://github.com/webdriverio/webdriverio/pull/3603) scrollIntoView uses a arrow function which breaks in IE ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#3600](https://github.com/webdriverio/webdriverio/pull/3600) Closes [#3460](https://github.com/webdriverio/webdriverio/issues/3460) ([@mariocasciaro](https://github.com/mariocasciaro))
+
+#### :memo: Documentation
+* `wdio-cli`, `webdriver`
+  * [#3599](https://github.com/webdriverio/webdriverio/pull/3599) Add missing logLevel ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mario Casciaro ([@mariocasciaro](https://github.com/mariocasciaro))
+
 ## 5.6.1 (2019-02-22)
 
 #### :bug: Bug Fix
