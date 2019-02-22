@@ -67,7 +67,7 @@ describe('middleware', () => {
         request.retryCnt = 0
     })
 
-    it('should succesfully click on a stale element', async () => {
+    it('should successfully click on a stale element', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo')

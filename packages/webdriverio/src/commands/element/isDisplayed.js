@@ -34,13 +34,19 @@
  * </example>
  *
  * @alias element.isDisplayed
- * @return {Boolean} true if element(s)* [is|are] displayed
+ * @return {Boolean} true if element is displayed
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state
  *
  */
 
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import isElementDisplayedScript from '../../scripts/isElementDisplayed'
+
 export default async function isDisplayed() {
+
+    let browser = getBrowserObject(this)
 
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
@@ -49,5 +55,12 @@ export default async function isDisplayed() {
         this.elementId = (await this.parent.$(this.selector)).elementId
     }
 
-    return this.elementId ? await this.isElementDisplayed(this.elementId) : false
+    if (!this.elementId) return false
+
+    return browser.isChrome ?
+        await this.isElementDisplayed(this.elementId)
+        : await browser.execute(isElementDisplayedScript, {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId // jsonwp compatible
+        })
 }
