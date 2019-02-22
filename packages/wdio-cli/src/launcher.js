@@ -103,6 +103,17 @@ class Launcher {
         }
 
         /**
+         * fail if no caps were found
+         */
+        if (!caps || !caps.length) {
+            return new Promise((resolve) => {
+                log.error('Missing capabilities, exiting with failure')
+                this.interface.updateView()
+                return resolve(1)
+            })
+        }
+
+        /**
          * schedule test runs
          */
         let cid = 0
