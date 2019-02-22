@@ -1,9 +1,9 @@
-/**
- * @jest-environment jsdom
- */
-
 import request from 'request'
 import { remote } from '../../../src'
+jest.mock('../../../src/scripts/isElementDisplayed', () => ({
+    __esModule: true,
+    default: function () { return true }
+}))
 
 describe('isDisplayed test', () => {
     let browser
@@ -21,10 +21,10 @@ describe('isDisplayed test', () => {
     })
 
     it('should allow to check if element is displayed', async () => {
-        await elem.isDisplayed()
+        expect(await elem.isDisplayed()).toBe(true)
         expect(request).toBeCalledTimes(1)
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-        expect(request.mock.calls[2][0].body.args[0]).toEqual({
+        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+        expect(request.mock.calls[0][0].body.args[0]).toEqual({
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
             ELEMENT: 'some-elem-123'
         })
@@ -36,7 +36,7 @@ describe('isDisplayed test', () => {
         expect(request).toBeCalledTimes(2)
         expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-        expect(request.mock.calls[2][0].body.args[0]).toEqual({
+        expect(request.mock.calls[1][0].body.args[0]).toEqual({
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
             ELEMENT: 'some-elem-123'
         })

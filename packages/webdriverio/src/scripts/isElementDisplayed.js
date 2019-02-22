@@ -29,8 +29,6 @@
  * @return {Boolean}           true if element is within viewport
  */
 export default function isElementDisplayed(element) {
-    'use strict'
-
     function nodeIsElement(node) {
         if (!node)
             return false
