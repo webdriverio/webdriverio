@@ -15,6 +15,23 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.6.1 (2019-02-22)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3597](https://github.com/webdriverio/webdriverio/pull/3597) webdriverio: IE11 support in fetchElementByJSFunction ([@jrobinson01](https://github.com/jrobinson01))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3591](https://github.com/webdriverio/webdriverio/pull/3591) webdriverio: handle null returned by function selectors ([@jrobinson01](https://github.com/jrobinson01))
+
+#### :memo: Documentation
+* [#3594](https://github.com/webdriverio/webdriverio/pull/3594) webdriverio: remove redundant [T] -> T ([@CrispusDH](https://github.com/CrispusDH))
+
+#### Committers: 2
+- John Robinson ([@jrobinson01](https://github.com/jrobinson01))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+
 ## 5.6.0 (2019-02-21)
 
 #### :nail_care: Polish
