@@ -176,7 +176,7 @@ export const getElementFromResponse = (res) => {
     if (!res) {
         return null
     }
-    
+
     /**
      * deprecated JSONWireProtocol response
      */
@@ -311,8 +311,10 @@ function fetchElementByJSFunction (selector, scope) {
     if (!scope.elementId) {
         return scope.execute(selector)
     }
-
-    const script = ((elem) => (selector).call(elem)).toString().replace('selector', `(${selector.toString()})`)
+    /**
+     * use a regular function because IE does not understand arrow functions
+     */
+    const script = (function (elem) { return (selector).call(elem) }).toString().replace('selector', `(${selector.toString()})`)
     return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope)
 }
 
