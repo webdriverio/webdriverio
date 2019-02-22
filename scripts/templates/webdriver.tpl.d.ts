@@ -7,7 +7,7 @@
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 type ArgumentTypes<T> = T extends (...args: infer U) => infer R ? U : never;
-type WrapWithPromise<T> = (...args: ArgumentTypes<T>) => Promise<[T]>;
+type WrapWithPromise<T> = (...args: ArgumentTypes<T>) => Promise<T>;
 
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
