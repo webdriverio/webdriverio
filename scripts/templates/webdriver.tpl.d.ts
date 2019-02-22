@@ -7,7 +7,7 @@
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
     type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
-    type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error';
+    type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
     type LoggingPreferenceType =
         'OFF' | 'SEVERE' | 'WARNING' |
         'INFO' | 'CONFIG' | 'FINE' |
