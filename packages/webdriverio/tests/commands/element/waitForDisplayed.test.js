@@ -2,7 +2,7 @@ import request from 'request'
 import { remote } from '../../../src'
 jest.mock('../../../src/scripts/isElementDisplayed', () => ({
     __esModule: true,
-    default: function () { return false }
+    default: function () { return true }
 }))
 describe('waitForDisplayed', () => {
     const duration = 1000
