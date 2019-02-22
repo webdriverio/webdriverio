@@ -37,7 +37,7 @@ export default class WebDriverRequest extends EventEmitter {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = merge(this.defaultOptions, this._createOptions(options, sessionId))
+        const fullRequestOptions = merge({}, this.defaultOptions, this._createOptions(options, sessionId))
         this.emit('request', fullRequestOptions)
         return this._request(fullRequestOptions, options.connectionRetryCount)
     }
@@ -54,7 +54,7 @@ export default class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             requestOptions.body = this.body
-            requestOptions.headers = merge(requestOptions.headers, {
+            requestOptions.headers = merge({}, requestOptions.headers, {
                 'Content-Length': Buffer.byteLength(JSON.stringify(requestOptions.body), 'UTF-8')
             })
         }
