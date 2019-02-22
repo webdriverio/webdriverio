@@ -100,7 +100,7 @@ exports.config = {
     // e.g. using promises you can set the sync option to false.
     sync: true,
     //
-    // Level of logging verbosity: trace | debug | info | warn | error
+    // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevel: 'info',
     //
     // Set directory to store all logs into
