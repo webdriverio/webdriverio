@@ -11,6 +11,9 @@
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
  */
+
+import { getElementRect } from '../../utils'
+
 export default async function moveTo (xoffset, yoffset) {
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xoffset, yoffset)
@@ -19,7 +22,7 @@ export default async function moveTo (xoffset, yoffset) {
     /**
      * get rect of element
      */
-    const { x, y, width, height } = await this.getElementRect(this.elementId)
+    const { x, y, width, height } = await getElementRect(this)
     const newXoffset = parseInt(x + (typeof xoffset === 'number' ? xoffset : (width / 2)), 10)
     const newYoffset = parseInt(y + (typeof yoffset === 'number' ? yoffset : (height / 2)), 10)
 

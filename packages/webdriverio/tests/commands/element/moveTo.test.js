@@ -35,6 +35,34 @@ describe('moveTo', () => {
             .toEqual({ type: 'pointerMove', duration: 0, x: 20, y: 30 })
     })
 
+    it('should do a moveTo with params if getElementRect returned empty object', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elem = await browser.$('#elem')
+        request.setMockResponse([{}, { x: 5, y: 10, height: 33, width: 44 }])
+        await elem.moveTo(5, 10)
+        expect(request.mock.calls[4][0].body.actions[0].actions[0])
+            .toEqual({ type: 'pointerMove', duration: 0, x: 10, y: 20 })
+    })
+
+    it('should do a moveTo with params if getElementRect and getBoundingClientRect returned empty object', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elem = await browser.$('#elem')
+        request.setMockResponse([{}, {}])
+        expect(elem.moveTo(5, 10)).rejects.toThrow('Failed to getElementRect')
+    })
+
     it('should do a moveTo without params (no-w3c)', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
