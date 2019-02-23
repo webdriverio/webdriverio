@@ -38,6 +38,14 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         sessionResponse.capabilities.deviceName = 'iNode'
     }
 
+    if (
+        params.body &&
+        params.body.capabilities &&
+        params.body.capabilities.alwaysMatch.chromeMode
+    ) {
+        sessionResponse.capabilities['goog:chromeOptions'] = {}
+    }
+
     switch (params.uri.path) {
     case '/wd/hub/session':
         value = sessionResponse

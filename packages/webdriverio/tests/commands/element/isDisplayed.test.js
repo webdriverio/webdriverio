@@ -47,4 +47,20 @@ describe('isDisplayed test', () => {
         expect(await elem.isDisplayed()).toBe(false)
         expect(request).toBeCalledTimes(2)
     })
+
+    it('should hit the api if chrome', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                chromeMode: true
+            }
+        })
+        elem = await browser.$('#foo')
+        request.mockClear()
+
+        expect(await elem.isDisplayed()).toBe(true)
+        expect(request).toBeCalledTimes(1)
+        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+    })
 })
