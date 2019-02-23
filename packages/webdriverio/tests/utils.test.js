@@ -334,6 +334,14 @@ describe('utils', () => {
     })
 
     describe('getElementFromResponse', () => {
+        it('should return null if response is null', () => {
+            expect(getElementFromResponse(null)).toBe(null)
+        })
+
+        it('should return null if response is undfined', () => {
+            expect(getElementFromResponse()).toBe(null)
+        })
+
         it('should find element from JSONWireProtocol response', () => {
             expect(getElementFromResponse({ ELEMENT: 'foobar' })).toBe('foobar')
         })

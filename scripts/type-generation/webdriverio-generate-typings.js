@@ -66,8 +66,14 @@ const templateContents = fs.readFileSync(templatePath, 'utf8')
 let typingsContents = templateContents.replace('// ... element commands ...', allElementCommands)
 typingsContents = typingsContents.replace('// ... browser commands ...', allBrowserCommands)
 
-const outputFile = path.join(__dirname, '..', '..', 'packages/webdriverio', 'webdriverio.d.ts')
-fs.writeFileSync(outputFile, typingsContents, { encoding: 'utf-8' })
+const outputFileWebdriverio = path.join(__dirname, '..', '..', 'packages/webdriverio', 'webdriverio-core.d.ts')
+fs.writeFileSync(outputFileWebdriverio, typingsContents, { encoding: 'utf-8' })
+
+const outputFileSync = path.join(__dirname, '..', '..', 'packages/wdio-sync', 'webdriverio-core.d.ts')
+fs.writeFileSync(outputFileSync, typingsContents, { encoding: 'utf-8' })
 
 // eslint-disable-next-line no-console
-console.log(`Generated typings file at ${outputFile}`)
+console.log(`Generated typings file at ${outputFileWebdriverio}`)
+
+// eslint-disable-next-line no-console
+console.log(`Generated typings file at ${outputFileSync}`)

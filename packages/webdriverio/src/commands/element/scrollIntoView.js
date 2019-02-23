@@ -17,7 +17,7 @@
  *
  */
 export default function scrollIntoView () {
-    return this.parent.execute(/* istanbul ignore next */(elem) => elem.scrollIntoView(), {
-        ELEMENT: this.elementId
-    })
+    return this.parent.execute(/* istanbul ignore next */function (elem) {
+        elem.scrollIntoView()
+    }, { ELEMENT: this.elementId })
 }
