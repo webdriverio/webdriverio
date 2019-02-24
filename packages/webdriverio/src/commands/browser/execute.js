@@ -1,3 +1,4 @@
+import { verifyArgsAndStripIfElement } from '../../utils'
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
@@ -52,5 +53,5 @@ export default function execute (...args) {
         script = `return (${script}).apply(null, arguments)`
     }
 
-    return this.executeScript(script, args)
+    return this.executeScript(script, verifyArgsAndStripIfElement(args))
 }

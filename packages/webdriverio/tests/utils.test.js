@@ -7,7 +7,8 @@ import {
     parseCSS,
     checkUnicode,
     findElement,
-    findElements
+    findElements,
+    verifyArgsAndStripIfElement
 } from '../src/utils'
 
 describe('utils', () => {
@@ -660,6 +661,23 @@ describe('utils', () => {
             await expect(findElements.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
             await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
             await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
+        })
+    })
+    describe('verifyArgsAndStripIfElement', () => {
+        it('returns the same value if it is not an element object', () => {
+            expect(verifyArgsAndStripIfElement([1, 2, 3])).toEqual([1, 2, 3])
+        })
+
+        it('strips down properties if value is element object', () => {
+            const fakeObj = {
+                elementId: 'foo-bar',
+                someProp: 123,
+                anotherProps: 'abc'
+            }
+
+            expect(verifyArgsAndStripIfElement([fakeObj])).toEqual([
+                { elementId: 'foo-bar' }
+            ])
         })
     })
 })

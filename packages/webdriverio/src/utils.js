@@ -370,3 +370,11 @@ export async function findElements(selector) {
 
     throw INVALID_SELECTOR_ERROR
 }
+
+/**
+ * Strip element object of all propeties except `elementId`
+ */
+
+export function verifyArgsAndStripIfElement(args) {
+    return args.map(a => a.elementId ? { elementId: a.elementId } : a)
+}
