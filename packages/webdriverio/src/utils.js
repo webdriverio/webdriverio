@@ -379,7 +379,7 @@ export function verifyArgsAndStripIfElement(args) {
     function verify(arg) {
         if (arg.constructor.name === 'Element') {
             if (!arg.elementId) {
-              throw new Error('property "elementId" missing')
+                throw new Error(`The element with selector "${arg.selector}" you trying to pass into the execute method wasn't found`)
             }
 
             return {
