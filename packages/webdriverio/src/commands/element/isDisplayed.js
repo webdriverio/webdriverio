@@ -55,7 +55,12 @@ export default async function isDisplayed() {
         this.elementId = (await this.parent.$(this.selector)).elementId
     }
 
-    if (!this.elementId) return false
+    /*
+     * if element was still not found it also is not displayed
+    */
+    if (!this.elementId) {
+        return false
+    }
 
     return browser.isChrome ?
         await this.isElementDisplayed(this.elementId)
