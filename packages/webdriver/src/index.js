@@ -16,7 +16,10 @@ import ChromiumProtocol from '../protocol/chromium.json'
 export default class WebDriver {
     static async newSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
-        logger.setLevel('webdriver', params.logLevel)
+
+        if (!options.logLevels || !options.logLevels['webdriver']) {
+            logger.setLevel('webdriver', params.logLevel)
+        }
 
         /**
          * the user could have passed in either w3c style or jsonwp style caps
