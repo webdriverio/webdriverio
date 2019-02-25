@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-const log = logger('wdio-config')
+const log = logger('@wdio/config')
 const NOOP = () => {}
 
 export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args) {

@@ -7,7 +7,7 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP } from './constants'
 
-const log = logger('wdio-mocha-framework')
+const log = logger('@wdio/mocha-framework')
 
 /**
 * Extracts the mocha UI type following this convention:

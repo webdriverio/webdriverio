@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 import RunnerTransformStream from './transformStream'
 import WDIORepl from './repl'
 
-const log = logger('wdio-local-runner')
+const log = logger('@wdio/local-runner')
 
 /**
  * WorkerInstance

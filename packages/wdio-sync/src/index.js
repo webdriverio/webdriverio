@@ -8,7 +8,7 @@ import wrapCommand from './wrapCommand'
 import { STACKTRACE_FILTER_FN } from './constants'
 import { filterSpecArgs } from './utils'
 
-const log = logger('wdio-sync')
+const log = logger('@wdio/sync')
 
 /**
  * execute test or hook synchronously

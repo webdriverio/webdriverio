@@ -8,7 +8,7 @@ import findNodeModules from 'find-node-modules'
 import logger from '@wdio/logger'
 import { DEFAULT_CONFIG } from './constants'
 
-const log = logger('wdio-lambda-runner')
+const log = logger('@wdio/lambda-runner')
 
 export default class AWSLambdaRunner extends EventEmitter {
     constructor (configFile, config, capabilities, specs) {

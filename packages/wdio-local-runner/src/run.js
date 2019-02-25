@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 
 import { SHUTDOWN_TIMEOUT } from './constants'
 
-const log = logger('wdio-local-runner')
+const log = logger('@wdio/local-runner')
 
 const runner = new Runner()
 runner.on('exit', ::process.exit)

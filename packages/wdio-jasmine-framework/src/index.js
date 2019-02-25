@@ -10,7 +10,7 @@ const INTERFACES = {
 const NOOP = function noop () {}
 const DEFAULT_TIMEOUT_INTERVAL = 60000
 
-const log = logger('wdio-jasmine-framework')
+const log = logger('@wdio/jasmine-framework')
 
 /**
  * Jasmine 2.x runner

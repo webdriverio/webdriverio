@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import WorkerInstance from './worker'
 import { SHUTDOWN_TIMEOUT } from './constants'
 
-const log = logger('wdio-local-runner')
+const log = logger('@wdio/local-runner')
 
 export default class LocalRunner {
     constructor (configFile, config) {

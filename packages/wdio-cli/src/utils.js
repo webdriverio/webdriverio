@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-const log = logger('wdio-cli:utils')
+const log = logger('@wdio/cli:utils')
 
 /**
  * run service launch sequences

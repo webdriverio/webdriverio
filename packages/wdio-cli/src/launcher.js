@@ -8,7 +8,7 @@ import { initialisePlugin, initialiseServices } from '@wdio/utils'
 import CLInterface from './interface'
 import { runServiceHook } from './utils'
 
-const log = logger('wdio-cli:Launcher')
+const log = logger('@wdio/cli:Launcher')
 
 class Launcher {
     constructor (configFile, argv) {

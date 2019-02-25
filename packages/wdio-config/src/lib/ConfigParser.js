@@ -9,7 +9,7 @@ import { detectBackend } from '../utils'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
 
-const log = logger('wdio-config:ConfigParser')
+const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
 export default class ConfigParser {

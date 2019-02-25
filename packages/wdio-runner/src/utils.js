@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 
-const log = logger('wdio-local-runner:utils')
+const log = logger('@wdio/local-runner:utils')
 
 const MERGE_OPTIONS = { clone: false }
 
