@@ -667,7 +667,7 @@ describe('utils', () => {
         class Element {
             constructor({ elementId, ...otherProps }) {
                 this.elementId = elementId
-                Object.keys(otherProps).forEach(key => this[key] = otherProps[key]);
+                Object.keys(otherProps).forEach(key => this[key] = otherProps[key])
             }
         }
 
@@ -705,10 +705,11 @@ describe('utils', () => {
         it('throws error if element object is missing element id', () => {
             const fakeObj = new Element({
                 someProp: 123,
-                anotherProp: 'abc'
+                anotherProp: 'abc',
+                selector: 'div'
             })
 
-            expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('property "elementId" missing')
+            expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('The element with selector "div" you trying to pass into the execute method wasn\'t found')
         })
     })
 })
