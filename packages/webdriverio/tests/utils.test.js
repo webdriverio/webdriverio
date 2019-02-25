@@ -664,20 +664,51 @@ describe('utils', () => {
         })
     })
     describe('verifyArgsAndStripIfElement', () => {
+        class Element {
+            constructor({ elementId, ...otherProps }) {
+                this.elementId = elementId
+                Object.keys(otherProps).forEach(key => this[key] = otherProps[key]);
+            }
+        }
+
         it('returns the same value if it is not an element object', () => {
             expect(verifyArgsAndStripIfElement([1, 2, 3])).toEqual([1, 2, 3])
         })
 
         it('strips down properties if value is element object', () => {
-            const fakeObj = {
+            const fakeObj = new Element({ 
                 elementId: 'foo-bar',
                 someProp: 123,
-                anotherProps: 'abc'
-            }
+                anotherProp: 'abc'
+            })
 
-            expect(verifyArgsAndStripIfElement([fakeObj])).toEqual([
-                { elementId: 'foo-bar' }
+            expect(verifyArgsAndStripIfElement([fakeObj, 'abc', 123])).toMatchObject([
+                { [ELEMENT_KEY]: 'foo-bar', ELEMENT: 'foo-bar' },
+                'abc',
+                123
             ])
+        })
+
+        it('should work even if parameter is not of type Array', () => {
+            const fakeObj = new Element({ 
+                elementId: 'foo-bar',
+                someProp: 123,
+                anotherProp: 'abc'
+            })
+
+            expect(verifyArgsAndStripIfElement(fakeObj)).toMatchObject(
+                { [ELEMENT_KEY]: 'foo-bar', ELEMENT: 'foo-bar' }
+            )
+            expect(verifyArgsAndStripIfElement('foo')).toEqual('foo')
+        })
+
+        it('throws error if element object is missing element id', () => {
+            const fakeObj = new Element({
+                someProp: 123,
+                anotherProp: 'abc'
+            })
+
+            expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('property "elementId" missing')
         })
     })
 })

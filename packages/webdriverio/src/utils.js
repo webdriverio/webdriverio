@@ -372,9 +372,24 @@ export async function findElements(selector) {
 }
 
 /**
- * Strip element object of all propeties except `elementId`
+ * Strip element object and return w3c and jsonwp compatible keys
  */
 
 export function verifyArgsAndStripIfElement(args) {
-    return args.map(a => a.elementId ? { elementId: a.elementId } : a)
+    function verify(arg) {
+        if (arg.constructor.name === 'Element') {
+            if (!arg.elementId) {
+              throw new Error('property "elementId" missing')
+            }
+
+            return {
+                [ELEMENT_KEY]: arg.elementId,
+                ELEMENT: arg.elementId
+            }
+        }
+
+        return arg
+    }
+
+    return !Array.isArray(args) ? verify(args) : args.map(verify)
 }
