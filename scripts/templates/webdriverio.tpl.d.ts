@@ -153,7 +153,7 @@ declare namespace WebdriverIO {
         addCommand(
             name: string,
             func: Function
-        ): undefined;
+        ): void;
         // ... element commands ...
     }
 
@@ -171,7 +171,7 @@ declare namespace WebdriverIO {
             name: string,
             func: Function,
             attachToElement?: boolean
-        ): undefined;
+        ): void;
         execute: Execute;
         executeAsync: ExecuteAsync;
         call: Call;
@@ -181,7 +181,7 @@ declare namespace WebdriverIO {
             timeout?: number,
             timeoutMsg?: string,
             interval?: number
-        ): undefined
+        ): void
         // ... browser commands ...
     }
 

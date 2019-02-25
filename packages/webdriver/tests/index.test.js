@@ -1,4 +1,5 @@
 import request from 'request'
+import logger from '@wdio/logger'
 
 import WebDriver from '../src'
 
@@ -37,6 +38,27 @@ test('should allow to create a new session using w3c compliant caps', async () =
         },
         desiredCapabilities: { browserName: 'firefox' }
     })
+})
+
+test('should be possible to skip setting logLevel', async () => {
+    logger.setLevel.mockClear()
+    await WebDriver.newSession({
+        capabilities: { browserName: 'chrome' },
+        logLevel: 'info',
+        logLevels: { webdriver: 'silent' }
+    })
+    
+    expect(logger.setLevel).not.toBeCalled()
+})
+
+test('should be possible to set logLevel', async () => {
+    logger.setLevel.mockClear()
+    await WebDriver.newSession({
+        capabilities: { browserName: 'chrome' },
+        logLevel: 'info'
+    })
+    
+    expect(logger.setLevel).toBeCalled()
 })
 
 test('should allow to attach to existing session', async () => {

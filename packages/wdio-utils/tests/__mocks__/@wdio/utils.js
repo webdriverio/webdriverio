@@ -20,6 +20,14 @@ const pluginMocks = {
     },
     runner: {
         local: RunnerMock
+    },
+    framework: {
+        testNoFailures: {
+            run() { return 0 }
+        },
+        testThrows: {
+            run() { throw new Error('framework testThrows failed') }
+        }
     }
 }
 

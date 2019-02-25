@@ -105,7 +105,11 @@ exports.config = {
         "moz:firefoxOptions": {
           // flag to activate Firefox headless mode (see https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
           // args: ['-headless']
-        }
+        },
+        // If outputDir is provided WebdriverIO can capture driver session logs
+        // it is possible to configure which logTypes to exclude.
+        // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
+        excludeDriverLogs: ['bugreport', 'server'],
     }],
     //
     // Additional list of node arguments to use when starting child processes
@@ -118,6 +122,16 @@ exports.config = {
     //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevel: 'info',
+    //
+    // Set specific log levels per logger
+    // use 'silent' level to disable logger
+    logLevels: {
+        webdriver: 'info',
+        'wdio-applitools-service': 'info'
+    },
+    //
+    // Set directory to store all logs into
+    outputDir: __dirname,
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).

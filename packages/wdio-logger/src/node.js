@@ -41,6 +41,7 @@ const SERIALIZERS = [{
 }]
 
 const loggers = {}
+let logLevelsConfig = {}
 const logCache = new Set()
 let logFile
 
@@ -86,7 +87,7 @@ prefix.apply(log, {
     template: '%t %l %n:',
     timestampFormatter: (date) => chalk.gray(date.toISOString()),
     levelFormatter: (level) => chalk[COLORS[level]](level.toUpperCase()),
-    nameFormatter: (name) => chalk.whiteBright(name || 'global')
+    nameFormatter: (name) => chalk.whiteBright(name)
 })
 
 export default function getLogger (name) {
@@ -97,9 +98,28 @@ export default function getLogger (name) {
         return loggers[name]
     }
 
+    let logLevel = process.env.WDIO_LOG_LEVEL || DEFAULT_LEVEL
+    const logLevelName = getLogLevelName(name)
+    if (logLevelsConfig[logLevelName]) {
+        logLevel = logLevelsConfig[logLevelName]
+    }
+
     loggers[name] = log.getLogger(name)
-    loggers[name].setLevel(process.env.WDIO_LOG_LEVEL || DEFAULT_LEVEL)
+    loggers[name].setLevel(logLevel)
     return loggers[name]
 }
 
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
+getLogger.setLogLevelsConfig = (logLevels = {}) => {
+    logLevelsConfig = {}
+    Object.keys(logLevels).forEach(loggerName => {
+        const logLevelName = getLogLevelName(loggerName)
+
+        logLevelsConfig[logLevelName] = logLevels[loggerName]
+
+        if (loggers[loggerName]) {
+            loggers[loggerName].setLevel(logLevelsConfig[logLevelName])
+        }
+    })
+}
+const getLogLevelName = (logName) => logName.split(':').shift()
