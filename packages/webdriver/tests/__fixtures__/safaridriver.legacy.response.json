@@ -1,0 +1,20 @@
+{
+  "status": 0,
+  "sessionId": "22AFB3C2-6E4D-419B-8509-49F72F9CDCC0",
+  "value": {
+    "version": "13606.4.5.3.1",
+    "rotatable": false,
+    "applicationCacheEnabled": true,
+    "databaseEnabled": true,
+    "handlesAlerts": true,
+    "cleanSession": true,
+    "browserName": "safari",
+    "javascriptEnabled": true,
+    "locationContextEnabled": false,
+    "platform": "macOS",
+    "webStorageEnabled": true,
+    "cssSelectorsEnabled": true,
+    "nativeEvents": true,
+    "platformName": "macOS"
+  }
+}
