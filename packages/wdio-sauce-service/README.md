@@ -29,7 +29,7 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 In order to use the service for the virtual machine and em/simulator cloud you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically
 use Sauce Labs to run your integration tests. If you want to use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
-you just need to set `sauceConnect: true`.
+you just need to set `sauceConnect: true`. If you would like to change data center to EU add `region:'eu'` as US data center is set as default (region only works on ^4.14.1 or ^5.0.0).
 
 ```js
 // wdio.conf.js
@@ -38,6 +38,7 @@ export.config = {
   services: ['sauce'],
   user: process.env.SAUCE_USERNAME,
   key: process.env.SAUCE_ACCESS_KEY,
+  region: 'us',
   sauceConnect: true,
   // ...
 };
@@ -80,6 +81,14 @@ If true it runs Sauce Connect and opens a secure connection between a Sauce Labs
 
 Type: `Boolean`<br>
 Default: `false`
+
+*(only for vm and or em/simulators)*
+
+### region
+Currently there is 2 Sauce Labs regions to choose: US and EU. To change your region to EU add `region:'eu'` to Sauce Labs config.
+
+Type: `String`<br>
+Default: `us`
 
 *(only for vm and or em/simulators)*
 
