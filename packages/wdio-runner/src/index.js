@@ -10,7 +10,7 @@ import { ConfigParser } from '@wdio/config'
 import BaseReporter from './reporter'
 import { runHook, initialiseInstance, filterLogTypes } from './utils'
 
-const log = logger('wdio-runner')
+const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
     constructor () {
