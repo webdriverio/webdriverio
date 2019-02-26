@@ -21,4 +21,3 @@ export function getResultFiles (resultsDir, patterns) {
 export function clean (resultsDir) {
     return del(resultsDir, {force: true})
 }
-

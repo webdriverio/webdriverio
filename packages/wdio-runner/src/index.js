@@ -174,6 +174,7 @@ export default class Runner extends EventEmitter {
         /**
          * register command event
          */
+        // console.log(this)
         browser.on('command', (command) => this.reporter.emit(
             'client:beforeCommand',
             Object.assign(command, { sessionId: browser.sessionId })
