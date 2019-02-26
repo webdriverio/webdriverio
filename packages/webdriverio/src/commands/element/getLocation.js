@@ -25,11 +25,14 @@
  * @uses protocol/elementIdLocation
  * @type property
  */
+
+import { getElementRect } from '../../utils'
+
 export default async function getLocation (prop) {
     let location = {}
 
     if (this.isW3C) {
-        location = await this.getElementRect(this.elementId)
+        location = await getElementRect(this)
         delete location.width
         delete location.height
     } else {
