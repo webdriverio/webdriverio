@@ -85,7 +85,7 @@ Default: `false`
 *(only for vm and or em/simulators)*
 
 ### region
-Currently there is 2 Sauce Labs regions to choose: US and EU. To change your region to EU add `region:eu` to Sauce Labs config.
+Currently there is 2 Sauce Labs regions to choose: US and EU. To change your region to EU add `region:'eu'` to Sauce Labs config.
 
 Type: `String`<br>
 Default: `us`
