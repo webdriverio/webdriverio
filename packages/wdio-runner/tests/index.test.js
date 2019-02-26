@@ -211,6 +211,105 @@ describe('wdio-runner', () => {
             expect(failures).toBe(1)
             expect(runner.emit.mock.calls[0]).toEqual([ 'error', new Error('framework testThrows failed') ])
         })
+
+        it('should return if sigintWasCalled', async () => {
+            const runner = new WDIORunner()
+            const caps = { browserName: '123' }
+            const specs = ['foobar']
+            const config = {
+                framework: 'testThrows',
+                reporters: [],
+                beforeSession: []
+            }
+            runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner._shutdown = jest.fn()
+            runner.endSession = jest.fn()
+            runner._initSession = jest.fn().mockReturnValue({})
+            runner.sigintWasCalled = true
+            await runner.run({
+                argv: { reporters: [] },
+                cid: '0-0',
+                caps,
+                specs
+            })
+
+            expect(runner.endSession).toBeCalledTimes(1)
+            expect(runner._shutdown).toBeCalledWith(0)
+        })
+    })
+
+    describe('_initSession', () => {
+        it('should register browser to global scope', async () => {
+            const runner = new WDIORunner()
+            const browser = await runner._initSession(
+                { hostname: 'foobar' },
+                [{ browserName: 'chrome' }]
+            )
+
+            expect(browser).toBe(global.browser)
+            expect(typeof $).toBe('function')
+            expect(typeof $$).toBe('function')
+
+            expect(browser.$).toBeCalledTimes(0)
+            expect(browser.$$).toBeCalledTimes(0)
+            /* eslint-disable-next-line */
+            $('foobar')
+            /* eslint-disable-next-line */
+            $$('barfoo')
+            expect(browser.$).toBeCalledTimes(1)
+            expect(browser.$$).toBeCalledTimes(1)
+        })
+
+        it('should register before and after command listener', async () => {
+            const reporter = { emit: jest.fn() }
+            const runner = new WDIORunner()
+
+            runner.reporter = reporter
+            const browser = await runner._initSession(
+                { hostname: 'foobar' },
+                [{ browserName: 'chrome' }]
+            )
+
+            const beforeListener = browser.on.mock.calls[0]
+            expect(beforeListener[0]).toBe('command')
+            beforeListener[1]({ foo: 'bar' })
+            expect(reporter.emit).toBeCalledWith(
+                'client:beforeCommand',
+                { foo: 'bar', sessionId: 'fakeid' })
+
+            reporter.emit.mockClear()
+
+            const afterListener = browser.on.mock.calls[1]
+            expect(afterListener[0]).toBe('result')
+            afterListener[1]({ bar: 'foo' })
+            expect(reporter.emit).toBeCalledWith(
+                'client:afterCommand',
+                { bar: 'foo', sessionId: 'fakeid' })
+        })
+
+        it('should return null if initiating session fails', async () => {
+            global.throwRemoteCall = true
+            const runner = new WDIORunner()
+            runner.emit = jest.fn()
+            const browser = await runner._initSession(
+                { hostname: 'foobar' },
+                [{ browserName: 'chrome' }]
+            )
+
+            expect(browser).toBe(null)
+            expect(runner.emit).toBeCalledWith('error', new Error('boom'))
+        })
+
+        afterEach(() => {
+            global.throwRemoteCall = undefined
+
+            if (global.browser) {
+                global.browser.on.mockClear()
+                global.browser = undefined
+                global.$ = undefined
+                global.$$ = undefined
+            }
+        })
     })
 
     describe('_shutdown', () => {
