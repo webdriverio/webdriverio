@@ -370,3 +370,26 @@ export async function findElements(selector) {
 
     throw INVALID_SELECTOR_ERROR
 }
+
+/**
+ * Strip element object and return w3c and jsonwp compatible keys
+ */
+
+export function verifyArgsAndStripIfElement(args) {
+    function verify(arg) {
+        if (arg.constructor.name === 'Element') {
+            if (!arg.elementId) {
+                throw new Error(`The element with selector "${arg.selector}" you trying to pass into the execute method wasn't found`)
+            }
+
+            return {
+                [ELEMENT_KEY]: arg.elementId,
+                ELEMENT: arg.elementId
+            }
+        }
+
+        return arg
+    }
+
+    return !Array.isArray(args) ? verify(args) : args.map(verify)
+}
