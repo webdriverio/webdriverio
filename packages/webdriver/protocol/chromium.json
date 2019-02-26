@@ -271,7 +271,7 @@
   },
   "/session/:sessionId/file": {
     "POST": {
-      "command": "uploadFile",
+      "command": "file",
       "description": "Upload a file to remote machine on which the browser is running.",
       "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L1037-L1065",
       "parameters": [{
