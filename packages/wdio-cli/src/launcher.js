@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
@@ -24,6 +25,13 @@ class Launcher {
         const specs = this.configParser.getSpecs()
 
         if (config.outputDir) {
+            /**
+             * Create the outputDir if doesn't exist
+             */
+            if (!fs.existsSync(path.join(config.outputDir))) {
+                log.info('Creating ' + config.outputDir + ' directory')
+                fs.mkdirSync(path.join(config.outputDir))
+            }
             process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
         }
 
