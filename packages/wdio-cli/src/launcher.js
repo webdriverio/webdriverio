@@ -96,16 +96,6 @@ class Launcher {
      */
     runMode (config, caps) {
         /**
-         * if it is an object run multiremote test
-         */
-        if (this.isMultiremote) {
-            return new Promise((resolve) => {
-                this.resolve = resolve
-                this.startInstance(this.configParser.getSpecs(), caps, 0)
-            })
-        }
-
-        /**
          * fail if no caps were found
          */
         if (!caps || !caps.length) {
@@ -113,6 +103,16 @@ class Launcher {
                 log.error('Missing capabilities, exiting with failure')
                 this.interface.updateView()
                 return resolve(1)
+            })
+        }
+
+        /**
+         * if it is an object run multiremote test
+         */
+        if (this.isMultiremote) {
+            return new Promise((resolve) => {
+                this.resolve = resolve
+                this.startInstance(this.configParser.getSpecs(), caps, 0)
             })
         }
 
