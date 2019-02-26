@@ -7,7 +7,7 @@
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 type ArgumentTypes<T> = T extends (...args: infer U) => infer R ? U : never;
-type WrapWithPromise<T> = (...args: ArgumentTypes<T>) => Promise<T>;
+type WrapWithPromise<T, R> = (...args: ArgumentTypes<T>) => Promise<R>;
 
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
@@ -254,7 +254,7 @@ declare namespace WebDriver {
 }
 
 type AsyncClient = {
-    [K in keyof WebDriver.Client]: WrapWithPromise<WebDriver.Client[K]>
+    [K in keyof WebDriver.Client]: WrapWithPromise<WebDriver.Client[K], ReturnType<WebDriver.Client[K]>>
 }
 
 declare module "webdriver" {

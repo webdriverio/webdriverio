@@ -7,7 +7,7 @@ type ElementPromise = Omit<WebdriverIO.Element, 'addCommand'>;
 
 // Element commands wrapper with Promise
 type ElementAsync = {
-    [K in keyof ElementPromise]: WrapWithPromise<WebdriverIO.Element[K]>
+    [K in keyof ElementPromise]: WrapWithPromise<ElementPromise[K], ReturnType<ElementPromise[K]>>
 }
 // Element commands that should not be wrapper with promise
 type ElementStatic = Pick<WebdriverIO.Element, 'addCommand'>
@@ -17,7 +17,7 @@ type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'options'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
-    [K in keyof BrowserPromise]: WrapWithPromise<WebdriverIO.Browser[K]>
+    [K in keyof BrowserPromise]: WrapWithPromise<BrowserPromise[K], ReturnType<BrowserPromise[K]>>
 }
 
 // Browser commands that should not be wrapper with promise
