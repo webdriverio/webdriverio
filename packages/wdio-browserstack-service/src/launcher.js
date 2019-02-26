@@ -1,7 +1,7 @@
 import BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 
-const log = logger('wdio-browserstack-service')
+const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackLauncherService {
     onPrepare(config, capabilities) {

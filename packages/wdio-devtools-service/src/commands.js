@@ -8,7 +8,7 @@ import NetworkHandler from './handler/network'
 import { DEFAULT_TRACING_CATEGORIES } from './constants'
 import { readIOStream, sumByKey } from './utils'
 
-const log = logger('wdio-devtools-service:CommandHandler')
+const log = logger('@wdio/devtools-service:CommandHandler')
 
 export default class CommandHandler {
     constructor (client, browser) {

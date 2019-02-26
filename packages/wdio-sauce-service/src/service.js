@@ -6,7 +6,7 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
 const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
 
-const log = logger('wdio-sauce-service')
+const log = logger('@wdio/sauce-service')
 
 export default class SauceService {
     constructor (config) {

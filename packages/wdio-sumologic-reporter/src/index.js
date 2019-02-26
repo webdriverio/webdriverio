@@ -5,7 +5,7 @@ import stringify from 'json-stringify-safe'
 import WDIOReporter from '@wdio/reporter'
 import logger from '@wdio/logger'
 
-const log = logger('wdio-sumologic-reporter')
+const log = logger('@wdio/sumologic-reporter')
 
 const MAX_LINES = 100
 const DATE_FORMAT = 'yyyy-mm-dd HH:mm:ss,l o'

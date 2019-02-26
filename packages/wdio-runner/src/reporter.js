@@ -2,7 +2,7 @@ import path from 'path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
 
-const log = logger('wdio-runner')
+const log = logger('@wdio/runner')
 
 const NOOP = () => {}
 const DEFAULT_SYNC_TIMEOUT = 5000 // 5s
