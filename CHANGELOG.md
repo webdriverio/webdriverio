@@ -15,6 +15,62 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.6.3 (2019-02-27)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3630](https://github.com/webdriverio/webdriverio/pull/3630) webdriver: fix setNetworkConnection ([@mgrybyk](https://github.com/mgrybyk))
+  * [#3615](https://github.com/webdriverio/webdriverio/pull/3615) Assume JsonWP if platform cap is given ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-devtools-service`, `wdio-logger`, `wdio-runner`, `wdio-utils`, `webdriver`
+  * [#3467](https://github.com/webdriverio/webdriverio/pull/3467) set logLevel per logger and disable driver logger ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3610](https://github.com/webdriverio/webdriverio/pull/3610) webdriverio: workaround for Safari to moveTo, getLocation, dragAndDrop, getSize ([@mgrybyk](https://github.com/mgrybyk))
+  * [#3606](https://github.com/webdriverio/webdriverio/pull/3606) webdriverio: fix appium getvalue ([@mgrybyk](https://github.com/mgrybyk))
+  * [#3624](https://github.com/webdriverio/webdriverio/pull/3624) webdriverio: fix scrollIntoView ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-devtools-service`, `wdio-jasmine-framework`, `wdio-lambda-runner`, `wdio-local-runner`, `wdio-mocha-framework`, `wdio-runner`, `wdio-sauce-service`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-utils`
+  * [#3619](https://github.com/webdriverio/webdriverio/pull/3619) Rename logger component name to match NPM package name ([@baruchvlz](https://github.com/baruchvlz))
+* `wdio-cli`
+  * [#3598](https://github.com/webdriverio/webdriverio/pull/3598) Add check for caps, add tests ([@erwinheitzman](https://github.com/erwinheitzman))
+* `webdriverio`
+  * [#3612](https://github.com/webdriverio/webdriverio/pull/3612) Strip Element objects from execute and executeAsync arguments ([@baruchvlz](https://github.com/baruchvlz))
+
+#### :memo: Documentation
+* Other
+  * [#3635](https://github.com/webdriverio/webdriverio/pull/3635) website: shadow dom blog post ([@jrobinson01](https://github.com/jrobinson01))
+  * [#3636](https://github.com/webdriverio/webdriverio/pull/3636) Update code sample at Selectors.md ([@shinxi](https://github.com/shinxi))
+  * [#3609](https://github.com/webdriverio/webdriverio/pull/3609) Add Docker setup boilerplate. ([@blueimp](https://github.com/blueimp))
+  * [#3595](https://github.com/webdriverio/webdriverio/pull/3595) add return type void for Browser and Element commands ([@CrispusDH](https://github.com/CrispusDH))
+* `wdio-selenium-standalone-service`
+  * [#3633](https://github.com/webdriverio/webdriverio/pull/3633) selenium-standalone-service: Fix typings after new sync/async type split ([@ablok](https://github.com/ablok))
+* `wdio-sauce-service`
+  * [#3628](https://github.com/webdriverio/webdriverio/pull/3628) Update README.md with Sauce Labs region parameter ([@kimek](https://github.com/kimek))
+* `webdriverio`
+  * [#3618](https://github.com/webdriverio/webdriverio/pull/3618) typings: fix promise return type ([@mgrybyk](https://github.com/mgrybyk))
+  * [#3622](https://github.com/webdriverio/webdriverio/pull/3622) webdriverio: 📝 Correct isDisplayedInViewport docs ([@leeandher](https://github.com/leeandher))
+
+#### :house: Internal
+* `wdio-allure-reporter`, `wdio-cli`, `wdio-runner`, `webdriverio`
+  * [#3629](https://github.com/webdriverio/webdriverio/pull/3629) Increase test coverage ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 11
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- John Robinson ([@jrobinson01](https://github.com/jrobinson01))
+- Jonathan Xi ([@shinxi](https://github.com/shinxi))
+- Kimek ([@kimek](https://github.com/kimek))
+- Leander Rodrigues ([@leeandher](https://github.com/leeandher))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+- Sebastian Tschan ([@blueimp](https://github.com/blueimp))
+
 ## 5.6.2 (2019-02-22)
 
 #### :bug: Bug Fix
