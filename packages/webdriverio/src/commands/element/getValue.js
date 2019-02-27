@@ -23,7 +23,8 @@
  */
 
 export default function getValue () {
-    if (this.isW3C) {
+    // `!this.isMobile` added to workaround https://github.com/appium/appium/issues/12218
+    if (this.isW3C && !this.isMobile) {
         return this.getElementProperty(this.elementId, 'value')
     }
 

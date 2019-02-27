@@ -10,7 +10,7 @@ import { ConfigParser } from '@wdio/config'
 import BaseReporter from './reporter'
 import { runHook, initialiseInstance, filterLogTypes } from './utils'
 
-const log = logger('wdio-runner')
+const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
     constructor () {
@@ -174,6 +174,7 @@ export default class Runner extends EventEmitter {
         /**
          * register command event
          */
+        // console.log(this)
         browser.on('command', (command) => this.reporter.emit(
             'client:beforeCommand',
             Object.assign(command, { sessionId: browser.sessionId })

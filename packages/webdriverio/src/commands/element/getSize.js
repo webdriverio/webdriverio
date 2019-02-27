@@ -27,11 +27,13 @@
  *
  */
 
+import { getElementRect } from '../../utils'
+
 export default async function getSize(prop = null) {
     let rect = {}
 
     if (this.isW3C) {
-        rect = await this.getElementRect(this.elementId)
+        rect = await getElementRect(this)
     } else {
         rect = await this.getElementSize(this.elementId)
     }

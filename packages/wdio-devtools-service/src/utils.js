@@ -3,7 +3,7 @@ import path from 'path'
 import CDP from 'chrome-remote-interface'
 import logger from '@wdio/logger'
 
-const log = logger('wdio-devtools-service:utils')
+const log = logger('@wdio/devtools-service:utils')
 
 const RE_DEVTOOLS_DEBUGGING_PORT_SWITCH = /--remote-debugging-port=(\d*)/
 const RE_USER_DATA_DIR_SWITCH = /--user-data-dir=([^-]*)/

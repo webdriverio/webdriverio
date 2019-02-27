@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 
 import initialisePlugin from './initialisePlugin'
 
-const log = logger('wdio-utils:initialiseServices')
+const log = logger('@wdio/utils:initialiseServices')
 
 /**
  * initialise services based on configuration

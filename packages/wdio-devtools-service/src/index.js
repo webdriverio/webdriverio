@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import CommandHandler from './commands'
 import { findCDPInterface, getCDPClient } from './utils'
 
-const log = logger('wdio-devtools-service')
+const log = logger('@wdio/devtools-service')
 const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up'
 
 export default class DevToolsService {

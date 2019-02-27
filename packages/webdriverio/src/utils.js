@@ -3,9 +3,11 @@ import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
+import logger from '@wdio/logger'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
+const log = logger('webdriverio')
 const DEFAULT_SELECTOR = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
@@ -369,4 +371,69 @@ export async function findElements(selector) {
     }
 
     throw INVALID_SELECTOR_ERROR
+}
+
+/**
+ * Strip element object and return w3c and jsonwp compatible keys
+ */
+
+export function verifyArgsAndStripIfElement(args) {
+    function verify(arg) {
+        if (arg.constructor.name === 'Element') {
+            if (!arg.elementId) {
+                throw new Error(`The element with selector "${arg.selector}" you trying to pass into the execute method wasn't found`)
+            }
+
+            return {
+                [ELEMENT_KEY]: arg.elementId,
+                ELEMENT: arg.elementId
+            }
+        }
+
+        return arg
+    }
+
+    return !Array.isArray(args) ? verify(args) : args.map(verify)
+}
+
+/**
+ * getElementRect
+ */
+export async function getElementRect(scope) {
+    const rect = await scope.getElementRect(scope.elementId)
+
+    let defaults = { x: 0, y: 0, width: 0, height: 0 }
+
+    /**
+     * getElementRect workaround for Safari 12.0.3
+     * if one of [x, y, height, width] is undefined get rect with javascript
+     */
+    if (Object.keys(defaults).some(key => rect[key] == null)) {
+        /* istanbul ignore next */
+        const rectJs = await getBrowserObject(scope).execute(function (el) {
+            if (!el || !el.getBoundingClientRect) {
+                return
+            }
+            const { left, top, width, height } = el.getBoundingClientRect()
+            return {
+                x: left + this.scrollX,
+                y: top + this.scrollY,
+                width,
+                height
+            }
+        }, scope)
+
+        // try set proper value
+        Object.keys(defaults).forEach(key => {
+            if (rect[key] == null && typeof rectJs[key] === 'number') {
+                rect[key] = Math.floor(rectJs[key])
+            } else {
+                log.error('getElementRect', rect)
+                log.error('getBoundingClientRect', rectJs)
+                throw new Error('Failed to receive element rects via execute command')
+            }
+        })
+    }
+
+    return rect
 }

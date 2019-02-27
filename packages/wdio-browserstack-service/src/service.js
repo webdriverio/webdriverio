@@ -3,7 +3,7 @@ import request from 'request'
 
 import { BROWSER_DESCRIPTION } from './constants'
 
-const log = logger('wdio-browserstack-service')
+const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
     constructor (config) {

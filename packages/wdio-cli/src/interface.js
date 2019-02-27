@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 
 import { getRunnerName } from './utils'
 
-const log = logger('wdio-cli')
+const log = logger('@wdio/cli')
 
 const clockSpinner = cliSpinners['clock']
 const MAX_RUNNING_JOBS_DISPLAY_COUNT = 10

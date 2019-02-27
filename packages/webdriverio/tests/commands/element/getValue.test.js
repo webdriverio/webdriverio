@@ -33,4 +33,18 @@ describe('getValue', () => {
         await elem.getValue()
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/value')
     })
+
+    it('should get value in mobile mode', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        await elem.getValue()
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/value')
+    })
 })

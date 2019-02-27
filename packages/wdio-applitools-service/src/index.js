@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import { Eyes, Target } from '@wdio/eyes.webdriverio'
 
-const log = logger('wdio-applitools-service')
+const log = logger('@wdio/applitools-service')
 
 const DEFAULT_VIEWPORT = {
     width: 1440,
