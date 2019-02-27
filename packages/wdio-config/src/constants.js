@@ -59,6 +59,7 @@ export const DEFAULT_CONFIGS = {
     after: [],
     onComplete: NOOP,
     onReload: [],
+    onTestFramework: NOOP,
 
     /**
      * cucumber specific hooks
@@ -75,7 +76,7 @@ export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterFeature',
-    'afterScenario', 'afterStep', 'onReload'
+    'afterScenario', 'afterStep', 'onReload', 'onTestFramework'
     // the following hooks are excluded since they are part of the launcher
     // 'onPrepare', 'onComplete'
 ]

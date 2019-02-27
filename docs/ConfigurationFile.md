@@ -336,6 +336,12 @@ exports.config = {
     onReload: function(oldSessionId, newSessionId) {
     },
     /**
+    * Gets executed once test framework (mocha, jasmine) has been initialised.
+    * At this moment global objects like `describe` or `it` are available.
+    */
+    onTestFramework: function() {
+    },
+    /**
      * Cucumber specific hooks
      */
     beforeFeature: function (feature) {

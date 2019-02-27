@@ -80,6 +80,11 @@ class JasmineAdapter {
         ))
 
         /**
+         * framework global object are available and wrapped with Fiber
+         */
+        this.config.onTestFramework()
+
+        /**
          * for a clean stdout we need to avoid that Jasmine initialises the
          * default reporter
          */

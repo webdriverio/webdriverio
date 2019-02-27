@@ -97,7 +97,7 @@ test('preRequire', () => {
     const mochaOpts = { foo: 'bar', ui: 'tdd' }
     const adapter = new MochaAdapter(
         '0-2',
-        { mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123' },
+        { mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', onTestFramework() {} },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
@@ -114,7 +114,7 @@ test('custom ui', () => {
     const mochaOpts = { ui: 'custom-qunit' }
     const adapter = new MochaAdapter(
         '0-2',
-        { mochaOpts },
+        { mochaOpts, onTestFramework() {} },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter

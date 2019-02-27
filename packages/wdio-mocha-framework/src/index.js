@@ -108,6 +108,11 @@ class MochaAdapter {
                 fnName
             )
         })
+
+        /**
+         * framework global object are available and wrapped with Fiber
+         */
+        this.config.onTestFramework()
     }
 
     /**
