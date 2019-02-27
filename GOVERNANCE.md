@@ -8,6 +8,7 @@ The project is officially led by a Technical Committee (TC), currently consistin
 
 * [@abjerstedt](https://github.com/abjerstedt)
 * [@bromann](https://github.com/christian-bromann)
+* [@willbrock](https://github.com/willbrock)
 
 They all represent different companies and different types of contribution to the WebdriverIO Project. The TC is responsible for high-level decisions (like [release a new version](/CONTRIBUTING.md#release-new-version), establishing a feature roadmap, accepting sponsorship, organizing conferences, etc...), adjudicating conflicts between members of the community, and making changes to the project's governance processes.
 
