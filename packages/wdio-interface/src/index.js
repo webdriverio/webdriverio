@@ -12,7 +12,9 @@ export default class CLInterface extends EventEmitter {
         this.err = ::process.stderr.write
         this.inDebugMode = false
 
-        this.clearAll()
+        this.out(ansiEscapes.clearScreen)
+
+        this.lineCount = 0
 
         /**
          * don't modify stdout and stderr streams for unit tests
@@ -47,7 +49,8 @@ export default class CLInterface extends EventEmitter {
     }
 
     clearAll () {
-        this.out(ansiEscapes.clearScreen)
+        this.out(ansiEscapes.eraseLines(this.lineCount))
+        this.lineCount = 0
     }
 
     clearLine () {
@@ -56,11 +59,20 @@ export default class CLInterface extends EventEmitter {
     }
 
     log(...messages) {
+        let newLines = messages.length
+        if (newLines > 0) {
+            // get number of new lines in each message
+            const newLineCounts = messages.map(msg => msg.split('\n').length)
+            // sum up and add to total number of messages
+            newLines += newLineCounts.reduce((partialSum, newLineCount) => partialSum + newLineCount)
+        }
+        this.lineCount += newLines
         this.out(util.format.apply(this, messages) + '\n')
     }
 
     write (message) {
         this.out(message)
+        this.lineCount++
     }
 
     reset () {
