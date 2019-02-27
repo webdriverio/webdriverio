@@ -97,7 +97,6 @@ class MochaAdapter {
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui)
         const type = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 
-        this.options(options, { context, file, mocha, options })
         INTERFACES[type].forEach((fnName) => {
             let testCommand = INTERFACES[type][0]
 
@@ -108,6 +107,7 @@ class MochaAdapter {
                 fnName
             )
         })
+        this.options(options, { context, file, mocha, options })
     }
 
     /**
