@@ -15,6 +15,30 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.6.4 (2019-02-28)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3650](https://github.com/webdriverio/webdriverio/pull/3650) Fix execute script undefined argument ([@LukoyanovE](https://github.com/LukoyanovE))
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#3651](https://github.com/webdriverio/webdriverio/pull/3651) Pass custom agent and headers in every request ([@mariocasciaro](https://github.com/mariocasciaro))
+
+#### :bug: Bug Fix
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#3643](https://github.com/webdriverio/webdriverio/pull/3643) TypeScript version in doc and package.json ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-interface`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#3640](https://github.com/webdriverio/webdriverio/pull/3640) webdriverio: update minimum required nodejs version ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 4
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Evgeniy Lukoyanov ([@LukoyanovE](https://github.com/LukoyanovE))
+- Mario Casciaro ([@mariocasciaro](https://github.com/mariocasciaro))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## 5.6.3 (2019-02-27)
 
 #### :eyeglasses: Spec Compliancy
