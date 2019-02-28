@@ -4,8 +4,8 @@ import logger from '@wdio/logger'
 import { commandCallStructure } from './utils'
 
 const SCOPE_TYPES = {
-    'browser': function Browser () {},
-    'element': function Element () {}
+    'browser': /* istanbul ignore next */ function Browser () {},
+    'element': /* istanbul ignore next */ function Element () {}
 }
 
 export default function WebDriver (options, modifier, propertiesObject = {}) {
@@ -17,9 +17,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     const scopeType = SCOPE_TYPES[propertiesObject.scope] || SCOPE_TYPES['browser']
     delete propertiesObject.scope
 
-    const prototype = Object.create(scopeType.prototype, {
-        isW3C: { value: options.isW3C }
-    })
+    const prototype = Object.create(scopeType.prototype)
     const log = logger('webdriver')
 
     const eventHandler = new EventEmitter()
@@ -46,6 +44,11 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             }
         }
 
+        /**
+         * assign propertiesObject to itself so the client can be recreated
+         */
+        propertiesObject['__propertiesObject__'] = { value: propertiesObject }
+
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId
 
@@ -60,16 +63,29 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func) {
-            unit.lift(name, commandWrapper(name, func))
+        client.addCommand = function (name, func, attachToElement = false, proto) {
+            const customCommand = typeof commandWrapper === 'function'
+                ? commandWrapper(name, func)
+                : func
+            if (attachToElement) {
+                this.__propertiesObject__[name] = { value: customCommand }
+            } else {
+                unit.lift(name, customCommand, proto)
+            }
         }
 
         return client
     }
 
-    unit.lift = function (name, func) {
-        prototype[name] = function next (...args) {
-            const client = unit(this.sessionId)
+    /**
+     * Enhance monad prototype with function
+     * @param  {String}   name   name of function to attach to prototype
+     * @param  {Function} func   function to be added to prototype
+     * @param  {Object}   proto  prototype to add function to (optional)
+     */
+    unit.lift = function (name, func, proto) {
+
+        (proto || prototype)[name] = function next (...args) {
             log.info('COMMAND', commandCallStructure(name, args))
 
             /**
@@ -80,7 +96,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 writable: false,
             })
 
-            const result = func.apply(client, args)
+            const result = func.apply(this, args)
 
             /**
              * always transform result into promise as we don't know whether or not
@@ -89,7 +105,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             Promise.resolve(result).then((res) => {
                 log.info('RESULT', res)
                 this.emit('result', { name, result: res })
-            })
+            }).catch(() => {})
 
             return result
         }

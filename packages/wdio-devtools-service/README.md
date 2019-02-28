@@ -25,7 +25,7 @@ You can simple do it by:
 npm install @wdio/devtools-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/guide/getstarted/install.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
 ## Configuration
 
@@ -169,7 +169,7 @@ Returns page weight information of the last page load.
 
 ```js
 browser.startTracing()
-browser.url('http://webdriver.io')
+browser.url('https://webdriver.io')
 browser.endTracing()
 
 console.log(browser.getPageWeight())
@@ -204,4 +204,4 @@ it('should listen on network events', () => {
 
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

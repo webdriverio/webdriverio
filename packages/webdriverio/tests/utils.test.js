@@ -2,7 +2,6 @@ import { ELEMENT_KEY } from '../src/constants'
 import {
     findStrategy,
     getElementFromResponse,
-    mobileDetector,
     getBrowserObject,
     transformToCharString,
     parseCSS,
@@ -25,10 +24,16 @@ describe('utils', () => {
             expect(element.value).toBe('#purplebox')
         })
 
-        it('should find an element using "name" method', () => {
-            const element = findStrategy('[name="searchinput"]')
+        it('should find an element using "name" method through jsonwp', () => {
+            const element = findStrategy('[name="searchinput"]', false)
             expect(element.using).toBe('name')
             expect(element.value).toBe('searchinput')
+        })
+
+        it('should find an element using "name" method through WC3', () => {
+            const element = findStrategy('[name="searchinput"]', true)
+            expect(element.using).toBe('css selector')
+            expect(element.value).toBe('[name="searchinput"]')
         })
 
         it('should find an element using "name" method with a . in the name', () => {
@@ -175,6 +180,12 @@ describe('utils', () => {
             expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]')
         })
 
+        it('should find an custom element by tag name + content', () => {
+            const element = findStrategy('custom-element-with-multiple-dashes=some random text with "§$%&/()div=or others')
+            expect(element.using).toBe('xpath')
+            expect(element.value).toBe('.//custom-element-with-multiple-dashes[normalize-space() = "some random text with "§$%&/()div=or others"]')
+        })
+
         it('should allow to go up and down the DOM tree with xpath', () => {
             let element = findStrategy('..')
             expect(element.using).toBe('xpath')
@@ -192,6 +203,18 @@ describe('utils', () => {
             const element = findStrategy('ios=foo')
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
+        })
+
+        it('should find an element by predicate strategy (ios only)', () => {
+            const element = findStrategy('-ios predicate string:type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+            expect(element.using).toBe('-ios predicate string')
+            expect(element.value).toBe('type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+        })
+
+        it('should find an element by class chain strategy (ios only)', () => {
+            const element = findStrategy('-ios class chain:**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
+            expect(element.using).toBe('-ios class chain')
+            expect(element.value).toBe('**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
         })
 
         it('should find an element by accessibility id', () => {
@@ -288,6 +311,26 @@ describe('utils', () => {
             expect(() => findStrategy('accessibility id:foobar accessibility id', true)).toThrow()
             expect(() => findStrategy('android=foo', true)).toThrow()
         })
+
+        it('should allow mobile selector strategies if isMobile is used', () => {
+            let element = findStrategy('android=foo', undefined, true)
+            expect(element.using).toBe('-android uiautomator')
+            expect(element.value).toBe('foo')
+
+            element = findStrategy('ios=foo', undefined, true)
+            expect(element.using).toBe('-ios uiautomation')
+            expect(element.value).toBe('foo')
+        })
+
+        it('should allow mobile selector strategies if isMobile is used even when w3c is used', () => {
+            let element = findStrategy('android=foo', true, true)
+            expect(element.using).toBe('-android uiautomator')
+            expect(element.value).toBe('foo')
+
+            element = findStrategy('ios=foo', true, true)
+            expect(element.using).toBe('-ios uiautomation')
+            expect(element.value).toBe('foo')
+        })
     })
 
     describe('getElementFromResponse', () => {
@@ -301,63 +344,6 @@ describe('utils', () => {
 
         it('should throw otherwise', () => {
             expect(getElementFromResponse({ invalid: 'response '})).toBe(null)
-        })
-    })
-
-    describe('mobileDetector', () => {
-        it('should not detect mobile app for browserName===undefined', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({})
-            expect(isMobile).toEqual(false)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should not detect mobile app for browserName==="firefox"', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: 'firefox'})
-            expect(isMobile).toEqual(false)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should not detect mobile app for browserName==="chrome"', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: 'chrome'})
-            expect(isMobile).toEqual(false)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should detect mobile app for browserName===""', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({browserName: ''})
-            expect(isMobile).toEqual(true)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(false)
-        })
-
-        it('should detect Android mobile app', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({
-                platformName: 'Android',
-                platformVersion: '4.4',
-                deviceName: 'LGVS450PP2a16334',
-                app: 'foo.apk'
-            })
-            expect(isMobile).toEqual(true)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(true)
-        })
-
-        it('should detect Android mobile app without upload', function () {
-            const {isMobile, isIOS, isAndroid} = mobileDetector({
-                platformName: 'Android',
-                platformVersion: '4.4',
-                deviceName: 'LGVS450PP2a16334',
-                appPackage: 'com.example',
-                appActivity: 'com.example.gui.LauncherActivity',
-                noReset: true,
-                appWaitActivity: 'com.example.gui.LauncherActivity'
-            })
-            expect(isMobile).toEqual(true)
-            expect(isIOS).toEqual(false)
-            expect(isAndroid).toEqual(true)
         })
     })
 

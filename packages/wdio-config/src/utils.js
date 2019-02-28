@@ -2,11 +2,26 @@ const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
 const DEFAULT_PROTOCOL = 'http'
 
+const REGION_MAPPING = {
+    'us': '', // default endpoint
+    'eu': 'eu-central-1.'
+}
+
+export function getSauceEndpoint (region, isRDC) {
+    const dcRegion = REGION_MAPPING[region] ? region : 'us'
+
+    if (isRDC){
+        return `${dcRegion}1.appium.testobject.com`
+    }
+
+    return `${REGION_MAPPING[dcRegion]}saucelabs.com`
+}
+
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export function detectBackend (options = {}) {
-    const { port, hostname, user, key, protocol } = options
+export function detectBackend (options = {}, isRDC = false) {
+    const { port, hostname, user, key, protocol, region } = options
 
     /**
      * browserstack
@@ -14,8 +29,9 @@ export function detectBackend (options = {}) {
      */
     if (typeof user === 'string' && key.length === 20) {
         return {
-            hostname: 'hub.browserstack.com',
-            port: 80
+            protocol: 'https',
+            hostname: 'hub-cloud.browserstack.com',
+            port: 443
         }
     }
 
@@ -34,10 +50,18 @@ export function detectBackend (options = {}) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    if (typeof user === 'string' && key.length === 36) {
+    if ((typeof user === 'string' && key.length === 36) ||
+        // When SC is used a user needs to be provided and `isRDC` needs to be true
+        (typeof user === 'string' && isRDC) ||
+        // Or only RDC
+        isRDC
+    ) {
+        // For the VM cloud a prefix needs to be added, the RDC cloud doesn't have that
+        const preFix = isRDC ? '' : 'ondemand.'
+
         return {
             protocol: protocol || 'https',
-            hostname: hostname || 'ondemand.saucelabs.com',
+            hostname: hostname || (preFix + getSauceEndpoint(region, isRDC)),
             port: port || 443
         }
     }

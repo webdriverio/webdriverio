@@ -51,14 +51,14 @@ in your constructor function.
 
 ## Configuration
 
-User can pass in custom configurations for each reporter. Per default WebdriverIO populates the `logDir` and `logLevel` option to the reporter, they can get overwritten too. For example, if the user has provided the following reporter options:
+User can pass in custom configurations for each reporter. Per default WebdriverIO populates the `outputDir` and `logLevel` option to the reporter, they can get overwritten too. For example, if the user has provided the following reporter options:
 
 ```js
 // wdio.conf.js
 exports.config = {
     // ...
     reporters: ['dot', ['my-reporter', {
-        logDir: '/some/path',
+        outputDir: '/some/path',
         foo: 'bar'
     }]]
     // ...
@@ -75,7 +75,7 @@ export default class MyReporter extends Reporter {
         /**
          * outputs:
          * {
-         *   logDir: '/some/path',
+         *   outputDir: '/some/path',
          *   logLevel: 'trace',
          *   foo: 'bar'
          * }
@@ -189,7 +189,6 @@ HookStats {
   cid: '0-0',
   title: '"before each" hook',
   parent: 'root suite',
-  parentUid: 'root suite2' } }
 ```
 
 ##### onHookEnd
@@ -203,7 +202,6 @@ HookStats {
   cid: '0-0',
   title: '"before each" hook',
   parent: 'root suite',
-  parentUid: 'root suite2',
   end: '2018-02-09T13:30:40.182Z' } }
 ```
 

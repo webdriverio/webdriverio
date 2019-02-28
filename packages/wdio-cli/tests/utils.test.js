@@ -1,4 +1,6 @@
-import { filterPackageName, getLauncher, runServiceHook } from '../src/utils'
+import logger from '@wdio/logger'
+
+import { filterPackageName, getLauncher, runServiceHook, getRunnerName } from '../src/utils'
 
 jest.mock('@wdio/config', () => {
     class LauncherMock {
@@ -15,7 +17,7 @@ jest.mock('@wdio/config', () => {
             .mockImplementationOnce(
                 () => undefined)
             .mockImplementationOnce(
-                () => { throw new Error(`Couldn't find plugin`) })
+                () => { throw new Error('Couldn\'t find plugin') })
             .mockImplementationOnce(() => { throw new Error('buhh') })
     }
 })
@@ -52,10 +54,31 @@ test('getLauncher', () => {
     })).toHaveLength(2)
 })
 
-test('getLauncher failing if syntax error', () => {
+test('getLauncher not failing on syntax error', () => {
     expect(() => getLauncher({
         services: ['other-unscoped']
-    })).toThrow('buhh')
+    })).toHaveLength(0)
+    expect(logger().error).toBeCalledTimes(1)
+})
+
+test('getLauncher sets correct service scope', () => {
+    const hookSuccess = jest.fn()
+
+    const inlineService = {
+        onPrepare() {
+            this._otherMethod()
+        },
+        _otherMethod: hookSuccess
+    }
+
+    const launcher = getLauncher({
+        services: [
+            inlineService
+        ]
+    })
+
+    runServiceHook(launcher, 'onPrepare', 1, true, 'abc')
+    expect(hookSuccess).toBeCalledTimes(1)
 })
 
 test('runServiceHook', () => {
@@ -69,4 +92,13 @@ test('runServiceHook', () => {
     ], 'onPrepare', 1, true, 'abc')
     expect(hookSuccess).toBeCalledTimes(1)
     expect(hookFailing).toBeCalledTimes(1)
+})
+
+test('getRunnerName', () => {
+    expect(getRunnerName({ browserName: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ appPackage: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ appWaitActivity: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ app: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ platformName: 'foobar' })).toBe('foobar')
+    expect(getRunnerName({})).toBe('undefined')
 })

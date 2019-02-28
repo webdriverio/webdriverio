@@ -24,8 +24,8 @@ class Launcher {
         const capabilities = this.configParser.getCapabilities()
         const specs = this.configParser.getSpecs()
 
-        if (config.logDir) {
-            process.env.WDIO_LOG_PATH = path.join(config.logDir, `wdio.log`)
+        if (config.outputDir) {
+            process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
         }
 
         const totalWorkerCnt = Array.isArray(capabilities)
@@ -89,13 +89,6 @@ class Launcher {
          */
         exitHook(::this.exitHandler)
 
-        /**
-         * make sure the program will not close instantly
-         */
-        if (process.stdin.isPaused()) {
-            process.stdin.resume()
-        }
-
         const exitCode = await this.runMode(config, caps)
 
         /**
@@ -105,7 +98,7 @@ class Launcher {
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
         await config.onComplete(exitCode, config, caps, this.interface.result)
 
-        this.interface.updateView()
+        this.interface.finalise()
         return exitCode
     }
 
@@ -363,20 +356,7 @@ class Launcher {
             return
         }
 
-        if (passed) {
-            return process.nextTick(() => {
-                this.interface.updateView()
-                setTimeout(() => this.resolve(this.exitCode), 100)
-            })
-        }
-
-        /**
-         * finish with exit code 1
-         */
-        return process.nextTick(() => {
-            this.interface.updateView()
-            setTimeout(() => this.resolve(1), 100)
-        })
+        this.resolve(passed ? this.exitCode : 1)
     }
 
     /**

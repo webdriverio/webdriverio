@@ -23,7 +23,7 @@ export default class Runner extends EventEmitter {
      * @param  {String}    cid            worker id (e.g. `0-0`)
      * @param  {Object}    argv           cli arguments passed into wdio command
      * @param  {String[]}  specs          list of spec files to run
-     * @param  {Object}    caps           capabilties to run session with
+     * @param  {Object}    caps           capabilities to run session with
      * @param  {String}    configFile     path to config file to get config from
      * @param  {Object}    server         modified WebDriver target
      * @param  {object}    testData          test data for each run
@@ -36,7 +36,11 @@ export default class Runner extends EventEmitter {
         /**
          * add config file
          */
-        this.configParser.addConfigFile(configFile)
+        try {
+            this.configParser.addConfigFile(configFile)
+        } catch (e) {
+            return this._shutdown(1)
+        }
 
         /**
          * merge cli arguments into config
@@ -49,21 +53,23 @@ export default class Runner extends EventEmitter {
         this.configParser.merge(server)
 
         this.config = this.configParser.getConfig()
+        this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
-        this.reporter = new BaseReporter(this.config, this.cid)
+        this.reporter = new BaseReporter(this.config, this.cid, this.caps)
         this.inWatchMode = Boolean(this.config.watch)
 
         await runHook('beforeSession', this.config, this.caps, this.specs)
         const browser = await this._initSession(this.config, this.caps, testData)
-        const isMultiremote = Boolean(browser.isMultiremote)
-
+ 
         /**
          * return if session initialisation failed
          */
         if (!browser) {
             return this._shutdown(1)
         }
+
+        const isMultiremote = Boolean(browser.isMultiremote)
 
         /**
          * kill session of SIGINT signal showed up while trying to
@@ -115,19 +121,19 @@ export default class Runner extends EventEmitter {
         try {
             failures = failures = await this.framework.run(cid, this.config, specs, caps, this.reporter)
             await this._fetchDriverLogs(this.config)
-
-            /**
-             * in watch mode we don't close the session and open a blank page instead
-             */
-            if (!argv.watch) {
-                await this.endSession()
-            } else {
-                await global.browser.url('about:blank')
-            }
         } catch (e) {
             log.error(e)
             this.emit('error', e)
             failures = 1
+        }
+
+        /**
+         * in watch mode we don't close the session and open a blank page instead
+         */
+        if (!argv.watch) {
+            await this.endSession()
+        } else {
+            await global.browser.url('about:blank')
         }
 
         this.reporter.emit('runner:end', {
@@ -135,8 +141,7 @@ export default class Runner extends EventEmitter {
             cid: this.cid
         })
 
-        await this._shutdown(failures)
-        return failures
+        return this._shutdown(failures)
     }
 
     /**
@@ -196,7 +201,7 @@ export default class Runner extends EventEmitter {
             /**
              * a log directory is given in config
              */
-            !config.logDir ||
+            !config.outputDir ||
             /**
              * the session wasn't killed during start up phase
              */
@@ -212,7 +217,13 @@ export default class Runner extends EventEmitter {
         const logTypes = await global.browser.getLogTypes()
         log.debug(`Fetching logs for ${logTypes.join(', ')}`)
         return Promise.all(logTypes.map(async (logType) => {
-            const logs = await global.browser.getLogs(logType)
+            let logs
+
+            try {
+                logs = await global.browser.getLogs(logType)
+            } catch (e) {
+                return log.warn(`Couldn't fetch logs for ${logType}: ${e.message}`)
+            }
 
             /**
              * don't write to file if no logs were captured
@@ -223,7 +234,7 @@ export default class Runner extends EventEmitter {
 
             const stringLogs = logs.map((log) => JSON.stringify(log)).join('\n')
             return util.promisify(fs.writeFile)(
-                path.join(config.logDir, `wdio-${this.cid}-${logType}.log`),
+                path.join(config.outputDir, `wdio-${this.cid}-${logType}.log`),
                 stringLogs,
                 'utf-8'
             )
@@ -236,6 +247,7 @@ export default class Runner extends EventEmitter {
     async _shutdown (failures) {
         await this.reporter.waitForSync()
         this.emit('exit', failures === 0 ? 0 : 1)
+        return failures
     }
 
     /**
@@ -266,7 +278,7 @@ export default class Runner extends EventEmitter {
         await runHook('afterSession', global.browser.config, this.caps, this.specs)
 
         if (shutdown) {
-            await this._shutdown()
+            return this._shutdown()
         }
     }
 }

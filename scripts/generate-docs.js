@@ -8,22 +8,10 @@ const formatter = require('./utils/formatter')
 const compiler = require('./utils/compiler')
 const ejs = require('../packages/wdio-cli/node_modules/ejs')
 const { getSubPackages } = require('./utils/helpers')
+const { PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS } = require('./constants')
 
 const config = require('../website/siteConfig')
 const sidebars = require('../website/_sidebars.json')
-
-const PROTOCOLS = {
-    webdriver: require('../packages/webdriver/protocol/webdriver.json'),
-    appium: require('../packages/webdriver/protocol/appium.json'),
-    jsonwp: require('../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json')
-}
-const PROTOCOL_NAMES = {
-    appium: 'Appium',
-    jsonwp: 'JSON Wire Protocol',
-    mjsonwp: 'Mobile JSON Wire Protocol',
-    webdriver: 'Webdriver Protocol'
-}
 
 const TEMPLATE_PATH = path.join(__dirname, 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
@@ -50,12 +38,27 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
             description.hasHeader = true
             description.paramString = description.paramTags.map((param) => param.name).join(', ')
-            description.examples = [] // tbd
+            description.examples = (description.examples || []).map((example) => {
+                return {
+                    code: Array.isArray(example) ? example.join('\n') : example,
+                    format: 'js'
+                }
+            })
             description.returnTags = [] // tbd
             description.throwsTags = [] // tbd
+            description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
             description.customEditUrl = `${config.repoUrl}/edit/master/packages/webdriver/protocol/${protocolName}.json`
 
-            const protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`
+            let protocolNote
+            if (VENDOR_PROTOCOLS.includes(protocolName)) {
+                protocolNote = `Non official and undocumented ${protocol} command.`
+                if (description.ref) {
+                    protocolNote += ` More about this command can be found [here](${description.ref}).`
+                }
+            } else {
+                protocolNote = `${protocol} command. More details can be found in the [official protocol docs](${description.ref}).`
+            }
+
             if (description.description) {
                 description.description += `<br><br>${protocolNote}`
             } else {
@@ -82,7 +85,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     // eslint-disable-next-line no-console
     console.log(`Generated docs for ${protocolName} protocol`)
 
-    sidebars.api.Introduction.push(`api/${protocolName}`)
+    sidebars.api.Protocols.push(`api/${protocolName}`)
 }
 
 /**
@@ -100,7 +103,7 @@ for (const [scope, files] of Object.entries(COMMANDS)) {
     for (const file of files) {
         const docDir = path.join(__dirname, '..', 'docs', 'api', scope)
         if (!fs.existsSync(docDir)){
-            fs.mkdirSync(docDir);
+            fs.mkdirSync(docDir)
         }
 
         const filepath = path.join(COMMAND_DIR, scope, file)
@@ -142,10 +145,10 @@ const packages = getSubPackages()
 for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
     const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
     for (const pkg of pkgs) {
-        const name = pkg.split("-").slice(1,-1)
+        const name = pkg.split('-').slice(1,-1)
         const id = `${name.join('-')}-${type}`
-        const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(" ")
-        const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'Readme.md')).toString()
+        const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
+        const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'README.md')).toString()
         const preface = [
             '---',
             `id: ${id}`,

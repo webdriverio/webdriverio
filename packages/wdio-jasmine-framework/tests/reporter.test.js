@@ -130,6 +130,11 @@ test('do not clean stack option', () => {
     )
 })
 
+test('cleanStack should return if no stack is given', () => {
+    const error = { message: 'foobar' }
+    expect(jasmineReporter.cleanStack(error)).toEqual(error)
+})
+
 afterEach(() => {
     runnerReporter.emit.mockClear()
 })

@@ -43,17 +43,17 @@ exports.config = {
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
 
 ## Supported Allure API
-* `feature(featureName)` – assign feature to test
-* `story(storyName)` – assign user story to test
-* `severity(value)` – assign severity to test
-* `issue(value)` – assign issue id to test
-* `testId(value)` – assign TMS test id to test
+* `addFeature(featureName)` – assign feature to test
+* `addStory(storyName)` – assign user story to test
+* `addSeverity(value)` – assign severity to test
+* `addIssue(value)` – assign issue id to test
+* `addTestId(value)` – assign TMS test id to test
 * `addEnvironment(name, value)` – save environment value
 * `addAttachment(name, content, [type])` – save attachment to test.
-* `addArgument(name, value)` - add additional argument to test
     * `name` (*String*) - attachment name.
     * `content` – attachment content.
     * `type` (*String*, optional) – attachment MIME-type, `text/plain` by default
+* `addArgument(name, value)` - add additional argument to test
 * `addDescription(description, [type])` – add description to test.
     * `description` (*String*) - description of the test.
     * `type` (*String*, optional) – description type, `text` by default. Values ['text', 'html','markdown']
@@ -68,13 +68,13 @@ Allure Api can be accessed using:
 ES5
 
 ```js
-const addFeature = require('@wdio/allure-reporter/runtime').addFeature
+const { addFeature } = require('@wdio/allure-reporter').default
 ```
 
 ES6
 
 ```js
-import {addFeature} from '@wdio/allure-reporter/runtime'
+import { addFeature } from '@wdio/allure-reporter'
 ```
 
 Mocha example
@@ -106,12 +106,13 @@ Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#
 ## Add Screenshots
 
 Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in afterStep hook.
-
+First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook
 ```js
-//...
-var name = 'ERROR-chrome-' + Date.now()
-browser.takeScreenshot('./errorShots/' + name + '.png')
-//...
+afterTest: function(test) {
+    if (test.error !== undefined) {
+      browser.takeScreenshot();
+    }
+  }
 ```
 
-As shown in the example above, when this function is called, a screenshot image will be created and saved in the directory, as well as attached to the allure report.
+As shown in the example above, when this function is called, a screenshot image will be attached to the allure report.

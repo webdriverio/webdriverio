@@ -8,6 +8,12 @@ The configuration file contains all necessary information to run your test suite
 ```js
 exports.config = {
 
+    // ==================================
+    // Where should your test be launched
+    // ==================================
+    //
+    runner: 'local',
+    //
     // =====================
     // Server Configurations
     // =====================
@@ -18,7 +24,7 @@ exports.config = {
     // according to your user and key information. However if you are using a private Selenium
     // backend you should define the host address, port, and path here.
     //
-    host: '0.0.0.0',
+    hostname: '0.0.0.0',
     port: 4444,
     path: '/wd/hub',
     //
@@ -31,6 +37,12 @@ exports.config = {
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+    //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. Available short handles for regions are `us` (default) and `eu`.
+    // These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud.
+    // If you don't provide the region it will default for the `us`
+    region: 'us',
     //
     // ==================
     // Specify Test Files
@@ -76,7 +88,7 @@ exports.config = {
     //
     capabilities: [{
         browserName: 'chrome',
-        chromeOptions: {
+        'goog:chromeOptions': {
         // to run chrome headless the following flags are required
         // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
         // args: ['--headless', '--disable-gpu'],
@@ -129,14 +141,14 @@ exports.config = {
     //
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
     framework: 'mocha',
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
+    // see also: https://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
     reporters: [
         'dot',
         ['allure', {
@@ -303,11 +315,12 @@ exports.config = {
     onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
-    * Gets executed when an error happens, good place to take a screenshot
-    * @ {String} error message
+    * Gets executed when a refresh happens.
+    * @param {String} oldSessionId session ID of the old session
+    * @param {String} newSessionId session ID of the new session
     */
-    onError: function(message) {
-    }
+    onReload: function(oldSessionId, newSessionId) {
+    },
     /**
      * Cucumber specific hooks
      */

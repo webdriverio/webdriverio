@@ -2,8 +2,8 @@ import { filterPackageName } from './utils'
 
 export const SUPPORTED_FRAMEWORKS = [
     'mocha', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework
-    'jasmine', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
-    'cucumber' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework
+    'jasmine' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
+    // 'cucumber' not yet supported (see #2872)
 ]
 
 export const SUPPORTED_REPORTER = [
@@ -16,8 +16,8 @@ export const SUPPORTED_REPORTER = [
     ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
     ' json - https://www.npmjs.com/package/wdio-json-reporter',
     ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
-    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter'
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
+    // ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter' not supported yet see https://github.com/QualityOps/wdio-timeline-reporter/issues/9
 ]
 
 export const SUPPORTED_SERVICES = [
@@ -35,15 +35,16 @@ export const SUPPORTED_SERVICES = [
     ' webpack - https://www.npmjs.com/package/wdio-webpack-service',
     ' webpack-dev-server - https://www.npmjs.com/package/wdio-webpack-dev-server-service',
     ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
-    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service'
+    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service',
+    ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
-    ' local - https://www.npmjs.com/package/@wdio/local-runner',
-    ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
+    ' local - https://www.npmjs.com/package/@wdio/local-runner'
+    // ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
 ]
 
-const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
+const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 export const USAGE = `
 WebdriverIO CLI runner
@@ -77,7 +78,7 @@ export const CLI_PARAMS = [{
     name: 'version',
     description: 'prints WebdriverIO version'
 }, {
-    name: 'host',
+    name: 'hostname',
     alias: 'h',
     describe: 'automation driver host address',
     type: 'string'
@@ -107,7 +108,7 @@ export const CLI_PARAMS = [{
     choices: LOG_LEVELS
 }, {
     name: 'bail',
-    description: `stop test runner after specific amount of tests have failed`,
+    description: 'stop test runner after specific amount of tests have failed',
     type: 'number'
 }, {
     name: 'baseUrl',
@@ -121,34 +122,34 @@ export const CLI_PARAMS = [{
 }, {
     name: 'framework',
     alias: 'f',
-    description: `defines the framework (Mocha, Jasmine or Cucumber) to run the specs`,
+    description: 'defines the framework (Mocha, Jasmine or Cucumber) to run the specs',
     type: 'string'
 }, {
     name: 'reporters',
     alias: 'r',
-    description: `reporters to print out the results on stdout`,
+    description: 'reporters to print out the results on stdout',
     type: 'array'
 }, {
     name: 'suite',
-    description: `overwrites the specs attribute and runs the defined suite`,
+    description: 'overwrites the specs attribute and runs the defined suite',
     type: 'array'
 }, {
     name: 'spec',
-    description: `run only a certain spec file - overrides specs piped from stdin`,
+    description: 'run only a certain spec file - overrides specs piped from stdin',
     type: 'array'
 }, {
     name: 'exclude',
-    description: `exclude certain spec file from the test run - overrides exclude piped from stdin`,
+    description: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
     type: 'array'
 }, {
     name: 'mochaOpts',
-    description: `Mocha options`
+    description: 'Mocha options'
 }, {
     name: 'jasmineOpts',
-    description: `Jasmine options`
+    description: 'Jasmine options'
 }, {
     name: 'cucumberOpts',
-    description: `Cucumber options`
+    description: 'Cucumber options'
 }]
 
 export const QUESTIONNAIRE = [{
@@ -197,7 +198,7 @@ export const QUESTIONNAIRE = [{
     when: (answers) => answers.backend.indexOf('In the cloud') > -1
 }, {
     type: 'input',
-    name: 'host',
+    name: 'hosthame',
     message: 'What is the IP or URI to your Selenium standalone server?',
     default: '0.0.0.0',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1

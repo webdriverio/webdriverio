@@ -11,7 +11,7 @@ module.exports.run = (event, context, callback) => {
      * run test
      */
     runner.run(event).catch((e) => {
-        log.error(`Failed launching test session:`, e)
+        log.error(`Failed launching test session: ${e.stack}`)
         callback(e)
         context.fail(e)
     })

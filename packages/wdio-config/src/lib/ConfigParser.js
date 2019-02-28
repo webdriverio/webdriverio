@@ -56,11 +56,19 @@ export default class ConfigParser {
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
             /**
+             * For Sauce Labs RDC we need to determine if the config file has a `testobject_api_key`
+             * If so, we need to provide a boolean to the `detectBackend` to set the correct hostname
+             *
+             * NOTE: This will not work for multi remote
+             */
+            const isRDC = Array.isArray(this._capabilities) && this._capabilities.some(capability => 'testobject_api_key' in capability)
+
+            /**
              * detect Selenium backend
              */
-            this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
+            this._config = merge(detectBackend(this._config, isRDC), this._config, MERGE_OPTIONS)
         } catch (e) {
-            log.error(`Failed loading configuration file: ${filePath}`)
+            log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e
         }
     }
@@ -205,7 +213,7 @@ export default class ConfigParser {
             }
         })
         if (filesToFilter.size === 0) {
-            throw new Error(`spec file(s) ${cliArgFileList.join(`, `)} not found`)
+            throw new Error(`spec file(s) ${cliArgFileList.join(', ')} not found`)
         }
         return filesToFilter
     }
@@ -250,6 +258,7 @@ export default class ConfigParser {
 
             filenames = filenames.filter(filename =>
                 filename.slice(-3) === '.js' ||
+                filename.slice(-4) === '.es6' ||
                 filename.slice(-3) === '.ts' ||
                 filename.slice(-8) === '.feature' ||
                 filename.slice(-7) === '.coffee')

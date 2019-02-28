@@ -3,6 +3,8 @@ import ConfigParser from '../src/lib/ConfigParser'
 
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.js')
+const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.js')
+const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.js')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.js')
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.js')
 
@@ -20,6 +22,18 @@ describe('ConfigParser', () => {
         it('should throw if config file does not exist', () => {
             const configParser = new ConfigParser()
             expect(() => configParser.addConfigFile(path.resolve(__dirname, 'foobar.conf.js'))).toThrow()
+        })
+
+        it('should add the rdc hostname when a rdc conf is provided', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF_RDC)
+            expect(configParser._config.hostname).toContain('appium.testobject.com')
+        })
+
+        it('should default to the vm hostname when a multiremote conf with rdc props is provided', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF_MULTIREMOTE_RDC)
+            expect(configParser._config.hostname).not.toContain('appium.testobject.com')
         })
     })
 
@@ -226,6 +240,15 @@ describe('ConfigParser', () => {
             const tsFile = path.resolve(FIXTURES_PATH, '*.ts')
             const specs = configParser.getSpecs([tsFile])
             expect(specs).toContain(path.resolve(FIXTURES_PATH, 'typescript.ts'))
+        })
+
+        it('should include es6 files', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+
+            const es6File = path.resolve(FIXTURES_PATH, '*.es6')
+            const specs = configParser.getSpecs([es6File])
+            expect(specs).toContain(path.resolve(FIXTURES_PATH, 'test.es6'))
         })
 
         it('should not include other file types', () => {

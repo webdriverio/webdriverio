@@ -16,26 +16,28 @@ title: <?= method.command ?>
 ##### Usage
 
 ```js
-browser.<?= method.command ?>(<?= method.paramString ?>)
+<? if (method.isElementScope) {
+?>$(selector).<?= method.command ?>(<?= method.paramString ?>)<? } else {
+?><?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)<? } ?>
 ```
 
 <? if (method.paramTags.length) { ?>
 ##### Parameters
 
-| Param | Type | Details |
-| ----- | ---- | ------- |
+| Name | Type | Details |
+| ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label label-warning">optional</span><? }
-    ?> | <?= paramTag.type
+    ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label labelWarning">optional</span><? }
+    ?> | <?= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
 <? } ?>
 
 <? if (method.examples.length) { ?>
-##### Example
+##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
 <? method.examples.forEach(function(example) { ?>
-``` <?= example.format ?> <?= example.file ?>
-<?= example.code ?>
+```<?= example.format ?><? if (example.file) { ?> <?= example.file ?><? } ?>
+<?- example.code ?>
 ```
 <? }); ?>
 <? } ?>

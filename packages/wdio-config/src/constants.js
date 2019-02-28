@@ -9,13 +9,12 @@ export const DEFAULT_CONFIGS = {
     dataProviders: [],
     suites: {},
     exclude: [],
-    logDir: undefined,
+    outputDir: undefined,
     logLevel: 'info',
-    deprecationWarnings: true,
     baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,
-    waitforTimeout: 1000,
+    waitforTimeout: 5000,
     framework: 'mocha',
     reporters: [],
     maxInstances: 100,
@@ -58,7 +57,6 @@ export const DEFAULT_CONFIGS = {
     afterSession: [],
     after: [],
     onComplete: NOOP,
-    onError: [],
     onReload: [],
 
     /**
@@ -76,5 +74,7 @@ export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterFeature',
-    'afterScenario', 'afterStep', 'onError', 'onReload'
+    'afterScenario', 'afterStep', 'onReload'
+    // the following hooks are excluded since they are part of the launcher
+    // 'onPrepare', 'onComplete'
 ]

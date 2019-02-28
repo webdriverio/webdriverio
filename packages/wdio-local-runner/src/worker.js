@@ -4,6 +4,9 @@ import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
 
+import RunnerTransformStream from './transformStream'
+import WDIORepl from './repl'
+
 const log = logger('wdio-local-runner')
 
 /**
@@ -29,7 +32,7 @@ export default class WorkerInstance extends EventEmitter {
         this.configFile = configFile
         this.caps = caps
         this.specs = specs
-        this.server = server
+        this.server = server || {}
         this.execArgv = execArgv
         this.isBusy = false
     }
@@ -42,56 +45,100 @@ export default class WorkerInstance extends EventEmitter {
         const argv = process.argv.slice(2)
 
         const runnerEnv = Object.assign(process.env, this.config.runnerEnv, {
-            WDIO_LOG_LEVEL: this.config.logLevel
+            WDIO_LOG_LEVEL: this.config.logLevel,
+            WDIO_WORKER: true
         })
 
-        if (this.config.logDir) {
-            runnerEnv.WDIO_LOG_PATH = path.join(this.config.logDir, `wdio-${cid}.log`)
+        if (this.config.outputDir) {
+            runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)
-        const childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
+        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),
             env: runnerEnv,
-            execArgv
+            execArgv,
+            silent: true
         })
 
-        childProcess.on('message', (payload) => {
-            /**
-             * resolve pending commands
-             */
-            if (payload.name === 'finisedCommand') {
-                this.isBusy = false
-            }
+        childProcess.on('message', ::this._handleMessage)
+        childProcess.on('error', ::this._handleError)
+        childProcess.on('exit', ::this._handleExit)
 
-            /**
-             * store sessionId and connection data to worker instance
-             */
-            if (payload.name === 'sessionStarted') {
-                this.sessionId = payload.content.sessionId
-                delete payload.content.sessionId
-                Object.assign(this.server, payload.content)
-            }
-
-            this.emit('message', Object.assign(payload, { cid }))
-        })
-
-        childProcess.on('error',
-            (payload) => this.emit('error', Object.assign(payload, { cid })))
-
-        childProcess.on('exit', (code) => {
-            /**
-             * delete process of worker
-             */
-            delete this.childProcess
-            this.isBusy = false
-
-            log.debug(`Runner ${cid} finished with exit code ${code}`)
-            this.emit('exit', { cid, exitCode: code })
-            childProcess.kill('SIGTERM')
-        })
+        /* istanbul ignore if */
+        if (!process.env.JEST_WORKER_ID) {
+            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
+            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
+            process.stdin.pipe(childProcess.stdin)
+        }
 
         return childProcess
+    }
+
+    _handleMessage (payload) {
+        const { cid, childProcess } = this
+
+        /**
+         * resolve pending commands
+         */
+        if (payload.name === 'finisedCommand') {
+            this.isBusy = false
+        }
+
+        /**
+         * store sessionId and connection data to worker instance
+         */
+        if (payload.name === 'sessionStarted') {
+            this.sessionId = payload.content.sessionId
+            delete payload.content.sessionId
+            Object.assign(this.server, payload.content)
+        }
+
+        this.emit('message', Object.assign(payload, { cid }))
+
+        /**
+         * handle debug command called within worker process
+         */
+        if (payload.origin === 'debugger' && payload.name === 'start') {
+            this.repl = new WDIORepl(
+                childProcess,
+                { prompt: `[${cid}] \u203A `, ...payload.params }
+            )
+            this.repl.start().then(() => {
+                const ev = {
+                    origin: 'debugger',
+                    name: 'stop'
+                }
+                childProcess.send(ev)
+                this.emit('message', ev)
+            })
+        }
+
+        /**
+         * handle debugger results
+         */
+        if (this.repl && payload.origin === 'debugger' && payload.name === 'result') {
+            this.repl.onResult(payload.params)
+        }
+    }
+
+    _handleError (payload) {
+        const { cid } = this
+        this.emit('error', Object.assign(payload, { cid }))
+    }
+
+    _handleExit (exitCode) {
+        const { cid, childProcess } = this
+
+        /**
+         * delete process of worker
+         */
+        delete this.childProcess
+        this.isBusy = false
+
+        log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
+        this.emit('exit', { cid, exitCode })
+        childProcess.kill('SIGTERM')
     }
 
     /**

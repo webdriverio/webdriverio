@@ -1,7 +1,9 @@
-import Selenium from 'selenium-standalone'
+import { promisify } from 'util'
+
 import fs from 'fs-extra'
+import SeleniumStandalone from 'selenium-standalone'
+
 import getFilePath from './utils/getFilePath'
-import { promisify } from 'util';
 
 const DEFAULT_LOG_FILENAME = 'selenium-standalone.txt'
 
@@ -11,16 +13,20 @@ export default class SeleniumStandaloneLauncher {
         this.seleniumArgs = {}
         this.seleniumInstallArgs = {}
 
-        return this;
+        return this
     }
 
     async onPrepare (config) {
         this.seleniumArgs = config.seleniumArgs || {}
         this.seleniumInstallArgs = config.seleniumInstallArgs || {}
         this.seleniumLogs = config.seleniumLogs
+        this.skipSeleniumInstall = !!config.skipSeleniumInstall
 
-        await promisify(Selenium.install)(this.seleniumInstallArgs);
-        this.process = await promisify(Selenium.start)(this.seleniumArgs)
+        if (!this.skipSeleniumInstall) {
+            await promisify(SeleniumStandalone.install)(this.seleniumInstallArgs)
+        }
+
+        this.process = await promisify(SeleniumStandalone.start)(this.seleniumArgs)
 
         if (typeof this.seleniumLogs === 'string') {
             this._redirectLogStream()

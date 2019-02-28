@@ -21,7 +21,7 @@ You can simple do it by:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/guide/getstarted/install.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
 ## Configuration
 
@@ -61,24 +61,30 @@ Optional pattern to selectively select it/describe cases to run from spec files.
 Type: `RegExp | string`<br>
 Default: undefined
 
-## invertGrep
+### invertGrep
 Inverts 'grep' matches.
 
 Type: `Boolean`<br>
 Default: false
 
-## cleanStack
+### cleanStack
 Clean up stack trace and remove all traces of node module packages.
 
 Type: `Boolean`<br>
 Default: true
 
-## random
+### random
 Run specs in semi-random order.
+
+Type: `Boolean`<br>
+Default: `false`
+
+### stopOnSpecFailure
+Stops spec execution on first fail (other specs continue running)
 
 Type: `Boolean`<br>
 Default: `false`
 
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

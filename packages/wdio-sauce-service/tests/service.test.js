@@ -1,11 +1,12 @@
 import SauceService from '../src'
 
 global.browser = {
+    config: { },
     execute: jest.fn(),
     chromeA: { sessionId: 'sessionChromeA' },
     chromeB: { sessionId: 'sessionChromeB' },
     chromeC: { sessionId: 'sessionChromeC' },
-    instances: ['chromeA', 'chromeB', 'chromeC']
+    instances: ['chromeA', 'chromeB', 'chromeC'],
 }
 
 jest.mock('request', () => ({
@@ -14,9 +15,24 @@ jest.mock('request', () => ({
 
 test('getSauceRestUrl', () => {
     const service = new SauceService({ user: 'foobar' })
-    service.before()
+    service.before({})
     expect(service.getSauceRestUrl('12345'))
         .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+
+    const euService = new SauceService({ user: 'foobar', region: 'eu' })
+    euService.before({})
+    expect(euService.getSauceRestUrl('12345'))
+        .toBe('https://eu-central-1.saucelabs.com/rest/v1/foobar/jobs/12345')
+
+    const usService = new SauceService({ user: 'foobar', region: 'us' })
+    usService.before({})
+    expect(usService.getSauceRestUrl('12345'))
+        .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+
+    const rdcService = new SauceService({})
+    rdcService.before({ testobject_api_key: 4321})
+    expect(rdcService.getSauceRestUrl('12345'))
+        .toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
 })
 
 test('beforeSuite', () => {
@@ -28,7 +44,7 @@ test('beforeSuite', () => {
 
 test('beforeTest should set context for test', () => {
     const service = new SauceService({ user: 'foobar', key: '123' })
-    service.before()
+    service.before({})
     service.beforeTest({
         parent: 'my test',
         title: 'can do something'
@@ -44,7 +60,7 @@ test('beforeTest should set context for test', () => {
 
 test('beforeTest should not set context if user does not use sauce', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
     service.beforeTest({
         parent: 'my test',
         title: 'can do something'
@@ -54,7 +70,7 @@ test('beforeTest should not set context if user does not use sauce', () => {
 
 test('afterSuite', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
 
     expect(service.failures).toBe(0)
 
@@ -67,7 +83,7 @@ test('afterSuite', () => {
 
 test('afterTest', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
 
     expect(service.failures).toBe(0)
 
@@ -80,7 +96,7 @@ test('afterTest', () => {
 
 test('beforeFeature should set context', () => {
     const service = new SauceService({ user: 'foobar', key: '123' })
-    service.before()
+    service.before({})
     service.beforeFeature({ name: 'foobar' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Feature: foobar')
     service.beforeFeature({ getName: () => 'barfoo' })
@@ -89,14 +105,14 @@ test('beforeFeature should set context', () => {
 
 test('beforeFeature should not set context if no sauce user was applied', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
     service.beforeFeature({ name: 'foobar' })
     expect(global.browser.execute).not.toBeCalledWith('sauce:context=Feature: foobar')
 })
 
 test('afterStep', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
 
     expect(service.failures).toBe(0)
 
@@ -115,7 +131,7 @@ test('afterStep', () => {
 
 test('beforeScenario should set context', () => {
     const service = new SauceService({ user: 'foobar', key: '123' })
-    service.before()
+    service.before({})
     service.beforeScenario({ name: 'foobar' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
     service.beforeScenario({ getName: () => 'barfoo' })
@@ -124,14 +140,14 @@ test('beforeScenario should set context', () => {
 
 test('beforeScenario should not set context if no sauce user was applied', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
     service.beforeScenario({ name: 'foobar' })
     expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('after', () => {
     const service = new SauceService({ user: 'foobar', key: '123' })
-    service.before()
+    service.before({})
     service.failures = 5
     service.updateJob = jest.fn()
 
@@ -142,9 +158,36 @@ test('after', () => {
     expect(service.updateJob).toBeCalledWith('foobar', 5)
 })
 
+test('after for RDC', () => {
+    const service = new SauceService({})
+    service.before({ testobject_api_key: 1 })
+    service.failures = 5
+    service.updateJob = jest.fn()
+
+    global.browser.isMultiremote = false
+    global.browser.sessionId = 'foobar'
+    service.after()
+
+    expect(service.updateJob).toBeCalledWith('foobar', 5)
+})
+
+test('after with bail set', () => {
+    const service = new SauceService({ user: 'foobar', key: '123' })
+    service.before({})
+    service.failures = 5
+    service.updateJob = jest.fn()
+
+    global.browser.isMultiremote = false
+    global.browser.sessionId = 'foobar'
+    global.browser.config = { mochaOpts: { bail: 1 } }
+    service.after(1)
+
+    expect(service.updateJob).toBeCalledWith('foobar', 1)
+})
+
 test('beforeScenario should not set context if no sauce user was applied', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
     service.failures = 5
     service.updateJob = jest.fn()
 
@@ -172,7 +215,20 @@ test('after in multiremote', () => {
 
 test('onReload', () => {
     const service = new SauceService({ user: 'foobar', key: '123' })
-    service.before()
+    service.before({})
+    service.failures = 5
+    service.updateJob = jest.fn()
+
+    global.browser.isMultiremote = false
+    global.browser.sessionId = 'foobar'
+    service.onReload('oldbar', 'newbar')
+
+    expect(service.updateJob).toBeCalledWith('oldbar', 5, true)
+})
+
+test('onReload with RDC', () => {
+    const service = new SauceService({  })
+    service.before({ testobject_api_key: 1 })
     service.failures = 5
     service.updateJob = jest.fn()
 
@@ -185,7 +241,7 @@ test('onReload', () => {
 
 test('onReload should not set context if no sauce user was applied', () => {
     const service = new SauceService({})
-    service.before()
+    service.before({})
     service.failures = 5
     service.updateJob = jest.fn()
 
@@ -210,16 +266,48 @@ test('after in multiremote', () => {
     expect(service.updateJob).toBeCalledWith('sessionChromeB', 5, true, 'chromeB')
 })
 
-test('updateJob', () => {
+test('updateJob for VMs', () => {
+    const service = new SauceService({ user: 'foobar', key: '123' })
+    service.before({})
+
+    service.updateVmJob = jest.fn()
+
+    service.updateJob('12345', 23, true)
+    expect(service.updateVmJob).toBeCalled()
+})
+
+test('updateJob for RDC', () => {
+    const service = new SauceService({})
+    service.before({ testobject_api_key: 1})
+
+    service.updateRdcJob = jest.fn()
+
+    service.updateJob('12345', 23)
+    expect(service.updateRdcJob).toBeCalled()
+})
+
+test('updateVmJob', () => {
     const request = require('request')
     const service = new SauceService({ user: 'foobar', key: '123' })
-    service.before()
+    service.before({})
 
     service.failures = 123
     service.getBody = jest.fn()
 
-    service.updateJob('12345', 23, true)
+    service.updateVmJob('12345', 23, true)
     expect(service.getBody).toBeCalled()
+    expect(service.failures).toBe(0)
+    expect(request.put).toBeCalled()
+})
+
+test('updateRdcJob', () => {
+    const request = require('request')
+    const service = new SauceService({ })
+    service.before({ testobject_api_key: 1})
+
+    service.failures = 123
+
+    service.updateRdcJob('12345', 23)
     expect(service.failures).toBe(0)
     expect(request.put).toBeCalled()
 })

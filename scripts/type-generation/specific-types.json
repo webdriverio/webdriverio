@@ -1,0 +1,52 @@
+{
+    "getLocation": [
+        {
+            "parameters": [{"name": "prop", "type": "LocationParam"}],
+            "return": "number"
+        },
+        {
+            "parameters": [],
+            "return": "LocationReturn"
+        }
+    ],
+    "getSize": [
+        {
+            "parameters": [{"name": "prop", "type": "SizeParam"}],
+            "return": "number"
+        },
+        {
+            "parameters": [],
+            "return": "SizeReturn"
+        }
+    ],
+    "setCookies": [
+        {
+            "parameters": [{"name": "cookie", "type": "Cookie"}],
+            "return": "undefined"
+        }
+    ],
+    "getCookies": [
+        {
+            "parameters": [{"name": "names?", "type": "string[]"}],
+            "return": "Cookie[]"
+        }
+    ],
+    "getCSSProperty": [
+        {
+            "parameters": [{"name": "cssProperty", "type": "string"}],
+            "return": "CSSProperty"
+        }
+    ],
+    "setTimeout": [
+        {
+            "parameters": [{"name": "timeouts", "type": "Timeouts"}],
+            "return": "undefined"
+        }
+    ],
+    "touchAction": [
+        {
+            "parameters": [{"name": "action", "type": "TouchActions"}],
+            "return": "undefined"
+        }
+    ]
+}

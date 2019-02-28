@@ -1,14 +1,15 @@
 ---
 name: "\U0001F41BBug report"
 about: Create a report to help us improve.
-
 ---
+
+[//]: # NOTE: This repository only maintains packages that are listed in the [Readme](https://github.com/webdriverio/webdriverio/blob/master/README.md#packages). Please make sure that your issue is directly caused by one of these packages and if not file an issue in the correct 3rd party package repository.
 
 **Environment (please complete the following information):**
  - **WebdriverIO version:** [e.g. 4.13.2]
  - **Mode:** [Standalone mode or WDIO Testrunner]
  - **If WDIO Testrunner, running sync/async:** [e.g. sync/async]
- - **Node.js version: [e.g. 8.9.1]
+ - **Node.js version:** [e.g. 8.11.2]
  - **NPM version:** [e.g. 5.8.0]
  - **Browser name and version:** [e.g. Chrome 68]
  - **Platform name and version:** [e.g. Windows 10]

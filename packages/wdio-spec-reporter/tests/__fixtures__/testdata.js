@@ -1,6 +1,7 @@
 export const RUNNER = {
     cid : '0-0',
     _duration : 5032,
+    config: { hostname: 'localhost' },
     capabilities : {
         browserName : 'loremipsum',
     },
@@ -17,6 +18,7 @@ export const SUITES = [
     {
         uid : SUITE_UIDS[0],
         title : SUITE_UIDS[0].slice(0, -1),
+        hooks: [],
         tests : [
             {
                 uid : 'foo1',
@@ -33,6 +35,7 @@ export const SUITES = [
     {
         uid : SUITE_UIDS[1],
         title : SUITE_UIDS[1].slice(0, -1),
+        hooks: [],
         tests : [
             {
                 uid : 'some test1',
@@ -53,6 +56,7 @@ export const SUITES = [
     {
         uid : SUITE_UIDS[2],
         title : SUITE_UIDS[2].slice(0, -1),
+        hooks: [],
         tests : [
             {
                 uid : 'foo bar baz1',
@@ -72,7 +76,26 @@ export const SUITES_NO_TESTS = [
         uid: SUITE_UIDS[0],
         title: SUITE_UIDS[0].slice(0, -1),
         tests: [],
-        suites: []
+        suites: [],
+        hooks: []
+    },
+]
+
+export const SUITES_NO_TESTS_WITH_HOOK_ERROR = [
+    {
+        uid: SUITE_UIDS[0],
+        title: SUITE_UIDS[0].slice(0, -1),
+        tests: [],
+        suites: [],
+        hooks: [{
+            uid : 'a failed hook2',
+            title : 'a failed hook',
+            state : 'failed',
+            error : {
+                message : 'expected foo to equal bar',
+                stack : 'Failed test stack trace'
+            }
+        }]
     },
 ]
 
@@ -99,4 +122,8 @@ export const REPORT = `---------------------------------------------------------
 [loremipsum #0-0] 1) Bar test a failed test
 [loremipsum #0-0] red expected foo to equal bar
 [loremipsum #0-0] gray Failed test stack trace
+`
+
+export const SAUCELABS_REPORT = REPORT + `[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 `

@@ -19,9 +19,8 @@ export function getLauncher (config) {
         /**
          * allow custom services
          */
-        if (typeof serviceName === 'object') {
-            const { onPrepare, onComplete } = serviceName
-            launchServices.push({ onPrepare, onComplete })
+        if (typeof serviceName === 'object' && (typeof serviceName.onPrepare === 'function' || typeof serviceName.onComplete === 'function')) {
+            launchServices.push(serviceName)
             continue
         }
 
@@ -37,14 +36,14 @@ export function getLauncher (config) {
 
             launcher = new Launcher()
         } catch (e) {
-            if (!e.message.match(`Couldn't find plugin`)) {
-                throw new Error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
+            if (e.message.startsWith('Couldn\'t find plugin')) {
+                log.error(`Couldn't initialise launcher from service "${serviceName}".\n${e.stack}`)
+                continue
             }
         }
 
         if (launcher && (typeof launcher.onPrepare === 'function' || typeof launcher.onComplete === 'function')) {
-            const { onPrepare, onComplete } = launcher
-            launchServices.push({ onPrepare, onComplete })
+            launchServices.push(launcher)
         }
     }
 
@@ -74,4 +73,18 @@ export function filterPackageName (type) {
         (pkgLabel) => pkgLabel.trim().includes('@wdio')
             ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
             : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`)
+}
+
+/**
+ * get runner identification by caps
+ */
+export function getRunnerName (caps) {
+    return (
+        caps.browserName ||
+        caps.appPackage ||
+        caps.appWaitActivity ||
+        caps.app ||
+        caps.platformName ||
+        'undefined'
+    )
 }

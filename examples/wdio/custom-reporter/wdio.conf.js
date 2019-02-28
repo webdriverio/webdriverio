@@ -1,5 +1,5 @@
 const path = require('path')
-const CustomReporter = require('./reporter/my.custom.reporter');
+const CustomReporter = require('./reporter/my.custom.reporter')
 
 exports.config = {
     /**
@@ -24,7 +24,7 @@ exports.config = {
      * test configurations
      */
     logLevel: 'trace',
-    logDir: __dirname,
+    outputDir: __dirname,
     framework: 'mocha',
 
     reporters: [[CustomReporter, {

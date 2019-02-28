@@ -19,8 +19,7 @@
  * </example>
  *
  * @alias element.addValue
- * @param {String} selector   Input element
- * @param {*}      values     value to be added
+ * @param {*}      value     value to be added
  * @uses protocol/elements, protocol/elementIdValue
  * @type action
  *
@@ -29,6 +28,14 @@
 import { transformToCharString } from '../../utils'
 
 export default function addValue (value) {
-    let text = transformToCharString(value)
-    return this.elementSendKeys(this.elementId, text)
+    if (!this.isW3C) {
+        return this.elementSendKeys(this.elementId, transformToCharString(value))
+    }
+
+    // Workaround https://github.com/appium/appium/issues/12085
+    if (this.isMobile) {
+        return this.elementSendKeys(this.elementId, value, transformToCharString(value))
+    }
+
+    return this.elementSendKeys(this.elementId, value)
 }

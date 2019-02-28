@@ -57,8 +57,16 @@ typings/
 # dotenv environment variables file
 .env
 
+# lerna changelog cachedir
+.changelog
+
 **/build
 /*.js
+*.d.ts
+!scripts/templates/*.d.ts
+!/packages/wdio-mocha-framework/mocha-framework.d.ts
+!/packages/wdio-jasmine-framework/jasmine-framework.d.ts
+!/packages/wdio-selenium-standalone-service/selenium-standalone-service.d.ts
 !babel.config.js
 !.eslintrc.js
 package-lock.json
@@ -74,3 +82,13 @@ website/node_modules
 website/i18n/*
 docs/api/**/*.md
 docs/_*.md
+
+# Editor files
+.idea
+.vscode
+!.vscode/extensions.json
+.*.swp
+.history
+.gradle
+wallaby.conf.js
+tags

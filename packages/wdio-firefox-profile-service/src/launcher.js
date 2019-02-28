@@ -59,7 +59,7 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const browser in this.capabilities) {
-            const capability = this.capabilities[browser].desiredCapabilities
+            const capability = this.capabilities[browser].capabilities
 
             if (!capability || capability.browserName !== 'firefox') {
                 continue
@@ -74,7 +74,7 @@ export default class FirefoxProfileLauncher {
         capability.firefox_profile = zippedProfile
 
         // for firefox >= 56.0 and geckodriver >= 0.19.0
-        capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {};
-        capability['moz:firefoxOptions'].profile = zippedProfile;
+        capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {}
+        capability['moz:firefoxOptions'].profile = zippedProfile
     }
 }

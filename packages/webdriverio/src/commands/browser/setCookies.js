@@ -1,21 +1,28 @@
 /**
  *
- * Sets a [cookie](https://w3c.github.io/webdriver/#cookies) for current page. Make sure you are
+ * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page. Make sure you are
  * on the page that should receive the cookie. You can't set a cookie for an arbitrary page without
  * being on that page.
  *
  * <example>
-    :setCookie.js
+    :setCookies.js
     it('should set a cookie for the page', () => {
         browser.url('/')
-        browser.setCookie({name: 'test', value: '123'})
+        browser.setCookies({name: 'test1', value: 'one'}) // set a single cookie
+        browser.setCookies([{name: 'test2', value: 'two'}, {name: 'test3', value: 'three'}]) // set multiple cookies
 
-        const cookies = browser.getCookie()
-        console.log(cookies); // outputs: [{ name: 'test', value: '123', domain: 'www.example.com' }]
+        const cookies = browser.getCookies()
+        console.log(cookies);
+        // outputs:
+        // [
+        //      {name: 'test1', value: 'one', domain: 'www.example.com'},
+        //      {name: 'test2', value: 'two', domain: 'www.example.com'},
+        //      {name: 'test3', value: 'three', domain: 'www.example.com'}
+        // ]
     });
  * </example>
  *
- * @alias browser.setCookie
+ * @alias browser.setCookies
  * @param {Object} cookie cookie object
  * @param {String} cookie.name The name of the cookie
  * @param {String} cookie.value The cookie value
@@ -29,10 +36,10 @@
  *
  */
 export default async function setCookies(cookieObjs) {
-    const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs;
+    const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
-    if (cookieObjsList.some(obj => !(obj instanceof Object))) {
-        throw new Error('Invalid input (see http://webdriver.io/docs/api/browser/setCookies.html for documentation.')
+    if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
+        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies.html for documentation.')
     }
 
     return Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))

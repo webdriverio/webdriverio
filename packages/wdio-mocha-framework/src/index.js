@@ -34,13 +34,11 @@ class MochaAdapter {
             mochaOpts: {}
         }, config)
         this.runner = {}
-
-        this.messageCounter = 0
-        this.messageUIDs = {
-            suite: {},
-            hook: {},
-            test: {}
-        }
+        this.level = 0
+        this.suiteCnt = new Map()
+        this.hookCnt = new Map()
+        this.testCnt = new Map()
+        this.suiteIds = ['0']
     }
 
     async run () {
@@ -156,21 +154,23 @@ class MochaAdapter {
                 expected: params.err.expected,
                 actual: params.err.actual
             }
+
+            /**
+             * hook failures are emitted as "test:fail"
+             */
+            if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all)*" hook/g)) {
+                message.type = 'hook:end'
+            }
         }
 
         if (params.payload) {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
 
-            /**
-             * get title for hooks in root suite
-             */
-            if (message.parent === '' && params.payload.parent && params.payload.parent.suites) {
-                message.parent = params.payload.parent.suites[0].title
-            }
-
             message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
             message.pending = params.payload.pending || false
+            message.file = params.payload.file
+            message.duration = params.payload.duration
 
             /**
              * Add the current test title to the payload for cases where it helps to
@@ -182,7 +182,6 @@ class MochaAdapter {
 
             if (params.type.match(/Test/)) {
                 message.passed = (params.payload.state === 'passed')
-                message.duration = params.payload.duration
             }
 
             if (params.payload.context) { message.context = params.payload.context }
@@ -218,75 +217,71 @@ class MochaAdapter {
 
         message.cid = this.cid
         message.specs = this.specs
-
-        let { uid, parentUid } = this.generateUID(message)
-        message.uid = uid
-        message.parentUid = parentUid
+        message.uid = this.getUID(message)
 
         if (message.error) {
             this.lastError = message.error
         }
 
-        this.reporter.emit(event, message)
+        this.reporter.emit(message.type, message)
     }
 
-    generateUID (message) {
-        var uid, parentUid
-
-        switch (message.type) {
-        case 'suite:start':
-            uid = this.getUID(message.title, 'suite', true)
-            parentUid = uid
-            break
-
-        case 'suite:end':
-            uid = this.getUID(message.title, 'suite')
-            parentUid = uid
-            break
-
-        case 'hook:start':
-            uid = this.getUID(message.title, 'hook', true)
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        case 'hook:end':
-            uid = this.getUID(message.title, 'hook')
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        case 'test:start':
-            uid = this.getUID(message.title, 'test', true)
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        case 'test:pending':
-        case 'test:end':
-        case 'test:pass':
-        case 'test:fail':
-            uid = this.getUID(message.title, 'test')
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        default:
-            throw new Error(`Unknown message type : ${message.type}`)
-        }
-
-        return {
-            uid,
-            parentUid
-        }
+    getSyncEventIdStart (type) {
+        const prop = `${type}Cnt`
+        const suiteId = this.suiteIds[this.suiteIds.length - 1]
+        const cnt = this[prop].has(suiteId)
+            ? this[prop].get(suiteId)
+            : 0
+        this[prop].set(suiteId, cnt + 1)
+        return `${type}-${suiteId}-${cnt}`
     }
 
-    getUID (title, type, start) {
-        if (start !== true && this.messageUIDs[type][title]) {
-            return this.messageUIDs[type][title]
+    getSyncEventIdEnd (type) {
+        const prop = `${type}Cnt`
+        const suiteId = this.suiteIds[this.suiteIds.length - 1]
+        const cnt = this[prop].get(suiteId) - 1
+        return `${type}-${suiteId}-${cnt}`
+    }
+
+    getUID (message) {
+        if (message.type === 'suite:start') {
+            const suiteCnt = this.suiteCnt.has(this.level)
+                ? this.suiteCnt.get(this.level)
+                : 0
+            const suiteId = `suite-${this.level}-${suiteCnt}`
+
+            if (this.suiteCnt.has(this.level)) {
+                this.suiteCnt.set(this.level, this.suiteCnt.get(this.level) + 1)
+            } else {
+                this.suiteCnt.set(this.level, 1)
+            }
+
+            // const suiteId = this.getSyncEventIdStart('suite')
+            this.suiteIds.push(`${this.level}${suiteCnt}`)
+            this.level++
+            return suiteId
+        }
+        if (message.type === 'suite:end') {
+            this.level--
+            const suiteCnt = this.suiteCnt.get(this.level) - 1
+            const suiteId = `suite-${this.level}-${suiteCnt}`
+            this.suiteIds.pop()
+            return suiteId
+        }
+        if (message.type === 'hook:start') {
+            return this.getSyncEventIdStart('hook')
+        }
+        if (message.type === 'hook:end') {
+            return this.getSyncEventIdEnd('hook')
+        }
+        if (message.type === 'test:start') {
+            return this.getSyncEventIdStart('test')
+        }
+        if (['test:pending', 'test:end', 'test:pass', 'test:fail'].includes(message.type)) {
+            return this.getSyncEventIdEnd('test')
         }
 
-        let uid = title + this.messageCounter++
-
-        this.messageUIDs[type][title] = uid
-
-        return uid
+        throw new Error(`Unknown message type : ${message.type}`)
     }
 }
 

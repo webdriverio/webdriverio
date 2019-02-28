@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 
 exports.config = {
-
     // =====================
     // Server Configurations
     // =====================
@@ -25,6 +24,12 @@ exports.config = {
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+    //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. Available short handles for regions are:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
+    region: 'us',
     //
     // ==================
     // Specify Test Files
@@ -98,11 +103,11 @@ exports.config = {
     // Level of logging verbosity: trace | debug | info | warn | error
     logLevel: 'info',
     //
+    // Set directory to store all logs into
+    outputDir: __dirname,
+    //
     // Enables colors for log output.
     coloredLogs: true,
-    //
-    // Warns when a deprecated command is used
-    deprecationWarnings: true,
     //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
@@ -117,27 +122,9 @@ exports.config = {
     // Default timeout for all waitFor* commands.
     waitforTimeout: 1000,
     //
-    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as properties. Make sure you have
-    // the plugin installed before running any tests. The following plugins are currently
-    // available:
-    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
-    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
-    // Browserevent: https://github.com/webdriverio/browserevent
-    plugins: {
-        webdrivercss: {
-            screenshotRoot: 'my-shots',
-            failedComparisonsRoot: 'diffs',
-            misMatchTolerance: 0.05,
-            screenWidth: [320,480,640,1024]
-        },
-        webdriverrtc: {},
-        browserevent: {}
-    },
-    //
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework
     // installed before running any tests.
@@ -145,14 +132,14 @@ exports.config = {
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html
+    // see also: https://webdriver.io/docs/dot-reporter.html
     reporters: [
         'dot',
         ['allure', {
             //
             // If you are using the "allure" reporter you should define the directory where
             // WebdriverIO should save all allure reports.
-            outputDir: './'
+            outputDir: './allureReports'
         }]
     ],
     //
@@ -311,6 +298,13 @@ exports.config = {
      */
     onComplete: function (exitCode, config, capabilities, results) {
     },
+    /**
+    * Gets executed when a refresh happens.
+    * @param {String} oldSessionId session ID of the old session
+    * @param {String} newSessionId session ID of the new session
+    */
+    onReload: function(oldSessionId, newSessionId) {
+    },
     //
     // Cucumber specific hooks
     beforeFeature: function (feature) {
@@ -325,4 +319,4 @@ exports.config = {
     },
     afterFeature: function (feature) {
     }
-};
+}

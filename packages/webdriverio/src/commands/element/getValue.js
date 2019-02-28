@@ -2,6 +2,7 @@
  *
  * Get the value of a `<textarea>`, `<select>` or text `<input>` found by given selector.
  * If multiple elements are found via the given selector, an array of values is returned instead.
+ * For input with checkbox or radio type use isSelected.
  *
  * <example>
     :index.html
@@ -15,8 +16,7 @@
  * </example>
  *
  * @alias element.getValue
- * @param  {String} selector  input, textarea, or select element
- * @return {String|String[]}  requested element(s) value
+ * @return {String}  requested element(s) value
  * @uses protocol/elements, protocol/elementIdProperty
  * @type property
  *

@@ -1,5 +1,6 @@
 import request from 'request'
 import logger from '@wdio/logger'
+import { getSauceEndpoint } from '@wdio/config'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
@@ -19,12 +20,17 @@ export default class SauceService {
         this.capabilities = capabilities
         this.sauceUser = this.config.user
         this.sauceKey = this.config.key
+        this.hostname = getSauceEndpoint(this.config.region)
         this.testCnt = 0
         this.failures = 0 // counts failures between reloads
+        this.isRDC = 'testobject_api_key' in this.capabilities
     }
 
     getSauceRestUrl (sessionId) {
-        return `https://saucelabs.com/rest/v1/${this.sauceUser}/jobs/${sessionId}`
+        if (this.isRDC){
+            return `https://app.testobject.com/api/rest/v2/appium/session/${sessionId}/test`
+        }
+        return `https://${this.hostname}/rest/v1/${this.sauceUser}/jobs/${sessionId}`
     }
 
     beforeSuite (suite) {
@@ -103,26 +109,36 @@ export default class SauceService {
     /**
      * update Sauce Labs job
      */
-    after () {
-        if (!this.sauceUser || !this.sauceKey) {
+    after (result) {
+        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
             return
         }
 
-        const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
+        let failures = this.failures
+
+        /**
+         * set failures if user has bail option set in which case afterTest and
+         * afterSuite aren't executed before after hook
+         */
+        if (global.browser.config.mochaOpts && global.browser.config.mochaOpts.bail && Boolean(result)) {
+            failures = 1
+        }
+
+        const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
 
         if (!global.browser.isMultiremote) {
             log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
-            return this.updateJob(global.browser.sessionId, this.failures)
+            return this.updateJob(global.browser.sessionId, failures)
         }
 
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(global.browser[browserName].sessionId, this.failures, false, browserName)
+            return this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
         }))
     }
 
     onReload (oldSessionId, newSessionId) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
             return
         }
 
@@ -140,6 +156,29 @@ export default class SauceService {
     }
 
     updateJob (sessionId, failures, calledOnReload = false, browserName) {
+        if (this.isRDC) {
+            return this.updateRdcJob (sessionId, failures)
+        }
+
+        return this.updateVmJob (sessionId, failures, calledOnReload, browserName)
+    }
+
+    updateRdcJob (sessionId, failures) {
+        return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
+            json: true,
+            body: { 'passed': failures === 0 },
+        }, (e, res, body) => {
+            /* istanbul ignore if */
+            if (e) {
+                return reject(e)
+            }
+            global.browser.jobData = body
+            this.failures = 0
+            return resolve(body)
+        }))
+    }
+
+    updateVmJob (sessionId, failures, calledOnReload = false, browserName) {
         return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
             json: true,
             auth: {
@@ -159,7 +198,7 @@ export default class SauceService {
     }
 
     /**
-     * massage data
+     * VM message data
      */
     getBody (failures, calledOnReload = false, browserName) {
         let body = {}

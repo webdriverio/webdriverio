@@ -69,7 +69,7 @@ Type: `String`<br>
 Default: *http*
 Options: *http* | *https*
 
-### host
+### hostname
 Host of your WebDriver server.
 
 Type: `String`<br>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * This script generates new sub package with intial structure and files
+ * This script generates new sub package with initial structure and files
  */
 
 const fs = require('fs')
@@ -52,7 +52,7 @@ inquirer.prompt(questions).then(answers => {
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -70,6 +70,9 @@ inquirer.prompt(questions).then(answers => {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }`
         },

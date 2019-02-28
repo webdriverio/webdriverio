@@ -8,7 +8,18 @@ import { SHUTDOWN_TIMEOUT } from './constants'
 const log = logger('wdio-local-runner')
 
 const runner = new Runner()
+runner.on('exit', ::process.exit)
+runner.on('error', ({ name, message, stack }) => process.send({
+    origin: 'worker',
+    name: 'error',
+    content: { name, message, stack }
+}))
+
 process.on('message', (m) => {
+    if (!m || !m.command) {
+        return log.info('Ignore message for worker:', m)
+    }
+
     log.info(`Run worker command: ${m.command}`)
     runner[m.command](m).then(
         (result) => process.send({
@@ -20,17 +31,10 @@ process.on('message', (m) => {
             }
         }),
         (e) => {
-            log.error(`Failed launching test session:`, e)
+            log.error(`Failed launching test session: ${e.stack}`)
             process.exit(1)
         }
     )
-
-    runner.on('exit', ::process.exit)
-    runner.on('error', ({ name, message, stack }) => process.send({
-        origin: 'worker',
-        name: 'error',
-        content: { name, message, stack }
-    }))
 })
 
 /**

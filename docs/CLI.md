@@ -5,7 +5,7 @@ title: WDIO CLI Options
 
 WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
 
-Starting with v5 of WebdriverIO the testrunner will be bundled as a seperated NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
+Starting with v5 of WebdriverIO the testrunner will be bundled as a separate NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
 
 ```sh
 $ npm install @wdio/cli
@@ -28,14 +28,14 @@ Commands:
 Options:
   --help                prints WebdriverIO help menu                   [boolean]
   --version             prints WebdriverIO version                     [boolean]
-  --host, -h            automation driver host address                  [string]
+  --hostname, -h        automation driver host address                  [string]
   --port, -p            automation driver port                          [number]
   --user, -u            username if using a cloud service as automation backend
                                                                         [string]
   --key, -k             corresponding access key to the user            [string]
   --watch               watch specs for changes                        [boolean]
   --logLevel, -l        level of logging verbosity
-                            [choices: "trace", "debug", "info", "warn", "error"]
+                            [choices: "trace", "debug", "info", "warn", "error", "silent"]
   --bail                stop test runner after specific amount of tests have
                         failed                                          [number]
   --baseUrl             shorten url command calls by setting a base url [string]

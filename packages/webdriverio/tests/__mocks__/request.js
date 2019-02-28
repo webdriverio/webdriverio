@@ -2,30 +2,47 @@ import { ELEMENT_KEY } from '../../src/constants'
 
 let manualMockResponse
 
-const sessionId = 'foobar-123'
+const defaultSessionId = 'foobar-123'
+let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
+const genericSubSubElementId = 'some-sub-sub-elem-231'
 const requestMock = jest.fn().mockImplementation((params, cb) => {
     let value = {}
+    let jsonwpMode = false
     let sessionResponse = {
         sessionId,
         capabilities: {
-            browserName: 'mockBrowser'
+            browserName: 'mockBrowser',
+            platformName: 'node'
         }
     }
 
-    if (params.body && params.body.capabilities && params.body.capabilities.jsonwpMode) {
+    if (
+        params.body &&
+        params.body.capabilities &&
+        params.body.capabilities.alwaysMatch.jsonwpMode
+    ) {
+        jsonwpMode = true
         sessionResponse = {
             sessionId,
             browserName: 'mockBrowser'
         }
     }
 
+    if (
+        params.body &&
+        params.body.capabilities &&
+        params.body.capabilities.alwaysMatch.mobileMode
+    ) {
+        sessionResponse.capabilities.deviceName = 'iNode'
+    }
+
     switch (params.uri.path) {
     case '/wd/hub/session':
         value = sessionResponse
 
-        if (params.body.capabilities.browserName.includes('noW3C')) {
+        if (params.body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
             value.desiredCapabilities = { browserName: 'mockBrowser' }
             delete value.capabilities
         }
@@ -35,10 +52,20 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         value = {
             [ELEMENT_KEY]: genericElementId
         }
+
+        if (params.body && params.body.value === '#nonexisting') {
+            value = { elementId: null }
+        }
+
         break
     case `/wd/hub/session/${sessionId}/element/some-elem-123/element`:
         value = {
             [ELEMENT_KEY]: genericSubElementId
+        }
+        break
+    case `/wd/hub/session/${sessionId}/element/${genericSubElementId}/element`:
+        value = {
+            [ELEMENT_KEY]: genericSubSubElementId
         }
         break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/rect`:
@@ -68,6 +95,9 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             x: 15,
             y: 20
         }
+        break
+    case `/wd/hub/session/${sessionId}/element/${genericElementId}/displayed`:
+        value = true
         break
     case `/wd/hub/session/${sessionId}/elements`:
         value = [
@@ -109,7 +139,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         value = 'https://webdriver.io/?foo=bar'
         break
     case `/wd/hub/session/${sessionId}/title`:
-        value = 'WebdriverIO - WebDriver bindings for Node.js'
+        value = 'WebdriverIO · Next-gen WebDriver test framework for Node.js'
         break
     case `/wd/hub/session/${sessionId}/screenshot`:
         value = Buffer.from('some screenshot').toString('base64')
@@ -117,6 +147,48 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/screenshot`:
         value = Buffer.from('some element screenshot').toString('base64')
         break
+    }
+
+    /**
+     * Simulate a stale element
+     */
+
+    if (params.uri.path === `/wd/hub/session/${sessionId}/element/${genericSubSubElementId}/click`) {
+        ++requestMock.retryCnt
+
+        if (requestMock.retryCnt > 1) {
+            const response = { value: null }
+            return cb(null, {
+                headers: { foo: 'bar' },
+                statusCode: 200,
+                body: response
+            }, response)
+        }
+
+        // https://www.w3.org/TR/webdriver1/#handling-errors
+        let error = {
+            value: {
+                'error': 'stale element reference',
+                'message': 'element is not attached to the page document'
+            }
+        }
+
+        return cb(null, {
+            headers: { foo: 'bar' },
+            statusCode: 404,
+            body: error
+        }, error)
+    }
+
+    /**
+     * empty response
+     */
+    if (params.uri.path === '/wd/hub/empty') {
+        return cb(null, {
+            headers: { foo: 'bar' },
+            statusCode: 500,
+            body: ''
+        })
     }
 
     /**
@@ -159,7 +231,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     let response = { value }
-    if (params.jsonwpMode) {
+    if (jsonwpMode) {
         response = { value, sessionId, status: 0 }
     }
 
@@ -173,6 +245,14 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
 requestMock.retryCnt = 0
 requestMock.setMockResponse = (value) => {
     manualMockResponse = value
+}
+
+requestMock.getSessionId = () => sessionId
+requestMock.setSessionId = (newSessionId) => {
+    sessionId = newSessionId
+}
+requestMock.resetSessionId = () => {
+    sessionId = defaultSessionId
 }
 
 export default requestMock

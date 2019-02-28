@@ -18,7 +18,7 @@ To get an anchor element with a specific text in it, query the text starting wit
 For example:
 
 ```html
-<a href="http://webdriver.io">WebdriverIO</a>
+<a href="https://webdriver.io">WebdriverIO</a>
 ```
 
 You can query this element by calling:
@@ -26,7 +26,7 @@ You can query this element by calling:
 ```js
 const link = $('=WebdriverIO');
 console.log(link.getText()); // outputs: "WebdriverIO"
-console.log(link.getAttribute('href')); // outputs: "http://webdriver.io"
+console.log(link.getAttribute('href')); // outputs: "https://webdriver.io"
 ```
 
 ## Partial Link Text
@@ -35,7 +35,7 @@ To find a anchor element whose visible text partially matches your search value,
 in front of the query string (e.g. `*=driver`)
 
 ```html
-<a href="http://webdriver.io">WebdriverIO</a>
+<a href="https://webdriver.io">WebdriverIO</a>
 ```
 
 You can query this element by calling:
@@ -121,7 +121,7 @@ It is also possible to query elements via a specific [xPath](https://developer.m
 You can query the second paragraph by calling:
 
 ```js
-const paragraph = $('//BODY/P[1]');
+const paragraph = $('//BODY/P[2]');
 console.log(paragraph.getText()); // outputs: "barfoo"
 ```
 
@@ -149,7 +149,7 @@ You can query the sibling element of `#elem` as follows:
 
 ```js
 const elem = $('#elem') // or $(() => document.getElementById('elem'))
-elem.$(() => this.nextSibling.nextSibling) // (first sibling is #text with value ("↵"))
+elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is #text with value ("↵"))
 ```
 
 ## Mobile Selectors
@@ -184,7 +184,7 @@ With iOS 10 and above (using the XCUITest driver), you can use [predicate string
 
 ```js
 const selector = 'type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'';
-const Switch = $(`ios=predicate=${selector}`);
+const Switch = $(`-ios predicate string:${selector}`);
 Switch.click();
 ```
 
@@ -192,7 +192,7 @@ And [class chains](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Q
 
 ```js
 const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton';
-const Button = $(`ios=chain=${selector}`);
+const Button = $(`-ios class chain:${selector}`);
 Button.click();
 ```
 

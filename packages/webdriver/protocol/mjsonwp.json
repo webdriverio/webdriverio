@@ -3,13 +3,18 @@
     "GET": {
       "command": "getContext",
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "string|null",
+        "name": "context",
+        "description": "a string representing the current context or null representing 'no context'"
+      }
     },
     "POST": {
       "command": "switchContext",
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts",
       "parameters": [{
-        "name": "context",
+        "name": "name",
         "type": "string",
         "description": "a string representing an available context",
         "required": true
@@ -20,7 +25,12 @@
     "GET": {
       "command": "getContexts",
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "string[]",
+        "name": "contexts",
+        "description": "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'"
+      }
     }
   },
   "/session/:sessionId/element/:elementId/pageIndex": {
@@ -34,7 +44,12 @@
     "GET": {
       "command": "getNetworkConnection",
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "number",
+        "name": "connectionType",
+        "description": "see http://appium.io/docs/en/writing-running-appium/other/network-connection/"
+      }
     },
     "POST": {
       "command": "setNetworkConnection",

@@ -1,9 +1,21 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseServices, initialiseInstance } from '../src/utils'
+import { runHook, initialiseServices, initialiseInstance, sanitizeCaps } from '../src/utils'
+
+class CustomService {
+    constructor (config, caps) {
+        this.config = config
+        this.caps = caps
+    }
+}
+
 
 describe('utils', () => {
+    beforeEach(() => {
+        logMock.error.mockClear()
+    })
+
     describe('runHook', () => {
         it('should execute all hooks', async () => {
             const config = { before: [jest.fn(), jest.fn(), jest.fn()] }
@@ -11,7 +23,6 @@ describe('utils', () => {
 
             const args = [[config, 'foo', 'bar']]
             expect(config.before.map((hook) => hook.mock.calls)).toEqual([args, args, args])
-            logMock.error.mockClear()
         })
 
         it('should not fail if hooks throw', async () => {
@@ -59,6 +70,30 @@ describe('utils', () => {
             // not defined method
             expect(typeof service.before).toBe('undefined')
         })
+
+        it('should allow custom services without options', () => {
+            const services = initialiseServices(
+                { services: [CustomService], foo: 'bar' },
+                ['./spec.js']
+            )
+            expect(services).toHaveLength(1)
+            expect(services[0].config.foo).toBe('bar')
+        })
+
+        it('should allow custom services with options', () => {
+            const services = initialiseServices(
+                { services: [[CustomService, { foo: 'foo' }]], foo: 'bar' },
+                ['./spec.js']
+            )
+            expect(services).toHaveLength(1)
+            expect(services[0].config.foo).toBe('foo')
+        })
+
+        it('should ignore service with launcher only', () => {
+            const services = initialiseServices({ services: ['launcher-only'] })
+            expect(services).toHaveLength(0)
+            expect(logMock.error).toHaveBeenCalledTimes(0)
+        })
     })
 
     describe('initialiseInstance', () => {
@@ -98,14 +133,16 @@ describe('utils', () => {
         it('should create normal remote session', () => {
             initialiseInstance({
                 foo: 'bar'
-            }, [
-                { browserName: 'chrome' }
-            ])
+            },
+            {
+                browserName: 'chrome',
+                maxInstances: 123
+            })
             expect(attach).toHaveBeenCalledTimes(0)
             expect(multiremote).toHaveBeenCalledTimes(0)
             expect(remote).toBeCalledWith({
                 foo: 'bar',
-                capabilities: [{ browserName: 'chrome' }]
+                capabilities: { browserName: 'chrome' }
             })
         })
 
@@ -114,5 +151,23 @@ describe('utils', () => {
             multiremote.mockClear()
             remote.mockClear()
         })
+    })
+
+    it('sanitizeCaps', () => {
+        const validCaps = {
+            browserName: 'chrome',
+            browserVersion: 'latest',
+            platformName: 'macOS 10.13'
+        }
+
+        const invalidCaps = {
+            maxInstances: 123,
+            specs: ['./foo.test.js', './bar.test.js']
+        }
+
+        expect(sanitizeCaps({
+            ...invalidCaps,
+            ...validCaps
+        })).toEqual(validCaps)
     })
 })

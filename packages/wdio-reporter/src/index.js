@@ -1,4 +1,6 @@
 import fs from 'fs'
+import fse from 'fs-extra'
+import { format } from 'util'
 import EventEmitter from 'events'
 
 import SuiteStats from './stats/suite'
@@ -7,11 +9,15 @@ import TestStats from './stats/test'
 
 import RunnerStats from './stats/runner'
 
+import { MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
+
 export default class WDIOReporter extends EventEmitter {
     constructor (options) {
         super()
         this.options = options
-        this.outputStream = this.options.stdout ? options.writeStream : fs.createWriteStream(this.options.logFile)
+        this.outputStream = this.options.stdout || !this.options.logFile
+            ? options.writeStream
+            : fs.createWriteStream(this.options.logFile)
         this.failures = []
         this.suites = {}
         this.hooks = {}
@@ -24,6 +30,11 @@ export default class WDIOReporter extends EventEmitter {
             passes: 0,
             skipping: 0,
             failures: 0
+        }
+
+        // ensure the report directory exists
+        if (this.options.outputDir) {
+            fse.ensureDirSync(this.options.outputDir)
         }
 
         let currentTest
@@ -62,7 +73,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:end',  /* istanbul ignore next */ (hook) => {
             const hookStat = this.hooks[hook.uid]
-            hookStat.complete()
+            hookStat.complete(hook.error)
             this.counts.hooks++
             this.onHookEnd(hookStat)
         })
@@ -85,13 +96,24 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:fail',  /* istanbul ignore next */ (test) => {
             const testStat = this.tests[test.uid]
+
+            /**
+             * replace "Ensure the done() callback is being called in this test." with more meaningful
+             * message (Mocha only)
+             */
+            if (test.error && test.error.message && test.error.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
+                let replacement = format(MOCHA_TIMEOUT_MESSAGE_REPLACEMENT, test.parent, test.title)
+                test.error.message = test.error.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+                test.error.stack = test.error.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+            }
+
             testStat.fail(test.error)
             this.counts.failures++
             this.counts.tests++
             this.onTestFail(testStat)
         })
 
-        this.on('test:pending',  /* istanbul ignore next */ (test) => {
+        this.on('test:pending', (test) => {
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
@@ -100,6 +122,9 @@ export default class WDIOReporter extends EventEmitter {
              * In Jasmine: tests have a start event, therefor we need to replace the
              * test instance with the pending test here
              */
+            if (test.uid in this.tests && this.tests[test.uid].state !== 'pending') {
+                currentTest.uid = test.uid in this.tests ? 'skipped-' + this.counts.skipping : currentTest.uid
+            }
             const suiteTests = currentSuite.tests
             if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {
                 currentSuite.tests.push(currentTest)
@@ -107,7 +132,7 @@ export default class WDIOReporter extends EventEmitter {
                 suiteTests[suiteTests.length - 1] = currentTest
             }
 
-            this.tests[test.uid] = currentTest
+            this.tests[currentTest.uid] = currentTest
             currentTest.skip()
             this.counts.skipping++
             this.counts.tests++

@@ -201,6 +201,38 @@ describe('Pending tests', () => {
         expect(allureXml('test-case > name').text()).toEqual('should can do something')
         expect(allureXml('test-case').attr('status')).toEqual('pending')
     })
+
+    it('should detect not started pending test case after completed test', () => {
+        outputDir = directory()
+        const reporter = new AllureReporter({stdout: true, outputDir})
+        let passed = testStart()
+        passed = {
+            ...passed,
+            title: passed.title + '2',
+            uid: passed.uid + '2',
+            fullTitle: passed.fullTitle + '2'
+        }
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(passed)
+        reporter.onTestPass({ ...passed, state: 'passed' })
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const results = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        const allureXml = results[0]
+
+        expect(allureXml('test-case > name').length).toEqual(2)
+
+        expect(allureXml('test-case > name').last().text()).toEqual('should can do something')
+        expect(allureXml('test-case').last().attr('status')).toEqual('pending')
+
+        expect(allureXml('test-case > name').first().text()).toEqual(passed.title)
+        expect(allureXml('test-case').first().attr('status')).toEqual('passed')
+    })
 })
 
 describe('selenium command reporting', () => {
@@ -245,6 +277,27 @@ describe('selenium command reporting', () => {
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
         reporter.onBeforeCommand(commandStart())
+        reporter.onAfterCommand(commandEnd())
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const results = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        const allureXml = results[0]
+
+        expect(allureXml('step > name')).toHaveLength(0)
+    })
+
+    it('should not end step if it was not started', () => {
+        const allureOptions = {
+            stdout: true,
+            outputDir
+        }
+        const reporter = new AllureReporter(allureOptions)
+        reporter.onRunnerStart(Object.assign(runnerStart(), {isMultiremote: true}))
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
         reporter.onAfterCommand(commandEnd())
         reporter.onTestSkip(testPending())
         reporter.onSuiteEnd(suiteEnd())
@@ -314,8 +367,8 @@ describe('selenium command reporting', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        const command = commandStart();
-        delete command.body;
+        const command = commandStart()
+        delete command.body
         reporter.onBeforeCommand(command)
         reporter.onAfterCommand(commandEnd())
         reporter.onTestSkip(testPending())
