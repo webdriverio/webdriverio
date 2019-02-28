@@ -74,5 +74,17 @@ export const DEFAULTS = {
      */
     key: {
         type: 'string'
+    },
+    /**
+     * Override default agent
+     */
+    agent: {
+        type: 'object'
+    },
+    /**
+     * Pass custom headers
+     */
+    headers: {
+        type: 'object'
     }
 }
