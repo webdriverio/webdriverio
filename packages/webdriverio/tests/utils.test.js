@@ -672,7 +672,7 @@ describe('utils', () => {
         }
 
         it('returns the same value if it is not an element object', () => {
-            expect(verifyArgsAndStripIfElement([1, 2, 3])).toEqual([1, 2, 3])
+            expect(verifyArgsAndStripIfElement([1, 'two', true, false, null, undefined])).toEqual([1, 'two', true, false, null, undefined])
         })
 
         it('strips down properties if value is element object', () => {
