@@ -37,6 +37,13 @@ export default class WebDriver {
              */
             : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
+        if (w3cCaps.alwaysMatch) {
+            w3cCaps.alwaysMatch = JSON.parse(JSON.stringify(w3cCaps.alwaysMatch))
+            Object.keys(w3cCaps.alwaysMatch)
+                .filter(key => !DEFAULTS.w3cAllowedCaps.includes(key) && !key.match(/^[\w-]+:.*$/))
+                .forEach(key => delete w3cCaps.alwaysMatch[key])
+        }
+
         const sessionRequest = new WebDriverRequest(
             'POST',
             '/session',

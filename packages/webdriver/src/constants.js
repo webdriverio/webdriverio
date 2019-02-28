@@ -86,5 +86,13 @@ export const DEFAULTS = {
      */
     headers: {
         type: 'object'
-    }
+    },
+
+    /**
+     * w3c allowed capabilities
+     */
+    w3cAllowedCaps: [
+        'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts', 'pageLoadStrategy', 'proxy',
+        'setWindowRect', 'timeouts', 'strictFileInteractability', 'unhandledPromptBehavior'
+    ]
 }

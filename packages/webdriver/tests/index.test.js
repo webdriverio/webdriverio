@@ -40,6 +40,55 @@ test('should allow to create a new session using w3c compliant caps', async () =
     })
 })
 
+test('should skip invalid caps from alwaysMatch using jsonwire caps', async () => {
+    await WebDriver.newSession({
+        path: '/',
+        capabilities: { 
+            browserName: 'firefox',
+            'browserstack.debug': true
+        }
+    })
+
+    const req = request.mock.calls[0][0]
+    expect(req.uri.pathname).toBe('/session')
+    expect(req.body).toEqual({
+        capabilities: {
+            alwaysMatch: { browserName: 'firefox' },
+            firstMatch: [{}]
+        },
+        desiredCapabilities: { 
+            browserName: 'firefox',
+            'browserstack.debug': true
+        }
+    })
+})
+
+test('should skip invalid caps from alwaysMatch using w3c compliant caps', async () => {
+    await WebDriver.newSession({
+        path: '/',
+        capabilities: {
+            alwaysMatch: { 
+                browserName: 'firefox', 
+                'browserstack.debug': true
+            },
+            firstMatch: [{}]
+        }
+    })
+
+    const req = request.mock.calls[0][0]
+    expect(req.uri.pathname).toBe('/session')
+    expect(req.body).toEqual({
+        capabilities: {
+            alwaysMatch: { browserName: 'firefox' },
+            firstMatch: [{}]
+        },
+        desiredCapabilities: { 
+            browserName: 'firefox',
+            'browserstack.debug': true
+        }
+    })
+})
+
 test('should be possible to skip setting logLevel', async () => {
     logger.setLevel.mockClear()
     await WebDriver.newSession({
