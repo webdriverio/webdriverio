@@ -4,6 +4,7 @@ title: TypeScript Setup
 ---
 
 Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org/) to compile your .ts files in your before hook of your config file. You will need [ts-node](https://github.com/TypeStrong/ts-node) and [tsconfig-paths](https://github.com/dividab/tsconfig-paths) as the installed devDependencies.
+Minimal TypeScript version is 3.2.1
 
 ```js
 // wdio.conf.js
@@ -52,6 +53,8 @@ For sync mode (@wdio/sync) `webdriverio` types have to be replaced with `@wdio/s
 }
 ```
 
+Please avoid importing webdriverio or @wdio/sync explicitly. `WebdriverIO` and `WebDriver` typings are accessible from anywhere once added to types in `tsconfig.json`.
+
 You can even use a typed configuration if you desire.
 All you have to do is create a plain js config file that registers typescript and requires the typed config:
 
@@ -96,5 +99,5 @@ Instead of having all type definitions globally available, you can also import o
 * These import the type definition for the `test` and `suite` variables that are available in
 * the beforeTest, afterTest, beforeSuite and afterSuite hooks.
 */
-import { Suite, Test } from "@wdio/mocha-framework"  
+import { Suite, Test } from "@wdio/mocha-framework"
 ```
