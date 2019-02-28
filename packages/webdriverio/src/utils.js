@@ -4,6 +4,7 @@ import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
+import isObject from 'lodash.isobject'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
@@ -379,7 +380,7 @@ export async function findElements(selector) {
 
 export function verifyArgsAndStripIfElement(args) {
     function verify(arg) {
-        if (arg.constructor.name === 'Element') {
+        if (isObject(arg) && arg.constructor.name === 'Element') {
             if (!arg.elementId) {
                 throw new Error(`The element with selector "${arg.selector}" you trying to pass into the execute method wasn't found`)
             }
