@@ -6,6 +6,9 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/eslint-plugin-wdio",
   "license": "MIT",
   "main": "index.js",
+  "engines": {
+    "node": ">= 8.11.0"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"
