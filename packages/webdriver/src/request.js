@@ -44,7 +44,7 @@ export default class WebDriverRequest extends EventEmitter {
 
     _createOptions (options, sessionId) {
         const requestOptions = {
-            agent: agents[options.protocol],
+            agent: options.agent || agents[options.protocol],
             headers: typeof options.headers === 'object' ? options.headers : {},
             qs: typeof options.queryParams === 'object' ? options.queryParams : {}
         }

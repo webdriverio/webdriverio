@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import request from 'request'
+import https from 'https'
 
 import WebDriverRequest from '../src/request'
 
@@ -47,6 +48,21 @@ describe('webdriver request', () => {
             expect(options.agent.protocol).toBe('https:')
             expect(options.uri.href).toBe('https://localhost:4445/wd/hub/session/foobar12345/element')
             expect(options.headers.foo).toBe('bar')
+        })
+
+        it('passes a custom agent', () => {
+            const req = new WebDriverRequest('POST', 'session/:sessionId/element')
+            const agent = new https.Agent({ keepAlive: true })
+            const options = req._createOptions({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/',
+                agent
+            }, 'foobar12345')
+
+            expect(options.agent.protocol).toBe('https:')
+            expect(options.agent).toBe(agent)
         })
 
         it('should add auth if user and key is given', () => {

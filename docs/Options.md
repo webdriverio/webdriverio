@@ -86,6 +86,18 @@ Count of request retries to the Selenium server
 Type: `Number`<br>
 Default: `3`
 
+### agent
+Allows to use a custom http/https agent when making requests.
+
+Type: `Object`<br>
+Default: `new http(s).Agent({ keepAlive: true })`
+
+### headers
+Provide custom headers to pass into every request.
+
+Type: `Object`<br>
+Default: `{}`
+
 ---
 
 ## WDIO Options
