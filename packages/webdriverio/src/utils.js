@@ -426,12 +426,13 @@ export async function getElementRect(scope) {
 
         // try set proper value
         Object.keys(defaults).forEach(key => {
-            if (rect[key] == null && typeof rectJs[key] === 'number') {
-                rect[key] = Math.floor(rectJs[key])
-            } else {
-                log.error('getElementRect', rect)
-                log.error('getBoundingClientRect', rectJs)
-                throw new Error('Failed to receive element rects via execute command')
+            if (rect[key] == null) {
+                if (typeof rectJs[key] === 'number') {
+                    rect[key] = Math.floor(rectJs[key])
+                } else {
+                    log.error('getElementRect', {rect, rectJs, key})
+                    throw new Error('Failed to receive element rects via execute command')
+                }
             }
         })
     }

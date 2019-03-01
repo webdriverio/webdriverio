@@ -8,7 +8,8 @@ import {
     checkUnicode,
     findElement,
     findElements,
-    verifyArgsAndStripIfElement
+    verifyArgsAndStripIfElement,
+    getElementRect
 } from '../src/utils'
 
 describe('utils', () => {
@@ -710,6 +711,19 @@ describe('utils', () => {
             })
 
             expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('The element with selector "div" you trying to pass into the execute method wasn\'t found')
+        })
+    })
+
+    describe('getElementRect', () => {
+        it('uses getBoundingClientRect if a key is missing', async () => {
+            const fakeScope = {
+                elementId: 123,
+                getElementRect: jest.fn(() => Promise.resolve({x: 10, width: 300, height: 400})),
+                execute: jest.fn(() => Promise.resolve({x: 11, y: 22, width: 333, height: 444}))
+            }
+            expect(await getElementRect(fakeScope)).toEqual({x: 10, y: 22, width: 300, height: 400})
+            expect(fakeScope.getElementRect).toHaveBeenCalled()
+            expect(fakeScope.execute).toHaveBeenCalled()
         })
     })
 })
