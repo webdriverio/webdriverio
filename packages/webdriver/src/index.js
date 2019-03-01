@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
-import { DEFAULTS } from './constants'
+import { DEFAULTS, W3C_ALLOWED_CAPABILITIES } from './constants'
 import { getPrototype, environmentDetector } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
@@ -37,12 +37,10 @@ export default class WebDriver {
              */
             : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-        if (w3cCaps.alwaysMatch) {
-            w3cCaps.alwaysMatch = JSON.parse(JSON.stringify(w3cCaps.alwaysMatch))
-            Object.keys(w3cCaps.alwaysMatch)
-                .filter(key => !DEFAULTS.w3cAllowedCaps.includes(key) && !key.match(/^[\w-]+:.*$/))
-                .forEach(key => delete w3cCaps.alwaysMatch[key])
-        }
+        w3cCaps.alwaysMatch = JSON.parse(JSON.stringify(w3cCaps.alwaysMatch))
+        Object.keys(w3cCaps.alwaysMatch)
+            .filter(key => !W3C_ALLOWED_CAPABILITIES.includes(key) && !key.match(/^[\w-]+:.*$/))
+            .forEach(key => delete w3cCaps.alwaysMatch[key])
 
         const sessionRequest = new WebDriverRequest(
             'POST',
