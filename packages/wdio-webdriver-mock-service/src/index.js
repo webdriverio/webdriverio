@@ -85,18 +85,27 @@ export default class WebdriverMockService {
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
         const elem2Response = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_REFETCHED }
 
+        //Found initially
         this.command.findElement().once().reply(200, { value: elemResponse })
+        //Initiate refetch, but its not ready
         this.command.findElement().once().reply(404, NO_SUCH_ELEMENT)
-        this.command.findElements().once().reply(200, { value: []})
-        this.command.findElements().reply(200, { value: [ elem2Response ]})
-        this.command.findElement().reply(200, { value: elem2Response })
+        //Always return the new element after
+        this.command.findElement().times(4).reply(200, { value: elem2Response })
 
+        //First click works
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
+        //Additional clicks won't for the original element
         this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
             error: 'stale element reference',
             message: 'element is not attached to the page document'
         } })
-        this.command.elementClick(ELEMENT_REFETCHED).once().reply(200, { value: null })
+        //Clicks on the new element are successful
+        this.command.elementClick(ELEMENT_REFETCHED).times(4).reply(200, { value: null })
+
+        //Wait for it to exist - but 2 failed iterations
+        this.command.findElements().times(2).reply(200, { value: []})
+        //Always appears thereafter
+        this.command.findElements().times(4).reply(200, { value: [ elem2Response ]})
     }
 
     customCommandScenario () {

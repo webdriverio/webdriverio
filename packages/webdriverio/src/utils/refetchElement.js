@@ -17,6 +17,12 @@ export default async function refetchElement (currentElement) {
     // Beginning with the browser object, rechain
     return selectors.reduce(async (elementPromise, selector) => {
         const resolvedElement = await elementPromise
-        return resolvedElement.$(selector)
+        let nextElement = await resolvedElement.$(selector)
+        //If the element wasn't found, we should wait for it
+        if (!nextElement.elementId) {
+            await nextElement.waitForExist()
+            nextElement = await resolvedElement.$(selector)
+        }
+        return nextElement
     }, Promise.resolve(currentElement))
 }

@@ -10,7 +10,7 @@ describe('smoke test', () => {
         assert($('elem').waitForDisplayed(), true)
     })
 
-    describe.only('middleware', () => {
+    describe('middleware', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()
             const elem = $('elem')
