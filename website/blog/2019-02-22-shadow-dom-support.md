@@ -34,7 +34,7 @@ it('submits the form', ()=> {
 ```
 
 ## The `shadow$` and `shadow$$` Commands
-These commands take advantage of the `$` command in WebdriverIO v5's ability to use a function selector. They works just like the existing [`$`](https://webdriver.io/docs/api/element/$.html) and [`$$`](https://webdriver.io/docs/api/element/$$.html) commands in that you call it on an element, but instead of querying an element's light DOM, they query an element's shadow DOM (they fall back to querying light dom if for whatever reason, you're not using any polyfills).
+These commands take advantage of the `$` command in WebdriverIO v5's ability to use a function selector. They work just like the existing [`$`](https://webdriver.io/docs/api/element/$.html) and [`$$`](https://webdriver.io/docs/api/element/$$.html) commands in that you call it on an element, but instead of querying an element's light DOM, they query an element's shadow DOM (they fall back to querying light dom if for whatever reason, you're not using any polyfills).
 
 Since they're element commands, it's no longer required to start at the root document when building your queries. Once you have an element, calling `element.shadow$('selector')` queries inside that element's shadowRoot for the element that matches the given selector. From any element, you can chain `$` and `shadow$` commands as deeply as needed.
 
@@ -92,9 +92,9 @@ In the example above, you can see how it's easy to leverage the getter methods o
 
 
 ## Component Objects
-Following the page object pattern is really powerful on it's own. The big draw of web components is that you can create reusable elements. The downside with only using page objects though, is that you might end up repeating code and selectors in different page objects to be able to interact with the elements encapsulated in your web components.
+Following the page object pattern is really powerful on its own. The big draw of web components is that you can create reusable elements. The downside with only using page objects though, is that you might end up repeating code and selectors in different page objects to be able to interact with the elements encapsulated in your web components.
 
- The component object pattern attempts to reduce that repetition and move the component's api into an object of it's own. We know that in order to interact with an element's shadow DOM, we first need the host element. Using a base class for your component objects makes this pretty straightforward. Here's a bare-bones component base class that takes the `host` element in it's contructor and unrolls that element's queries up to the browser object, so it can be reused in many page objects (or other component objects), without having to know anything about the page itself:
+ The component object pattern attempts to reduce that repetition and move the component's api into an object of its own. We know that in order to interact with an element's shadow DOM, we first need the host element. Using a base class for your component objects makes this pretty straightforward. Here's a bare-bones component base class that takes the `host` element in its constructor and unrolls that element's queries up to the browser object, so it can be reused in many page objects (or other component objects), without having to know anything about the page itself:
 
 ```javascript
 class Component {
