@@ -63,7 +63,7 @@ typings/
 **/build
 /*.js
 *.d.ts
-!scripts/templates/*.d.ts
+!/scripts/templates/*.d.ts
 !/packages/wdio-mocha-framework/mocha-framework.d.ts
 !/packages/wdio-jasmine-framework/jasmine-framework.d.ts
 !/packages/wdio-selenium-standalone-service/selenium-standalone-service.d.ts

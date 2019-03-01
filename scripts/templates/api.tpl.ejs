@@ -27,7 +27,7 @@ title: <?= method.command ?>
 | Name | Type | Details |
 | ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label labelWarning">optional</span><? }
+    ?>| <?= paramTag.name ?><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
     ?> | <?= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
