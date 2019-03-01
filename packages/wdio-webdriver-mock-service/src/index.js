@@ -86,7 +86,10 @@ export default class WebdriverMockService {
         const elem2Response = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_REFETCHED }
 
         this.command.findElement().once().reply(200, { value: elemResponse })
-        this.command.findElement().twice().reply(200, { value: elem2Response })
+        this.command.findElement().once().reply(404, NO_SUCH_ELEMENT)
+        this.command.findElements().once().reply(200, { value: []})
+        this.command.findElements().reply(200, { value: [ elem2Response ]})
+        this.command.findElement().reply(200, { value: elem2Response })
 
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
         this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
