@@ -120,7 +120,7 @@ describe('webdriver request', () => {
             beforeEach(function() {
                 delete process.env.STRICT_SSL
                 delete process.env.strict_ssl
-            });
+            })
 
             it('should contain key "strictSSL" with value "false" when environment variable "STRICT_SSL" is defined with value "false"', () => {
                 process.env['STRICT_SSL'] = 'false'
