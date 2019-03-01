@@ -195,6 +195,7 @@ declare namespace WebDriver {
         // Chrome specific
         chromeOptions?: ChromeOptions;
         'goog:chromeOptions'?: ChromeOptions;
+        mobileEmulationEnabled?: boolean;
 
         perfLoggingPrefs?: {
             enableNetwork?: boolean;
