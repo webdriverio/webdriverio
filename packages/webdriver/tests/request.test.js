@@ -118,33 +118,33 @@ describe('webdriver request', () => {
         
         describe('strictSSL', () => {
             beforeEach(function() {
-                delete process.env.STRICT_SSL;
-                delete process.env.strict_ssl;
+                delete process.env.STRICT_SSL
+                delete process.env.strict_ssl
             });
 
             it('should contain key "strictSSL" with value "false" when environment variable "STRICT_SSL" is defined with value "false"', () => {
-                process.env["STRICT_SSL"] = "false"
+                process.env['STRICT_SSL'] = 'false'
                 const req = new WebDriverRequest('POST', '/session')
                 const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
                 expect(options.strictSSL).toEqual(false)
             })
 
             it('should contain key "strictSSL" with value "false" when environment variable "strict_ssl" is defined with value "false"', () => {
-                process.env["strict_ssl"] = "false"
+                process.env['strict_ssl'] = 'false'
                 const req = new WebDriverRequest('POST', '/session')
                 const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
                 expect(options.strictSSL).toEqual(false)
             })
 
             it('should contain key "strictSSL" with value "true" when environment variable "STRICT_SSL" is defined with value "true"', () => {
-                process.env["STRICT_SSL"] = "true"
+                process.env['STRICT_SSL'] = 'true'
                 const req = new WebDriverRequest('POST', '/session')
                 const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
                 expect(options.strictSSL).toEqual(true)
             })
 
             it('should contain key "strictSSL" with value "true" when environment variable "strict_ssl" is defined with value "true"', () => {
-                process.env["strict_ssl"] = "true"
+                process.env['strict_ssl'] = 'true'
                 const req = new WebDriverRequest('POST', '/session')
                 const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
                 expect(options.strictSSL).toEqual(true)
@@ -157,14 +157,14 @@ describe('webdriver request', () => {
             })
 
             it('should contain key "strictSSL" with value "true" when environment variable "STRICT_SSL" is defined with any other value than "false"', () => {
-                process.env["STRICT_SSL"] = "foo"
+                process.env['STRICT_SSL'] = 'foo'
                 const req = new WebDriverRequest('POST', '/session')
                 const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
                 expect(options.strictSSL).toEqual(true)
             })
 
             it('should contain key "strictSSL" with value "true" when environment variable "strict_ssl" is defined with any other value than "false"', () => {
-                process.env["strict_ssl"] = "foo"
+                process.env['strict_ssl'] = 'foo'
                 const req = new WebDriverRequest('POST', '/session')
                 const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
                 expect(options.strictSSL).toEqual(true)
