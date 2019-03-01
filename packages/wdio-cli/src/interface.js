@@ -206,7 +206,7 @@ export default class WDIOCLInterface extends EventEmitter {
             this.interface.log()
         }
 
-        this.printStdout(5)
+        this.printStdout(this.config.stdOutLenght ? this.config.stdOutLenght : 5);
         this.printSummary()
         this.updateClock()
     }
