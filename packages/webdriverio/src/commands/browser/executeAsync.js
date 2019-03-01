@@ -34,7 +34,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * </example>
  *
  * @param {String|Function} script     The script to execute.
- * @param {*}               arguments  script arguments
+ * @param {*=}               arguments  script arguments
  *
  * @return {*}             The script result.
  *
