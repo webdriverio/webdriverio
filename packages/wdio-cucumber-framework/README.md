@@ -1,0 +1,174 @@
+WebdriverIO CUCUMBER Framework
+========================
+
+
+[![Build Status](https://travis-ci.org/webdriverio/wdio-cucumber-framework.svg?branch=master)](https://travis-ci.org/webdriverio/wdio-cucumber-framework) [![Test Coverage](https://codeclimate.com/github/webdriverio/wdio-cucumber-framework/badges/coverage.svg)](https://codeclimate.com/github/webdriverio/wdio-cucumber-framework/coverage) [![dependencies Status](https://david-dm.org/webdriverio/wdio-cucumber-framework/status.svg)](https://david-dm.org/webdriverio/wdio-cucumber-framework)
+
+***
+
+> A WebdriverIO plugin. Adapter for CucumberJS v4 testing framework. To use v2 install this package with v1.1.1 and to use v1 with v0.3.1.
+
+## Installation
+
+The easiest way is to keep `wdio-cucumber-framework` as a devDependency in your `package.json`.
+
+```json
+{
+  "devDependencies": {
+    "wdio-cucumber-framework": "~2.0.0"
+  }
+}
+```
+
+You can simple do it by:
+
+```bash
+npm install wdio-cucumber-framework --save-dev
+```
+
+Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/guide/getstarted/install.html)
+
+
+## Configuration
+
+Following code shows the default wdio test runner configuration...
+
+```js
+// wdio.conf.js
+module.exports = {
+  // ...
+  framework: 'cucumber',
+  cucumberOpts: {
+    timeout: 10000
+  }
+  // ...
+};
+```
+
+## `cucumberOpts` Options
+
+### backtrace
+Show full backtrace for errors.
+
+Type: `Boolean`<br>
+Default: `false`
+
+### compiler
+Require files with the given EXTENSION after requiring MODULE.
+
+Type: `String[]`<br>
+Default: `*[]*`<br>
+Example: `['js:babel-core/register']`
+
+### failAmbiguousDefinitions
+**Please note that this is a wdio-cucumber-framework specific option and not recognized by cucumber-js itself**
+Treat ambiguous definitions as errors.
+
+Type: `Boolean`<br>
+Default: `false`
+
+### failFast
+Abort the run on first failure.
+
+Type: `Boolean`<br>
+Default: `false`
+
+### ignoreUndefinedDefinitions
+**Please note that this is a wdio-cucumber-framework specific option and not recognized by cucumber-js itself**
+Treat undefined definitions as warnings.
+
+Type: `Boolean`<br>
+Default: `false`
+
+### name
+Only execute the scenarios with name matching the expression (repeatable).
+
+Type: `REGEXP[]`<br>
+Default: `[]`
+
+### profile
+Specify the profile to use.
+
+Type: `String[]`<br>
+Default: `[]`
+
+### require
+Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
+
+Type: `String[]`<br>
+Default: `[]`<br>
+Example: `[path.join(__dirname, 'step-definitions', 'my-steps.js')]`
+
+### snippetSyntax
+Specify a custom snippet syntax.
+
+Type: `String`<br>
+Default: `undefined`
+
+### snippets
+Hide step definition snippets for pending steps.
+
+Type: `Boolean`<br>
+Default: `true`
+
+### source
+Hide source uris.
+
+Type: `Boolean`<br>
+Default: `true`
+
+### strict
+Fail if there are any undefined or pending steps
+
+Type: `Boolean`<br>
+Default: `false`
+
+### tagExpression
+Only execute the features or scenarios with tags matching the expression. Note that untagged
+features will still spawn a Selenium session (see issue [webdriverio/webdriverio#1247](https://github.com/webdriverio/webdriverio/issues/1247)).
+Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `String`<br>
+Default: ``
+
+### tagsInTitle
+Add cucumber tags to feature or scenario name
+
+Type: `Boolean[]`<br>
+Default: `false`
+
+### timeout
+Timeout in milliseconds for step definitions.
+
+Type: `Number`<br>
+Default: `30000`
+
+
+## Development
+
+All commands can be found in the package.json. The most important are:
+
+Watch changes:
+
+```sh
+$ npm run watch
+```
+
+Run tests:
+
+```sh
+$ npm test
+
+# run test with coverage report:
+$ npm run test:cover
+```
+
+Build package:
+
+```sh
+$ npm build
+```
+
+----
+
+For more information on WebdriverIO see the [homepage](http://webdriver.io).
