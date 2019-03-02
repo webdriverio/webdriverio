@@ -87,7 +87,7 @@ export default class WebDriverRequest extends EventEmitter {
         /**
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
          */
-        requestOptions.strictSSL = process.env.STRICT_SSL !== 'false' || process.env.strict_ssl !== 'false'
+        requestOptions.strictSSL = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
 
         return requestOptions
     }
