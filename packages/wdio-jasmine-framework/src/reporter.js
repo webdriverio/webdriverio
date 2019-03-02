@@ -43,10 +43,15 @@ export default class JasmineReporter {
         }
 
         if (test.failedExpectations.length) {
-            test.error = test.failedExpectations[0]
+            let errors = test.failedExpectations
             if (this.shouldCleanStack) {
-                test.error = this.cleanStack(test.error)
+                errors = test.failedExpectations.map(x => this.cleanStack(x))
             }
+            test.errors = errors
+            // We maintain the single error property for backwards compatibility with reporters
+            // However, any reporter wanting to make use of Jasmine's 'soft assertion' type expects
+            // should default to looking at 'errors' if they are available
+            test.error = errors[0]
         }
 
         const e = 'test:' + test.status.replace(/ed/, '')
@@ -97,10 +102,14 @@ export default class JasmineReporter {
             pending: payload.status === 'pending',
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
+            // We maintain the single error property for backwards compatibility with reporters
+            // However, any reporter wanting to make use of Jasmine's 'soft assertion' type expects
+            // should default to looking at 'errors' if they are available
             error: payload.error,
+            errors: payload.errors,
             duration: payload.duration || 0,
             specs: this.specs,
-            start: payload.start
+            start: payload.start,
         }
 
         this.reporter.emit(event, message)

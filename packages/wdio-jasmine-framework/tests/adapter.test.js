@@ -256,6 +256,25 @@ test('formatMessage', () => {
     expect(message.duration).toBe(123)
 })
 
+test('formatMessage should pass all failedExpectations as errors', () => {
+    const adapter = new JasmineAdapter(
+        '0-2',
+        {},
+        ['/foo/bar.test.js'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    const message = adapter.formatMessage({
+        type: 'foobar',
+        payload: {
+            failedExpectations: [new Error('foobar'), {message: 'I am also a failed expectation but not an exception'}]
+        }
+    })
+
+    expect(message.errors.length).toBe(2)
+    expect(message.errors[1].message).toBe('I am also a failed expectation but not an exception')
+})
+
 test('getExpectationResultHandler returns origHandler if none is given', () => {
     const jasmine = { Spec: { prototype: { addExpectationResult: 'foobar' } } }
     const config = { jasmineNodeOpts: {} }
