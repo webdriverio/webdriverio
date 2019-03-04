@@ -128,8 +128,8 @@ describe('wdio-logger node', () => {
 
         it('should be possible to add to cache', () => {
             const log = nodeLogger('test-logFile1')
-            log.info('', 'DATA')
-            log.info('', 'RESULT')
+            log.info('foo')
+            log.info('bar')
 
             const logCache = logCacheAddSpy.mock.results[0].value
 
@@ -137,8 +137,8 @@ describe('wdio-logger node', () => {
             expect(logCache.size).toBe(2)
 
             const it = logCache.values()
-            expect(it.next().value).toContain('test-logFile1:  yellow DATA')
-            expect(it.next().value).toContain('test-logFile1:  cyan RESULT')
+            expect(it.next().value).toContain('test-logFile1: foo')
+            expect(it.next().value).toContain('test-logFile1: bar')
 
             // after
             logCache.clear()
@@ -162,15 +162,31 @@ describe('wdio-logger node', () => {
             process.env.WDIO_LOG_PATH = 'wdio.test.log'
 
             const log = nodeLogger('test-logFile2')
-            log.info('', 'COMMAND')
-            log.info(new Error('bar'))
+            log.info('foo')
+            log.info('bar')
 
             expect(write.mock.calls.length).toBe(2)
-            expect(write.mock.results[0].value).toContain('test-logFile2:  magenta COMMAND')
-            expect(write.mock.results[1].value).toContain('test-logFile2: Error: bar')
-            expect(write.mock.results[1].value).not.toContain('test-logFile2:  magenta COMMAND')
+            expect(write.mock.results[0].value).toContain('test-logFile2: foo')
+            expect(write.mock.results[1].value).toContain('test-logFile2: bar')
+            expect(write.mock.results[1].value).not.toContain('test-logFile2: foo')
 
             expect(logCacheForEachSpy).toBeCalledTimes(0)
+        })
+
+        it('serializers', () => {
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+
+            const log = nodeLogger('test-logFile4')
+            log.info('DATA')
+            log.info('RESULT')
+            log.info('COMMAND')
+            log.info(new Error('bar'))
+
+            expect(write.mock.calls.length).toBe(4)
+            expect(write.mock.results[0].value).toContain('test-logFile4: yellow DATA')
+            expect(write.mock.results[1].value).toContain('test-logFile4: cyan RESULT')
+            expect(write.mock.results[2].value).toContain('test-logFile4: magenta COMMAND')
+            expect(write.mock.results[3].value).toContain('test-logFile4: Error: bar')
         })
 
         beforeEach(() => {
