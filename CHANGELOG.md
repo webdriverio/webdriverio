@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.6.6 (2019-03-04)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3664](https://github.com/webdriverio/webdriverio/pull/3664) Fix for #3663: utils.js/getElementRect fallback ([@flunderpero](https://github.com/flunderpero))
+
+#### Committers: 1
+- [@flunderpero](https://github.com/flunderpero)
+
 ## 5.6.5 (2019-03-04)
 
 #### :rocket: New Feature
