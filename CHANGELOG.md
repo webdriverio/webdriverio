@@ -15,6 +15,32 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.6.5 (2019-03-04)
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#3661](https://github.com/webdriverio/webdriverio/pull/3661) webdriver: Add strictSSL option ([@martinfrancois](https://github.com/martinfrancois))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`
+  * [#3669](https://github.com/webdriverio/webdriverio/pull/3669) Issue 3416: pass all failed expectations through from wdio-jasmine-framework ([@nicholasbailey](https://github.com/nicholasbailey))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3660](https://github.com/webdriverio/webdriverio/pull/3660) Fix optional tagging ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#3659](https://github.com/webdriverio/webdriverio/pull/3659) Add type mobileEmulationEnabled ([@tadashi0713](https://github.com/tadashi0713))
+  * [#3657](https://github.com/webdriverio/webdriverio/pull/3657) Some grammatical and spelling fixes ([@Marketionist](https://github.com/Marketionist))
+  * [#3653](https://github.com/webdriverio/webdriverio/pull/3653) docs: Update 'watch' example in CONTRIBUTING.md ([@klamping](https://github.com/klamping))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
+- François Martin ([@martinfrancois](https://github.com/martinfrancois))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Nicholas Bailey ([@nicholasbailey](https://github.com/nicholasbailey))
+- Tadashi Nemoto ([@tadashi0713](https://github.com/tadashi0713))
+
 ## 5.6.4 (2019-02-28)
 
 #### :eyeglasses: Spec Compliancy
