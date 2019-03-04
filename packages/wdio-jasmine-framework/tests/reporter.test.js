@@ -80,6 +80,19 @@ test('specDone', () => {
     expect(runnerReporter.emit.mock.calls[9][1].uid).toBe('some excluded test spec27')
 })
 
+test('specDone should pass multiple failed expectations as errors', () => {
+    jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
+    jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
+    jasmineReporter.specDone({ id: 24, description: 'some test spec', failedExpectations: [{message: 'I failed'}, {message: 'I failed too!'}], status: 'failed' })
+
+    expect(runnerReporter.emit.mock.calls[2][0]).toBe('test:fail')
+    // We still assign the first failedExpectation to 'error' for backwrds compatibility
+    expect(runnerReporter.emit.mock.calls[2][1].error.message).toBe('I failed')
+    expect(runnerReporter.emit.mock.calls[2][1].errors.length).toBe(2)
+    expect(runnerReporter.emit.mock.calls[2][1].errors[0].message).toBe('I failed')
+    expect(runnerReporter.emit.mock.calls[2][1].errors[1].message).toBe('I failed too!')
+})
+
 test('suiteDone', () => {
     jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
