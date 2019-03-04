@@ -68,7 +68,7 @@ export const WDIO_DEFAULTS = {
                 if (typeof param === 'object') {
                     return true
                 }
-                
+
                 throw new Error('the "capabilities" options needs to be an object or a list of objects')
             }
 
@@ -79,10 +79,10 @@ export const WDIO_DEFAULTS = {
                 if (typeof option === 'object') { // Check does not work recursively
                     continue
                 }
-    
+
                 throw new Error('expected every item of a list of capabilities to be of type object')
             }
-    
+
             return true
         },
         required: true
@@ -193,14 +193,14 @@ export const WDIO_DEFAULTS = {
              * with arrays and/or strings
              */
             for (const option of param) {
-                if (!Array.isArray(option)) {         
+                if (!Array.isArray(option)) {
                     if (typeof option === 'string') {
                         continue
                     }
                     throw new Error('the "services" options needs to be a list of strings and/or arrays')
                 }
             }
-    
+
             return true
         },
         default: []
