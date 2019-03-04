@@ -3,6 +3,8 @@ import fse from 'fs-extra'
 import { format } from 'util'
 import EventEmitter from 'events'
 
+import { getErrorsFromEvent } from './utils'
+
 import SuiteStats from './stats/suite'
 import HookStats from './stats/hook'
 import TestStats from './stats/test'
@@ -74,7 +76,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:end',  /* istanbul ignore next */ (hook) => {
             const hookStat = this.hooks[hook.uid]
-            hookStat.complete(hook.error)
+            hookStat.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.onHookEnd(hookStat)
         })
@@ -108,7 +110,7 @@ export default class WDIOReporter extends EventEmitter {
                 test.error.stack = test.error.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
             }
 
-            testStat.fail(test.error)
+            testStat.fail(getErrorsFromEvent(test))
             this.counts.failures++
             this.counts.tests++
             this.onTestFail(testStat)
