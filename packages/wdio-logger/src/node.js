@@ -14,6 +14,12 @@ const COLORS = {
     trace: 'cyan'
 }
 
+const matches = {
+    COMMAND: 'COMMAND',
+    DATA: 'DATA',
+    RESULT: 'RESULT'
+}
+
 const SERIALIZERS = [{
     /**
      * display error stack
@@ -24,19 +30,19 @@ const SERIALIZERS = [{
     /**
      * color commands blue
      */
-    matches: (log) => log === 'COMMAND',
+    matches: (log) => log === matches.COMMAND,
     serialize: (log) => chalk.magenta(log)
 }, {
     /**
      * color data yellow
      */
-    matches: (log) => log === 'DATA',
+    matches: (log) => log === matches.DATA,
     serialize: (log) => chalk.yellow(log)
 }, {
     /**
      * color result cyan
      */
-    matches: (log) => log === 'RESULT',
+    matches: (log) => log === matches.RESULT,
     serialize: (log) => chalk.cyan(log)
 }]
 
@@ -54,6 +60,16 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
          */
         if (!logFile && process.env.WDIO_LOG_PATH) {
             logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
+        }
+
+        /**
+         * split `prefixer: value` sting to `prefixer: ` and `value`
+         * so that SERIALIZERS can match certain string
+         */
+        const match = Object.values(matches).filter(x => args[0].endsWith(`: ${x}`))[0]
+        if (match) {
+            const prefixStr = args.shift().slice(0, -match.length - 1)
+            args.unshift(prefixStr, match)
         }
 
         args = args.map((arg) => {
