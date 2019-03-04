@@ -119,6 +119,7 @@ describe('cli interface', () => {
         wdioClInterface.result = {
             finished: 3,
             passed: 1,
+            retries: 0,
             failed: 2
         }
         wdioClInterface.updateView()
@@ -133,6 +134,7 @@ describe('cli interface', () => {
         wdioClInterface.result = {
             finished: 3,
             passed: 1,
+            retries: 0,
             failed: 2
         }
         wdioClInterface.updateView(true)
@@ -152,6 +154,7 @@ describe('cli interface', () => {
         wdioClInterface.result = {
             finished: 3,
             passed: 1,
+            retries: 0,
             failed: 2
         }
 

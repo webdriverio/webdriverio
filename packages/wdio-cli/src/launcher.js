@@ -333,13 +333,12 @@ class Launcher {
         const passed = exitCode === 0
 
         if (!passed && retries > 0) {
-            this.interface.totalWorkerCnt++
             this.schedule[parseInt(cid)].specs.push({ files: specs, retries: retries - 1, rid: cid })
         } else {
             this.exitCode = this.exitCode || exitCode
             this.runnerFailed += !passed ? 1 : 0
         }
-        this.interface.emit('job:end', { cid, passed })
+        this.interface.emit('job:end', { cid, passed, retries })
 
         // Update schedule now this process has ended
         if (!this.isMultiremote) {
