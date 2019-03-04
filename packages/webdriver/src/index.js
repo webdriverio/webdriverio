@@ -13,6 +13,7 @@ import MJsonWProtocol from '../protocol/mjsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
 
+const log = logger('webdriver')
 export default class WebDriver {
     static async newSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
@@ -40,7 +41,10 @@ export default class WebDriver {
         w3cCaps.alwaysMatch = JSON.parse(JSON.stringify(w3cCaps.alwaysMatch))
         Object.keys(w3cCaps.alwaysMatch)
             .filter(key => !W3C_ALLOWED_CAPABILITIES.includes(key) && !key.match(/^[\w-]+:.*$/))
-            .forEach(key => delete w3cCaps.alwaysMatch[key])
+            .forEach(key => {
+                log.warn(`Dropping capability ${key} from alwaysMatch.`)
+                delete w3cCaps.alwaysMatch[key]
+            })
 
         const sessionRequest = new WebDriverRequest(
             'POST',

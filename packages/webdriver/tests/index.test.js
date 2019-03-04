@@ -43,7 +43,7 @@ test('should allow to create a new session using w3c compliant caps', async () =
 test('should skip invalid caps from alwaysMatch using jsonwire caps', async () => {
     await WebDriver.newSession({
         path: '/',
-        capabilities: { 
+        capabilities: {
             browserName: 'firefox',
             'browserstack.debug': true
         }
@@ -56,7 +56,7 @@ test('should skip invalid caps from alwaysMatch using jsonwire caps', async () =
             alwaysMatch: { browserName: 'firefox' },
             firstMatch: [{}]
         },
-        desiredCapabilities: { 
+        desiredCapabilities: {
             browserName: 'firefox',
             'browserstack.debug': true
         }
@@ -67,8 +67,8 @@ test('should skip invalid caps from alwaysMatch using w3c compliant caps', async
     await WebDriver.newSession({
         path: '/',
         capabilities: {
-            alwaysMatch: { 
-                browserName: 'firefox', 
+            alwaysMatch: {
+                browserName: 'firefox',
                 'browserstack.debug': true
             },
             firstMatch: [{}]
@@ -82,7 +82,7 @@ test('should skip invalid caps from alwaysMatch using w3c compliant caps', async
             alwaysMatch: { browserName: 'firefox' },
             firstMatch: [{}]
         },
-        desiredCapabilities: { 
+        desiredCapabilities: {
             browserName: 'firefox',
             'browserstack.debug': true
         }
