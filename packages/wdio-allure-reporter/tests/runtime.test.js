@@ -85,6 +85,18 @@ describe('reporter reporter api', () => {
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addStep, step)
     })
 
+    it('should support start step', () => {
+        reporter.startStep('foo')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.startStep, 'foo')
+    })
+
+    it('should support end step', () => {
+        reporter.endStep('passed')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.endStep, 'passed')
+    })
+
     it('should support addStep without attachment', () => {
         reporter.addStep('foo')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
@@ -101,6 +113,11 @@ describe('reporter reporter api', () => {
 
     it('should throw exception for incorrect status for addStep', () => {
         const cb = () => { reporter.addStep('foo', {content: 'baz'}, 'canceled')}
+        expect(cb).toThrowError('Step status must be passed or failed or broken. You tried to set "canceled"')
+    })
+
+    it('should throw exception for incorrect status for endStep', () => {
+        const cb = () => { reporter.endStep('canceled') }
         expect(cb).toThrowError('Step status must be passed or failed or broken. You tried to set "canceled"')
     })
 
