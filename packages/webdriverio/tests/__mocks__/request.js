@@ -49,12 +49,21 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
 
         break
     case `/wd/hub/session/${sessionId}/element`:
-        value = {
-            [ELEMENT_KEY]: genericElementId
-        }
-
         if (params.body && params.body.value === '#nonexisting') {
             value = { elementId: null }
+            break
+        }
+
+        if (params.body && params.body.value === '#slowRerender') {
+            ++requestMock.retryCnt
+            if (requestMock.retryCnt === 2) {
+                ++requestMock.retryCnt
+                value = {elementId: null}
+                break
+            }
+        }
+        value = {
+            [ELEMENT_KEY]: genericElementId
         }
 
         break
