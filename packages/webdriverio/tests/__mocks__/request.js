@@ -142,6 +142,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         value = 'WebdriverIO · Next-gen WebDriver test framework for Node.js'
         break
     case `/wd/hub/session/${sessionId}/screenshot`:
+    case `/wd/hub/session/${sessionId}/appium/stop_recording_screen`:
         value = Buffer.from('some screenshot').toString('base64')
         break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/screenshot`:
