@@ -150,7 +150,7 @@ class AllureReporter extends WDIOReporter {
             }
             return
         }
-        
+
         // add hook as test to suite
         this.onTestStart(hook)
     }
@@ -259,16 +259,29 @@ class AllureReporter extends WDIOReporter {
         }
     }
 
+    startStep(title) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+        this.allure.startStep(title)
+    }
+
+    endStep(status) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+        this.allure.endStep(status)
+    }
+
     addStep({step}) {
         if (!this.isAnyTestRunning()) {
             return false
         }
-
-        this.allure.startStep(step.title)
+        this.startStep(step.title)
         if (step.attachment) {
             this.addAttachment(step.attachment)
         }
-        this.allure.endStep(step.status)
+        this.endStep(step.status)
     }
 
     addArgument({name, value}) {
@@ -368,6 +381,28 @@ class AllureReporter extends WDIOReporter {
     static addAttachment = (name, content, type = 'text/plain') => {
         tellReporter(events.addAttachment, {name, content, type})
     }
+
+    /**
+     * Start allure step
+     * @name startStep
+     * @param {string} title - step name in report
+     */
+    static startStep = (title) => {
+        tellReporter(events.startStep, title)
+    }
+
+    /**
+     * End current allure step
+     * @name endStep
+     * @param {string} [status='passed'] - step status
+     */
+    static endStep = (status = stepStatuses.PASSED) => {
+        if (!Object.values(stepStatuses).includes(status)) {
+            throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+        }
+        tellReporter(events.endStep, status)
+    }
+
     /**
      * Create allure step
      * @name addStep
