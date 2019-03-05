@@ -1,8 +1,23 @@
 import request from 'request'
 import { remote } from '../../../src'
+import * as utils from '../../../src/utils'
 
 describe('saveScreenshot', () => {
     jest.mock('fs')
+    const fs = require('fs').default
+    let getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
+
+    beforeEach(() => {
+        getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
+        assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
+        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
+    })
+
+    afterEach(() => {
+        getAbsoluteFilepathSpy.mockClear()
+        assertDirectoryExistsSpy.mockClear()
+        writeFileSyncSpy.mockClear()
+    })
 
     it('should take screenshot of page', async () => {
         const browser = await remote({
@@ -15,9 +30,22 @@ describe('saveScreenshot', () => {
         const elem = await browser.$('#elem')
         const screenshot = await elem.saveScreenshot('./packages/bar.png')
 
+        // get path
+        expect(getAbsoluteFilepathSpy).toHaveBeenCalledTimes(1)
+        expect(getAbsoluteFilepathSpy).toHaveBeenCalledWith('./packages/bar.png')
+
+        // assert directory
+        expect(assertDirectoryExistsSpy).toHaveBeenCalledTimes(1)
+        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
+
+        // request
         expect(request.mock.calls[2][0].method).toBe('GET')
         expect(request.mock.calls[2][0].uri.pathname).toBe('/wd/hub/session/foobar-123/element/some-elem-123/screenshot')
         expect(screenshot.toString()).toBe('some element screenshot')
+
+        // write to file
+        expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
+        expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
     })
 
     it('should fail if no filename provided', async () => {
@@ -30,28 +58,15 @@ describe('saveScreenshot', () => {
         })
 
         const elem = await browser.$('#elem')
+
+        // no file
         await expect(
             elem.saveScreenshot()
         ).rejects.toEqual(expectedError)
+
+        // wrong extension
         await expect(
             elem.saveScreenshot('./file.txt')
         ).rejects.toEqual(expectedError)
-    })
-
-    it('should fail if not existing directory', async () => {
-        const fs = require('fs').default
-        fs.existsSync = () => false
-
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-
-        const elem = await browser.$('#elem')
-        await expect(
-            elem.saveScreenshot('/i/dont/exist.png')
-        ).rejects.toEqual(new Error('directory (/i/dont) doesn\'t exist'))
     })
 })

@@ -440,3 +440,18 @@ export async function getElementRect(scope) {
 
     return rect
 }
+
+export function getAbsoluteFilepath(filepath) {
+    return filepath.startsWith('/') || filepath.startsWith('\\') || filepath.match(/^[a-zA-Z]:\\/)
+        ? filepath
+        : path.join(process.cwd(), filepath)
+}
+
+/**
+ * check if directory exists
+ */
+export function assertDirectoryExists(filepath) {
+    if (!fs.existsSync(path.dirname(filepath))) {
+        throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
+    }
+}

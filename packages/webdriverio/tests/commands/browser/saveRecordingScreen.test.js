@@ -1,9 +1,8 @@
-
 import request from 'request'
 import { remote } from '../../../src'
 import * as utils from '../../../src/utils'
 
-describe('saveScreenshot', () => {
+describe('saveRecordingScreen', () => {
     jest.mock('fs')
     const fs = require('fs').default
     let browser, getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
@@ -12,9 +11,12 @@ describe('saveScreenshot', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'foobar',
+                mobileMode: true,
+                'appium-version': '1.11.1'
             }
         })
+
         getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
         assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
         writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
@@ -26,21 +28,21 @@ describe('saveScreenshot', () => {
         writeFileSyncSpy.mockClear()
     })
 
-    it('should take screenshot of page', async () => {
-        const screenshot = await browser.saveScreenshot('./packages/bar.png')
+    it('should capture video', async () => {
+        const video = await browser.saveRecordingScreen('./packages/bar.mp4')
 
         // get path
         expect(getAbsoluteFilepathSpy).toHaveBeenCalledTimes(1)
-        expect(getAbsoluteFilepathSpy).toHaveBeenCalledWith('./packages/bar.png')
+        expect(getAbsoluteFilepathSpy).toHaveBeenCalledWith('./packages/bar.mp4')
 
         // assert directory
         expect(assertDirectoryExistsSpy).toHaveBeenCalledTimes(1)
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(request.mock.calls[1][0].method).toBe('GET')
-        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session/foobar-123/screenshot')
-        expect(screenshot.toString()).toBe('some screenshot')
+        expect(request.mock.calls[1][0].method).toBe('POST')
+        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session/foobar-123/appium/stop_recording_screen')
+        expect(video.toString()).toBe('some screenshot')
 
         // write to file
         expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
@@ -48,16 +50,11 @@ describe('saveScreenshot', () => {
     })
 
     it('should fail if no filename provided', async () => {
-        const expectedError = new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
+        const expectedError = new Error('saveRecordingScreen expects a filepath')
 
         // no file
         await expect(
-            browser.saveScreenshot()
-        ).rejects.toEqual(expectedError)
-
-        // wrong extension
-        await expect(
-            browser.saveScreenshot('./file.txt')
+            browser.saveRecordingScreen()
         ).rejects.toEqual(expectedError)
     })
 })
