@@ -25,6 +25,8 @@ const events = {
     addEnvironment: 'allure:addEnvironment',
     addDescription: 'allure:addDescription',
     addAttachment: 'allure:addAttachment',
+    startStep: 'allure:startStep',
+    endStep: 'allure:endStep',
     addStep: 'allure:addStep',
     addArgument: 'allure:addArgument'
 }
