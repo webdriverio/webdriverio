@@ -1,10 +1,12 @@
+import implicitWait from './implicitWait'
+
 /**
  * helper utility to refetch an element and all its parent elements when running
  * into stale element exception errors
  * @param  {Object}  currentElement  element to refetch
  * @return {Promise}                 resolves with element after all its parent were refetched
  */
-export default async function refetchElement (currentElement) {
+export default async function refetchElement (currentElement, commandName) {
     let selectors = []
 
     //Crawl back to the browser object, and cache all selectors
@@ -19,10 +21,6 @@ export default async function refetchElement (currentElement) {
         const resolvedElement = await elementPromise
         let nextElement = await resolvedElement.$(selector)
         //If the element wasn't found, we should wait for it
-        if (!nextElement.elementId) {
-            await nextElement.waitForExist()
-            nextElement = await resolvedElement.$(selector)
-        }
-        return nextElement
+        return await implicitWait(nextElement, commandName)
     }, Promise.resolve(currentElement))
 }

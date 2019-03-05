@@ -1,8 +1,7 @@
-import logger from '@wdio/logger'
 
 import refetchElement from './utils/refetchElement'
+import implicitWait from './utils/implicitWait'
 
-const log = logger('webdriverio')
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -18,33 +17,15 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
              *  - elementId couldn't be fetched in the first place
              *  - command is not explicit wait command for existance or displayedness
              */
-            if (!this.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|isDisplayed)/)) {
-                log.debug(
-                    `command ${commandName} was called on an element ("${this.selector}") ` +
-                    'that wasn\'t found, waiting for it...'
-                )
 
-                /**
-                 * create new promise so we can apply a custom error message in cases waitForExist fails
-                 */
-                try {
-                    await this.waitForExist()
-                    /**
-                     * if waitForExist was successful requery element and assign elementId to the scope
-                     */
-                    const element = await this.parent.$(this.selector)
-                    this.elementId = element.elementId
-                } catch {
-                    throw new Error(
-                        `Can't call ${commandName} on element with selector "${this.selector}" because element wasn't found`)
-                }
-            }
+            const element = await implicitWait(this, commandName)
+            this.elementId = element.elementId
 
             try {
                 return await fn(commandName, commandFn).apply(this, args)
             } catch (error) {
                 if (error.name === 'stale element reference') {
-                    const element = await refetchElement(this)
+                    const element = await refetchElement(this, commandName)
                     this.elementId = element.elementId
                     this.parent = element.parent
 
