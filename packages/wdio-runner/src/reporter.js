@@ -127,7 +127,7 @@ export default class BaseReporter {
          * check if reporter has custom options
          */
         if (Array.isArray(reporter)) {
-            options = Object.assign(options, reporter[1])
+            options = Object.assign({}, options, reporter[1])
             reporter = reporter[0]
         }
 

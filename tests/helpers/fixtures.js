@@ -15,3 +15,24 @@ afterSession called
 export const LAUNCHER_LOGS = `onPrepare called
 onComplete called
 `
+
+export const REPORTER_LOGS = `onRunnerStart
+onHookStart
+onHookEnd
+onSuiteStart
+onTestStart
+onHookStart
+onHookEnd
+onBeforeCommand
+onAfterCommand
+onTestPass
+onTestEnd
+onHookStart
+onHookEnd
+onSuiteEnd
+onHookStart
+onHookEnd
+onBeforeCommand
+onAfterCommand
+onRunnerEnd
+`
