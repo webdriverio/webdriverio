@@ -15,6 +15,40 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.0 (2019-03-05)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-local-runner`, `wdio-reporter`, `wdio-runner`
+  * [#3381](https://github.com/webdriverio/webdriverio/pull/3381) Retries per specfile ([@bennieswart](https://github.com/bennieswart))
+* `webdriver`, `webdriverio`
+  * [#3677](https://github.com/webdriverio/webdriverio/pull/3677) Appium saveRecordingScreen ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-smoke-test-reporter`, `webdriverio`
+  * [#3679](https://github.com/webdriverio/webdriverio/pull/3679) Add smoke test for custom reporters ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-logger`
+  * [#3675](https://github.com/webdriverio/webdriverio/pull/3675) wdio-logger: fix webdriver log colors ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#3662](https://github.com/webdriverio/webdriverio/pull/3662) Fixing Refetch to handle slow rerenders ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#3676](https://github.com/webdriverio/webdriverio/pull/3676) wdio-allure-reporter: start end step ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-reporter`
+  * [#3672](https://github.com/webdriverio/webdriverio/pull/3672) Issue 3416: pass multiple errors through to test stats for reporting if available ([@nicholasbailey](https://github.com/nicholasbailey))
+* `wdio-mocha-framework`, `webdriverio`
+  * [#3674](https://github.com/webdriverio/webdriverio/pull/3674) mochaOpts.require after wrapping functions with Fibers ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* [#3647](https://github.com/webdriverio/webdriverio/pull/3647) Update governance model ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Bennie Swart ([@bennieswart](https://github.com/bennieswart))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nicholas Bailey ([@nicholasbailey](https://github.com/nicholasbailey))
+
 ## 5.6.6 (2019-03-04)
 
 #### :bug: Bug Fix
