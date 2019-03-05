@@ -13,7 +13,7 @@ describe('launcher', () => {
     describe('capabilities', () => {
         it('should NOT fail when capabilities are passed', async () => {
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            const exitCode = await launcher.runMode({ specs: './' }, [caps, caps], configOptions)
+            const exitCode = await launcher.runMode({ specs: './' }, [caps, caps])
             expect(launcher.runSpecs).toBeCalled()
             expect(exitCode).toEqual(0)
             expect(logger().error).not.toBeCalled()
@@ -333,19 +333,6 @@ describe('launcher', () => {
             expect(launcher.getNumberOfRunningInstances()).toBe(0)
             expect(launcher.getNumberOfSpecsLeft()).toBe(0)
         })
-
-        it('should create directory as the config options have a outputDir option', () => {
-            const outputDir = path.join('./tempDir')
-
-            const dirExists = fs.existsSync(outputDir)
-
-            // remove directory before assertion so it doesn't pollute the test directory
-            if (dirExists){
-                fs.removeSync(outputDir)
-            }
-
-            expect(dirExists).toBe(true)
-        })
     })
 
     describe('startInstance', () => {
@@ -360,4 +347,22 @@ describe('launcher', () => {
             expect(launcher.getRunnerId(0)).toBe('0-0')
         })
     })
+
+    describe('config options', () => {
+        it('should create directory when the config options have a outputDir option', () => {
+            const outputDir = path.join('./tempDir')
+
+            const dirExists = fs.existsSync(outputDir)
+
+            // remove directory before assertion so it doesn't pollute the test directory
+            if (dirExists){
+                fs.removeSync(outputDir)
+            }
+
+            expect(dirExists).toBe(true)
+        })
+    })
 })
+
+
+
