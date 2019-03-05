@@ -141,14 +141,19 @@ export const WDIO_DEFAULTS = {
                 throw new Error('the "reporters" options needs to be a list of strings')
             }
 
+            const isValidReporter = (option) => (
+                (typeof option === 'string') ||
+                (typeof option === 'function')
+            )
+
             /**
              * array elements must be:
              */
             for (const option of param) {
                 /**
-                 * either a string
+                 * either a string or a function (custom reporter)
                  */
-                if (typeof option === 'string') {
+                if (isValidReporter(option)) {
                     continue
                 }
 
@@ -159,10 +164,7 @@ export const WDIO_DEFAULTS = {
                 if (
                     Array.isArray(option) &&
                     typeof option[1] === 'object' &&
-                    (
-                        (typeof option[0] === 'string') ||
-                        (typeof option[0] === 'function')
-                    )
+                    isValidReporter(option[0])
                 ) {
                     continue
                 }
