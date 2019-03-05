@@ -49,12 +49,21 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
 
         break
     case `/wd/hub/session/${sessionId}/element`:
-        value = {
-            [ELEMENT_KEY]: genericElementId
-        }
-
         if (params.body && params.body.value === '#nonexisting') {
             value = { elementId: null }
+            break
+        }
+
+        if (params.body && params.body.value === '#slowRerender') {
+            ++requestMock.retryCnt
+            if (requestMock.retryCnt === 2) {
+                ++requestMock.retryCnt
+                value = {elementId: null}
+                break
+            }
+        }
+        value = {
+            [ELEMENT_KEY]: genericElementId
         }
 
         break
@@ -142,6 +151,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         value = 'WebdriverIO · Next-gen WebDriver test framework for Node.js'
         break
     case `/wd/hub/session/${sessionId}/screenshot`:
+    case `/wd/hub/session/${sessionId}/appium/stop_recording_screen`:
         value = Buffer.from('some screenshot').toString('base64')
         break
     case `/wd/hub/session/${sessionId}/element/${genericElementId}/screenshot`:

@@ -151,6 +151,26 @@ describe('reporter runtime implementation', () => {
         expect(dumpJSON).toHaveBeenCalledWith('foo', 'bar')
     })
 
+    it('should allow to start end step', () => {
+        const reporter = new AllureReporter({stdout: true})
+        const startStep = jest.fn()
+        const endStep = jest.fn()
+        reporter.allure = {
+            getCurrentSuite: jest.fn(() => true),
+            getCurrentTest: jest.fn(() => true),
+            startStep,
+            endStep
+        }
+        reporter.startStep('bar')
+        reporter.endStep('failed')
+
+        expect(startStep).toHaveBeenCalledTimes(1)
+        expect(endStep).toHaveBeenCalledTimes(1)
+
+        expect(startStep).toHaveBeenCalledWith('bar')
+        expect(endStep).toHaveBeenCalledWith('failed')
+    })
+
     it('should correct add step with attachment', () => {
         const reporter = new AllureReporter({stdout: true})
         const startStep = jest.fn()
@@ -232,6 +252,8 @@ describe('reporter runtime implementation', () => {
         expect(reporter.addEnvironment({})).toEqual(false)
         expect(reporter.addDescription({})).toEqual(false)
         expect(reporter.addAttachment({})).toEqual(false)
+        expect(reporter.startStep({})).toEqual(false)
+        expect(reporter.endStep({})).toEqual(false)
         expect(reporter.addStep({})).toEqual(false)
         expect(reporter.addArgument({})).toEqual(false)
     })

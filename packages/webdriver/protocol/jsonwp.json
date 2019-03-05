@@ -703,7 +703,7 @@
         "required": true
       }, {
         "name": "args",
-        "type": "(string|object|number|boolean)[]",
+        "type": "(string|object|number|boolean|undefined)[]",
         "description": "the script arguments",
         "required": true
       }]
@@ -721,7 +721,7 @@
         "required": true
       }, {
         "name": "args",
-        "type": "(string|object|number|boolean)[]",
+        "type": "(string|object|number|boolean|undefined)[]",
         "description": "the script arguments",
         "required": true
       }]

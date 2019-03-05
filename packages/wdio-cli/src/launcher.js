@@ -126,7 +126,7 @@ class Launcher {
             this.schedule.push({
                 cid: cid++,
                 caps: capabilities,
-                specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude),
+                specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: config.specFileRetries })),
                 availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
                 runningInstances: 0,
                 seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
@@ -210,11 +210,14 @@ class Launcher {
                 break
             }
 
+            let specs = schedulableCaps[0].specs.shift()
             this.startInstance(
-                [schedulableCaps[0].specs.shift()],
+                specs.files,
                 schedulableCaps[0].caps,
                 schedulableCaps[0].cid,
-                schedulableCaps[0].seleniumServer
+                schedulableCaps[0].seleniumServer,
+                specs.rid,
+                specs.retries
             )
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
@@ -243,10 +246,14 @@ class Launcher {
      * Start instance in a child process.
      * @param  {Array} specs  Specs to run
      * @param  {Number} cid  Capabilities ID
+     * @param  {String} rid  Runner ID override
+     * @param  {Number} retries  Number of retries remaining
      */
-    startInstance (specs, caps, cid, server) {
+    startInstance (specs, caps, cid, server, rid, retries) {
         let config = this.configParser.getConfig()
-        cid = this.getRunnerId(cid)
+        // Retried tests receive the cid of the failing test as rid
+        // so they can run with the same cid of the failing test.
+        cid = rid || this.getRunnerId(cid)
         let processNumber = this.runnerStarted + 1
 
         // process.debugPort defaults to 5858 and is set even when process
@@ -294,7 +301,8 @@ class Launcher {
             caps,
             specs,
             server,
-            execArgv
+            execArgv,
+            retries
         })
         worker.on('message', ::this.interface.onMessage)
         worker.on('error', ::this.interface.onMessage)
@@ -320,12 +328,19 @@ class Launcher {
      * Close test runner process once all child processes have exited
      * @param  {Number} cid       Capabilities ID
      * @param  {Number} exitCode  exit code of child process
+     * @param  {Array} specs      Specs that were run
+     * @param  {Number} retries   Number or retries remaining
      */
-    endHandler ({ cid, exitCode }) {
+    endHandler ({ cid, exitCode, specs, retries }) {
         const passed = exitCode === 0
-        this.exitCode = this.exitCode || exitCode
-        this.runnerFailed += !passed ? 1 : 0
-        this.interface.emit('job:end', { cid, passed })
+
+        if (!passed && retries > 0) {
+            this.schedule[parseInt(cid)].specs.push({ files: specs, retries: retries - 1, rid: cid })
+        } else {
+            this.exitCode = this.exitCode || exitCode
+            this.runnerFailed += !passed ? 1 : 0
+        }
+        this.interface.emit('job:end', { cid, passed, retries })
 
         // Update schedule now this process has ended
         if (!this.isMultiremote) {

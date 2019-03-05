@@ -44,7 +44,7 @@ export default class WebDriverRequest extends EventEmitter {
 
     _createOptions (options, sessionId) {
         const requestOptions = {
-            agent: agents[options.protocol],
+            agent: options.agent || agents[options.protocol],
             headers: typeof options.headers === 'object' ? options.headers : {},
             qs: typeof options.queryParams === 'object' ? options.queryParams : {}
         }
@@ -83,6 +83,11 @@ export default class WebDriverRequest extends EventEmitter {
                 pass: options.key
             }
         }
+        
+        /**
+         * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
+         */
+        requestOptions.strictSSL = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
 
         return requestOptions
     }

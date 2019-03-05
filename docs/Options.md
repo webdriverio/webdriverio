@@ -86,6 +86,18 @@ Count of request retries to the Selenium server
 Type: `Number`<br>
 Default: `3`
 
+### agent
+Allows to use a custom http/https agent when making requests.
+
+Type: `Object`<br>
+Default: `new http(s).Agent({ keepAlive: true })`
+
+### headers
+Provide custom headers to pass into every request.
+
+Type: `Object`<br>
+Default: `{}`
+
 ---
 
 ## WDIO Options
@@ -127,6 +139,12 @@ If you only want to run your tests until a specific amount of tests have failed 
 
 Type: `Number`<br>
 Default: `0` (don't bail, run all tests)
+
+### specFileRetries
+The number of times to retry an entire specfile when it fails as a whole
+
+Type: `Number`<br>
+Default: `0`
 
 ### waitforTimeout
 Default timeout for all waitForXXX commands. Note the lowercase `f`. This timeout __only__ affects commands starting with waitForXXX and their default wait time. To increase the timeout of the test please see the framework docs.

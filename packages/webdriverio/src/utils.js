@@ -4,6 +4,7 @@ import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
+import isObject from 'lodash.isobject'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
@@ -379,7 +380,7 @@ export async function findElements(selector) {
 
 export function verifyArgsAndStripIfElement(args) {
     function verify(arg) {
-        if (arg.constructor.name === 'Element') {
+        if (isObject(arg) && arg.constructor.name === 'Element') {
             if (!arg.elementId) {
                 throw new Error(`The element with selector "${arg.selector}" you trying to pass into the execute method wasn't found`)
             }
@@ -425,15 +426,32 @@ export async function getElementRect(scope) {
 
         // try set proper value
         Object.keys(defaults).forEach(key => {
-            if (rect[key] == null && typeof rectJs[key] === 'number') {
+            if (rect[key] != null) {
+                return
+            }
+            if (typeof rectJs[key] === 'number') {
                 rect[key] = Math.floor(rectJs[key])
             } else {
-                log.error('getElementRect', rect)
-                log.error('getBoundingClientRect', rectJs)
+                log.error('getElementRect', {rect, rectJs, key})
                 throw new Error('Failed to receive element rects via execute command')
             }
         })
     }
 
     return rect
+}
+
+export function getAbsoluteFilepath(filepath) {
+    return filepath.startsWith('/') || filepath.startsWith('\\') || filepath.match(/^[a-zA-Z]:\\/)
+        ? filepath
+        : path.join(process.cwd(), filepath)
+}
+
+/**
+ * check if directory exists
+ */
+export function assertDirectoryExists(filepath) {
+    if (!fs.existsSync(path.dirname(filepath))) {
+        throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
+    }
 }

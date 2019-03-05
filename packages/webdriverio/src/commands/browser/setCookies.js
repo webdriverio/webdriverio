@@ -8,8 +8,24 @@
     :setCookies.js
     it('should set a cookie for the page', () => {
         browser.url('/')
-        browser.setCookies({name: 'test1', value: 'one'}) // set a single cookie
-        browser.setCookies([{name: 'test2', value: 'two'}, {name: 'test3', value: 'three'}]) // set multiple cookies
+
+        // set a single cookie
+        browser.setCookies({
+            name: 'test1',
+            value: 'one'
+            // The below options are optional
+            // path: '/foo', // The cookie path. Defaults to "/"
+            // domain: '.example.com', // The domain the cookie is visible to. Defaults to the current browsing context’s active document’s URL domain
+            // secure: true, // Whether the cookie is a secure cookie. Defaults to false
+            // httpOnly: true, // Whether the cookie is an HTTP only cookie. Defaults to false
+            // expiry: 1551393875 // When the cookie expires, specified in seconds since Unix Epoch
+        })
+
+        // set multiple cookies
+        browser.setCookies([
+            {name: 'test2', value: 'two'},
+            {name: 'test3', value: 'three'}
+        ])
 
         const cookies = browser.getCookies()
         console.log(cookies);
@@ -23,14 +39,7 @@
  * </example>
  *
  * @alias browser.setCookies
- * @param {Object} cookie cookie object
- * @param {String} cookie.name The name of the cookie
- * @param {String} cookie.value The cookie value
- * @param {String} cookie.path  (Optional) The cookie path
- * @param {String} cookie.domain  (Optional) The domain the cookie is visible to
- * @param {Boolean} cookie.secure (Optional) Whether the cookie is a secure cookie
- * @param {Boolean} cookie.httpOnly  (Optional) Whether the cookie is an httpOnly cookie
- * @param {Number} cookie.expiry  (Optional) When the cookie expires, specified in seconds since midnight, January 1, 1970 UTC
+ * @param {Object} cookie cookie object or object array
  * @uses protocol/addCookie
  * @type cookie
  *

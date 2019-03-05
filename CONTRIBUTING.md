@@ -67,7 +67,7 @@ $ npm run watch
 If you only work on a single package you can watch only for that one by calling:
 
 ```sh
-# e.g. `$ npm run watch:pkg wdio-runner`
+# e.g. `$ npm run watch:pkg @wdio/runner`
 $ npm run watch:pkg <package-name>
 ```
 

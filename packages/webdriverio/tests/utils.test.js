@@ -1,3 +1,4 @@
+import path from 'path'
 import { ELEMENT_KEY } from '../src/constants'
 import {
     findStrategy,
@@ -8,7 +9,10 @@ import {
     checkUnicode,
     findElement,
     findElements,
-    verifyArgsAndStripIfElement
+    verifyArgsAndStripIfElement,
+    getElementRect,
+    getAbsoluteFilepath,
+    assertDirectoryExists
 } from '../src/utils'
 
 describe('utils', () => {
@@ -672,11 +676,11 @@ describe('utils', () => {
         }
 
         it('returns the same value if it is not an element object', () => {
-            expect(verifyArgsAndStripIfElement([1, 2, 3])).toEqual([1, 2, 3])
+            expect(verifyArgsAndStripIfElement([1, 'two', true, false, null, undefined])).toEqual([1, 'two', true, false, null, undefined])
         })
 
         it('strips down properties if value is element object', () => {
-            const fakeObj = new Element({ 
+            const fakeObj = new Element({
                 elementId: 'foo-bar',
                 someProp: 123,
                 anotherProp: 'abc'
@@ -690,7 +694,7 @@ describe('utils', () => {
         })
 
         it('should work even if parameter is not of type Array', () => {
-            const fakeObj = new Element({ 
+            const fakeObj = new Element({
                 elementId: 'foo-bar',
                 someProp: 123,
                 anotherProp: 'abc'
@@ -710,6 +714,50 @@ describe('utils', () => {
             })
 
             expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('The element with selector "div" you trying to pass into the execute method wasn\'t found')
+        })
+    })
+
+    describe('getElementRect', () => {
+        it('uses getBoundingClientRect if a key is missing', async () => {
+            const fakeScope = {
+                elementId: 123,
+                getElementRect: jest.fn(() => Promise.resolve({x: 10, width: 300, height: 400})),
+                execute: jest.fn(() => Promise.resolve({x: 11, y: 22, width: 333, height: 444}))
+            }
+            expect(await getElementRect(fakeScope)).toEqual({x: 10, y: 22, width: 300, height: 400})
+            expect(fakeScope.getElementRect).toHaveBeenCalled()
+            expect(fakeScope.execute).toHaveBeenCalled()
+        })
+    })
+
+    describe('getAbsoluteFilepath', () => {
+        it('should not change filepath if starts with forward slash', () => {
+            const filepath = '/packages/bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
+        })
+
+        it('should not change filepath if starts with backslash slash', () => {
+            const filepath = '\\packages\\bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
+        })
+
+        it('should not change filepath if starts with windows drive letter', async () => {
+            const filepath = 'E:\\foo\\bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
+        })
+
+        it('should change filepath if does not start with forward or back slash', async () => {
+            const filepath = 'packages/bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(path.join(process.cwd(), 'packages/bar.png'))
+        })
+    })
+
+    describe('assertDirectoryExists', () => {
+        it('should fail if not existing directory', () => {
+            expect(() => assertDirectoryExists('/i/dont/exist.png')).toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
+        })
+        it('should not fail if directory exists', () => {
+            expect(() => assertDirectoryExists('.')).not.toThrow()
         })
     })
 })
