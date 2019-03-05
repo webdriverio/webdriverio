@@ -27,9 +27,10 @@ export default class Runner extends EventEmitter {
      * @param  {Object}    caps           capabilities to run session with
      * @param  {String}    configFile     path to config file to get config from
      * @param  {Object}    server         modified WebDriver target
+     * @param  {Number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
-    async run ({ cid, argv, specs, caps, configFile, server }) {
+    async run ({ cid, argv, specs, caps, configFile, server, retries }) {
         this.cid = cid
         this.specs = specs
         this.caps = caps
@@ -102,7 +103,8 @@ export default class Runner extends EventEmitter {
                     caps[browserName] = browser[browserName].capabilities
                     return caps
                 }, {})
-                : browser.options.capabilities
+                : browser.options.capabilities,
+            retry: (this.config.specFileRetries || 0) - (retries || 0)
         })
 
         /**
@@ -140,7 +142,8 @@ export default class Runner extends EventEmitter {
 
         this.reporter.emit('runner:end', {
             failures,
-            cid: this.cid
+            cid: this.cid,
+            retries
         })
 
         return this._shutdown(failures)

@@ -98,6 +98,12 @@ describe('launcher', () => {
             expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: 1, passed: true })
             expect(launcher.resolve).toBeCalledTimes(0)
         })
+
+        it('should reschedule when runner failed and retries remain', () => {
+            launcher.schedule = [{ cid: 0, specs: [] }]
+            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
+        })
     })
 
     describe('exitHandler', () => {
@@ -324,6 +330,19 @@ describe('launcher', () => {
             expect(launcher.runSpecs()).toBe(true)
             expect(launcher.getNumberOfRunningInstances()).toBe(0)
             expect(launcher.getNumberOfSpecsLeft()).toBe(0)
+        })
+    })
+
+    describe('startInstance', () => {
+        beforeEach(() => {
+            launcher.runner.run = jest.fn().mockReturnValue({ on: () => {} })
+            launcher.interface.emit = jest.fn()
+        })
+
+        it('should allow override of runner id', () => {
+            launcher.startInstance([], { browserName: 'chrome' }, 0, undefined, '0-5')
+            expect(launcher.runner.run.mock.calls[0][0]).toHaveProperty('cid', '0-5')
+            expect(launcher.getRunnerId(0)).toBe('0-0')
         })
     })
 })
