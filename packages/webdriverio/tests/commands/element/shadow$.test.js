@@ -7,7 +7,6 @@ jest.mock('../../../src/commands/element/$', () => ({
 
 const $ = require('../../../src/commands/element/$')
 
-
 describe('shadow$$', () => {
     it('should call $ with a function selector', async () => {
         const browser = await remote({
