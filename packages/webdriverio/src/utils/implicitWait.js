@@ -2,6 +2,11 @@ import logger from '@wdio/logger'
 const log = logger('webdriverio')
 
 export default async function implicitWait (currentElement, commandName) {
+    /**
+     * wait on element if:
+     *  - elementId couldn't be fetched in the first place
+     *  - command is not explicit wait command for existance or displayedness
+     */
 
     if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|isDisplayed)/)) {
         log.debug(
@@ -9,9 +14,6 @@ export default async function implicitWait (currentElement, commandName) {
             'that wasn\'t found, waiting for it...'
         )
 
-        /**
-         * create new promise so we can apply a custom error message in cases waitForExist fails
-         */
         try {
             await currentElement.waitForExist()
             /**

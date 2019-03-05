@@ -12,12 +12,6 @@ import implicitWait from './utils/implicitWait'
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
     return function (...args) {
         return fn(commandName, async () => {
-            /**
-             * wait on element if:
-             *  - elementId couldn't be fetched in the first place
-             *  - command is not explicit wait command for existance or displayedness
-             */
-
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
 
