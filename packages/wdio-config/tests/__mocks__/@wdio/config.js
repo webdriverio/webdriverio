@@ -8,7 +8,8 @@ class ConfigParserMock {
         this.merge = jest.fn()
         this.getConfig = jest.fn().mockReturnValue({
             runnerEnv: {},
-            runner: 'local'
+            runner: 'local',
+            outputDir: './tempDir'
         })
         this.getCapabilities = jest.fn().mockReturnValue([{
             browserName: 'chrome',

@@ -1,5 +1,7 @@
 import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
+import fs from 'fs-extra'
+import path from 'path'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
 
@@ -11,7 +13,7 @@ describe('launcher', () => {
     describe('capabilities', () => {
         it('should NOT fail when capabilities are passed', async () => {
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            const exitCode = await launcher.runMode({ specs: './' }, [caps, caps])
+            const exitCode = await launcher.runMode({ specs: './' }, [caps, caps], configOptions)
             expect(launcher.runSpecs).toBeCalled()
             expect(exitCode).toEqual(0)
             expect(logger().error).not.toBeCalled()
@@ -324,6 +326,19 @@ describe('launcher', () => {
             expect(launcher.runSpecs()).toBe(true)
             expect(launcher.getNumberOfRunningInstances()).toBe(0)
             expect(launcher.getNumberOfSpecsLeft()).toBe(0)
+        })
+
+        it('should create directory as the config options have a outputDir option', () => {
+            const outputDir = path.join('./tempDir')
+
+            const dirExists = fs.existsSync(outputDir)
+
+            // remove directory before assertion so it doesn't pollute the test directory
+            if (dirExists){
+                fs.removeSync(outputDir)
+            }
+
+            expect(dirExists).toBe(true)
         })
     })
 })

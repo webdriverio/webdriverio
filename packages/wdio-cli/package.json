@@ -51,7 +51,8 @@
     "lodash.union": "^4.6.0",
     "webdriverio": "^5.6.3",
     "yargs": "^11.1.0",
-    "yarn-install": "^1.0.0"
+    "yarn-install": "^1.0.0",
+    "fs-extra": "^7.0.1"
   },
   "publishConfig": {
     "access": "public"
