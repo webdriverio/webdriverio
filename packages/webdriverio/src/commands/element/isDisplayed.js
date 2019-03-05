@@ -62,10 +62,13 @@ export default async function isDisplayed() {
         return false
     }
 
-    return browser.isChrome ?
-        await this.isElementDisplayed(this.elementId)
-        : await browser.execute(isElementDisplayedScript, {
+    //Only call the script on Safari and Edge
+    return Boolean(browser.capabilities.edge) ||
+    Boolean(browser.capabilities.safari)
+        ? await browser.execute(isElementDisplayedScript, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
             ELEMENT: this.elementId // jsonwp compatible
-        })
+        }) :
+        //Everyone else still uses the endpoint
+        await this.isElementDisplayed(this.elementId)
 }
