@@ -34,9 +34,12 @@ export default class WDIOCLInterface extends EventEmitter {
         this.clockTimer = 0
         this.jobs = new Map()
         this.start = Date.now()
+        // The relationship between totalWorkerCnt and these counters are as follows:
+        //   totalWorkerCnt - retries = finished = passed + failed
         this.result = {
             finished: 0,
             passed: 0,
+            retries: 0,
             failed: 0
         }
         this.messages = {
@@ -63,12 +66,18 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * clear job from interface
      */
-    clearJob ({ cid, passed }) {
+    clearJob ({ cid, passed, retries }) {
         this.jobs.delete(cid)
-        this.result.finished++
+        const retry = !passed && retries > 0
+        if (!retry) {
+            this.result.finished++
+        }
 
         if (passed) {
             this.result.passed++
+        } else if (retry) {
+            this.totalWorkerCnt++
+            this.result.retries++
         } else {
             this.result.failed++
         }
@@ -117,8 +126,8 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     updateView (wasJobCleared) {
-        const totalJobs = this.totalWorkerCnt
-        const pendingJobs = this.totalWorkerCnt - this.jobs.size - this.result.finished
+        const totalJobs = this.totalWorkerCnt - this.result.retries
+        const pendingJobs = totalJobs - this.jobs.size - this.result.finished
         const runningJobs = this.jobs.size
         const isFinished = runningJobs === 0
 
@@ -153,6 +162,7 @@ export default class WDIOCLInterface extends EventEmitter {
                 `${clockSpinnerSymbol} ` +
                 `${this.jobs.size} running, ` +
                 `${this.result.passed} passed, ` +
+                (this.result.retries ? `${this.result.retries} retries, ` : '') +
                 `${this.result.failed} failed, ` +
                 `${totalJobs} total ` +
                 `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`)
@@ -251,10 +261,11 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     printSummary() {
-        const totalJobs = this.totalWorkerCnt
+        const totalJobs = this.totalWorkerCnt - this.result.retries
 
         return this.interface.log(
             'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
+            (this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : '') +
             (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
             totalJobs, 'total',
             `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`

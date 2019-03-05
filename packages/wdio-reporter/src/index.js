@@ -157,6 +157,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('runner:end',  /* istanbul ignore next */ (runner) => {
             rootSuite.complete()
             this.runnerStat.failures = runner.failures
+            this.runnerStat.retries = runner.retries
             this.runnerStat.complete()
             this.onRunnerEnd(this.runnerStat)
         })
