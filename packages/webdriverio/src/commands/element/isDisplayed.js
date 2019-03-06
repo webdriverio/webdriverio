@@ -44,7 +44,7 @@ import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject } from '../../utils'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
 
-const noW3CEndpoint = ['MicrosoftEdge', 'safari']
+const noW3CEndpoint = ['microsoftedge', 'safari']
 
 export default async function isDisplayed() {
 
@@ -70,7 +70,7 @@ export default async function isDisplayed() {
      * no longer dictates it. In those instances, we pass the element through a script
      * that was provided by Brian Burg of safaridriver.
      */
-    return browser.isW3C && noW3CEndpoint.includes(browser.capabilities.browserName) ?
+    return browser.isW3C && noW3CEndpoint.includes(browser.capabilities.browserName.toLowerCase()) ?
         await browser.execute(isElementDisplayedScript, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
             ELEMENT: this.elementId // jsonwp compatible
