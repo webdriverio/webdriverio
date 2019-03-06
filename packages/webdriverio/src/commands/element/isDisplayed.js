@@ -62,13 +62,19 @@ export default async function isDisplayed() {
         return false
     }
 
-    //Only call the script on Safari and Edge
-    return Boolean(browser.capabilities.edge) ||
-    Boolean(browser.capabilities.safari)
-        ? await browser.execute(isElementDisplayedScript, {
+
+    //Default is to use the endpoint
+    let useEndpoint = true
+
+    //Safari >= 12 and Edge 18
+    if (browser.isW3C && ['MicrosoftEdge', 'safari'].includes(browser.capabilities.browserName)) {
+        useEndpoint = false
+    }
+
+    return useEndpoint ?
+        await this.isElementDisplayed(this.elementId) :
+        await browser.execute(isElementDisplayedScript, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
             ELEMENT: this.elementId // jsonwp compatible
-        }) :
-        //Everyone else still uses the endpoint
-        await this.isElementDisplayed(this.elementId)
+        })
 }
