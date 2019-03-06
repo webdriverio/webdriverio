@@ -28,11 +28,12 @@ export function isSuccessfulResponse (statusCode, body) {
     /**
      * ignore failing element request to enable lazy loading capability
      */
-    if (body.status && body.status === 7 && body.value.message &&
-        (body.value.message.startsWith('no such element') ||
+    if (body.status && body.status === 7 && body.value && body.value.message &&
+        (body.value.message.toLowerCase().startsWith('no such element') ||
             //Appium
             body.value.message ===
-            'An element could not be located on the page using the given search parameters.')) {
+            'An element could not be located on the page using the given search parameters.'
+        )) {
         return true
     }
 
