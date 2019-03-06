@@ -6,7 +6,6 @@ import { newSession, deleteSession } from './mocks/newSession'
 
 const ELEMENT_ID = '401c0039-3306-6a46-a98d-f5939870a249'
 const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
-
 newSession.value.sessionId = SESSION_ID
 
 export default class WebdriverMockService {
@@ -67,7 +66,7 @@ export default class WebdriverMockService {
 
         this.command.findElement().times(2).reply(404, NO_SUCH_ELEMENT)
         this.command.findElement().times(2).reply(200, { value: elemResponse })
-        this.command.executeScript().once().reply(200, { value: true })
+        this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     isEventuallyDisplayedScenario() {
@@ -77,7 +76,7 @@ export default class WebdriverMockService {
 
         this.command.findElement().times(1).reply(404, NO_SUCH_ELEMENT)
         this.command.findElement().times(2).reply(200, { value: elemResponse })
-        this.command.executeScript().once().reply(200, { value: true })
+        this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     staleElementRefetchScenario () {
@@ -122,8 +121,8 @@ export default class WebdriverMockService {
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
         this.command.findElement().once().reply(200, { value: elemResponse })
-        this.command.executeScript().times(4).reply(200, { value: false })
-        this.command.executeScript().once().reply(200, { value: true })
+        this.command.isElementDisplayed(ELEMENT_ID).times(4).reply(200, { value: false })
+        this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
     nockReset () {

@@ -1,9 +1,6 @@
 import request from 'request'
 import { remote } from '../../../src'
-jest.mock('../../../src/scripts/isElementDisplayed', () => ({
-    __esModule: true,
-    default: function () { return true }
-}))
+
 describe('waitForDisplayed', () => {
     const duration = 1000
     let browser
@@ -41,12 +38,7 @@ describe('waitForDisplayed', () => {
         const result = await elem.waitForDisplayed(duration)
 
         expect(result).toBe(true)
-        expect(request).toBeCalledTimes(3)
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-        expect(request.mock.calls[2][0].body.args[0]).toEqual({
-            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-            ELEMENT: 'some-elem-123'
-        })
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
     test('should call isDisplayed and return true if eventually true', async () => {

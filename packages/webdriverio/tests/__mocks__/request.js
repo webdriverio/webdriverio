@@ -41,9 +41,9 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     if (
         params.body &&
         params.body.capabilities &&
-        params.body.capabilities.alwaysMatch.chromeMode
+        params.body.capabilities.alwaysMatch.keepBrowserName
     ) {
-        sessionResponse.capabilities['goog:chromeOptions'] = {}
+        sessionResponse.capabilities.browserName = params.body.capabilities.alwaysMatch.browserName
     }
 
     switch (params.uri.path) {
