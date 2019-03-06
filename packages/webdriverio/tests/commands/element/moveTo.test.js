@@ -60,7 +60,7 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         request.setMockResponse([{}, {}])
-        expect(elem.moveTo(5, 10)).rejects.toThrow('Failed to getElementRect')
+        await expect(elem.moveTo(5, 10)).rejects.toThrow('Failed to receive element rects via execute command')
     })
 
     it('should do a moveTo without params (no-w3c)', async () => {
