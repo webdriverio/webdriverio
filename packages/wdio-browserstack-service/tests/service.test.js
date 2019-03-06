@@ -192,14 +192,14 @@ describe('afterTest', () => {
     it('should not increment failures on passes', () => {
         service.failures = 0
 
-        service.afterTest({ passed: true })
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
         expect(service.failures).toBe(0)
     })
 
     it('should not increment failures on passes', () => {
         service.failures = 0
 
-        service.afterTest({ passed: true })
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
         expect(service.failures).toBe(0)
     })
 })
