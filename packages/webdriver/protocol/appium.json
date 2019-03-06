@@ -946,7 +946,7 @@
       "parameters": [{
         "name": "signalStrength",
         "type": "string",
-        "description": "signal strength in the range [0, 4]. This parameter works with Appium 1.11.1 upwards.",
+        "description": "signal strength in the range [0, 4]. Please also set this parameter with the same value if you use Appium v1.11.0 or lower (see https://github.com/appium/appium/issues/12234).",
         "required": true
       }, {
         "name": "signalStrengh",
