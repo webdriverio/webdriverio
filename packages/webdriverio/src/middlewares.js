@@ -2,7 +2,6 @@
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
 
-
 /**
  * This method is an command wrapper for elements that checks if a command is called
  * that wasn't found on the page and automatically waits for it
