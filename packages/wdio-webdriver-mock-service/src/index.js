@@ -52,7 +52,7 @@ export default class WebdriverMockService {
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
 
-        this.command.findElement().times(1).reply(404, NO_SUCH_ELEMENT)
+        this.command.findElement().once().reply(404, NO_SUCH_ELEMENT)
         this.command.findElement().times(2).reply(200, { value: elemResponse })
         this.command.findElements().times(5).reply(200, { value: [] })
         this.command.findElements().reply(200, { value: [elemResponse] })
