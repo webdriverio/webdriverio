@@ -1,4 +1,4 @@
-/// <reference types="wdio/sync/webdriverio-core"/>
+/// <reference types="@wdio/sync/webdriverio-core"/>
 
 type BrowserObject = WebDriver.ClientOptions & WebDriver.Client & WebdriverIO.Browser;
 
