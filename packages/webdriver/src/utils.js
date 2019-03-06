@@ -32,8 +32,7 @@ export function isSuccessfulResponse (statusCode, body) {
         (body.value.message.toLowerCase().startsWith('no such element') ||
             //Appium
             body.value.message ===
-            'An element could not be located on the page using the given search parameters.'
-        )) {
+            'An element could not be located on the page using the given search parameters.')) {
         return true
     }
 
