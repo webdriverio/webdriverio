@@ -1,4 +1,4 @@
-/// <reference types="@webdriverio/webdriverio-core"/>
+/// <reference types="webdriverio/webdriverio-core"/>
 
 type BrowserObject = WebDriver.ClientOptions & WebDriver.ClientAsync & WebdriverIOAsync.Browser;
 
