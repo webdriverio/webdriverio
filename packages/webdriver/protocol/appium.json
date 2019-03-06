@@ -946,8 +946,7 @@
       "parameters": [{
         "name": "signalStrength",
         "type": "string",
-        "description": "signal strength in the range [0, 4]",
-        "required": true
+        "description": "signal strength in the range [0, 4]"
       }, {
         "name": "signalStrengh",
         "type": "string",
