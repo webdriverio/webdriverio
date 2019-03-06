@@ -208,6 +208,42 @@ describe('afterTest', () => {
         service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
         expect(service.failures).toBe(0)
     })
+
+    it('should add test name parameter on pases', () => {
+        service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
+
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        expect(service.fullTitle).toBe('foo - bar')
+    })
+
+    it('should add test name parameter on fails', () => {
+        service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
+
+        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        expect(service.fullTitle).toBe('foo - bar')
+    })
+
+    it('should not contain reason value on pases', () => {
+        service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
+
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        expect(service.failReason).toBe('')
+    })
+
+    it('should contain reason value on pases', () => {
+        service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
+        
+        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        expect(service.failReason).toBe('error message')
+    })
 })
 
 describe('afterStep', () => {
