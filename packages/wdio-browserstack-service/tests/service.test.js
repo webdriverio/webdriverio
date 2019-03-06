@@ -184,6 +184,8 @@ describe('afterSuite', () => {
 describe('afterTest', () => {
     it('should increment failures on fails', () => {
         service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
 
         service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: {message: 'error message'}  })
         expect(service.failures).toBe(1)
@@ -191,6 +193,8 @@ describe('afterTest', () => {
 
     it('should not increment failures on passes', () => {
         service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
 
         service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
         expect(service.failures).toBe(0)
@@ -198,6 +202,8 @@ describe('afterTest', () => {
 
     it('should not increment failures on passes', () => {
         service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
 
         service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
         expect(service.failures).toBe(0)
