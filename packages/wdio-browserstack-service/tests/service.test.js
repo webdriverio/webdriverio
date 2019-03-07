@@ -270,14 +270,14 @@ describe('_getBody', () => {
     it('should return "error" if failures', () => {
         service.failures = 1
         service.failReason = 'error message'
-        service.name = 'foo bar',
+        service.fullTitle = 'foo bar',
         
         expect(service._getBody()).toEqual({ status: 'error', reason: 'error message', name: 'foo bar' })
     })
 
     it('should return "completed" if no errors', () => {
         service.failures = 0
-        service.name = 'foo bar'
+        service.fullTitle = 'foo bar'
 
         expect(service._getBody()).toEqual({ status: 'completed', name: 'foo bar', reason: '' })
     })
