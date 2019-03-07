@@ -25,13 +25,17 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-In order to use the service you need to set `applitoolsKey` in your `wdio.conf.js` config file or have `APPLITOOLS_KEY` stored in your environment so that it can access the Applitools API. Also make sure that you added `applitools` to your service list, e.g.
+In order to use the service you need to pass `applitoolsKey`. This can be set in your `wdio.conf.js` config file or pass `APPLITOOLS_KEY` in your environment so that it can access the Applitools API. 
+
+Also make sure that you added `applitools` to your service list, e.g.
 
 ```js
 // wdio.conf.js
 export.config = {
   // ...
   services: ['applitools'],
+  applitoolsKey: 'APPLITOOLS_KEY', // can be passed here or via environment
+  applitoolsServerUrl: 'APPLITOOLS_Server_URL', // optional
   applitools: {
     // options
     // ...
