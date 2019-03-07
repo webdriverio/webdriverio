@@ -4,7 +4,7 @@ import tmp from 'tmp'
 import WDIOReporter from '../src'
 
 const fse = require('fs-extra')
-let ensureDirSyncSpy
+
 
 jest.mock('events', () => {
     class EventEmitterMock {
@@ -77,6 +77,7 @@ describe('WDIOReporter', () => {
 
     describe('outputDir options', () => {
         jest.mock('fs-extra')
+        let ensureDirSyncSpy
         beforeEach(() => {
             ensureDirSyncSpy = jest.spyOn(fse, 'ensureDirSync')
         })

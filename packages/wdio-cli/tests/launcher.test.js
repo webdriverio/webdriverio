@@ -5,7 +5,7 @@ const caps = { maxInstances: 1, browserName: 'chrome' }
 
 jest.mock('fs-extra')
 const fs = require('fs-extra')
-let ensureDirSyncSpy
+
 
 describe('launcher', () => {
     let launcher
@@ -351,6 +351,7 @@ describe('launcher', () => {
     })
 
     describe('config options', () => {
+        let ensureDirSyncSpy
         beforeEach(() => {
             ensureDirSyncSpy = jest.spyOn(fs, 'ensureDirSync')
         })
