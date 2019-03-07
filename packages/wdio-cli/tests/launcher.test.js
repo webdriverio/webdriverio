@@ -1,7 +1,10 @@
 import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
+import fs from 'fs-extra'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
+
+jest.mock('fs-extra')
 
 describe('launcher', () => {
     let launcher
@@ -343,6 +346,20 @@ describe('launcher', () => {
             launcher.startInstance([], { browserName: 'chrome' }, 0, undefined, '0-5')
             expect(launcher.runner.run.mock.calls[0][0]).toHaveProperty('cid', '0-5')
             expect(launcher.getRunnerId(0)).toBe('0-0')
+        })
+    })
+
+    describe('config options', () => {
+        let ensureDirSyncSpy
+        beforeEach(() => {
+            ensureDirSyncSpy = jest.spyOn(fs, 'ensureDirSync')
+        })
+        it('should create directory when the config options have a outputDir option', () => {
+            expect(ensureDirSyncSpy).toHaveBeenCalled()
+            expect(ensureDirSyncSpy).toHaveBeenCalledWith('tempDir')
+        })
+        afterEach(() => {
+            ensureDirSyncSpy.mockClear()
         })
     })
 })
