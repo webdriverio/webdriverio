@@ -27,8 +27,11 @@ export default class BrowserstackService {
     }
 
     afterTest(test) {
+        this.fullTitle = test.parent + ' - ' + test.title
+
         if (!test.passed) {
             this.failures++
+            this.failReason = (test.error && test.error.message ? test.error.message : 'Unknown Error')
         }
     }
 
@@ -59,6 +62,8 @@ export default class BrowserstackService {
         this.sessionId = newSessionId
         await this._update(oldSessionId, this._getBody())
         this.failures = 0
+        delete this.fullTitle
+        delete this.failReason
         this._printSessionURL()
     }
 
@@ -80,7 +85,9 @@ export default class BrowserstackService {
 
     _getBody() {
         return {
-            status: this.failures === 0 ? 'completed' : 'error'
+            status: this.failures === 0 ? 'completed' : 'error',
+            name: this.fullTitle,
+            reason: this.failReason
         }
     }
 
