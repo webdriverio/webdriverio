@@ -33,7 +33,7 @@ export default class BrowserstackService {
 
         if (!test.passed) {
             this.failures++
-            this.failReason = test.error.message
+            this.failReason = (test.error.message === undefined ? 'Error' : test.error.message)
         }
     }
 
