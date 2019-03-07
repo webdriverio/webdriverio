@@ -189,6 +189,8 @@ describe('afterTest', () => {
 
         service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: {message: 'error message'}  })
         expect(service.failures).toBe(1)
+        expect(service.fullTitle).toBe('foo - bar')
+        expect(service.failReason).toBe('error message')
     })
 
     it('should not increment failures on passes', () => {
@@ -196,8 +198,9 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
         expect(service.failures).toBe(0)
+        expect(service.fullTitle).toBe('foo - bar')
     })
 
     it('should not increment failures on passes', () => {
@@ -205,7 +208,7 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
         expect(service.failures).toBe(0)
     })
 
@@ -214,29 +217,18 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
         expect(service.fullTitle).toBe('foo - bar')
     })
 
-    it('should add test name parameter on fails', () => {
+    it('should contain or not reason value on pases or fails', () => {
         service.failures = 0
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: {message: 'error message'} })
-        expect(service.fullTitle).toBe('foo - bar')
-    })
-
-    it('should not contain reason value on pases', () => {
-        service.failures = 0
-        service.fullTitle = ''
-        service.failReason = ''
-
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar', error: {message: 'error message'} })
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
         expect(service.failReason).toBe('')
-    })
 
-    it('should contain reason value on pases', () => {
         service.failures = 0
         service.fullTitle = ''
         service.failReason = ''
