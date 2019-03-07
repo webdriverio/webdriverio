@@ -203,24 +203,6 @@ describe('afterTest', () => {
         expect(service.fullTitle).toBe('foo - bar')
     })
 
-    it('should not increment failures on passes', () => {
-        service.failures = 0
-        service.fullTitle = ''
-        service.failReason = ''
-
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
-        expect(service.failures).toBe(0)
-    })
-
-    it('should add test name parameter on pases', () => {
-        service.failures = 0
-        service.fullTitle = ''
-        service.failReason = ''
-
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
-        expect(service.fullTitle).toBe('foo - bar')
-    })
-
     it('should contain or not reason value on pases or fails', () => {
         service.failures = 0
         service.fullTitle = ''
@@ -270,15 +252,15 @@ describe('_getBody', () => {
     it('should return "error" if failures', () => {
         service.failures = 1
         service.failReason = 'error message'
-        service.fullTitle = 'foo bar',
+        service.fullTitle = 'foo - bar',
         
-        expect(service._getBody()).toEqual({ status: 'error', reason: 'error message', name: 'foo bar' })
+        expect(service._getBody()).toEqual({ status: 'error', reason: 'error message', name: 'foo - bar' })
     })
 
     it('should return "completed" if no errors', () => {
         service.failures = 0
-        service.fullTitle = 'foo bar'
+        service.fullTitle = 'foo - bar'
 
-        expect(service._getBody()).toEqual({ status: 'completed', name: 'foo bar', reason: '' })
+        expect(service._getBody()).toEqual({ status: 'completed', name: 'foo - bar', reason: '' })
     })
 })
