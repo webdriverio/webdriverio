@@ -1,9 +1,11 @@
 import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
-import fs from 'fs-extra'
-import path from 'path'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
+
+jest.mock('fs-extra')
+const fs = require('fs-extra')
+let ensureDirSyncSpy
 
 describe('launcher', () => {
     let launcher
@@ -349,17 +351,15 @@ describe('launcher', () => {
     })
 
     describe('config options', () => {
+        beforeEach(() => {
+            ensureDirSyncSpy = jest.spyOn(fs, 'ensureDirSync')
+        })
         it('should create directory when the config options have a outputDir option', () => {
-            const outputDir = path.join('./tempDir')
-
-            const dirExists = fs.existsSync(outputDir)
-
-            // remove directory before assertion so it doesn't pollute the test directory
-            if (dirExists){
-                fs.removeSync(outputDir)
-            }
-
-            expect(dirExists).toBe(true)
+            expect(ensureDirSyncSpy).toHaveBeenCalled()
+            expect(ensureDirSyncSpy).toHaveBeenCalledWith('tempDir')
+        })
+        afterEach(() => {
+            ensureDirSyncSpy.mockClear()
         })
     })
 })
