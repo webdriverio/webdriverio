@@ -39,7 +39,8 @@ export.config = {
       '/path/to/extensionA.xpi', // path to .xpi file
       '/path/to/extensionB' // or path to unpacked Firefox extension
     ],
-    'browser.startup.homepage': 'https://webdriver.io'
+    'browser.startup.homepage': 'https://webdriver.io',
+    legacy: true // used for firefox <= 55
   },
   // ...
 };
@@ -48,6 +49,6 @@ export.config = {
 ## Options
 
 ### firefoxProfile
-Contains all settings as key value pair. If you want to add an extension, use the `extensions` key with an array of string paths to the extensions you want to use.
+Contains all settings as key value pair. If you want to add an extension, use the `extensions` key with an array of string paths to the extensions you want to use. If you are running a version of firefox older before 56 use `legacy: true`.
 
 Type: `Object`

@@ -12,7 +12,7 @@ describe('Firefox profile service', () => {
             expect(capabilities).toEqual([{}])
         })
 
-        test('should set preferences with no extensions', async () => {
+        test('should set preferences with no extensions - modern', async () => {
             const config = {
                 firefoxProfile : {
                     'browser.startup.homepage': 'https://webdriver.io',
@@ -30,8 +30,31 @@ describe('Firefox profile service', () => {
             expect(service.profile.updatePreferences).toHaveBeenCalled()
             expect(service.profile.addExtensions).not.toHaveBeenCalled()
 
-            expect(capabilities[0].firefox_profile).toBe('foobar')
+            expect(capabilities[0].firefox_profile).toBe(undefined)
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
+        })
+
+        test('should set preferences with no extensions - legacy', async () => {
+            const config = {
+                firefoxProfile : {
+                    'browser.startup.homepage': 'https://webdriver.io',
+                    legacy: true
+                }
+            }
+            const capabilities = [{
+                browserName : 'firefox',
+            }]
+
+            const service = new Launcher()
+            await service.onPrepare(config, capabilities)
+
+            expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
+            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
+            expect(service.profile.updatePreferences).toHaveBeenCalled()
+            expect(service.profile.addExtensions).not.toHaveBeenCalled()
+
+            expect(capabilities[0].firefox_profile).toBe('foobar')
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual(undefined)
         })
 
         test('should amend firefox capabilities', async () => {
@@ -55,7 +78,6 @@ describe('Firefox profile service', () => {
             expect(service.profile.updatePreferences).toHaveBeenCalled()
             expect(service.profile.addExtensions).not.toHaveBeenCalled()
 
-            expect(capabilities[0].firefox_profile).toBe('foobar')
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile : 'foobar'})
         })
 
@@ -72,7 +94,6 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities[0].firefox_profile).toBe('foobar')
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
 
             expect(service.profile.addExtensions.mock.calls[0][0]).toBe(config.firefoxProfile.extensions)
@@ -96,7 +117,6 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities[0].firefox_profile).toBe('foobar')
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
 
             expect(capabilities[1]).not.toHaveProperty('firefox_profile')
@@ -120,7 +140,6 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities.firefox.capabilities.firefox_profile).toBe('foobar')
             expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
         })
 
