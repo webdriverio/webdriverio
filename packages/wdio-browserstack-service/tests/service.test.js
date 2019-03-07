@@ -202,22 +202,6 @@ describe('afterTest', () => {
         expect(service.failures).toBe(0)
         expect(service.fullTitle).toBe('foo - bar')
     })
-
-    it('should contain or not reason value on pases or fails', () => {
-        service.failures = 0
-        service.fullTitle = ''
-        service.failReason = ''
-
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
-        expect(service.failReason).toBe('')
-
-        service.failures = 0
-        service.fullTitle = ''
-        service.failReason = ''
-        
-        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: {message: 'error message'} })
-        expect(service.failReason).toBe('error message')
-    })
 })
 
 describe('afterStep', () => {
