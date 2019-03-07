@@ -9,8 +9,8 @@ export default class BrowserstackService {
     constructor (config) {
         this.config = config
         this.failures = 0
-        this.fullTitle = ''
-        this.failReason = ''
+        this.fullTitle
+        this.failReason
     }
 
     before() {
@@ -64,8 +64,8 @@ export default class BrowserstackService {
         this.sessionId = newSessionId
         await this._update(oldSessionId, this._getBody())
         this.failures = 0
-        this.fullTitle = ''
-        this.failReason = ''
+        delete this.fullTitle
+        delete this.failReason
         this._printSessionURL()
     }
 
@@ -89,7 +89,7 @@ export default class BrowserstackService {
         return {
             status: this.failures === 0 ? 'completed' : 'error',
             name: this.fullTitle,
-            reason: this.failReason
+            reason: this.failReason || ''
         }
     }
 
