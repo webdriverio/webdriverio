@@ -245,6 +245,6 @@ describe('_getBody', () => {
         service.failures = 0
         service.fullTitle = 'foo - bar'
 
-        expect(service._getBody()).toEqual({ status: 'completed', name: 'foo - bar', reason: '' })
+        expect(service._getBody()).toEqual({ status: 'completed', name: 'foo - bar', reason: undefined })
     })
 })
