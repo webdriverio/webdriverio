@@ -15,6 +15,33 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.1 (2019-03-07)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriverio`
+  * [#3680](https://github.com/webdriverio/webdriverio/pull/3680) webdriverio: fix control key w3c compliancy ([@LukoyanovE](https://github.com/LukoyanovE))
+  * [#3601](https://github.com/webdriverio/webdriverio/pull/3601) webdriverio: isDisplayed() change for browsers without the endpoint ([@abjerstedt](https://github.com/abjerstedt))
+* `webdriver`
+  * [#3678](https://github.com/webdriverio/webdriverio/pull/3678) Fixed typo signalStrength ([@khanhdodang](https://github.com/khanhdodang))
+
+#### :bug: Bug Fix
+* `wdio-firefox-profile-service`
+  * [#3692](https://github.com/webdriverio/webdriverio/pull/3692) wdio-firefox-profile: legacy handling ([@abjerstedt](https://github.com/abjerstedt))
+* `webdriver`
+  * [#3690](https://github.com/webdriverio/webdriverio/pull/3690) webdriver: Fix error matcher for edge 15-17 ([@abjerstedt](https://github.com/abjerstedt))
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#3681](https://github.com/webdriverio/webdriverio/pull/3681) webdriverio: middleware refactor ([@abjerstedt](https://github.com/abjerstedt))
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriverio`
+  * [#3688](https://github.com/webdriverio/webdriverio/pull/3688) update to absolute references to webdriver-io-core ([@FelixZilber](https://github.com/FelixZilber))
+
+#### Committers: 4
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Evgeniy Lukoyanov ([@LukoyanovE](https://github.com/LukoyanovE))
+- FeL ([@FelixZilber](https://github.com/FelixZilber))
+- Khanh Do ([@khanhdodang](https://github.com/khanhdodang))
+
 ## 5.7.0 (2019-03-05)
 
 #### :rocket: New Feature
