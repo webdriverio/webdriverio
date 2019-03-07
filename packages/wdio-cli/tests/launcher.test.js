@@ -1,11 +1,10 @@
 import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
+import fs from 'fs-extra'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
 
 jest.mock('fs-extra')
-const fs = require('fs-extra')
-
 
 describe('launcher', () => {
     let launcher

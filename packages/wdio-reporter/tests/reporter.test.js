@@ -1,10 +1,7 @@
 import fs from 'fs'
 import tmp from 'tmp'
-
+import fse from 'fs-extra'
 import WDIOReporter from '../src'
-
-const fse = require('fs-extra')
-
 
 jest.mock('events', () => {
     class EventEmitterMock {
