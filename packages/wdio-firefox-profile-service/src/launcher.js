@@ -10,9 +10,6 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        this.legacy = this.config.firefoxProfile.legacy
-        this.config.firefoxProfile
-
         this.profile = new Profile()
 
         // Set preferences and proxy
