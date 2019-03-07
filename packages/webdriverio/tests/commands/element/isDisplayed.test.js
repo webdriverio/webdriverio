@@ -1,5 +1,9 @@
 import request from 'request'
 import { remote } from '../../../src'
+jest.mock('../../../src/scripts/isElementDisplayed', () => ({
+    __esModule: true,
+    default: function () { return true }
+}))
 
 describe('isDisplayed test', () => {
     let browser
@@ -34,5 +38,46 @@ describe('isDisplayed test', () => {
         const elem = await browser.$('#nonexisting')
         expect(await elem.isDisplayed()).toBe(false)
         expect(request).toBeCalledTimes(2)
+    })
+
+    describe('isElementDisplayed script', () => {
+        it('should be used if safari and w3c', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'safari',
+                    keepBrowserName: true
+                }
+            })
+            elem = await browser.$('#foo')
+            request.mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(request).toBeCalledTimes(1)
+            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+        it('should be used if edge and wc3', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'MicrosoftEdge',
+                    keepBrowserName: true
+                }
+            })
+            elem = await browser.$('#foo')
+            request.mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(request).toBeCalledTimes(1)
+            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
     })
 })

@@ -38,6 +38,14 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         sessionResponse.capabilities.deviceName = 'iNode'
     }
 
+    if (
+        params.body &&
+        params.body.capabilities &&
+        params.body.capabilities.alwaysMatch.keepBrowserName
+    ) {
+        sessionResponse.capabilities.browserName = params.body.capabilities.alwaysMatch.browserName
+    }
+
     switch (params.uri.path) {
     case '/wd/hub/session':
         value = sessionResponse
@@ -125,7 +133,9 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     case `/wd/hub/session/${sessionId}/execute/sync`: {
         const script = Function(params.body.script)
         const args = params.body.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
-        value = script.apply(this, args) || {}
+        const result = script.apply(this, args)
+        //false and 0 are valid results
+        value = Boolean(result) || result === false || result === 0 ? result : {}
         break
     } case `/wd/hub/session/${sessionId}/element/${genericElementId}/elements`:
         value = [
