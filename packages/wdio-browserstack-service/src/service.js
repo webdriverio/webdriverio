@@ -9,8 +9,6 @@ export default class BrowserstackService {
     constructor (config) {
         this.config = config
         this.failures = 0
-        this.fullTitle
-        this.failReason
     }
 
     before() {
@@ -89,7 +87,7 @@ export default class BrowserstackService {
         return {
             status: this.failures === 0 ? 'completed' : 'error',
             name: this.fullTitle,
-            reason: this.failReason || ''
+            reason: this.failReason
         }
     }
 
