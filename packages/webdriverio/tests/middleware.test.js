@@ -2,7 +2,19 @@ import logger from '@wdio/logger'
 import { remote } from '../src'
 import request from 'request'
 
+jest.mock('../src/commands/element/waitUntil', () => ({
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => { return true })
+}))
+jest.mock('../src/commands/element/waitForDisplayed', () => ({
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => { return true })
+}))
 jest.mock('../src/commands/element/waitForExist', () => ({
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => { return true })
+}))
+jest.mock('../src/commands/element/waitForEnabled', () => ({
     __esModule: true,
     default: jest.fn().mockImplementation(() => { return true })
 }))
@@ -27,6 +39,7 @@ describe('middleware', () => {
 
     afterEach(() => {
         warn.mockClear()
+        waitForExist.default.mockClear()
     })
 
     it('should throw an error if the element is never found', async () => {
@@ -54,7 +67,7 @@ describe('middleware', () => {
         request.retryCnt = 0
     })
 
-    it('should succesfully click on a stale element', async () => {
+    it('should successfully click on a stale element', async () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo')
@@ -63,5 +76,57 @@ describe('middleware', () => {
         expect(await subSubElem.click()).toEqual(null)
         expect(warn.mock.calls).toHaveLength(1)
         expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+    })
+
+    describe('should NOT wait on element if', () => {
+        // wdio default waitForExist command
+        it('elem EXISTS and command = waitForExist', async () => {
+            const elem = await browser.$('#exists')
+            await elem.waitForExist()
+            expect(waitForExist.default.mock.calls).toHaveLength(1)
+        })
+
+        const commands = [
+            // wdio default commands
+            'waitUntil',
+            'waitForDisplayed',
+            'waitForEnabled',
+
+            // custom commands
+            'waitUntilFoo',
+            'waitForFoo',
+            'isExistingFoo',
+            'isDisplayedFoo']
+
+        commands.forEach(commandName => {
+            it(`elem NOT_FOUND and command = ${commandName}`, async () => {
+                browser.addCommand(commandName, () => {}, true)
+                const elem = await browser.$('#nonexisting')
+                await elem[commandName]()
+                expect(waitForExist.default.mock.calls).toHaveLength(0)
+            })
+        })
+
+        it('elem EXISTS and command = foo', async () => {
+            browser.addCommand('foo', () => {}, true)
+            const elem = await browser.$('#exists')
+            await elem.foo()
+            expect(waitForExist.default.mock.calls).toHaveLength(0)
+        })
+
+        it('elem EXISTS and command = isExisting', async () => {
+            const elem = await browser.$('#exists')
+            await elem.isExisting()
+            expect(waitForExist.default.mock.calls).toHaveLength(0)
+        })
+    })
+
+    describe('should wait on element if', () => {
+        it('elem NOT_FOUND and command = foo', async () => {
+            browser.addCommand('foo', () => {}, true)
+            const elem = await browser.$('#nonexisting')
+            await elem.foo()
+            expect(waitForExist.default.mock.calls).toHaveLength(1)
+        })
     })
 })

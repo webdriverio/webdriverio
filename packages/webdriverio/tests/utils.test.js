@@ -1,3 +1,4 @@
+import path from 'path'
 import { ELEMENT_KEY } from '../src/constants'
 import {
     findStrategy,
@@ -7,7 +8,11 @@ import {
     parseCSS,
     checkUnicode,
     findElement,
-    findElements
+    findElements,
+    verifyArgsAndStripIfElement,
+    getElementRect,
+    getAbsoluteFilepath,
+    assertDirectoryExists
 } from '../src/utils'
 
 describe('utils', () => {
@@ -179,7 +184,7 @@ describe('utils', () => {
             expect(element.using).toBe('xpath')
             expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]')
         })
-        
+
         it('should find an custom element by tag name + content', () => {
             const element = findStrategy('custom-element-with-multiple-dashes=some random text with "§$%&/()div=or others')
             expect(element.using).toBe('xpath')
@@ -203,6 +208,18 @@ describe('utils', () => {
             const element = findStrategy('ios=foo')
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foo')
+        })
+
+        it('should find an element by predicate strategy (ios only)', () => {
+            const element = findStrategy('-ios predicate string:type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+            expect(element.using).toBe('-ios predicate string')
+            expect(element.value).toBe('type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+        })
+
+        it('should find an element by class chain strategy (ios only)', () => {
+            const element = findStrategy('-ios class chain:**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
+            expect(element.using).toBe('-ios class chain')
+            expect(element.value).toBe('**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
         })
 
         it('should find an element by accessibility id', () => {
@@ -322,6 +339,14 @@ describe('utils', () => {
     })
 
     describe('getElementFromResponse', () => {
+        it('should return null if response is null', () => {
+            expect(getElementFromResponse(null)).toBe(null)
+        })
+
+        it('should return null if response is undfined', () => {
+            expect(getElementFromResponse()).toBe(null)
+        })
+
         it('should find element from JSONWireProtocol response', () => {
             expect(getElementFromResponse({ ELEMENT: 'foobar' })).toBe('foobar')
         })
@@ -640,6 +665,99 @@ describe('utils', () => {
             await expect(findElements.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
             await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
             await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
+        })
+    })
+    describe('verifyArgsAndStripIfElement', () => {
+        class Element {
+            constructor({ elementId, ...otherProps }) {
+                this.elementId = elementId
+                Object.keys(otherProps).forEach(key => this[key] = otherProps[key])
+            }
+        }
+
+        it('returns the same value if it is not an element object', () => {
+            expect(verifyArgsAndStripIfElement([1, 'two', true, false, null, undefined])).toEqual([1, 'two', true, false, null, undefined])
+        })
+
+        it('strips down properties if value is element object', () => {
+            const fakeObj = new Element({
+                elementId: 'foo-bar',
+                someProp: 123,
+                anotherProp: 'abc'
+            })
+
+            expect(verifyArgsAndStripIfElement([fakeObj, 'abc', 123])).toMatchObject([
+                { [ELEMENT_KEY]: 'foo-bar', ELEMENT: 'foo-bar' },
+                'abc',
+                123
+            ])
+        })
+
+        it('should work even if parameter is not of type Array', () => {
+            const fakeObj = new Element({
+                elementId: 'foo-bar',
+                someProp: 123,
+                anotherProp: 'abc'
+            })
+
+            expect(verifyArgsAndStripIfElement(fakeObj)).toMatchObject(
+                { [ELEMENT_KEY]: 'foo-bar', ELEMENT: 'foo-bar' }
+            )
+            expect(verifyArgsAndStripIfElement('foo')).toEqual('foo')
+        })
+
+        it('throws error if element object is missing element id', () => {
+            const fakeObj = new Element({
+                someProp: 123,
+                anotherProp: 'abc',
+                selector: 'div'
+            })
+
+            expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('The element with selector "div" you trying to pass into the execute method wasn\'t found')
+        })
+    })
+
+    describe('getElementRect', () => {
+        it('uses getBoundingClientRect if a key is missing', async () => {
+            const fakeScope = {
+                elementId: 123,
+                getElementRect: jest.fn(() => Promise.resolve({x: 10, width: 300, height: 400})),
+                execute: jest.fn(() => Promise.resolve({x: 11, y: 22, width: 333, height: 444}))
+            }
+            expect(await getElementRect(fakeScope)).toEqual({x: 10, y: 22, width: 300, height: 400})
+            expect(fakeScope.getElementRect).toHaveBeenCalled()
+            expect(fakeScope.execute).toHaveBeenCalled()
+        })
+    })
+
+    describe('getAbsoluteFilepath', () => {
+        it('should not change filepath if starts with forward slash', () => {
+            const filepath = '/packages/bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
+        })
+
+        it('should not change filepath if starts with backslash slash', () => {
+            const filepath = '\\packages\\bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
+        })
+
+        it('should not change filepath if starts with windows drive letter', async () => {
+            const filepath = 'E:\\foo\\bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
+        })
+
+        it('should change filepath if does not start with forward or back slash', async () => {
+            const filepath = 'packages/bar.png'
+            expect(getAbsoluteFilepath(filepath)).toEqual(path.join(process.cwd(), 'packages/bar.png'))
+        })
+    })
+
+    describe('assertDirectoryExists', () => {
+        it('should fail if not existing directory', () => {
+            expect(() => assertDirectoryExists('/i/dont/exist.png')).toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
+        })
+        it('should not fail if directory exists', () => {
+            expect(() => assertDirectoryExists('.')).not.toThrow()
         })
     })
 })

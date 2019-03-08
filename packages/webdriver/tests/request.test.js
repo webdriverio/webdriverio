@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import request from 'request'
+import https from 'https'
 
 import WebDriverRequest from '../src/request'
 
@@ -47,6 +48,21 @@ describe('webdriver request', () => {
             expect(options.agent.protocol).toBe('https:')
             expect(options.uri.href).toBe('https://localhost:4445/wd/hub/session/foobar12345/element')
             expect(options.headers.foo).toBe('bar')
+        })
+
+        it('passes a custom agent', () => {
+            const req = new WebDriverRequest('POST', 'session/:sessionId/element')
+            const agent = new https.Agent({ keepAlive: true })
+            const options = req._createOptions({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/',
+                agent
+            }, 'foobar12345')
+
+            expect(options.agent.protocol).toBe('https:')
+            expect(options.agent).toBe(agent)
         })
 
         it('should add auth if user and key is given', () => {
@@ -99,6 +115,61 @@ describe('webdriver request', () => {
             expect(Object.keys(options.headers)).not.toContain('Content-Length')
             expect(options.headers.foo).toContain('bar')
         })
+        
+        describe('strictSSL', () => {
+            beforeEach(function() {
+                delete process.env.STRICT_SSL
+                delete process.env.strict_ssl
+            })
+
+            it('should contain key "strictSSL" with value "false" when environment variable "STRICT_SSL" is defined with value "false"', () => {
+                process.env['STRICT_SSL'] = 'false'
+                const req = new WebDriverRequest('POST', '/session')
+                const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+                expect(options.strictSSL).toEqual(false)
+            })
+
+            it('should contain key "strictSSL" with value "false" when environment variable "strict_ssl" is defined with value "false"', () => {
+                process.env['strict_ssl'] = 'false'
+                const req = new WebDriverRequest('POST', '/session')
+                const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+                expect(options.strictSSL).toEqual(false)
+            })
+
+            it('should contain key "strictSSL" with value "true" when environment variable "STRICT_SSL" is defined with value "true"', () => {
+                process.env['STRICT_SSL'] = 'true'
+                const req = new WebDriverRequest('POST', '/session')
+                const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+                expect(options.strictSSL).toEqual(true)
+            })
+
+            it('should contain key "strictSSL" with value "true" when environment variable "strict_ssl" is defined with value "true"', () => {
+                process.env['strict_ssl'] = 'true'
+                const req = new WebDriverRequest('POST', '/session')
+                const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+                expect(options.strictSSL).toEqual(true)
+            })
+
+            it('should contain key "strictSSL" with value "true" when environment variable "STRICT_SSL" / "strict_ssl" is not defined', () => {
+                const req = new WebDriverRequest('POST', '/session')
+                const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+                expect(options.strictSSL).toEqual(true)
+            })
+
+            it('should contain key "strictSSL" with value "true" when environment variable "STRICT_SSL" is defined with any other value than "false"', () => {
+                process.env['STRICT_SSL'] = 'foo'
+                const req = new WebDriverRequest('POST', '/session')
+                const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+                expect(options.strictSSL).toEqual(true)
+            })
+
+            it('should contain key "strictSSL" with value "true" when environment variable "strict_ssl" is defined with any other value than "false"', () => {
+                process.env['strict_ssl'] = 'foo'
+                const req = new WebDriverRequest('POST', '/session')
+                const options = req._createOptions({ path: '/', headers: { foo: 'bar' }})
+                expect(options.strictSSL).toEqual(true)
+            })
+        })
     })
 
     describe('_request', () => {
@@ -136,6 +207,21 @@ describe('webdriver request', () => {
             request.retryCnt = 0
             warn.mockClear()
             request.mockClear()
+        })
+
+        it('should not fail code due to an empty server response', async () => {
+            const req = new WebDriverRequest('POST', '/session')
+            req.emit = jest.fn()
+
+            const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/empty' } })
+            await expect(req._request(opts)).rejects.toEqual(new Error('Response has empty body'))
+            expect(req.emit.mock.calls).toHaveLength(1)
+            expect(warn.mock.calls).toHaveLength(0)
+            expect(error.mock.calls).toHaveLength(1)
+
+            request.retryCnt = 0
+            warn.mockClear()
+            error.mockClear()
         })
 
         it('should retry requests but still fail', async () => {

@@ -7,7 +7,7 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP } from './constants'
 
-const log = logger('wdio-mocha-framework')
+const log = logger('@wdio/mocha-framework')
 
 /**
 * Extracts the mocha UI type following this convention:
@@ -97,7 +97,6 @@ class MochaAdapter {
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui)
         const type = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 
-        this.options(options, { context, file, mocha, options })
         INTERFACES[type].forEach((fnName) => {
             let testCommand = INTERFACES[type][0]
 
@@ -108,6 +107,7 @@ class MochaAdapter {
                 fnName
             )
         })
+        this.options(options, { context, file, mocha, options })
     }
 
     /**
@@ -166,16 +166,11 @@ class MochaAdapter {
         if (params.payload) {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
-            /**
-             * get title for hooks in root suite
-             */
-            if (message.parent === '' && params.payload.parent && params.payload.parent.suites) {
-                message.parent = params.payload.parent.suites[0].title
-            }
 
             message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
             message.pending = params.payload.pending || false
             message.file = params.payload.file
+            message.duration = params.payload.duration
 
             /**
              * Add the current test title to the payload for cases where it helps to
@@ -187,7 +182,6 @@ class MochaAdapter {
 
             if (params.type.match(/Test/)) {
                 message.passed = (params.payload.state === 'passed')
-                message.duration = params.payload.duration
             }
 
             if (params.payload.context) { message.context = params.payload.context }

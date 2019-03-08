@@ -1,6 +1,7 @@
 import Future from 'fibers/future'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
+import { sanitizeErrorMessage } from './utils'
 
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
@@ -15,6 +16,10 @@ export default function wrapCommand (commandName, fn) {
      * helper method that runs the command with before/afterCommand hook
      */
     const runCommand = async function (...args) {
+        // save error for getting full stack in case of failure
+        // should be before any async calls
+        const stackError = new Error()
+
         await executeHooksWithArgs(
             this.options.beforeCommand,
             [commandName, args]
@@ -24,8 +29,8 @@ export default function wrapCommand (commandName, fn) {
         let commandError
         try {
             commandResult = await fn.apply(this, args)
-        } catch (e) {
-            commandError = e
+        } catch (err) {
+            commandError = sanitizeErrorMessage(err, stackError)
         }
 
         await executeHooksWithArgs(

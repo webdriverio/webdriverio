@@ -9,7 +9,7 @@ const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.t
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     lines.push(`    // ${protocolName} types`)
-    lines.push('    interface Client<T> {')
+    lines.push('    interface Client {')
 
     for (const [, methods] of Object.entries(definition)) {
         for (const [, description] of Object.entries(methods)) {
@@ -19,7 +19,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p) => `${p.name}${p.required === false ? '?' : ''}: ${p.type.toLowerCase()}`)
             const varsAndParams = vars.concat(params)
-            let returnValue = returns ? returns.type.toLowerCase() : 'undefined'
+            let returnValue = returns ? returns.type.toLowerCase() : 'void'
             returnValue = returnValue === '*' ? 'any' : returnValue
             lines.push(`        ${command}(${varsAndParams.join(', ')}): ${returnValue};`)
         }

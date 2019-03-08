@@ -1,5 +1,6 @@
 const mock = () => logMock
 mock.setLevel = jest.fn()
+mock.setLogLevelsConfig = jest.fn()
 export const logMock = {
     error: jest.fn(),
     debug: jest.fn(),

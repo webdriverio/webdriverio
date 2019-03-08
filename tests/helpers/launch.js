@@ -13,7 +13,13 @@ export default function launch (...args) {
             return
         }
 
-        const logFiles = fs.readdirSync(__dirname).filter((file) => file.endsWith('.log'))
+        const IGNORED_FILES_TO_LOG = ['service.log', 'launcher.log']
+        const logFiles = fs.readdirSync(__dirname).filter((file) => (
+            // only log files
+            file.endsWith('.log') &&
+            // ignore service logs as they are only used for assertions
+            !IGNORED_FILES_TO_LOG.includes(file)
+        ))
         for (const fileName of logFiles) {
             // eslint-disable-next-line no-console
             console.log(`\n========== LOG OUPUT ${fileName}`)

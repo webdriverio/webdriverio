@@ -639,7 +639,7 @@
         "required": true
       }, {
         "name": "args",
-        "type": "(string|object|number|boolean)[]",
+        "type": "(string|object|number|boolean|undefined)[]",
         "description": "an array of JSON values which will be deserialized and passed as arguments to your function",
         "required": true
       }],
@@ -662,7 +662,7 @@
         "required": true
       }, {
         "name": "args",
-        "type": "(string|object|number|boolean)[]",
+        "type": "(string|object|number|boolean|undefined)[]",
         "description": "an array of JSON values which will be deserialized and passed as arguments to your function",
         "required": true
       }],

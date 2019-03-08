@@ -1,3 +1,4 @@
+import path from 'path'
 import { detectBackend } from '@wdio/config'
 
 import { remote, multiremote } from '../src'
@@ -9,10 +10,12 @@ jest.mock('webdriver', () => {
     }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
-    newSessionMock.mockImplementation((params, cb) => cb ? cb(client, params) : {
-        ...client,
-        ...params,
-        ...{ options: { logLevel: 'error' } }
+    newSessionMock.mockImplementation((params, cb) => {
+        let result = cb(client, params)
+        if (params.test_multiremote) {
+            result.options = { logLevel: 'error' }
+        }
+        return result
     })
 
     return {
@@ -56,13 +59,19 @@ describe('WebdriverIO module interface', () => {
             await remote({ user: 'foo', key: 'bar', capabilities: {} })
             expect(detectBackend).toBeCalled()
         })
+
+        it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
+            let testDirPath = './logs'
+            await remote({outputDir: testDirPath, capabilities: { browserName: 'firefox' } })
+            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
+        })
     })
 
     describe('multiremote', () => {
         it('register multiple clients', async () => {
             await multiremote({
-                browserA: { capabilities: { browserName: 'chrome' } },
-                browserB: { capabilities: { browserName: 'firefox' } }
+                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
             })
             expect(WebDriver.attachToSession).toBeCalled()
             expect(WebDriver.newSession.mock.calls).toHaveLength(2)

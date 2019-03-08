@@ -14,6 +14,12 @@ const COLORS = {
     trace: 'cyan'
 }
 
+const matches = {
+    COMMAND: 'COMMAND',
+    DATA: 'DATA',
+    RESULT: 'RESULT'
+}
+
 const SERIALIZERS = [{
     /**
      * display error stack
@@ -24,23 +30,24 @@ const SERIALIZERS = [{
     /**
      * color commands blue
      */
-    matches: (log) => log === 'COMMAND',
+    matches: (log) => log === matches.COMMAND,
     serialize: (log) => chalk.magenta(log)
 }, {
     /**
      * color data yellow
      */
-    matches: (log) => log === 'DATA',
+    matches: (log) => log === matches.DATA,
     serialize: (log) => chalk.yellow(log)
 }, {
     /**
      * color result cyan
      */
-    matches: (log) => log === 'RESULT',
+    matches: (log) => log === matches.RESULT,
     serialize: (log) => chalk.cyan(log)
 }]
 
 const loggers = {}
+let logLevelsConfig = {}
 const logCache = new Set()
 let logFile
 
@@ -53,6 +60,16 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
          */
         if (!logFile && process.env.WDIO_LOG_PATH) {
             logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
+        }
+
+        /**
+         * split `prefixer: value` sting to `prefixer: ` and `value`
+         * so that SERIALIZERS can match certain string
+         */
+        const match = Object.values(matches).filter(x => args[0].endsWith(`: ${x}`))[0]
+        if (match) {
+            const prefixStr = args.shift().slice(0, -match.length - 1)
+            args.unshift(prefixStr, match)
         }
 
         args = args.map((arg) => {
@@ -86,7 +103,7 @@ prefix.apply(log, {
     template: '%t %l %n:',
     timestampFormatter: (date) => chalk.gray(date.toISOString()),
     levelFormatter: (level) => chalk[COLORS[level]](level.toUpperCase()),
-    nameFormatter: (name) => chalk.whiteBright(name || 'global')
+    nameFormatter: (name) => chalk.whiteBright(name)
 })
 
 export default function getLogger (name) {
@@ -97,9 +114,28 @@ export default function getLogger (name) {
         return loggers[name]
     }
 
+    let logLevel = process.env.WDIO_LOG_LEVEL || DEFAULT_LEVEL
+    const logLevelName = getLogLevelName(name)
+    if (logLevelsConfig[logLevelName]) {
+        logLevel = logLevelsConfig[logLevelName]
+    }
+
     loggers[name] = log.getLogger(name)
-    loggers[name].setLevel(process.env.WDIO_LOG_LEVEL || DEFAULT_LEVEL)
+    loggers[name].setLevel(logLevel)
     return loggers[name]
 }
 
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
+getLogger.setLogLevelsConfig = (logLevels = {}) => {
+    logLevelsConfig = {}
+    Object.keys(logLevels).forEach(loggerName => {
+        const logLevelName = getLogLevelName(loggerName)
+
+        logLevelsConfig[logLevelName] = logLevels[loggerName]
+
+        if (loggers[loggerName]) {
+            loggers[loggerName].setLevel(logLevelsConfig[logLevelName])
+        }
+    })
+}
+const getLogLevelName = (logName) => logName.split(':').shift()

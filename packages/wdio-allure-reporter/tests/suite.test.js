@@ -35,6 +35,8 @@ describe('Passing tests', () => {
         reporter.addDescription({description: 'functions', type: 'html'})
         reporter.addAttachment({name: 'My attachment', content: '99thoughtz', type: 'text/plain'})
         reporter.addArgument({name: 'os', value: 'osx'})
+        reporter.startStep('bar')
+        reporter.endStep('passed')
         const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment'}, 'status': 'failed', 'title': 'foo'}}
         reporter.addStep(step)
         reporter.onTestPass(testPassed())
@@ -85,11 +87,17 @@ describe('Passing tests', () => {
         expect(allureXml('test-case parameter[name="jenkins"]').eq(0).attr('value')).toEqual('1.2.3')
     })
 
+    it('should start end custom step', () => {
+        expect(allureXml('step > name').eq(0).text()).toEqual('bar')
+        expect(allureXml('step > title').eq(0).text()).toEqual('bar')
+        expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+    })
+
     it('should add custom step', () => {
-        expect(allureXml('step > name').eq(0).text()).toEqual('foo')
-        expect(allureXml('step > title').eq(0).text()).toEqual('foo')
+        expect(allureXml('step > name').eq(1).text()).toEqual('foo')
+        expect(allureXml('step > title').eq(1).text()).toEqual('foo')
         expect(allureXml('test-case attachment[title="attachment"]')).toHaveLength(1)
-        expect(allureXml('step').eq(0).attr('status')).toEqual('failed')
+        expect(allureXml('step').eq(1).attr('status')).toEqual('failed')
     })
 
     it('should add attachment', () => {

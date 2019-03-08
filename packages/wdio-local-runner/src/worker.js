@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 import RunnerTransformStream from './transformStream'
 import WDIORepl from './repl'
 
-const log = logger('wdio-local-runner')
+const log = logger('@wdio/local-runner')
 
 /**
  * WorkerInstance
@@ -23,9 +23,10 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {object}   caps        capability object
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {object}   server      configuration details about automation backend this session is using
+     * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
      */
-    constructor (config, { cid, configFile, caps, specs, server, execArgv }) {
+    constructor (config, { cid, configFile, caps, specs, server, execArgv, retries }) {
         super()
         this.cid = cid
         this.config = config
@@ -34,6 +35,7 @@ export default class WorkerInstance extends EventEmitter {
         this.specs = specs
         this.server = server || {}
         this.execArgv = execArgv
+        this.retries = retries
         this.isBusy = false
     }
 
@@ -128,7 +130,7 @@ export default class WorkerInstance extends EventEmitter {
     }
 
     _handleExit (exitCode) {
-        const { cid, childProcess } = this
+        const { cid, childProcess, specs, retries } = this
 
         /**
          * delete process of worker
@@ -137,7 +139,7 @@ export default class WorkerInstance extends EventEmitter {
         this.isBusy = false
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
-        this.emit('exit', { cid, exitCode })
+        this.emit('exit', { cid, exitCode, specs, retries })
         childProcess.kill('SIGTERM')
     }
 
@@ -148,7 +150,7 @@ export default class WorkerInstance extends EventEmitter {
      * @return null
      */
     postMessage (command, argv) {
-        const { cid, configFile, caps, specs, server, isBusy } = this
+        const { cid, configFile, caps, specs, server, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
             return log.info(`worker with cid ${cid} already busy and can't take new commands`)
@@ -162,7 +164,7 @@ export default class WorkerInstance extends EventEmitter {
             this.childProcess = this.startProcess()
         }
 
-        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server })
+        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server, retries })
         this.isBusy = true
     }
 }

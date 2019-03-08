@@ -1,7 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import {getTestStatus, ignoredHooks, isEmpty, tellReporter} from './utils'
+import {getTestStatus, isEmpty, tellReporter, isMochaEachHooks} from './utils'
 import {events, stepStatuses, testStatuses} from './constants'
 
 class AllureReporter extends WDIOReporter {
@@ -138,22 +138,49 @@ class AllureReporter extends WDIOReporter {
     }
 
     onHookStart(hook) {
-        if (!this.allure.getCurrentSuite() || ignoredHooks(hook.title)) {
+        // ignore global hooks
+        if (!hook.parent || !this.allure.getCurrentSuite()) {
             return false
         }
 
-        this.allure.startCase(hook.title)
+        // add beforeEach / afterEach hook as step to test
+        if (isMochaEachHooks(hook.title)) {
+            if (this.allure.getCurrentTest()) {
+                this.allure.startStep(hook.title)
+            }
+            return
+        }
+
+        // add hook as test to suite
+        this.onTestStart(hook)
     }
 
     onHookEnd(hook) {
-        if (!this.allure.getCurrentSuite() || ignoredHooks(hook.title)) {
+        // ignore global hooks
+        if (!hook.parent || !this.allure.getCurrentSuite() || !this.allure.getCurrentTest()) {
             return false
         }
 
-        this.allure.endCase(testStatuses.PASSED)
+        // set beforeEach / afterEach hook (step) status
+        if (isMochaEachHooks(hook.title)) {
+            if (hook.error) {
+                this.allure.endStep(stepStatuses.FAILED)
+            } else {
+                this.allure.endStep(stepStatuses.PASSED)
+            }
+            return
+        }
 
-        if (this.allure.getCurrentTest().steps.length === 0) {
-            this.allure.getCurrentSuite().testcases.pop()
+        // set hook (test) status
+        if (hook.error) {
+            this.onTestFail(hook)
+        } else {
+            this.onTestPass()
+
+            // remove hook from suite if it has no steps
+            if (this.allure.getCurrentTest().steps.length === 0) {
+                this.allure.getCurrentSuite().testcases.pop()
+            }
         }
     }
 
@@ -232,16 +259,29 @@ class AllureReporter extends WDIOReporter {
         }
     }
 
+    startStep(title) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+        this.allure.startStep(title)
+    }
+
+    endStep(status) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+        this.allure.endStep(status)
+    }
+
     addStep({step}) {
         if (!this.isAnyTestRunning()) {
             return false
         }
-
-        this.allure.startStep(step.title)
+        this.startStep(step.title)
         if (step.attachment) {
             this.addAttachment(step.attachment)
         }
-        this.allure.endStep(step.status)
+        this.endStep(step.status)
     }
 
     addArgument({name, value}) {
@@ -341,6 +381,28 @@ class AllureReporter extends WDIOReporter {
     static addAttachment = (name, content, type = 'text/plain') => {
         tellReporter(events.addAttachment, {name, content, type})
     }
+
+    /**
+     * Start allure step
+     * @name startStep
+     * @param {string} title - step name in report
+     */
+    static startStep = (title) => {
+        tellReporter(events.startStep, title)
+    }
+
+    /**
+     * End current allure step
+     * @name endStep
+     * @param {string} [status='passed'] - step status
+     */
+    static endStep = (status = stepStatuses.PASSED) => {
+        if (!Object.values(stepStatuses).includes(status)) {
+            throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+        }
+        tellReporter(events.endStep, status)
+    }
+
     /**
      * Create allure step
      * @name addStep

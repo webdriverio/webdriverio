@@ -1,8 +1,8 @@
 import path from 'path'
 import logger from '@wdio/logger'
-import { initialisePlugin } from '@wdio/config'
+import { initialisePlugin } from '@wdio/utils'
 
-const log = logger('wdio-runner')
+const log = logger('@wdio/runner')
 
 const NOOP = () => {}
 const DEFAULT_SYNC_TIMEOUT = 5000 // 5s
@@ -127,7 +127,7 @@ export default class BaseReporter {
          * check if reporter has custom options
          */
         if (Array.isArray(reporter)) {
-            options = Object.assign(options, reporter[1])
+            options = Object.assign({}, options, reporter[1])
             reporter = reporter[0]
         }
 

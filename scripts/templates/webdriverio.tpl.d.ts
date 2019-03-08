@@ -2,15 +2,6 @@
 /// <reference types="webdriver"/>
 
 declare namespace WebdriverIO {
-    function remote(
-        options?: WebDriver.Options,
-        modifier?: (...args: any[]) => any
-    ): WebDriver.Client<void> & WebdriverIO.Browser<void>;
-
-    function multiremote(
-        options: any
-    ): WebDriver.Client<void>;
-
     type LocationParam = 'x' | 'y';
 
     interface LocationReturn {
@@ -28,14 +19,7 @@ declare namespace WebdriverIO {
     interface Cookie {
         name: string,
         value: string,
-        path?: string,
-        expiry?: number,
-    }
-
-    interface Cookie {
-        name: string,
-        value: string,
-        domain?: string
+        domain?: string,
         path?: string,
         expiry?: number,
         isSecure?: boolean,
@@ -80,6 +64,10 @@ declare namespace WebdriverIO {
         execArgv?: string[]
     }
 
+    interface MultiRemoteOptions {
+        [capabilityName: string]: Options;
+    }
+
     interface Suite {}
     interface Test {}
 
@@ -90,7 +78,6 @@ declare namespace WebdriverIO {
     }
 
     interface Hooks {
-
         onPrepare?(
             config: Config,
             capabilities: WebDriver.DesiredCapabilities
@@ -158,15 +145,15 @@ declare namespace WebdriverIO {
         action: ActionTypes,
         x?: number,
         y?: number,
-        element?: Element<void>
+        element?: Element
     }
     type TouchActions = string | TouchAction | TouchAction[];
 
-    interface Element<T> {
+    interface Element {
         addCommand(
             name: string,
             func: Function
-        ): undefined;
+        ): void;
         // ... element commands ...
     }
 
@@ -179,12 +166,12 @@ declare namespace WebdriverIO {
         script?: number
     }
 
-    interface Browser<T> {
+    interface Browser {
         addCommand(
             name: string,
             func: Function,
             attachToElement?: boolean
-        ): undefined;
+        ): void;
         execute: Execute;
         executeAsync: ExecuteAsync;
         call: Call;
@@ -194,19 +181,9 @@ declare namespace WebdriverIO {
             timeout?: number,
             timeoutMsg?: string,
             interval?: number
-        ): undefined
+        ): void
         // ... browser commands ...
     }
 
-    type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
-}
-
-declare var browser: WebDriver.Client<void> & WebdriverIO.Browser<void>;
-declare function $(selector: string | Function): WebdriverIO.Element<void>;
-declare function $$(selector: string | Function): WebdriverIO.Element<void>[];
-
-declare module "webdriverio" {
-    export = WebdriverIO
 }

@@ -100,7 +100,7 @@ exports.config = {
     // e.g. using promises you can set the sync option to false.
     sync: true,
     //
-    // Level of logging verbosity: trace | debug | info | warn | error
+    // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevel: 'info',
     //
     // Set directory to store all logs into
@@ -129,6 +129,9 @@ exports.config = {
     // Make sure you have the wdio adapter package for the specific framework
     // installed before running any tests.
     framework: 'mocha',
+    //
+    // The number of times to retry the entire specfile when it fails as a whole
+    specFileRetries: 1,
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'

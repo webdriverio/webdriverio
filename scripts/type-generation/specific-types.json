@@ -22,7 +22,7 @@
     "setCookies": [
         {
             "parameters": [{"name": "cookie", "type": "Cookie"}],
-            "return": "undefined"
+            "return": "void"
         }
     ],
     "getCookies": [
@@ -40,13 +40,13 @@
     "setTimeout": [
         {
             "parameters": [{"name": "timeouts", "type": "Timeouts"}],
-            "return": "undefined"
+            "return": "void"
         }
     ],
     "touchAction": [
         {
             "parameters": [{"name": "action", "type": "TouchActions"}],
-            "return": "undefined"
+            "return": "void"
         }
     ]
 }
