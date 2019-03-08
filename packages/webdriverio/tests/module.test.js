@@ -10,10 +10,12 @@ jest.mock('webdriver', () => {
     }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
-    newSessionMock.mockImplementation((params, cb) => cb ? cb(client, params) : {
-        ...client,
-        ...params,
-        ...{ options: { logLevel: 'error' } }
+    newSessionMock.mockImplementation((params, cb) => {
+        let result = cb(client, params)
+        if (params.test_multiremote) {
+            result.options = { logLevel: 'error' }
+        }
+        return result
     })
 
     return {
@@ -68,8 +70,8 @@ describe('WebdriverIO module interface', () => {
     describe('multiremote', () => {
         it('register multiple clients', async () => {
             await multiremote({
-                browserA: { capabilities: { browserName: 'chrome' } },
-                browserB: { capabilities: { browserName: 'firefox' } }
+                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
             })
             expect(WebDriver.attachToSession).toBeCalled()
             expect(WebDriver.newSession.mock.calls).toHaveLength(2)
