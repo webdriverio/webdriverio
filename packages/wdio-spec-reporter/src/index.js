@@ -228,14 +228,19 @@ class SpecReporter extends WDIOReporter {
                 }
 
                 const testTitle = test.title
-
+                const errors = test.errors || [test.error]
                 // If we get here then there is a failed test
                 output.push(
                     '',
                     `${++failureLength}) ${suiteTitle} ${testTitle}`,
-                    this.chalk.red(test.error.message),
-                    ...test.error.stack.split(/\n/g).map(value => this.chalk.gray(value))
+
                 )
+                for (let error of errors) {
+                    output.push(
+                        this.chalk.red(error.message),
+                        ...error.stack.split(/\n/g).map(value => this.chalk.gray(value))
+                    )
+                }
             }
         }
 
