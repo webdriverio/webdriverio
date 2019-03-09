@@ -34,34 +34,36 @@ describe('setWindowOuterSize', () => {
         expect(request.mock.calls[1][0].body).toEqual({ width: 999, height: 1111 })
     })
 
-    it('should throw error if width is not number', () => {
-        expect(() => browser.setWindowOuterSize('777', 888))
-            .toThrowError('setWindowOuterSize expects width and height of type number')
-    })
-
-    it('should throw error if height is not number', () => {
-        expect(() => browser.setWindowOuterSize(777))
-            .toThrowError('setWindowOuterSize expects width and height of type number')
-    })
-
-    it('should throw error if width < 0', () => {
-        expect(() => browser.setWindowOuterSize(-1, 500))
-            .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
-    })
-
-    it('should throw error if width > 2^31 − 1', () => {
-        expect(() => browser.setWindowOuterSize(2147483648, 500))
-            .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
-    })
-
-    it('should throw error if height < 0', () => {
-        expect(() => browser.setWindowOuterSize(-0.01, 500))
-            .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
-    })
-
-    it('should throw error if height > 2^31 − 1', () => {
-        expect(() => browser.setWindowOuterSize(2147483647.01, 500))
-            .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
+    describe('input checks', () => {
+        it('should throw error if width is not number', () => {
+            expect(() => browser.setWindowOuterSize('777', 888))
+                .toThrowError('setWindowOuterSize expects width and height of type number')
+        })
+    
+        it('should throw error if height is not number', () => {
+            expect(() => browser.setWindowOuterSize(777))
+                .toThrowError('setWindowOuterSize expects width and height of type number')
+        })
+    
+        it('should throw error if width < 0', () => {
+            expect(() => browser.setWindowOuterSize(-1, 500))
+                .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
+        })
+    
+        it('should throw error if width > 2^31 − 1', () => {
+            expect(() => browser.setWindowOuterSize(2147483648, 500))
+                .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
+        })
+    
+        it('should throw error if height < 0', () => {
+            expect(() => browser.setWindowOuterSize(-0.01, 500))
+                .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
+        })
+    
+        it('should throw error if height > 2^31 − 1', () => {
+            expect(() => browser.setWindowOuterSize(2147483647.01, 500))
+                .toThrowError('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
+        })
     })
 
     afterEach(() => {
