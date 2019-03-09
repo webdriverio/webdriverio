@@ -37,11 +37,9 @@ export default function setWindowOuterSize(width, height) {
         throw new Error('setWindowOuterSize expects width and height to be a number in the 0 to 2^31 − 1 range')
     }
 
-    const noSetWindowRectSupport = ['chrome', 'opera']
     const browser = getBrowserObject(this)
-    const browserName = browser.capabilities.browserName.toLowerCase()
 
-    if (browser.isW3C && !noSetWindowRectSupport.includes(browserName)){
+    if (browser.isW3C) {
         browser.setWindowRect(null, null, width, height)
     } else {
         browser.setWindowSize(width, height)
