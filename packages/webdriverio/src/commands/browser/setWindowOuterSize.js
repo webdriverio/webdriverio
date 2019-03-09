@@ -12,7 +12,6 @@
  * @alias browser.setWindowOuterSize
  * @param {Number} width, browser will be resized to provided width
  * @param {Number} height, browser will be resized to provided height
- * @return {Null} 
  * @type window
  *
  */
@@ -44,6 +43,4 @@ export default function setWindowOuterSize(width, height) {
     } else {
         browser.setWindowSize(width, height)
     }
-
-    return null
 }
