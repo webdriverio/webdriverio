@@ -7,7 +7,8 @@ import {
     SUITES_NO_TESTS,
     REPORT,
     SAUCELABS_REPORT,
-    SUITES_NO_TESTS_WITH_HOOK_ERROR
+    SUITES_NO_TESTS_WITH_HOOK_ERROR,
+    SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
 
 const reporter = new SpecReporter({})
@@ -294,6 +295,20 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getFailureDisplay()
 
             expect(result.length).toBe(0)
+        })
+
+        it('should return mutliple failing results if they exist', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_MULTIPLE_ERRORS)
+            tmpReporter.suites = SUITES_MULTIPLE_ERRORS
+
+            const result = tmpReporter.getFailureDisplay()
+            expect(result.length).toBe(6)
+            expect(result[0]).toBe('')
+            expect(result[1]).toBe('1) Bar test a test with two failures')
+            expect(result[2]).toBe('red expected the party on the first part to be the party on the first part')
+            expect(result[3]).toBe('gray First failed stack trace')
+            expect(result[4]).toBe('red expected the party on the second part to be the party on the second part')
+            expect(result[5]).toBe('gray Second failed stack trace')
         })
     })
 
