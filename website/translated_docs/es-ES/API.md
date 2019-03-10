@@ -11,18 +11,18 @@ Bienvenido a la página de documentación para WebdriverIO. Estas páginas conti
 Cada documentación de comandos generalmente viene con un ejemplo que demuestra cómo se utiliza ejecutando sus comandos de forma sincronizada a través del 'testrunner' de WebdriverIO. Si ejecuta WebdriverIO en modo independiente, todavía puede usar todos los comandos pero necesita asegurarse de manejar el orden de ejecución correctamente, encadenando los comandos y resolviendo la cadena de promesas. Así que en lugar de asignar el valor directamente a una variable, tal cómo el 'testrunner' wdio lo permite:
 
 ```js
-it('can handle commands synchronously', () => {
+it('puede manejar comandos de manera sincrónica', () => {
     var value = $('#input').getValue();
-    console.log(value); // outputs: some value
+    console.log(value); // salidas: algún valor
 });
 ```
 
 necesita retornar la promesa del comando para que se resuelva correctamente y poder acceder al valor cuando la promesa se resuelva:
 
 ```js
-it('handles commands as promises', ()  =>{
+it('maneja comandos como promesas', () => {
     return $('#input').getValue().then((value) => {
-        console.log(value); // outputs: some value
+        console.log(value); // salidas: algún valor
     });
 });
 ```
@@ -36,8 +36,8 @@ it('can handle commands using async/await', async function () {
 });
 ```
 
-However it is recommended to use the testrunner to scale up your test suite as it comes with a lot of useful add ons like the [Sauce Service](_sauce-service.md) that helps you to avoid writing a lot of boilerplate code by yourself.
+Sin embargo, se recomienda usar el testrunner para escalar su suite de pruebas, ya que viene con muchos complementos útiles como el [Servicio de Sauce](_sauce-service.md) que te ayuda a evitar escribir un montón de código boilerplate por ti mismo.
 
 ## Contribuir
 
-If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange button on the top right with the label *"Improve this doc"*. Make sure you understand the way we write these docs by checking the [Contribute](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) section.
+Si sientes que tienes un buen ejemplo de un comando, no dude en abrir un PR y presentarlo. Haga clic en el botón naranja en la parte superior derecha con la etiqueta *"Mejorar a este doc"*. Asegúrese de entender la forma en que escribimos estos documentos leyendo la sección [Contribuye](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md).
