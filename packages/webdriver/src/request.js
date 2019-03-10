@@ -83,7 +83,7 @@ export default class WebDriverRequest extends EventEmitter {
                 pass: options.key
             }
         }
-        
+
         /**
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
          */

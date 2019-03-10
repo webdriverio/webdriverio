@@ -8,8 +8,6 @@ jest.mock('../../src/commands/element/waitForExist', () => ({
 }))
 const waitForExist = require('../../src/commands/element/waitForExist')
 
-
-
 describe('refetchElement', () => {
     let browser
 

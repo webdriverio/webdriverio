@@ -30,7 +30,7 @@ test('getSauceRestUrl', () => {
         .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
 
     const rdcService = new SauceService({})
-    rdcService.before({ testobject_api_key: 4321})
+    rdcService.before({ testobject_api_key: 4321 })
     expect(rdcService.getSauceRestUrl('12345'))
         .toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
 })
@@ -77,7 +77,7 @@ test('afterSuite', () => {
     service.afterSuite({})
     expect(service.failures).toBe(0)
 
-    service.afterSuite({ error: new Error('foobar')})
+    service.afterSuite({ error: new Error('foobar') })
     expect(service.failures).toBe(1)
 })
 
@@ -119,7 +119,7 @@ test('afterStep', () => {
     service.afterStep({})
     expect(service.failures).toBe(0)
 
-    service.afterStep({ failureException: { what: 'ever' }})
+    service.afterStep({ failureException: { what: 'ever' } })
     expect(service.failures).toBe(1)
 
     service.afterStep({ getFailureException: () => 'whatever' })
@@ -278,7 +278,7 @@ test('updateJob for VMs', () => {
 
 test('updateJob for RDC', () => {
     const service = new SauceService({})
-    service.before({ testobject_api_key: 1})
+    service.before({ testobject_api_key: 1 })
 
     service.updateRdcJob = jest.fn()
 
@@ -303,7 +303,7 @@ test('updateVmJob', () => {
 test('updateRdcJob', () => {
     const request = require('request')
     const service = new SauceService({ })
-    service.before({ testobject_api_key: 1})
+    service.before({ testobject_api_key: 1 })
 
     service.failures = 123
 

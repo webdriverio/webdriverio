@@ -61,7 +61,7 @@ describe('ConfigParser', () => {
         it('should allow specifying mutliple single spec file', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec : [INDEX_PATH, FIXTURES_CONF]})
+            configParser.merge({ spec : [INDEX_PATH, FIXTURES_CONF] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
@@ -72,7 +72,7 @@ describe('ConfigParser', () => {
         it('should allow to specify partial matching spec file', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec : ['Backend']})
+            configParser.merge({ spec : ['Backend'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
@@ -81,7 +81,7 @@ describe('ConfigParser', () => {
         it('should exclude duplicate spec files', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec : [INDEX_PATH, INDEX_PATH]})
+            configParser.merge({ spec : [INDEX_PATH, INDEX_PATH] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
@@ -97,7 +97,7 @@ describe('ConfigParser', () => {
         it('should allow to specify multiple suites', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: ['unit', 'functional', 'mobile']})
+            configParser.merge({ suite: ['unit', 'functional', 'mobile'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(__filename)

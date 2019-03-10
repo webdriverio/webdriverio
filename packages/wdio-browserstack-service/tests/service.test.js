@@ -42,7 +42,7 @@ describe('onReload()', () => {
             }
         ))
         request.put.mockImplementation((url, opts, cb) => {
-            cb(null, {statusCode: 200}, {})
+            cb(null, { statusCode: 200 }, {})
         })
     })
 
@@ -95,7 +95,7 @@ describe('_printSessionURL', () => {
     })
 
     it('should throw an error if it recieves a non 200 status code', () => {
-        request.get.mockImplementationOnce((url, opts, cb) => cb(null,{statusCode: 404}, {}))
+        request.get.mockImplementationOnce((url, opts, cb) => cb(null, { statusCode: 404 }, {}))
 
         expect(service._printSessionURL())
             .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
@@ -125,7 +125,7 @@ describe('before', () => {
             pass: 'NotSetKey'
         })
 
-        beforeService = new BrowserstackService({ user: 'blah'})
+        beforeService = new BrowserstackService({ user: 'blah' })
         beforeService.before()
 
         expect(beforeService.sessionId).toEqual(12)
@@ -134,7 +134,7 @@ describe('before', () => {
             user: 'blah',
             pass: 'NotSetKey'
         })
-        beforeService = new BrowserstackService({ key: 'blah'})
+        beforeService = new BrowserstackService({ key: 'blah' })
         beforeService.before()
 
         expect(beforeService.sessionId).toEqual(12)
@@ -176,7 +176,7 @@ describe('afterSuite', () => {
         service.afterSuite({})
         expect(service.failures).toBe(0)
 
-        service.afterSuite({ error: new Error('foobar')})
+        service.afterSuite({ error: new Error('foobar') })
         expect(service.failures).toBe(1)
     })
 })
@@ -187,7 +187,7 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: {message: 'error message'}  })
+        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: { message: 'error message' }  })
         expect(service.failures).toBe(1)
         expect(service.fullTitle).toBe('foo - bar')
         expect(service.failReason).toBe('error message')
@@ -211,7 +211,7 @@ describe('afterStep', () => {
         service.afterStep({})
         expect(service.failures).toBe(0)
 
-        service.afterStep({ failureException: { what: 'ever' }})
+        service.afterStep({ failureException: { what: 'ever' } })
         expect(service.failures).toBe(1)
 
         service.afterStep({ getFailureException: () => 'whatever' })
@@ -237,7 +237,7 @@ describe('_getBody', () => {
         service.failures = 1
         service.failReason = 'error message'
         service.fullTitle = 'foo - bar',
-        
+
         expect(service._getBody()).toEqual({ status: 'error', reason: 'error message', name: 'foo - bar' })
     })
 

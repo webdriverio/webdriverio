@@ -1,4 +1,4 @@
-import {testStatuses, stepStatuses, events} from '../src/constants'
+import { testStatuses, stepStatuses, events } from '../src/constants'
 
 describe('Important constants', () => {
 

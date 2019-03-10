@@ -165,7 +165,7 @@ describe('watcher', () => {
         expect(watcher.launcher.interface.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
-            specs: [ '/foo/bar.js' ]
+            specs: ['/foo/bar.js']
         })
 
         const { postMessage, sessionId } = watcher.launcher.runner.workerPool['0-0']
@@ -207,7 +207,7 @@ describe('watcher', () => {
         expect(watcher.launcher.interface.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
-            specs: [ '/foo/bar.js' ] })
+            specs: ['/foo/bar.js'] })
 
         const worker10 = watcher.launcher.runner.workerPool['0-0']
         expect(worker10.postMessage).toHaveBeenCalledWith(
@@ -216,7 +216,7 @@ describe('watcher', () => {
         expect(watcher.launcher.interface.emit).toHaveBeenCalledWith('job:start', {
             cid: '1-0',
             caps: { browserName: 'chrome' },
-            specs: [ '/bar/foo.js' ] })
+            specs: ['/bar/foo.js'] })
     })
 
     afterEach(() => {

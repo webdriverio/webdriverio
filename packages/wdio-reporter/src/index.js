@@ -22,7 +22,7 @@ export default class WDIOReporter extends EventEmitter {
         if (this.options.outputDir) {
             fse.ensureDirSync(this.options.outputDir)
         }
-        
+
         this.outputStream = this.options.stdout || !this.options.logFile
             ? options.writeStream
             : fs.createWriteStream(this.options.logFile)

@@ -162,12 +162,12 @@ class SpecReporter extends WDIOReporter {
 
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                const test_title = test.title
+                const testTitle = test.title
                 const state = test.state
-                const test_indent = `${this.defaultTestIndent}${suiteIndent}`
+                const testIndent = `${this.defaultTestIndent}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${test_indent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${test_title}`)
+                output.push(`${testIndent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
             }
 
             // Put a line break after each suite (only if tests exist in that suite)

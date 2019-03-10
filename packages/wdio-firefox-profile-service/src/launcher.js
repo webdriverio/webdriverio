@@ -29,7 +29,7 @@ export default class FirefoxProfileLauncher {
      * Sets any preferences and proxy
      */
     _setPreferences () {
-        for (const [ preference, value ] of Object.entries(this.config.firefoxProfile)) {
+        for (const [preference, value] of Object.entries(this.config.firefoxProfile)) {
             if (['extensions', 'proxy', 'legacy'].includes(preference)) {
                 continue
             }

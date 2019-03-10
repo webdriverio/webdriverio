@@ -16,7 +16,7 @@
  *
  */
 
-import {shadowFnFactory} from '../../scripts/shadowFnFactory'
+import { shadowFnFactory } from '../../scripts/shadowFnFactory'
 
 export default async function shadowRoot (selector) {
     return await this.$(shadowFnFactory(selector))

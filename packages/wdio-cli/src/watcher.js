@@ -8,7 +8,6 @@ import Launcher from './launcher.js'
 
 const log = logger('@wdio/cli:watch')
 
-
 export default class Watcher {
     constructor (configFile, argv) {
         log.info('Starting launcher in watch mode')
