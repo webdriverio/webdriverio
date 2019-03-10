@@ -18,7 +18,7 @@ module.exports = {
     quotes: ['error', 'single'],
     indent: [2, 4],
 
-    'import/no-unresolved': [2, {commonjs: true, amd: true}],
+    'import/no-unresolved': [2, { commonjs: true, amd: true }],
     'import/named': 2,
     'import/namespace': 2,
     'import/default': 2,
