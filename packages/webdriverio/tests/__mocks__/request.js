@@ -66,7 +66,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             ++requestMock.retryCnt
             if (requestMock.retryCnt === 2) {
                 ++requestMock.retryCnt
-                value = {elementId: null}
+                value = { elementId: null }
                 break
             }
         }

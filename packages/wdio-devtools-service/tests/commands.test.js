@@ -3,7 +3,6 @@ import CommandHandler from '../src/commands'
 
 import traceEvents from './__fixtures__/traceEvents.json'
 
-
 class MyEmitter extends EventEmitter {}
 
 jest.mock('../src/utils', () => ({

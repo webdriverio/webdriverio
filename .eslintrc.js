@@ -24,7 +24,7 @@ module.exports = {
     'import/default': 2,
     'import/export': 2,
 
-    'no-multiple-empty-lines': [2, {'max': 2, 'maxEOF': 1}],
+    'no-multiple-empty-lines': [2, {'max': 1, 'maxEOF': 1}],
     'array-bracket-spacing': ['error', 'never'],
     'brace-style': ['error', '1tbs', { allowSingleLine: true }],
     camelcase: ['error', { properties: 'never' }],
@@ -36,6 +36,7 @@ module.exports = {
       ignoreComments: false
     }],
     quotes: ['error', 'single', { avoidEscape: true }],
-    'unicode-bom': ['error', 'never']
+    'unicode-bom': ['error', 'never'],
+    'object-curly-spacing': ['error', 'always']
   }
 }

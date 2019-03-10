@@ -142,7 +142,6 @@ describe('WDIOReporter Listeners', () => {
         })
     })
 
-
     describe('handling runner:start', () => {
 
         let runnerStartEvent
@@ -304,7 +303,6 @@ describe('WDIOReporter Listeners', () => {
             }
         })
 
-
         it('should complete the hook if the hook passes', () => {
             emitEvents()
 
@@ -336,7 +334,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should complete the hook if the hook fails with multiple errors and mark it failed (Jasmine-style)', () => {
-            hookEndEvent.errors = [{message: 'SoftFail'}, {message: 'anotherfail'}]
+            hookEndEvent.errors = [{ message: 'SoftFail' }, { message: 'anotherfail' }]
             emitEvents()
 
             expect(reporter.hooks[hookStartEvent.uid]).toBeDefined()
@@ -517,7 +515,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should flag the test as failed and complete the test if the test has multiple errors (Jasmine style)', () => {
-            testFailEvent.errors = [{message: 'SoftFail'}, {message: 'anotherfail'}]
+            testFailEvent.errors = [{ message: 'SoftFail' }, { message: 'anotherfail' }]
             emitEvents()
 
             expect(reporter.tests[testStartEvent.uid].state).toBe('failed')

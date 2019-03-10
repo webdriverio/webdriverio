@@ -16,7 +16,7 @@ export function testStart() {
 }
 
 export function testPassed() {
-    return Object.assign(testState(), {state: 'passed', end: '2018-05-14T15:17:21.631Z', _duration: 2730})
+    return Object.assign(testState(), { state: 'passed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
 export function testFailed() {
@@ -29,9 +29,9 @@ export function testFailed() {
             expected: 'foo',
             actual: 'bar'
         }
-    return Object.assign(testState(), {error, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730})
+    return Object.assign(testState(), { error, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
 export function testPending() {
-    return Object.assign(testState(), {state: 'pending', end: '2018-05-14T15:17:21.631Z', _duration: 0})
+    return Object.assign(testState(), { state: 'pending', end: '2018-05-14T15:17:21.631Z', _duration: 0 })
 }

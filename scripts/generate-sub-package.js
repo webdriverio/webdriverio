@@ -21,7 +21,7 @@ const questions = [{
 }]
 
 inquirer.prompt(questions).then(answers => {
-    const {packageName, packageType} = answers
+    const { packageName, packageType } = answers
     const packagesDir = path.join(__dirname, '..', 'packages')
     const fullPackageName = `wdio-${packageName}-${packageType}`
     const fullScopedPackageName = `@wdio/${packageName}-${packageType}`

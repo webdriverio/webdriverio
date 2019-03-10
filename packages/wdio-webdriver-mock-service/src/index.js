@@ -103,9 +103,9 @@ export default class WebdriverMockService {
         this.command.elementClick(ELEMENT_REFETCHED).times(4).reply(200, { value: null })
 
         //Wait for it to exist - but 2 failed iterations
-        this.command.findElements().times(2).reply(200, { value: []})
+        this.command.findElements().times(2).reply(200, { value: [] })
         //Always appears thereafter
-        this.command.findElements().times(4).reply(200, { value: [elem2Response]})
+        this.command.findElements().times(4).reply(200, { value: [elem2Response] })
     }
 
     customCommandScenario () {

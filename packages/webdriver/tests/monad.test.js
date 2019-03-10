@@ -53,7 +53,6 @@ describe('monad', () => {
         expect(client.__propertiesObject__.myCustomElementCommand.value).toBe(func)
     })
 
-
     it('allows to use custom command wrapper', () => {
         const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
         const client = monad(sessionId, (commandName, commandFn) => {

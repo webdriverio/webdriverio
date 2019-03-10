@@ -62,7 +62,7 @@ describe('WebdriverIO module interface', () => {
 
         it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
             let testDirPath = './logs'
-            await remote({outputDir: testDirPath, capabilities: { browserName: 'firefox' } })
+            await remote({ outputDir: testDirPath, capabilities: { browserName: 'firefox' } })
             expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
     })
