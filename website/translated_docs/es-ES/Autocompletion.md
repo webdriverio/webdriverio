@@ -1,6 +1,6 @@
 ---
-id: autocompletion
-title: Autocompletion
+id: autocompletar
+title: Autocompletar
 ---
 If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations or are excluded from indexing for some reasons, these too could be added via configuration changes.
 
