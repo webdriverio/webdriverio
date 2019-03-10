@@ -10,32 +10,32 @@ Wenn Sie bereits seit einiger Zeit als Entwickler arbeiten, mögen Sie sicherlic
 
 ![Autocompletion](/img/autocompletion/1.png)
 
-Use standard shortcuts *⇧ + ⌥ + SPACE* on IntelliJ Platform to see available documentation:
+Verwenden Sie die Standard-Tastenkürzel * 8679; +   SPACE* auf der IntelliJ-Plattform, um verfügbare Dokumentation zu sehen:
 
 ![Autocompletion](/img/autocompletion/2.png)
 
-So, let's start to consider an example of adding autocompletion to code editors on the IntelliJ Platform like WebStorm.
+Also, lassen Sie uns beginnen, an einem Beispiel zu lernen, die Autorvervollständigung von WebdriverIO in Ihrem Code-Editor, wie z.B. WebStorm von IntelliJ, hinzuzufügen.
 
-### Node.js Core modules as External library
+### Node.js Kernmodule als Externe Bibliothek
 
-Open *Settings -> Preferences -> Languages & Frameworks -> JavaScript -> Libraries*
+Öffne *Einstellungen -> Einstellungen -> Sprachen & Frameworks -> JavaScript -> Bibliotheken*
 
 ![Autocompletion](/img/autocompletion/3.png)
 
-Add new library
+Neue Bibliothek hinzufügen
 
 ![Autocompletion](/img/autocompletion/4.png)
 
-Add directory with WebdriverIO commands
+Verzeichnis für WebdriverIO Befehle hinzufügen
 
 ![Autocompletion](/img/autocompletion/5.png) ![Autocompletion](/img/autocompletion/6.png) ![Autocompletion](/img/autocompletion/7.png)
 
-Enter documentation URL
+Dokumentation-URL eingeben
 
 ![Autocompletion](/img/autocompletion/8.png) ![Autocompletion](/img/autocompletion/9.png) ![Autocompletion](/img/autocompletion/10.png)
 
-### Using TypeScript community stubs (TypeScript definition files)
+### Verwenden von TypeScript-Community-Stubs (TypeScript-Definitionsdateien)
 
-WebStorm provides one more workaround for adding coding assistance. It allows you to download [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) stubs.
+WebStorm bietet eine weitere Methode an, um Autovervollständigungen hinzuzufügen. It allows you to download [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) stubs.
 
 ![Autocompletion](/img/autocompletion/11.png) ![Autocompletion](/img/autocompletion/12.png)
