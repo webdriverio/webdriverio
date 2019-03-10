@@ -1,12 +1,12 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: Autovervollständigung
 ---
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations or are excluded from indexing for some reasons, these too could be added via configuration changes.
+Wenn Sie bereits seit einiger Zeit als Entwickler arbeiten, mögen Sie sicherlich auch das Feature der Autovervollständigung. Diese ist oft verfügbar in den gängigen IDEs und Code Editoren. Dennoch kommt es oft vor das Pakete, die nicht in den üblichen Installationsordner installiert sind vom Indexing ignoriert werden und daher extra Konfigurationsänderungen benötigen.
 
 ![Autocompletion](/img/autocompletion/0.png)
 
-[JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+[JSDoc](http://usejsdoc.org/) wird zur Dokumentation von Code verwendet. Es hilft, um mehr zusätzliche Details über Parameter und deren Typen einzusehen.
 
 ![Autocompletion](/img/autocompletion/1.png)
 
