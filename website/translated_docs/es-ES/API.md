@@ -30,9 +30,9 @@ it('maneja comandos como promesas', () => {
 Por supuesto puede utilizar Node.JS última functionalidad de [async/await](https://github.com/yortus/asyncawait) para llevar una sintaxis sincrónica a sus pruebas:
 
 ```js
-it('can handle commands using async/await', async function () {
-    var value = await $('#input').getValue();
-    console.log(value); // outputs: some value
+it('puede manejar comandos usando async/wait', async function () {
+    var value = wait $('#input').getValue();
+    console.log(value); // salidas: algún valor
 });
 ```
 
