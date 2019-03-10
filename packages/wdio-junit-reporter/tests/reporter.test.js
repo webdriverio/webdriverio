@@ -42,7 +42,7 @@ describe('wdio-junit-reporter', () => {
             `{"a":"${'@'.repeat(200)} ... (9800 more bytes)"}`)
         expect(reporter.format({ a: '@'.repeat(100).split('') })).toBe(
             '{"a":["@","@","@","@","@","@","@","@","@","@","(90 more items)"]}')
-        expect(reporter.format([...Array(11)].map((item, i) => i).reduce((a,b) => {
+        expect(reporter.format([...Array(11)].map((item, i) => i).reduce((a, b) => {
             a['entry' + b] = 'foobar'
             return a
         }, {}))).toBe('{"entry0":"foobar","entry1":"foobar","entry2":"foobar","entry3":"foobar","entry4":"foobar","entry5":"foobar","entry6":"foobar","entry7":"foobar","entry8":"foobar","entry9":"foobar","_":"1 more keys: [\\"entry10\\"]"}')

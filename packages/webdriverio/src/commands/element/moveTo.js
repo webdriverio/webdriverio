@@ -33,6 +33,6 @@ export default async function moveTo (xoffset, yoffset) {
         type: 'pointer',
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
-        actions: [{type: 'pointerMove', duration: 0, x: newXoffset, y: newYoffset}]
+        actions: [{ type: 'pointerMove', duration: 0, x: newXoffset, y: newYoffset }]
     }]).then(() => this.releaseActions())
 }

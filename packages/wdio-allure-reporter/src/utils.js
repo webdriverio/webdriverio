@@ -1,5 +1,5 @@
 import process from 'process'
-import {testStatuses, mochaEachHooks} from './constants'
+import { testStatuses, mochaEachHooks } from './constants'
 /**
  * Get allure test status by TestStat object
  * @param test {Object} - TestStat object

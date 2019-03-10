@@ -72,7 +72,7 @@ describe('launcher', () => {
         it('should emit and resolve failed status', () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            launcher.schedule = [{ cid: 1 }, { cid: 2}]
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
             launcher.interface.emit = jest.fn()
             launcher.resolve = jest.fn()
             launcher.endHandler({ cid: 1, exitCode: 1 })
@@ -83,7 +83,7 @@ describe('launcher', () => {
         it('should emit and resolve passed status', () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            launcher.schedule = [{ cid: 1 }, { cid: 2}]
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
             launcher.interface.emit = jest.fn()
             launcher.resolve = jest.fn()
             launcher.endHandler({ cid: 1, exitCode: 0 })
@@ -94,7 +94,7 @@ describe('launcher', () => {
         it('should do nothing if not all specs are run', () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(0)
-            launcher.schedule = [{ cid: 1 }, { cid: 2}]
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
             launcher.interface.emit = jest.fn()
             launcher.resolve = jest.fn()
             launcher.endHandler({ cid: 1, exitCode: 0 })

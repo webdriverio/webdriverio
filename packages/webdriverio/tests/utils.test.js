@@ -356,7 +356,7 @@ describe('utils', () => {
         })
 
         it('should throw otherwise', () => {
-            expect(getElementFromResponse({ invalid: 'response '})).toBe(null)
+            expect(getElementFromResponse({ invalid: 'response ' })).toBe(null)
         })
     })
 
@@ -721,10 +721,10 @@ describe('utils', () => {
         it('uses getBoundingClientRect if a key is missing', async () => {
             const fakeScope = {
                 elementId: 123,
-                getElementRect: jest.fn(() => Promise.resolve({x: 10, width: 300, height: 400})),
-                execute: jest.fn(() => Promise.resolve({x: 11, y: 22, width: 333, height: 444}))
+                getElementRect: jest.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
+                execute: jest.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
             }
-            expect(await getElementRect(fakeScope)).toEqual({x: 10, y: 22, width: 300, height: 400})
+            expect(await getElementRect(fakeScope)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
         })

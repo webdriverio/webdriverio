@@ -53,7 +53,6 @@ test('if not supported by browser', async () => {
 
 test('if supported by browser', async () => {
 
-
     const service = new DevToolsService()
     service.isSupported = true
     await service.before()

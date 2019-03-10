@@ -39,7 +39,6 @@ const gatherCommands = (commandPath, commandFile) => {
         allTypeLines.push(command)
     }
 
-
     return allTypeLines
 }
 

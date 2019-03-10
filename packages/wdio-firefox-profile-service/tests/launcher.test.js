@@ -31,7 +31,7 @@ describe('Firefox profile service', () => {
             expect(service.profile.addExtensions).not.toHaveBeenCalled()
 
             expect(capabilities[0].firefox_profile).toBe(undefined)
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
         })
 
         test('should set preferences with no extensions - legacy', async () => {
@@ -78,7 +78,7 @@ describe('Firefox profile service', () => {
             expect(service.profile.updatePreferences).toHaveBeenCalled()
             expect(service.profile.addExtensions).not.toHaveBeenCalled()
 
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile : 'foobar'})
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile : 'foobar' })
         })
 
         test('should set preferences with extensions', async () => {
@@ -94,7 +94,7 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
 
             expect(service.profile.addExtensions.mock.calls[0][0]).toBe(config.firefoxProfile.extensions)
         })
@@ -117,7 +117,7 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
 
             expect(capabilities[1]).not.toHaveProperty('firefox_profile')
             expect(capabilities[1]).not.toHaveProperty('moz:firefoxOptions')
@@ -140,7 +140,7 @@ describe('Firefox profile service', () => {
             const service = new Launcher()
             await service.onPrepare(config, capabilities)
 
-            expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar'})
+            expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
         })
 
         test('should not set capabilities when an object and not firefox', async () => {

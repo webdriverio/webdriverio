@@ -88,7 +88,7 @@ module.exports = function (docfile) {
         // eslint-disable-next-line no-console
         console.log('parse example section for', docfile.filename)
 
-        example = example[0].replace(/<(\/)*example>/g,'').split(/\n/g)
+        example = example[0].replace(/<(\/)*example>/g, '').split(/\n/g)
         example.forEach(function(line) {
             ++currentLine
 

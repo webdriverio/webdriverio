@@ -20,12 +20,11 @@ describe('wdio-applitools-service', () => {
         const service = new ApplitoolsService()
 
         expect(() => service.beforeSession({})).toThrow()
-        expect(() => service.beforeSession({applitoolsServerUrl: 'foobar'})).toThrow()
+        expect(() => service.beforeSession({ applitoolsServerUrl: 'foobar' })).toThrow()
 
         expect(() => service.beforeSession({ applitoolsKey: 'foobar' })).not.toThrow()
         expect(() => service.beforeSession({ applitoolsKey: 'foobar', applitoolsServerUrl: 'foobar' })).not.toThrow()
     })
-
 
     it('throws if key does not exist in environment', () => {
         const service = new ApplitoolsService()

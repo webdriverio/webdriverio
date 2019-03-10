@@ -33,4 +33,4 @@ const events = {
 
 const mochaEachHooks = ['"before each" hook', '"after each" hook']
 
-export {testStatuses, stepStatuses, events, mochaEachHooks}
+export { testStatuses, stepStatuses, events, mochaEachHooks }

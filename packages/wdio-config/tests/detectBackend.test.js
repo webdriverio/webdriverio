@@ -113,14 +113,14 @@ describe('detectBackend', () => {
     })
 
     it('should detect saucelabs us rdc user', () => {
-        const caps = detectBackend({ region: 'us'}, true)
+        const caps = detectBackend({ region: 'us' }, true)
         expect(caps.hostname).toBe('us1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
     })
 
     it('should detect saucelabs eu rdc user', () => {
-        const caps = detectBackend({ region: 'eu'}, true)
+        const caps = detectBackend({ region: 'eu' }, true)
         expect(caps.hostname).toBe('eu1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')

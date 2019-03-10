@@ -44,7 +44,7 @@ test('should fork a new process', () => {
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
         server: {},
-        specs: [ '/foo/bar.test.js' ]
+        specs: ['/foo/bar.test.js']
     })
 
     worker.postMessage('runAgain', { foo: 'bar' })

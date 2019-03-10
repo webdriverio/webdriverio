@@ -290,7 +290,7 @@ class Launcher {
         let defaultArgs = (capExecArgs.length) ? process.execArgv : []
 
         // If an arg appears multiple times the last occurrence is used
-        let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
+        let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
         // prefer launcher settings in capabilities over general launcher
         const worker = this.runner.run({

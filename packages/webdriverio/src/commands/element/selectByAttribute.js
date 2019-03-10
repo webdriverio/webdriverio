@@ -20,7 +20,7 @@
 
         selectBox.selectByAttribute('value', 'someValue3');
         console.log(selectBox.getValue()); // returns "someValue3"
-        
+
         selectBox.selectByAttribute('name', 'someName5');
         console.log(selectBox.getValue()); // returns "someValue5"
     });

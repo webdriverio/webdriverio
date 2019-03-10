@@ -35,11 +35,11 @@ describe('doubleClick', () => {
         expect(request.mock.calls[5][0].body.actions[0].type).toBe('pointer')
         expect(request.mock.calls[5][0].body.actions[0].actions).toHaveLength(5)
         expect(request.mock.calls[5][0].body.actions[0].actions).toEqual([
-            { button: 0, type: 'pointerDown'},
-            { button: 0, type: 'pointerUp'},
-            { duration: 10, type: 'pause'},
-            { button: 0, type: 'pointerDown'},
-            { button: 0, type: 'pointerUp'}
+            { button: 0, type: 'pointerDown' },
+            { button: 0, type: 'pointerUp' },
+            { duration: 10, type: 'pause' },
+            { button: 0, type: 'pointerDown' },
+            { button: 0, type: 'pointerUp' }
         ])
     })
 

@@ -83,7 +83,7 @@ test('specDone', () => {
 test('specDone should pass multiple failed expectations as errors', () => {
     jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
-    jasmineReporter.specDone({ id: 24, description: 'some test spec', failedExpectations: [{message: 'I failed'}, {message: 'I failed too!'}], status: 'failed' })
+    jasmineReporter.specDone({ id: 24, description: 'some test spec', failedExpectations: [{ message: 'I failed' }, { message: 'I failed too!' }], status: 'failed' })
 
     expect(runnerReporter.emit.mock.calls[2][0]).toBe('test:fail')
     // We still assign the first failedExpectation to 'error' for backwrds compatibility
