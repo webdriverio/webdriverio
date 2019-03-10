@@ -110,9 +110,14 @@ export default class ConfigParser {
          * if host and port are default, remove them to get new values
          */
         let defaultBackend = detectBackend({})
-        if (this._config.hostname === defaultBackend.hostname && this._config.port === defaultBackend.port) {
+        if (
+            (this._config.hostname === defaultBackend.hostname) &&
+            (this._config.port === defaultBackend.port) &&
+            (this._config.protocol === defaultBackend.protocol)
+        ) {
             delete this._config.hostname
             delete this._config.port
+            delete this._config.protocol
         }
 
         this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
