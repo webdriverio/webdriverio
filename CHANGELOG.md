@@ -15,6 +15,43 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.2 (2019-03-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3701](https://github.com/webdriverio/webdriverio/pull/3701) webdriverio: fix isDisplayed ([@mgrybyk](https://github.com/mgrybyk))
+  * [#3697](https://github.com/webdriverio/webdriverio/pull/3697) webdriverio: fix options in multiremote ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-config`
+  * [#3705](https://github.com/webdriverio/webdriverio/pull/3705) Also clear protocol if not set ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#3702](https://github.com/webdriverio/webdriverio/pull/3702) Issue 3416: Allow the spec reporter to expose multiple errors if present ([@nicholasbailey](https://github.com/nicholasbailey))
+* `wdio-applitools-service`
+  * [#3696](https://github.com/webdriverio/webdriverio/pull/3696) [FEATURE] Add ability to set serverUrl ([@kevinmcdonnell](https://github.com/kevinmcdonnell))
+* `wdio-cli`, `wdio-config`, `wdio-reporter`
+  * [#3625](https://github.com/webdriverio/webdriverio/pull/3625) Create a `outputDir` logs folder if doesn't exist ([@nami-varthakavi](https://github.com/nami-varthakavi))
+* `wdio-browserstack-service`
+  * [#3691](https://github.com/webdriverio/webdriverio/pull/3691)  browserstack-service: Closes [#3648](https://github.com/webdriverio/webdriverio/issues/3648) modifying name and reason ([@OriTheMan](https://github.com/OriTheMan))
+
+#### :memo: Documentation
+* [#3695](https://github.com/webdriverio/webdriverio/pull/3695) Corrected config field for filtering cucumber scenarios by tag ([@tompahoward](https://github.com/tompahoward))
+
+#### :house: Internal
+* `webdriverio`
+  * [#3710](https://github.com/webdriverio/webdriverio/pull/3710) webdriverio: fix linter errors (fix failing build) ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-allure-reporter`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-devtools-service`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-mocha-framework`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-spec-reporter`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#3706](https://github.com/webdriverio/webdriverio/pull/3706) Enforce more eslint rules ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 7
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin McDonnell ([@kevinmcdonnell](https://github.com/kevinmcdonnell))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nami Varthakavi ([@nami-varthakavi](https://github.com/nami-varthakavi))
+- Nicholas Bailey ([@nicholasbailey](https://github.com/nicholasbailey))
+- Ori Efrati ([@OriTheMan](https://github.com/OriTheMan))
+- Tom Howard ([@tompahoward](https://github.com/tompahoward))
+
 ## 5.7.1 (2019-03-07)
 
 #### :eyeglasses: Spec Compliancy
