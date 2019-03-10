@@ -138,6 +138,7 @@ describe('ConfigParser', () => {
             const config = configParser.getConfig()
             expect(config.hostname).toBe('ondemand.saucelabs.com')
             expect(config.port).toBe(443)
+            expect(config.protocol).toBe('https')
             expect(config.user).toBe('barfoo')
             expect(config.key).toBe('50fa1411-3121-4gb0-9p07-8q326vvbq7b0')
         })
