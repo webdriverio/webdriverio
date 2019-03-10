@@ -2,11 +2,11 @@
 id: browserobject
 title: Das Browser-Objekt
 ---
-Wenn Sie den WDIO Testrunner verwenden, können Sie über die globalen `-browser` oder `driver` Variablen direkt auf die WebDriver Instanz zugreifen. Die Session wird vom Testrunner initialisiert und die Instanz im globalen Scope registriert. Das Beenden der Session wird ebenfalls vom Testrunner übernommen. This is also done by the test runner process.
+Wenn Sie den WDIO Testrunner verwenden, können Sie über die globalen `browser` oder `driver` Variablen direkt auf die WebDriver Instanz zugreifen. Die Session wird vom Testrunner initialisiert und die Instanz im globalen Scope registriert. Das Beenden der Session wird ebenfalls vom Testrunner übernommen. Damit brauchen Sie sich nicht um jegweiliges Session Management kümmern.
 
-Besides all commands from the [api](API.md) the browser object provides some more information you might be interested in during your test run:
+Neben allen Befehlen, die in der [api](API.md) dokumentiert sind, bietet das Browser-Objekt einige weitere Informationen, die Sie während Ihres Testlaufs interessieren könnten:
 
-## Get Desired Capabilities
+## Auf Gesetzte Browser Daten zugreifen
 
 ```js
 console.log(browser.sessionId); // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
@@ -42,9 +42,9 @@ console.log(browser.capabilities);
  */
 ```
 
-## Get Config Options
+## Auf Gesetzte Konfigurations-Optionen zugreifen
 
-You can always define custom options within you wdio config:
+Sie können immer benutzerdefinierte Optionen innerhalb der WDIO Konfigurations-Datei festlegen:
 
 ```js
 // wdio.conf.js
@@ -56,7 +56,7 @@ exports.config = {
 }
 ```
 
-to then access it in your tests:
+um dann auf diese folgendermaßen in Ihren Tests zuzugreifen:
 
 ```js
 console.log(browser.config);
@@ -83,9 +83,9 @@ console.log(browser.config);
 console.log(browser.config.fakeUser); // outputs: "maxmustermann"
 ```
 
-## Mobile Flags
+## Mobile Eigenschaften
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check, e.g.:
+Wenn sich Ihr Test anders verhalten soll, basierend darauf, ob dieser auf einem Mobilen-Endgerät ausgeführt wird oder nicht, können Sie auf die mobilen Attribute der Session zurückgreifen, z.B.:
 
 ```js
 // wdio.conf.js
@@ -102,7 +102,7 @@ exports.config = {
 };
 ```
 
-In your test you can access these flags like:
+In Ihrem Test können Sie auf diese Attribute wie folgt zugreifen:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
