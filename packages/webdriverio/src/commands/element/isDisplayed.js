@@ -70,7 +70,7 @@ export default async function isDisplayed() {
      * no longer dictates it. In those instances, we pass the element through a script
      * that was provided by Brian Burg of safaridriver.
      */
-    return browser.isW3C && noW3CEndpoint.includes(browser.capabilities.browserName.toLowerCase()) ?
+    return browser.isW3C && !browser.isMobile && noW3CEndpoint.includes(browser.capabilities.browserName.toLowerCase()) ?
         await browser.execute(isElementDisplayedScript, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
             ELEMENT: this.elementId // jsonwp compatible
