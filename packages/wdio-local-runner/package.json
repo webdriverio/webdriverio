@@ -1,6 +1,6 @@
 {
   "name": "@wdio/local-runner",
-  "version": "5.7.1",
+  "version": "5.7.2",
   "description": "A WebdriverIO runner to run tests locally",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner",
@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "@wdio/logger": "^5.7.0",
-    "@wdio/repl": "^5.7.0",
-    "@wdio/runner": "^5.7.1",
+    "@wdio/repl": "^5.7.2",
+    "@wdio/runner": "^5.7.2",
     "async-exit-hook": "^2.0.1"
   },
   "peerDependencies": {
