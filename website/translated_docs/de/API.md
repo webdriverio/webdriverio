@@ -40,4 +40,4 @@ Es wird jedoch empfohlen, den WDIO Testrunner zu nutzen, um Ihre Testsuite zu sk
 
 ## Unterstützen Sie Uns!
 
-Wenn Sie das Gefühl haben, dass Sie ein gutes Beispiel für einen Befehl haben, zögern Sie nicht, einen PR zu öffnen und ihn einzureichen. Klicken Sie einfach auf den orange Button oben rechts mit dem Label *"Verbessern Sie dieses Dokument"*. Make sure you understand the way we write these docs by checking the [Contribute](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) section.
+Wenn Sie das Gefühl haben, dass Sie ein gutes Beispiel für einen Befehl haben, zögern Sie nicht, einen PR zu öffnen und ihn einzureichen. Klicken Sie einfach auf den orange Button oben rechts mit dem Label *"Verbessern Sie dieses Dokument"*. Vergewissern Sie sich, dass Sie verstanden haben, wie man dieses Projekt unterstützt, indem Sie das Dokument [Projekt Unterstützen](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) lesen.
