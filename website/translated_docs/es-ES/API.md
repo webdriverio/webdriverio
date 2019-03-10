@@ -27,7 +27,7 @@ it('handles commands as promises', ()  =>{
 });
 ```
 
-Of course you can use Node.JS latest [async/await](https://github.com/yortus/asyncawait) functionality to bring synchronous syntax into your testflow like:
+Por supuesto puede utilizar Node.JS última functionalidad de [async/await](https://github.com/yortus/asyncawait) para llevar una sintaxis sincrónica a sus pruebas:
 
 ```js
 it('can handle commands using async/await', async function () {
