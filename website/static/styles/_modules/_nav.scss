@@ -29,18 +29,40 @@
         }
     }
 
-    .slidingNav li:last-Child a,
-    .slidingNav li:last-Child a:hover {
+    .navigationWrapper .nav-site > span {
+        padding-left: 10px;
+        border-left: 1px solid #bbb;
+        margin-left: 10px;
+
+        a:hover,
+        a:focus {
+            background: none;
+        }
+
+        #languages-dropdown-items li:last-Child {
+            padding-bottom: 10px;
+        }
+        #languages-dropdown-items li:first-Child {
+            padding-top: 10px;
+        }
+    }
+
+    .slidingNav > ul > li:last-Child a,
+    .slidingNav > ul > li:last-Child a:hover {
         color: transparent;
         background: image-url('github-logo.png') center right no-repeat;
         background-size: 32px 32px;
         display: block;
         width: 50px;
     }
+
+    .slidingNav > ul > li:last-Child a#languages-menu:hover {
+        background: none;
+    }
 }
 
-.navigationSlider .slidingNav ul {
-    li {
+.navigationSlider .slidingNav > ul {
+    > li {
         margin: 0 2px;
 
         a {
