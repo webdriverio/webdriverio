@@ -237,7 +237,7 @@ describe('_getBody', () => {
         service.failures = 1
         service.failReason = 'error message'
         service.fullTitle = 'foo - bar',
-        
+
         expect(service._getBody()).toEqual({ status: 'error', reason: 'error message', name: 'foo - bar' })
     })
 
