@@ -6,7 +6,7 @@
     "tagline": "Marco de pruebas WebDriver de próxima generación para Node.js",
     "docs": {
       "allure-reporter": {
-        "title": "Reporte de Allure"
+        "title": "Reportero de Allure"
       },
       "applitools-service": {
         "title": "Servicio de Applitools"
@@ -15,37 +15,37 @@
         "title": "Servicio de Browserstack"
       },
       "concise-reporter": {
-        "title": "Concise Reporter"
+        "title": "Reportero de Concise"
       },
       "devtools-service": {
-        "title": "Devtools Service"
+        "title": "Servicio de Devtools"
       },
       "dot-reporter": {
-        "title": "Dot Reporter"
+        "title": "Reportero de Dot"
       },
       "firefox-profile-service": {
-        "title": "Firefox Profile Service"
+        "title": "Servicio de Perfil de Firefox"
       },
       "junit-reporter": {
-        "title": "Junit Reporter"
+        "title": "Reportero de Junit"
       },
       "sauce-service": {
-        "title": "Sauce Service"
+        "title": "Servicio de Sauce"
       },
       "selenium-standalone-service": {
-        "title": "Selenium Standalone Service"
+        "title": "Servicio independiente de Selenium"
       },
       "spec-reporter": {
-        "title": "Spec Reporter"
+        "title": "Reportero de especificaciones"
       },
       "sumologic-reporter": {
-        "title": "Sumologic Reporter"
+        "title": "Reportero Sumologic"
       },
       "testingbot-service": {
-        "title": "Testingbot Service"
+        "title": "Servicio de Testingbot"
       },
       "api": {
-        "title": "API Docs"
+        "title": "Documentos API"
       },
       "api/appium": {
         "title": "Appium"
