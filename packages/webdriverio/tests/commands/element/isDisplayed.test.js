@@ -62,7 +62,7 @@ describe('isDisplayed test', () => {
         expect(await elem.isDisplayed()).toBe(true)
 
         elem.selector = '#nonexisting'
-        request.setMockResponse([ { error: 'no such element', statusCode: 404 }])
+        request.setMockResponse([{ error: 'no such element', statusCode: 404 }])
 
         expect(await elem.isDisplayed()).toBe(false)
     })

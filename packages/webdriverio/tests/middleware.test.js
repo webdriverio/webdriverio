@@ -21,7 +21,7 @@ jest.mock('../src/commands/element/waitForEnabled', () => ({
 
 const waitForExist = require('../src/commands/element/waitForExist')
 
-const { warn  } = logger()
+const { warn } = logger()
 
 describe('middleware', () => {
     let browser
@@ -70,7 +70,7 @@ describe('middleware', () => {
     it('should successfully getAttribute of an element that falls stale after being re-found in Safari', async () => {
         const elem = await browser.$('#foo')
         elem.selector = '#nonexisting'
-        request.setMockResponse([ { error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar' ])
+        request.setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
         expect(await elem.getAttribute('foo')).toEqual('bar')
         expect(waitForExist.default.mock.calls).toHaveLength(1)
         request.mockClear()
