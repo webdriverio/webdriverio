@@ -24,7 +24,7 @@ describe('WDIOReporter Listeners', () => {
                 fullTitle: 'My awesome feature should can do something',
                 pending: false,
                 cid: '0-0',
-                specs: [ '/path/to/test/specs/sync.spec.js' ],
+                specs: ['/path/to/test/specs/sync.spec.js'],
                 uid: '0-0'
             }
 
@@ -44,19 +44,19 @@ describe('WDIOReporter Listeners', () => {
             expect(spy).toHaveBeenCalledTimes(1)
             expect(spy2).toHaveBeenCalledTimes(1)
         })
-    
+
         it('should allow Mocha pending tests with same UID to be added to other tests ', () => {
             const stats = []
             stats.push({ ...stat, uid: '0-0-0' })
             stats.push({ ...stat, uid: '0-0-1' })
             stats.push({ ...stat, uid: '0-0-2' })
             stats.push({ ...stat, uid: '0-0-3' })
-    
+
             reporter.emit('test:start', stats[0])
             reporter.emit('test:pass', stats[0])
             reporter.emit('test:start', stats[1])
             reporter.emit('test:fail', stats[1])
-    
+
             // If new uid is not generated for pending test
             reporter.emit('test:pending', stats[1])
             reporter.emit('test:pending', stats[1])
@@ -77,7 +77,7 @@ describe('WDIOReporter Listeners', () => {
 
             // Make sure there are only 4 tests
             expect(Object.keys(reporter.tests).length).toEqual(6)
-    
+
             // Make sure all tests have the right state
             expect(reporter.tests[stats[0].uid].state).toEqual('passed')
             expect(reporter.tests[stats[1].uid].state).toEqual('failed')
@@ -94,7 +94,7 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.currentSuites[0].tests[3].uid).toEqual('skipped-1')
             expect(reporter.currentSuites[0].tests[4].uid).toEqual(stats[2].uid)
             expect(reporter.currentSuites[0].tests[5].uid).toEqual(stats[3].uid)
-    
+
             // Make sure the counts are updated
             expect(reporter.counts.skipping).toEqual(4)
             expect(reporter.counts.tests).toEqual(6)
@@ -105,7 +105,7 @@ describe('WDIOReporter Listeners', () => {
             stats.push({ ...stat, uid: '0-0-0' })
             stats.push({ ...stat, uid: '0-0-1' })
             stats.push({ ...stat, uid: '0-0-2' })
-    
+
             reporter.emit('test:start', stats[0])
             reporter.emit('test:pass', stats[0])
             reporter.emit('test:start', stats[1])

@@ -10,7 +10,7 @@ describe('TestStats', () => {
             fullTitle: 'My awesome feature should can do something',
             pending: false,
             cid: '0-0',
-            specs: [ '/path/to/test/specs/sync.spec.js' ],
+            specs: ['/path/to/test/specs/sync.spec.js'],
             uid: 'should can do something3'
         })
 

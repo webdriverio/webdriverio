@@ -93,7 +93,7 @@ export default class BrowserstackService {
 
     _printSessionURL() {
         const capabilities = global.browser.capabilities
-        return new Promise((resolve,reject) => request.get(
+        return new Promise((resolve, reject) => request.get(
             `https://api.browserstack.com/automate/sessions/${this.sessionId}.json`,
             {
                 json: true,

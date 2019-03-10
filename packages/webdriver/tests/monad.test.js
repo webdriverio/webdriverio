@@ -46,7 +46,7 @@ describe('monad', () => {
         const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
         const client = monad(sessionId)
 
-        const func = function (x,y) { return x + y }
+        const func = function (x, y) { return x + y }
 
         client.addCommand('myCustomElementCommand', func, true)
         expect(typeof client.__propertiesObject__.myCustomElementCommand).toBe('object')

@@ -115,7 +115,7 @@ describe('webdriver request', () => {
             expect(Object.keys(options.headers)).not.toContain('Content-Length')
             expect(options.headers.foo).toContain('bar')
         })
-        
+
         describe('strictSSL', () => {
             beforeEach(function() {
                 delete process.env.STRICT_SSL

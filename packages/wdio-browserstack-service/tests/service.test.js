@@ -95,7 +95,7 @@ describe('_printSessionURL', () => {
     })
 
     it('should throw an error if it recieves a non 200 status code', () => {
-        request.get.mockImplementationOnce((url, opts, cb) => cb(null,{statusCode: 404}, {}))
+        request.get.mockImplementationOnce((url, opts, cb) => cb(null, { statusCode: 404 }, {}))
 
         expect(service._printSessionURL())
             .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))

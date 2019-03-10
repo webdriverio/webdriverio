@@ -81,7 +81,7 @@ exports.config = {
         specs: [
             'test/ffOnly/*'
         ]
-    },{
+    }, {
         browserName: 'phantomjs',
         exclude: [
             'test/spec/alert.js'

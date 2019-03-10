@@ -61,7 +61,7 @@ test('getNodeId', async () => {
         .mockReturnValueOnce({ root: { nodeId: 123 } })
         .mockReturnValueOnce({ nodeId: 42 })
     expect(await handler.getNodeId('selector')).toBe(42)
-    expect(handler.cdp.mock.calls[0]).toEqual([ 'DOM', 'getDocument' ])
+    expect(handler.cdp.mock.calls[0]).toEqual(['DOM', 'getDocument'])
     expect(handler.cdp.mock.calls[1]).toEqual(
         ['DOM', 'querySelector', { nodeId: 123, selector: 'selector' }])
 })
@@ -73,9 +73,9 @@ test('getNodeIds', async () => {
 
     handler.cdp = jest.fn()
         .mockReturnValueOnce({ root: { nodeId: 123 } })
-        .mockReturnValueOnce({ nodeIds: [ 1, 2, 3 ] })
-    expect(await handler.getNodeIds('selector')).toEqual([ 1, 2, 3 ])
-    expect(handler.cdp.mock.calls[0]).toEqual([ 'DOM', 'getDocument' ])
+        .mockReturnValueOnce({ nodeIds: [1, 2, 3] })
+    expect(await handler.getNodeIds('selector')).toEqual([1, 2, 3])
+    expect(handler.cdp.mock.calls[0]).toEqual(['DOM', 'getDocument'])
     expect(handler.cdp.mock.calls[1]).toEqual(
         ['DOM', 'querySelectorAll', { nodeId: 123, selector: 'selector' }])
 })
