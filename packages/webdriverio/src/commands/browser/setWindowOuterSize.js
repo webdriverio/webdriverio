@@ -12,6 +12,7 @@
  * @alias browser.setWindowOuterSize
  * @param {Number} width, browser will be resized to provided width
  * @param {Number} height, browser will be resized to provided height
+ * @return {Null|Object} Null for *NO*W3C browser and Object{x, y, width, height} for W3C browser
  * @type window
  *
  */
@@ -39,8 +40,8 @@ export default function setWindowOuterSize(width, height) {
     const browser = getBrowserObject(this)
 
     if (browser.isW3C) {
-        browser.setWindowRect(null, null, width, height)
+        return browser.setWindowRect(null, null, width, height)
     } else {
-        browser.setWindowSize(width, height)
+        return browser.setWindowSize(width, height)
     }
 }
