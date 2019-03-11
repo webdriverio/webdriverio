@@ -222,46 +222,46 @@
         "title": "waitUntil"
       },
       "api/jsonwp": {
-        "title": "JSON Wire Protocol"
+        "title": "JSON Wire Protokoll"
       },
       "api/mjsonwp": {
-        "title": "Mobile JSON Wire Protocol"
+        "title": "Mobile JSON Wire Protokoll"
       },
       "api/saucelabs": {
         "title": "Sauce Labs"
       },
       "api/webdriver": {
-        "title": "Webdriver Protocol"
+        "title": "WebDriver-Protokoll"
       },
       "autocompletion": {
-        "title": "Autocompletion"
+        "title": "Autovervollständigung"
       },
       "babel": {
-        "title": "Babel Setup"
+        "title": "Babel-Setup"
       },
       "boilerplate": {
-        "title": "Boilerplate Projects"
+        "title": "Boilerplate Projekte"
       },
       "browserobject": {
-        "title": "The Browser Object"
+        "title": "Das Browser-Objekt"
       },
       "clioptions": {
-        "title": "WDIO CLI Options"
+        "title": "WDIO CLI Optionen"
       },
       "cloudservices": {
-        "title": "Using Cloud Services"
+        "title": "Cloud-Dienste Nutzen"
       },
       "configurationfile": {
-        "title": "Testrunner Configuration"
+        "title": "Testrunner Konfiguration"
       },
       "customcommands": {
-        "title": "Custom Commands"
+        "title": "Benutzerdefinierte Befehle"
       },
       "customreporter": {
-        "title": "Custom Reporter"
+        "title": "Benutzerdefinierte Reporter"
       },
       "customservices": {
-        "title": "Custom Services"
+        "title": "Benutzerdefinierte Services"
       },
       "debugging": {
         "title": "Debugging"
@@ -270,7 +270,7 @@
         "title": "Frameworks"
       },
       "gettingstarted": {
-        "title": "Getting Started"
+        "title": "Erste Schritte"
       },
       "jenkins": {
         "title": "Jenkins Integration"
@@ -279,69 +279,69 @@
         "title": "Multiremote"
       },
       "options": {
-        "title": "Options"
+        "title": "Optionen"
       },
       "organizingsuites": {
-        "title": "Organizing Test Suite"
+        "title": "Organisation von Test-Suite"
       },
       "pageobjects": {
         "title": "Page Object Pattern"
       },
       "proxy": {
-        "title": "Proxy Setup"
+        "title": "Proxy-Setup"
       },
       "repl": {
-        "title": "REPL interface"
+        "title": "REPL-Schnittstelle"
       },
       "retry": {
-        "title": "Retry Flaky Tests"
+        "title": "Flaky Tests Wiederholen"
       },
       "selectors": {
-        "title": "Selectors"
+        "title": "Selektoren"
       },
       "setuptypes": {
-        "title": "How to setup WebdriverIO"
+        "title": "Einrichten von WebdriverIO"
       },
       "timeouts": {
-        "title": "Timeouts"
+        "title": "Zeitüberschreitung"
       },
       "typescript": {
-        "title": "TypeScript Setup"
+        "title": "TypeScript-Setup"
       },
       "watcher": {
-        "title": "Watch Test Files"
+        "title": "Test Dateien Überwachen"
       }
     },
     "links": {
       "Guide": "Guide",
       "API": "API",
-      "Help": "Help",
+      "Help": "Hilfe",
       "Blog": "Blog",
       "GitHub": "GitHub"
     },
     "categories": {
-      "Introduction": "Introduction",
-      "Configuration": "Configuration",
-      "Usage": "Usage",
+      "Introduction": "Einleitung",
+      "Configuration": "Konfiguration",
+      "Usage": "Nutzung",
       "Testrunner": "Testrunner",
       "Reporter": "Reporter",
       "Services": "Services",
-      "Protocols": "Protocols",
+      "Protocols": "Protokolle",
       "browser": "browser",
       "element": "element"
     }
   },
   "pages-strings": {
-    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)",
-    "Browse Docs|no description given": "Browse Docs",
-    "Ask questions about the documentation and project|no description given": "Ask questions about the documentation and project",
-    "Join the community|no description given": "Join the community",
-    "Find out what's new with this project|no description given": "Find out what's new with this project",
-    "Stay up to date|no description given": "Stay up to date",
-    "Need help?|no description given": "Need help?",
-    "This project is maintained by a dedicated group of people.|statement made to reader": "This project is maintained by a dedicated group of people.",
+    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Erfahren Sie mehr über die [Dokumentation auf dieser Website.](/test-site/docs/de/doc1.html)",
+    "Browse Docs|no description given": "Dokumentation durchsuchen",
+    "Ask questions about the documentation and project|no description given": "Stellen Sie Fragen über die Dokumentation und das Projekt",
+    "Join the community|no description given": "Treten Sie der Community bei",
+    "Find out what's new with this project|no description given": "Finden Sie heraus, was es Neues gibt",
+    "Stay up to date|no description given": "Bleiben Sie auf dem Laufenden",
+    "Need help?|no description given": "Brauchen Sie Hilfe ?",
+    "This project is maintained by a dedicated group of people.|statement made to reader": "Dieses Projekt wird von einer engagierten Gruppe von Menschen betreut.",
     "Watch Talks about WebdriverIO|no description given": "Präsentationen über WebdriverIO",
-    "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).|no description given": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).",
+    "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).|no description given": "Die Community rund um WebdriverIO spricht aktiv auf verschiedensten User Meetups oder Konferenzen über bestimmte Themen rund um automatisierte Tests mit WebdriverIO. Sehen Sie sich hier eine Präsentation über [Skalierbare und Stabile E2E Tests mit WebdriverIO] (https://www.youtube.com/watch?v=FHxXMeDh7Co&t=935s) von [@bromann] (https://twitter.com/bromann) von der SauceCon 2018 an. Es gibt auch eine ganzen [YouTube Kanal] (https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) über verschiedene Themen rund um WebdriverIO von [Kevin Lamping] (https://twitter.com/klamping).",
     "Watch more videos|no description given": "Weitere Videos ansehen",
     "Applitools Support|no description given": "Applitools Unterstützung",
     "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "Das Hinzufügen von Hilfsfunktionen, oder komplizierter Sets und Kombinationen der vorhandenen Befehlen ist __einfach__ und sehr __nützlich__",
