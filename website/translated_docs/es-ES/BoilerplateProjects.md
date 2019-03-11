@@ -2,7 +2,7 @@
 id: boilerplate
 title: Boilerplate Projects
 ---
-Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite.
+Con el tiempo que nuestra comunidad ha desarrollado un montón de `boilerplates` que pueden ser utilizados como inspiración para crear su propia suite de pruebas.
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
