@@ -9,10 +9,10 @@ Además de todos los comandos del [api](API.md) el objeto del navegador proporci
 ## Obtén las capacidades deseadas
 
 ```js
-console.log(browser.sessionId); // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
+console.log(browser.sessionId); // salidas: "57b15c6ea81d0edb9e5b372da3d9ce28"
 console.log(browser.capabilities);
 /**
- * outputs:
+ * salidas:
    { acceptInsecureCerts: false,
      acceptSslCerts: false,
      applicationCacheEnabled: false,
@@ -42,9 +42,9 @@ console.log(browser.capabilities);
  */
 ```
 
-## Get Config Options
+## Obtener opciones de configuración
 
-You can always define custom options within you wdio config:
+Siempre puede definir opciones personalizadas dentro de la configuración de wdio:
 
 ```js
 // wdio.conf.js
@@ -56,12 +56,12 @@ exports.config = {
 }
 ```
 
-to then access it in your tests:
+luego lo puede acceder en sus pruebas:
 
 ```js
 console.log(browser.config);
 /**
- * outputs:
+ * salidas:
  * {
         port: 4444,
         protocol: 'http',
@@ -80,12 +80,12 @@ console.log(browser.config);
         // ...
  */
 
-console.log(browser.config.fakeUser); // outputs: "maxmustermann"
+console.log(browser.config.fakeUser); // salidas: "maxmustermann"
 ```
 
-## Mobile Flags
+## Banderas móviles
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check, e.g.:
+Si necesita modificar su prueba basándose en si su sesión se ejecuta o no en un dispositivo móvil, puede acceder a las banderas móviles para comprobar, por ejemplo.:
 
 ```js
 // wdio.conf.js
