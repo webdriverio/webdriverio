@@ -1,8 +1,8 @@
 ---
 id: browserobject
-title: The Browser Object
+title: El objeto del navegador
 ---
-If you use the wdio test runner you can access the webdriver instance through the global `browser` or `driver` object. The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+Si utiliza el gestor de pruebas de wdio, puede acceder a la instancia del controlador web a través del `browser` global o el objeto del `driver`. La sesión está inicializada por el 'testrunner'. Lo mismo ocurre para terminar la sesión. Esto también lo hace el proceso del 'testrunner'.
 
 Besides all commands from the [api](API.md) the browser object provides some more information you might be interested in during your test run:
 
