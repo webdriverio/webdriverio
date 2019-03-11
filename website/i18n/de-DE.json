@@ -12,13 +12,13 @@
         "title": "Applitools Service"
       },
       "browserstack-service": {
-        "title": "Browserstack Service"
+        "title": "BrowserStack Service"
       },
       "concise-reporter": {
         "title": "Concise Reporter"
       },
       "devtools-service": {
-        "title": "Devtools Service"
+        "title": "DevTools Service"
       },
       "dot-reporter": {
         "title": "Dot Reporter"
@@ -27,7 +27,7 @@
         "title": "Firefox Profile Service"
       },
       "junit-reporter": {
-        "title": "Junit Reporter"
+        "title": "JUnit Reporter"
       },
       "sauce-service": {
         "title": "Sauce Service"
@@ -45,7 +45,7 @@
         "title": "Testingbot Service"
       },
       "api": {
-        "title": "API Docs"
+        "title": "API Dokumentation"
       },
       "api/appium": {
         "title": "Appium"
