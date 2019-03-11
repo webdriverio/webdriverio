@@ -91,7 +91,7 @@ Si necesita modificar su prueba basándose en si su sesión se ejecuta o no en u
 // wdio.conf.js
 exports.config = {
     // ...
-    capabilities: {
+    capacidades: {
         platformName: 'iOS',
         app: 'net.company.SafariLauncher',
         udid: '123123123123abc',
@@ -102,17 +102,17 @@ exports.config = {
 };
 ```
 
-In your test you can access these flags like:
+En tu prueba puedes acceder a estas banderas de la siguiente forma:
 
 ```js
-// Note: `driver` is the equivalent to the `browser` object but semantically more correct
-// you can choose which global variable you want to use
-console.log(driver.isMobile); // outputs: true
-console.log(driver.isIOS); // outputs: true
-console.log(driver.isAndroid); // outputs: false
+// Nota: `driver` es el equivalente al objeto `browser` pero semánticamente más correcto
+// puedes elegir la variable global que quieres usar
+console.log(driver.isMobile); // salidas: true
+console.log(driver.isIOS); // salidas: true
+console.log(driver.isAndroid); // salidas: false
 ```
 
-This can be useful if you want to define selectors in your page objects based on the device type, e.g.
+Esto puede ser útil si desea definir selectores en sus objetos de página basados en el tipo de dispositivo, por ejemplo.
 
 ```js
 // mypageobject.page.js
@@ -124,22 +124,22 @@ class LoginPage extends Page {
         const selectorAndroid = 'new UiSelector().text("Cancel").className("android.widget.Button")';
         const selectorIOS = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]';
         const selectorType = driver.isAndroid ? 'android' : 'ios';
-        const selector = driver.isAndroid ? selectorAndroid : selectorIOS;
+        'const selector = driver.isAndroid ? selectorAndroid : selectorIOS;
         return $(`${selectorType}=${selector}`);
     }
     // ...
 }
 ```
 
-You can also use these flags to only run certain tests for certain device types:
+También puedes usar estas banderas para ejecutar sólo ciertas pruebas para ciertos tipos de dispositivo:
 
 ```js
 // mytest.e2e.js
 describe('my test', () => {
     // ...
-    // only run test with Android devices
+    // sólo ejecutar pruebas con dispositivos Android
     if (driver.isAndroid) {
-        it('tests something only for Android', () => {
+        it('prueba algo sólo para Android', () => {
             // ...
         })
     }
