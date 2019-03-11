@@ -2,15 +2,15 @@
 id: autocompletar
 title: Autocompletar
 ---
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations or are excluded from indexing for some reasons, these too could be added via configuration changes.
+If you have been writing program code for a while, you probably like autocompletion. La función de autocompletar está disponible fuera de la caja en muchos editores de código. Sin embargo, si se requiere autocompletación para paquetes que no estén instalados en las ubicaciones habituales o que estén excluidos de la indexación por alguna razón, también se podrían añadir mediante cambios a la configuración.
 
 ![Autocompletion](/img/autocompletion/0.png)
 
-[JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+[JSDoc](http://usejsdoc.org/) se utiliza para documentar el código. Ayuda a ver más detalles sobre los parámetros y sus tipos.
 
 ![Autocompletion](/img/autocompletion/1.png)
 
-Use standard shortcuts *⇧ + ⌥ + SPACE* on IntelliJ Platform to see available documentation:
+Utiliza accesos directos estándar *→ + → + SPACE* en IntelliJ Platform para ver la documentación disponible:
 
 ![Autocompletion](/img/autocompletion/2.png)
 
