@@ -4,9 +4,9 @@ title: El objeto del navegador
 ---
 Si utiliza el gestor de pruebas de wdio, puede acceder a la instancia del controlador web a través del `browser` global o el objeto del `driver`. La sesión está inicializada por el 'testrunner'. Lo mismo ocurre para terminar la sesión. Esto también lo hace el proceso del 'testrunner'.
 
-Besides all commands from the [api](API.md) the browser object provides some more information you might be interested in during your test run:
+Además de todos los comandos del [api](API.md) el objeto del navegador proporciona más información en la que podría estar interesado durante su ejecución de prueba:
 
-## Get Desired Capabilities
+## Obtén las capacidades deseadas
 
 ```js
 console.log(browser.sessionId); // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
