@@ -8,18 +8,24 @@ const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'appium.txt'
 
 export class AppiumLauncher {
+    constructor() {
+        this.logPath = ''
+        this.command = ''
+        this.appiumArgs = []
+    }
+
     async onPrepare (config) {
         const appiumConfig = config.appium || {}
 
-        const logPath = appiumConfig.logPath
-        const command = appiumConfig.command || AppiumLauncher._getAppiumCommand()
-        const args = AppiumLauncher._cliArgsFromKeyValue(config.appiumArgs || {})
+        this.logPath = appiumConfig.logPath
+        this.command = appiumConfig.command || AppiumLauncher._getAppiumCommand()
+        this.appiumArgs = AppiumLauncher._cliArgsFromKeyValue(appiumConfig.args || {})
 
         const asyncStartAppium = promisify(this._startAppium)
-        this.process = await asyncStartAppium(command, args)
+        this.process = await asyncStartAppium(this.command, this.appiumArgs)
 
         if (typeof this.appiumLogs === 'string') {
-            this._redirectLogStream(logPath)
+            this._redirectLogStream(this.logPath)
         }
     }
 

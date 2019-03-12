@@ -15,21 +15,23 @@ describe('Appium launcher', () => {
     describe('onPrepare', () => {
         test('should set correct config properties', async () => {
             const config = {
-                appiumLogs: './',
-                appiumArgs: { foo: 'foo' }
+                appium: {
+                    logPath: './',
+                    args: { foo: 'bar' }
+                }
             }
 
             await launcher.onPrepare(config)
 
-            expect(launcher.appiumLogs).toBe(config.appiumLogs)
-            expect(launcher.appiumArgs).toBe(config.appiumArgs)
+            expect(launcher.logPath).toBe(config.appium.logPath)
+            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
         })
 
         test('should set correct config properties when empty', async () => {
             await launcher.onPrepare({})
 
-            expect(launcher.appiumLogs).toBe(undefined)
-            expect(launcher.appiumArgs).toEqual({})
+            expect(launcher.logPath).toBe(undefined)
+            expect(launcher.appiumArgs).toEqual([])
         })
 
         test('should start Appium', async done => {
