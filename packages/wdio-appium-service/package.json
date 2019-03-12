@@ -34,8 +34,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "fs-extra": "^6.0.1",
-    "appium": "^1.11.1"
+    "appium": "^1.11.1",
+    "fs-extra": "^6.0.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"

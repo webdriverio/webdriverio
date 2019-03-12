@@ -1,13 +1,26 @@
 import logger from '@wdio/logger'
-import { promisify } from 'util'
+import fs from 'fs-extra'
 import { spawn } from 'child_process'
+import { promisify } from 'util'
+import getFilePath from './utils/getFilePath'
 
 const log = logger('@wdio/appium-service')
+const DEFAULT_LOG_FILENAME = 'appium.txt'
 
-export default class AppiumLauncher {
+export class AppiumLauncher {
     async onPrepare (config) {
+        const appiumConfig = config.appium || {}
+
+        const logPath = appiumConfig.logPath
+        const command = appiumConfig.command || AppiumLauncher._getAppiumCommand()
+        const args = AppiumLauncher._cliArgsFromKeyValue(config.appiumArgs || {})
+
         const asyncStartAppium = promisify(this._startAppium)
-        this.process = await asyncStartAppium()
+        this.process = await asyncStartAppium(command, args)
+
+        if (typeof this.appiumLogs === 'string') {
+            this._redirectLogStream(logPath)
+        }
     }
 
     onComplete () {
@@ -17,11 +30,9 @@ export default class AppiumLauncher {
         }
     }
 
-    _startAppium(callback) {
-        const appiumCommand = 'appium'
-        const appiumArgs = []
-        log.debug(`Will spawn Appium process: ${appiumCommand} ${appiumArgs.join(' ')}`);
-        let process = spawn(appiumCommand, appiumArgs, { stdio: ['ignore', 'pipe', 'pipe'] })
+    _startAppium(command, args, callback) {
+        log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
+        let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let exited = null
 
         const exitCallback = (exitCode) => {
@@ -34,10 +45,70 @@ export default class AppiumLauncher {
             process.removeListener('exit', exitCallback)
             if (exited === null) {
                 log.debug(`Appium started with ID: ${process.pid}`)
-                return callback(null, process)
+                callback(null, process)
+            } else {
+                callback(new Error(`Appium exited just after starting (exit code: ${exited})`), null)
             }
         }, 5000)
 
-        process.once('exit', callback)
+        process.once('exit', exitCallback)
+    }
+
+    _redirectLogStream(logPath) {
+        const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
+
+        // ensure file & directory exists
+        fs.ensureFileSync(logFile)
+
+        log.debug(`Appium logs written to: ${logFile}`)
+        const logStream = fs.createWriteStream(logFile, { flags: 'w' })
+        this.process.stdout.pipe(logStream)
+        this.process.stderr.pipe(logStream)
+    }
+
+    static _getAppiumCommand() {
+        return /^win/.test(process.platform) ? 'appium.cmd' : 'appium'
+    }
+
+    static _cliArgsFromKeyValue(keyValueArgs) {
+        const cliArgs = []
+        for (let key in keyValueArgs) {
+            const value = keyValueArgs[key]
+            // If the value is false or null the argument is discarded
+            if ((typeof value === 'boolean' && !value) || value === null) {
+                continue
+            }
+
+            cliArgs.push(AppiumLauncher._lowerCamelToCliOptionName(key))
+
+            // Only non-boolean and non-null values are added as option values
+            if (typeof value !== 'boolean' && value !== null) {
+                cliArgs.push(AppiumLauncher._sanitizeCliOptionValue(value))
+            }
+        }
+        return cliArgs
+    }
+
+    static _lowerCamelToCliOptionName(camelCasedKey) {
+        let cliOptionName = '--'
+        const bigACharCode = 'A'.charCodeAt(0)
+        const bigZCharCode = 'Z'.charCodeAt(0)
+        for (let charIndex = 0; charIndex < camelCasedKey.length; ++charIndex) {
+            const char = camelCasedKey.charAt(charIndex)
+            const charCode = camelCasedKey.charCodeAt(charIndex)
+            // If the character between A and Z replace it with a dash and a small char
+            if (charCode >= bigACharCode && charCode <= bigZCharCode) {
+                cliOptionName += `-${char.toLowerCase()}`
+            } else {
+                cliOptionName += char
+            }
+        }
+        return cliOptionName
+    }
+
+    static _sanitizeCliOptionValue(value) {
+        const valueString = String(value)
+        // Encapsulate the value string in single quotes if it contains a white space
+        return /\s/.test(valueString) ? `'${valueString}'` : valueString
     }
 }
