@@ -48,8 +48,17 @@ export default async function selectByVisibleText (text) {
     const formatted = /"/.test(normalized)
         ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
         : `"${normalized}"`
-    const value = `[. = ${formatted}]`
-    const optionElement = await this.findElementFromElement(this.elementId, 'xpath', `./option${value}|./optgroup/option${value}`)
+    const dotFormat = `[. = ${formatted}]`
+    const spaceFormat = `[normalize-space(text()) = ${formatted}]`
+
+    const selections = [
+        `./option${dotFormat}`,
+        `./option${spaceFormat}`,
+        `./optgroup/option${dotFormat}`,
+        `./optgroup/option${spaceFormat}`,
+    ]
+
+    const optionElement = await this.findElementFromElement(this.elementId, 'xpath', selections.join('|'))
 
     /**
     * select option
