@@ -4,7 +4,7 @@ title: Opciones de CLI de WDIO
 ---
 WebdriverIO viene con su propio 'testrunner' para ayudarle a comenzar con las pruebas de integración lo antes posible. Todo el trasteo alrededor de utilizar WebdriverIO con un marco de pruebas pertenece al pasado. El corredor WebdriverIO hace todo el trabajo para usted y le ayuda a ejecutar sus pruebas de la forma más eficiente posible.
 
-Starting with v5 of WebdriverIO the testrunner will be bundled as a seperated NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
+A partir de v5 de WebdriverIO el testrunner será incluido como un paquete aparte en NPM: `@wdio/cli`. Para ver la ayuda del CLI solo escriba el siguiente comando en su terminal:
 
 ```sh
 $ npm install @wdio/cli
@@ -53,7 +53,7 @@ Options:
   --cucumberOpts        Cucumber options
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
+¡Genial! Ahora necesita definir un archivo de configuración donde se establece toda la información sobre sus pruebas, capacidades y ajustes. Cambia a la sección [Archivo de configuración](ConfigurationFile.md) para averiguar cómo debe aparecer ese archivo. Con el asistente de configuración de `wdio` es fácil generar su archivo de configuración. Basta con ejecutar:
 
 ```sh
 $ ./node_modules/.bin/wdio config
