@@ -18,7 +18,8 @@ Usage: wdio repl <browserName>
 
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
-Una lista opcional de archivos de especificaiones puede ser conducido a wdio y anula especificaciones ya configuradas
+An optional list of spec files can be piped to wdio that will override
+configured specs
 
 Commands:
   wdio.js repl <browserName>  Run WebDriver session in command line
