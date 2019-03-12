@@ -59,19 +59,19 @@ Options:
 $ ./node_modules/.bin/wdio config
 ```
 
-and it launches the helper utility. It will ask you questions depending on the answers you give. This way you can generate your config file in less than a minute.
+y lanza la utilidad de ayuda. Le hará preguntas dependiendo de las respuestas que dé. De esta manera puede generar su archivo de configuración en menos de un minuto.
 
 ![WDIO configuration utility](/img/config-utility.gif)
 
-Once you have your configuration file set up you can start your integration tests by calling:
+Una vez que tenga su configuración de archivo listo, puede iniciar sus pruebas de integración llamando:
 
 ```sh
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-That's it! Now, you can access to the selenium instance via the global variable `browser`.
+¡Eso es todo! Ahora, puedes acceder a la instancia de Selenium a través de la variable global `browser`.
 
-## Run the test runner programmatically
+## Ejectuar el 'testrunner' programaticamente
 
 Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the `@wdio/cli` package as module the following way:
 
