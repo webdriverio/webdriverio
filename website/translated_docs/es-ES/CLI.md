@@ -1,8 +1,8 @@
 ---
 id: clioptions
-title: WDIO CLI Options
+title: Opciones de CLI de WDIO
 ---
-WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
+WebdriverIO viene con su propio 'testrunner' para ayudarle a comenzar con las pruebas de integración lo antes posible. Todo el trasteo alrededor de utilizar WebdriverIO con un marco de pruebas pertenece al pasado. El corredor WebdriverIO hace todo el trabajo para usted y le ayuda a ejecutar sus pruebas de la forma más eficiente posible.
 
 Starting with v5 of WebdriverIO the testrunner will be bundled as a seperated NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
 
