@@ -11,7 +11,7 @@ import { remote } from '../../../src'
 describe('uploadFile', () => {
     jest.mock('fs')
 
-    it('should throw if browser does not support it', async function () {
+    xit('should throw if browser does not support it', async function () {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
