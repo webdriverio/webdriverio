@@ -73,13 +73,13 @@ $ ./node_modules/.bin/wdio wdio.conf.js
 
 ## Ejectuar el 'testrunner' programaticamente
 
-Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the `@wdio/cli` package as module the following way:
+En lugar de llamar al comando wdio también puede incluir el 'testrunner' como módulo y ejecutarlo en cualquier entorno arbitrario. Para eso necesitas requerir el paquete `@wdio/cli` como módulo de la siguiente manera:
 
 ```js
 import Launcher from '@wdio/cli';
 ```
 
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and parameters that will overwrite the value in the config.
+Después de eso crea una instancia del 'launcher' y ejecuta la prueba. La clase Launcher espera como parámetro la url al archivo de configuración y parámetros que sobreescribirán el valor en la configuración.
 
 ```js
 const wdio = new Launcher('/path/to/my/wdio.conf.js', opts);
