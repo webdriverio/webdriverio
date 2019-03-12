@@ -61,7 +61,7 @@ $ ./node_modules/.bin/wdio config
 
 y lanza la utilidad de ayuda. Le hará preguntas dependiendo de las respuestas que dé. De esta manera puede generar su archivo de configuración en menos de un minuto.
 
-![WDIO configuration utility](/img/config-utility.gif)
+![Utilidad de configuración WDIO](/img/config-utility.gif)
 
 Una vez que tenga su configuración de archivo listo, puede iniciar sus pruebas de integración llamando:
 
@@ -91,4 +91,4 @@ wdio.run().then((code) => {
 });
 ```
 
-The run command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that gets resolved if the test ran successful or failed or gets rejected if the launcher was not able to start run the tests.
+El comando de ejecución devuelve una [promesa](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Promise) que se resuelve si la prueba tuvo éxito o falló y se rechaza si el lanzador no pudo iniciar las pruebas.
