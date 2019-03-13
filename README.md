@@ -18,6 +18,9 @@
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
     </a>
+    <a href="https://lernajs.io/">
+        <img alt="Maintained with lerna" src="https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg">
+    </a>
 </p>
 
 ***
