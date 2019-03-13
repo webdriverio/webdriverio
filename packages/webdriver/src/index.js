@@ -36,15 +36,21 @@ export default class WebDriver {
             /**
              * otherwise assume they passed in jsonwp-style caps (flat object)
              */
-            : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
-
-        w3cCaps.alwaysMatch = JSON.parse(JSON.stringify(w3cCaps.alwaysMatch))
-        Object.keys(w3cCaps.alwaysMatch)
-            .filter(key => !W3C_ALLOWED_CAPABILITIES.includes(key) && !key.match(/^[\w-]+:.*$/))
-            .forEach(key => {
-                log.warn(`Dropping capability ${key} from alwaysMatch.`)
-                delete w3cCaps.alwaysMatch[key]
-            })
+            : [{
+                alwaysMatch: Object.keys(params.capabilities)
+                    .filter(key => {
+                        if (W3C_ALLOWED_CAPABILITIES.includes(key) || key.match(/^[\w-]+:.*$/)) {
+                            return true
+                        } else {
+                            log.warn(`Skipping capability ${key} from alwaysMatch.`)
+                            return false
+                        }
+                    })
+                    .reduce((obj, key) => {
+                        obj[key] = params.capabilities[key]
+                        return obj
+                    }, {}), firstMatch: [{}]
+            }, params.capabilities]
 
         const sessionRequest = new WebDriverRequest(
             'POST',

@@ -79,7 +79,10 @@ test('should skip invalid caps from alwaysMatch using w3c compliant caps', async
     expect(req.uri.pathname).toBe('/session')
     expect(req.body).toEqual({
         capabilities: {
-            alwaysMatch: { browserName: 'firefox' },
+            alwaysMatch: {
+                browserName: 'firefox',
+                'browserstack.debug': true
+            },
             firstMatch: [{}]
         },
         desiredCapabilities: {
