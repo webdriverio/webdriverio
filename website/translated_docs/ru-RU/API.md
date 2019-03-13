@@ -11,28 +11,28 @@ title: Документация API
 Каждое описание команды обычно предоставляется вместе с примером использования, который демонстрируется синхронного WebdriverIO Testrunner. Если вы запускаете WebdriverIO в автономном режиме, вы все еще можете использовать все команды, но должны убедиться, что порядок выполнения обрабатывается должным образом, создавая цепочки команд (chaining) и завершая цепочки промисов (promise). Таким образом, вместо того, чтобы присвоить значение непосредственно переменной, как wdio testrunner позволяет:
 
 ```js
-it('can handle commands synchronously', () => {
+it('может обрабатывать команды синхронно', () => {
     var value = $('#input').getValue();
-    console.log(value); // outputs: some value
+    console.log(value); // вывод: некоторое значение
 });
 ```
 
-you need return the command promise so it gets resolved properly as well as access the value when the promise got resolve:
+вам нужно вернуть промис, чтобы он был решен, а также получить доступ к значению, когда промис получит решение:
 
 ```js
-it('handles commands as promises', ()  =>{
+it('обрабатывает команды как промис', ()  =>{
     return $('#input').getValue().then((value) => {
-        console.log(value); // outputs: some value
+        console.log(value); // вывод: некоторое значение
     });
 });
 ```
 
-Of course you can use Node.JS latest [async/await](https://github.com/yortus/asyncawait) functionality to bring synchronous syntax into your testflow like:
+Конечно можно использовать Node.JS [async/await](https://github.com/yortus/asyncawait) функциональность для приведения ваших тестов в вид:
 
 ```js
-it('can handle commands using async/await', async function () {
+it('может обрабатывать команды используя async/await', async function () {
     var value = await $('#input').getValue();
-    console.log(value); // outputs: some value
+    console.log(value); // вывод: некоторое значение
 });
 ```
 
