@@ -18,7 +18,7 @@ title: Автозаполнение
 
 ### Node.js Core модули как Внешняя библиотека (External library)
 
-Open *Settings -> Preferences -> Languages & Frameworks -> JavaScript -> Libraries*
+Открыть *Settings -> Preferences -> Languages & Frameworks -> JavaScript -> Libraries*
 
 ![Автозаполнение](/img/autocompletion/3.png)
 
