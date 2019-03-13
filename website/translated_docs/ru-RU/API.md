@@ -36,8 +36,8 @@ it('может обрабатывать команды используя async/
 });
 ```
 
-However it is recommended to use the testrunner to scale up your test suite as it comes with a lot of useful add ons like the [Sauce Service](_sauce-service.md) that helps you to avoid writing a lot of boilerplate code by yourself.
+Однако рекомендуется использовать Testrunner для возможности маштабирования ваших тестов, так как он имеет большое количество полезных дополнений, таких как [Sauce Service](_sauce-service.md), которые помогают вам избежать написания дополнительного кода.
 
-## Contribute
+## Вклад
 
-If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange button on the top right with the label *"Improve this doc"*. Make sure you understand the way we write these docs by checking the [Contribute](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) section.
+Если вы считаете, что у вас есть хороший пример для команды, не стесняйтесь открыть PR и отправить его. Просто нажмите на оранжевую кнопку сверху справа с меткой *"Improve this doc"*. Убедитесь, что вы понимаете, как мы пишем эту документацию, просмотрев раздел [Contribute](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md).
