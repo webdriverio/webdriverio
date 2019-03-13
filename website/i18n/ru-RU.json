@@ -234,13 +234,13 @@
         "title": "Webdriver Protocol"
       },
       "autocompletion": {
-        "title": "Autocompletion"
+        "title": "Автозаполнение"
       },
       "babel": {
-        "title": "Babel Setup"
+        "title": "Настройка Babel"
       },
       "boilerplate": {
-        "title": "Boilerplate Projects"
+        "title": "Проекты Boilerplate"
       },
       "browserobject": {
         "title": "The Browser Object"
@@ -249,31 +249,31 @@
         "title": "WDIO CLI Options"
       },
       "cloudservices": {
-        "title": "Using Cloud Services"
+        "title": "Использование облачных сервисов"
       },
       "configurationfile": {
-        "title": "Testrunner Configuration"
+        "title": "Конфигурация Testrunner"
       },
       "customcommands": {
-        "title": "Custom Commands"
+        "title": "Пользовательские команды"
       },
       "customreporter": {
-        "title": "Custom Reporter"
+        "title": "Пользовательский репортер"
       },
       "customservices": {
-        "title": "Custom Services"
+        "title": "Пользовательские службы"
       },
       "debugging": {
-        "title": "Debugging"
+        "title": "Отладка"
       },
       "frameworks": {
-        "title": "Frameworks"
+        "title": "Фреймворки"
       },
       "gettingstarted": {
-        "title": "Getting Started"
+        "title": "Приступая к работе"
       },
       "jenkins": {
-        "title": "Jenkins Integration"
+        "title": "Интеграция Jenkins"
       },
       "multiremote": {
         "title": "Multiremote"
@@ -282,76 +282,76 @@
         "title": "Options"
       },
       "organizingsuites": {
-        "title": "Organizing Test Suite"
+        "title": "Организация Test Suite"
       },
       "pageobjects": {
         "title": "Page Object Pattern"
       },
       "proxy": {
-        "title": "Proxy Setup"
+        "title": "Настройка Proxy"
       },
       "repl": {
-        "title": "REPL interface"
+        "title": "Интерфейс REPL"
       },
       "retry": {
-        "title": "Retry Flaky Tests"
+        "title": "Повторение Flaky тестов"
       },
       "selectors": {
-        "title": "Selectors"
+        "title": "Селекторы"
       },
       "setuptypes": {
-        "title": "How to setup WebdriverIO"
+        "title": "Как настроить WebdriverIO"
       },
       "timeouts": {
         "title": "Timeouts"
       },
       "typescript": {
-        "title": "TypeScript Setup"
+        "title": "Настройка TypeScript"
       },
       "watcher": {
         "title": "Watch Test Files"
       }
     },
     "links": {
-      "Guide": "Guide",
+      "Guide": "Руководство",
       "API": "API",
-      "Help": "Help",
-      "Blog": "Blog",
+      "Help": "Справка",
+      "Blog": "Блог",
       "GitHub": "GitHub"
     },
     "categories": {
-      "Introduction": "Introduction",
-      "Configuration": "Configuration",
-      "Usage": "Usage",
+      "Introduction": "Введение",
+      "Configuration": "Конфигурация",
+      "Usage": "Использование",
       "Testrunner": "Testrunner",
       "Reporter": "Reporter",
-      "Services": "Services",
-      "Protocols": "Protocols",
+      "Services": "Сервисы",
+      "Protocols": "Протоколы",
       "browser": "browser",
       "element": "element"
     }
   },
   "pages-strings": {
-    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)",
-    "Browse Docs|no description given": "Browse Docs",
-    "Ask questions about the documentation and project|no description given": "Ask questions about the documentation and project",
-    "Join the community|no description given": "Join the community",
-    "Find out what's new with this project|no description given": "Find out what's new with this project",
-    "Stay up to date|no description given": "Stay up to date",
-    "Need help?|no description given": "Need help?",
-    "This project is maintained by a dedicated group of people.|statement made to reader": "This project is maintained by a dedicated group of people.",
-    "Watch Talks about WebdriverIO|no description given": "Watch Talks about WebdriverIO",
+    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Узнайте больше об использовании [документации на этом сайте.](/test-site/docs/ru/doc1.html)",
+    "Browse Docs|no description given": "Просмотр документации",
+    "Ask questions about the documentation and project|no description given": "Задайте вопрос о документации и проекте",
+    "Join the community|no description given": "Вступайте в сообщество",
+    "Find out what's new with this project|no description given": "Узнайте, что нового в этом проекте",
+    "Stay up to date|no description given": "Будьте в курсе",
+    "Need help?|no description given": "Нужна помощь?",
+    "This project is maintained by a dedicated group of people.|statement made to reader": "Этот проект поддерживается специальной группой людей.",
+    "Watch Talks about WebdriverIO|no description given": "Смотреть презентации о WebdriverIO",
     "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).|no description given": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).",
-    "Watch more videos|no description given": "Watch more videos",
-    "Applitools Support|no description given": "Applitools Support",
+    "Watch more videos|no description given": "Смотреть больше видео",
+    "Applitools Support|no description given": "Поддержка Applitools",
     "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__",
     "Extendable|no description given": "Extendable",
     "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.|no description given": "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.",
     "Compatible|no description given": "Compatible",
     "It implements all Webdriver protocol commands and provides useful integrations with other tools.|no description given": "It implements all Webdriver protocol commands and provides useful integrations with other tools.",
     "Feature Rich|no description given": "Feature Rich",
-    "Help Translate|recruit community translators for your project": "Help Translate",
-    "Edit this Doc|recruitment message asking to edit the doc source": "Edit",
-    "Translate this Doc|recruitment message asking to translate the docs": "Translate"
+    "Help Translate|recruit community translators for your project": "Помочь с переводом",
+    "Edit this Doc|recruitment message asking to edit the doc source": "Изменить",
+    "Translate this Doc|recruitment message asking to translate the docs": "Перевести"
   }
 }
