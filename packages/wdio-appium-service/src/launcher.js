@@ -18,8 +18,8 @@ export class AppiumLauncher {
         const appiumConfig = config.appium || {}
 
         this.logPath = appiumConfig.logPath
-        this.command = appiumConfig.command || AppiumLauncher._getAppiumCommand()
-        this.appiumArgs = AppiumLauncher._cliArgsFromKeyValue(appiumConfig.args || {})
+        this.command = appiumConfig.command || this._getAppiumCommand()
+        this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
 
         const asyncStartAppium = promisify(this._startAppium)
         this.process = await asyncStartAppium(this.command, this.appiumArgs)
@@ -72,11 +72,11 @@ export class AppiumLauncher {
         this.process.stderr.pipe(logStream)
     }
 
-    static _getAppiumCommand() {
+    _getAppiumCommand() {
         return /^win/.test(process.platform) ? 'appium.cmd' : 'appium'
     }
 
-    static _cliArgsFromKeyValue(keyValueArgs) {
+    _cliArgsFromKeyValue(keyValueArgs) {
         const cliArgs = []
         for (let key in keyValueArgs) {
             const value = keyValueArgs[key]
@@ -85,17 +85,17 @@ export class AppiumLauncher {
                 continue
             }
 
-            cliArgs.push(AppiumLauncher._lowerCamelToCliOptionName(key))
+            cliArgs.push(this._lowerCamelToCliOptionName(key))
 
             // Only non-boolean and non-null values are added as option values
             if (typeof value !== 'boolean' && value !== null) {
-                cliArgs.push(AppiumLauncher._sanitizeCliOptionValue(value))
+                cliArgs.push(this._sanitizeCliOptionValue(value))
             }
         }
         return cliArgs
     }
 
-    static _lowerCamelToCliOptionName(camelCasedKey) {
+    _lowerCamelToCliOptionName(camelCasedKey) {
         let cliOptionName = '--'
         const bigACharCode = 'A'.charCodeAt(0)
         const bigZCharCode = 'Z'.charCodeAt(0)
@@ -112,7 +112,7 @@ export class AppiumLauncher {
         return cliOptionName
     }
 
-    static _sanitizeCliOptionValue(value) {
+    _sanitizeCliOptionValue(value) {
         const valueString = String(value)
         // Encapsulate the value string in single quotes if it contains a white space
         return /\s/.test(valueString) ? `'${valueString}'` : valueString

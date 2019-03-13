@@ -77,7 +77,7 @@ describe('Appium launcher', () => {
 
     describe('argument formatting', () => {
         test('should format arguments correctly', () => {
-            const args = AppiumLauncher._cliArgsFromKeyValue({
+            const args = launcher._cliArgsFromKeyValue({
                 address: '127.0.0.1',
                 commandTimeout: '7200',
                 showIosLog: false,
@@ -100,7 +100,7 @@ describe('Appium launcher', () => {
             Object.defineProperty(process, 'platform', {
                 value: 'darwin'
             })
-            expect(AppiumLauncher._getAppiumCommand()).toBe('appium')
+            expect(launcher._getAppiumCommand()).toBe('appium')
         })
 
         test('should return cmd on Windows', () => {
@@ -108,7 +108,7 @@ describe('Appium launcher', () => {
             Object.defineProperty(process, 'platform', {
                 value: 'win32'
             })
-            expect(AppiumLauncher._getAppiumCommand()).toBe('appium.cmd')
+            expect(launcher._getAppiumCommand()).toBe('appium.cmd')
         })
 
         afterEach(() => {
