@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import fs from 'fs-extra'
+import { createWriteStream, ensureFileSync } from 'fs-extra'
 import { spawn } from 'child_process'
 import { promisify } from 'util'
 import getFilePath from './utils/getFilePath'
@@ -64,10 +64,10 @@ export class AppiumLauncher {
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
-        fs.ensureFileSync(logFile)
+        ensureFileSync(logFile)
 
         log.debug(`Appium logs written to: ${logFile}`)
-        const logStream = fs.createWriteStream(logFile, { flags: 'w' })
+        const logStream = createWriteStream(logFile, { flags: 'w' })
         this.process.stdout.pipe(logStream)
         this.process.stderr.pipe(logStream)
     }
