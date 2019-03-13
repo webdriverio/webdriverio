@@ -1,8 +1,8 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: Автозаполнение
 ---
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations or are excluded from indexing for some reasons, these too could be added via configuration changes.
+Если вы пишете программный код некоторое время, то вам, вероятно, нравится автозаполнение (autocompletion). Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations or are excluded from indexing for some reasons, these too could be added via configuration changes.
 
 ![Autocompletion](/img/autocompletion/0.png)
 
