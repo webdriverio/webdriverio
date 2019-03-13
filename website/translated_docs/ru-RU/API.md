@@ -4,9 +4,9 @@ title: Документация API
 ---
 Добро пожаловать на страницу документации по WebdriverIO. Эта документация содержит справочные материалы для всех реализованных привязок (bindings) и команд для Selenium. WebdriverIO содержит все команды [JSONWire protocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol), а также поддерживает специальные [Appium](http://appium.io) привязки.
 
-> **Note:** These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please use the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
+> **Примечание:** Эта документация для последней версии (v5.0.0) WebdriverIO. Если вы все еще используете v4 или более раннюю версию, пожалуйста, используйте сайт документации [v4.webdriver.io](http://v4.webdriver.io)!
 
-## Examples
+## Примеры
 
 Each command documentation usually comes with an example that demonstrates the usage of it using WebdriverIO's testrunner running its commands synchronously. If you run WebdriverIO in standalone mode you still can use all commands but need to make sure that the execution order is handled properly by chaining the commands and resolving the promise chain. So instead of assigning the value directly to a variable, as the wdio testrunner allows it:
 
