@@ -2,40 +2,40 @@
 id: autocompletion
 title: Автозаполнение
 ---
-Если вы пишете программный код некоторое время, то вам, вероятно, нравится автозаполнение (autocompletion). Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations or are excluded from indexing for some reasons, these too could be added via configuration changes.
+Если вы пишете программный код некоторое время, то вам, вероятно, нравится автозаполнение (autocompletion). Автрозаполнение сразу же доступно во многих редакторах. Однако если автозаполнение требует пакеты, которые не установлены в обычных директориях или исключены из индексации по некоторых причинам, они также могут быть добавлены через изменения в конфигурации.
 
-![Autocompletion](/img/autocompletion/0.png)
+![Автозаполнение](/img/autocompletion/0.png)
 
-[JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+[JSDoc](http://usejsdoc.org/) используется для документации кода. Он помогает видеть более подробную информацию о параметрах и их типах.
 
-![Autocompletion](/img/autocompletion/1.png)
+![Автозаполнение](/img/autocompletion/1.png)
 
-Use standard shortcuts *⇧ + ⌥ + SPACE* on IntelliJ Platform to see available documentation:
+Используйте стандартную команду *⇧ + ⌥ + SPACE* в IntelliJ Platform для просмотра доступной документации:
 
-![Autocompletion](/img/autocompletion/2.png)
+![Автозаполнение](/img/autocompletion/2.png)
 
-So, let's start to consider an example of adding autocompletion to code editors on the IntelliJ Platform like WebStorm.
+Итак, давайте рассмотрим пример добавления автозаполнения к редактору кода на примере Intellij WebStorm.
 
-### Node.js Core modules as External library
+### Node.js Core модули как Внешняя библиотека (External library)
 
 Open *Settings -> Preferences -> Languages & Frameworks -> JavaScript -> Libraries*
 
-![Autocompletion](/img/autocompletion/3.png)
+![Автозаполнение](/img/autocompletion/3.png)
 
-Add new library
+Добавить новую библиотеку
 
-![Autocompletion](/img/autocompletion/4.png)
+![Автозаполнение](/img/autocompletion/4.png)
 
-Add directory with WebdriverIO commands
+Добавить директорию с командами WebdriverIO
 
-![Autocompletion](/img/autocompletion/5.png) ![Autocompletion](/img/autocompletion/6.png) ![Autocompletion](/img/autocompletion/7.png)
+![Автозаполнение](/img/autocompletion/5.png) ![Автозаполнение](/img/autocompletion/6.png) ![Автозаполнение](/img/autocompletion/7.png)
 
-Enter documentation URL
+Введите URL документации
 
-![Autocompletion](/img/autocompletion/8.png) ![Autocompletion](/img/autocompletion/9.png) ![Autocompletion](/img/autocompletion/10.png)
+![Автозаполнение](/img/autocompletion/8.png) ![Автозаполнение](/img/autocompletion/9.png) ![Автозаполнение](/img/autocompletion/10.png)
 
-### Using TypeScript community stubs (TypeScript definition files)
+### Использование TypeScript community stubs (TypeScript definition files)
 
-WebStorm provides one more workaround for adding coding assistance. It allows you to download [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) stubs.
+WebStorm предоставляет еще один воркараунд для добавления помощи при написании кода. Это позволяет вам скачать [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) stubs.
 
-![Autocompletion](/img/autocompletion/11.png) ![Autocompletion](/img/autocompletion/12.png)
+![Автозаполнение](/img/autocompletion/11.png) ![Автозаполнение](/img/autocompletion/12.png)
