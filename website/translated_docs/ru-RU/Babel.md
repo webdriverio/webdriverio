@@ -1,13 +1,13 @@
 ---
 id: babel
-title: Babel Setup
+title: Настройка Babel
 ---
-To write tests using next generation JavaScript features you can add [Babel](https://babeljs.io/) as compiler for your test files. For that first, install the necessary Babel dependencies:
+Чтобы писать тесты, используя функции JavaScript следующего поколения, вы можете добавить [Babel](https://babeljs.io/) в качестве компилятора для ваших тестовых файлов. Для этого во-первых установите необходимые зависимости Babel:
 
     npm install --save-dev @babel/cli @babel/preset-env @babel/register
     
 
-Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is configured properly. The simplest setup you can use is:
+Убедитесь, что ваш [`babel.config.js`](https://babeljs.io/docs/en/config-files) настроен правильно. Простая настройка, которую вы можете использовать:
 
 ```js
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
 }
 ```
 
-There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need to register Babel in the before hook of your config file
+Существует несколько способов настройки Babel с помощью Wdio Testrunner. Если вы используете тесты Cucumber или Jasmine, вам просто нужно зарегистрировать Babel в before hook в вашем конфигурационном файле
 
 ```js
 before: function() {
@@ -29,7 +29,7 @@ before: function() {
 },
 ```
 
-If you run Mocha tests, you can use Mocha's internal compiler to register Babel, e.g.:
+Если вы запускаете Mocha тесты, вы можете использовать внутренний компилятор Mocha для регистрации Babel, например:
 
 ```js
 mochaOpts: {
