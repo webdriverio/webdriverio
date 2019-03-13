@@ -8,7 +8,7 @@ title: Документация API
 
 ## Примеры
 
-Each command documentation usually comes with an example that demonstrates the usage of it using WebdriverIO's testrunner running its commands synchronously. If you run WebdriverIO in standalone mode you still can use all commands but need to make sure that the execution order is handled properly by chaining the commands and resolving the promise chain. So instead of assigning the value directly to a variable, as the wdio testrunner allows it:
+Каждое описание команды обычно предоставляется вместе с примером использования, который демонстрируется синхронного WebdriverIO Testrunner. If you run WebdriverIO in standalone mode you still can use all commands but need to make sure that the execution order is handled properly by chaining the commands and resolving the promise chain. So instead of assigning the value directly to a variable, as the wdio testrunner allows it:
 
 ```js
 it('can handle commands synchronously', () => {
