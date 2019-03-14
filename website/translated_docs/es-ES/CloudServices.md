@@ -17,15 +17,15 @@ exports.config = config
 
 ## [Sauce Labs](https://saucelabs.com/)
 
-It is easy to set up your tests to run remotely in Sauce Labs.
+Es fácil configurar sus pruebas para funcionar remotamente en Sauce Labs.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
+El único requisito es establecer el `user`y `key` en tu configuración (ya sea exportado por `wdio.conf.js` o pasado a `webdriverio.remote(...)`) a tu nombre de usuario de Sauce Labs y clave de acceso.
 
-You can also pass in any optional [test configuration option](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) as a key/value in the capabilities for any browser.
+También puede pasar cualquier [configuración opcional de prueba](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) como clave/valor en las capacidades de cualquier navegador.
 
 ### [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Sauce Connect.
+Si quieres ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesitas usar Sauce Connect.
 
 It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
 
