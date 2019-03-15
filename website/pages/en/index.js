@@ -259,7 +259,7 @@ const TryIt = () => (
     <Block background="light">
         {[
             {
-                content: 'You can try WebdriverIO using [try.webdriver.io](http://try.webdriver.io) that provides you with an interface to write a sample test and share it. You can also us it for debugging purposes.',
+                content: 'You can try WebdriverIO using [try.webdriver.io](http://try.webdriver.io) that provides you with an interface to write a sample test and share it. You can also use it for debugging purposes.',
                 image: imgUrl('try.png'),
                 imageAlign: 'right',
                 title: 'Try it out!',
