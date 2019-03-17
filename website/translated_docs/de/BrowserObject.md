@@ -112,7 +112,7 @@ console.log(driver.isIOS); // outputs: true
 console.log(driver.isAndroid); // outputs: false
 ```
 
-This can be useful if you want to define selectors in your page objects based on the device type, e.g.
+Dies kann nützlich sein, wenn Sie Selektoren in Ihre Page Objekten basierend auf den Gerätetyp definieren möchten:
 
 ```js
 // mypageobject.page.js
@@ -131,7 +131,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to only run certain tests for certain device types:
+Sie können ebenfalls bestimmte mobile Flags (z.B. isAndroid oder isIOS) verwenden, um Tests nur auf bestimmten Gerätetypen auszuführen:
 
 ```js
 // mytest.e2e.js
