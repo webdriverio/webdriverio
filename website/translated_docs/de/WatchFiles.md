@@ -22,4 +22,4 @@ export.config = {
 }
 ```
 
-**Hinweis:** Stellen Sie sicher, dass Sie so viele Tests wie möglich parallel ausführen. E2E tests are by nature slow and rerunning tests is only useful if you can keep the individual testrun time short. In order to save time the testrunner keeps the WebDriver sessions alive while waiting for file changes. Make sure your WebDriver backend can be modified so that it doesn't automatically close the session if no command was executed after some specific time.
+**Hinweis:** Stellen Sie sicher, dass Sie so viele Tests wie möglich parallel ausführen. Da E2E Tests von Natur aus langsam sind, macht dieses Feature nur Sinn, wenn Sie Ihre Tests klein halten und eine große Anzahl von ihnen parallel ausgeführt werden können. Um Zeit zu sparen, hält der Tester die WebDriver-Sitzungen am Leben, während er auf Dateiänderungen wartet. Stellen Sie sicher, dass Ihr WebDriver Backend Ihre Session nicht automatisch beendet, wenn nach einiger Zeit kein Befehl ausgeführt wurde.
