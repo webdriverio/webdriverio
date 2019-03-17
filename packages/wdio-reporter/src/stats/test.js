@@ -5,12 +5,12 @@ import RunnableStats from './runnable'
  * captures data on a test.
  */
 export default class TestStats extends RunnableStats {
-    constructor (runner) {
+    constructor (test) {
         super('test')
-        this.uid = RunnableStats.getIdentifier(runner)
-        this.cid = runner.cid
-        this.title = runner.title
-        this.fullTitle = runner.fullTitle
+        this.uid = RunnableStats.getIdentifier(test)
+        this.cid = test.cid
+        this.title = test.title
+        this.fullTitle = test.fullTitle
         this.output = []
 
         /**
@@ -29,9 +29,13 @@ export default class TestStats extends RunnableStats {
         this.state = 'skipped'
     }
 
-    fail (error) {
+    fail (errors) {
         this.complete()
         this.state = 'failed'
-        this.error = error
+        this.errors = errors
+
+        if (errors && errors.length) {
+            this.error = errors[0]
+        }
     }
 }

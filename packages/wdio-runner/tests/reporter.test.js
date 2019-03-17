@@ -127,7 +127,7 @@ describe('BaseReporter', () => {
         try {
             new BaseReporter({
                 outputDir: '/foo/bar',
-                reporters: [{foo: 'bar'}]
+                reporters: [{ foo: 'bar' }]
             })
         } catch (e) {
             expect(e.message).toBe('Invalid reporters config')

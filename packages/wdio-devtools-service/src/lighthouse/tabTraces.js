@@ -15,7 +15,7 @@ import TraceProcessor from './tracingProcessor'
 import LHError from './errors'
 
 const ACCEPTABLE_NAVIGATION_URL_REGEX = /^(chrome|https?):/
-const log = logger('TraceOfTab')
+const log = logger('wdio-devtools-service:TraceOfTab')
 
 export default class TraceOfTab {
     /**

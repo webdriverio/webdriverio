@@ -105,7 +105,11 @@ exports.config = {
         "moz:firefoxOptions": {
           // flag to activate Firefox headless mode (see https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
           // args: ['-headless']
-        }
+        },
+        // If outputDir is provided WebdriverIO can capture driver session logs
+        // it is possible to configure which logTypes to exclude.
+        // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
+        excludeDriverLogs: ['bugreport', 'server'],
     }],
     //
     // Additional list of node arguments to use when starting child processes
@@ -116,8 +120,18 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // Level of logging verbosity: trace | debug | info | warn | error
+    // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevel: 'info',
+    //
+    // Set specific log levels per logger
+    // use 'silent' level to disable logger
+    logLevels: {
+        webdriver: 'info',
+        'wdio-applitools-service': 'info'
+    },
+    //
+    // Set directory to store all logs into
+    outputDir: __dirname,
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
@@ -145,6 +159,9 @@ exports.config = {
     //
     // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
     framework: 'mocha',
+    //
+    // The number of times to retry the entire specfile when it fails as a whole
+    specFileRetries: 1,
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
@@ -198,7 +215,7 @@ exports.config = {
         source: true,       // <boolean> hide source URIs
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+        tagExpression: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,      // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },

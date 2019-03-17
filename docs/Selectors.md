@@ -3,7 +3,7 @@ id: selectors
 title: Selectors
 ---
 
-The JsonWireProtocol provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. The following selector types are supported:
+The Json Wire Protocol provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. The following selector types are supported:
 
 ## CSS Query Selector
 
@@ -154,7 +154,9 @@ elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is
 
 ## Mobile Selectors
 
-For (hybrid/native) mobile testing you have to use mobile strategies and use the underlying device automation technology directly. This is especially useful when a test needs some fine-grained control over finding elements.
+For hybrid mobile testing it's important that the automation server is in the correct *context* before executing commands. For automating gestures, the driver ideally should be set to native context. But to select elements from the DOM, the driver will need to be set to the platform's webview context, which only then the methods mentioned above can be used.
+
+Now for native mobile testing, there is no switching between contexts as you have to use mobile strategies and use the underlying device automation technology directly. This is especially useful when a test needs some fine-grained control over finding elements.
 
 ### Android UiAutomator
 
@@ -254,5 +256,5 @@ And you want to add product B to the cart it would be difficult to do that just 
 With selector chaining it gets way easier as you can narrow down the desired element step by step:
 
 ```js
-$('.row .entry:nth-child(1)').$('button*=Add').click();
+$('.row .entry:nth-child(2)').$('button*=Add').click();
 ```

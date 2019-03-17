@@ -21,8 +21,8 @@ describe('Selenium standalone launcher', () => {
 
             const config = {
                 seleniumLogs : './',
-                seleniumArgs : {foo : 'foo'},
-                seleniumInstallArgs : {bar : 'bar'}
+                seleniumArgs : { foo : 'foo' },
+                seleniumInstallArgs : { bar : 'bar' }
             }
 
             await Launcher.onPrepare(config)

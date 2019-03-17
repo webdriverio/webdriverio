@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import { Eyes, Target } from '@wdio/eyes.webdriverio'
 
-const log = logger('wdio-applitools-service')
+const log = logger('@wdio/applitools-service')
 
 const DEFAULT_VIEWPORT = {
     width: 1440,
@@ -18,10 +18,16 @@ export default class ApplitoolsService {
      */
     beforeSession (config) {
         const key = process.env.APPLITOOLS_KEY || config.applitoolsKey
+        const serverUrl = process.env.APPLITOOLS_SERVER_URL || config.applitoolsServerUrl
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {
             throw new Error('Couldn\'t find an Applitools "applitoolsKey" in config nor "APPLITOOLS_KEY" in the environment')
+        }
+
+        // Optionally set a specific server url
+        if (serverUrl) {
+            this.eyes.setServerUrl(serverUrl)
         }
 
         this.isConfigured = true

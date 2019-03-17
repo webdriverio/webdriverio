@@ -1,8 +1,8 @@
 import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import {getTestStatus, isEmpty, tellReporter, isMochaEachHooks} from './utils'
-import {events, stepStatuses, testStatuses} from './constants'
+import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks } from './utils'
+import { events, stepStatuses, testStatuses } from './constants'
 
 class AllureReporter extends WDIOReporter {
     constructor(options) {
@@ -15,7 +15,7 @@ class AllureReporter extends WDIOReporter {
         this.config = {}
         this.allure = new Allure()
 
-        this.allure.setOptions({targetDir: outputDir})
+        this.allure.setOptions({ targetDir: outputDir })
         this.registerListeners()
     }
 
@@ -53,7 +53,7 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this.allure.getCurrentTest()
 
         if (!this.isMultiremote) {
-            const {browserName, deviceName} = this.config.capabilities
+            const { browserName, deviceName } = this.config.capabilities
             const targetName = browserName || deviceName || test.cid
             const version = this.config.capabilities.version || this.config.capabilities.platformVersion || ''
             const paramName = deviceName ? 'device' : 'browser'
@@ -117,7 +117,7 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        const {disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting} = this.options
+        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this.options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
                 this.allure.addAttachment('Screenshot', Buffer.from(command.result.value, 'base64'))
@@ -150,7 +150,7 @@ class AllureReporter extends WDIOReporter {
             }
             return
         }
-        
+
         // add hook as test to suite
         this.onTestStart(hook)
     }
@@ -184,7 +184,7 @@ class AllureReporter extends WDIOReporter {
         }
     }
 
-    addStory({storyName}) {
+    addStory({ storyName }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -193,7 +193,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('story', storyName)
     }
 
-    addFeature({featureName}) {
+    addFeature({ featureName }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -202,7 +202,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('feature', featureName)
     }
 
-    addSeverity({severity}) {
+    addSeverity({ severity }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -211,7 +211,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('severity', severity)
     }
 
-    addIssue({issue}) {
+    addIssue({ issue }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -220,7 +220,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('issue', issue)
     }
 
-    addTestId({testId}) {
+    addTestId({ testId }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -229,7 +229,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('testId', testId)
     }
 
-    addEnvironment({name, value}) {
+    addEnvironment({ name, value }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -238,7 +238,7 @@ class AllureReporter extends WDIOReporter {
         test.addParameter('environment-variable', name, value)
     }
 
-    addDescription({description, type}) {
+    addDescription({ description, type }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -247,7 +247,7 @@ class AllureReporter extends WDIOReporter {
         test.setDescription(description, type)
     }
 
-    addAttachment({name, content, type = 'text/plain'}) {
+    addAttachment({ name, content, type = 'text/plain' }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -259,19 +259,32 @@ class AllureReporter extends WDIOReporter {
         }
     }
 
-    addStep({step}) {
+    startStep(title) {
         if (!this.isAnyTestRunning()) {
             return false
         }
+        this.allure.startStep(title)
+    }
 
-        this.allure.startStep(step.title)
+    endStep(status) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+        this.allure.endStep(status)
+    }
+
+    addStep({ step }) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+        this.startStep(step.title)
         if (step.attachment) {
             this.addAttachment(step.attachment)
         }
-        this.allure.endStep(step.status)
+        this.endStep(step.status)
     }
 
-    addArgument({name, value}) {
+    addArgument({ name, value }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -292,14 +305,13 @@ class AllureReporter extends WDIOReporter {
         this.allure.addAttachment(name, JSON.stringify(json, null, 2), 'application/json')
     }
 
-
     /**
      * Assign feature to test
      * @name addFeature
      * @param {(string)} featureName - feature name or an array of names
      */
     static addFeature = (featureName) => {
-        tellReporter(events.addFeature, {featureName})
+        tellReporter(events.addFeature, { featureName })
     }
 
     /**
@@ -308,7 +320,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} severity - severity value
      */
     static addSeverity = (severity) => {
-        tellReporter(events.addSeverity, {severity})
+        tellReporter(events.addSeverity, { severity })
     }
 
     /**
@@ -317,7 +329,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} issue - issue id value
      */
     static addIssue = (issue) => {
-        tellReporter(events.addIssue, {issue})
+        tellReporter(events.addIssue, { issue })
     }
 
     /**
@@ -326,7 +338,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} testId - test id value
      */
     static addTestId = (testId) => {
-        tellReporter(events.addTestId, {testId})
+        tellReporter(events.addTestId, { testId })
     }
 
     /**
@@ -335,7 +347,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} storyName - story name for test
      */
     static addStory = (storyName) => {
-        tellReporter(events.addStory, {storyName})
+        tellReporter(events.addStory, { storyName })
     }
 
     /**
@@ -345,7 +357,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} value - environment value
      */
     static addEnvironment = (name, value) => {
-        tellReporter(events.addEnvironment, {name, value})
+        tellReporter(events.addEnvironment, { name, value })
     }
 
     /**
@@ -355,7 +367,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} type - description type 'text'\'html'\'markdown'
      */
     static addDescription = (description, type) => {
-        tellReporter(events.addDescription, {description, type})
+        tellReporter(events.addDescription, { description, type })
     }
 
     /**
@@ -366,8 +378,30 @@ class AllureReporter extends WDIOReporter {
      * @param {string} [type='text/plain'] - attachment mime type
      */
     static addAttachment = (name, content, type = 'text/plain') => {
-        tellReporter(events.addAttachment, {name, content, type})
+        tellReporter(events.addAttachment, { name, content, type })
     }
+
+    /**
+     * Start allure step
+     * @name startStep
+     * @param {string} title - step name in report
+     */
+    static startStep = (title) => {
+        tellReporter(events.startStep, title)
+    }
+
+    /**
+     * End current allure step
+     * @name endStep
+     * @param {string} [status='passed'] - step status
+     */
+    static endStep = (status = stepStatuses.PASSED) => {
+        if (!Object.values(stepStatuses).includes(status)) {
+            throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+        }
+        tellReporter(events.endStep, status)
+    }
+
     /**
      * Create allure step
      * @name addStep
@@ -378,13 +412,13 @@ class AllureReporter extends WDIOReporter {
      * @param {string} [attachmentObject.type='text/plain'] - attachment type
      * @param {string} [status='passed'] - step status
      */
-    static addStep = (title, {content, name = 'attachment', type = 'text/plain'} = {}, status = stepStatuses.PASSED) => {
+    static addStep = (title, { content, name = 'attachment', type = 'text/plain' } = {}, status = stepStatuses.PASSED) => {
         if (!Object.values(stepStatuses).includes(status)) {
             throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
         }
 
-        const step = content ? {title, attachment: {content, name, type}, status} : {title, status}
-        tellReporter(events.addStep, {step})
+        const step = content ? { title, attachment: { content, name, type }, status } : { title, status }
+        tellReporter(events.addStep, { step })
     }
 
     /**
@@ -394,7 +428,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} value - argument value
      */
     static addArgument = (name, value) => {
-        tellReporter(events.addArgument, {name, value})
+        tellReporter(events.addArgument, { name, value })
     }
 }
 

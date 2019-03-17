@@ -24,7 +24,7 @@ const SCHEDULABLE_TASK_TITLE_ALT2 = 'ThreadControllerImpl::DoWork'
 // m65 and earlier
 const SCHEDULABLE_TASK_TITLE_ALT3 = 'TaskQueueManager::ProcessTaskFromWorkQueue'
 
-const log = logger('TraceProcessor')
+const log = logger('wdio-devtools-service:TraceProcessor')
 
 /**
  * @typedef ToplevelEvent

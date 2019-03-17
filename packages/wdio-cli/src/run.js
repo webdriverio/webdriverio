@@ -6,7 +6,7 @@ import Launcher from './launcher.js'
 import Watcher from './watcher'
 import setup from './setup'
 
-const log = logger('wdio-cli:run')
+const log = logger('@wdio/cli:run')
 
 export default function run (params) {
     let stdinData = ''

@@ -14,7 +14,7 @@
     "release": "NODE_ENV=production npm run setup && lerna publish",
     "setup": "run-s bootstrap build",
     "test": "run-s test:*",
-    "test:eslint": "eslint packages examples scripts",
+    "test:eslint": "eslint packages examples scripts ./eslintrc.js",
     "test:coverage": "jest --coverage --detectOpenHandles",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
     "version": "node ./scripts/changelog.js && git add CHANGELOG.md && npm run generate:typings",
@@ -69,9 +69,9 @@
     "coverageThreshold": {
       "global": {
         "branches": 95,
-        "functions": 96,
-        "lines": 96,
-        "statements": 96
+        "functions": 98,
+        "lines": 97,
+        "statements": 97
       }
     },
     "testEnvironment": "node",

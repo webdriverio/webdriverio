@@ -1,8 +1,6 @@
 import fs from 'fs'
-import fse from 'fs-extra'
 import tmp from 'tmp'
-import path from 'path'
-
+import fse from 'fs-extra'
 import WDIOReporter from '../src'
 
 jest.mock('events', () => {
@@ -74,29 +72,28 @@ describe('WDIOReporter', () => {
         expect(options.writeStream.write).toBeCalledWith('foobar')
     })
 
-    it('should create directory if outputDir given and not existing', () => {
-        const outputDir = path.join(__dirname, `./tempDir-${Date.now()}`, 'multiLevel')
+    describe('outputDir options', () => {
+        jest.mock('fs-extra')
+        let ensureDirSyncSpy
+        beforeEach(() => {
+            ensureDirSyncSpy = jest.spyOn(fse, 'ensureDirSync')
+        })
+        it('should create directory if outputDir given and not existing', () => {
+            const outputDir = './tempDir'
 
-        // ensure directory isn't somehow there to begin with
-        expect(fs.existsSync(outputDir)).toBe(false)
+            const options = { outputDir }
+            new WDIOReporter(options)
 
-        const options = { outputDir }
-        new WDIOReporter(options)
-
-        const dirExists = fs.existsSync(outputDir)
-
-        // remove directory before assertion so it doesn't pollute the test directory,
-        // even if the assertion fails
-        if (dirExists){
-            fse.removeSync(outputDir)
-        }
-
-        expect(dirExists).toBe(true)
-    })
-
-    it('should handle invalid directory for outputDir', () => {
-        expect(() => {
-            new WDIOReporter({ outputDir: true })
-        }).toThrow()
+            expect(ensureDirSyncSpy).toHaveBeenCalled()
+            expect(ensureDirSyncSpy).toHaveBeenCalledWith('./tempDir')
+        })
+        it('should handle invalid directory for outputDir', () => {
+            expect(() => {
+                new WDIOReporter({ outputDir: true })
+            }).toThrowError()
+        })
+        afterEach(() => {
+            ensureDirSyncSpy.mockClear()
+        })
     })
 })

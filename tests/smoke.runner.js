@@ -1,5 +1,9 @@
+import fs from 'fs'
 import path from 'path'
+import assert from 'assert'
+
 import launch from './helpers/launch'
+import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
 
 (async () => {
     /**
@@ -8,6 +12,43 @@ import launch from './helpers/launch'
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         { specs: [path.resolve(__dirname, 'mocha', 'test.js')] })
+
+    /**
+     * wdio test run with custom service
+     */
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'service.js')],
+            services: [['smoke-test', { foo: 'bar' }]]
+        })
+    const serviceLogs = fs.readFileSync(path.join(__dirname, 'helpers', 'service.log'))
+    assert.equal(serviceLogs, SERVICE_LOGS)
+    const launcherLogs = fs.readFileSync(path.join(__dirname, 'helpers', 'launcher.log'))
+    assert.equal(launcherLogs, LAUNCHER_LOGS)
+
+    /**
+     * wdio test run with custom reporter as string
+     */
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'reporter.js')],
+            reporters: [['smoke-test', { foo: 'bar' }]]
+        })
+    const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogs = fs.readFileSync(reporterLogsPath)
+    assert.equal(reporterLogs, REPORTER_LOGS)
+    fs.unlinkSync(reporterLogsPath)
+
+    /**
+     * wdio test run with custom reporter as object
+     */
+    await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
+    const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
+    const reporterLogsWithReporterAsObject = fs.readFileSync(reporterLogsWithReporterAsObjectPath)
+    assert.equal(reporterLogsWithReporterAsObject, REPORTER_LOGS)
+    fs.unlinkSync(reporterLogsWithReporterAsObjectPath)
 
     /**
      * multiremote wdio testrunner tests
@@ -26,6 +67,51 @@ import launch from './helpers/launch'
             }
         }
     )
+
+    /**
+     * specfile-level retries
+     */
+    let retry_failed = false
+    try {
+        await launch(
+            path.resolve(__dirname, 'helpers', 'config.js'),
+            {
+                specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
+                specFileRetries: 1
+            })
+    } catch (e) {
+        retry_failed = true
+    }
+    if (!retry_failed) {
+        throw Error('Expected retries to fail but they passed')
+    }
+
+    let retry_filename = path.join(__dirname, '.retry_succeeded')
+    let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
+    let rmfiles = [retry_filename, ...logfiles]
+    rmfiles.forEach(filename => {
+        if (fs.existsSync(filename)) {
+            fs.unlink(filename, err => {
+                if (err) {
+                    throw Error(`Unable to delete ${filename}`)
+                }
+            })
+        }
+    })
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'retry_and_pass.js')],
+            outputDir: path.dirname(logfiles[0]),
+            specFileRetries: 1,
+            retry_filename
+        })
+    if (!fs.existsSync(logfiles[0])) {
+        throw Error(`Expected ${logfiles[0]} to exist but it does not`)
+    }
+    if (fs.existsSync(logfiles[1])) {
+        throw Error(`Expected ${logfiles[1]} to not exist but it does`)
+    }
 
     /**
      * for some reason the process get stuck therefor exit it

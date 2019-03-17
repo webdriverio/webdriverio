@@ -1,10 +1,10 @@
-import {directory} from 'tempy'
+import { directory } from 'tempy'
 import AllureReporter from '../src/'
-import {clean, getResults} from './helper'
-import {runnerEnd, runnerStart} from './__fixtures__/runner'
-import {suiteEnd, suiteStart} from './__fixtures__/suite'
-import {testFailed, testPassed, testPending, testStart} from './__fixtures__/testState'
-import {commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot} from './__fixtures__/command'
+import { clean, getResults } from './helper'
+import { runnerEnd, runnerStart } from './__fixtures__/runner'
+import { suiteEnd, suiteStart } from './__fixtures__/suite'
+import { testFailed, testPassed, testPending, testStart } from './__fixtures__/testState'
+import { commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot } from './__fixtures__/command'
 
 let processOn
 beforeAll(() => {
@@ -21,21 +21,23 @@ describe('Passing tests', () => {
     let allureXml
 
     beforeAll(() => {
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({ stdout: true, outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        reporter.addStory({storyName: 'Story'})
-        reporter.addFeature( {featureName: 'foo'})
-        reporter.addSeverity({severity: 'baz'})
-        reporter.addIssue({issue: '1'})
-        reporter.addTestId({testId: '2'})
-        reporter.addEnvironment({name: 'jenkins', value: '1.2.3'})
-        reporter.addDescription({description: 'functions', type: 'html'})
-        reporter.addAttachment({name: 'My attachment', content: '99thoughtz', type: 'text/plain'})
-        reporter.addArgument({name: 'os', value: 'osx'})
-        const step = {'step': {'attachment': {'content': 'baz', 'name': 'attachment'}, 'status': 'failed', 'title': 'foo'}}
+        reporter.addStory({ storyName: 'Story' })
+        reporter.addFeature( { featureName: 'foo' })
+        reporter.addSeverity({ severity: 'baz' })
+        reporter.addIssue({ issue: '1' })
+        reporter.addTestId({ testId: '2' })
+        reporter.addEnvironment({ name: 'jenkins', value: '1.2.3' })
+        reporter.addDescription({ description: 'functions', type: 'html' })
+        reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
+        reporter.addArgument({ name: 'os', value: 'osx' })
+        reporter.startStep('bar')
+        reporter.endStep('passed')
+        const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment' }, 'status': 'failed', 'title': 'foo' } }
         reporter.addStep(step)
         reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
@@ -85,11 +87,17 @@ describe('Passing tests', () => {
         expect(allureXml('test-case parameter[name="jenkins"]').eq(0).attr('value')).toEqual('1.2.3')
     })
 
+    it('should start end custom step', () => {
+        expect(allureXml('step > name').eq(0).text()).toEqual('bar')
+        expect(allureXml('step > title').eq(0).text()).toEqual('bar')
+        expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+    })
+
     it('should add custom step', () => {
-        expect(allureXml('step > name').eq(0).text()).toEqual('foo')
-        expect(allureXml('step > title').eq(0).text()).toEqual('foo')
+        expect(allureXml('step > name').eq(1).text()).toEqual('foo')
+        expect(allureXml('step > title').eq(1).text()).toEqual('foo')
         expect(allureXml('test-case attachment[title="attachment"]')).toHaveLength(1)
-        expect(allureXml('step').eq(0).attr('status')).toEqual('failed')
+        expect(allureXml('step').eq(1).attr('status')).toEqual('failed')
     })
 
     it('should add attachment', () => {
@@ -115,7 +123,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case', () => {
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({ stdout: true, outputDir })
 
         const runnerEvent = runnerStart()
         delete runnerEvent.config.capabilities.browserName
@@ -140,7 +148,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case without start event', () => {
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({ stdout: true, outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -167,7 +175,7 @@ describe('Pending tests', () => {
 
     it('should detect started pending test case', () => {
         outputDir = directory()
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({ stdout: true, outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -186,7 +194,7 @@ describe('Pending tests', () => {
 
     it('should detect not started pending test case', () => {
         outputDir = directory()
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({ stdout: true, outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -204,7 +212,7 @@ describe('Pending tests', () => {
 
     it('should detect not started pending test case after completed test', () => {
         outputDir = directory()
-        const reporter = new AllureReporter({stdout: true, outputDir})
+        const reporter = new AllureReporter({ stdout: true, outputDir })
         let passed = testStart()
         passed = {
             ...passed,
@@ -273,7 +281,7 @@ describe('selenium command reporting', () => {
             outputDir
         }
         const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), {isMultiremote: true}))
+        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
         reporter.onBeforeCommand(commandStart())
@@ -295,7 +303,7 @@ describe('selenium command reporting', () => {
             outputDir
         }
         const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), {isMultiremote: true}))
+        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
         reporter.onAfterCommand(commandEnd())

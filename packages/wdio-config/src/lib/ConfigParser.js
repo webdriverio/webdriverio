@@ -9,7 +9,7 @@ import { detectBackend } from '../utils'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
 
-const log = logger('wdio-config:ConfigParser')
+const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
 export default class ConfigParser {
@@ -110,9 +110,14 @@ export default class ConfigParser {
          * if host and port are default, remove them to get new values
          */
         let defaultBackend = detectBackend({})
-        if (this._config.hostname === defaultBackend.hostname && this._config.port === defaultBackend.port) {
+        if (
+            (this._config.hostname === defaultBackend.hostname) &&
+            (this._config.port === defaultBackend.port) &&
+            (this._config.protocol === defaultBackend.protocol)
+        ) {
             delete this._config.hostname
             delete this._config.port
+            delete this._config.protocol
         }
 
         this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
@@ -169,9 +174,9 @@ export default class ConfigParser {
 
             // Allow --suite and --spec to both be defined on the command line
             // Removing any duplicate tests that could be included
-            const tmp_specs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
+            const tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
-            return [...new Set(tmp_specs)]
+            return [...new Set(tmpSpecs)]
         }
 
         if (Array.isArray(capSpecs)) {
@@ -197,13 +202,12 @@ export default class ConfigParser {
     setFilePathToFilterOptions (cliArgFileList, config) {
         const filesToFilter = new Set()
         const fileList = ConfigParser.getFilePaths(config)
-        cliArgFileList.forEach(filtered_file => {
-            if (fs.existsSync(filtered_file) && fs.lstatSync(filtered_file).isFile()) {
-                filesToFilter.add(path.resolve(process.cwd(), filtered_file))
-            }
-            else {
+        cliArgFileList.forEach(filteredFile => {
+            if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
+                filesToFilter.add(path.resolve(process.cwd(), filteredFile))
+            } else {
                 fileList.forEach(file => {
-                    if (file.match(filtered_file)) {
+                    if (file.match(filteredFile)) {
                         filesToFilter.add(file)
                     }
                 })

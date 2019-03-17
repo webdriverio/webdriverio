@@ -37,14 +37,14 @@ export default class WebDriverRequest extends EventEmitter {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = merge(this.defaultOptions, this._createOptions(options, sessionId))
+        const fullRequestOptions = merge({}, this.defaultOptions, this._createOptions(options, sessionId))
         this.emit('request', fullRequestOptions)
         return this._request(fullRequestOptions, options.connectionRetryCount)
     }
 
     _createOptions (options, sessionId) {
         const requestOptions = {
-            agent: agents[options.protocol],
+            agent: options.agent || agents[options.protocol],
             headers: typeof options.headers === 'object' ? options.headers : {},
             qs: typeof options.queryParams === 'object' ? options.queryParams : {}
         }
@@ -54,7 +54,7 @@ export default class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             requestOptions.body = this.body
-            requestOptions.headers = merge(requestOptions.headers, {
+            requestOptions.headers = merge({}, requestOptions.headers, {
                 'Content-Length': Buffer.byteLength(JSON.stringify(requestOptions.body), 'UTF-8')
             })
         }
@@ -83,6 +83,11 @@ export default class WebDriverRequest extends EventEmitter {
                 pass: options.key
             }
         }
+
+        /**
+         * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
+         */
+        requestOptions.strictSSL = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
 
         return requestOptions
     }
