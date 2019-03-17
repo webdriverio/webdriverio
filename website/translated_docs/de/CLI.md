@@ -38,33 +38,33 @@ Options:
   --bail                stop test runner after specific amount of tests have
 ```
 
-Sehr gut! Nun müssen Sie eine Konfigurationsdatei erstellen, in der alle Informationen über Ihre Tests, Browser und Einstellungen definiert sind. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
+Sehr gut! Nun müssen Sie eine Konfigurationsdatei erstellen, in der alle Informationen über Ihre Tests, Browser und Einstellungen definiert sind. Wechseln Sie zum Abschnitt [Konfigurationsdatei](ConfigurationFile.md) , um herauszufinden, wie diese Datei aussehen soll. Mit dem `wdio` Konfigurations-Helfer ist es super einfach Ihre Konfigurationsdatei zu generieren. Führen Sie folgenden Befehl in der Kommandozeile aus:
 
 ```sh
 $ ./node_modules/.bin/wdio config
 ```
 
-and it launches the helper utility. It will ask you questions depending on the answers you give. This way you can generate your config file in less than a minute.
+um das Hilfsprogramm zu starten. Es wird Ihnen Fragen stellen, abhängig von den Antworten, die Sie geben. Auf diese Weise können Sie Ihre Konfigurationsdatei in weniger als einer Minute generieren.
 
 ![WDIO configuration utility](/img/config-utility.gif)
 
-Once you have your configuration file set up you can start your integration tests by calling:
+Sobald Sie Ihre Konfigurationsdatei eingerichtet haben, können Sie Ihre E2E Tests mit dem folgenden Aufruf starten:
 
 ```sh
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-That's it! Now, you can access to the selenium instance via the global variable `browser`.
+Das wars! Jetzt können Sie über die globale Variable `browser` oder `driver` den Browser oder das Mobile Endgerät steuern.
 
-## Run the test runner programmatically
+## Den Testrunner Programmatisch Ausführen
 
-Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the `@wdio/cli` package as module the following way:
+Anstatt den wdio CLI Befehl zu nutzen, können Sie auch den Testrunner als Modul einbinden und Ihre Tests programmatisch ausführen. Dafür muss das Paket `@wdio/cli` als Modul folgendermaßen importiert werden:
 
 ```js
 import Launcher from '@wdio/cli';
 ```
 
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and parameters that will overwrite the value in the config.
+Danach erstellen Sie eine Instanz des Launchers und starten den Test. Die Launcher-Klasse erwartet als Parameter den Pfad zur Konfigurationsdatei und Parameter, die bestimmte Werte in der Konfiguration überschreiben sollen.
 
 ```js
 const wdio = new Launcher('/path/to/my/wdio.conf.js', opts);
@@ -76,4 +76,4 @@ wdio.run().then((code) => {
 });
 ```
 
-The run command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that gets resolved if the test ran successful or failed or gets rejected if the launcher was not able to start run the tests.
+Der `run` Befehl gibt ein sog. [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) zurück, der aufgelöst wird, wenn der Test erfolgreich ausgeführt wurde oder fehlgeschlagen ist, wenn der Launcher die Tests nicht starten konnte.
