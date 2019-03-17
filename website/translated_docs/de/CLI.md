@@ -1,10 +1,10 @@
 ---
 id: clioptions
-title: WDIO CLI Options
+title: WDIO CLI Optionen
 ---
-WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
+WebdriverIO verfügt über einen eigenen Testrunner, um Ihnen dabei zu helfen, schnellstmöglich mit dem Testen zu beginnen. All die Arbeit, die vorher erforderlich war, um WebdriverIO mit einem Test Framework zu integrieren gehört der Vergangenheit an. Der WebdriverIO Testrunner tut nun all diese Arbeit für Sie und hilft dabei Ihre Tests so effizient wie möglich auszuführen.
 
-Starting with v5 of WebdriverIO the testrunner will be bundled as a seperated NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
+Beginnend mit v5 von WebdriverIO wird der Testrunner als seperates NPM-Paket zusammengefasst und ist verfügbar unter dem Namen `@wdio/cli`. Um die Kommandozeilen-Schnittstelle zu sehen, geben Sie einfach den folgenden Befehl in Ihrem Terminal ein:
 
 ```sh
 $ npm install @wdio/cli
@@ -36,24 +36,9 @@ Options:
   --logLevel, -l        level of logging verbosity
                             [choices: "trace", "debug", "info", "warn", "error"]
   --bail                stop test runner after specific amount of tests have
-                        failed                                          [number]
-  --baseUrl             shorten url command calls by setting a base url [string]
-  --waitforTimeout, -w  timeout for all waitForXXX commands             [number]
-  --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to
-                        run the specs                                   [string]
-  --reporters, -r       reporters to print out the results on stdout     [array]
-  --suite               overwrites the specs attribute and runs the defined
-                        suite                                            [array]
-  --spec                run only a certain spec file - overrides specs piped
-                        from stdin                                       [array]
-  --exclude             exclude spec file(s) from a run - overrides specs piped
-                        from stdin                                       [array]
-  --mochaOpts           Mocha options
-  --jasmineOpts         Jasmine options
-  --cucumberOpts        Cucumber options
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
+Sehr gut! Nun müssen Sie eine Konfigurationsdatei erstellen, in der alle Informationen über Ihre Tests, Browser und Einstellungen definiert sind. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
 
 ```sh
 $ ./node_modules/.bin/wdio config
