@@ -2,13 +2,13 @@
 id: watcher
 title: Watch Test Files
 ---
-С WDIO TestRunner вы можете автоматически проверять файлы, пока работаете с ними. Они автоматически перезапускаются, если вы что-то меняете в вашей аппликации или в тестовых файлах. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
+С WDIO TestRunner вы можете автоматически проверять файлы, пока работаете с ними. Они автоматически перезапускаются, если вы что-то меняете в вашей аппликации или в тестовых файлах. Добавив флаг `--watch` при вызове команды `wdio`, TestRunner будет ждать изменения файлов и после этого он запустит все тесты, например.
 
 ```sh
 $ wdio wdio.conf.js --watch
 ```
 
-By default it only watches for changes in your `specs` files. However by setting a `filesToWatch` property in your `wdio.conf.js` that contains a list of file paths (globbing supported) it will also watch for these files to be changed in order to rerun the whole suite. This is useful if you want to automatically rerun all your tests if you have changed your application code, e.g.
+По умолчанию он следит только за изменениями в ваших `specs` файлах. However by setting a `filesToWatch` property in your `wdio.conf.js` that contains a list of file paths (globbing supported) it will also watch for these files to be changed in order to rerun the whole suite. This is useful if you want to automatically rerun all your tests if you have changed your application code, e.g.
 
 ```js
 // wdio.conf.js
