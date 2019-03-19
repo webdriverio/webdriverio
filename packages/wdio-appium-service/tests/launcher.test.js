@@ -44,12 +44,14 @@ describe('Appium launcher', () => {
         test('should set correct config properties', async () => {
             const config = {
                 appium: {
+                    waitStartTime: 2500,
                     logPath: './',
                     args: { foo: 'bar' }
                 }
             }
             await launcher.onPrepare(config)
 
+            expect(launcher.waitStartTime).toBe(config.appium.waitStartTime)
             expect(launcher.logPath).toBe(config.appium.logPath)
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
         })
@@ -57,6 +59,7 @@ describe('Appium launcher', () => {
         test('should set correct config properties when empty', async () => {
             await launcher.onPrepare({})
 
+            expect(launcher.waitStartTime).toBe(1000)
             expect(launcher.logPath).toBe(undefined)
             expect(launcher.appiumArgs).toEqual([])
         })
