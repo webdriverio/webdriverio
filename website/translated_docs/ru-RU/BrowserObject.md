@@ -1,6 +1,6 @@
 ---
 id: browserobject
-title: The Browser Object
+title: Browser Object
 ---
 Если вы используете WDIO TestRunner, можете получить доступ к инстансу WebDriver через глобальные объекты `browser` или `driver`. Сессия инициализируется при помощи TestRunner. То же самое для завершения сессии. Это так же выполняется при помощи TestRunner процесса.
 
@@ -105,14 +105,14 @@ exports.config = {
 Ваш тест может получить доступ к этим флагам таким образом:
 
 ```js
-// Note: `driver` is the equivalent to the `browser` object but semantically more correct
-// you can choose which global variable you want to use
-console.log(driver.isMobile); // outputs: true
-console.log(driver.isIOS); // outputs: true
-console.log(driver.isAndroid); // outputs: false
+// Примечание: `driver` объект эквивалентен к `browser` объекту, но семантически более правильнее
+// вы можете выбрать какую глобальную переменную использовать 
+console.log(driver.isMobile); // выводит: true
+console.log(driver.isIOS); // выводит: true
+console.log(driver.isAndroid); // выводит: false
 ```
 
-This can be useful if you want to define selectors in your page objects based on the device type, e.g.
+Это так же может быть полезным, если вы хотите определить селекторы в вашем page object на основе типа устройства, например:
 
 ```js
 // mypageobject.page.js
@@ -131,7 +131,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to only run certain tests for certain device types:
+Так же можно использовать флаги для того чтобы запускать специфические тесты для определенных типов устройств:
 
 ```js
 // mytest.e2e.js
