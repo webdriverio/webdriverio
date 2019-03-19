@@ -23,8 +23,8 @@ You can query this element by calling:
 
 ```js
 const link = $('=WebdriverIO');
-console.log(link.getText()); // outputs: "WebdriverIO"
-console.log(link.getAttribute('href')); // outputs: "http://webdriver.io"
+console.log(link.getText()); // возвращает: "WebdriverIO"
+console.log(link.getAttribute('href')); // возвращает: "http://webdriver.io"
 ```
 
 ## Partial Link Text
@@ -39,7 +39,7 @@ You can query this element by calling:
 
 ```js
 const link = $('*=driver');
-console.log(link.getText()); // outputs: "WebdriverIO"
+console.log(link.getText()); // возвращает: "WebdriverIO"
 ```
 
 ## Element with certain text
@@ -54,15 +54,15 @@ You can query this element by calling:
 
 ```js
 const header = $('h1=Welcome to my Page');
-console.log(header.getText()); // outputs: "Welcome to my Page"
-console.log(header.getTagName()); // outputs: "h1"
+console.log(header.getText()); // возвращает: "Welcome to my Page"
+console.log(header.getTagName()); // возвращает: "h1"
 ```
 
 or using query partial text
 
 ```js
 const header = $('h1*=Welcome');
-console.log(header.getText()); // outputs: "Welcome to my Page"
+console.log(header.getText()); // возвращает: "Welcome to my Page"
 ```
 
 The same works for ids and class names:
@@ -75,16 +75,16 @@ You can query this element by calling:
 
 ```js
 const classNameAndText = $('.someElem=WebdriverIO is the best');
-console.log(classNameAndText.getText()); // outputs: "WebdriverIO is the best"
+console.log(classNameAndText.getText()); // возвращает: "WebdriverIO is the best"
 
 const idAndText = $('#elem=WebdriverIO is the best');
-console.log(idAndText.getText()); // outputs: "WebdriverIO is the best"
+console.log(idAndText.getText()); // возвращает: "WebdriverIO is the best"
 
 const classNameAndPartialText = $('.someElem*=WebdriverIO');
-console.log(classNameAndPartialText.getText()); // outputs: "WebdriverIO is the best"
+console.log(classNameAndPartialText.getText()); // возвращает: "WebdriverIO is the best"
 
 const idAndPartialText = $('#elem*=WebdriverIO');
-console.log(idAndPartialText.getText()); // outputs: "WebdriverIO is the best"
+console.log(idAndPartialText.getText()); // возвращает: "WebdriverIO is the best"
 ```
 
 ## Tag Name
@@ -99,7 +99,7 @@ You can query this element by calling:
 
 ```js
 const classNameAndText = $('<my-element />');
-console.log(classNameAndText.getText()); // outputs: "WebdriverIO is the best"
+console.log(classNameAndText.getText()); // возвращает: "WebdriverIO is the best"
 ```
 
 ## xPath
@@ -119,14 +119,14 @@ You can query the second paragraph by calling:
 
 ```js
 const paragraph = $('//BODY/P[1]');
-console.log(paragraph.getText()); // outputs: "barfoo"
+console.log(paragraph.getText()); // возвращает: "barfoo"
 ```
 
 You can use xPath to also traverse up and down the DOM tree, e.g.
 
 ```js
 const parent = paragraph.$('..');
-console.log(parent.getTagName()); // outputs: "body"
+console.log(parent.getTagName()); // возвращает: "body"
 ```
 
 ## JS Function
