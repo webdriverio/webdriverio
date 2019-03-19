@@ -1,6 +1,6 @@
 ---
 id: selectors
-title: Selectors
+title: Селекторы
 ---
 JsonWireProtocol предлагает несколько стратегий селектора для получения элемента. WebdriverIO упрощает их, чтобы упростить подбор элементов. Поддерживаются следующие типы селекторов:
 
@@ -29,28 +29,28 @@ console.log(link.getAttribute('href')); // возвращает: "http://webdriv
 
 ## По частичному тексту ссылки
 
-To find a anchor element whose visible text partially matches your search value, query it by using `*=` in front of the query string (e.g. `*=driver`)
+Чтобы найти элемент ссылки, чей видимый текст частино соответствует вашему запросу, выполняйте запрос добавив значение `*=` перед вашей строкой запроса (пример `*=driver`)
 
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
 
-You can query this element by calling:
+Этот элемент можно получить выполнив запрос:
 
 ```js
 const link = $('*=driver');
 console.log(link.getText()); // возвращает: "WebdriverIO"
 ```
 
-## Element with certain text
+## Поиск элемента с определенным текстом
 
-The same technique can be applied to elements as well, e.g. query a level 1 heading with the text "Welcome to my Page":
+Та же техника может быть использована и для других элементов, например получение заглавия первого уровня с текстом "Welcome to my Page":
 
 ```html
 <h1 alt="welcome-to-my-page">Welcome to my Page</h1>
 ```
 
-You can query this element by calling:
+Этот элемент можно получить выполнив запрос:
 
 ```js
 const header = $('h1=Welcome to my Page');
@@ -58,20 +58,20 @@ console.log(header.getText()); // возвращает: "Welcome to my Page"
 console.log(header.getTagName()); // возвращает: "h1"
 ```
 
-or using query partial text
+или с помощью частичного текста
 
 ```js
 const header = $('h1*=Welcome');
 console.log(header.getText()); // возвращает: "Welcome to my Page"
 ```
 
-The same works for ids and class names:
+То же работает для id и имен классов:
 
 ```html
 <i class="someElem" id="elem">WebdriverIO is the best</i>
 ```
 
-You can query this element by calling:
+Этот элемент можно получить выполнив запрос:
 
 ```js
 const classNameAndText = $('.someElem=WebdriverIO is the best');
@@ -87,24 +87,24 @@ const idAndPartialText = $('#elem*=WebdriverIO');
 console.log(idAndPartialText.getText()); // возвращает: "WebdriverIO is the best"
 ```
 
-## Tag Name
+## По имени тэга
 
-To query an element with a specific tag name use `<tag>` or `<tag />`
+Для получения элемента со специфическим именем тэга используйте `<tag>` или `<tag />`
 
 ```html
 <my-element>WebdriverIO is the best</my-element>
 ```
 
-You can query this element by calling:
+Этот элемент можно получить выполнив запрос:
 
 ```js
 const classNameAndText = $('<my-element />');
 console.log(classNameAndText.getText()); // возвращает: "WebdriverIO is the best"
 ```
 
-## xPath
+## По xPath
 
-It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath). The selector has to have a format like `//BODY/DIV[6]/DIV[1]/SPAN[1]`.
+Так же можно получить элемент используя спецификацию [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath). Селектор должен иметь формат `//BODY/DIV[6]/DIV[1]/SPAN[1]`.
 
 ```html
 <html>
@@ -115,7 +115,7 @@ It is also possible to query elements via a specific [xPath](https://developer.m
 </html>
 ```
 
-You can query the second paragraph by calling:
+Вы можете получить второй параграф вызвав:
 
 ```js
 const paragraph = $('//BODY/P[1]');
