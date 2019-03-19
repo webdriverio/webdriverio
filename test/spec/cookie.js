@@ -1,8 +1,8 @@
 describe('cookie command test', () => {
-    afterEach(async function() {
+    afterEach(async function () {
         // Clear cookies after each test
-        await this.client.deleteCookie();
-    });
+        await this.client.deleteCookie()
+    })
 
     it('setCookie should fail if user provides name that is not a string type', async function () {
         try {
@@ -12,7 +12,7 @@ describe('cookie command test', () => {
             const cookies = await this.client.getCookie()
             cookies.should.have.length(0) // should never happen.
         } catch (e) {
-            (e.message).should.be.equal('Please specify a cookie object to set (see https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#cookie-json-object for documentation.');   
+            (e.message).should.be.equal('Please specify a cookie object to set (see https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#cookie-json-object for documentation.')
         }
     })
 
@@ -20,11 +20,11 @@ describe('cookie command test', () => {
         try {
             await this.client.setCookie('not appropriate')
             await this.client.setCookie({name: 'test2', value: 'cookie saved2!', domain: '127.0.0.1'})
-            
+
             const cookies = await this.client.getCookie()
             cookies.should.have.length(0) // should never happen.
         } catch (e) {
-            (e.message).should.be.equal('Please specify a cookie object to set (see https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#cookie-json-object for documentation.');   
+            (e.message).should.be.equal('Please specify a cookie object to set (see https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#cookie-json-object for documentation.')
         }
     })
 
@@ -32,11 +32,11 @@ describe('cookie command test', () => {
         try {
             await this.client.setCookie({value: 'cookie saved2!', domain: '127.0.0.1'})
             await this.client.setCookie({name: 'test2', value: 'cookie saved2!', domain: '127.0.0.1'})
-            
+
             const cookies = await this.client.getCookie()
             cookies.should.have.length(0) // should never happen.
         } catch (e) {
-            (e.message).should.be.equal('Please specify a cookie object to set (see https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#cookie-json-object for documentation.');   
+            (e.message).should.be.equal('Please specify a cookie object to set (see https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#cookie-json-object for documentation.')
         }
     })
 
@@ -75,7 +75,7 @@ describe('cookie command test', () => {
         const cookie = await this.client.getCookie("~!@#$%^&*()_+-={}|[]\:\"'<>?,./")
         cookie.should.be.an.instanceOf(Object)
         cookie.value.should.be.equal('cookie saved!')
-        
+
         cookie.name.should.be.equal("~!%2540%2523%2524%2525%255E%2526*()_%252B-%253D%257B%257D%257C%255B%255D%253A%2522'%253C%253E%253F%252C.%252F")
     })
 
@@ -155,5 +155,4 @@ describe('cookie command test', () => {
         (await this.client.getCookie("~!@#$%^&*()_+-={}|[]\:\"'<>?,./") === null).should.be.equal(true);
         (await this.client.getCookie()).should.have.length(1)
     })
-
 })

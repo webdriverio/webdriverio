@@ -42,14 +42,37 @@ describe('WebdriverIO detects Selenium backend', () => {
         caps.host.should.be.deep.equal('hub.testingbot.com')
         caps.port.should.be.deep.equal(80)
     })
-
-    it('should detect saucelabs user', () => {
-        const caps = detectSeleniumBackend({
+    describe('when provided with saucelabs credentials', () => {
+        const saucelabsCredentials = {
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0'
+        }
+
+        it('should detect saucelabs user', () => {
+            const caps = detectSeleniumBackend(saucelabsCredentials)
+            caps.host.should.be.deep.equal('ondemand.saucelabs.com')
+            caps.port.should.be.deep.equal(443)
+            caps.protocol.should.be.deep.equal('https')
         })
-        caps.host.should.be.deep.equal('ondemand.saucelabs.com')
-        caps.port.should.be.deep.equal(443)
-        caps.protocol.should.be.deep.equal('https')
+
+        it('should set correct host value for "eu" region', () => {
+            const caps = detectSeleniumBackend({
+                ...saucelabsCredentials,
+                region: 'eu'
+            })
+            caps.host.should.be.deep.equal('ondemand.eu-central-1.saucelabs.com')
+            caps.port.should.be.deep.equal(443)
+            caps.protocol.should.be.deep.equal('https')
+        })
+
+        it('should allow specifying a custom region', () => {
+            const caps = detectSeleniumBackend({
+                ...saucelabsCredentials,
+                region: 'foo-1'
+            })
+            caps.host.should.be.deep.equal('ondemand.foo-1.saucelabs.com')
+            caps.port.should.be.deep.equal(443)
+            caps.protocol.should.be.deep.equal('https')
+        })
     })
 })
