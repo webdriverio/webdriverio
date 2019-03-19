@@ -80,7 +80,7 @@ console.log(browser.config);
         // ...
  */
 
-console.log(browser.config.fakeUser); // outputs: "maxmustermann"
+console.log(browser.config.fakeUser); // выводит: "maxmustermann"
 ```
 
 ## Mobile Flags
@@ -137,9 +137,9 @@ You can also use these flags to only run certain tests for certain device types:
 // mytest.e2e.js
 describe('my test', () => {
     // ...
-    // only run test with Android devices
+    // запустить тест только на Android устройствах
     if (driver.isAndroid) {
-        it('tests something only for Android', () => {
+        it('протестировать что то только на Android', () => {
             // ...
         })
     }
