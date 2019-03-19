@@ -43,7 +43,10 @@ export default class BaseReporter {
         let filename = `wdio-${this.cid}-${name}-reporter.log`
 
         const reporterOptions = this.config.reporters.find((reporter) => (
-            Array.isArray(reporter) && reporter[0] === name
+            Array.isArray(reporter) && (
+                reporter[0] === name ||
+                typeof reporter[0] === 'function' && reporter[0].name === name
+            )
         ))
 
         if(reporterOptions) {
