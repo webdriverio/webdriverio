@@ -2,16 +2,16 @@
 id: selectors
 title: Selectors
 ---
-The JsonWireProtocol provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. The following selector types are supported:
+JsonWireProtocol предлагает несколько стратегий селектора для получения элемента. WebdriverIO упрощает их, чтобы упростить подбор элементов. Поддерживаются следующие типы селекторов:
 
-## CSS Query Selector
+## CSS селектор
 
 ```js
 const elem = $('h2.subheading a');
 elem.click();
 ```
 
-## Link Text
+## Текст ссылки
 
 To get an anchor element with a specific text in it, query the text starting with an equal (=) sign. For example:
 
