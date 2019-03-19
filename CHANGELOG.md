@@ -15,6 +15,38 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.4 (2019-03-19)
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3735](https://github.com/webdriverio/webdriverio/pull/3735) Add notice about modifier keys ([@jume-dev](https://github.com/jume-dev))
+
+#### Committers: 1
+- Robert Kranz ([@jume-dev](https://github.com/jume-dev))
+
+## 5.7.3 (2019-03-17)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3733](https://github.com/webdriverio/webdriverio/pull/3733) Fixing press key code type to number ([@Gilad-Shnoor](https://github.com/Gilad-Shnoor))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3716](https://github.com/webdriverio/webdriverio/pull/3716) webdriverio: Allow selectByVisibleText to work with newlines ([@WillBrock](https://github.com/WillBrock))
+
+#### :memo: Documentation
+* [#3731](https://github.com/webdriverio/webdriverio/pull/3731) Typo fix ([@jume-dev](https://github.com/jume-dev))
+* [#3730](https://github.com/webdriverio/webdriverio/pull/3730) Fixed typo ([@venkatshukla](https://github.com/venkatshukla))
+* [#3723](https://github.com/webdriverio/webdriverio/pull/3723) docs: Update custom reporter example ([@WillBrock](https://github.com/WillBrock))
+* [#3712](https://github.com/webdriverio/webdriverio/pull/3712) edits to mobile selectors section ([@marckassay](https://github.com/marckassay))
+
+#### Committers: 5
+- Marc Kassay ([@marckassay](https://github.com/marckassay))
+- Robert Kranz ([@jume-dev](https://github.com/jume-dev))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- [@Gilad-Shnoor](https://github.com/Gilad-Shnoor)
+- [@venkatshukla](https://github.com/venkatshukla)
+
 ## 5.7.2 (2019-03-10)
 
 #### :bug: Bug Fix

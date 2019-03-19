@@ -284,7 +284,7 @@
       }
     },
     "POST": {
-      "command": "setWindowSize",
+      "command": "_setWindowSize",
       "description": "Change the size of the current focused window.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidwindowwindowhandlesize",
       "parameters": [{

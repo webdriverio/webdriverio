@@ -232,12 +232,12 @@
       "ref": "http://appium.io/docs/en/commands/device/keys/press-keycode/",
       "parameters": [{
         "name": "keycode",
-        "type": "string",
+        "type": "number",
         "description": "keycode to press",
         "required": true
       }, {
         "name": "metastate",
-        "type": "string",
+        "type": "number",
         "description": "meta state to press the keycode with"
       }],
       "support": {
@@ -254,12 +254,12 @@
       "ref": "http://appium.io/docs/en/commands/device/keys/long-press-keycode/",
       "parameters": [{
         "name": "keycode",
-        "type": "string",
+        "type": "number",
         "description": "keycode to press on the device",
         "required": true
       }, {
         "name": "metastate",
-        "type": "string",
+        "type": "number",
         "description": "metastate for the keypress"
       }],
       "support": {
