@@ -4,22 +4,22 @@ title: Selectors
 ---
 JsonWireProtocol предлагает несколько стратегий селектора для получения элемента. WebdriverIO упрощает их, чтобы упростить подбор элементов. Поддерживаются следующие типы селекторов:
 
-## CSS селектор
+## По CSS селектору
 
 ```js
 const elem = $('h2.subheading a');
 elem.click();
 ```
 
-## Текст ссылки
+## По тексту ссылки
 
-To get an anchor element with a specific text in it, query the text starting with an equal (=) sign. For example:
+Для получения элемента ссылки со определенным текстом в нем, запрос должен начинаться с символа равенства (=) и последующим искомым текстом. Например:
 
 ```html
 <a href="http://webdriver.io">WebdriverIO</a>
 ```
 
-You can query this element by calling:
+Этот элемент можно получить выполнив запрос:
 
 ```js
 const link = $('=WebdriverIO');
@@ -27,7 +27,7 @@ console.log(link.getText()); // возвращает: "WebdriverIO"
 console.log(link.getAttribute('href')); // возвращает: "http://webdriver.io"
 ```
 
-## Partial Link Text
+## По частичному тексту ссылки
 
 To find a anchor element whose visible text partially matches your search value, query it by using `*=` in front of the query string (e.g. `*=driver`)
 
