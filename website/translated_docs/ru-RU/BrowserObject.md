@@ -2,11 +2,11 @@
 id: browserobject
 title: The Browser Object
 ---
-If you use the wdio test runner you can access the webdriver instance through the global `browser` or `driver` object. The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+Если вы используете WDIO TestRunner, можете получить доступ к инстансу WebDriver через глобальные объекты `browser` или `driver`. Сессия инициализируется при помощи TestRunner. То же самое для завершения сессии. Это так же выполняется при помощи TestRunner процесса.
 
-Besides all commands from the [api](API.md) the browser object provides some more information you might be interested in during your test run:
+Помимо всех команды из [api](API.md), объект браузера предоставляет больше информации, которая может быть интересна во время прогонки тестов:
 
-## Get Desired Capabilities
+## Получение Desired Capabilities
 
 ```js
 console.log(browser.sessionId); // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
@@ -42,9 +42,9 @@ console.log(browser.capabilities);
  */
 ```
 
-## Get Config Options
+## Получение параметров конфигурации
 
-You can always define custom options within you wdio config:
+Вы всегда можете определить пользовательские параметры в вашей wdio конфигурации:
 
 ```js
 // wdio.conf.js
@@ -56,7 +56,7 @@ exports.config = {
 }
 ```
 
-to then access it in your tests:
+затем получить доступ к ним в тестах:
 
 ```js
 console.log(browser.config);
@@ -83,9 +83,9 @@ console.log(browser.config);
 console.log(browser.config.fakeUser); // выводит: "maxmustermann"
 ```
 
-## Mobile Flags
+## Мобильные флаги
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check, e.g.:
+Если вам нужно модифицировать ваш тест в зависимости от того запущен он на мобильном устройстве или нет, вы можете для этой проверки получить доступ к мобильным флагам. Пример:
 
 ```js
 // wdio.conf.js
@@ -102,7 +102,7 @@ exports.config = {
 };
 ```
 
-In your test you can access these flags like:
+Ваш тест может получить доступ к этим флагам таким образом:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
