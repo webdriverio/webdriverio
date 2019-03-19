@@ -12,6 +12,7 @@ export class AppiumLauncher {
         this.logPath = null
         this.command = ''
         this.appiumArgs = []
+        this.waitStartTime = 0
     }
 
     async onPrepare(config) {
@@ -20,9 +21,10 @@ export class AppiumLauncher {
         this.logPath = appiumConfig.logPath
         this.command = appiumConfig.command || this._getAppiumCommand()
         this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
+        this.waitStartTime = appiumConfig.waitStartTime || 1000
 
         const asyncStartAppium = promisify(this._startAppium)
-        this.process = await asyncStartAppium(this.command, this.appiumArgs)
+        this.process = await asyncStartAppium(this.command, this.appiumArgs, this.waitStartTime)
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream(this.logPath)
@@ -36,7 +38,7 @@ export class AppiumLauncher {
         }
     }
 
-    _startAppium(command, args, callback) {
+    _startAppium(command, args, waitStartTime, callback) {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
 
@@ -49,7 +51,7 @@ export class AppiumLauncher {
             process.removeListener('exit', exitCallback)
             log.debug(`Appium started with ID: ${process.pid}`)
             callback(null, process)
-        }, 1000)
+        }, waitStartTime)
 
         process.once('exit', exitCallback)
     }
