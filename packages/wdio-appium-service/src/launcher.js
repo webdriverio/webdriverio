@@ -9,12 +9,12 @@ const DEFAULT_LOG_FILENAME = 'appium.txt'
 
 export class AppiumLauncher {
     constructor() {
-        this.logPath = ''
+        this.logPath = null
         this.command = ''
         this.appiumArgs = []
     }
 
-    async onPrepare (config) {
+    async onPrepare(config) {
         const appiumConfig = config.appium || {}
 
         this.logPath = appiumConfig.logPath
@@ -24,12 +24,12 @@ export class AppiumLauncher {
         const asyncStartAppium = promisify(this._startAppium)
         this.process = await asyncStartAppium(this.command, this.appiumArgs)
 
-        if (typeof this.appiumLogs === 'string') {
+        if (typeof this.logPath === 'string') {
             this._redirectLogStream(this.logPath)
         }
     }
 
-    onComplete () {
+    onComplete() {
         if(this.process) {
             log.debug(`Appium (pid: ${process.pid}) killed`)
             this.process.kill()
@@ -39,23 +39,17 @@ export class AppiumLauncher {
     _startAppium(command, args, callback) {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
-        let exited = null
 
         const exitCallback = (exitCode) => {
             clearTimeout(timer)
-            exited = exitCode
             callback(new Error(`Appium exited before timeout (exit code: ${exitCode})`), null)
         }
 
         const timer = setTimeout(() => {
             process.removeListener('exit', exitCallback)
-            if (exited === null) {
-                log.debug(`Appium started with ID: ${process.pid}`)
-                callback(null, process)
-            } else {
-                callback(new Error(`Appium exited just after starting (exit code: ${exited})`), null)
-            }
-        }, 5000)
+            log.debug(`Appium started with ID: ${process.pid}`)
+            callback(null, process)
+        }, 1000)
 
         process.once('exit', exitCallback)
     }

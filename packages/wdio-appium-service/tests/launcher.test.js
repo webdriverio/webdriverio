@@ -1,10 +1,38 @@
 import { AppiumLauncher } from '../src/launcher'
-const http = require('http')
+import cp from 'child_process'
+import fs from 'fs-extra'
+import path from 'path'
+
+jest.mock('child_process', () => ({
+    spawn: jest.fn(),
+}))
+jest.mock('fs-extra', () => ({
+    createWriteStream : jest.fn(),
+    ensureFileSync : jest.fn(),
+}))
+
+class MockProcess {
+    once() {}
+    removeListener() {}
+    kill() {}
+    stdout = { pipe: jest.fn() }
+    stderr = { pipe: jest.fn() }
+}
+
+class MockFailingProcess extends MockProcess {
+    once(event, callback) {
+        if (event === 'exit') {
+            callback(2)
+        }
+    }
+}
 
 describe('Appium launcher', () => {
     let launcher = undefined
 
     beforeEach(() => {
+        cp.spawn.mockClear()
+        cp.spawn.mockReturnValue(new MockProcess())
         launcher = new AppiumLauncher()
     })
 
@@ -20,7 +48,6 @@ describe('Appium launcher', () => {
                     args: { foo: 'bar' }
                 }
             }
-
             await launcher.onPrepare(config)
 
             expect(launcher.logPath).toBe(config.appium.logPath)
@@ -34,25 +61,29 @@ describe('Appium launcher', () => {
             expect(launcher.appiumArgs).toEqual([])
         })
 
-        test('should start Appium', async done => {
-            await launcher.onPrepare({})
-
-            http.get('http://127.0.0.1:4723/wd/hub/status', (response) => {
-                expect(response.statusCode).toBe(200)
-                launcher.onComplete()
-                done()
-            }).on('error', (error) => {
-                launcher.onComplete()
-                done.fail(`Appium service isn't started. Error: '${error.message}'`)
+        test('should start Appium', async () => {
+            await launcher.onPrepare({
+                appium: {
+                    args: { superspeed: true }
+                }
             })
+
+            expect(cp.spawn.mock.calls[0][0]).toBe('appium')
+            expect(cp.spawn.mock.calls[0][1]).toEqual(['--superspeed'])
+            expect(cp.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
         })
 
-        test('should not output the log file', async () => {
-            launcher._redirectLogStream = jest.fn()
+        test('should fail if Appium exits', async () => {
+            cp.spawn.mockReturnValue(new MockFailingProcess())
 
-            await launcher.onPrepare({})
-
-            expect(launcher._redirectLogStream).not.toBeCalled()
+            let error
+            try {
+                await launcher.onPrepare({})
+            } catch (e) {
+                error = e
+            }
+            const expectedError = new Error('Appium exited before timeout (exit code: 2)')
+            expect(error).toEqual(expectedError)
         })
     })
 
@@ -75,13 +106,36 @@ describe('Appium launcher', () => {
         })
     })
 
+    describe('_redirectLogStream', () => {
+        test('should not write output to file', async () => {
+            launcher._redirectLogStream = jest.fn()
+
+            await launcher.onPrepare({})
+
+            expect(launcher._redirectLogStream).not.toBeCalled()
+        })
+
+        test('should write output to file', async () => {
+            await launcher.onPrepare({
+                appium: {
+                    logPath: './'
+                },
+            })
+
+            expect(fs.createWriteStream.mock.calls[0][0]).toBe(path.join(process.cwd(), 'appium.txt'))
+            expect(launcher.process.stdout.pipe).toBeCalled()
+            expect(launcher.process.stderr.pipe).toBeCalled()
+        })
+    })
+
     describe('argument formatting', () => {
         test('should format arguments correctly', () => {
             const args = launcher._cliArgsFromKeyValue({
                 address: '127.0.0.1',
                 commandTimeout: '7200',
                 showIosLog: false,
-                sessionOverride: true
+                sessionOverride: true,
+                app: '/Users/frodo/My Projects/the-ring/the-ring.app'
             })
 
             expect(args[0]).toBe('--address')
