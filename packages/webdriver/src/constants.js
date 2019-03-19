@@ -93,5 +93,6 @@ export const DEFAULTS = {
  */
 export const W3C_ALLOWED_CAPABILITIES = [
     'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts', 'pageLoadStrategy', 'proxy',
-    'setWindowRect', 'timeouts', 'strictFileInteractability', 'unhandledPromptBehavior'
+    'setWindowRect', 'timeouts', 'strictFileInteractability', 'unhandledPromptBehavior', 'keepBrowserName',
+    'mobileMode', 'baseUrl', 'jsonwpMode'
 ]
