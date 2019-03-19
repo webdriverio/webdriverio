@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.4 (2019-03-19)
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3735](https://github.com/webdriverio/webdriverio/pull/3735) Add notice about modifier keys ([@jume-dev](https://github.com/jume-dev))
+
+#### Committers: 1
+- Robert Kranz ([@jume-dev](https://github.com/jume-dev))
+
 ## 5.7.3 (2019-03-17)
 
 #### :eyeglasses: Spec Compliancy
