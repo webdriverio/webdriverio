@@ -1,10 +1,10 @@
 ---
 id: timeouts
-title: Timeouts
+title: Таймауты
 ---
-Each command in WebdriverIO is an asynchronous operation where a request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com/)), and its response contains the result once the action has completed or failed. Therefore time is a crucial component in the whole testing process. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues.
+Каждая команда в WebdriverIO это асинхронная операция где запрос высылается в Selenium server (либо в облачный сервис, например [Sauce Labs](https://saucelabs.com/)) и его ответ содержит результат когда действие было совершенно либо провалилось. Поэтому время является важнейшим компонентов в процессе тестирования. Когда определенные действия зависят от результата других действий, вам нужно убедиться в том, что они выполнены в правильном порядке. Таймауты играют важную роль в решении данных проблем.
 
-## Selenium timeouts
+## Таймауты Selenium
 
 ### Session Script Timeout
 
@@ -13,7 +13,7 @@ A session has an associated session script timeout that specifies a time to wait
 ```js
 browser.setTimeout({ 'script': 60000 });
 browser.executeAsync((done) => {
-    console.log('this should not fail');
+    console.log('это не должно сломаться');
     setTimeout(done, 59000);
 });
 ```
@@ -57,7 +57,7 @@ In your test you now can do this:
 const myElem = $('#myElem');
 myElem.waitForVisible();
 
-// you can also overwrite the default timeout if needed
+// вы также можете перезаписать значение таймаута по умолчанию, если это необходимо
 myElem.waitForVisible(10000);
 ```
 
@@ -95,7 +95,7 @@ exports.config = {
 }
 ```
 
-For Jasmine:
+Для Jasmine:
 
 ```js
 // wdio.conf.js
@@ -109,7 +109,7 @@ exports.config = {
 }
 ```
 
-and for Cucumber:
+и для Cucumber:
 
 ```js
 // wdio.conf.js
