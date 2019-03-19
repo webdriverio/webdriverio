@@ -14,6 +14,8 @@ const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link t
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C, isMobile) {
+    const isNameAttribute = value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0
+
     /**
      * set default selector
      */
@@ -81,8 +83,11 @@ export const findStrategy = function (value, isW3C, isMobile) {
         value = value.replace(/<|>|\/|\s/g, '')
 
     // use name strategy if value queries elements with name attributes for JSONWP
+    // or if isMobile is used even when w3c is used
     // e.g. "[name='myName']" or '[name="myName"]'
-    } else if (!isW3C && value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
+    } else if (isMobile
+        ? isNameAttribute
+        : !isW3C && isNameAttribute) {
         using = 'name'
         value = value.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
 

@@ -47,6 +47,12 @@ describe('utils', () => {
             expect(element.value).toBe('search.input')
         })
 
+        it('should find an element using "name" method by "name" strategy if isMobile is used even when w3c is used', () => {
+            const element = findStrategy('[name="searchinput"]', true, true)
+            expect(element.using).toBe('name')
+            expect(element.value).toBe('searchinput')
+        })
+
         it('should find an element using "link text" method', () => {
             const element = findStrategy('=GitHub Repo')
             expect(element.using).toBe('link text')
