@@ -1,8 +1,8 @@
 ---
 id: typescript
-title: TypeScript Setup
+title: Настройка TypeScript
 ---
-Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org/) to compile your .ts files in your before hook of your config file. You will need [ts-node](https://github.com/TypeStrong/ts-node) and [tsconfig-paths](https://github.com/dividab/tsconfig-paths) as the installed devDependencies.
+Как и Babel, вы можете подключить [TypeScript](http://www.typescriptlang.org/) для компилирования ваших .ts файлов в вашем before hook конфигурационного файла. Вам нужно чтобы [ts-node](https://github.com/TypeStrong/ts-node) и [tsconfig-path](https://github.com/dividab/tsconfig-paths) были установлены в devDependencies.
 
 ```js
     before: function() {
@@ -10,7 +10,7 @@ Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.
     },
 ```
 
-Similarly for mocha:
+Аналогично для Mocha:
 
 ```js
     mochaOpts: {
@@ -22,7 +22,7 @@ Similarly for mocha:
     },
 ```
 
-and:
+и:
 
 ```json
     //tsconfig.json
