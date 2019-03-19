@@ -115,14 +115,14 @@ console.log(classNameAndText.getText()); // возвращает: "WebdriverIO i
 </html>
 ```
 
-Вы можете получить второй параграф вызвав:
+Вы можете получить второй параграф таким образом:
 
 ```js
 const paragraph = $('//BODY/P[1]');
 console.log(paragraph.getText()); // возвращает: "barfoo"
 ```
 
-You can use xPath to also traverse up and down the DOM tree, e.g.
+Можно использовать xPath так же для прохода вверх и вниз по DOM tree. Пример:
 
 ```js
 const parent = paragraph.$('..');
