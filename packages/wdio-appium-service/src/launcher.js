@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
-import { createWriteStream, ensureFileSync } from 'fs-extra'
 import { spawn } from 'child_process'
+import { createWriteStream, ensureFileSync } from 'fs-extra'
+import { join } from 'path'
 import { promisify } from 'util'
 import getFilePath from './utils/getFilePath'
 
@@ -69,7 +70,7 @@ export class AppiumLauncher {
     }
 
     _getAppiumCommand() {
-        return /^win/.test(process.platform) ? 'appium.cmd' : 'appium'
+        return join('node_modules', '.bin', 'appium')
     }
 
     _cliArgsFromKeyValue(keyValueArgs) {

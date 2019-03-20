@@ -46,22 +46,25 @@ describe('Appium launcher', () => {
                 appium: {
                     waitStartTime: 2500,
                     logPath: './',
+                    command: 'path/to/my_custom_appium',
                     args: { foo: 'bar' }
                 }
             }
             await launcher.onPrepare(config)
 
-            expect(launcher.waitStartTime).toBe(config.appium.waitStartTime)
             expect(launcher.logPath).toBe(config.appium.logPath)
+            expect(launcher.command).toBe(config.appium.command)
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
+            expect(launcher.waitStartTime).toBe(config.appium.waitStartTime)
         })
 
         test('should set correct config properties when empty', async () => {
             await launcher.onPrepare({})
 
-            expect(launcher.waitStartTime).toBe(1000)
             expect(launcher.logPath).toBe(undefined)
+            expect(launcher.command).toBe('node_modules/.bin/appium')
             expect(launcher.appiumArgs).toEqual([])
+            expect(launcher.waitStartTime).toBe(1000)
         })
 
         test('should start Appium', async () => {
@@ -71,7 +74,7 @@ describe('Appium launcher', () => {
                 }
             })
 
-            expect(cp.spawn.mock.calls[0][0]).toBe('appium')
+            expect(cp.spawn.mock.calls[0][0]).toBe('node_modules/.bin/appium')
             expect(cp.spawn.mock.calls[0][1]).toEqual(['--superspeed'])
             expect(cp.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
         })
@@ -131,6 +134,12 @@ describe('Appium launcher', () => {
         })
     })
 
+    describe('_getAppiumCommand', () => {
+        test('should return path to dependency', () => {
+            expect(launcher._getAppiumCommand()).toBe('node_modules/.bin/appium')
+        })
+    })
+
     describe('argument formatting', () => {
         test('should format arguments correctly', () => {
             const args = launcher._cliArgsFromKeyValue({
@@ -146,32 +155,6 @@ describe('Appium launcher', () => {
             expect(args[2]).toBe('--command-timeout')
             expect(args[3]).toBe('7200')
             expect(args[4]).toBe('--session-override')
-        })
-    })
-
-    describe('platform specific command', () => {
-        let originalPlatform = ''
-
-        test('should return shell on macOS', () => {
-            originalPlatform = process.platform
-            Object.defineProperty(process, 'platform', {
-                value: 'darwin'
-            })
-            expect(launcher._getAppiumCommand()).toBe('appium')
-        })
-
-        test('should return cmd on Windows', () => {
-            originalPlatform = process.platform
-            Object.defineProperty(process, 'platform', {
-                value: 'win32'
-            })
-            expect(launcher._getAppiumCommand()).toBe('appium.cmd')
-        })
-
-        afterEach(() => {
-            Object.defineProperty(process, 'platform', {
-                value: originalPlatform
-            })
         })
     })
 })
