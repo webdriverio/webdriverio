@@ -460,3 +460,22 @@ export function assertDirectoryExists(filepath) {
         throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
     }
 }
+
+/**
+ * check if urls are valid and fix them if necessary
+ * @param  {string}  url                url to navigate to
+ * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
+ * @return {string}                     fixed url
+ */
+export function validateUrl (url, retryCheck = false) {
+    try {
+        const urlObject = new URL(url)
+        return urlObject.href
+    } catch (e) {
+        if (retryCheck) {
+            throw e
+        }
+
+        return validateUrl(`http://${url}`, true)
+    }
+}

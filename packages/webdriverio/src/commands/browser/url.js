@@ -34,6 +34,7 @@
  */
 
 import nodeUrl from 'url'
+import { validateUrl } from '../../utils'
 
 export default function url (path) {
     if (typeof path !== 'string') {
@@ -44,16 +45,5 @@ export default function url (path) {
         path = nodeUrl.resolve(this.options.baseUrl, path)
     }
 
-    /**
-     * prepend http in front of the url to avoid invalid navigate calls
-     */
-    if (
-        path.startsWith('www.') ||
-        !path.startsWith('http://') ||
-        !path.startsWith('https://')
-    ) {
-        path = `http://${path}`
-    }
-
-    return this.navigateTo(path)
+    return this.navigateTo(validateUrl(path))
 }
