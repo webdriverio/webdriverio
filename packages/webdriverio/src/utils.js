@@ -85,7 +85,7 @@ const defineStrategy = function (selector) {
 
 export const findStrategy = function (selector, isW3C, isMobile) {
     /**
-     * set default selector
+     * set default strategy
      */
     let using = DEFAULT_STRATEGY
     let value = selector
