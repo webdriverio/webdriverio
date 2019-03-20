@@ -5,6 +5,7 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
+import { URL } from 'url'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
@@ -458,5 +459,27 @@ export function getAbsoluteFilepath(filepath) {
 export function assertDirectoryExists(filepath) {
     if (!fs.existsSync(path.dirname(filepath))) {
         throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
+    }
+}
+
+/**
+ * check if urls are valid and fix them if necessary
+ * @param  {string}  url                url to navigate to
+ * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
+ * @return {string}                     fixed url
+ */
+export function validateUrl (url, origError) {
+    try {
+        const urlObject = new URL(url)
+        return urlObject.href
+    } catch (e) {
+        /**
+         * if even adding http:// doesn't help, fail with original error
+         */
+        if (origError) {
+            throw origError
+        }
+
+        return validateUrl(`http://${url}`, e)
     }
 }
