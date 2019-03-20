@@ -467,15 +467,18 @@ export function assertDirectoryExists(filepath) {
  * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
  * @return {string}                     fixed url
  */
-export function validateUrl (url, retryCheck = false) {
+export function validateUrl (url, origError) {
     try {
         const urlObject = new URL(url)
         return urlObject.href
     } catch (e) {
-        if (retryCheck) {
-            throw e
+        /**
+         * if even adding http:// doesn't help, fail with original error
+         */
+        if (origError) {
+            throw origError
         }
 
-        return validateUrl(`http://${url}`, true)
+        return validateUrl(`http://${url}`, e)
     }
 }

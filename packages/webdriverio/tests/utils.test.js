@@ -770,12 +770,15 @@ describe('utils', () => {
 
     describe('validateUrl', () => {
         it('should ensure url is correct', () => {
-            expect(validateUrl('http://json.org')).toEqual('http://json.org')
-            expect(validateUrl('www.json.org')).toEqual('http://www.json.org')
-            expect(validateUrl('json.org')).toEqual('http://json.org')
+            expect(validateUrl('http://json.org')).toEqual('http://json.org/')
+            expect(validateUrl('www.json.org')).toEqual('http://www.json.org/')
+            expect(validateUrl('json.org')).toEqual('http://json.org/')
             expect(validateUrl('about:blank')).toEqual('about:blank')
+            expect(validateUrl('IamInAHost')).toEqual('http://iaminahost/')
             expect(validateUrl('data:text/html, <html contenteditable>'))
                 .toEqual('data:text/html, <html contenteditable>')
+            expect(() => validateUrl('_I.am.I:nvalid'))
+                .toThrowError('Invalid URL: _I.am.I:nvalid')
         })
     })
 })
