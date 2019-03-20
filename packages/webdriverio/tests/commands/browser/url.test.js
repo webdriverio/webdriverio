@@ -28,6 +28,8 @@ describe('url', () => {
         delete browser.baseUrl
         await browser.url('www.google.com')
         expect(request.mock.calls[0][0].body).toEqual({ url: 'http://www.google.com' })
+        await browser.url('google.com')
+        expect(request.mock.calls[1][0].body).toEqual({ url: 'http://google.com' })
     })
 
     it('should throw an exception when a non-string value passed in', async () => {
