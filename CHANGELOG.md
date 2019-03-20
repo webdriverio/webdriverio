@@ -15,6 +15,22 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.5 (2019-03-20)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3698](https://github.com/webdriverio/webdriverio/pull/3698) webdriverio: added setWindowOuterSize command ([@krgolovan](https://github.com/krgolovan))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3742](https://github.com/webdriverio/webdriverio/pull/3742) Fix invalid urls ([@christian-bromann](https://github.com/christian-bromann))
+  * [#3739](https://github.com/webdriverio/webdriverio/pull/3739) 'name' find strategy should be used if isMobile is used even when w3c is used ([@CrispusDH](https://github.com/CrispusDH))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kirill ([@krgolovan](https://github.com/krgolovan))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+
 ## 5.7.4 (2019-03-19)
 
 #### :memo: Documentation
