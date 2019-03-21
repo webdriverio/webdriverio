@@ -1,5 +1,5 @@
 import { AppiumLauncher } from '../src/launcher'
-import cp from 'child_process'
+import childProcess from 'child_process'
 import fs from 'fs-extra'
 import path from 'path'
 
@@ -31,8 +31,8 @@ describe('Appium launcher', () => {
     let launcher = undefined
 
     beforeEach(() => {
-        cp.spawn.mockClear()
-        cp.spawn.mockReturnValue(new MockProcess())
+        childProcess.spawn.mockClear()
+        childProcess.spawn.mockReturnValue(new MockProcess())
         launcher = new AppiumLauncher()
     })
 
@@ -74,13 +74,13 @@ describe('Appium launcher', () => {
                 }
             })
 
-            expect(cp.spawn.mock.calls[0][0]).toBe('node_modules/.bin/appium')
-            expect(cp.spawn.mock.calls[0][1]).toEqual(['--superspeed'])
-            expect(cp.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
+            expect(childProcess.spawn.mock.calls[0][0]).toBe('node_modules/.bin/appium')
+            expect(childProcess.spawn.mock.calls[0][1]).toEqual(['--superspeed'])
+            expect(childProcess.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
         })
 
         test('should fail if Appium exits', async () => {
-            cp.spawn.mockReturnValue(new MockFailingProcess())
+            childProcess.spawn.mockReturnValue(new MockFailingProcess())
 
             let error
             try {
