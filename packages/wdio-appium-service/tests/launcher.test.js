@@ -57,7 +57,7 @@ describe('Appium launcher', () => {
             await launcher.onPrepare({})
 
             expect(launcher.logPath).toBe(undefined)
-            expect(launcher.command).toBe('node_modules/.bin/appium')
+            expect(launcher.command).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/appium/build/lib/main.js'))
             expect(launcher.appiumArgs).toEqual([])
             expect(launcher.waitStartTime).toBe(1000)
         })
@@ -69,7 +69,7 @@ describe('Appium launcher', () => {
                 }
             })
 
-            expect(childProcess.spawn.mock.calls[0][0]).toBe('node_modules/.bin/appium')
+            expect(childProcess.spawn.mock.calls[0][0]).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/appium/build/lib/main.js'))
             expect(childProcess.spawn.mock.calls[0][1]).toEqual(['--superspeed'])
             expect(childProcess.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
         })
@@ -131,7 +131,7 @@ describe('Appium launcher', () => {
 
     describe('_getAppiumCommand', () => {
         test('should return path to dependency', () => {
-            expect(launcher._getAppiumCommand()).toBe('node_modules/.bin/appium')
+            expect(launcher._getAppiumCommand()).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/appium/build/lib/main.js'))
         })
     })
 
