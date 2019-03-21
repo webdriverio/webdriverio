@@ -122,6 +122,17 @@ describe('BaseReporter', () => {
         expect(reporter.reporters[0].isCustom).toBe(true)
     })
 
+    it('should allow to write to output directory with custom reporter', () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [[CustomReporter, {
+                outputDir: '/foo/baz/bar'
+            }]]
+        }, '0-0')
+
+        expect(reporter.getLogFile('CustomReporter')).toBe('/foo/baz/bar/wdio-0-0-CustomReporter-reporter.log')
+    })
+
     it('should throw if reporters are in a wrong format', () => {
         expect.hasAssertions()
         try {
