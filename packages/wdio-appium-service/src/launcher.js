@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import { spawn } from 'child_process'
 import { createWriteStream, ensureFileSync } from 'fs-extra'
+import paramCase from 'param-case'
 import { promisify } from 'util'
 import getFilePath from './utils/getFilePath'
 
@@ -81,7 +82,7 @@ export class AppiumLauncher {
                 continue
             }
 
-            cliArgs.push(this._lowerCamelToCliOptionName(key))
+            cliArgs.push(`--${paramCase(key)}`)
 
             // Only non-boolean and non-null values are added as option values
             if (typeof value !== 'boolean' && value !== null) {
@@ -89,23 +90,6 @@ export class AppiumLauncher {
             }
         }
         return cliArgs
-    }
-
-    _lowerCamelToCliOptionName(camelCasedKey) {
-        let cliOptionName = '--'
-        const bigACharCode = 'A'.charCodeAt(0)
-        const bigZCharCode = 'Z'.charCodeAt(0)
-        for (let charIndex = 0; charIndex < camelCasedKey.length; ++charIndex) {
-            const char = camelCasedKey.charAt(charIndex)
-            const charCode = camelCasedKey.charCodeAt(charIndex)
-            // If the character between A and Z replace it with a dash and a small char
-            if (charCode >= bigACharCode && charCode <= bigZCharCode) {
-                cliOptionName += `-${char.toLowerCase()}`
-            } else {
-                cliOptionName += char
-            }
-        }
-        return cliOptionName
     }
 
     _sanitizeCliOptionValue(value) {
