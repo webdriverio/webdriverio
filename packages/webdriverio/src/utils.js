@@ -5,6 +5,7 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
+import { URL } from 'url'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
@@ -14,6 +15,8 @@ const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link t
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C, isMobile) {
+    const isNameAttribute = value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0
+
     /**
      * set default selector
      */
@@ -81,8 +84,11 @@ export const findStrategy = function (value, isW3C, isMobile) {
         value = value.replace(/<|>|\/|\s/g, '')
 
     // use name strategy if value queries elements with name attributes for JSONWP
+    // or if isMobile is used even when w3c is used
     // e.g. "[name='myName']" or '[name="myName"]'
-    } else if (!isW3C && value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
+    } else if (isMobile
+        ? isNameAttribute
+        : !isW3C && isNameAttribute) {
         using = 'name'
         value = value.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
 
@@ -453,5 +459,27 @@ export function getAbsoluteFilepath(filepath) {
 export function assertDirectoryExists(filepath) {
     if (!fs.existsSync(path.dirname(filepath))) {
         throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
+    }
+}
+
+/**
+ * check if urls are valid and fix them if necessary
+ * @param  {string}  url                url to navigate to
+ * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
+ * @return {string}                     fixed url
+ */
+export function validateUrl (url, origError) {
+    try {
+        const urlObject = new URL(url)
+        return urlObject.href
+    } catch (e) {
+        /**
+         * if even adding http:// doesn't help, fail with original error
+         */
+        if (origError) {
+            throw origError
+        }
+
+        return validateUrl(`http://${url}`, e)
     }
 }

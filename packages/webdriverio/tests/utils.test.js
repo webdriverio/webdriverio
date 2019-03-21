@@ -12,7 +12,8 @@ import {
     verifyArgsAndStripIfElement,
     getElementRect,
     getAbsoluteFilepath,
-    assertDirectoryExists
+    assertDirectoryExists,
+    validateUrl
 } from '../src/utils'
 
 describe('utils', () => {
@@ -45,6 +46,12 @@ describe('utils', () => {
             const element = findStrategy('[name="search.input"]')
             expect(element.using).toBe('name')
             expect(element.value).toBe('search.input')
+        })
+
+        it('should find an element using "name" method by "name" strategy if isMobile is used even when w3c is used', () => {
+            const element = findStrategy('[name="searchinput"]', true, true)
+            expect(element.using).toBe('name')
+            expect(element.value).toBe('searchinput')
         })
 
         it('should find an element using "link text" method', () => {
@@ -758,6 +765,20 @@ describe('utils', () => {
         })
         it('should not fail if directory exists', () => {
             expect(() => assertDirectoryExists('.')).not.toThrow()
+        })
+    })
+
+    describe('validateUrl', () => {
+        it('should ensure url is correct', () => {
+            expect(validateUrl('http://json.org')).toEqual('http://json.org/')
+            expect(validateUrl('www.json.org')).toEqual('http://www.json.org/')
+            expect(validateUrl('json.org')).toEqual('http://json.org/')
+            expect(validateUrl('about:blank')).toEqual('about:blank')
+            expect(validateUrl('IamInAHost')).toEqual('http://iaminahost/')
+            expect(validateUrl('data:text/html, <html contenteditable>'))
+                .toEqual('data:text/html, <html contenteditable>')
+            expect(() => validateUrl('_I.am.I:nvalid'))
+                .toThrowError('Invalid URL: _I.am.I:nvalid')
         })
     })
 })
