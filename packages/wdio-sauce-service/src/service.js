@@ -171,6 +171,7 @@ export default class SauceService {
         }, (e, res, body) => {
             /* istanbul ignore if */
             if (e) {
+                log.error("Error when trying to update the status of the rdc job: " + e);
                 return reject(e)
             }
             global.browser.jobData = body
@@ -191,6 +192,7 @@ export default class SauceService {
         }, (e, res, body) => {
             /* istanbul ignore if */
             if (e) {
+                log.error("Error when trying to update the status of the vm job: " + e);
                 return reject(e)
             }
             global.browser.jobData = body
