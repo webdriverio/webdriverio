@@ -1,0 +1,37 @@
+{
+  "name": "remotedriver",
+  "version": "5.7.5",
+  "description": "A WebDriver extension that runs commands on the remote debug protocol",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">= 8.11.0"
+  },
+  "types": "./webdriver.d.ts",
+  "typeScriptVersion": "3.2.1",
+  "scripts": {
+    "build": "run-s clean compile",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
+    "test": "run-s test:*",
+    "test:eslint": "eslint src test",
+    "test:unit": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "remotedriver"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "@wdio/config": "^5.7.3",
+    "@wdio/logger": "^5.7.0",
+    "chrome-remote-interface": "^0.27.1"
+  }
+}

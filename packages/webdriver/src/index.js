@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
+import command from 'remotedriver'
 
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'

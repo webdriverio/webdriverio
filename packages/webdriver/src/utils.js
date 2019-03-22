@@ -128,7 +128,7 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }, commandWrapper = command) {
     const prototype = {}
     const ProtocolCommands = merge(
         /**
@@ -160,7 +160,7 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData) }
+            prototype[commandData.command] = { value: commandWrapper(method, endpoint, commandData) }
         }
     }
 

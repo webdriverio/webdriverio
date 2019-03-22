@@ -1,0 +1,1 @@
+export const CONNECTION_TIMEOUT = 5000
