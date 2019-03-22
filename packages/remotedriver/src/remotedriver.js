@@ -2,8 +2,12 @@ import fs from 'fs'
 import path from 'path'
 import CDP from 'chrome-remote-interface'
 
+import logger from '@wdio/logger'
+
 import { validate } from './utils'
 import { CONNECTION_TIMEOUT } from './constants'
+
+const log = logger('remotedriver')
 
 export default class RemoteDriver {
     constructor () {
@@ -35,7 +39,13 @@ export default class RemoteDriver {
             const connection = await self.ensureConnection(this)
 
             const params = validate(command, parameters, variables, ref, args)
-            return self.commands[command](connection, params)
+            const result = await self.commands[command](connection, params)
+
+            log.info('RESULT', command.toLowerCase().includes('screenshot')
+                && typeof result === 'string' && result.length > 64
+                ? `${result.substr(0, 61)}...` : result)
+
+            return result
         }
     }
 
