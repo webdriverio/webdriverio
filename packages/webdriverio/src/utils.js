@@ -11,7 +11,7 @@ import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './cons
 
 const log = logger('webdriverio')
 const DEFAULT_SELECTOR = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
+const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C, isMobile) {
@@ -60,6 +60,11 @@ export const findStrategy = function (value, isW3C, isMobile) {
     } else if (value.indexOf('android=') === 0) {
         using = '-android uiautomator'
         value = value.slice(8)
+
+    // recursive element search using the DataMatcher library (Android only)
+    } else if (value.indexOf('datamatcher=') === 0) {
+        using = '-android datamatcher'
+        value = value.slice(12)
 
     // recursive element search using the UIAutomation library (iOS-only)
     } else if (value.indexOf('ios=') === 0) {

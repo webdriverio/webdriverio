@@ -211,6 +211,12 @@ describe('utils', () => {
             expect(element.value).toBe('foo')
         })
 
+        it('should find an element by datamatcher strategy (android only)', () => {
+            const element = findStrategy('datamatcher=foo')
+            expect(element.using).toBe('-android datamatcher')
+            expect(element.value).toBe('foo')
+        })
+
         it('should find an element by ui automation strategy (ios only)', () => {
             const element = findStrategy('ios=foo')
             expect(element.using).toBe('-ios uiautomation')
@@ -257,6 +263,13 @@ describe('utils', () => {
 
         it('should find an element by android accessibility id', () => {
             const selector = 'new UiSelector().text("Cancel")).className("android.widget.Button")'
+            const element = findStrategy('android=' + selector)
+            expect(element.using).toBe('-android uiautomator')
+            expect(element.value).toBe(selector)
+        })
+
+        it('should find an element by android accessibility id', () => {
+            const selector = 'some data matcher'
             const element = findStrategy('android=' + selector)
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe(selector)
