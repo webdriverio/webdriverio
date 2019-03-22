@@ -268,10 +268,10 @@ describe('utils', () => {
             expect(element.value).toBe(selector)
         })
 
-        it('should find an element by android accessibility id', () => {
+        it('should find an element by android datamatcher', () => {
             const selector = 'some data matcher'
-            const element = findStrategy('android=' + selector)
-            expect(element.using).toBe('-android uiautomator')
+            const element = findStrategy('datamatcher=' + selector)
+            expect(element.using).toBe('-android datamatcher')
             expect(element.value).toBe(selector)
         })
 
