@@ -171,7 +171,7 @@ export default class SauceService {
         }, (e, res, body) => {
             /* istanbul ignore if */
             if (e) {
-                log.error("Error when trying to update the status of the rdc job: " + e);
+                log.error('Error when trying to update the status of the rdc job: ' + e)
                 return reject(e)
             }
             global.browser.jobData = body
@@ -192,7 +192,7 @@ export default class SauceService {
         }, (e, res, body) => {
             /* istanbul ignore if */
             if (e) {
-                log.error("Error when trying to update the status of the vm job: " + e);
+                log.error('Error when trying to update the status of the vm job: ' + e)
                 return reject(e)
             }
             global.browser.jobData = body
@@ -240,12 +240,12 @@ export default class SauceService {
         body.passed = failures === 0
         return body
     }
-    
+
     /**
      * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
      */
     getStrictSsl() {
         return !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
     }
-    
+
 }
