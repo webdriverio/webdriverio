@@ -6,6 +6,7 @@ import { ConfigParser, initialisePlugin } from '@wdio/config'
 
 import CLInterface from './interface'
 import { getLauncher, runServiceHook } from './utils'
+import clonedeep from 'lodash.clonedeep'
 
 const log = logger('wdio-cli:Launcher')
 
@@ -158,6 +159,8 @@ class Launcher {
      */
     runSpecs () {
         let config = this.configParser.getConfig()
+        this.schedule = this.schedule.map(caps => {caps.dataProvidersMap = clonedeep(this.dataProvidersMap); return caps}, this)
+        
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -208,7 +211,7 @@ class Launcher {
             }
 
             let specFile = schedulableCaps[0].specs[0]
-            let dataProvider = this.dataProvidersMap[specFile]
+            let dataProvider = schedulableCaps[0].dataProvidersMap[specFile]
             let testData = ""
             
             if (dataProvider === undefined) {
