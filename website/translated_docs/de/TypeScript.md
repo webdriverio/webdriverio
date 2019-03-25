@@ -2,7 +2,7 @@
 id: typescript
 title: TypeScript-Setup
 ---
-Ähnlich wie beim Babel Setup können Sie einen [TypeScript](http://www.typescriptlang.org/) Compiler registrieren, um Ihre `.ts` Dateien in der "before" Hook Ihrer Konfigurationsdatei kompilieren zu lassen. You will need [ts-node](https://github.com/TypeStrong/ts-node) and [tsconfig-paths](https://github.com/dividab/tsconfig-paths) as the installed devDependencies.
+Ähnlich wie beim Babel Setup können Sie einen [TypeScript](http://www.typescriptlang.org/) Compiler registrieren, um Ihre `.ts` Dateien in der "before" Hook Ihrer Konfigurationsdatei kompilieren zu lassen. Sie benötigen [ts-node](https://github.com/TypeStrong/ts-node) und [tsconfig-Pfade](https://github.com/dividab/tsconfig-paths) als installierte devDependencies.
 
 ```js
     before: function() {
@@ -10,7 +10,7 @@ title: TypeScript-Setup
     },
 ```
 
-Similarly for mocha:
+Ähnlich für Mocha:
 
 ```js
     mochaOpts: {
@@ -22,7 +22,7 @@ Similarly for mocha:
     },
 ```
 
-and:
+und:
 
 ```json
     //tsconfig.json
