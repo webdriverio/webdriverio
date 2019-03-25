@@ -3,7 +3,7 @@ jest.unmock('request')
 import TestingBotService from '../src/launcher'
 
 describe('wdio-testingbot-service', () => {
-    const tbService = new TestingBotService()
+    const tbService = new TestingBotService({})
     const execute = jest.fn()
     global.browser = {
         execute,
@@ -45,8 +45,6 @@ describe('wdio-testingbot-service', () => {
         expect(tbService.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
         expect(config.protocol).toEqual('http')
         expect(config.hostname).toEqual('localhost')
-        expect(tbService.tbUser).toBe('user')
-        expect(tbService.tbSecret).toBe('key')
         expect(config.port).toEqual(4445)
     })
 
@@ -237,6 +235,7 @@ describe('wdio-testingbot-service', () => {
 
     it('after: updatedJob called with passed params', () => {
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        tbService.capabilities = {}
         tbService.tbUser = 'user'
         tbService.tbSecret = 'secret'
         tbService.sessionId = 'sessionId'
