@@ -125,4 +125,11 @@ describe('detectBackend', () => {
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
     })
+
+    it('should throw if user and key are given but can not be connected to a cloud', () => {
+        expect(() => detectBackend({
+            user: 'foobar',
+            key: 'barfoo'
+        })).toThrow()
+    })
 })

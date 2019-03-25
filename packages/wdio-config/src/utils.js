@@ -27,7 +27,7 @@ export function detectBackend (options = {}, isRDC = false) {
      * browserstack
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
-    if (typeof user === 'string' && key.length === 20) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
         return {
             protocol: 'https',
             hostname: 'hub-cloud.browserstack.com',
@@ -39,7 +39,7 @@ export function detectBackend (options = {}, isRDC = false) {
      * testingbot
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
-    if (typeof user === 'string' && key.length === 32) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
             hostname: 'hub.testingbot.com',
             port: 80
@@ -50,7 +50,7 @@ export function detectBackend (options = {}, isRDC = false) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    if ((typeof user === 'string' && key.length === 36) ||
+    if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
         // When SC is used a user needs to be provided and `isRDC` needs to be true
         (typeof user === 'string' && isRDC) ||
         // Or only RDC
@@ -64,6 +64,14 @@ export function detectBackend (options = {}, isRDC = false) {
             hostname: hostname || (preFix + getSauceEndpoint(region, isRDC)),
             port: port || 443
         }
+    }
+
+    if (typeof user === 'string' || typeof key === 'string') {
+        throw new Error(
+            'A "user" or "key" was provided but could not be connected to a ' +
+            'known cloud service (SauceLabs, Browerstack or Testingbot). ' +
+            'Please check if given user and key properties are correct!'
+        )
     }
 
     /**
