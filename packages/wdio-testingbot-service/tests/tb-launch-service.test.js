@@ -45,6 +45,8 @@ describe('wdio-testingbot-service', () => {
         expect(tbService.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
         expect(config.protocol).toEqual('http')
         expect(config.hostname).toEqual('localhost')
+        expect(tbService.tbUser).toBe('user')
+        expect(tbService.tbSecret).toBe('key')
         expect(config.port).toEqual(4445)
     })
 

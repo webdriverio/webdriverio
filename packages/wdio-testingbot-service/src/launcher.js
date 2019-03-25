@@ -19,6 +19,9 @@ export default class TestingBotLauncher {
             apiSecret: config.key
         }, config.tbTunnelOpts)
 
+        this.tbUser = config.user
+        this.tbSecret = config.key
+
         config.protocol = 'http'
         config.hostname = 'localhost'
         config.port = 4445
@@ -53,9 +56,6 @@ export default class TestingBotLauncher {
     before (capabilities) {
         this.sessionId = global.browser.sessionId
         this.capabilities = capabilities
-        this.auth = global.browser.requestHandler.auth || {}
-        this.tbUser = this.auth.user
-        this.tbSecret = this.auth.pass
         this.testCnt = 0
         this.failures = 0
     }
