@@ -3,21 +3,36 @@
 type BrowserObject = WebDriver.ClientOptions & WebDriver.ClientAsync & WebdriverIOAsync.Browser;
 
 // Element commands that should be wrapper with Promise
-type ElementPromise = Omit<WebdriverIO.Element, 'addCommand'>;
+type ElementPromise = Omit<WebdriverIO.Element, 'addCommand' | '$' | '$$'>;
 
 // Element commands wrapper with Promise
 type ElementAsync = {
     [K in keyof ElementPromise]: WrapWithPromise<ElementPromise[K], ReturnType<ElementPromise[K]>>
+} & {
+  $(
+    selector: string | Function
+  ): Promise<WebdriverIOAsync.Element>;
+  $$(
+    selector: string | Function
+  ): Promise<WebdriverIOAsync.Element[]>;
 }
+
 // Element commands that should not be wrapper with promise
 type ElementStatic = Pick<WebdriverIO.Element, 'addCommand'>
 
 // Browser commands that should be wrapper with Promise
-type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'options'>;
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'options' | '$' | '$$'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
     [K in keyof BrowserPromise]: WrapWithPromise<BrowserPromise[K], ReturnType<BrowserPromise[K]>>
+} & {
+  $(
+    selector: string | Function
+  ): Promise<WebdriverIOAsync.Element>;
+  $$(
+    selector: string | Function
+  ): Promise<WebdriverIOAsync.Element[]>;
 }
 
 // Browser commands that should not be wrapper with promise
