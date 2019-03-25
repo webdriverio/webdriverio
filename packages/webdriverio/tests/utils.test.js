@@ -212,9 +212,10 @@ describe('utils', () => {
         })
 
         it('should find an element by datamatcher strategy (android only)', () => {
-            const element = findStrategy('datamatcher=foo')
+            const selector = { 'name': 'startsWith', 'args': 'aFakeString' }
+            const element = findStrategy(selector)
             expect(element.using).toBe('-android datamatcher')
-            expect(element.value).toBe('foo')
+            expect(element.value).toBe(JSON.stringify(selector))
         })
 
         it('should find an element by ui automation strategy (ios only)', () => {
@@ -269,10 +270,10 @@ describe('utils', () => {
         })
 
         it('should find an element by android datamatcher', () => {
-            const selector = 'some data matcher'
-            const element = findStrategy('datamatcher=' + selector)
+            const selector = { 'name': 'plainDataMatcher' }
+            const element = findStrategy(selector)
             expect(element.using).toBe('-android datamatcher')
-            expect(element.value).toBe(selector)
+            expect(element.value).toBe(JSON.stringify(selector))
         })
 
         it('should find an element by ios accessibility id', () => {

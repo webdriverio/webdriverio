@@ -168,13 +168,13 @@ const Button = $(`android=${selector}`);
 Button.click();
 ```
 
-### Android DataMatcher (Espresso)
+### Android DataMatcher (Espresso only)
 
 Android's DataMatcher strategy provides a way to find elements by [Data Matcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
 
 ```js
-const selector = '{"name": "hasEntry", "args": ["title", "ViewTitle"]}';
-const menuItem = $(`datamatcher=${selector}`);
+const selector = {"name": "hasEntry", "args": ["title", "ViewTitle"]};
+const menuItem = $(selector);
 menuItem.click();
 ```
 
