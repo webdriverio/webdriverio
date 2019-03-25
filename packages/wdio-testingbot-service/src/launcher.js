@@ -4,6 +4,10 @@ import testingbotTunnel from 'testingbot-tunnel-launcher'
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class TestingBotLauncher {
+    constructor (config) {
+        this.config = config
+    }
+
     /**
      * Modify config and launch tb tunnel
      * @param   {Object} config Wdio config
@@ -18,9 +22,6 @@ export default class TestingBotLauncher {
             apiKey: config.user,
             apiSecret: config.key
         }, config.tbTunnelOpts)
-
-        this.tbUser = config.user
-        this.tbSecret = config.key
 
         config.protocol = 'http'
         config.hostname = 'localhost'
@@ -56,6 +57,8 @@ export default class TestingBotLauncher {
     before (capabilities) {
         this.sessionId = global.browser.sessionId
         this.capabilities = capabilities
+        this.tbUser = this.config.user
+        this.tbSecret = this.config.key
         this.testCnt = 0
         this.failures = 0
     }
