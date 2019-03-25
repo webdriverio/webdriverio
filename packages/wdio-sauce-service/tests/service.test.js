@@ -1,3 +1,5 @@
+import request from 'request'
+
 import SauceService from '../src'
 
 global.browser = {
@@ -8,43 +10,6 @@ global.browser = {
     chromeC: { sessionId: 'sessionChromeC' },
     instances: ['chromeA', 'chromeB', 'chromeC'],
 }
-
-jest.mock('request', () => ({
-    put: jest.fn().mockImplementation((url, opts, cb) => cb(null, {}, { message: 'success' }))
-}))
-
-test('getSauceRestUrl', () => {
-    const service = new SauceService({ user: 'foobar' })
-    service.before({})
-    expect(service.getSauceRestUrl('12345'))
-        .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
-
-    const euService = new SauceService({ user: 'foobar', region: 'eu' })
-    euService.before({})
-    expect(euService.getSauceRestUrl('12345'))
-        .toBe('https://eu-central-1.saucelabs.com/rest/v1/foobar/jobs/12345')
-
-    const usService = new SauceService({ user: 'foobar', region: 'us' })
-    usService.before({})
-    expect(usService.getSauceRestUrl('12345'))
-        .toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
-
-    const rdcService = new SauceService({})
-    rdcService.before({ testobject_api_key: 4321 })
-    expect(rdcService.getSauceRestUrl('12345'))
-        .toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
-})
-
-test('beforeSession', () => {
-    const config = {}
-    const service = new SauceService(config)
-    service.beforeSession({})
-    expect(config.user).toBe('unknown_user')
-    expect(config.key).toBe('unknown_key')
-    service.before({})
-    expect(service.sauceUser).toBe('unknown_user')
-    expect(service.sauceKey).toBe('unknown_key')
-})
 
 test('beforeSuite', () => {
     const service = new SauceService({})
@@ -280,47 +245,26 @@ test('after in multiremote', () => {
 test('updateJob for VMs', () => {
     const service = new SauceService({ user: 'foobar', key: '123' })
     service.before({})
-
-    service.updateVmJob = jest.fn()
+    service.suiteTitle = 'my test'
 
     service.updateJob('12345', 23, true)
-    expect(service.updateVmJob).toBeCalled()
+
+    const reqCall = request.mock.calls[0][0]
+    expect(reqCall.uri).toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+    expect(reqCall.body).toEqual({ name: 'my test (1)', passed: false })
+    expect(reqCall.auth).toEqual({ user: 'foobar', pass: '123' })
+    expect(service.failures).toBe(0)
 })
 
 test('updateJob for RDC', () => {
     const service = new SauceService({})
     service.before({ testobject_api_key: 1 })
 
-    service.updateRdcJob = jest.fn()
-
     service.updateJob('12345', 23)
-    expect(service.updateRdcJob).toBeCalled()
-})
-
-test('updateVmJob', () => {
-    const request = require('request')
-    const service = new SauceService({ user: 'foobar', key: '123' })
-    service.before({})
-
-    service.failures = 123
-    service.getBody = jest.fn()
-
-    service.updateVmJob('12345', 23, true)
-    expect(service.getBody).toBeCalled()
+    const reqCall = request.mock.calls[0][0]
+    expect(reqCall.uri).toBe('https://app.us-west-1.testobject.com/api/rest/v2/appium/session/12345/test')
+    expect(reqCall.body).toEqual({ passed: false })
     expect(service.failures).toBe(0)
-    expect(request.put).toBeCalled()
-})
-
-test('updateRdcJob', () => {
-    const request = require('request')
-    const service = new SauceService({ })
-    service.before({ testobject_api_key: 1 })
-
-    service.failures = 123
-
-    service.updateRdcJob('12345', 23)
-    expect(service.failures).toBe(0)
-    expect(request.put).toBeCalled()
 })
 
 test('getBody', () => {
@@ -368,6 +312,29 @@ test('getBody', () => {
     })
 })
 
+test('getBody without multiremote', () => {
+    const service = new SauceService({})
+    service.suiteTitle = 'jojo'
+    service.before({
+        tags: ['jobTag'],
+        public: true,
+        build: 'foobuild',
+        'custom-data': { some: 'data' }
+    })
+    service.testCnt = 3
+
+    global.browser.isMultiremote = false
+    expect(service.getBody(0, true)).toEqual({
+        name: 'jojo (4)',
+        tags: ['jobTag'],
+        public: true,
+        build: 'foobuild',
+        'custom-data': { some: 'data' },
+        passed: true
+    })
+})
+
 afterEach(() => {
     global.browser.execute.mockClear()
+    request.mockClear()
 })

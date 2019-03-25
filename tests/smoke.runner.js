@@ -71,7 +71,7 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
     /**
      * specfile-level retries
      */
-    let retry_failed = false
+    let retryFailed = false
     try {
         await launch(
             path.resolve(__dirname, 'helpers', 'config.js'),
@@ -80,15 +80,15 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
                 specFileRetries: 1
             })
     } catch (e) {
-        retry_failed = true
+        retryFailed = true
     }
-    if (!retry_failed) {
+    if (!retryFailed) {
         throw Error('Expected retries to fail but they passed')
     }
 
-    let retry_filename = path.join(__dirname, '.retry_succeeded')
+    let retryFilename = path.join(__dirname, '.retry_succeeded')
     let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
-    let rmfiles = [retry_filename, ...logfiles]
+    let rmfiles = [retryFilename, ...logfiles]
     rmfiles.forEach(filename => {
         if (fs.existsSync(filename)) {
             fs.unlink(filename, err => {
@@ -104,7 +104,7 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_pass.js')],
             outputDir: path.dirname(logfiles[0]),
             specFileRetries: 1,
-            retry_filename
+            retryFilename
         })
     if (!fs.existsSync(logfiles[0])) {
         throw Error(`Expected ${logfiles[0]} to exist but it does not`)
