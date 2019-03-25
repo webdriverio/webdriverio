@@ -7,6 +7,7 @@ import request from 'request'
 import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
+import { getStrictSsl } from '@wdio/utils'
 
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
@@ -84,10 +85,7 @@ export default class WebDriverRequest extends EventEmitter {
             }
         }
 
-        /**
-         * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
-         */
-        requestOptions.strictSSL = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
+        requestOptions.strictSSL = getStrictSsl()
 
         return requestOptions
     }

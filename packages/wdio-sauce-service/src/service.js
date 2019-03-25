@@ -1,6 +1,7 @@
 import request from 'request'
 import logger from '@wdio/logger'
 import { getSauceEndpoint } from '@wdio/config'
+import { getStrictSsl } from '@wdio/utils'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
@@ -166,7 +167,7 @@ export default class SauceService {
     updateRdcJob (sessionId, failures) {
         return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
             json: true,
-            strictSSL: this.getStrictSsl(),
+            strictSSL: getStrictSsl(),
             body: { 'passed': failures === 0 },
         }, (e, res, body) => {
             /* istanbul ignore if */
@@ -183,7 +184,7 @@ export default class SauceService {
     updateVmJob (sessionId, failures, calledOnReload = false, browserName) {
         return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
             json: true,
-            strictSSL: this.getStrictSsl(),
+            strictSSL: getStrictSsl(),
             auth: {
                 user: this.sauceUser,
                 pass: this.sauceKey
@@ -239,13 +240,6 @@ export default class SauceService {
 
         body.passed = failures === 0
         return body
-    }
-
-    /**
-     * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
-     */
-    getStrictSsl() {
-        return !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
     }
 
 }
