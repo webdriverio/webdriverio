@@ -1,18 +1,16 @@
 /// <reference types="webdriverio/webdriverio-core"/>
 
 type BrowserObject = WebDriver.ClientOptions & WebDriver.ClientAsync & WebdriverIOAsync.Browser;
+type $ = (selector: string | Function) => Promise<WebdriverIOAsync.Element>;
+type $$ = (selector: string | Function) => Promise<WebdriverIOAsync.Element[]>;
 
 // Element commands that should be wrapper with Promise
 type ElementPromise = Omit<WebdriverIO.Element, 'addCommand' | '$' | '$$'>;
 
 // Methods which return async element(s) so non-async equivalents cannot just be promise-wrapped
 interface AsyncSelectors {
-    $(
-        selector: string | Function
-    ): Promise<WebdriverIOAsync.Element>;
-    $$(
-        selector: string | Function
-    ): Promise<WebdriverIOAsync.Element[]>;
+    $: $;
+    $$: $$;
 }
 
 // Element commands wrapper with Promise
@@ -48,8 +46,8 @@ declare namespace WebdriverIOAsync {
 }
 
 declare var browser: BrowserObject;
-declare function $(selector: string | Function): Promise<WebdriverIOAsync.Element>;
-declare function $$(selector: string | Function): Promise<WebdriverIOAsync.Element[]>;
+declare var $: $;
+declare var $$: $$;
 
 declare module "webdriverio" {
     export = WebdriverIOAsync
