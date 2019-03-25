@@ -35,6 +35,17 @@ test('getSauceRestUrl', () => {
         .toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
 })
 
+test('beforeSession', () => {
+    const config = {}
+    const service = new SauceService(config)
+    service.beforeSession({})
+    expect(config.user).toBe('unknown_user')
+    expect(config.key).toBe('unknown_key')
+    service.before({})
+    expect(service.sauceUser).toBe('unknown_user')
+    expect(service.sauceKey).toBe('unknown_key')
+})
+
 test('beforeSuite', () => {
     const service = new SauceService({})
     expect(service.suiteTitle).toBeUndefined()
