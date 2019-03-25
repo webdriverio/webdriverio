@@ -37,12 +37,13 @@ test('getSauceRestUrl', () => {
 
 test('beforeSession', () => {
     const config = {}
-    const service = new SauceService({})
+    const service = new SauceService(config)
     service.beforeSession({})
-    expect(service.sauceUser).toBe('unknown_user')
-    expect(service.sauceKey).toBe('unknown_key')
     expect(config.user).toBe('unknown_user')
     expect(config.key).toBe('unknown_key')
+    service.before({})
+    expect(service.sauceUser).toBe('unknown_user')
+    expect(service.sauceKey).toBe('unknown_key')
 })
 
 test('beforeSuite', () => {
