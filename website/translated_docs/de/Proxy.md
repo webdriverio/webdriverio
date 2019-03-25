@@ -48,4 +48,4 @@ exports.config = {
 }
 ```
 
-For more information see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
+Weitere Informationen finden Sie in der [WebDriver-Spezifikation](https://w3c.github.io/webdriver/#proxy).
