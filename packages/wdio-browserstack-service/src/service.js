@@ -11,11 +11,29 @@ export default class BrowserstackService {
         this.failures = 0
     }
 
+    /**
+     * if no user and key is specified even though a sauce service was
+     * provided set user and key with values so that the session request
+     * will fail
+     */
+    beforeSession (config) {
+        if (!config.user) {
+            config.user = 'NotSetUser'
+        }
+
+        if (!config.key) {
+            config.key = 'NotSetKey'
+        }
+
+        this.config.user = config.user
+        this.config.key = config.key
+    }
+
     before() {
         this.sessionId = global.browser.sessionId
         this.auth = {
-            user: this.config.user || 'NotSetUser',
-            pass: this.config.key || 'NotSetKey'
+            user: this.config.user,
+            pass: this.config.key
         }
         return this._printSessionURL()
     }

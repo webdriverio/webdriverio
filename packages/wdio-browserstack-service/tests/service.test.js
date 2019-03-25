@@ -109,52 +109,52 @@ describe('_printSessionURL', () => {
 })
 
 describe('before', () => {
-    beforeAll(() => {
-        global.browser.sessionId = 12
-    })
-
     it('should set auth to default values if not provided', () => {
-        let beforeService = new BrowserstackService({})
+        let service = new BrowserstackService({})
 
-        beforeService.before()
+        service.beforeSession({})
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+        expect(service.auth).toEqual({
             user: 'NotSetUser',
             pass: 'NotSetKey'
         })
 
-        beforeService = new BrowserstackService({ user: 'blah' })
-        beforeService.before()
+        service = new BrowserstackService({})
+        service.beforeSession({ user: 'blah' })
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+
+        expect(service.auth).toEqual({
             user: 'blah',
             pass: 'NotSetKey'
         })
-        beforeService = new BrowserstackService({ key: 'blah' })
-        beforeService.before()
+        service = new BrowserstackService({})
+        service.beforeSession({ key: 'blah' })
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+        expect(service.auth).toEqual({
             user: 'NotSetUser',
             pass: 'blah'
         })
     })
 
     it('should initialize correctly', () => {
-        const beforeService = new BrowserstackService({
+        const service = new BrowserstackService({
             user: 'foo',
             key: 'bar'
         })
-        beforeService.before()
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+        expect(service.auth).toEqual({
             user: 'foo',
             pass: 'bar'
         })
@@ -162,9 +162,9 @@ describe('before', () => {
 
     it('should log the url', () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
-        const beforeService = new BrowserstackService({})
+        const service = new BrowserstackService({})
 
-        beforeService.before()
+        service.before()
         expect(logInfoSpy).toHaveBeenCalled()
     })
 })

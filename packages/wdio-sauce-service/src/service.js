@@ -14,6 +14,23 @@ export default class SauceService {
     }
 
     /**
+     * if no user and key is specified even though a sauce service was
+     * provided set user and key with values so that the session request
+     * will fail
+     */
+    beforeSession (config) {
+        if (!config.user) {
+            config.user = 'unknown_user'
+        }
+        if (!config.key) {
+            config.key = 'unknown_key'
+        }
+
+        this.config.user = config.user
+        this.config.key = config.key
+    }
+
+    /**
      * gather information about runner
      */
     before (capabilities) {
