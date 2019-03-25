@@ -66,7 +66,16 @@ export function detectBackend (options = {}, isRDC = false) {
         }
     }
 
-    if (typeof user === 'string' || typeof key === 'string') {
+    if (
+        /**
+         * user and key are set in config
+         */
+        (typeof user === 'string' || typeof key === 'string') &&
+        /**
+         * but no custom WebDriver endpoint was configured
+         */
+        !hostname
+    ) {
         throw new Error(
             'A "user" or "key" was provided but could not be connected to a ' +
             'known cloud service (SauceLabs, Browerstack or Testingbot). ' +

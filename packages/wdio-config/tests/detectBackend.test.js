@@ -132,4 +132,14 @@ describe('detectBackend', () => {
             key: 'barfoo'
         })).toThrow()
     })
+
+    it('should not throw if user and key are invalid but a custom host was set', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'barfoo',
+            hostname: 'foobar.com'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(4444)
+    })
 })
