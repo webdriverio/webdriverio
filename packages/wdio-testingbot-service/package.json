@@ -5,7 +5,7 @@
   "author": "Jochen Delabie <info@testingbot.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service",
   "license": "MIT",
-  "main": "launcher",
+  "main": "./build",
   "engines": {
     "node": ">= 8.11.0"
   },
