@@ -1,8 +1,8 @@
 ---
 id: typescript
-title: TypeScript Setup
+title: TypeScript-Setup
 ---
-Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org/) to compile your .ts files in your before hook of your config file. You will need [ts-node](https://github.com/TypeStrong/ts-node) and [tsconfig-paths](https://github.com/dividab/tsconfig-paths) as the installed devDependencies.
+Ähnlich wie beim Babel Setup können Sie einen [TypeScript](http://www.typescriptlang.org/) Compiler registrieren, um Ihre `.ts` Dateien in der "before" Hook Ihrer Konfigurationsdatei kompilieren zu lassen. You will need [ts-node](https://github.com/TypeStrong/ts-node) and [tsconfig-paths](https://github.com/dividab/tsconfig-paths) as the installed devDependencies.
 
 ```js
     before: function() {
