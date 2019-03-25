@@ -7,7 +7,7 @@ import request from 'request'
 import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
-import { getStrictSsl } from '@wdio/utils'
+import utils from '@wdio/utils'
 
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
@@ -85,7 +85,7 @@ export default class WebDriverRequest extends EventEmitter {
             }
         }
 
-        requestOptions.strictSSL = getStrictSsl()
+        requestOptions.strictSSL = utils.getStrictSsl()
 
         return requestOptions
     }
