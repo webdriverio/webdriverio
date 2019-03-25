@@ -26,6 +26,13 @@ export default class SauceService {
         this.isRDC = 'testobject_api_key' in this.capabilities
     }
 
+    getSauceRestUrl (sessionId) {
+        if (this.isRDC){
+            return `https://app.testobject.com/api/rest/v2/appium/session/${sessionId}/test`
+        }
+        return `https://${this.hostname}/rest/v1/${this.sauceUser}/jobs/${sessionId}`
+    }
+
     beforeSession (config) {
         /**
          * if no user and key is specified even though a sauce service was
