@@ -145,16 +145,7 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     }
     case 'xpath extended': {
         using = 'xpath'
-        const match = selector.match(new RegExp([
-            // HTML tag
-            /^([a-z0-9|-]*)/,
-            // optional . or # + class or id
-            /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
-            // optional [attribute-name="attribute-selector"]
-            /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
-            // *=query or =query
-            /(\*)?=(.+)$/,
-        ].map(rx => rx.source).join('')))
+        const match = selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))
         const PREFIX_NAME = { '.': 'class', '#': 'id' }
         const conditions = []
         const [
