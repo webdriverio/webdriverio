@@ -11,6 +11,16 @@ const XPATH_SELECTORS_START = [
 const NAME_MOBILE_SELECTORS_START = [
     'uia', 'xcuielementtype', 'android.widget'
 ]
+const XPATH_SELECTOR_REGEXP = [
+    // HTML tag
+    /^([a-z0-9|-]*)/,
+    // optional . or # + class or id
+    /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
+    // optional [attribute-name="attribute-selector"]
+    /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
+    // *=query or =query
+    /(\*)?=(.+)$/,
+]
 
 const defineStrategy = function (selector) {
     /**
@@ -66,16 +76,7 @@ const defineStrategy = function (selector) {
     }
     // any element with given class, id, or attribute and content
     // e.g. h1.header=Welcome or [data-name=table-row]=Item or #content*=Intro
-    if (selector.match(new RegExp([
-        // HTML tag
-        /^([a-z0-9|-]*)/,
-        // optional . or # + class or id
-        /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
-        // optional [attribute-name="attribute-selector"]
-        /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
-        // *=query or =query
-        /(\*)?=(.+)$/,
-    ].map(rx => rx.source).join('')))) {
+    if (selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
     }
 }
