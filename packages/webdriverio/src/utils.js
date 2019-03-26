@@ -21,7 +21,10 @@ export const findStrategy = function (value, isW3C, isMobile) {
      */
     let using = DEFAULT_SELECTOR
 
-    if (typeof value === 'string') {
+    if (isPlainObject(value)) {
+        using = '-android datamatcher'
+        value = JSON.stringify(value)
+    } else {
         const isNameAttribute = value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0
 
         /**
@@ -149,9 +152,6 @@ export const findStrategy = function (value, isW3C, isMobile) {
         if(!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)){
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
-    } else if (isPlainObject(value)) {
-        using = '-android datamatcher'
-        value = JSON.stringify(value)
     }
 
     return { using, value }
