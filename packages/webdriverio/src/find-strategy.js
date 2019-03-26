@@ -5,6 +5,10 @@ const log = logger('webdriverio')
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
+const XPATH_SELECTORS_START = [
+    '/', '(', '\'../\'', './', '*/'
+]
+
 const defineStrategy = function (selector) {
     /**
      * check if user has specified locator strategy directly
@@ -13,9 +17,7 @@ const defineStrategy = function (selector) {
         return 'directly'
     }
     // use xPath strategy if selector starts with //
-    if (selector.indexOf('/') === 0 || selector.indexOf('(') === 0 ||
-        selector.indexOf('../') === 0 || selector.indexOf('./') === 0 ||
-        selector.indexOf('*/') === 0) {
+    if (XPATH_SELECTORS_START.some(option => selector.indexOf(option) === 0)) {
         return 'xpath'
     }
     // use link text strategy if selector starts with =
