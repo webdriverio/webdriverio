@@ -9,7 +9,6 @@ import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
-import { isString } from 'util'
 
 const log = logger('webdriverio')
 const DEFAULT_SELECTOR = 'css selector'
@@ -22,7 +21,7 @@ export const findStrategy = function (value, isW3C, isMobile) {
      */
     let using = DEFAULT_SELECTOR
 
-    if (isString(value)) {
+    if (typeof value === 'string') {
         const isNameAttribute = value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0
 
         /**

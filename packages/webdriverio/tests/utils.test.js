@@ -269,13 +269,6 @@ describe('utils', () => {
             expect(element.value).toBe(selector)
         })
 
-        it('should find an element by android datamatcher', () => {
-            const selector = { 'name': 'plainDataMatcher' }
-            const element = findStrategy(selector)
-            expect(element.using).toBe('-android datamatcher')
-            expect(element.value).toBe(JSON.stringify(selector))
-        })
-
         it('should find an element by ios accessibility id', () => {
             const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
             const element = findStrategy('ios=' + selector)
@@ -321,6 +314,9 @@ describe('utils', () => {
             element = findStrategy('-android uiautomator:foobar -android uiautomator')
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe('foobar -android uiautomator')
+            element = findStrategy('-android datamatcher:foobar -android datamatcher')
+            expect(element.using).toBe('-android datamatcher')
+            expect(element.value).toBe('foobar -android datamatcher')
             element = findStrategy('-ios uiautomation:foobar -ios uiautomation')
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foobar -ios uiautomation')
