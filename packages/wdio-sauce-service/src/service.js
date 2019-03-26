@@ -8,38 +8,39 @@ const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
 const log = logger('@wdio/sauce-service')
 
 export default class SauceService {
-    constructor (config) {
-        this.config = config
-    }
-
-    /**
-     * if no user and key is specified even though a sauce service was
-     * provided set user and key with values so that the session request
-     * will fail
-     */
-    beforeSession (config) {
-        if (!config.user) {
-            config.user = 'unknown_user'
-        }
-        if (!config.key) {
-            config.key = 'unknown_key'
-        }
-
-        this.config.user = config.user
-        this.config.key = config.key
+    constructor () {
+        this.testCnt = 0
+        this.failures = 0 // counts failures between reloads
     }
 
     /**
      * gather information about runner
      */
-    before (capabilities) {
+    beforeSession (config, capabilities) {
+        this.config = config
         this.capabilities = capabilities
+        this.api = new SauceLabs(this.config)
+        this.isRDC = 'testobject_api_key' in this.capabilities
+        this.isServiceEnabled = true
+
+        /**
+         * if no user and key is specified even though a sauce service was
+         * provided set user and key with values so that the session request
+         * will fail (not for RDC tho due to other auth mechansim)
+         */
+        if (!this.isRDC && !config.user) {
+            this.isServiceEnabled = false
+            config.user = 'unknown_user'
+        }
+        if (!this.isRDC && !config.key) {
+            this.isServiceEnabled = false
+            config.key = 'unknown_key'
+        }
+
+        this.config.user = config.user
+        this.config.key = config.key
         this.sauceUser = this.config.user
         this.sauceKey = this.config.key
-        this.api = new SauceLabs(this.config)
-        this.testCnt = 0
-        this.failures = 0 // counts failures between reloads
-        this.isRDC = 'testobject_api_key' in this.capabilities
     }
 
     beforeSuite (suite) {
@@ -47,7 +48,7 @@ export default class SauceService {
     }
 
     beforeTest (test) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if (!this.isServiceEnabled) {
             return
         }
 
@@ -79,7 +80,7 @@ export default class SauceService {
     }
 
     beforeFeature (feature) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if (!this.isServiceEnabled) {
             return
         }
 
@@ -107,7 +108,7 @@ export default class SauceService {
     }
 
     beforeScenario (scenario) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if (!this.isServiceEnabled) {
             return
         }
 
@@ -119,7 +120,7 @@ export default class SauceService {
      * update Sauce Labs job
      */
     after (result) {
-        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
+        if (!this.isServiceEnabled && !this.isRDC) {
             return
         }
 
@@ -147,7 +148,7 @@ export default class SauceService {
     }
 
     onReload (oldSessionId, newSessionId) {
-        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
+        if (!this.isServiceEnabled && !this.isRDC) {
             return
         }
 
