@@ -15,6 +15,19 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.7 (2019-03-26)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#3773](https://github.com/webdriverio/webdriverio/pull/3773) Fix auth for RDC tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#3772](https://github.com/webdriverio/webdriverio/pull/3772) #3771 wdio-document:updated the set proxy documentation ([@harithah](https://github.com/harithah))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Haritha Hari ([@harithah](https://github.com/harithah))
+
 ## 5.7.6 (2019-03-25)
 
 #### :bug: Bug Fix
