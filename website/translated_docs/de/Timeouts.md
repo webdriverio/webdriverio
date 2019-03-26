@@ -2,13 +2,13 @@
 id: timeouts
 title: Timeouts
 ---
-Each command in WebdriverIO is an asynchronous operation where a request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com/)), and its response contains the result once the action has completed or failed. Therefore time is a crucial component in the whole testing process. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues.
+Jeder Befehl in WebdriverIO ist ein asynchroner Vorgang, wo eine Anfrage an einem WebDriver-Server (oder einen Cloud-Dienst wie [Sauce Labs](https://saucelabs.com/)) geschickt wird und dessen Antwort das Ergebnis enthält, sobald die Aktion wie z.B. ein klick abgeschlossen oder fehlgeschlagen ist. Daher ist Zeit eine entscheidende Komponente im gesamten Test Prozess. Wenn eine bestimmte Aktion vom Ergebnis einer anderen Aktion abhängt, müssen Sie sicherstellen, dass diese in der richtigen Reihenfolge ausgeführt werden. Timeouts spielen eine wichtige Rolle beim Umgang mit diesen Fragen.
 
-## Selenium timeouts
+## WebDriver Timeouts
 
-### Session Script Timeout
+### Skript Timeout
 
-A session has an associated session script timeout that specifies a time to wait for asynchronous scripts to run. Unless stated otherwise it is 30 seconds. You can set this timeout via:
+Jede Session hat ein zugehöriges Session-Skript-Timeout, die eine Zeit angibt, wie lange asynchrone Skripte laufen dürfen. Wenn nicht anders angegeben, ist diese 30 Sekunden. Sie können diesen Timeout festlegen über:
 
 ```js
 browser.setTimeout({ 'script': 60000 });
@@ -18,9 +18,9 @@ browser.executeAsync((done) => {
 });
 ```
 
-### Session Page Load Timeout
+### Ladezeit Timeout
 
-A session has an associated session page load timeout that specifies a time to wait for the page loading to complete. Unless stated otherwise it is 300,000 milliseconds. You can set this timeout via:
+Jede Session hat ein spezifisches Ladezeit Timeout, welches angibt, wie lange gewartet wird bis die Seite geladen ist. Wenn nicht anders angegeben, ist diese 300 Sekunden. You can set this timeout via:
 
 ```js
 browser.setTimeout({ 'pageLoad': 10000 });
