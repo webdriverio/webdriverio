@@ -8,6 +8,9 @@ const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` o
 const XPATH_SELECTORS_START = [
     '/', '(', '\'../\'', './', '*/'
 ]
+const NAME_MOBILE_SELECTORS_START = [
+    'uia', 'xcuielementtype', 'android.widget'
+]
 
 const defineStrategy = function (selector) {
     /**
@@ -43,7 +46,7 @@ const defineStrategy = function (selector) {
     // class name mobile selector
     // for iOS = UIA...
     // for Android = android.widget
-    if (selector.slice(0, 3) === 'UIA' || selector.slice(0, 15) === 'XCUIElementType' || selector.slice(0, 14).toLowerCase() === 'android.widget') {
+    if (NAME_MOBILE_SELECTORS_START.some(option => selector.toLowerCase().indexOf(option) === 0)) {
         return 'class name'
     }
     // use tag name strategy if selector contains a tag
