@@ -1,8 +1,8 @@
 ---
 id: repl
-title: REPL interface
+title: REPL-Schnittstelle
 ---
-With `v4.5.0` WebdriverIO introduces a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only discover the framework API but also debug and inspect your tests. It can be used in multiple ways. First you can use it as CLI command and spawn a WebDriver session from the command line, e.g.
+Mit `v4.5.0` WebdriverIO führte eine [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) -Schnittstelle ein, die Ihnen hilft, nicht nur die Framework-API zu erforschen, sondern auch Ihre Tests besser zu debuggen und zu überprüfen. Diese kann auf verschiedene Weise verwendet werden. First you can use it as CLI command and spawn a WebDriver session from the command line, e.g.
 
 ```sh
 $ wdio repl chrome
