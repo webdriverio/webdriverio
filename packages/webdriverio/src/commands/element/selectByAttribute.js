@@ -34,7 +34,7 @@
  *
  */
 
-import { getElementFromResponse } from '../../utils'
+import { getElementFromResponse } from '../../find-strategy'
 
 export default async function selectByAttribute (attribute, value) {
     /**

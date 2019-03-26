@@ -1,19 +1,20 @@
 import path from 'path'
 import { ELEMENT_KEY } from '../src/constants'
 import {
-    findStrategy,
-    getElementFromResponse,
-    getBrowserObject,
     transformToCharString,
     parseCSS,
     checkUnicode,
-    findElement,
-    findElements,
     verifyArgsAndStripIfElement,
-    getElementRect,
     getAbsoluteFilepath,
     assertDirectoryExists
 } from '../src/utils'
+import {
+    findElement,
+    findElements, findStrategy,
+    getBrowserObject,
+    getElementFromResponse,
+    getElementRect
+} from '../src/find-strategy'
 
 describe('utils', () => {
     describe('selector strategies helper', () => {

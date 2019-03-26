@@ -12,7 +12,7 @@
  * @type protocol
  */
 
-import { getElementRect } from '../../utils'
+import { getElementRect } from '../../find-strategy'
 
 export default async function moveTo (xoffset, yoffset) {
     if (!this.isW3C) {

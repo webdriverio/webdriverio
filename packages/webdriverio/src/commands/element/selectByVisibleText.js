@@ -28,7 +28,7 @@
  *
  */
 
-import { getElementFromResponse } from '../../utils'
+import { getElementFromResponse } from '../../find-strategy'
 
 export default async function selectByVisibleText (text) {
     /**

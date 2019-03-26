@@ -1,10 +1,10 @@
 import request from 'request'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
-import * as utils from '../../../src/utils'
+import * as findStrategy from '../../../src/find-strategy'
 
 describe('selectByVisibleText test', () => {
-    const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
+    const getElementFromResponseSpy = jest.spyOn(findStrategy, 'getElementFromResponse')
     let browser
     let elem
 

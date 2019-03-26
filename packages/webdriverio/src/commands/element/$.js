@@ -45,9 +45,14 @@ import { webdriverMonad } from 'webdriver'
 import { wrapCommand, runFnInFiberContext } from '@wdio/config'
 import merge from 'lodash.merge'
 
-import { findElement, getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
+import { getPrototype as getWDIOPrototype} from '../../utils'
 import { elementErrorHandler } from '../../middlewares'
 import { ELEMENT_KEY } from '../../constants'
+import {
+    findElement,
+    getBrowserObject,
+    getElementFromResponse
+} from '../../find-strategy'
 
 export default async function $ (selector) {
     const res = await findElement.call(this, selector)

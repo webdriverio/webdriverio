@@ -15,7 +15,7 @@
  * @return {Object|String} the value of the property of the selected element
  */
 
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject } from '../../find-strategy'
 import getPropertyScript from '../../scripts/getProperty'
 
 export default function getProperty (property) {

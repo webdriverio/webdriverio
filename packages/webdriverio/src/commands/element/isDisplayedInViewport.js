@@ -37,7 +37,7 @@
  */
 
 import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject } from '../../find-strategy'
 import isDisplayedInViewportScript from '../../scripts/isDisplayedInViewport'
 
 export default function isDisplayedInViewport () {

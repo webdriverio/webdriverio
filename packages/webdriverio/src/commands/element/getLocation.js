@@ -26,7 +26,7 @@
  * @type property
  */
 
-import { getElementRect } from '../../utils'
+import { getElementRect } from '../../find-strategy'
 
 export default async function getLocation (prop) {
     let location = {}

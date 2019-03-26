@@ -41,7 +41,7 @@
  */
 
 import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject } from '../../find-strategy'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
 
 const noW3CEndpoint = ['microsoftedge', 'safari']
