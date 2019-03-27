@@ -26,7 +26,7 @@
  */
 
 import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../find-strategy'
+import { getBrowserObject } from '../../utils'
 import isFocusedScript from '../../scripts/isFocused'
 
 export default function isFocused () {

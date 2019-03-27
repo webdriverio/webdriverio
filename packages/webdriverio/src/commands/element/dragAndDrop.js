@@ -10,7 +10,7 @@
  *
  */
 
-import { getElementRect } from '../../find-strategy'
+import { getElementRect } from '../../utils'
 
 const ACTION_BUTTON = 0
 

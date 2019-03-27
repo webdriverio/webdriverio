@@ -17,7 +17,7 @@
  *
  */
 
-import { getBrowserObject } from '../../find-strategy'
+import { getBrowserObject } from '../../utils'
 
 export default function setWindowSize(width, height) {
     const minWindowSize = 0

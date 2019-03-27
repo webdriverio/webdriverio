@@ -1,11 +1,12 @@
+import { findStrategy } from '../src/find-strategy'
+import { ELEMENT_KEY } from '../src/constants'
 import {
     findElement,
-    findElements, findStrategy,
+    findElements,
     getBrowserObject,
     getElementFromResponse,
     getElementRect
-} from '../src/find-strategy'
-import { ELEMENT_KEY } from '../src/constants'
+} from '../src/utils'
 
 describe('find-strategy', () => {
     describe('selector strategies helper', () => {

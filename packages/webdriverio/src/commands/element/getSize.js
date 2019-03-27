@@ -27,7 +27,7 @@
  *
  */
 
-import { getElementRect } from '../../find-strategy'
+import { getElementRect } from '../../utils'
 
 export default async function getSize(prop = null) {
     let rect = {}

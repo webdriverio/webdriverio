@@ -6,6 +6,8 @@ import GraphemeSplitter from 'grapheme-splitter'
 import isObject from 'lodash.isobject'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
+import logger from '@wdio/logger'
+import { findStrategy } from './find-strategy'
 
 const applyScopePrototype = (prototype, scope) => {
     const dir = path.resolve(__dirname, 'commands', scope)
@@ -171,4 +173,153 @@ export function assertDirectoryExists(filepath) {
     if (!fs.existsSync(path.dirname(filepath))) {
         throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
     }
+}
+
+const log = logger('webdriverio')
+const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
+/**
+ * get element id from WebDriver response
+ * @param  {?Object|undefined} res         body object from response or null
+ * @return {?string}   element id or null if element couldn't be found
+ */
+export const getElementFromResponse = (res) => {
+    /**
+     * a function selector can return null
+     */
+    if (!res) {
+        return null
+    }
+
+    /**
+     * deprecated JSONWireProtocol response
+     */
+    if (res.ELEMENT) {
+        return res.ELEMENT
+    }
+
+    /**
+     * W3C WebDriver response
+     */
+    if (res[ELEMENT_KEY]) {
+        return res[ELEMENT_KEY]
+    }
+
+    return null
+}
+
+/**
+ * traverse up the scope chain until browser element was reached
+ */
+export function getBrowserObject(elem) {
+    return elem.parent ? getBrowserObject(elem.parent) : elem
+}
+
+function fetchElementByJSFunction(selector, scope) {
+    if (!scope.elementId) {
+        return scope.execute(selector)
+    }
+    /**
+     * use a regular function because IE does not understand arrow functions
+     */
+    const script = (function (elem) {
+        return (selector).call(elem)
+    }).toString().replace('selector', `(${selector.toString()})`)
+    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope)
+}
+
+/**
+ * logic to find an element
+ */
+export async function findElement(selector) {
+    /**
+     * fetch element using regular protocol command
+     */
+    if (typeof selector === 'string') {
+        const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
+        return this.elementId
+            ? this.findElementFromElement(this.elementId, using, value)
+            : this.findElement(using, value)
+    }
+
+    /**
+     * fetch element with JS function
+     */
+    if (typeof selector === 'function') {
+        const notFoundError = new Error(`Function selector "${selector.toString()}" did not return an HTMLElement`)
+        let elem = await fetchElementByJSFunction(selector, this)
+        elem = Array.isArray(elem) ? elem[0] : elem
+        return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
+    throw INVALID_SELECTOR_ERROR
+}
+
+/**
+ * logic to find a elements
+ */
+export async function findElements(selector) {
+    /**
+     * fetch element using regular protocol command
+     */
+    if (typeof selector === 'string') {
+        const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
+        return this.elementId
+            ? this.findElementsFromElement(this.elementId, using, value)
+            : this.findElements(using, value)
+    }
+
+    /**
+     * fetch element with JS function
+     */
+    if (typeof selector === 'function') {
+        let elems = await fetchElementByJSFunction(selector, this)
+        elems = Array.isArray(elems) ? elems : [elems]
+        return elems.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    throw INVALID_SELECTOR_ERROR
+}
+
+/**
+ * getElementRect
+ */
+export async function getElementRect(scope) {
+    const rect = await scope.getElementRect(scope.elementId)
+
+    let defaults = { x: 0, y: 0, width: 0, height: 0 }
+
+    /**
+     * getElementRect workaround for Safari 12.0.3
+     * if one of [x, y, height, width] is undefined get rect with javascript
+     */
+    if (Object.keys(defaults).some(key => rect[key] == null)) {
+        /* istanbul ignore next */
+        const rectJs = await getBrowserObject(scope).execute(function (el) {
+            if (!el || !el.getBoundingClientRect) {
+                return
+            }
+            const { left, top, width, height } = el.getBoundingClientRect()
+            return {
+                x: left + this.scrollX,
+                y: top + this.scrollY,
+                width,
+                height
+            }
+        }, scope)
+
+        // try set proper value
+        Object.keys(defaults).forEach(key => {
+            if (rect[key] != null) {
+                return
+            }
+            if (typeof rectJs[key] === 'number') {
+                rect[key] = Math.floor(rectJs[key])
+            } else {
+                log.error('getElementRect', { rect, rectJs, key })
+                throw new Error('Failed to receive element rects via execute command')
+            }
+        })
+    }
+
+    return rect
 }

@@ -30,7 +30,7 @@
  */
 
 import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../find-strategy'
+import { getBrowserObject } from '../../utils'
 import getHTMLScript from '../../scripts/getHTML'
 
 export default function getHTML (includeSelectorTag = true) {
