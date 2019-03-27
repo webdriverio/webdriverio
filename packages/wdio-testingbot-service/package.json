@@ -1,11 +1,11 @@
 {
   "name": "@wdio/testingbot-service",
-  "version": "5.7.0",
+  "version": "5.7.6",
   "description": "A WebdriverIO service that provides a better integration into TestingBot",
   "author": "Jochen Delabie <info@testingbot.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service",
   "license": "MIT",
-  "main": "launcher",
+  "main": "./build",
   "engines": {
     "node": ">= 8.11.0"
   },

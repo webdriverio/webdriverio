@@ -15,6 +15,65 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.7 (2019-03-26)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#3773](https://github.com/webdriverio/webdriverio/pull/3773) Fix auth for RDC tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#3772](https://github.com/webdriverio/webdriverio/pull/3772) #3771 wdio-document:updated the set proxy documentation ([@harithah](https://github.com/harithah))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Haritha Hari ([@harithah](https://github.com/harithah))
+
+## 5.7.6 (2019-03-25)
+
+#### :bug: Bug Fix
+* `wdio-testingbot-service`
+  * [#3767](https://github.com/webdriverio/webdriverio/pull/3767) fix auth in testingbot service ([@christian-bromann](https://github.com/christian-bromann))
+  * [#3764](https://github.com/webdriverio/webdriverio/pull/3764) Fix main script path of testingbot service ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`, `webdriverio`
+  * [#3757](https://github.com/webdriverio/webdriverio/pull/3757) Use new "saucelabs" NPM package to speak to Sauce API ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`, `wdio-config`, `wdio-sauce-service`
+  * [#3756](https://github.com/webdriverio/webdriverio/pull/3756) Fail test if sauce service is used but no credentials are provided ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sync`
+  * [#3750](https://github.com/webdriverio/webdriverio/pull/3750) wdio-sync: Cleanup stacktraces ([@WillBrock](https://github.com/WillBrock))
+* `wdio-runner`
+  * [#3740](https://github.com/webdriverio/webdriverio/pull/3740) wdio-runner: Allow custom reporter options to be overridden ([@WillBrock](https://github.com/WillBrock))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3768](https://github.com/webdriverio/webdriverio/pull/3768) webdriverio: return promise-wrapped async elements from $/$ in async mode ([@richsilv](https://github.com/richsilv))
+  * [#3752](https://github.com/webdriverio/webdriverio/pull/3752) webdriverio: Remove commas from param doc block ([@WillBrock](https://github.com/WillBrock))
+* Other
+  * [#3766](https://github.com/webdriverio/webdriverio/pull/3766) login.spec.js syntax error ([@majaklajic](https://github.com/majaklajic))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Richard Silverton ([@richsilv](https://github.com/richsilv))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- [@majaklajic](https://github.com/majaklajic)
+
+## 5.7.5 (2019-03-20)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3698](https://github.com/webdriverio/webdriverio/pull/3698) webdriverio: added setWindowOuterSize command ([@krgolovan](https://github.com/krgolovan))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3742](https://github.com/webdriverio/webdriverio/pull/3742) Fix invalid urls ([@christian-bromann](https://github.com/christian-bromann))
+  * [#3739](https://github.com/webdriverio/webdriverio/pull/3739) 'name' find strategy should be used if isMobile is used even when w3c is used ([@CrispusDH](https://github.com/CrispusDH))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kirill ([@krgolovan](https://github.com/krgolovan))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+
 ## 5.7.4 (2019-03-19)
 
 #### :memo: Documentation

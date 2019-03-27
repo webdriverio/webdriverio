@@ -47,7 +47,7 @@ exports.config = {
         // ...
         proxy: {
             proxyType: "manual",
-            httpProxy: "http://corporate.proxy:8080",
+            httpProxy: "corporate.proxy:8080",
             socksUsername: "codeceptjs",
             socksPassword: "secret",
             noProxy: "127.0.0.1,localhost"

@@ -1,6 +1,5 @@
-import request from 'request'
+import SauceLabs from 'saucelabs'
 import logger from '@wdio/logger'
-import { getSauceEndpoint } from '@wdio/config'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
@@ -9,28 +8,39 @@ const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
 const log = logger('@wdio/sauce-service')
 
 export default class SauceService {
-    constructor (config) {
-        this.config = config
+    constructor () {
+        this.testCnt = 0
+        this.failures = 0 // counts failures between reloads
     }
 
     /**
      * gather information about runner
      */
-    before (capabilities) {
+    beforeSession (config, capabilities) {
+        this.config = config
         this.capabilities = capabilities
+        this.api = new SauceLabs(this.config)
+        this.isRDC = 'testobject_api_key' in this.capabilities
+        this.isServiceEnabled = true
+
+        /**
+         * if no user and key is specified even though a sauce service was
+         * provided set user and key with values so that the session request
+         * will fail (not for RDC tho due to other auth mechansim)
+         */
+        if (!this.isRDC && !config.user) {
+            this.isServiceEnabled = false
+            config.user = 'unknown_user'
+        }
+        if (!this.isRDC && !config.key) {
+            this.isServiceEnabled = false
+            config.key = 'unknown_key'
+        }
+
+        this.config.user = config.user
+        this.config.key = config.key
         this.sauceUser = this.config.user
         this.sauceKey = this.config.key
-        this.hostname = getSauceEndpoint(this.config.region)
-        this.testCnt = 0
-        this.failures = 0 // counts failures between reloads
-        this.isRDC = 'testobject_api_key' in this.capabilities
-    }
-
-    getSauceRestUrl (sessionId) {
-        if (this.isRDC){
-            return `https://app.testobject.com/api/rest/v2/appium/session/${sessionId}/test`
-        }
-        return `https://${this.hostname}/rest/v1/${this.sauceUser}/jobs/${sessionId}`
     }
 
     beforeSuite (suite) {
@@ -38,7 +48,7 @@ export default class SauceService {
     }
 
     beforeTest (test) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if (!this.isServiceEnabled) {
             return
         }
 
@@ -70,7 +80,7 @@ export default class SauceService {
     }
 
     beforeFeature (feature) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if (!this.isServiceEnabled) {
             return
         }
 
@@ -98,7 +108,7 @@ export default class SauceService {
     }
 
     beforeScenario (scenario) {
-        if (!this.sauceUser || !this.sauceKey) {
+        if (!this.isServiceEnabled) {
             return
         }
 
@@ -110,7 +120,7 @@ export default class SauceService {
      * update Sauce Labs job
      */
     after (result) {
-        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
+        if (!this.isServiceEnabled && !this.isRDC) {
             return
         }
 
@@ -138,7 +148,7 @@ export default class SauceService {
     }
 
     onReload (oldSessionId, newSessionId) {
-        if ((!this.sauceUser || !this.sauceKey) && !this.isRDC) {
+        if (!this.isServiceEnabled && !this.isRDC) {
             return
         }
 
@@ -155,46 +165,16 @@ export default class SauceService {
         return this.updateJob(oldSessionId, this.failures, true, browserName)
     }
 
-    updateJob (sessionId, failures, calledOnReload = false, browserName) {
+    async updateJob (sessionId, failures, calledOnReload = false, browserName) {
         if (this.isRDC) {
-            return this.updateRdcJob (sessionId, failures)
+            await this.api.updateTest(sessionId, { passed: failures === 0 })
+            this.failures = 0
+            return
         }
 
-        return this.updateVmJob (sessionId, failures, calledOnReload, browserName)
-    }
-
-    updateRdcJob (sessionId, failures) {
-        return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
-            json: true,
-            body: { 'passed': failures === 0 },
-        }, (e, res, body) => {
-            /* istanbul ignore if */
-            if (e) {
-                return reject(e)
-            }
-            global.browser.jobData = body
-            this.failures = 0
-            return resolve(body)
-        }))
-    }
-
-    updateVmJob (sessionId, failures, calledOnReload = false, browserName) {
-        return new Promise((resolve, reject) => request.put(this.getSauceRestUrl(sessionId), {
-            json: true,
-            auth: {
-                user: this.sauceUser,
-                pass: this.sauceKey
-            },
-            body: this.getBody(failures, calledOnReload, browserName)
-        }, (e, res, body) => {
-            /* istanbul ignore if */
-            if (e) {
-                return reject(e)
-            }
-            global.browser.jobData = body
-            this.failures = 0
-            return resolve(body)
-        }))
+        const body = this.getBody(failures, calledOnReload, browserName)
+        await this.api.updateJob(this.sauceUser, sessionId, body)
+        this.failures = 0
     }
 
     /**

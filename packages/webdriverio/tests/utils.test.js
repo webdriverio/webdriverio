@@ -6,7 +6,8 @@ import {
     checkUnicode,
     verifyArgsAndStripIfElement,
     getAbsoluteFilepath,
-    assertDirectoryExists
+    assertDirectoryExists,
+    validateUrl
 } from '../src/utils'
 
 describe('utils', () => {
@@ -217,6 +218,20 @@ describe('utils', () => {
         })
         it('should not fail if directory exists', () => {
             expect(() => assertDirectoryExists('.')).not.toThrow()
+        })
+    })
+
+    describe('validateUrl', () => {
+        it('should ensure url is correct', () => {
+            expect(validateUrl('http://json.org')).toEqual('http://json.org/')
+            expect(validateUrl('www.json.org')).toEqual('http://www.json.org/')
+            expect(validateUrl('json.org')).toEqual('http://json.org/')
+            expect(validateUrl('about:blank')).toEqual('about:blank')
+            expect(validateUrl('IamInAHost')).toEqual('http://iaminahost/')
+            expect(validateUrl('data:text/html, <html contenteditable>'))
+                .toEqual('data:text/html, <html contenteditable>')
+            expect(() => validateUrl('_I.am.I:nvalid'))
+                .toThrowError('Invalid URL: _I.am.I:nvalid')
         })
     })
 })

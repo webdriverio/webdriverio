@@ -4,6 +4,7 @@ import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import isObject from 'lodash.isobject'
+import { URL } from 'url'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
 import logger from '@wdio/logger'
@@ -322,4 +323,26 @@ export async function getElementRect(scope) {
     }
 
     return rect
+}
+
+/**
+ * check if urls are valid and fix them if necessary
+ * @param  {string}  url                url to navigate to
+ * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
+ * @return {string}                     fixed url
+ */
+export function validateUrl (url, origError) {
+    try {
+        const urlObject = new URL(url)
+        return urlObject.href
+    } catch (e) {
+        /**
+         * if even adding http:// doesn't help, fail with original error
+         */
+        if (origError) {
+            throw origError
+        }
+
+        return validateUrl(`http://${url}`, e)
+    }
 }

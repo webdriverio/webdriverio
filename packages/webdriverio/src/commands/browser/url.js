@@ -34,6 +34,7 @@
  */
 
 import nodeUrl from 'url'
+import { validateUrl } from '../../utils'
 
 export default function url (path) {
     if (typeof path !== 'string') {
@@ -44,5 +45,5 @@ export default function url (path) {
         path = nodeUrl.resolve(this.options.baseUrl, path)
     }
 
-    return this.navigateTo(path)
+    return this.navigateTo(validateUrl(path))
 }

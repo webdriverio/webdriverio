@@ -79,8 +79,8 @@ After we've defined all required elements and methods for the page we can start 
 
 ```js
 // login.spec.js
-import { expect } 'chai';
-import LoginPage '../pageobjects/login.page';
+import { expect } from 'chai';
+import LoginPage from '../pageobjects/login.page';
 
 describe('login form', () => {
     it('should deny access with wrong creds', () => {
