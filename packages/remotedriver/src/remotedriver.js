@@ -4,6 +4,7 @@ import CDP from 'chrome-remote-interface'
 
 import logger from '@wdio/logger'
 
+import ElementStore from './elementstore'
 import { validate } from './utils'
 import { CONNECTION_TIMEOUT } from './constants'
 
@@ -12,6 +13,7 @@ const log = logger('remotedriver')
 export default class RemoteDriver {
     constructor () {
         this.commands = {}
+        this.elementStore = new ElementStore()
 
         const dir = path.resolve(__dirname, 'commands')
         const files = fs.readdirSync(dir)
@@ -39,7 +41,7 @@ export default class RemoteDriver {
             const connection = await self.ensureConnection(this)
 
             const params = validate(command, parameters, variables, ref, args)
-            const result = await self.commands[command](connection, params)
+            const result = await self.commands[command].call(self, connection, params)
 
             log.info('RESULT', command.toLowerCase().includes('screenshot')
                 && typeof result === 'string' && result.length > 64
