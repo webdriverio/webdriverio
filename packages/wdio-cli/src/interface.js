@@ -298,8 +298,8 @@ export default class WDIOCLInterface extends EventEmitter {
 
     finalise () {
         this.interface.clearAll()
-        this.printReporters()
         this.printStdout()
+        this.printReporters()
         this.printSummary()
         this.updateClock()
         this.reset()
