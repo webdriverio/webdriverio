@@ -21,7 +21,7 @@ it('can handle commands synchronously', () => {
 you need return the command promise so it gets resolved properly as well as access the value when the promise got resolve:
 
 ```js
-it('handles commands as promises', ()  =>{
+it('handles commands as promises', ()  => {
     return $('#input').getValue().then((value) => {
         console.log(value); // outputs: some value
     });
