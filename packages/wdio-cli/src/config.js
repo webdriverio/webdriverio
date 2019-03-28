@@ -3,7 +3,6 @@ import { filterPackageName } from './utils'
 export const SUPPORTED_FRAMEWORKS = [
     'mocha', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework
     'jasmine' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
-    // 'cucumber' not yet supported (see #2872)
 ]
 
 export const SUPPORTED_REPORTER = [
@@ -12,12 +11,7 @@ export const SUPPORTED_REPORTER = [
     ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
     ' allure - https://www.npmjs.com/package/@wdio/allure-reporter',
     ' sumologic - https://www.npmjs.com/package/@wdio/sumologic-reporter',
-    ' concise - https://www.npmjs.com/package/@wdio/concise-reporter',
-    ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
-    ' json - https://www.npmjs.com/package/wdio-json-reporter',
-    ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
-    // ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter' not supported yet see https://github.com/QualityOps/wdio-timeline-reporter/issues/9
+    ' concise - https://www.npmjs.com/package/@wdio/concise-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
@@ -27,21 +21,13 @@ export const SUPPORTED_SERVICES = [
     ' selenium-standalone - https://www.npmjs.com/package/@wdio/selenium-standalone-service',
     ' devtools - https://www.npmjs.com/package/@wdio/devtools-service',
     ' applitools - https://www.npmjs.com/package/@wdio/applitools-service',
-    ' browserstack - https://www.npmjs.com/package/wdio-browserstack-service',
-    ' appium - https://www.npmjs.com/package/wdio-appium-service',
-    ' phantomjs - https://www.npmjs.com/package/wdio-phantomjs-service',
-    ' static-server - https://www.npmjs.com/package/wdio-static-server-service',
-    ' visual-regression - https://www.npmjs.com/package/wdio-visual-regression-service',
-    ' webpack - https://www.npmjs.com/package/wdio-webpack-service',
-    ' webpack-dev-server - https://www.npmjs.com/package/wdio-webpack-dev-server-service',
-    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
-    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service',
-    ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service'
+    ' browserstack - https://www.npmjs.com/package/@wdio/browserstack-service',
+    ' appium - https://www.npmjs.com/package/@wdio/appium-service',
+    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
     ' local - https://www.npmjs.com/package/@wdio/local-runner'
-    // ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
 ]
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
