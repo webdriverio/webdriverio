@@ -126,6 +126,8 @@ export default class BaseReporter {
             setLogFile: NOOP
         }
 
+        console.log(`Initing ${reporter}`)
+
         /**
          * check if reporter has custom options
          */

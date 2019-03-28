@@ -5,7 +5,7 @@ import { limit } from './utils'
 
 class JunitReporter extends WDIOReporter {
     constructor (options) {
-        super(options)
+        super(options);
         this.suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
             ? this.options.suiteNameFormat
             : /[^a-zA-Z0-9]+/
@@ -28,6 +28,8 @@ class JunitReporter extends WDIOReporter {
         const packageName = this.options.packageName
             ? `${runner.sanitizedCapabilities}-${this.options.packageName}`
             : runner.sanitizedCapabilities
+
+        console.log(runner)
 
         for (let specId of Object.keys(runner.specs)) {
             for (let suiteKey of Object.keys(this.suites)) {
