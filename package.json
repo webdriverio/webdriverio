@@ -64,8 +64,10 @@
     "typescript": "^3.3.4000"
   },
   "husky": {
-    "pre-commit": "npm run test:eslint",
-    "pre-push": "npm test"
+    "hooks": {
+      "pre-commit": "npm run test:eslint",
+      "pre-push": "npm test"
+    }
   },
   "jest": {
     "testMatch": [
