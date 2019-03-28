@@ -47,12 +47,6 @@ module.exports = {
 
 The following options are supported:
 
-### aggregate
-Set true/false to aggregate all results into one file, or have one file per suite/spec (instance).
-
-Type: Boolean <br>
-Default: false
-
 ### outputDir
 Define a directory where your xml files should get stored.
 
