@@ -23,7 +23,6 @@ npm install @wdio/appium-service --save-dev
 
 Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
-
 ## Configuration
 
 In order to use the service you need to add `appium` to your service array:
