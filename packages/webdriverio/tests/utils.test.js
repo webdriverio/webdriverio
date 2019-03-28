@@ -211,6 +211,13 @@ describe('utils', () => {
             expect(element.value).toBe('foo')
         })
 
+        it('should find an element by datamatcher strategy (android only)', () => {
+            const selector = { 'name': 'startsWith', 'args': 'aFakeString' }
+            const element = findStrategy(selector)
+            expect(element.using).toBe('-android datamatcher')
+            expect(element.value).toBe(JSON.stringify(selector))
+        })
+
         it('should find an element by ui automation strategy (ios only)', () => {
             const element = findStrategy('ios=foo')
             expect(element.using).toBe('-ios uiautomation')
@@ -307,6 +314,9 @@ describe('utils', () => {
             element = findStrategy('-android uiautomator:foobar -android uiautomator')
             expect(element.using).toBe('-android uiautomator')
             expect(element.value).toBe('foobar -android uiautomator')
+            element = findStrategy('-android datamatcher:foobar -android datamatcher')
+            expect(element.using).toBe('-android datamatcher')
+            expect(element.value).toBe('foobar -android datamatcher')
             element = findStrategy('-ios uiautomation:foobar -ios uiautomation')
             expect(element.using).toBe('-ios uiautomation')
             expect(element.value).toBe('foobar -ios uiautomation')

@@ -5,22 +5,29 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
+import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 
 import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
 
 const log = logger('webdriverio')
 const DEFAULT_SELECTOR = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
+const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
 
 export const findStrategy = function (value, isW3C, isMobile) {
-    const isNameAttribute = value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0
-
     /**
      * set default selector
      */
     let using = DEFAULT_SELECTOR
+
+    if (isPlainObject(value)) {
+        return {
+            using: '-android datamatcher',
+            value: JSON.stringify(value)
+        }
+    }
+    const isNameAttribute = value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0
 
     /**
      * check if user has specified locator strategy directly
@@ -42,8 +49,8 @@ export const findStrategy = function (value, isW3C, isMobile) {
 
     // use xPath strategy if value starts with //
     if (value.indexOf('/') === 0 || value.indexOf('(') === 0 ||
-               value.indexOf('../') === 0 || value.indexOf('./') === 0 ||
-               value.indexOf('*/') === 0) {
+            value.indexOf('../') === 0 || value.indexOf('./') === 0 ||
+            value.indexOf('*/') === 0) {
         using = 'xpath'
 
     // use link text strategy if value starts with =
