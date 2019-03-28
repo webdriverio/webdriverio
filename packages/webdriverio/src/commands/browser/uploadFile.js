@@ -24,10 +24,9 @@ export default async function uploadFile (localPath) {
     /**
      * check if command is available
      */
-    // Comment out by Xu Cao since integration test failed because of this check for some reason
-    // if (typeof this.file !== 'function') {
-    //     throw new Error(`The uploadFile command is not available in ${this.capabilities.browserName}`)
-    // }
+    if (typeof this.file !== 'function') {
+        throw new Error(`The uploadFile command is not available in ${this.capabilities.browserName}`)
+    }
 
     let zipData = []
     let source = fs.createReadStream(localPath)

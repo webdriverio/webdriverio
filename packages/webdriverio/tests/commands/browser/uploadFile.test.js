@@ -22,19 +22,18 @@ describe('uploadFile', () => {
         await expect(browser.uploadFile({})).rejects.toEqual(
             new Error('number or type of arguments don\'t agree with uploadFile command'))
     })
-    // comment this UT out since it is not working when I did the real integration test
-    // comment out the corresponding source code as well to be in sync with this
-    // it('should throw if browser does not support it', async function () {
-    //     const browser = await remote({
-    //         baseUrl: 'http://webdriver.io',
-    //         capabilities: {
-    //             browserName: 'chrome'
-    //         }
-    //     })
+    
+    it('should throw if browser does not support it', async function () {
+        const browser = await remote({
+            baseUrl: 'http://webdriver.io',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
 
-    //     await expect(browser.uploadFile('/foo/bar.jpg')).rejects.toEqual(
-    //         new Error('The uploadFile command is not available in mockBrowser'))
-    // })
+        await expect(browser.uploadFile('/foo/bar.jpg')).rejects.toEqual(
+            new Error('The uploadFile command is not available in mockBrowser'))
+    })
 
     it('should archive the file and use file command', async () => {
         const browser = await remote({
