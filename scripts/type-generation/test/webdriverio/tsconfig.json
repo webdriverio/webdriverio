@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "types": [
+      "webdriverio",
+      "@wdio/allure-reporter",
+      "@wdio/mocha-framework",
+      // "@wdio/jasmine-framework",
+      "@wdio/selenium-standalone-service"
+    ]
+  }
+}

@@ -17,10 +17,14 @@
     "test:eslint": "eslint packages examples scripts tests",
     "test:coverage": "jest --coverage --detectOpenHandles",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
+    "test:typings": "npm run generate:typings && node scripts/type-generation/test/copy && npm run ts && rimraf scripts/type-generation/test/**/*.js",
     "version": "node ./scripts/changelog.js && git add CHANGELOG.md && npm run generate:typings",
     "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
     "watch": "node ./scripts/watch",
-    "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
+    "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope",
+    "ts": "run-s ts:*",
+    "ts:sync": "cd scripts/type-generation/test/sync && tsc",
+    "ts:webdriverio": "cd scripts/type-generation/test/webdriverio && tsc"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -54,7 +58,8 @@
     "rimraf": "^2.6.3",
     "shelljs": "^0.8.3",
     "source-map-support": "^0.5.11",
-    "tempy": "^0.2.1"
+    "tempy": "^0.2.1",
+    "typescript": "^3.3.4000"
   },
   "jest": {
     "testMatch": [
