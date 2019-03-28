@@ -1,4 +1,5 @@
-import { W3C_SELECTOR_STRATEGIES } from './constants'
+/* eslint-disable */
+import { W3C_SELECTOR_STRATEGIES } from '../constants'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -27,33 +28,33 @@ const defineStrategy = function (selector) {
         return 'directly'
     }
     // use xPath strategy if selector starts with //
-    if (XPATH_SELECTORS_START.some(option => selector.indexOf(option) === 0)) {
+    if (XPATH_SELECTORS_START.some(option => selector.startsWith(option))) {
         return 'xpath'
     }
     // use link text strategy if selector starts with =
-    if (selector.indexOf('=') === 0) {
+    if (selector.startsWith('=')) {
         return 'link text'
     }
     // use partial link text strategy if selector starts with *=
-    if (selector.indexOf('*=') === 0) {
+    if (selector.startsWith('*=')) {
         return 'partial link text'
     }
     // recursive element search using the UiAutomator library (Android only)
-    if (selector.indexOf('android=') === 0) {
+    if (selector.startsWith('android=')) {
         return '-android uiautomator'
     }
     // recursive element search using the UIAutomation library (iOS-only)
-    if (selector.indexOf('ios=') === 0) {
+    if (selector.startsWith('ios=')) {
         return '-ios uiautomation'
     }
     // recursive element search using accessibility id
-    if (selector.indexOf('~') === 0) {
+    if (selector.startsWith('~')) {
         return 'accessibility id'
     }
     // class name mobile selector
     // for iOS = UIA...
     // for Android = android.widget
-    if (NAME_MOBILE_SELECTORS_START.some(option => selector.toLowerCase().indexOf(option) === 0)) {
+    if (NAME_MOBILE_SELECTORS_START.some(option => selector.toLowerCase().startsWith(option))) {
         return 'class name'
     }
     // use tag name strategy if selector contains a tag
@@ -162,11 +163,9 @@ export const findStrategy = function (selector, isW3C, isMobile) {
                     : `@${attrName}`
             )
         }
-        if (partial) {
-            conditions.push(`contains(., "${query}")`)
-        } else {
-            conditions.push(`normalize-space() = "${query}"`)
-        }
+        conditions.push(
+            partial ? `contains(., "${query}")` : `normalize-space() = "${query}"`
+        )
         value = `.//${tag || '*'}[${conditions.join(' and ')}]`
         break
     }

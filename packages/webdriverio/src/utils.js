@@ -8,7 +8,7 @@ import isObject from 'lodash.isobject'
 import { URL } from 'url'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
-import { findStrategy } from './find-strategy'
+import { findStrategy } from './utils/findStrategy'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')

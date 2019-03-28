@@ -1,4 +1,4 @@
-import { findStrategy } from '../src/find-strategy'
+import { findStrategy } from '../src/utils/findStrategy'
 
 describe('selector strategies helper', () => {
     it('should find an element using "css selector" method', () => {
@@ -236,6 +236,12 @@ describe('selector strategies helper', () => {
     it('should find an element by css selector with id and pseudo class', () => {
         const element = findStrategy('#purplebox:before')
         expect(element.using).toBe('css selector')
+    })
+
+    it('should find an element using "css selector" strategy if isMobile is false and w3c is used', () => {
+        const element = findStrategy('[name="searchinput"]', true, false)
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[name="searchinput"]')
     })
 
     it('should find an element by android accessibility id', () => {
