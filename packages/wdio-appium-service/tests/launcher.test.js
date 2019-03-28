@@ -3,8 +3,13 @@ import childProcess from 'child_process'
 import fs from 'fs-extra'
 import path from 'path'
 
-jest.mock('child_process')
-jest.mock('fs-extra')
+jest.mock('child_process', () => ({
+    spawn: jest.fn(),
+}))
+jest.mock('fs-extra', () => ({
+    createWriteStream : jest.fn(),
+    ensureFileSync : jest.fn(),
+}))
 
 class MockProcess {
     once() {}
