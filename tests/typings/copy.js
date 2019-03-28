@@ -38,7 +38,7 @@ async function copy() {
     }
 }
 
-rimraf('scripts/type-generation/test/**/node_modules/', error => {
+rimraf('tests/typings/**/node_modules/', error => {
     if (!error) {
         return copy()
     }
