@@ -22,8 +22,10 @@ export const findStrategy = function (value, isW3C, isMobile) {
     let using = DEFAULT_SELECTOR
 
     if (isPlainObject(value)) {
-        using = '-android datamatcher'
-        value = JSON.stringify(value)
+        return {
+            using: '-android datamatcher',
+            value: JSON.stringify(value)
+        }
     } else {
         const isNameAttribute = value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0
 

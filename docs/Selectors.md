@@ -173,8 +173,10 @@ Button.click();
 Android's DataMatcher strategy provides a way to find elements by [Data Matcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
 
 ```js
-const selector = {"name": "hasEntry", "args": ["title", "ViewTitle"]};
-const menuItem = $(selector);
+const menuItem = $({
+  "name": "hasEntry",
+  "args": ["title", "ViewTitle"]
+});
 menuItem.click();
 ```
 
