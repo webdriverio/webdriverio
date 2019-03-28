@@ -11,7 +11,10 @@ export const SUPPORTED_REPORTER = [
     ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
     ' allure - https://www.npmjs.com/package/@wdio/allure-reporter',
     ' sumologic - https://www.npmjs.com/package/@wdio/sumologic-reporter',
-    ' concise - https://www.npmjs.com/package/@wdio/concise-reporter'
+    ' concise - https://www.npmjs.com/package/@wdio/concise-reporter',
+    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-reporter',
+    ' video - https://www.npmjs.com/package/wdio-video-reporter',
+    ' html - https://www.npmjs.com/package/@rpii/wdio-html-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
@@ -23,7 +26,10 @@ export const SUPPORTED_SERVICES = [
     ' applitools - https://www.npmjs.com/package/@wdio/applitools-service',
     ' browserstack - https://www.npmjs.com/package/@wdio/browserstack-service',
     ' appium - https://www.npmjs.com/package/@wdio/appium-service',
-    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service'
+    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
+    ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
+    ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
+    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
