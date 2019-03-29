@@ -5,7 +5,6 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
-import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
