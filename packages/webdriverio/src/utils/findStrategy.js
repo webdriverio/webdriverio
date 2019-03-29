@@ -1,8 +1,8 @@
-/* eslint-disable */
 import { W3C_SELECTOR_STRATEGIES } from '../constants'
+import isPlainObject from 'lodash.isplainobject'
 
 const DEFAULT_STRATEGY = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
+const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const XPATH_SELECTORS_START = [
     '/', '(', '\'../\'', './', '*/'
 ]
@@ -21,67 +21,69 @@ const XPATH_SELECTOR_REGEXP = [
 ]
 
 const defineStrategy = function (selector) {
-    /**
-     * check if user has specified locator strategy directly
-     */
+    // Condition with checking isPlainObject(selector) should be first because
+    // in case of "selector" argument is a plain object then .match() will cause
+    // an error like "selector.match is not a function"
+    // Use '-android datamatcher' strategy if selector is a plain object (Android only)
+    if (isPlainObject(selector)) {
+        return '-android datamatcher'
+    }
+    // Check if user has specified locator strategy directly
     if (selector.match(DIRECT_SELECTOR_REGEXP)) {
         return 'directly'
     }
-    // use xPath strategy if selector starts with //
+    // Use xPath strategy if selector starts with //
     if (XPATH_SELECTORS_START.some(option => selector.startsWith(option))) {
         return 'xpath'
     }
-    // use link text strategy if selector starts with =
+    // Use link text strategy if selector starts with =
     if (selector.startsWith('=')) {
         return 'link text'
     }
-    // use partial link text strategy if selector starts with *=
+    // Use partial link text strategy if selector starts with *=
     if (selector.startsWith('*=')) {
         return 'partial link text'
     }
-    // recursive element search using the UiAutomator library (Android only)
+    // Recursive element search using the UiAutomator library (Android only)
     if (selector.startsWith('android=')) {
         return '-android uiautomator'
     }
-    // recursive element search using the UIAutomation library (iOS-only)
+    // Recursive element search using the UIAutomation library (iOS-only)
     if (selector.startsWith('ios=')) {
         return '-ios uiautomation'
     }
-    // recursive element search using accessibility id
+    // Recursive element search using accessibility id
     if (selector.startsWith('~')) {
         return 'accessibility id'
     }
-    // class name mobile selector
+    // Class name mobile selector
     // for iOS = UIA...
     // for Android = android.widget
     if (NAME_MOBILE_SELECTORS_START.some(option => selector.toLowerCase().startsWith(option))) {
         return 'class name'
     }
-    // use tag name strategy if selector contains a tag
+    // Use tag name strategy if selector contains a tag
     // e.g. "<div>" or "<div />"
     if (selector.search(/<[a-zA-Z-]+( \/)*>/g) >= 0) {
         return 'tag name'
     }
-    // use name strategy if selector queries elements with name attributes for JSONWP
+    // Use name strategy if selector queries elements with name attributes for JSONWP
     // or if isMobile is used even when w3c is used
     // e.g. "[name='myName']" or '[name="myName"]'
     if (selector.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
         return 'name'
     }
-    // allow to move up to the parent or select current element
+    // Allow to move up to the parent or select current element
     if (selector === '..' || selector === '.') {
         return 'xpath'
     }
-    // any element with given class, id, or attribute and content
+    // Any element with given class, id, or attribute and content
     // e.g. h1.header=Welcome or [data-name=table-row]=Item or #content*=Intro
     if (selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
     }
 }
 export const findStrategy = function (selector, isW3C, isMobile) {
-    /**
-     * set default strategy
-     */
     let using = DEFAULT_STRATEGY
     let value = selector
 
@@ -113,6 +115,11 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     case '-android uiautomator': {
         using = '-android uiautomator'
         value = selector.slice(8)
+        break
+    }
+    case '-android datamatcher': {
+        using = '-android datamatcher'
+        value = JSON.stringify(value)
         break
     }
     case '-ios uiautomation': {
