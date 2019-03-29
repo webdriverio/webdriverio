@@ -10,17 +10,22 @@
     "clean:tgz": "rimraf ./packages/*/*.tgz",
     "clean:node_modules": "rimraf ./packages/*/node_modules ./packages/node_modules",
     "clean:website": "rimraf docs/_*.md && rimraf docs/api/*.md && rimraf docs/api/**/*.md && rimraf website/sidebars.json",
+    "clean:tests": "rimraf tests/typings/*/*.js && rimraf tests/typings/**/node_modules",
     "link": "node ./scripts/link",
     "release": "NODE_ENV=production npm run setup && lerna publish",
     "setup": "run-s bootstrap build",
     "test": "run-s test:*",
     "test:eslint": "eslint packages examples scripts tests",
+    "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
     "test:coverage": "jest --coverage --detectOpenHandles",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
     "version": "node ./scripts/changelog.js && git add CHANGELOG.md && npm run generate:typings",
     "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
     "watch": "node ./scripts/watch",
-    "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
+    "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope",
+    "ts": "run-p ts:*",
+    "ts:sync": "cd tests/typings/sync && tsc",
+    "ts:webdriverio": "cd tests/typings/webdriverio && tsc"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -44,6 +49,7 @@
     "dox": "^0.9.0",
     "eslint": "^5.15.3",
     "eslint-plugin-import": "^2.16.0",
+    "husky": "^1.3.1",
     "inquirer": "^6.2.2",
     "jest": "^24.5.0",
     "lerna": "^3.13.1",
@@ -54,7 +60,14 @@
     "rimraf": "^2.6.3",
     "shelljs": "^0.8.3",
     "source-map-support": "^0.5.11",
-    "tempy": "^0.2.1"
+    "tempy": "^0.2.1",
+    "typescript": "^3.3.4000"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test:eslint",
+      "pre-push": "npm run test:eslint"
+    }
   },
   "jest": {
     "testMatch": [
