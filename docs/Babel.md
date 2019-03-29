@@ -40,6 +40,6 @@ mochaOpts: {
     require: ['./test/helpers/common.js']
 },
 ```
-Navigate to test folder and run following command: 
+Navigate to test folder and run the following command: 
 ```mkdir helpers && touch helpers/common.js```
 
