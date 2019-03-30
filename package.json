@@ -25,7 +25,11 @@
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope",
     "ts": "run-p ts:*",
     "ts:sync": "cd tests/typings/sync && tsc",
-    "ts:webdriverio": "cd tests/typings/webdriverio && tsc"
+    "ts:sync-mocha": "cd tests/typings/sync-mocha && tsc",
+    "ts:sync-jasmine": "cd tests/typings/sync-jasmine && tsc",
+    "ts:webdriverio": "cd tests/typings/webdriverio && tsc",
+    "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && tsc",
+    "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -61,7 +65,7 @@
     "shelljs": "^0.8.3",
     "source-map-support": "^0.5.11",
     "tempy": "^0.2.1",
-    "typescript": "^3.3.4000"
+    "typescript": "^3.4.1"
   },
   "husky": {
     "hooks": {
