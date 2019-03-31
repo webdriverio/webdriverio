@@ -43,6 +43,7 @@ declare namespace WebdriverIOAsync {
 
     interface Browser extends BrowserAsync, BrowserStatic { }
     interface Element extends ElementAsync, ElementStatic { }
+    interface Config {}
 }
 
 declare var browser: BrowserObject;
