@@ -8,7 +8,7 @@ export const react$ = function react$ (selector, props, state) {
         .byState(state)
 
     if (elems.length === 0) {
-        return null
+        return { message: `React element with selector "${selector}" wasn't found` }
     }
 
     let elem = elems[0]

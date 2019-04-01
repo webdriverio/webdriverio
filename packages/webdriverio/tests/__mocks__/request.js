@@ -144,7 +144,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
                 ]
             } else if (params.body.script.includes('react$')) {
                 result = args[0] === 'myNonExistingComp'
-                    ? null
+                    ? new Error('foobar')
                     : { [ELEMENT_KEY]: genericElementId }
             } else {
                 result = null

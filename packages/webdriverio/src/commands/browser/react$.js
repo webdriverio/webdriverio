@@ -35,10 +35,5 @@ export default async function react$ (selector, props = {}, state = {}) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(react$Script, selector, props, state)
-
-    if  (!res) {
-        throw new Error(`React element with selector "${selector.toString()}" wasn't found`)
-    }
-
     return getElement.call(this, selector, res)
 }
