@@ -135,9 +135,28 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     case `/wd/hub/session/${sessionId}/execute/sync`: {
         const script = Function(params.body.script)
         const args = params.body.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
-        const result = script.apply(this, args)
+
+        let result = null
+        if (params.body.script.includes('resq')) {
+            if (params.body.script.includes('react$$')) {
+                result = [
+                    { [ELEMENT_KEY]: genericElementId },
+                    { [ELEMENT_KEY]: 'some-elem-456' },
+                    { [ELEMENT_KEY]: 'some-elem-789' },
+                ]
+            } else if (params.body.script.includes('react$')) {
+                result = args[0] === 'myNonExistingComp'
+                    ? null
+                    : { [ELEMENT_KEY]: genericElementId }
+            } else {
+                result = null
+            }
+        } else {
+            result = script.apply(this, args)
+        }
+
         //false and 0 are valid results
-        value = Boolean(result) || result === false || result === 0 ? result : {}
+        value = Boolean(result) || result === false || result === 0 || result === null ? result : {}
         break
     } case `/wd/hub/session/${sessionId}/element/${genericElementId}/elements`:
         value = [
