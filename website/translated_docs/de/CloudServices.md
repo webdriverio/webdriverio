@@ -2,7 +2,7 @@
 id: cloudservices
 title: Cloud-Dienste
 ---
-Die Verwendung von Cloud Diensten, wie Sauce Labs, Browserstack oder Testingbot, ist mit WebdriverIO ziemlich einfach. Alles, was Sie tun müssen, ist `user` und `key` Informationen in den Optionen festlegen, die von dem Cloud-Anbieter bereitgestellt wird. Optional können sie auch Ihren Tests mit Cloud spezifischen Capabilities parametrisieren. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
+Die Verwendung von Cloud Diensten, wie Sauce Labs, Browserstack oder Testingbot, ist mit WebdriverIO ziemlich einfach. Alles, was Sie tun müssen, ist `user` und `key` Informationen in den Optionen festlegen, die von dem Cloud-Anbieter bereitgestellt wird. Optional können sie auch Ihren Tests mit Cloud spezifischen Capabilities parametrisieren. Wenn Sie einen Cloud Dienst nur in einer CI Umgebung nutzten wollen, können Sie die `CI` Umgebungsvariable verwenden, um die Konfiguration zu modifizieren.
 
 ```js
 // wdio.conf.js
@@ -17,11 +17,11 @@ exports.config = config
 
 ## [Sauce Labs](https://saucelabs.com/)
 
-It is easy to set up your tests to run remotely in Sauce Labs.
+Es ist kinderleicht Ihr Test-Setup so einzurichten, damit die Tests über Sauce Labs laufen.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
+Die einzige Voraussetzung ist die `user` und `key` Variablen in der Konfiguration zu setzen. Diese sollten aus den Umgebungsvariablen (z.B. über `process.env.SAUCE_USERNAME`) herangezogen werden und nicht direct in der Konfiguration, für alle einsichtbar, festgelegt werde.
 
-You can also pass in any optional [test configuration option](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) as a key/value in the capabilities for any browser.
+Sie können auch beliebige optionale [Test Konfigurationen](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) in den Capabilities festlegen.
 
 ### [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
 
