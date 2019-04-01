@@ -37,34 +37,34 @@ Travis CI bietet ebenfalls eine Sauce Connect Integration an, die Ihnen helfen k
 
 Um dies zu nutzen, setzen Sie die `tunnel-identifier` Option in jeder Ihrer Browser Capabilities. Travis CI setzt den Tunnel Identifier standardgemäß nach der der `TRAVIS_JOB_NUMBER` Umgebungsvariable.
 
-Also if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
+Um Ihre Tests in einem Build zu gruppieren können Sie ebenfalls die Capability `build` nutzen und diese gemäß der `TRAVIS_BUILD_NUMBER` Umgebungsvariable setzen.
 
-Lastly if you set the `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
+Außerdem, wenn Sie die Capability `name` setzen, so wird der Job gemäß Ihrer Eingabe im Sauce Labs Dashboard benannt. Wenn Sie allerdings den WDIO Testrunner verwenden mit dem [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) Plugin, so wird dies automatisch vom Testrunner erledigt.
 
-Example `desiredCapabilities`:
+zum Beispiel:
 
 ```javascript
 browserName: 'chrome',
 version: '27.0',
 platform: 'XP',
 'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
-name: 'integration',
+name: 'mein automatisierter Test',
 build: process.env.TRAVIS_BUILD_NUMBER
 ```
 
 ### Timeouts
 
-Since you are running your tests remotely, it might be necessary to increase some timeouts.
+Da Sie Ihre Tests in der Cloud ausführen, kann es von Nöten sein, einige Timeouts zu erhöhen.
 
-You can change the [idle timeout](https://docs.saucelabs.com/reference/test-configuration/#idle-test-timeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
+Sie können den Leerlaufzeit [ändern](https://docs.saucelabs.com/reference/test-configuration/#idle-test-timeout) indem Sie `idle-timeout` als Testkonfiguration übergeben. Dies kontrolliert, wie lange Sauce zwischen Befehlen warten wird, bevor die Verbindung geschlossen wird.
 
 ## [BrowserStack](https://www.browserstack.com/)
 
-Browserstack is also supported easily.
+Der BrowserStack Support ist ebenfalls einfach zu konfigurieren.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
+Die einzige Voraussetzung ist die `user` und `key` Variablen in der Konfiguration zu setzen. Diese sollten aus den Umgebungsvariablen (z.B. über process.env.BROWSERSTACK_USERNAME) herangezogen werden und nicht direct in der Konfiguration, für alle einsichtbar, festgelegt werde.
 
-You can also pass in any optional [supported capabilities](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
+Sie können auch beliebige optionale <a href="[Test Konfigurationen](https://www.browserstack.com/automate/capabilities) in den Capabilities festlegen. Wenn Sie `browserstack.debug` auf `true` setzen, wird ein Screencast der Sitzung aufgezeichnet, was hilfreich sein könnte.
 
 ### [Local Testing](https://www.browserstack.com/local-testing#command-line)
 
