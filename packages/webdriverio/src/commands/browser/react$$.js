@@ -1,7 +1,7 @@
 /**
  *
- * The `react$` command is a useful command to query React Components by their
- * actual name and filter them by props and state.
+ * The `react$$` command is a useful command to query multiple React Components
+ * by their actual name and filter them by props and state.
  *
  * <example>
     :pause.js
@@ -24,19 +24,14 @@
  *
  */
 import fs from 'fs'
-import { getElement } from '../../utils/getElementObject'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
+import { getElements } from '../../utils/getElementObject'
+import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq'
 
 const resqScript = fs.readFileSync(require.resolve('resq'))
 
 export default async function react$ (selector, props = {}, state = {}) {
     await this.executeScript(resqScript.toString().slice(45), [])
     await this.execute(waitToLoadReact)
-    const res = await this.execute(react$Script, selector, props, state)
-
-    if  (!res) {
-        throw new Error(`React element with selector "${selector.toString()}" wasn't found`)
-    }
-
-    return getElement.call(this, selector, res)
+    const res = await this.execute(react$$Script, selector, props, state)
+    return getElements.call(this, selector, res)
 }
