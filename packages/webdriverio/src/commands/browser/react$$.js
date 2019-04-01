@@ -10,12 +10,8 @@
     it('should calculate 7 * 6', () => {
         browser.url('https://ahfarmer.github.io/calculator/');
 
-        browser.react$('t', { name: '7' }).click()
-        browser.react$('t', { name: 'x' }).click()
-        browser.react$('t', { name: '6' }).click()
-        browser.react$('t', { name: '=' }).click()
-
-        console.log($('.component-display').getText()); // prints "42"
+        const orangeButtons = browser.react$$('t', { orange: true })
+        console.log(orangeButtons.map((btn) => btn.getText())); // prints "[ '÷', 'x', '-', '+', '=' ]"
     });
  * </example>
  *
