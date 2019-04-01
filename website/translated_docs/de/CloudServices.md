@@ -25,17 +25,17 @@ Sie können auch beliebige optionale [Test Konfigurationen](https://docs.saucela
 
 ### [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Sauce Connect.
+Wenn Sie Ihre Test-Applikation auf einem Server hosten, welcher lokal läuft (z.B. `localhost`) oder hinter einer Firewall, so ist die Nutzung von Sauce Connect erforderlich.
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+Es gehört nicht zur Aufgabe von WebdriverIO dieses Tool für Sie zu managen.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
+Allerdings gibt es ein Plugin namens [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service), welches die Integration mit Sauce Connect erleichtert. Es hilft neben dem auch noch in anderen Bereichen für eine bessere Integration mit Sauce Labs.
 
-### With Travis CI
+### Travis CI
 
-Travis CI, however, does [have support](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) for starting Sauce Connect before each test, so follow their directions for that if you are interested.
+Travis CI bietet ebenfalls eine Sauce Connect Integration an, die Ihnen helfen kann Tests über die gesicherte Verbindung zu Sauce Labs laufen zu lassen.
 
-If you do so, you must set the `tunnel-identifier` test configuration option in each browser's capabilities. Travis sets this to the `TRAVIS_JOB_NUMBER` environmental variable by default.
+Um dies zu nutzen, setzen Sie die `tunnel-identifier` Option in jeder Ihrer Browser Capabilities. Travis CI setzt den Tunnel Identifier standardgemäß nach der der `TRAVIS_JOB_NUMBER` Umgebungsvariable.
 
 Also if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
 
