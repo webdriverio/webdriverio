@@ -3,7 +3,16 @@ export const waitToLoadReact = function waitToLoadReact () {
 }
 
 export const react$ = function react$ (selector, props, state) {
-    const elems = window.resq.resq$$(selector)
+    let elems = window.resq.resq$$(selector)
+
+    /**
+     * see https://github.com/baruchvlz/resq/issues/19
+     */
+    if (typeof elems === 'string') {
+        throw new Error(elems)
+    }
+
+    elems = elems
         .byProps(props)
         .byState(state)
 
@@ -22,7 +31,16 @@ export const react$ = function react$ (selector, props, state) {
 }
 
 export const react$$ = function react$$ (selector, props, state) {
-    const elems = window.resq.resq$$(selector)
+    let elems = window.resq.resq$$(selector)
+
+    /**
+     * see https://github.com/baruchvlz/resq/issues/19
+     */
+    if (typeof elems === 'string') {
+        throw new Error(elems)
+    }
+
+    elems = elems
         .byProps(props)
         .byState(state)
 
