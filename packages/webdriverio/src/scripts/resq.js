@@ -21,12 +21,12 @@ export const react$ = function react$ (selector, props, state) {
     return elem
 }
 
-export const react$$ = function react$ (selector, props, state) {
+export const react$$ = function react$$ (selector, props, state) {
     const elems = window.resq.resq$$(selector)
         .byProps(props)
         .byState(state)
 
-    return elems.map((elem) => {
+    return [...elems].map((elem) => {
         if (elem.node) {
             return elem.node
         }
