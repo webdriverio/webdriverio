@@ -42,8 +42,8 @@ describe('react$', () => {
             }
         })
 
-        return expect(browser.react$('myNonExistingComp')).rejects.toThrow(
-            new Error('React element with selector "myNonExistingComp" wasn\'t found'))
+        const elem = await browser.react$('myNonExistingComp')
+        expect(elem.error).toEqual(new Error('foobar'))
     })
 
     afterEach(() => {
