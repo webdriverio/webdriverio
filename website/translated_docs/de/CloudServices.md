@@ -1,8 +1,8 @@
 ---
 id: cloudservices
-title: Using Cloud Services
+title: Cloud-Dienste
 ---
-Using ondemand services like Sauce Labs, Browserstack or TestingBot with WebdriverIO is pretty simple. All you need to do is to set `user` and `key` in your options that are provided by the cloud provider. Optional you can also parametrize your test by setting cloud specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
+Die Verwendung von Cloud Diensten, wie Sauce Labs, Browserstack oder Testingbot, ist mit WebdriverIO ziemlich einfach. Alles, was Sie tun müssen, ist `user` und `key` Informationen in den Optionen festlegen, die von dem Cloud-Anbieter bereitgestellt wird. Optional können sie auch Ihren Tests mit Cloud spezifischen Capabilities parametrisieren. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
 ```js
 // wdio.conf.js
