@@ -66,21 +66,21 @@ Die einzige Voraussetzung ist die `user` und `key` Variablen in der Konfiguratio
 
 Sie können auch beliebige optionale <a href="[Test Konfigurationen](https://www.browserstack.com/automate/capabilities) in den Capabilities festlegen. Wenn Sie `browserstack.debug` auf `true` setzen, wird ein Screencast der Sitzung aufgezeichnet, was hilfreich sein könnte.
 
-### [Local Testing](https://www.browserstack.com/local-testing#command-line)
+### [Lokales Testen](https://www.browserstack.com/local-testing#command-line)
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing.
+Wenn Sie Ihre Test-Applikation auf einem Server hosten, welcher lokal läuft (z.B. `localhost`) oder hinter einer Firewall, so ist die Nutzung von BrowserStack [Local Testing](https://www.browserstack.com/local-testing) erforderlich.
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+Es gehört nicht zur Aufgabe von WebdriverIO dieses Tool für Sie zu managen.
 
-If you do use local, you should set `browserstack.local` to `true` in your capabilities.
+Wenn Sie dieses Feature allerdings nutzen wollen, können Sie es durch das Setzen von `browserstack.local` auf `true` tun.
 
-If you are using the WDIO testrunner download and configure the [`wdio-browserstack-service`](https://github.com/itszero/wdio-browserstack-service) in your `wdio.conf.js`. It helps getting BrowserStack running and comes with additional features that better integrate your tests into the BrowserStack service.
+Wenn Sie allerdings den WDIO-Testrunner nutzen und den Service [`@wdio/browserstack-service`](https://www.npmjs.com/package/@wdio/browserstack-service) in Ihrer `wdio.conf.js` konfigurieren, kann dieser das Starten des Tunnels für Sie übernehmen. Es hilft Ihnen auch mit der Integration von anderen Features in die BrowserStack Platform.
 
-### With Travis CI
+### Travis CI
 
-If you want to add Local Testing in Travis you have to start it by yourself.
+Wenn Sie das Lokale Testing in Travis hinzufügen möchten, müssen Sie es selbst starten.
 
-The following script will download and start it in the background. You should run this in Travis before starting the tests.
+Das folgende Skript lädt BrowserStack Local Testing runter und führt es im Hintergrund aus. Sie sollten dies in Travis ausführen, bevor Sie die Tests starten.
 
 ```bash
 wget https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip
@@ -89,9 +89,9 @@ unzip BrowserStackLocal-linux-x64.zip
 sleep 3
 ```
 
-Also, you might wanna set the `build` to the Travis build number.
+Außerdem sollten Sie auch die `build` Capability auf die Travis Build Nummer setzen.
 
-Example `desiredCapabilities`:
+zum Beispiel:
 
 ```javascript
 browserName: 'chrome',
@@ -104,14 +104,14 @@ build: 'myApp #' + process.env.TRAVIS_BUILD_NUMBER + '.' + process.env.TRAVIS_JO
 
 ## [TestingBot](https://testingbot.com/)
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your TestingBot username and secret key.
+Die einzige Voraussetzung ist die `user` und `key` Variablen in der Konfiguration zu setzen. Diese sollten aus den Umgebungsvariablen (z.B. über process.env.TESTINGBOT_USERNAME) herangezogen werden und nicht direct in der Konfiguration, für alle einsichtbar, festgelegt werde.
 
-You can also pass in any optional [supported capabilities](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
+Sie können auch beliebige optionale [Test Konfigurationen](https://testingbot.com/support/other/test-options) in den Capabilities festlegen.
 
-### [Local Testing](https://testingbot.com/support/other/tunnel)
+### [Lokales Testen](https://testingbot.com/support/other/tunnel)
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. TestingBot provides a JAVA based tunnel to allow you to test websites not accessible from the internet.
+Wenn Sie Ihre Test-Applikation auf einem Server hosten, welcher lokal läuft (z.B. `localhost`) oder hinter einer Firewall, so ist die Nutzung von BrowserStack [Local Testing](https://www.browserstack.com/local-testing) erforderlich. TestingBot bietet einen JAVA-basierten Tunnel, um Websites zu testen, die nicht über das Internet erreichbar sind.
 
-Their tunnel support page contains the information necessary to get this up and running.
+Die TestingBot [Dokumentation](https://testingbot.com/support/other/tunnel) bietet alle notwendige Information darüber an.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps getting TestingBot running and comes with additional features that better integrate your tests into the TestingBot service.
+Wenn Sie allerdings den WDIO-Testrunner nutzen und den Service [`@wdio/testingbot-service`](https://www.npmjs.com/package/@wdio/testingbot-service) in Ihrer `wdio.conf.js` konfigurieren, kann dieser das Starten des Tunnels für Sie übernehmen. Es hilft Ihnen auch mit der Integration von anderen Features in die TestingBot Platform.
