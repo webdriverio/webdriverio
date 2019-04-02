@@ -41,14 +41,14 @@ exports.config = {
     // Test Datei Spezifikation
     // ========================
     //  Die Dateien können relativ vom Ordner spezifiziert werden, von dem der WDIO Befehl ausgeführt
-    // wird. Notice that, if you are calling `wdio` from an
-    // NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
-    // directory is where your package.json resides, so `wdio` will be called from there.
+    // wird. Beachten Sie, wenn Sie den `wdio` Befehl uüber einem NPM-Skript aufrufen (siehe
+    // https://docs.npmjs.com/cli/run-script), dann liegt das aktuelle Arbeitsverzeichnis
+    // dort, wo auch die package.json liegt.
     //
     specs: [
-        'test/spec/**'
+        'test/spec/***'
     ],
-    // Patterns to exclude.
+    // Muster zum Ausschließen.
     exclude: [
         'test/spec/multibrowser/**',
         'test/spec/mobile/**'
@@ -57,18 +57,19 @@ exports.config = {
     // ============
     // Capabilities
     // ============
-    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
-    // time. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your capabilities you can overwrite the spec and exclude option in
-    // order to group specific specs to a specific capability.
+    // Definieren Sie Ihre Browser Spezifikationen hier. WebdriverIO kann mehrer Browser zur
+    // selber Zeit testen. Abhängig von der Anzahl der spezifizierten Browser started WebdriverIO
+    // mehrere Test Sessions zur selben Zeit. Innerhalb der Browser Spezifikation (Capabilities)
+    // können bestimmte Optionen, wie z.B. "specs", "exclude" oder host, überschreiben, um so
+    // nur bestimmte Test mit bestimmten Browsern zu testen.
     //
     //
-    // First you can define how many instances should be started at the same time. Let's
-    // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
-    // set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
-    // files and you set maxInstances to 10, all spec files will get tested at the same time
-    // and 30 processes will get spawned. The property basically handles how many capabilities
-    // from the same test should run tests.
+    // Sie können ebenfalls festlegen, wie viele Browser Instanzen gleichzeitig gestartet werden
+    // sollen. Angenommen Sie definieren 3 verschiedene Browser (Chrome, Firefox und Safari)
+    // und setzen die maxInstances Option auf 1, so wird WebdriverIO 3 Sessions gleichzeitig
+    // starten. Wenn Sie nun 10 Test Dateien in Ihrer Suite haben, so werden insgesamt 30 Tests
+    // parallel gestartet werden. Die maxInstances Einstellung regelt daher, wie viele Tests
+    // insgesamt gleichzeitig laufen sollen.
     //
     maxInstances: 10,
     //
