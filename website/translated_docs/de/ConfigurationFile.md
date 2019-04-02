@@ -73,52 +73,53 @@ exports.config = {
     //
     maxInstances: 10,
     //
-    // Or set a limit to run tests with a specific capability.
+    // Oder setzen Sie ein Limit für die maximale Anzahl von spezifischen Browsern:
     maxInstancesPerCapability: 10,
     //
-    // If you have trouble getting all important capabilities together, check out the
-    // Sauce Labs platform configurator - a great tool to configure your capabilities:
+    // Wenn Sie nicht wissen, wie die einzelnen Werte, die den Browser spezifizieren, zusammen
+    // gesetzt werden, besuchen Sie den Sauce Labs Platform Konfigurator:
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
         browserName: 'chrome',
         chromeOptions: {
-        // to run chrome headless the following flags are required
-        // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
+        // um Chrome im Headless Mode laufen zu lassen, fügen Sie diese Optionen hinzu:
+        // (siehe auch https://developers.google.com/web/updates/2017/04/headless-chrome)
         // args: ['--headless', '--disable-gpu'],
         }
     }, {
-        // maxInstances can get overwritten per capability. So if you have an in house Selenium
-        // grid with only 5 firefox instance available you can make sure that not more than
-        // 5 instance gets started at a time.
+        // maxInstances kann auf für einen bestimmten Browser spezifiziert werden Wenn Sie ein
+        // Selenium Grid benutzen und dieses z.B. nur maximal 5 Firefox Browser registriert hat,
+        // können Sie so festlegen, dass nicht mehr als 5 Firefox Browser gleichzeitig laufen.
         maxInstances: 5,
         browserName: 'firefox',
         specs: [
             'test/ffOnly/*'
         ],
         "moz:firefoxOptions": {
-          // flag to activate Firefox headless mode (see https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
+          // Option, um Firefox im Headless Mode zu starten
+          // (siehe auch https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
           // args: ['-headless']
         }
     }],
     //
-    // Additional list of node arguments to use when starting child processes
+    // Zusätzliche Node.JS Ausführungs Optionen, die dem Sub-Prozess übergeben werden
     execArgv: [],
     //
-    // ===================
-    // Test Configurations
-    // ===================
-    // Define all options that are relevant for the WebdriverIO instance here
+    // ====================
+    // Test Konfigurationen
+    // ====================
+    // Definieren Sie hier alle Optionen, die relevant für das Ausführen von WebdriverIO ist.
     //
-    // Level of logging verbosity: trace | debug | info | warn | error
+    // Level der Anzahl und Geschwätzigkeit der Log Nachrichten: trace | debug | info | warn | error
     logLevel: 'info',
     //
-    // If you only want to run your tests until a specific amount of tests have failed use
-    // bail (default is 0 - don't bail, run all tests).
+    // Wenn Sie die Tests ab einer bestimmen Anzahl von Fehlern beenden wollen, nutzen Sie
+    // bail (Standardwert ist 0 - bedeutet: nicht vorzeitig beenden und alle Tests ausführen).
     bail: 0,
     //
-    // Set a base URL in order to shorten url command calls. If your `url` parameter starts
-    // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
+    // Setzen Sie hier die Basis URL für alle "url" Befehle. Sobald Ihr "url" Parameter mit "/"
+    // beginnt, fügt WebdriverIO die Basis URL an.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
     baseUrl: 'http://localhost:8080',
