@@ -142,44 +142,49 @@ exports.config = {
     // Sie die tests starten.
     framework: 'mocha',
     //
-    // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
+    // =============
+    // Test Reporter
+    // =============
+    // WebdriverIO bietet verschiedenste Reporter an, die es Ihnen ermöglicht Informationen über
+    // Tests einzusehen. Reporter können folgendermaßen definiert werden:
     reporters: [
         'dot',
         ['allure', {
             //
-            // If you are using the "allure" reporter you should define the directory where
-            // WebdriverIO should save all allure reports.
+            // Wenn Sie den Allure Reporter verwenden, sollten Sie den Ordner definieren, wo alle
+            // Testreports abgelegt werden sollen.
             outputDir: './'
         }]
     ],
     //
-    // Options to be passed to Mocha.
-    // See the full list at http://mochajs.org/
+    // Optionen die dem Mocha Framework übergeben werden.
+    // Sie finden die komplette Liste von möglichen Optionen auf http://mochajs.org/
     mochaOpts: {
         ui: 'bdd'
     },
     //
-    // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
+    // Optionen, die dem Jasmine Framework übergeben werden.
+    // Die ganze Liste mit Optionen finden Sie auf: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
-        // Jasmine default timeout
+        // Standard Timeout für Jasmine Tests
         defaultTimeoutInterval: 5000,
         //
-        // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
-        // or website depending on the result. For example it is pretty handy to take a screenshot every time
-        // an assertion fails.
+        // Das Jasmine Framework erlaubt es jede Test Assertion abzufangen und dessen Ergebnis
+        // beliebig zu verändern. Zum Beispiel ist es ziemlich praktisch, jedes Mal einen
+        // Screenshot zu nehmen, wenn eine Behauptung fehlschlägt.
         expectationResultHandler: function(passed, assertion) {
-            // do something
+            // nehme einen Screenshort, wenn die Behauptung falsch ist (passed === false)
         },
         //
-        // Make use of Jasmine-specific grep functionality
+        // Nutze die Jasmine spezifische filter Funktion
         grep: null,
         invertGrep: null
     },
     //
-    // If you are using Cucumber you need to specify where your step definitions are located.
+    // WebdriverIO unterstützt derzeit noch nicht das Cucumber Framework. Daran wird allerdings
+    // gearbeitet und steht Ihnen bald zur Verfügung. Für dieses Framework stehen Ihnen dann
+    // die folgenden Optionen zu Verfügung:
     // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
