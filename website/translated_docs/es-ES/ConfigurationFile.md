@@ -8,14 +8,14 @@ El archivo de configuración contiene toda la información necesaria para ejecut
 exports.config = {
 
     // =====================
-    // Server Configurations
+    // Configuraciones del servidor
     // =====================
-    // Host address of the running Selenium server. Esta información usualmente no se necesita 
-    // ya que WebdriverIO se conecta automaticamente al localhost. Also if you are using one of the
-    // supported cloud services like Sauce Labs, Browserstack or Testing Bot you also don't
-    // need to define host and port information because WebdriverIO can figure that out
-    // according to your user and key information. However if you are using a private Selenium
-    // backend you should define the host address, port, and path here.
+    // Dirección del servidor que corre Selenium. Esta información usualmente no se necesita 
+    // ya que WebdriverIO se conecta automaticamente al localhost. Además, si esta utilizando uno de los
+    // servicios de nube como Sauce Labs, Browserstack o Testing Bot, no se requiere
+    // que defina la dirección del servido ya que WebdriverIO resuelve esto
+    // dependiendo de su información de usuario y la llave. Sin embaro, si esta utilizando un servidor providado
+    // de Selenium, debe definir la dirreción, el puerto, y  el path aqui.
     //
     host: '0.0.0.0',
     port: 4444,
