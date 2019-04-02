@@ -284,36 +284,30 @@ exports.config = {
      * Wird ausgeführt, sobald alle Tests ausgeführt wurden. Hier haben Sie immernoch Zugriff auf
      * die Browser Instanz.
      * @param {Number} result 0 - test pass, 1 - test fail
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that ran
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test Dateien
      */
     after: function (result, capabilities, specs) {
     },
     /**
-     * Gets executed right after terminating the webdriver session.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that ran
+     * Wird ausgeführt, sobald der Browser geschlossen wurde.
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test Dateien
      */
     afterSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed after all workers got shut down and the process is about to exit.
-     * @param {Object} exitCode 0 - success, 1 - fail
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {<Object>} results object containing test results
+     * Wird ausgeführt, sobald alle Test Prozesse geschlossen wurden.
+     * @param {Object} exitCode 0 - Erfolg, 1 - Fehlschlag
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {<Object>} results Objekt mit den Test Resultaten
      */
     onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
-    * Gets executed when an error happens, good place to take a screenshot
-    * @ {String} error message
-    */
-    onError: function(message) {
-    }
-    /**
-     * Cucumber specific hooks
+     * Cucumber spezifische Hooks
      */
     beforeFeature: function (feature) {
     },
@@ -330,4 +324,4 @@ exports.config = {
 };
 ```
 
-You can also find that file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).
+Sie finden ebenfalls nochmal eine Konfigurationsdatei mit allen möglichen Werten im [Beispiel Verzeichnis](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).
