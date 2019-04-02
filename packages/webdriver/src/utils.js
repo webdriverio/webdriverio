@@ -20,7 +20,7 @@ export function isSuccessfulResponse (statusCode, body) {
     /**
      * response contains a body
      */
-    if (!body || typeof body.value === 'undefined') {
+    if (!body) {
         log.debug('request failed due to missing body')
         return false
     }
@@ -42,6 +42,17 @@ export function isSuccessfulResponse (statusCode, body) {
      */
     if (body.status && body.status !== 0) {
         log.debug(`request failed due to status ${body.status}`)
+        return false
+    }
+
+    /**
+     * If status property was not set then body must have a value
+     */
+    if (
+        typeof body.status === 'undefined' &&
+        typeof body.value === 'undefined'
+    ) {
+        log.debug('request failed due to missing body')
         return false
     }
 
