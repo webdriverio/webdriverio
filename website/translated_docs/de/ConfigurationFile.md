@@ -1,21 +1,21 @@
 ---
 id: configurationfile
-title: Testrunner Configuration
+title: Testrunner Konfiguration
 ---
-The configuration file contains all necessary information to run your test suite. It is a node module that exports a JSON. Here is an example configuration with all supported properties and additional information:
+Die Konfigurationsdatei enthält alle notwendigen Informationen, um Ihre Testsuite auszuführen. Es ist ein einfaches Node.js Modul, welches ein JSON Objekt exportiert. Hier ist eine Beispielkonfiguration mit allen unterstützten Eigenschaften und zusätzlichen Informationen:
 
 ```js
 exports.config = {
 
-    // =====================
-    // Server Configurations
-    // =====================
-    // Host address of the running Selenium server. This information is usually obsolete as
-    // WebdriverIO automatically connects to localhost. Also if you are using one of the
-    // supported cloud services like Sauce Labs, Browserstack or Testing Bot you also don't
-    // need to define host and port information because WebdriverIO can figure that out
-    // according to your user and key information. However if you are using a private Selenium
-    // backend you should define the host address, port, and path here.
+    // ====================
+    // Server Konfiguration
+    // ====================
+    // Host Adresse des laufenden Browser Drivers. Diese Informationen sind nur dann wichtig, wenn
+    // sich mit einem Driver verbinden wollen, der nicht auf Ihrem System läuft. Wenn Sie unterstützte Cloud Dienste,
+    // wie z.B. Sauce Labs, Browserstack oder Testingbot, nutzen ist es ebenfalls nicht nötig die
+    // Adresse dieser Dienste anzugeben, da WebdriverIO dies anhand ihres Access Keys herausfinden
+    // kann. Wenn Sie allerdings Ihr eigenes Selenium Grid betreuen, ist es von Nöten, die Adresse
+    // vom Grid anzugeben.
     //
     host: '0.0.0.0',
     port: 4444,
@@ -24,24 +24,24 @@ exports.config = {
     // =================
     // Service Providers
     // =================
-    // WebdriverIO supports Sauce Labs, Browserstack and Testing Bot (other cloud providers
-    // should work too though). These services define specific user and key (or access key)
-    // values you need to put in here in order to connect to these services.
+    // WebdriverIO unterstützt Sauce Labs, Browserstack und Testing Bot (andere Cloud Dienste können
+    // ebenfalls genutzt werden, benötigen allerdings weiter Einstellungen. Diese Dienste erfordern eine
+    // Autorisierung über ein User Namen und Key (Access Key), um sich mit diesen zu verbinden.
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
-    // If you run your tests on SauceLabs you can specify the region you want to run your tests
-    // in via the `region` property. Available short handles for regions are:
+    // Wenn Sie Ihre Tests auf der Sauce Labs Platform ausführen, können Sie auch die Region des
+    // Datencenters angeben, wo der Test ausgeführt werden soll. Verfügbar sind die folgenden Regionen:
     // us: us-west-1 (default)
     // eu: eu-central-1
     region: 'us',
     //
-    // ==================
-    // Specify Test Files
-    // ==================
-    // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called. Notice that, if you are calling `wdio` from an
+    // ========================
+    // Test Datei Spezifikation
+    // ========================
+    //  Die Dateien können relativ vom Ordner spezifiziert werden, von dem der WDIO Befehl ausgeführt
+    // wird. Notice that, if you are calling `wdio` from an
     // NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
     // directory is where your package.json resides, so `wdio` will be called from there.
     //
