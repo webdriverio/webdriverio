@@ -120,28 +120,28 @@ exports.config = {
     //
     // Setzen Sie hier die Basis URL für alle "url" Befehle. Sobald Ihr "url" Parameter mit "/"
     // beginnt, fügt WebdriverIO die Basis URL an.
-    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
-    // gets prepended directly.
+    // Wenn der `url` Parameter ohne Schema oder mit `/` (wie `some/path`) beginnt, wird die Basisurl
+    // direkt vorangestellt.
     baseUrl: 'http://localhost:8080',
     //
-    // Default timeout for all waitForXXX commands.
+    // Standardwert für den Timeout von allen waitForXXX Befehlen.
     waitforTimeout: 1000,
     //
-    // Add files to watch (e.g. application code or page objects) when running `wdio` command
-    // with `--watch` flag (globbing is supported).
+    // Fügen Sie hier Dateien hinzu, die Sie zusätzlich beobachten wollen, wenn Sie das Watch
+    // Feature von WebdriverIO über den `--watch` Parameter benuzten.
     filesToWatch: [
-        // e.g. rerun tests if I change my application code
+        // e.g. wiederholen Sie all Tests, wenn ich mein Applikationscode ändere
         // './app/**/*.js'
     ],
     //
-    // Framework you want to run your specs with.
-    // The following are supported: mocha, jasmine and cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // Framework in dem Sie die Tests laufen lassen wollen.
+    // Die folgenden Frameworks sind unterstützt: mocha und jasmine
+    // sehen Sie auch: http://webdriver.io/docs/frameworks.html
     //
-    // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
+    // Vergewissern Sie sich, dass Sie das zusätzliche Framework Package installiert haben bevor
+    // Sie die tests starten.
     framework: 'mocha',
     //
-    // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
     reporters: [
