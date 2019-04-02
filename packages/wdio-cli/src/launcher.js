@@ -6,7 +6,6 @@ import { ConfigParser, initialisePlugin } from '@wdio/config'
 
 import CLInterface from './interface'
 import { getLauncher, runServiceHook } from './utils'
-import clonedeep from 'lodash.clonedeep'
 
 const log = logger('wdio-cli:Launcher')
 
@@ -122,14 +121,22 @@ class Launcher {
          */
         let cid = 0
         for (let capabilities of caps) {
-            this.schedule.push({
+            let sch = {
                 cid: cid++,
                 caps: capabilities,
                 specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude),
                 availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
                 runningInstances: 0,
-                seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+                seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol },
+                specsDataCountMap: {}
+            }
+
+            sch.specs.forEach(spec => {
+                let dataProvider = this.dataProvidersMap[spec]
+                sch.specsDataCountMap[spec] = (dataProvider === undefined) ? 0 : dataProvider.dataSet.length
             })
+
+            this.schedule.push(sch)
         }
 
         return new Promise((resolve) => {
@@ -159,8 +166,7 @@ class Launcher {
      */
     runSpecs () {
         let config = this.configParser.getConfig()
-        this.schedule = this.schedule.map(caps => {caps.dataProvidersMap = clonedeep(this.dataProvidersMap); return caps}, this)
-        
+
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -210,21 +216,13 @@ class Launcher {
                 break
             }
 
-            let specFile = schedulableCaps[0].specs[0]
-            let dataProvider = schedulableCaps[0].dataProvidersMap[specFile]
-            let testData = ""
-            
-            if (dataProvider === undefined) {
-                schedulableCaps[0].specs.shift()
-            }
-            else {
-                if (dataProvider.dataSet.length <= 1) {
-                    schedulableCaps[0].specs.shift()
-                }  
+            let specFile = schedulableCaps[0].specs[0];
+            let testDataIndex = schedulableCaps[0].specsDataCountMap[specFile];
+            let testData = "";
 
-                if (dataProvider.dataSet.length > 0) {
-                    testData = dataProvider.dataSet.shift()
-                }
+            if (testDataIndex > 0) {
+                testData = this.dataProvidersMap[specFile].dataSet[testDataIndex - 1];
+                schedulableCaps[0].specsDataCountMap[specFile]--;
             }
 
             this.startInstance(
@@ -236,6 +234,10 @@ class Launcher {
             )
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
+
+            if (schedulableCaps[0].specsDataCountMap[specFile] === 0) {
+                schedulableCaps[0].specs.shift();
+            }
         }
 
         return this.getNumberOfRunningInstances() === 0 && this.getNumberOfSpecsLeft() === 0
