@@ -218,77 +218,71 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     /**
-     * Wird ausgeführt, bevor der Browser gestartet wird. It allows you
-     * to manipulate configurations depending on the capability or spec.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * Wird ausgeführt, bevor der Browser gestartet wird. Es ermöglicht, die Browser Definition
+     * nochmal dynamisch zu variieren.
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test-Dateien
      */
     beforeSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed before test execution begins. At this point you can access to all global
-     * variables like `browser`. It is the perfect place to define custom commands.
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * Wird ausgeführt bevor der Test gestartet wird. Hier haben Sie bereits Zugriff auf die
+     * globalen Variablen, die im Test ebenfalls zur Verfügung stehen (z.B. `browser`). Es
+     * ist eine geeignete Stelle, benutzerdefinierte Befehle zu definieren.
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test-Dateien
      */
     before: function (capabilities, specs) {
     },
     /**
-     * Hook that gets executed before the suite starts
-     * @param {Object} suite suite details
+     * Wird ausgeführt bevor die Test Suite gestartet wird.
+     * @param {Object} suite Suite Eigenschaften
      */
     beforeSuite: function (suite) {
     },
     /**
-     * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-     * beforeEach in Mocha)
+     * Wird ausgeführt bevor eine Hook im Test ausgeführt wird (z.B. wird ausgeführt vor der
+     * "beforeEach" Hook in Mocha)
      */
     beforeHook: function () {
     },
     /**
-     * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
-     * afterEach in Mocha)
-     */
-    afterHook: function () {
-    },
-    /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * @param {Object} test Test Eigenschaften
      */
     beforeTest: function (test) {
     },
     /**
-     * Runs before a WebdriverIO command gets executed.
-     * @param {String} commandName hook command name
-     * @param {Array} args arguments that command would receive
+     * Wird ausgeführt bevor ein Befehl in WebdriverIO ausgeführt wird.
+     * @param {String} commandName Name des Befehls
+     * @param {Array} args Argumente, die der Befehl erhalten hat
      */
     beforeCommand: function (commandName, args) {
     },
     /**
-     * Runs after a WebdriverIO command gets executed
-     * @param {String} commandName hook command name
-     * @param {Array} args arguments that command would receive
-     * @param {Number} result 0 - command success, 1 - command error
-     * @param {Object} error error object if any
+     * Wird ausgeführt, nachdem ein Befehl in WebdriverIO ausgeführt wurde.
+     * @param {String} commandName Name des Befehls
+     * @param {Array} args Argumente, die der Befehl erhalten hat
+     * @param {Number} result 0 - Befehl war erfolgreich, 1 - Befehl hatte einen Fehler
+     * @param {Object} error Fehler Objekt (falls existierend)
      */
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-     * @param {Object} test test details
+     * Wird ausgeführt nachdem ein Test (in Mocha/Jasmine) oder ein Schritt (in Cucumber) ausgeführt wurde.
+     * @param {Object} test Test Eigenschaften
      */
     afterTest: function (test) {
     },
     /**
-     * Hook that gets executed after the suite has ended
-     * @param {Object} suite suite details
+     * Wird ausgeführt, sobald eine Test Suite ausgeführt wurde
+     * @param {Object} suite Suite Eigenschaften
      */
     afterSuite: function (suite) {
     },
     /**
-     * Gets executed after all tests are done. You still have access to all global variables from
-     * the test.
+     * Wird ausgeführt, sobald alle Tests ausgeführt wurden. Hier haben Sie immernoch Zugriff auf
+     * die Browser Instanz.
      * @param {Number} result 0 - test pass, 1 - test fail
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
