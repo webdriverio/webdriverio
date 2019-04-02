@@ -27,21 +27,21 @@ También puede pasar cualquier [configuración opcional de prueba](https://docs.
 
 Si quieres ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesitas usar Sauce Connect.
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+Esta functionalidad está fuera del alcance de WebdriverIO, así que usted debe empezar por usted mismo.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
+Si está usando el testrunner WDIO, descarga y configura el [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) en su `wdio.conf.js`. Ayuda a que Sauce Connect funcione y viene con características adicionales que integran mejor sus pruebas en el servicio de Sauce.
 
-### With Travis CI
+### Con Travis CI
 
-Travis CI, however, does [have support](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) for starting Sauce Connect before each test, so follow their directions for that if you are interested.
+Sin embargo, Travis CI [tiene soporte](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) para iniciar Sauce Connect antes de cada prueba, así que siga sus direcciones para eso si está interesado.
 
-If you do so, you must set the `tunnel-identifier` test configuration option in each browser's capabilities. Travis sets this to the `TRAVIS_JOB_NUMBER` environmental variable by default.
+Si lo haces, debes establecer la opción de configuración de prueba `tunnel-identifier` en las capacidades de cada navegador. Travis lo establece en la variable de entorno `TRAVIS_JOB_NUMBER` por defecto.
 
-Also if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
+También si quieres tener el grupo de Sauce Labs de tus pruebas mediante número de compilación, puedes establecer el `build` a `TRAVIS_BUILD_NUMBER`.
 
-Lastly if you set the `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
+Por último, si establece el `name`, esto cambia el nombre de esta prueba en Sauce Labs para esta construcción. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
 
-Example `desiredCapabilities`:
+Ejemplo `desiredCapabilities`:
 
 ```javascript
 browserName: 'chrome',
@@ -52,15 +52,15 @@ name: 'integration',
 build: process.env.TRAVIS_BUILD_NUMBER
 ```
 
-### Timeouts
+### Plazos
 
-Since you are running your tests remotely, it might be necessary to increase some timeouts.
+Puesto que está ejecutando sus pruebas remotamente, puede ser necesario aumentar algunos plazos.
 
-You can change the [idle timeout](https://docs.saucelabs.com/reference/test-configuration/#idle-test-timeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
+Puede cambiar el tiempo de espera de [inactivo](https://docs.saucelabs.com/reference/test-configuration/#idle-test-timeout) pasando por `idle-timeout` como opción de configuración de prueba. Esto controla cuánto tiempo esperará Sauce entre comandos antes de cerrar la conexión.
 
 ## [BrowserStack](https://www.browserstack.com/)
 
-Browserstack is also supported easily.
+Browserstack también es compatible con facilidad.
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
 
