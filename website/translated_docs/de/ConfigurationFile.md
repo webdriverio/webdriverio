@@ -185,42 +185,40 @@ exports.config = {
     // WebdriverIO unterstützt derzeit noch nicht das Cucumber Framework. Daran wird allerdings
     // gearbeitet und steht Ihnen bald zur Verfügung. Für dieses Framework stehen Ihnen dann
     // die folgenden Optionen zu Verfügung:
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
+    // Sehen Sie auch: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
-        require: [],        // <string[]> (file/dir) require files before executing features
-        backtrace: false,   // <boolean> show full backtrace for errors
-        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        dryRun: false,      // <boolean> invoke formatters without executing steps
-        failFast: false,    // <boolean> abort the run on first failure
-        format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
-        colors: true,       // <boolean> disable colors in formatter output
-        snippets: true,     // <boolean> hide step definition snippets for pending steps
-        source: true,       // <boolean> hide source URIs
-        profile: [],        // <string[]> (name) specify the profile to use
-        strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,      // <number> timeout for step definitions
-        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+        require: [],        // <string[]> (file/dir) Dateien vor der Ausführung von Feature Test ausführen
+        backtrace: false,   // <boolean> den ganzen Backtrace der Fehler zeigen
+        compiler: [],       // <string[]> ("extension:module") lädt eine Datei gegeben seiner Dateiendung
+        dryRun: false,      // <boolean> Ausführung von "formatters" ohne die Steps ausgeführt zu haben
+        failFast: false,    // <boolean> Abbrechen der Tests nach dem ersten Fehler
+        colors: true,       // <boolean> Anzeige von Farben
+        snippets: true,     // <boolean> Zeige keine Schrittdefinition von ausstehenden Schritten an
+        source: true,       // <boolean> Datei Pfade URIs anzeigen
+        profile: [],        // <string[]> (name) Spezifikation des Test Profils
+        strict: false,      // <boolean> Schlag fehl, sobald ein Schritt nicht definiert ist oder austehend ist
+        timeout: 20000,      // <number> Timeout für Schritt Definierung
+        ignoreUndefinedDefinitions: false, // <boolean> Aktivieren Sie diese Option, wenn Sie nicht definierte Definitionen nur als Warnungen anzeigen wollen
     },
     //
     // =====
     // Hooks
     // =====
-    // WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
-    // it and build services around it. You can either apply a single function to it or an array of
-    // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
-    // resolved to continue.
+    // WebdriverIO ermöglicht es verschiedene Hooks zu nutzen, um in den Testausführungsprozess
+    // einzugreifen und verschiedenste Add-Ons bereitzustellen. Sie können entweder eine einzelne
+    // oder eine List von Funktionen ausführen. Sobald eine der Funktionen ein Promise zurückgibt,
+    // wird WebdriverIO mit der Ausführung des Tests warten, bis dieses aufgelöst wird.
     //
 
     /**
-     * Gets executed once before all workers get launched.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
+     * Wird ausgeführt bevor alle Sub-Prozesse gestartet werden
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
      */
     onPrepare: function (config, capabilities) {
     },
     /**
-     * Gets executed just before initialising the webdriver session and test framework. It allows you
+     * Wird ausgeführt, bevor der Browser gestartet wird. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
