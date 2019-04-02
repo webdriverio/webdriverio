@@ -1,8 +1,8 @@
 ---
 id: configurationfile
-title: Testrunner Configuration
+title: Configuración de Testrunner
 ---
-The configuration file contains all necessary information to run your test suite. It is a node module that exports a JSON. Here is an example configuration with all supported properties and additional information:
+El archivo de configuración contiene toda la información necesaria para ejecutar su suite de pruebas. Es un módulo de nodo que exporta un JSON. Aquí hay una configuración de ejemplo con todas las propiedades soportadas e información adicional:
 
 ```js
 exports.config = {
@@ -10,8 +10,8 @@ exports.config = {
     // =====================
     // Server Configurations
     // =====================
-    // Host address of the running Selenium server. This information is usually obsolete as
-    // WebdriverIO automatically connects to localhost. Also if you are using one of the
+    // Host address of the running Selenium server. Esta información usualmente no se necesita 
+    // ya que WebdriverIO se conecta automaticamente al localhost. Also if you are using one of the
     // supported cloud services like Sauce Labs, Browserstack or Testing Bot you also don't
     // need to define host and port information because WebdriverIO can figure that out
     // according to your user and key information. However if you are using a private Selenium
