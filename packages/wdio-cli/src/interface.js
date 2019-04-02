@@ -69,6 +69,8 @@ export default class WDIOCLInterface extends EventEmitter {
      * clear job from interface
      */
     clearJob ({ cid, passed, retries }) {
+        const job = this.jobs.get(cid)
+
         this.jobs.delete(cid)
         const retry = !passed && retries > 0
         if (!retry) {
@@ -84,7 +86,29 @@ export default class WDIOCLInterface extends EventEmitter {
             this.result.failed++
         }
 
-        this.updateView(true)
+        if (!process.env.CI) {
+            return this.updateView(true)
+        }
+
+        return this.printJobUpdateCI(job)
+    }
+
+    /**
+     * print job result in stdout for CI tests
+     */
+    printJobUpdateCI (job, passed, retries) {
+        const filename = job.specs.join(', ').replace(process.cwd(), '')
+        const cap = getRunnerName(job.caps)
+        const status = passed ? 'PASS' : 'FAIL'
+        const retryCount = retries > 0 ? `(${retries} retries)` : ''
+
+        // eslint-disable-next-line no-console
+        console.log(
+            chalk.white[passed ? 'bgGreen' : 'bgRed'](status) + ' -',
+            cap,
+            filename,
+            retryCount
+        )
     }
 
     /**
@@ -155,14 +179,14 @@ export default class WDIOCLInterface extends EventEmitter {
             }
 
             const clockSpinnerSymbol = this.getClockSymbol()
-            return this.interface.log(
+            return this.display.push([
                 `${clockSpinnerSymbol} ` +
                 `${this.jobs.size} running, ` +
                 `${this.result.passed} passed, ` +
                 (this.result.retries ? `${this.result.retries} retries, ` : '') +
                 `${this.result.failed} failed, ` +
                 `${totalJobs} total ` +
-                `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`)
+                `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`])
         }
 
         this.clearConsole()
@@ -297,7 +321,6 @@ export default class WDIOCLInterface extends EventEmitter {
         this.clearConsole()
         this.printReporters()
         this.printStdout()
-        this.printReporters()
         this.printSummary()
         this.updateClock()
         this.resetClock()
