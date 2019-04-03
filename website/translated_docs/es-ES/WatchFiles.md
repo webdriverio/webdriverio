@@ -2,7 +2,7 @@
 id: observador
 title: Observa los Archivos de Pruebas
 ---
-Con el testrunner de WDIO, puedes monitorear los archivos mientras trabajabas en ellos. Se ejecutan automáticamente ante cambios en la app o en los archivos de pruebas. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
+Con el testrunner de WDIO, puedes monitorear los archivos mientras trabajabas en ellos. Se ejecutan automáticamente ante cambios en la app o en los archivos de pruebas. Agregando la opción `--watch` all llamar al comando `wdio`, el testrunner va a monitorear el archivo en busca de cambios luego de que todos los tests son ejecutados. Por ejemplo.
 
 ```sh
 $ wdio wdio.conf.js --watch
