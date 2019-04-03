@@ -176,5 +176,5 @@ export const SAUCELABS_REPORT = REPORT + `[loremipsum #0-0]
 `
 
 export const SAUCELABS_EU_REPORT = REPORT + `[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 `
