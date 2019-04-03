@@ -107,13 +107,22 @@ export default class WDIOCLInterface extends EventEmitter {
         const status = passed ? 'PASS' : 'FAIL'
         const retryCount = retries > 0 ? `(${retries} retries)` : ''
 
-        // eslint-disable-next-line no-console
-        console.log(
+        this.log(
             chalk.white[passed ? 'bgGreen' : 'bgRed'](status) + ' -',
             cap,
             filename,
             retryCount
         )
+    }
+
+    /**
+     * for testing purposes call console log in a static method
+     */
+    /* istanbul ignore next */
+    log (...args) {
+        /* istanbul ignore next */
+        // eslint-disable-next-line no-console
+        console.log(...args)
     }
 
     /**
@@ -151,6 +160,10 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * allow to exit repl mode via Ctrl+C
          */
+        if (this.inDebugMode) {
+            return
+        }
+
         this.sigintTriggered = true
         this.updateView()
     }
@@ -194,7 +207,7 @@ export default class WDIOCLInterface extends EventEmitter {
                 (this.result.retries ? `${this.result.retries} retries, ` : '') +
                 `${this.result.failed} failed, ` +
                 `${totalJobs} total ` +
-                `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`])
+                `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`].join(' '))
         }
 
         this.clearConsole()
@@ -320,7 +333,7 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * clear time row if given
          */
-        if (this.display[this.display.length - 1].startsWith('Time:')) {
+        if (this.display.length && this.display[this.display.length - 1].startsWith('Time:')) {
             this.display.pop()
         }
 
