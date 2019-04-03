@@ -785,7 +785,12 @@
       "command": "getAlertText",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidalert_text",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "alertText",
+        "description": "The text of the currently displayed alert."
+      }
     },
     "POST": {
       "command": "sendAlertText",
