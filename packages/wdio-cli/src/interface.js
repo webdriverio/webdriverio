@@ -21,6 +21,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.totalWorkerCnt = totalWorkerCnt
         this.sigintTriggered = false
         this.isWatchMode = false
+        this.inDebugMode = false
         this.stdout = stdout
         this.stdoutBuffer = []
         this.stderr = stderr
@@ -94,7 +95,7 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.updateView(true)
         }
 
-        return this.printJobUpdateCI(job)
+        return this.printJobUpdateCI(job, passed, retries)
     }
 
     /**
@@ -119,18 +120,21 @@ export default class WDIOCLInterface extends EventEmitter {
      * event handler that is triggered when runner sends up events
      */
     onMessage (event) {
-        // if (event.origin === 'debugger' && event.name === 'start') {
-        //     this.resetClock()
-        //     this.interface.clearAll()
-        //     this.interface.inDebugMode = true
-        //     this.interface.log(chalk.yellow(event.params.introMessage))
-        // }
-        //
-        // if (event.origin === 'debugger' && event.name === 'stop') {
-        //     this.interface.inDebugMode = false
-        //     this.sigintTriggered = false
-        //     return this.updateView()
-        // }
+        if (event.origin === 'debugger' && event.name === 'start') {
+            this.resetClock()
+            this.clearConsole()
+
+            logUpdate.clear()
+            logUpdate(chalk.yellow(event.params.introMessage))
+            this.inDebugMode = true
+            return
+        }
+
+        if (event.origin === 'debugger' && event.name === 'stop') {
+            this.sigintTriggered = false
+            this.inDebugMode = false
+            return this.updateView()
+        }
 
         if (!event.origin || !this.messages[event.origin]) {
             return log.warn(`Can't identify message from worker: ${JSON.stringify(event)}, ignoring!`)
@@ -163,10 +167,10 @@ export default class WDIOCLInterface extends EventEmitter {
                 ? 'Ending WebDriver sessions gracefully ...\n' +
                 '(press ctrl+c again to hard kill the runner)'
                 : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
-            return logUpdate(this.display + '\n\n' + shutdownMessage)
+            return logUpdate(this.display.join('\n') + '\n\n' + shutdownMessage)
         }
 
-        if(isFinished) {
+        if(isFinished || this.inDebugMode) {
             return
         }
 

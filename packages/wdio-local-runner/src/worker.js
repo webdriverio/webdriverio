@@ -5,9 +5,10 @@ import EventEmitter from 'events'
 import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
-import WDIORepl from './repl'
+import ReplQueue from './replQueue'
 
 const log = logger('@wdio/local-runner')
+const replQueue = new ReplQueue()
 
 /**
  * WorkerInstance
@@ -98,32 +99,27 @@ export default class WorkerInstance extends EventEmitter {
             Object.assign(this.server, payload.content)
         }
 
-        this.emit('message', Object.assign(payload, { cid }))
-
         /**
          * handle debug command called within worker process
          */
         if (payload.origin === 'debugger' && payload.name === 'start') {
-            this.repl = new WDIORepl(
+            replQueue.add(
                 childProcess,
-                { prompt: `[${cid}] \u203A `, ...payload.params }
+                { prompt: `[${cid}] \u203A `, ...payload.params },
+                () => this.emit('message', Object.assign(payload, { cid })),
+                (ev) => this.emit('message', ev)
             )
-            this.repl.start().then(() => {
-                const ev = {
-                    origin: 'debugger',
-                    name: 'stop'
-                }
-                childProcess.send(ev)
-                this.emit('message', ev)
-            })
+            return replQueue.next()
         }
 
         /**
          * handle debugger results
          */
-        if (this.repl && payload.origin === 'debugger' && payload.name === 'result') {
-            this.repl.onResult(payload.params)
+        if (replQueue.isRunning && payload.origin === 'debugger' && payload.name === 'result') {
+            replQueue.runningRepl.onResult(payload.params)
         }
+
+        this.emit('message', Object.assign(payload, { cid }))
     }
 
     _handleError (payload) {
