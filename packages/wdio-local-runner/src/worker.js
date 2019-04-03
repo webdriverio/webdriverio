@@ -26,7 +26,7 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
      */
-    constructor (config, { cid, configFile, caps, specs, server, execArgv, retries }) {
+    constructor (config, { cid, configFile, caps, specs, server, execArgv, retries }, stdout, stderr) {
         super()
         this.cid = cid
         this.config = config
@@ -37,6 +37,8 @@ export default class WorkerInstance extends EventEmitter {
         this.execArgv = execArgv
         this.retries = retries
         this.isBusy = false
+        this.stdout = stdout
+        this.stderr = stderr
     }
 
     /**
@@ -69,8 +71,8 @@ export default class WorkerInstance extends EventEmitter {
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
-            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
+            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(this.stdout)
+            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(this.stderr)
             process.stdin.pipe(childProcess.stdin)
         }
 

@@ -12,7 +12,7 @@ const clockSpinner = cliSpinners['clock']
 const MAX_RUNNING_JOBS_DISPLAY_COUNT = 10
 
 export default class WDIOCLInterface extends EventEmitter {
-    constructor (config, specs, totalWorkerCnt) {
+    constructor (config, specs, totalWorkerCnt, stdout, stderr) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
         this.isTTY = !!process.stdout.isTTY
@@ -21,6 +21,10 @@ export default class WDIOCLInterface extends EventEmitter {
         this.totalWorkerCnt = totalWorkerCnt
         this.sigintTriggered = false
         this.isWatchMode = false
+        this.stdout = stdout
+        this.stdoutBuffer = []
+        this.stderr = stderr
+        this.stderrBuffer = []
 
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
@@ -237,7 +241,7 @@ export default class WDIOCLInterface extends EventEmitter {
             this.display.push('')
         }
 
-        this.printStdout(5)
+        this.printStdout(10)
         this.printSummary()
         this.updateClock()
     }
@@ -259,18 +263,30 @@ export default class WDIOCLInterface extends EventEmitter {
      * print stdout and stderr from runners
      */
     printStdout (length) {
-        // if (this.stdoutBuffer.length) {
-        //     const bufferLength = this.stdoutBuffer.length
-        //     const maxBufferLength = !length || length > bufferLength ? bufferLength : length
-        //     const buffer = this.stdoutBuffer.slice(bufferLength - maxBufferLength)
-        //     this.display.push(chalk.bgYellow.black('Stdout:\n') + buffer.join(''))
-        // }
-        // if (this.stderrBuffer.length) {
-        //     const bufferLength = this.stderrBuffer.length
-        //     const maxBufferLength = !length || length > bufferLength ? bufferLength : length
-        //     const buffer = this.stderrBuffer.slice(bufferLength - maxBufferLength)
-        //     this.display.push(chalk.bgRed.black('Stderr:\n') + buffer.join(''))
-        // }
+        const stdout = this.stdout.getContentsAsString('utf8')
+        if (stdout) {
+            this.stdoutBuffer.push(stdout)
+        }
+
+        const stderr = this.stderr.getContentsAsString('utf8')
+        if (stderr) {
+            this.stderrBuffer.push(stderr)
+        }
+
+        if (this.stdoutBuffer.length) {
+            const bufferLength = this.stdoutBuffer.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.stdoutBuffer.slice(bufferLength - maxBufferLength)
+            this.display.push(chalk.bgYellow.black('Stdout:\n') + buffer.join(''))
+        }
+
+        if (this.stderrBuffer.length) {
+            const bufferLength = this.stderrBuffer.length
+            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
+            const buffer = this.stderrBuffer.slice(bufferLength - maxBufferLength)
+            this.display.push(chalk.bgRed.black('Stderr:\n') + buffer.join(''))
+        }
+
         if (this.messages.worker.error) {
             const bufferLength = this.messages.worker.error.length
             const maxBufferLength = !length || length > bufferLength ? bufferLength : length
