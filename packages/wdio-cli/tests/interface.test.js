@@ -26,6 +26,7 @@ describe('cli interface', () => {
     })
 
     it('should mark jobs as pass or failed', () => {
+        delete process.env.CI
         wdioClInterface.updateView = jest.fn()
         wdioClInterface.emit('job:start', { cid: '0-0' })
         wdioClInterface.emit('job:start', { cid: '0-1' })
@@ -40,6 +41,7 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.finished).toBe(2)
         expect(wdioClInterface.result.passed).toBe(1)
         expect(wdioClInterface.result.failed).toBe(1)
+        process.env.CI = 1
     })
 
     it('should print CI friendly', () => {
