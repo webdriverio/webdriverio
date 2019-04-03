@@ -1,57 +1,57 @@
 ---
 id: ejemplos
-title: Boilerplate Projects
+title: Proyectos de Ejemplo
 ---
-Con el tiempo que nuestra comunidad ha desarrollado un montón de `boilerplates` que pueden ser utilizados como inspiración para crear su propia suite de pruebas.
+Con el tiempo nuestra comunidad ha desarrollado un montón de `proyectos de ejemplo` que pueden ser utilizados como inspiración para crear su propia suite de pruebas.
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v3.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
-    - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com/ and http://www.phptravels.net, Chai assertion liberary (expect, assert, should)
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+- Características: 
+    - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
+    - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
+    - Ejemplos de ejecución con el browser en modo headless usando PhantomJS y Chrome
+    - Integración con BrowserStack
+    - Soporte para lectura/escritura de datos desde MS-Excel, para un fácil manejo y administración de datos de fuentes externas. Incluye Ejemplos
+    - Soporte para bases de datos de tipo RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecución de consultas y obtención de set de resultados, etc. Con ejemplos para testing E2E
+    - Multiples Reportes (Spec, Junit, Allure, JSON), incluyendo la vista local de reportes con formato Junit (.html)
+    - Administracion de tareas mediante Grunt
+    - Ejemplos con las app demo https://search.yahoo.com/ y http://www.phptravels.net. Chai como libreria de assertions (Expect, Assert, Should)
+    - Archivos .config específico de Appium para reproducción en dispositivos móviles. Para el seteo con 1 click de Appium consulte [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
 - Framework: Jasmine (v3.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
-    - Task manage through Grunt
-    - Examples with demo app http://www.phptravels.net
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+- Características: 
+    - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
+    - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
+    - Ejemplos de ejecución con el browser en modo headless usando PhantomJS y Chrome
+    - Integración con BrowserStack
+    - Soporte para lectura/escritura de datos desde MS-Excel, para un fácil manejo y administración de datos de fuentes externas. Incluye Ejemplos
+    - Soporte para bases de datos de tipo RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecución de consultas y obtención de set de resultados, etc. Con ejemplos para testing E2E
+    - Multiples Reportes (Spec, Junit, Allure, JSON), incluyendo la vista local de reportes con formato Junit (.html)
+    - Administracion de tareas mediante Grunt
+    - Ejemplos con la app demo http://www.phptravels.net
+    - Archivos .config específico de Appium para reproducción en dispositivos móviles. Para el seteo con 1 click de Appium consulte [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
 - Framework: Mocha (v5.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON, Mochawesome, Timeline), plus local view of Junit report(.html) format and Mochawesome report
-    - Task manage through Grunt
-    - Examples with demo app http://www.phptravels.net, Chai assertion liberary (expect, assert, should)
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+- Características: 
+    - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
+    - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
+    - Ejemplos de ejecución con el browser en modo headless usando PhantomJS y Chrome
+    - Integración con BrowserStack
+    - Soporte para lectura/escritura de datos desde MS-Excel, para un fácil manejo y administración de datos de fuentes externas. Incluye Ejemplos
+    - Soporte para bases de datos de tipo RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecución de consultas y obtención de set de resultados, etc. Con ejemplos para testing E2E
+    - Multiples Reportes (Spec, Junit, Allure, JSON), incluyendo la vista local de reportes con formato Junit (.html)
+    - Administración de tareas mediante Grunt
+    - Ejemplos con las app demo http://www.phptravels.net/ y Chai como libreria de assertions (Expect, Assert, Should)
+    - Archivos .config específico de Appium para reproducción en dispositivos móviles. Para el seteo con 1 click de Appium consulte [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
-Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you so that you can start write feature files for your project right away.
+Nuestro propio proyecto de ejemplo para suites de pruebas con Cucumber. We created over 150 predefined step definitions for you so that you can start write feature files for your project right away.
 
 - Framework: Cucumber
 - Features: 
