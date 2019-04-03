@@ -688,7 +688,12 @@
       "command": "getPageSource",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidsource",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "source",
+        "description": "The current page source."
+      }
     }
   },
   "/session/:sessionId/execute": {
@@ -706,7 +711,12 @@
         "type": "(string|object|number|boolean|undefined)[]",
         "description": "the script arguments",
         "required": true
-      }]
+      }],
+      "returns": {
+        "type": "*",
+        "name": "result",
+        "description": "The script result."
+      }
     }
   },
   "/session/:sessionId/execute_async": {
@@ -724,7 +734,12 @@
         "type": "(string|object|number|boolean|undefined)[]",
         "description": "the script arguments",
         "required": true
-      }]
+      }],
+      "returns": {
+        "type": "*",
+        "name": "result",
+        "description": "The script result."
+      }
     }
   },
   "/session/:sessionId/cookie": {
@@ -732,7 +747,12 @@
       "command": "getAllCookies",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidcookie",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "Object[]",
+        "name": "cookies",
+        "description": "A list of cookies."
+      }
     },
     "POST": {
       "command": "addCookie",
@@ -785,7 +805,12 @@
       "command": "getAlertText",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidalert_text",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "alertText",
+        "description": "The text of the currently displayed alert."
+      }
     },
     "POST": {
       "command": "sendAlertText",
@@ -817,7 +842,12 @@
       "command": "getAvailableEngines",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeavailable_engines",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String[]",
+        "name": "engines",
+        "description": "A list of available engines"
+      }
     }
   },
   "/session/:sessionId/ime/active_engine": {
@@ -825,7 +855,12 @@
       "command": "getActiveEngine",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactive_engine",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "engine",
+        "description": "The name of the active IME engine"
+      }
     }
   },
   "/session/:sessionId/ime/activated": {
@@ -833,7 +868,12 @@
       "command": "isIMEActivated",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactivated",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "Boolean",
+        "name": "isActive",
+        "description": "true if IME input is available and currently active, false otherwise"
+      }
     }
   },
   "/session/:sessionId/ime/deactivate": {
@@ -862,7 +902,12 @@
       "command": "getOrientation",
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidorientation",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "orientation",
+        "description": "The current browser orientation corresponding to a value defined in ScreenOrientation: {LANDSCAPE|PORTRAIT}."
+      }
     },
     "POST": {
       "command": "setOrientation",
@@ -1256,7 +1301,12 @@
       "command": "getSessionStorageSize",
       "description": "Get the number of items in the storage.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidsession_storagesize",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "Number",
+        "name": "itemCnt",
+        "description": "The number of items in the storage."
+      }
     }
   },
   "/session/:sessionId/log": {

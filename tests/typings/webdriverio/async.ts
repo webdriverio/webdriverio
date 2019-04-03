@@ -29,24 +29,12 @@ async function bar() {
 }
 
 // selenium-standalone-service
-// ToDo: how to use selenium-standalone-service with webdriverio async?
-// const config: WebdriverIO.Config = {
-//     skipSeleniumInstall: true
-// }
-
-// mocha-framework and jasmine-framework
-const suite: WebdriverIO.Suite = {
-    // mocha
-    file: '',
-    title: '',
-    parent: '',
-    fullTitle: '',
-    pending: true,
-
-    // jasmine
-    // ToDo: unable to resolve `Cannot find type definition file for <reference types="jasmine"/>`
-    // fullName: ''
+const config: WebdriverIOAsync.Config = {
+    skipSeleniumInstall: true,
+    seleniumLogs: ''
 }
 
 // allure-reporter
 allure.addFeature('')
+
+export default {}

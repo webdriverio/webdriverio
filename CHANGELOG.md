@@ -15,6 +15,46 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.8 (2019-03-28)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3784](https://github.com/webdriverio/webdriverio/pull/3784) Fix parameter name of background app command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3762](https://github.com/webdriverio/webdriverio/pull/3762) Add Espresso DataMatcher strategy ([@dpgraham](https://github.com/dpgraham))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#3781](https://github.com/webdriverio/webdriverio/pull/3781) Print reporters after/below stdout in final output ([@klamping](https://github.com/klamping))
+
+#### :memo: Documentation
+* `wdio-dot-reporter`
+  * [#3779](https://github.com/webdriverio/webdriverio/pull/3779) Docs: Note regarding Dot reporter test failure output in v5 ([@DT455](https://github.com/DT455))
+* `wdio-junit-reporter`
+  * [#3785](https://github.com/webdriverio/webdriverio/pull/3785) Update documentation for junit-reporter to reflect v5 options ([@naddison](https://github.com/naddison))
+* Other
+  * [#3786](https://github.com/webdriverio/webdriverio/pull/3786) [docs] typo fix ([@Armanio](https://github.com/Armanio))
+* `webdriverio`
+  * [#3777](https://github.com/webdriverio/webdriverio/pull/3777) fix typing data for waitFor* ([@klamping](https://github.com/klamping))
+
+#### :house: Internal
+* Other
+  * [#3782](https://github.com/webdriverio/webdriverio/pull/3782) validate typings ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-appium-service`
+  * [#3717](https://github.com/webdriverio/webdriverio/pull/3717) Appium service ([@MortenGregersen](https://github.com/MortenGregersen))
+
+#### Committers: 8
+- Arman ([@Armanio](https://github.com/Armanio))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dan Graham ([@dpgraham](https://github.com/dpgraham))
+- Dave Taylor ([@DT455](https://github.com/DT455))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Morten Gregersen ([@MortenGregersen](https://github.com/MortenGregersen))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nikolas Addison ([@naddison](https://github.com/naddison))
+
 ## 5.7.7 (2019-03-26)
 
 #### :bug: Bug Fix

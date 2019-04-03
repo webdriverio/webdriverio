@@ -3,7 +3,7 @@ const copyfiles = require('copyfiles')
 const path = require('path')
 
 // TypeScript project root for testing particular typings
-const outDirs = ['sync', 'webdriverio']
+const outDirs = ['sync', 'sync-mocha', 'sync-jasmine', 'webdriverio', 'webdriverio-mocha', 'webdriverio-jasmine']
 
 const packages = {
     'webdriver': 'packages/webdriver',
@@ -14,8 +14,8 @@ const packages = {
     '@types/mocha': 'packages/wdio-mocha-framework/node_modules/@types/mocha',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
 
-    '@types/jasmine/ts31': 'packages/wdio-jasmine-framework/node_modules/@types/jasmine/ts31',
     '@types/jasmine': 'packages/wdio-jasmine-framework/node_modules/@types/jasmine',
+    '@types/jasmine/ts3.1': 'packages/wdio-jasmine-framework/node_modules/@types/jasmine/ts3.1',
     '@wdio/jasmine-framework': 'packages/wdio-jasmine-framework',
 
     '@types/selenium-standalone': 'packages/wdio-selenium-standalone-service/node_modules/@types/selenium-standalone',
@@ -38,7 +38,7 @@ async function copy() {
     }
 }
 
-rimraf('scripts/type-generation/test/**/node_modules/', error => {
+rimraf('tests/typings/**/node_modules/', error => {
     if (!error) {
         return copy()
     }
