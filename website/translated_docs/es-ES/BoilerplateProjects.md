@@ -1,5 +1,5 @@
 ---
-id: boilerplate
+id: ejemplos
 title: Boilerplate Projects
 ---
 Con el tiempo que nuestra comunidad ha desarrollado un montón de `boilerplates` que pueden ser utilizados como inspiración para crear su propia suite de pruebas.
