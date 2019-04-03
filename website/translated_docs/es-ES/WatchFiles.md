@@ -1,8 +1,8 @@
 ---
 id: observador
-title: Watch Test Files
+title: Observa los Archivos de Pruebas
 ---
-With the WDIO testrunner you can watch files while you are working on them. They automatically rerun if you change either something in your app or in your test files. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
+Con el testrunner de WDIO, puedes monitorear los archivos mientras trabajabas en ellos. Se ejecutan automáticamente ante cambios en la app o en los archivos de pruebas. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
 
 ```sh
 $ wdio wdio.conf.js --watch
