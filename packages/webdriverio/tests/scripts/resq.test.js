@@ -13,8 +13,8 @@ class MockResq {
 
 beforeEach(() => {
     global.window.resq = {
-        resq$: jest.fn().mockImplementation(() => new MockResq('$')),
-        resq$$: jest.fn().mockImplementation(() => new MockResq('$$')),
+        resq$: jest.fn().mockImplementation(() => new MockResq()),
+        resq$$: jest.fn().mockImplementation(() => new MockResq()),
         waitToLoadReact: jest.fn(),
     }
 })
