@@ -13,7 +13,7 @@ after_script:
 
 deploy:
   provider: script
-  script: "npm run docs"
+  script: "gem install compass && npm run docs"
   skip_cleanup: true
   on:
     tags: true
