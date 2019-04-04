@@ -41,7 +41,7 @@ browser.addCommand('makeRequest', (url) => {
 });
 ```
 
-Then just use it in your wdio test specs synchronously:
+Um den Response vom Request in einem Test zu nutzen, weißen Sie den Rückgabewert einfach einer Variable zu:
 
 ```js
 it('execute external library in a sync way', () => {
@@ -51,4 +51,4 @@ it('execute external library in a sync way', () => {
 });
 ```
 
-Note that the result of your custom command will be the result of the promise you return. Also there is no support for synchronous commands in standalone mode therefore you always have to handle asynchronous commands using promises.
+Beachten Sie, dass der Rückgabewert Ihres eigenen Befehls der Rückgabewert des Promises ist. Beachten Sie, dass sie synchrone Befehle innerhalb von benutzerdefinierten Methoden nur verwenden können, wenn Sie WebdriverIO mit dem WDIO Testrunner verwenden.
