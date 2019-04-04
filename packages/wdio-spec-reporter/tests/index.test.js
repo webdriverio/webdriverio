@@ -7,6 +7,7 @@ import {
     SUITES_NO_TESTS,
     REPORT,
     SAUCELABS_REPORT,
+    SAUCELABS_EU_REPORT,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
@@ -171,6 +172,36 @@ describe('SpecReporter', () => {
             printReporter.printReport(runner)
 
             expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+        })
+
+        it('should print link to SauceLabs EU job details page', () => {
+            printReporter.suiteUids = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.stateCounts = {
+                passed : 4,
+                failed : 1,
+                skipped : 1,
+            }
+
+            printReporter.printReport(Object.assign({}, RUNNER, {
+                config: {
+                    hostname: 'ondemand.saucelabs.com',
+                    region: 'eu'
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            }))
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+
+            printReporter.write.mockClear()
+
+            printReporter.printReport(Object.assign({}, RUNNER, {
+                config: {
+                    hostname: 'ondemand.saucelabs.com',
+                    region: 'eu-central-1'
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            }))
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
         })
 
         it('should print report for suites with no tests but failed hooks', () => {
