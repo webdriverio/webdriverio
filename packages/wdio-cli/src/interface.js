@@ -358,6 +358,9 @@ export default class WDIOCLInterface extends EventEmitter {
         this.updateClock()
         this.resetClock()
 
+        /**
+         * add line break at the end of result
+         */
         // eslint-disable-next-line
         console.log('')
     }
