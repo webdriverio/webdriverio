@@ -1,7 +1,8 @@
 import logger from '@wdio/logger'
+import { WritableStreamBuffer } from 'stream-buffers'
 
 import WorkerInstance from './worker'
-import { SHUTDOWN_TIMEOUT } from './constants'
+import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants'
 
 const log = logger('@wdio/local-runner')
 
@@ -10,6 +11,8 @@ export default class LocalRunner {
         this.configFile = configFile
         this.config = config
         this.workerPool = {}
+        this.stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
+        this.stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
     }
 
     /**
@@ -31,7 +34,7 @@ export default class LocalRunner {
             process.stderr.setMaxListeners(workerCnt + 2)
         }
 
-        const worker = new WorkerInstance(this.config, options)
+        const worker = new WorkerInstance(this.config, options, this.stdout, this.stderr)
         this.workerPool[options.cid] = worker
         worker.postMessage(command, argv)
 
