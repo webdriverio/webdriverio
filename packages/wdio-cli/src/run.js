@@ -1,12 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import logger from '@wdio/logger'
 
 import Launcher from './launcher.js'
 import Watcher from './watcher'
 import setup from './setup'
-
-const log = logger('@wdio/cli:run')
 
 export default function run (params) {
     let stdinData = ''
@@ -68,7 +65,6 @@ export default function run (params) {
 }
 
 function launch (wdioConf, params) {
-    log.debug('Run suite with config', wdioConf, 'and params', params)
     const launcher = new Launcher(wdioConf, params)
     launcher.run().then(
         (code) => process.nextTick(() => process.exit(code)),

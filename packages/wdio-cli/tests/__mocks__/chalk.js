@@ -8,8 +8,10 @@ chalkMock.green = jest.fn().mockImplementation((msg) => `green ${msg}`)
 chalkMock.red = jest.fn().mockImplementation((msg) => `red ${msg}`)
 chalkMock.gray = jest.fn().mockImplementation((msg) => `gray ${msg}`)
 chalkMock.black = jest.fn().mockImplementation((msg) => `black ${msg}`)
+chalkMock.white = chalkMock
 chalkMock.yellow = jest.fn().mockImplementation((msg) => `yellow ${msg}`)
 chalkMock.magenta = jest.fn().mockImplementation((msg) => `magenta ${msg}`)
+chalkMock.bgGreen = jest.fn().mockImplementation((msg) => `bgGreen ${msg}`)
 chalkMock.supportsColor = { hasBasic: true }
 chalkMock.bgYellow = chalkMock
 chalkMock.bgRed = chalkMock

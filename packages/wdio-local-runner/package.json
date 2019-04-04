@@ -34,7 +34,8 @@
     "@wdio/logger": "^5.7.8",
     "@wdio/repl": "^5.7.8",
     "@wdio/runner": "^5.7.8",
-    "async-exit-hook": "^2.0.1"
+    "async-exit-hook": "^2.0.1",
+    "stream-buffers": "^3.0.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"

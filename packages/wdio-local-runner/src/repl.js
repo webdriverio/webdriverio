@@ -36,4 +36,13 @@ export default class WDIORunnerRepl extends WDIORepl {
         this.callback(error, params.result)
         this.commandIsRunning = false
     }
+
+    start (...args) {
+        this.childProcess.send({
+            origin: 'debugger',
+            name: 'start'
+        })
+
+        return super.start(...args)
+    }
 }
