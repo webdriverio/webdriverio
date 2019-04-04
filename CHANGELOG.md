@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.10 (2019-04-04)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#3817](https://github.com/webdriverio/webdriverio/pull/3817) wdio-cli: Print reporters after stdout ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 1
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
 ## 5.7.9 (2019-04-04)
 
 #### :eyeglasses: Spec Compliancy
