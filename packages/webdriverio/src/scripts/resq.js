@@ -3,22 +3,15 @@ export const waitToLoadReact = function waitToLoadReact () {
 }
 
 export const react$ = function react$ (selector, props, state) {
-    let elems = window.resq.resq$$(selector)
+    let elem = window.resq.resq$(selector)
         .byProps(props)
         .byState(state)
 
-    if (elems.length === 0) {
+    if (!elem.name) {
         return { message: `React element with selector "${selector}" wasn't found` }
     }
 
-    let elem = elems[0]
-
-    if (elem.node) {
-        return elem.node
-    }
-
-    elem = elem.node || elem.children[0].node
-    return elem
+    return elem.node || elem.children[0].node
 }
 
 export const react$$ = function react$$ (selector, props, state) {
@@ -26,12 +19,9 @@ export const react$$ = function react$$ (selector, props, state) {
         .byProps(props)
         .byState(state)
 
-    return [...elems].map((elem) => {
-        if (elem.node) {
-            return elem.node
-        }
+    if (!elems.length) {
+        return { message: `React element with selector "${selector}" wasn't found` }
+    }
 
-        elem = elem.node || elem.children[0].node
-        return elem
-    })
+    return [...elems].map(elem => elem.node || elem.children[0].node)
 }
