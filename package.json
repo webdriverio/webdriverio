@@ -16,6 +16,7 @@
     "release": "NODE_ENV=production npm run setup && lerna publish",
     "setup": "run-s bootstrap build",
     "docs": "run-s docs:*",
+    "docs:setup": "cd ./website && npm install && cd ..",
     "docs:generate": "npm run clean:website && ./scripts/generateDocs.js",
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "./scripts/updateDocs.js",
