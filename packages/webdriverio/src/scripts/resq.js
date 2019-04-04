@@ -20,7 +20,7 @@ export const react$$ = function react$$ (selector, props, state) {
         .byState(state)
 
     if (!elems.length) {
-        return { message: `React element with selector "${selector}" wasn't found` }
+        return { message: `React elements with selector "${selector}" wasn't found` }
     }
 
     return [...elems].map(elem => elem.node || elem.children[0].node)
