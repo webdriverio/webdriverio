@@ -1,7 +1,7 @@
 import path from 'path'
 import { detectBackend } from '@wdio/config'
 
-import { remote, multiremote } from '../src'
+import { remote, multiremote, attach } from '../src'
 
 jest.mock('webdriver', () => {
     const client = {
@@ -75,6 +75,13 @@ describe('WebdriverIO module interface', () => {
             })
             expect(WebDriver.attachToSession).toBeCalled()
             expect(WebDriver.newSession.mock.calls).toHaveLength(2)
+        })
+    })
+
+    describe('attach', () => {
+        it('attaches', () => {
+            attach({})
+            expect(WebDriver.attachToSession).toBeCalled()
         })
     })
 
