@@ -49,7 +49,7 @@ describe('resq script', () => {
         expect(byProps).toBeCalledWith({ foo: 'bar' })
         expect(byState).toBeCalledTimes(1)
         expect(byState).toBeCalledWith({ test: 123 })
-        expect(result).toMatchObject({ message: 'React elements with selector "Test" wasn\'t found' })
+        expect(result).toMatchObject([])
     })
 
     it('should call window waitToLoadReact', () => {
