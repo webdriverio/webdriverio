@@ -40,6 +40,8 @@ The boilerplate holds the following things
     - TypeScript Setup
     - Page Object Pattern
     - Chai Integration
+    - CI examples (CircleCI, Travis CI, Jenkins)
+    - Allure reporter
 
 ### [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
 
