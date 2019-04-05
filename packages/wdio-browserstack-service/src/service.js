@@ -11,11 +11,29 @@ export default class BrowserstackService {
         this.failures = 0
     }
 
+    /**
+     * if no user and key is specified even though a sauce service was
+     * provided set user and key with values so that the session request
+     * will fail
+     */
+    beforeSession (config) {
+        if (!config.user) {
+            config.user = 'NotSetUser'
+        }
+
+        if (!config.key) {
+            config.key = 'NotSetKey'
+        }
+
+        this.config.user = config.user
+        this.config.key = config.key
+    }
+
     before() {
         this.sessionId = global.browser.sessionId
         this.auth = {
-            user: this.config.user || 'NotSetUser',
-            pass: this.config.key || 'NotSetKey'
+            user: this.config.user,
+            pass: this.config.key
         }
         return this._printSessionURL()
     }
@@ -27,8 +45,11 @@ export default class BrowserstackService {
     }
 
     afterTest(test) {
+        this.fullTitle = test.parent + ' - ' + test.title
+
         if (!test.passed) {
             this.failures++
+            this.failReason = (test.error && test.error.message ? test.error.message : 'Unknown Error')
         }
     }
 
@@ -59,6 +80,8 @@ export default class BrowserstackService {
         this.sessionId = newSessionId
         await this._update(oldSessionId, this._getBody())
         this.failures = 0
+        delete this.fullTitle
+        delete this.failReason
         this._printSessionURL()
     }
 
@@ -80,13 +103,15 @@ export default class BrowserstackService {
 
     _getBody() {
         return {
-            status: this.failures === 0 ? 'completed' : 'error'
+            status: this.failures === 0 ? 'completed' : 'error',
+            name: this.fullTitle,
+            reason: this.failReason
         }
     }
 
     _printSessionURL() {
         const capabilities = global.browser.capabilities
-        return new Promise((resolve,reject) => request.get(
+        return new Promise((resolve, reject) => request.get(
             `https://api.browserstack.com/automate/sessions/${this.sessionId}.json`,
             {
                 json: true,

@@ -23,7 +23,7 @@ test('should run command on all instances', async () => {
     expect(browser.browserB).toBeDefined()
 
     const result = await browser.execute(() => 'foobar')
-    expect(result).toEqual([ 'foobar', 'foobar' ])
+    expect(result).toEqual(['foobar', 'foobar'])
 
     expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session')
     expect(request.mock.calls[0][0].method).toBe('POST')

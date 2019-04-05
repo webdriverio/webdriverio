@@ -25,6 +25,8 @@ npm install @wdio/dot-reporter --save-dev
 
 Instructions on how to install `WebdriverIO` can be found [here](/docs/gettingstarted.html).
 
+Dot reporter does not currently support test failure output.  You can track progress on this feature [here](https://github.com/webdriverio/webdriverio/pull/3589).  [Spec Reporter](/docs/spec-reporter.html) can be used in the meantime.
+
 ## Configuration
 
 Following code shows the default wdio test runner configuration. Just add `'dot'` as reporter

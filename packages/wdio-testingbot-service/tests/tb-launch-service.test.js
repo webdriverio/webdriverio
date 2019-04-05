@@ -3,7 +3,7 @@ jest.unmock('request')
 import TestingBotService from '../src/launcher'
 
 describe('wdio-testingbot-service', () => {
-    const tbService = new TestingBotService()
+    const tbService = new TestingBotService({})
     const execute = jest.fn()
     global.browser = {
         execute,
@@ -62,6 +62,10 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('before', () => {
+        const tbService = new TestingBotService({
+            user: 'foobar',
+            key: 'fookey'
+        })
         const capabilities = {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
@@ -72,9 +76,8 @@ describe('wdio-testingbot-service', () => {
 
         expect(tbService.sessionId).toEqual('globalSessionId')
         expect(tbService.capabilities).toEqual(capabilities)
-        expect(tbService.auth).toEqual(global.browser.requestHandler.auth)
-        expect(tbService.tbUser).toEqual(global.browser.requestHandler.auth.user)
-        expect(tbService.tbSecret).toEqual(global.browser.requestHandler.auth.pass)
+        expect(tbService.tbUser).toEqual('foobar')
+        expect(tbService.tbSecret).toEqual('fookey')
         expect(tbService.testCnt).toEqual(0)
         expect(tbService.failures).toEqual(0)
     })
@@ -232,6 +235,7 @@ describe('wdio-testingbot-service', () => {
 
     it('after: updatedJob called with passed params', () => {
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        tbService.capabilities = {}
         tbService.tbUser = 'user'
         tbService.tbSecret = 'secret'
         tbService.sessionId = 'sessionId'

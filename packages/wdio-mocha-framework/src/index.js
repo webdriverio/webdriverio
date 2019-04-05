@@ -82,7 +82,7 @@ class MochaAdapter {
     }
 
     options (options, context) {
-        let {require = [], compilers = []} = options
+        let { require = [], compilers = [] } = options
 
         if (typeof require === 'string') {
             require = [require]
@@ -213,7 +213,7 @@ class MochaAdapter {
          */
         if (payload.root) return
 
-        let message = this.formatMessage({type: event, payload, err})
+        let message = this.formatMessage({ type: event, payload, err })
 
         message.cid = this.cid
         message.specs = this.specs

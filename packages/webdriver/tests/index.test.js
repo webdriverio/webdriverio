@@ -47,7 +47,7 @@ test('should be possible to skip setting logLevel', async () => {
         logLevel: 'info',
         logLevels: { webdriver: 'silent' }
     })
-    
+
     expect(logger.setLevel).not.toBeCalled()
 })
 
@@ -57,7 +57,7 @@ test('should be possible to set logLevel', async () => {
         capabilities: { browserName: 'chrome' },
         logLevel: 'info'
     })
-    
+
     expect(logger.setLevel).toBeCalled()
 })
 

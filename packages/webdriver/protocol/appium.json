@@ -232,12 +232,12 @@
       "ref": "http://appium.io/docs/en/commands/device/keys/press-keycode/",
       "parameters": [{
         "name": "keycode",
-        "type": "string",
+        "type": "number",
         "description": "keycode to press",
         "required": true
       }, {
         "name": "metastate",
-        "type": "string",
+        "type": "number",
         "description": "meta state to press the keycode with"
       }],
       "support": {
@@ -254,12 +254,12 @@
       "ref": "http://appium.io/docs/en/commands/device/keys/long-press-keycode/",
       "parameters": [{
         "name": "keycode",
-        "type": "string",
+        "type": "number",
         "description": "keycode to press on the device",
         "required": true
       }, {
         "name": "metastate",
-        "type": "string",
+        "type": "number",
         "description": "metastate for the keypress"
       }],
       "support": {
@@ -812,7 +812,7 @@
       "description": "Send the currently running app for this session to the background. iOS tests with XCUITest can also use the `mobile: terminateApp` method to terminate the current app (see detailed [documentation](http://appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-terminateapp)), and the `mobile: activateApp` to activate an existing application on the device under test and moves it to the foreground (see detailed [documentation](http://appium.io/docs/en/writing-running-appium/ios/ios-xctest-mobile-apps-management/index.html#mobile-activateapp)).",
       "ref": "http://appium.io/docs/en/commands/device/app/background-app/",
       "parameters": [{
-        "name": "duration",
+        "name": "seconds",
         "type": "(number|null)",
         "description": "timeout to restore app, if 'null' app won't be restored",
         "default": "null"
@@ -1009,10 +1009,14 @@
       "description": "Set GSM signal strength (Emulator only).",
       "ref": "http://appium.io/docs/en/commands/device/network/gsm-signal/",
       "parameters": [{
-        "name": "signalStrengh",
+        "name": "signalStrength",
         "type": "string",
         "description": "signal strength in the range [0, 4]",
         "required": true
+      }, {
+        "name": "signalStrengh",
+        "type": "string",
+        "description": "signal strength in the range [0, 4]. Please also set this parameter with the same value if you use Appium v1.11.0 or lower (see https://github.com/appium/appium/issues/12234)."
       }],
       "support": {
         "android": {

@@ -11,7 +11,7 @@ const log = logger('webdriverio')
  */
 export default async function implicitWait (currentElement, commandName) {
 
-    if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|isDisplayed)/)) {
+    if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|is?\w+Displayed)/)) {
         log.debug(
             `command ${commandName} was called on an element ("${currentElement.selector}") ` +
             'that wasn\'t found, waiting for it...'

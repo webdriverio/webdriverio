@@ -18,10 +18,16 @@ export default class ApplitoolsService {
      */
     beforeSession (config) {
         const key = process.env.APPLITOOLS_KEY || config.applitoolsKey
+        const serverUrl = process.env.APPLITOOLS_SERVER_URL || config.applitoolsServerUrl
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {
             throw new Error('Couldn\'t find an Applitools "applitoolsKey" in config nor "APPLITOOLS_KEY" in the environment')
+        }
+
+        // Optionally set a specific server url
+        if (serverUrl) {
+            this.eyes.setServerUrl(serverUrl)
         }
 
         this.isConfigured = true

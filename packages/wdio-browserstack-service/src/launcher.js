@@ -41,7 +41,8 @@ export default class BrowserstackLauncherService {
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {
-                    reject('Browserstack Local failed to start within 60 seconds!')}, 60000)
+                    reject('Browserstack Local failed to start within 60 seconds!')
+                }, 60000)
             })]
         ).then(function (result) {
             clearTimeout(timer)
@@ -74,7 +75,8 @@ export default class BrowserstackLauncherService {
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {
-                    reject('Browserstack Local failed to stop within 60 seconds!')}, 60000)
+                    reject('Browserstack Local failed to stop within 60 seconds!')
+                }, 60000)
             })]
         ).then(function (result) {
             clearTimeout(timer)

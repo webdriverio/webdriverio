@@ -12,6 +12,14 @@ test('should parse error object', () => {
     expect(repl._getError({ foo: 'bar' })).toBe(null)
 })
 
+test('should send child process message that debugger has started', () => {
+    const childProcess = { send: jest.fn() }
+    const repl = new WDIORunnerRepl(childProcess, {})
+    repl.start({})
+    expect(childProcess.send)
+        .toBeCalledWith({ origin: 'debugger', name: 'start' })
+})
+
 test('should send command to child process', () => {
     const childProcess = { send: jest.fn() }
     const callback = jest.fn()

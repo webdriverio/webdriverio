@@ -12,7 +12,7 @@ const { Changelog } = require('lerna-changelog')
 const { load } = require('lerna-changelog/lib/configuration')
 
 const root = path.resolve(__dirname, '..')
-const { version } = require(path.join(root,'lerna.json'))
+const { version } = require(path.join(root, 'lerna.json'))
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
 if (!process.env.GITHUB_AUTH) {

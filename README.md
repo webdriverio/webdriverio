@@ -50,7 +50,6 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 ### Helper
 
 - [@wdio/config](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-config) - A helper utility to parse and validate WebdriverIO options
-- [@wdio/interface](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-interface) - A WDIO helper utility to provide a cli interface for the testrunner
 - [@wdio/logger](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-logger) - A helper utility for logging of WebdriverIO packages
 - [@wdio/reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-reporter) - A WebdriverIO utility to help reporting all events
 - [@wdio/runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-runner) - A WebdriverIO service that runs tests in arbitrary environments
@@ -69,6 +68,7 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 
 ### Services
 
+- [@wdio/appium-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-appium-service) - A WebdriverIO service to start & stop Appium Server
 - [@wdio/applitools-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-applitools-service) - A WebdriverIO service for visual regression testing using Applitools
 - [@wdio/devtools-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devtools-service) - A WebdriverIO service that allows you to run Chrome DevTools commands in your tests
 - [@wdio/firefox-profile-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-firefox-profile-service) - A WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js

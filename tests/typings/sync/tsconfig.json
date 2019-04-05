@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "types": [
+      "@wdio/sync",
+      "@wdio/allure-reporter",
+      "@wdio/selenium-standalone-service"
+    ]
+  }
+}

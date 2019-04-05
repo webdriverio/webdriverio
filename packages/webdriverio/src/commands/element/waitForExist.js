@@ -20,7 +20,7 @@
         const form = $('form');
         const message = $('.message');
         form.submit();
-        // passing 'undefined' allows us to keep the default timeout value without overwriting it 
+        // passing 'undefined' allows us to keep the default timeout value without overwriting it
         message.waitForExist(undefined, true);
     });
  * </example>
@@ -29,6 +29,7 @@
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it instead waits for the selector to not match any elements (default: false)
  * @param {String=}  error    if exists it overrides the default error message
+ * @return {Boolean} true     if element exists (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isExisting
  * @type utility
  *

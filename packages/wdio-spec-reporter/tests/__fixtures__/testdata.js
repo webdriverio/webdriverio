@@ -71,6 +71,53 @@ export const SUITES = [
     }
 ]
 
+export const SUITES_MULTIPLE_ERRORS = [
+    {
+        uid : SUITE_UIDS[0],
+        title : SUITE_UIDS[0].slice(0, -1),
+        hooks: [],
+        tests : [
+            {
+                uid : 'foo1',
+                title : 'foo',
+                state : 'passed',
+            },
+            {
+                uid : 'bar1',
+                title : 'bar',
+                state : 'passed',
+            }
+        ],
+    },
+    {
+        uid : SUITE_UIDS[1],
+        title : SUITE_UIDS[1].slice(0, -1),
+        hooks: [],
+        tests : [
+            {
+                uid : 'some test1',
+                title : 'some test',
+                state : 'passed',
+            },
+            {
+                uid : 'a failed test',
+                title : 'a test with two failures',
+                state : 'failed',
+                errors : [
+                    {
+                        message : 'expected the party on the first part to be the party on the first part',
+                        stack : 'First failed stack trace'
+                    },
+                    {
+                        message : 'expected the party on the second part to be the party on the second part',
+                        stack : 'Second failed stack trace'
+                    }
+                ]
+            }
+        ],
+    },
+]
+
 export const SUITES_NO_TESTS = [
     {
         uid: SUITE_UIDS[0],
@@ -126,4 +173,8 @@ export const REPORT = `---------------------------------------------------------
 
 export const SAUCELABS_REPORT = REPORT + `[loremipsum #0-0]
 [loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+`
+
+export const SAUCELABS_EU_REPORT = REPORT + `[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 `

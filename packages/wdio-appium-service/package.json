@@ -1,13 +1,13 @@
 {
-  "name": "@wdio/interface",
-  "version": "5.7.0",
-  "description": "A WDIO helper utility to provide a cli interface for the testrunner",
-  "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-interface",
+  "name": "@wdio/appium-service",
+  "version": "5.7.9",
+  "description": "A WebdriverIO service to start & stop Appium Server",
+  "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-appium-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">= 4.8.5"
   },
   "scripts": {
     "build": "run-s clean compile",
@@ -23,16 +23,23 @@
   },
   "keywords": [
     "webdriver",
+    "webdriverio",
     "wdio",
-    "wdio-reporter"
+    "wdio-service",
+    "appium",
+    "server",
+    "tests"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "ansi-escapes": "^3.0.0",
-    "chalk": "^2.3.2",
-    "is-ci": "^1.1.0"
+    "appium": "^1.12.0",
+    "fs-extra": "^6.0.1",
+    "param-case": "^2.1.1"
+  },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"
