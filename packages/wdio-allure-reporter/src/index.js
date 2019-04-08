@@ -28,6 +28,8 @@ class AllureReporter extends WDIOReporter {
         process.on(events.addEnvironment, ::this.addEnvironment)
         process.on(events.addAttachment, ::this.addAttachment)
         process.on(events.addDescription, ::this.addDescription)
+        process.on(events.startStep, ::this.startStep)
+        process.on(events.endStep, ::this.endStep)
         process.on(events.addStep, ::this.addStep)
         process.on(events.addArgument, ::this.addArgument)
     }
