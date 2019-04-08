@@ -3,7 +3,7 @@ import AllureReporter from '../src/'
 import { clean, getResults } from './helper'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
-import { testFailed, testPassed, testPending, testStart } from './__fixtures__/testState'
+import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors } from './__fixtures__/testState'
 import { commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot } from './__fixtures__/command'
 
 let processOn
@@ -164,6 +164,33 @@ describe('Failed tests', () => {
         expect(allureXml('test-case').attr('status')).toEqual('failed')
     })
 
+    it('should detect failed test case with multiple errors', () => {
+        const reporter = new AllureReporter({ stdout: true, outputDir } )
+
+        const runnerEvent = runnerStart()
+        runnerEvent.config.framework = 'jasmine'
+        delete runnerEvent.config.capabilities.browserName
+        delete runnerEvent.config.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestFail(testFailedWithMultipleErrors())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const results = getResults(outputDir)
+        expect(results).toHaveLength(1)
+
+        allureXml = results[0]
+        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case').attr('status')).toEqual('failed')
+        const message = allureXml('message').text()
+        const lines = message.split('\n')
+        expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
+        expect(lines[1].trim()).toBe('ReferenceError: All is Dust')
+        expect(lines[3].trim()).toBe('InternalError: Abandon Hope')
+    })
 })
 
 describe('Pending tests', () => {
