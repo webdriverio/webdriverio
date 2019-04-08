@@ -178,7 +178,7 @@ const Talks = () => (
                     src="https://www.youtube.com/embed/fex2NlN-soQ?start=3204"
                     frameBorder="0"
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullscreen
+                    allowFullScreen
                 />
             </div>
             <div className="blockContent">
