@@ -1,7 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks } from './utils'
+import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest } from './utils'
 import { events, stepStatuses, testStatuses } from './constants'
 
 class AllureReporter extends WDIOReporter {
@@ -87,7 +87,7 @@ class AllureReporter extends WDIOReporter {
             this.allure.endStep(status)
         }
 
-        this.allure.endCase(status, test.error)
+        this.allure.endCase(status, getErrorFromFailedTest(test))
     }
 
     onTestSkip(test) {
