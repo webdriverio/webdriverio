@@ -15,6 +15,24 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.11 (2019-04-08)
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#3746](https://github.com/webdriverio/webdriverio/pull/3746) Issue 3416: Support multiple errors in the Allure-reporter ([@nicholasbailey](https://github.com/nicholasbailey))
+  * [#3821](https://github.com/webdriverio/webdriverio/pull/3821) allure-reporter: fix allure endStep and startStep ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-junit-reporter`
+  * [#3818](https://github.com/webdriverio/webdriverio/pull/3818) Allow junit-reporter to work when a runner has multiple spec files per runner ([@naddison](https://github.com/naddison))
+
+#### :memo: Documentation
+* [#3822](https://github.com/webdriverio/webdriverio/pull/3822) Add a couple features to boilerplate project ([@jpolley](https://github.com/jpolley))
+
+#### Committers: 4
+- Jeremy Polley ([@jpolley](https://github.com/jpolley))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nicholas Bailey ([@nicholasbailey](https://github.com/nicholasbailey))
+- Nikolas Addison ([@naddison](https://github.com/naddison))
+
 ## 5.7.10 (2019-04-04)
 
 #### :nail_care: Polish
