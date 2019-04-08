@@ -83,7 +83,7 @@ const Badges = () => (
             <a href="https://codecov.io/gh/webdriverio/webdriverio"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
-            <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameBorder="0" allow="encrypted-media" id="fblike"></iframe>
+            <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden' }} scrolling="no" frameBorder="0" allow="encrypted-media" id="fblike"></iframe>
             <iframe src="https://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameBorder="0" scrolling="0" style={{ width: '118px', height: '20px' }}></iframe>
             <a href="https://twitter.com/share" className="twitter-share-button" data-via="bromann" data-hashtags="webdriverio">Tweet</a>
             <a href="https://twitter.com/webdriverio" className="twitter-follow-button" data-show-count="true" data-lang="en">Follow @webdriverio</a>
@@ -175,9 +175,9 @@ const Talks = () => (
                 <iframe
                     width="560"
                     height="315"
-                    src="https://www.youtube.com/embed/1x8eUCBg_wk"
+                    src="https://www.youtube.com/embed/fex2NlN-soQ?start=3204"
                     frameBorder="0"
-                    allow="autoplay; encrypted-media"
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                 />
             </div>
@@ -196,17 +196,16 @@ const Talks = () => (
                         <translate>
                             The community around WebdriverIO is actively speaking on various user groups or
                             conferences about specific topics around automated testing with WebdriverIO. Check out
-                            this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A
-                            Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk)
-                            by [@bromann](https://twitter.com/bromann). There is also a whole
+                            this talk from the latest "This.JavaScript: State of Frontend Testing" event about [The State of WebdriverIO v5](https://www.youtube.com/watch?v=fex2NlN-soQ&feature=youtu.be&t=3204)
+                            by [@klamping](https://twitter.com/klamping). There is also a whole
                             [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
-                            about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).
+                            about different topics around WebdriverIO created by [him as well](https://twitter.com/klamping).
                         </translate>
                     </MarkdownBlock>
                 </div>
                 <div
                     className="productShowcaseSection paddingTop"
-                    style={{textAlign: 'center'}}
+                    style={{ textAlign: 'center' }}
                 >
                     <a
                         className="button"
@@ -270,7 +269,7 @@ const TryIt = () => (
 
 class Index extends React.Component {
     render() {
-        let language = this.props.language || '';
+        let language = this.props.language || ''
 
         return (
             <div>
@@ -319,7 +318,7 @@ class Index extends React.Component {
                     <TryIt />
                 </div>
             </div>
-        );
+        )
     }
 }
 
@@ -327,4 +326,4 @@ Index.propTypes = {
     language: PropTypes.string
 }
 
-module.exports = Index;
+module.exports = Index

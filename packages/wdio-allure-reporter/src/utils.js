@@ -1,5 +1,7 @@
 import process from 'process'
+import CompoundError from './compoundError'
 import { testStatuses, mochaEachHooks } from './constants'
+
 /**
  * Get allure test status by TestStat object
  * @param test {Object} - TestStat object
@@ -43,4 +45,17 @@ export const isMochaEachHooks = title => mochaEachHooks.some(hook => title.inclu
  */
 export const tellReporter = (event, msg = {}) => {
     process.emit(event, msg)
+}
+
+/**
+ * Properly format error from different test runners
+ * @param {Object} test - TestStat object
+ * @returns {Object} - error object
+ * @private
+ */
+export const getErrorFromFailedTest = (test) => {
+    if (test.errors && Array.isArray(test.errors)) {
+        return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors)
+    }
+    return test.error
 }

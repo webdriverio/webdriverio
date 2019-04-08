@@ -127,3 +127,13 @@ describe('reporter reporter api', () => {
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addArgument, { name: 'os', value: 'osx' })
     })
 })
+
+describe('event listeners', () => {
+    new reporter({ stdout: true })
+
+    Object.values(events).forEach(eventName => {
+        it(`${eventName} should have listener defined`, () => {
+            expect(process.listeners(eventName).length).toBeGreaterThanOrEqual(1)
+        })
+    })
+})
