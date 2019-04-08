@@ -47,14 +47,15 @@ export const tellReporter = (event, msg = {}) => {
     process.emit(event, msg)
 }
 
+/**
+ * Properly format error from different test runners
+ * @param {Object} test - TestStat object
+ * @returns {Object} - error object
+ * @private
+ */
 export const getErrorFromFailedTest = (test) => {
-    if (test.errors && test.errors.length) {
-        if (test.errors.length == 1) {
-            return test.errors[0]
-        } else {
-            return new CompoundError(...test.errors)
-        }
-    } else {
-        return test.error
+    if (test.errors && Array.isArray(test.errors)) {
+        return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors)
     }
+    return test.error
 }
