@@ -6,11 +6,12 @@ const NOOP = function () {}
 export const DEFAULT_CONFIGS = {
     sync: true,
     specs: [],
-    dataProviders: [],
     suites: {},
     exclude: [],
     outputDir: undefined,
     logLevel: 'info',
+    logLevels: {},
+    excludeDriverLogs: [],
     baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,

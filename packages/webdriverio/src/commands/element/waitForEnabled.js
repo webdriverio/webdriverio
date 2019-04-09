@@ -2,8 +2,7 @@
  *
  * Wait for an element (selected by css selector) for the provided amount of
  * milliseconds to be (dis/en)abled. If multiple elements get queried by given
- * selector, it returns true (or false if reverse flag is set) if at least one
- * element is (dis/en)abled.
+ * selector, it returns true if at least one element is (dis/en)abled.
  *
  * <example>
     :index.html
@@ -28,6 +27,7 @@
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
  * @param {String=}  error    if exists it overrides the default error message
+ * @return {Boolean} true     if element is (dis/en)abled
  * @uses utility/waitUntil, state/isEnabled
  * @type utility
  *

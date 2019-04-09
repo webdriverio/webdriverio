@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "types": [
+      "@wdio/sync",
+      "@wdio/mocha-framework"
+    ]
+  }
+}

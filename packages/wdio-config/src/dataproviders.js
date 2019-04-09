@@ -1,4 +1,4 @@
-import { safeRequire } from './utils'
+import { safeRequire } from '@wdio/utils'
 import ConfigParser from './lib/ConfigParser'
 
 export function initializeDataProviders (dataProviderFilesPaths) {

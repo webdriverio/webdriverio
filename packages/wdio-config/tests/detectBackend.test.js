@@ -113,16 +113,33 @@ describe('detectBackend', () => {
     })
 
     it('should detect saucelabs us rdc user', () => {
-        const caps = detectBackend({ region: 'us'}, true)
+        const caps = detectBackend({ region: 'us' }, true)
         expect(caps.hostname).toBe('us1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
     })
 
     it('should detect saucelabs eu rdc user', () => {
-        const caps = detectBackend({ region: 'eu'}, true)
+        const caps = detectBackend({ region: 'eu' }, true)
         expect(caps.hostname).toBe('eu1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
+    })
+
+    it('should throw if user and key are given but can not be connected to a cloud', () => {
+        expect(() => detectBackend({
+            user: 'foobar',
+            key: 'barfoo'
+        })).toThrow()
+    })
+
+    it('should not throw if user and key are invalid but a custom host was set', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'barfoo',
+            hostname: 'foobar.com'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(4444)
     })
 })

@@ -1,3 +1,4 @@
+import { verifyArgsAndStripIfElement } from '../../utils'
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
@@ -33,7 +34,7 @@
  * </example>
  *
  * @param {String|Function} script     The script to execute.
- * @param {*}               arguments  script arguments
+ * @param {*=}               arguments  script arguments
  *
  * @return {*}             The script result.
  *
@@ -60,5 +61,5 @@ export default function executeAsync (...args) {
         script = `return (${script}).apply(null, arguments)`
     }
 
-    return this.executeAsyncScript(script, args)
+    return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args))
 }

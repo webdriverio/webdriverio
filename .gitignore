@@ -38,6 +38,7 @@ jspm_packages/
 
 # Typescript v1 declaration files
 typings/
+!tests/typings
 
 # Optional npm cache directory
 .npm
@@ -63,10 +64,11 @@ typings/
 **/build
 /*.js
 *.d.ts
-!scripts/templates/*.d.ts
+!/scripts/templates/*.d.ts
 !/packages/wdio-mocha-framework/mocha-framework.d.ts
 !/packages/wdio-jasmine-framework/jasmine-framework.d.ts
 !/packages/wdio-selenium-standalone-service/selenium-standalone-service.d.ts
+!/packages/**/webdriverio.d.ts
 !babel.config.js
 !.eslintrc.js
 package-lock.json
@@ -92,3 +94,4 @@ docs/_*.md
 .gradle
 wallaby.conf.js
 tags
+tests/.retry_succeeded

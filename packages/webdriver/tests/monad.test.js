@@ -46,13 +46,24 @@ describe('monad', () => {
         const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
         const client = monad(sessionId)
 
-        const func = function (x,y) { return x + y }
+        const func = function (x, y) { return x + y }
 
         client.addCommand('myCustomElementCommand', func, true)
         expect(typeof client.__propertiesObject__.myCustomElementCommand).toBe('object')
         expect(client.__propertiesObject__.myCustomElementCommand.value).toBe(func)
     })
 
+    it('should add element commands to the __propertiesObject__ cache in multiremote', () => {
+        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const client = monad(sessionId)
+        const instances = { foo: { __propertiesObject__: {} } }
+
+        const func = function (x, y) { return x + y }
+
+        client.addCommand('myCustomElementCommand', func, true, undefined, instances)
+        expect(typeof instances.foo.__propertiesObject__.myCustomElementCommand).toBe('object')
+        expect(instances.foo.__propertiesObject__.myCustomElementCommand.value).toBe(func)
+    })
 
     it('allows to use custom command wrapper', () => {
         const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)

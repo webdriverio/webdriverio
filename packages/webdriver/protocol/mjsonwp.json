@@ -55,7 +55,7 @@
       "command": "setNetworkConnection",
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes",
       "parameters": [{
-        "name": "connectionType",
+        "name": "type",
         "type": "number",
         "description": "a bit mask that should be translated to an integer value when serialized",
         "required": true

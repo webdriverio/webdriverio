@@ -4,8 +4,8 @@ const STACKTRACE_FILTER = [
     // exclude @wdio/sync from stack traces
     'node_modules/@wdio/sync/',
 
-    // exclude middlewares
-    'node_modules/webdriverio/build/middlewares.js',
+    // exclude webdriverio stack traces
+    'node_modules/webdriverio/build/',
 
     // exclude Request emit
     ' (events.js:',

@@ -31,7 +31,7 @@ describe('onPrepare', () => {
             user: 'foobaruser',
             key: '12345',
             browserstackLocal: false
-        },caps)
+        }, caps)
 
         expect(logInfoSpy).toHaveBeenCalledWith('browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
@@ -40,7 +40,7 @@ describe('onPrepare', () => {
     it('should initialize the opts object, and spawn a new Local instance', async () => {
         const service = new BrowserstackLauncher()
 
-        await service.onPrepare(config,caps)
+        await service.onPrepare(config, caps)
         expect(service.browserstackLocal).toBeDefined()
     })
 
@@ -106,7 +106,7 @@ describe('onComplete', () => {
     it('should kill the process if browserstackLocalForcedStop is true', () => {
         const killSpy = jest.spyOn(process, 'kill').mockImplementationOnce((pid) => pid)
         service.browserstackLocal.pid = 102
-        expect(service.onComplete(null,{ browserstackLocalForcedStop: true })).toEqual(102)
+        expect(service.onComplete(null, { browserstackLocalForcedStop: true })).toEqual(102)
         expect(killSpy).toHaveBeenCalled()
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
     })
@@ -118,7 +118,7 @@ describe('onComplete', () => {
     })
 
     it('should properly resolve if everything works', () => {
-        return expect(service.onComplete(null,{})).resolves.toBe(undefined)
+        return expect(service.onComplete(null, {})).resolves.toBe(undefined)
             .then(() => expect(service.browserstackLocal.stop).toHaveBeenCalled())
     })
 })

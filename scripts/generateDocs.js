@@ -145,7 +145,7 @@ const packages = getSubPackages()
 for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
     const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
     for (const pkg of pkgs) {
-        const name = pkg.split('-').slice(1,-1)
+        const name = pkg.split('-').slice(1, -1)
         const id = `${name.join('-')}-${type}`
         const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
         const readme = fs.readFileSync(path.join(__dirname, '..', 'packages', pkg, 'README.md')).toString()

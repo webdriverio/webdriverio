@@ -10,7 +10,7 @@ const INTERFACES = {
 const NOOP = function noop () {}
 const DEFAULT_TIMEOUT_INTERVAL = 60000
 
-const log = logger('wdio-jasmine-framework')
+const log = logger('@wdio/jasmine-framework')
 
 /**
  * Jasmine 2.x runner
@@ -168,7 +168,7 @@ class JasmineAdapter {
             message.file = params.payload.file
 
             if (params.payload.failedExpectations && params.payload.failedExpectations.length) {
-                message.failedExpectations = params.payload.failedExpectations
+                message.errors = params.payload.failedExpectations
                 message.error = params.payload.failedExpectations[0]
             }
 

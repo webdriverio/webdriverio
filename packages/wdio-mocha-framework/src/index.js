@@ -7,7 +7,7 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP } from './constants'
 
-const log = logger('wdio-mocha-framework')
+const log = logger('@wdio/mocha-framework')
 
 /**
 * Extracts the mocha UI type following this convention:
@@ -82,7 +82,7 @@ class MochaAdapter {
     }
 
     options (options, context) {
-        let {require = [], compilers = []} = options
+        let { require = [], compilers = [] } = options
 
         if (typeof require === 'string') {
             require = [require]
@@ -97,7 +97,6 @@ class MochaAdapter {
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui)
         const type = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 
-        this.options(options, { context, file, mocha, options })
         INTERFACES[type].forEach((fnName) => {
             let testCommand = INTERFACES[type][0]
 
@@ -108,6 +107,7 @@ class MochaAdapter {
                 fnName
             )
         })
+        this.options(options, { context, file, mocha, options })
     }
 
     /**
@@ -213,7 +213,7 @@ class MochaAdapter {
          */
         if (payload.root) return
 
-        let message = this.formatMessage({type: event, payload, err})
+        let message = this.formatMessage({ type: event, payload, err })
 
         message.cid = this.cid
         message.specs = this.specs

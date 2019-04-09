@@ -9,9 +9,10 @@ export default class HookStats extends RunnableStats {
         this.parent = runner.parent
     }
 
-    complete (error) {
-        if (error) {
-            this.error = error
+    complete (errors) {
+        this.errors = errors
+        if (errors && errors.length) {
+            this.error = errors[0]
             this.state = 'failed'
         }
 

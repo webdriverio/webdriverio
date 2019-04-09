@@ -16,5 +16,17 @@ const PROTOCOL_NAMES = {
 }
 const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
 const VENDOR_PROTOCOLS = ['chromium']
+const IGNORED_SUBPACKAGES_FOR_DOCS = [
+    'eslint-plugin-wdio',
+    'wdio-smoke-test-service',
+    'wdio-smoke-test-reporter',
+    'wdio-webdriver-mock-service'
+]
 
-module.exports = { PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS }
+module.exports = {
+    PROTOCOLS,
+    PROTOCOL_NAMES,
+    MOBILE_PROTOCOLS,
+    VENDOR_PROTOCOLS,
+    IGNORED_SUBPACKAGES_FOR_DOCS
+}

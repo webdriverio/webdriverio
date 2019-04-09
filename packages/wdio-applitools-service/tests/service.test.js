@@ -18,8 +18,12 @@ describe('wdio-applitools-service', () => {
 
     it('throws if key does not exist in config', () => {
         const service = new ApplitoolsService()
+
         expect(() => service.beforeSession({})).toThrow()
+        expect(() => service.beforeSession({ applitoolsServerUrl: 'foobar' })).toThrow()
+
         expect(() => service.beforeSession({ applitoolsKey: 'foobar' })).not.toThrow()
+        expect(() => service.beforeSession({ applitoolsKey: 'foobar', applitoolsServerUrl: 'foobar' })).not.toThrow()
     })
 
     it('throws if key does not exist in environment', () => {
@@ -27,10 +31,12 @@ describe('wdio-applitools-service', () => {
 
         expect(() => service.beforeSession({})).toThrow()
         process.env.APPLITOOLS_KEY = 'foobarenv'
+        process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
         expect(() => service.beforeSession({ applitools: { viewport: { height: 123 } } })).not.toThrow()
 
         expect(service.isConfigured).toBe(true)
         expect(service.eyes.setApiKey).toBeCalledWith('foobarenv')
+        expect(service.eyes.setServerUrl).toBeCalledWith('foobarenvserver')
         expect(service.viewport).toEqual({ width: 1440, height: 123 })
     })
 

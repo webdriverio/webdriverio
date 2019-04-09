@@ -1,8 +1,8 @@
 import path from 'path'
 import logger from '@wdio/logger'
-import { initialisePlugin } from '@wdio/config'
+import { initialisePlugin } from '@wdio/utils'
 
-const log = logger('wdio-runner')
+const log = logger('@wdio/runner')
 
 const NOOP = () => {}
 const DEFAULT_SYNC_TIMEOUT = 5000 // 5s
@@ -42,16 +42,19 @@ export default class BaseReporter {
         let options = this.config
         let filename = `wdio-${this.cid}-${name}-reporter.log`
 
-        const reporter_options = this.config.reporters.find((reporter) => (
-            Array.isArray(reporter) && reporter[0] === name
+        const reporterOptions = this.config.reporters.find((reporter) => (
+            Array.isArray(reporter) && (
+                reporter[0] === name ||
+                typeof reporter[0] === 'function' && reporter[0].name === name
+            )
         ))
 
-        if(reporter_options) {
-            const fileformat = reporter_options[1].outputFileFormat
+        if(reporterOptions) {
+            const fileformat = reporterOptions[1].outputFileFormat
 
             options.cid = this.cid
             options.capabilities = this.caps
-            Object.assign(options, reporter_options[1])
+            Object.assign(options, reporterOptions[1])
 
             if (fileformat) {
                 if (typeof fileformat !== 'function') {
@@ -127,7 +130,7 @@ export default class BaseReporter {
          * check if reporter has custom options
          */
         if (Array.isArray(reporter)) {
-            options = Object.assign(options, reporter[1])
+            options = Object.assign({}, options, reporter[1])
             reporter = reporter[0]
         }
 

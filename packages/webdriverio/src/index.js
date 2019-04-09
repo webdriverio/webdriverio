@@ -1,3 +1,4 @@
+import path from 'path'
 import WebDriver from 'webdriver'
 import { validateConfig, wrapCommand, runFnInFiberContext, detectBackend } from '@wdio/config'
 
@@ -25,6 +26,10 @@ export const remote = async function (params = {}, remoteModifier) {
 
     if (params.user && params.key) {
         params = Object.assign({}, detectBackend(params), params)
+    }
+
+    if(params.outputDir){
+        process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
     }
 
     const prototype = getPrototype('browser')
@@ -56,9 +61,13 @@ export const multiremote = async function (params = {}) {
      */
     await Promise.all(
         browserNames.map((browserName) => {
-            validateConfig(WDIO_DEFAULTS, params[browserName])
+            const config = validateConfig(WDIO_DEFAULTS, params[browserName])
+            const modifier = (client, options) => {
+                Object.assign(options, config)
+                return client
+            }
             const prototype = getPrototype('browser')
-            const instance = WebDriver.newSession(params[browserName], null, prototype, wrapCommand)
+            const instance = WebDriver.newSession(params[browserName], modifier, prototype, wrapCommand)
             return multibrowser.addInstance(browserName, instance)
         })
     )
@@ -80,7 +89,7 @@ export const multiremote = async function (params = {}) {
      */
     const origAddCommand = ::driver.addCommand
     driver.addCommand = (name, fn, attachToElement) => {
-        origAddCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance))
+        origAddCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
     }
 
     return driver

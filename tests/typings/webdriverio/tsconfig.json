@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "types": [
+      "webdriverio",
+      "@wdio/allure-reporter",
+      "@wdio/selenium-standalone-service"
+    ]
+  }
+}

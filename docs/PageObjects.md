@@ -3,7 +3,7 @@ id: pageobjects
 title: Page Object Pattern
 ---
 
-The new version (v4) of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle it is now possible to build up large test suites using this pattern. There are no additional packages required to create page objects. It turns out that `Object.create` provides all necessary features we need:
+The new version (v5) of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle it is now possible to build up large test suites using this pattern. There are no additional packages required to create page objects. It turns out that `Object.create` provides all necessary features we need:
 
 - inheritance between page objects
 - lazy loading of elements
@@ -79,8 +79,8 @@ After we've defined all required elements and methods for the page we can start 
 
 ```js
 // login.spec.js
-import { expect } 'chai';
-import LoginPage '../pageobjects/login.page';
+import { expect } from 'chai';
+import LoginPage from '../pageobjects/login.page';
 
 describe('login form', () => {
     it('should deny access with wrong creds', () => {

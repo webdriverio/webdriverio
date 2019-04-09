@@ -27,7 +27,7 @@ export function detectBackend (options = {}, isRDC = false) {
      * browserstack
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
-    if (typeof user === 'string' && key.length === 20) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
         return {
             protocol: 'https',
             hostname: 'hub-cloud.browserstack.com',
@@ -39,7 +39,7 @@ export function detectBackend (options = {}, isRDC = false) {
      * testingbot
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
-    if (typeof user === 'string' && key.length === 32) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
             hostname: 'hub.testingbot.com',
             port: 80
@@ -50,7 +50,7 @@ export function detectBackend (options = {}, isRDC = false) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    if ((typeof user === 'string' && key.length === 36) ||
+    if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
         // When SC is used a user needs to be provided and `isRDC` needs to be true
         (typeof user === 'string' && isRDC) ||
         // Or only RDC
@@ -66,6 +66,23 @@ export function detectBackend (options = {}, isRDC = false) {
         }
     }
 
+    if (
+        /**
+         * user and key are set in config
+         */
+        (typeof user === 'string' || typeof key === 'string') &&
+        /**
+         * but no custom WebDriver endpoint was configured
+         */
+        !hostname
+    ) {
+        throw new Error(
+            'A "user" or "key" was provided but could not be connected to a ' +
+            'known cloud service (SauceLabs, Browerstack or Testingbot). ' +
+            'Please check if given user and key properties are correct!'
+        )
+    }
+
     /**
      * no cloud provider detected, fallback to local browser driver
      */
@@ -75,63 +92,6 @@ export function detectBackend (options = {}, isRDC = false) {
         protocol: protocol || DEFAULT_PROTOCOL
     }
 }
-
-/**
- * Allows to safely require a package, it only throws if the package was found
- * but failed to load due to syntax errors
- * @param  {string} name  of package
- * @return {object}       package content
- */
-export function safeRequire (name) {
-    try {
-        return require(name)
-    } catch (e) {
-        if (!e.message.match(`Cannot find module '${name}'`)) {
-            throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
-        }
-
-        return null
-    }
-}
-
-/**
- * initialise WebdriverIO compliant plugins like reporter or services in the following way:
- * 1. if package name is scoped (starts with "@"), require scoped package name
- * 2. otherwise try to require "@wdio/<name>-<type>"
- * 3. otherwise try to require "wdio-<name>-<type>"
- */
-export function initialisePlugin (name, type, target = 'default') {
-    /**
-     * directly import packages that are scoped
-     */
-    if (name[0] === '@') {
-        const service = safeRequire(name)
-        return service[target]
-    }
-
-    /**
-     * check for scoped version of plugin first (e.g. @wdio/sauce-service)
-     */
-    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
-    if (scopedPlugin) {
-        return scopedPlugin[target]
-    }
-
-    /**
-     * check for old type of
-     */
-    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
-    if (plugin) {
-        return plugin[target]
-    }
-
-    throw new Error(
-        `Couldn't find plugin "${name}" ${type}, neither as wdio scoped package `+
-        `"@wdio/${name.toLowerCase()}-${type}" nor as community package ` +
-        `"wdio-${name.toLowerCase()}-${type}". Please make sure you have it installed!`
-    )
-}
-
 
 /**
  * validates configurations based on default values

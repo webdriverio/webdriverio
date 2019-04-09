@@ -4,10 +4,15 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+type ArgumentTypes<T> = T extends (...args: infer U) => infer R ? U : never;
+type WrapWithPromise<T, R> = (...args: ArgumentTypes<T>) => Promise<R>;
+
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
     type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
-    type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error';
+    type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
     type LoggingPreferenceType =
         'OFF' | 'SEVERE' | 'WARNING' |
         'INFO' | 'CONFIG' | 'FINE' |
@@ -190,6 +195,7 @@ declare namespace WebDriver {
         // Chrome specific
         chromeOptions?: ChromeOptions;
         'goog:chromeOptions'?: ChromeOptions;
+        mobileEmulationEnabled?: boolean;
 
         perfLoggingPrefs?: {
             enableNetwork?: boolean;
@@ -231,9 +237,9 @@ declare namespace WebDriver {
         modifier?: (...args: any[]) => any,
         proto?: object,
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
-    ): Client;
+    ): Promise<Client>;
 
-    interface Client {
+    interface ClientOptions {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
         isAndroid: boolean;
@@ -244,6 +250,12 @@ declare namespace WebDriver {
 
     // generated typings
     // ... insert here ...
+
+    interface ClientAsync extends AsyncClient {}
+}
+
+type AsyncClient = {
+    [K in keyof WebDriver.Client]: WrapWithPromise<WebDriver.Client[K], ReturnType<WebDriver.Client[K]>>
 }
 
 declare module "webdriver" {

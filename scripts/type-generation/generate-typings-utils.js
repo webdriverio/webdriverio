@@ -27,7 +27,7 @@ const getTypes = (types, alwaysType) => {
     })
     types = types.join(' | ')
     if (types === '' && !alwaysType) {
-        types = 'undefined'
+        types = 'void'
     } else if (types === '*' || (types === '' && alwaysType)) {
         types = 'any'
     }
@@ -37,7 +37,7 @@ const getTypes = (types, alwaysType) => {
 
 const buildCommand = (commandName, commandTags, indentation = 0) => {
     const allParameters = []
-    let returnType = 'undefined'
+    let returnType = 'void'
 
     for (const { type, name, optional, types, string } of commandTags) {
         // dox parse {*} as string instead of types

@@ -5,9 +5,10 @@ import EventEmitter from 'events'
 import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
-import WDIORepl from './repl'
+import ReplQueue from './replQueue'
 
-const log = logger('wdio-local-runner')
+const log = logger('@wdio/local-runner')
+const replQueue = new ReplQueue()
 
 /**
  * WorkerInstance
@@ -23,18 +24,23 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {object}   caps        capability object
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {object}   server      configuration details about automation backend this session is using
+     * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
      */
-    constructor (config, { cid, configFile, caps, specs, server, execArgv }) {
+    constructor (config, { cid, configFile, caps, specs, server, execArgv, retries, testData }, stdout, stderr) {
         super()
         this.cid = cid
         this.config = config
         this.configFile = configFile
         this.caps = caps
         this.specs = specs
+        this.testData = testData
         this.server = server || {}
         this.execArgv = execArgv
+        this.retries = retries
         this.isBusy = false
+        this.stdout = stdout
+        this.stderr = stderr
     }
 
     /**
@@ -67,8 +73,8 @@ export default class WorkerInstance extends EventEmitter {
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
-            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
+            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(this.stdout)
+            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(this.stderr)
             process.stdin.pipe(childProcess.stdin)
         }
 
@@ -94,32 +100,27 @@ export default class WorkerInstance extends EventEmitter {
             Object.assign(this.server, payload.content)
         }
 
-        this.emit('message', Object.assign(payload, { cid }))
-
         /**
          * handle debug command called within worker process
          */
         if (payload.origin === 'debugger' && payload.name === 'start') {
-            this.repl = new WDIORepl(
+            replQueue.add(
                 childProcess,
-                { prompt: `[${cid}] \u203A `, ...payload.params }
+                { prompt: `[${cid}] \u203A `, ...payload.params },
+                () => this.emit('message', Object.assign(payload, { cid })),
+                (ev) => this.emit('message', ev)
             )
-            this.repl.start().then(() => {
-                const ev = {
-                    origin: 'debugger',
-                    name: 'stop'
-                }
-                childProcess.send(ev)
-                this.emit('message', ev)
-            })
+            return replQueue.next()
         }
 
         /**
          * handle debugger results
          */
-        if (this.repl && payload.origin === 'debugger' && payload.name === 'result') {
-            this.repl.onResult(payload.params)
+        if (replQueue.isRunning && payload.origin === 'debugger' && payload.name === 'result') {
+            replQueue.runningRepl.onResult(payload.params)
         }
+
+        this.emit('message', Object.assign(payload, { cid }))
     }
 
     _handleError (payload) {
@@ -128,7 +129,7 @@ export default class WorkerInstance extends EventEmitter {
     }
 
     _handleExit (exitCode) {
-        const { cid, childProcess } = this
+        const { cid, childProcess, specs, retries, testData } = this
 
         /**
          * delete process of worker
@@ -137,7 +138,7 @@ export default class WorkerInstance extends EventEmitter {
         this.isBusy = false
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
-        this.emit('exit', { cid, exitCode })
+        this.emit('exit', { cid, exitCode, specs, retries, testData })
         childProcess.kill('SIGTERM')
     }
 
@@ -145,11 +146,10 @@ export default class WorkerInstance extends EventEmitter {
      * sends message to sub process to execute functions in wdio-runner
      * @param  {string} command  method to run in wdio-runner
      * @param  {object} argv     arguments for functions to call
-     * @param  {object} testData test data for each run
      * @return null
      */
-    postMessage (command, argv, testData = '') {
-        const { cid, configFile, caps, specs, server, isBusy } = this
+    postMessage (command, argv) {
+        const { cid, configFile, caps, specs, testData, server, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
             return log.info(`worker with cid ${cid} already busy and can't take new commands`)
@@ -163,7 +163,8 @@ export default class WorkerInstance extends EventEmitter {
             this.childProcess = this.startProcess()
         }
 
-        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server, testData})
+        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server, retries, testData })
+
         this.isBusy = true
     }
 }

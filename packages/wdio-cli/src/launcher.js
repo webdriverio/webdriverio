@@ -1,13 +1,15 @@
 import path from 'path'
+import fs from 'fs-extra'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
-import { ConfigParser, initialisePlugin } from '@wdio/config'
+import { ConfigParser } from '@wdio/config'
+import { initialisePlugin, initialiseServices } from '@wdio/utils'
 
 import CLInterface from './interface'
-import { getLauncher, runServiceHook } from './utils'
+import { runServiceHook } from './utils'
 
-const log = logger('wdio-cli:Launcher')
+const log = logger('@wdio/cli:Launcher')
 
 class Launcher {
     constructor (configFile, argv) {
@@ -25,17 +27,20 @@ class Launcher {
         const specs = this.configParser.getSpecs()
 
         if (config.outputDir) {
+            fs.ensureDirSync(path.join(config.outputDir))
             process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
         }
+
+        logger.setLogLevelsConfig(config.logLevels)
 
         const totalWorkerCnt = Array.isArray(capabilities)
             ? (capabilities.map((c) => this.calculateWorkerCountForCapability(c), this).reduce((a, b) => a + b, 0)): 1
 
-        this.interface = new CLInterface(config, specs, totalWorkerCnt)
-        config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
-
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
+
+        this.interface = new CLInterface(config, specs, totalWorkerCnt, this.runner.stdout, this.runner.stderr)
+        config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)
         this.exitCode = 0
@@ -69,7 +74,7 @@ class Launcher {
     async run () {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
-        const launcher = getLauncher(config)
+        const launcher = initialiseServices(config, caps, 'launcher')
 
         /**
          * run pre test tasks for runner plugins
@@ -117,26 +122,44 @@ class Launcher {
         }
 
         /**
+         * fail if no caps were found
+         */
+        if (!caps || !caps.length) {
+            return new Promise((resolve) => {
+                log.error('Missing capabilities, exiting with failure')
+                this.interface.updateView()
+                return resolve(1)
+            })
+        }
+
+        /**
          * schedule test runs
          */
         let cid = 0
         for (let capabilities of caps) {
-            let sch = {
-                cid: cid++,
-                caps: capabilities,
-                specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude),
-                availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
-                runningInstances: 0,
-                seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol },
-                specsDataCountMap: {}
-            }
+            let specs = [];
 
-            sch.specs.forEach(spec => {
-                let dataProvider = this.dataProvidersMap[spec]
-                sch.specsDataCountMap[spec] = (dataProvider === undefined) ? 0 : dataProvider.dataSet.length
+            this.configParser.getSpecs(capabilities.specs, capabilities.exclude).forEach((specFile) => {
+                
+                let dataProvider = this.dataProvidersMap[specFile]
+                if (typeof dataProvider !== 'undefined') {
+                    specs.push({ files: [specFile], testData: '', retries: config.specFileRetries })
+                } else {
+                    dataProvider.dataSet.forEach((data) => {
+                        specs.push({ files: [specFile], testData: data, retries: config.specFileRetries })
+                    })
+                }
+
             })
 
-            this.schedule.push(sch)
+            this.schedule.push({
+                cid: cid++,
+                caps: capabilities,
+                specs: specs,
+                availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
+                runningInstances: 0,
+                seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+            })
         }
 
         return new Promise((resolve) => {
@@ -216,28 +239,18 @@ class Launcher {
                 break
             }
 
-            let specFile = schedulableCaps[0].specs[0];
-            let testDataIndex = schedulableCaps[0].specsDataCountMap[specFile];
-            let testData = "";
-
-            if (testDataIndex > 0) {
-                testData = this.dataProvidersMap[specFile].dataSet[testDataIndex - 1];
-                schedulableCaps[0].specsDataCountMap[specFile]--;
-            }
-
+            let specs = schedulableCaps[0].specs.shift()
             this.startInstance(
-                [specFile],
+                specs.files,
                 schedulableCaps[0].caps,
                 schedulableCaps[0].cid,
                 schedulableCaps[0].seleniumServer,
-                testData
+                specs.rid,
+                specs.retries,
+                specs.testData
             )
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
-
-            if (schedulableCaps[0].specsDataCountMap[specFile] === 0) {
-                schedulableCaps[0].specs.shift();
-            }
         }
 
         return this.getNumberOfRunningInstances() === 0 && this.getNumberOfSpecsLeft() === 0
@@ -263,10 +276,16 @@ class Launcher {
      * Start instance in a child process.
      * @param  {Array} specs  Specs to run
      * @param  {Number} cid  Capabilities ID
+     * @param  {String} rid  Runner ID override
+     * @param  {Number} retries  Number of retries remaining
+     * @param  {Object} testData  Test data for the instance
      */
-    startInstance (specs, caps, cid, server, testData = '') {
+
+    startInstance (specs, caps, cid, server, rid, retries, testData) {
         let config = this.configParser.getConfig()
-        cid = this.getRunnerId(cid)
+        // Retried tests receive the cid of the failing test as rid
+        // so they can run with the same cid of the failing test.
+        cid = rid || this.getRunnerId(cid)
         let processNumber = this.runnerStarted + 1
 
         // process.debugPort defaults to 5858 and is set even when process
@@ -303,7 +322,7 @@ class Launcher {
         let defaultArgs = (capExecArgs.length) ? process.execArgv : []
 
         // If an arg appears multiple times the last occurrence is used
-        let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
+        let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
         // prefer launcher settings in capabilities over general launcher
         const worker = this.runner.run({
@@ -315,7 +334,8 @@ class Launcher {
             caps,
             specs,
             server,
-            execArgv
+            execArgv,
+            retries
         })
         worker.on('message', ::this.interface.onMessage)
         worker.on('error', ::this.interface.onMessage)
@@ -341,12 +361,19 @@ class Launcher {
      * Close test runner process once all child processes have exited
      * @param  {Number} cid       Capabilities ID
      * @param  {Number} exitCode  exit code of child process
+     * @param  {Array} specs      Specs that were run
+     * @param  {Number} retries   Number or retries remaining
      */
-    endHandler ({ cid, exitCode }) {
+    endHandler ({ cid, exitCode, specs, retries, testData }) {
         const passed = exitCode === 0
-        this.exitCode = this.exitCode || exitCode
-        this.runnerFailed += !passed ? 1 : 0
-        this.interface.emit('job:end', { cid, passed })
+
+        if (!passed && retries > 0) {
+            this.schedule[parseInt(cid)].specs.push({ files: specs, testData: testData, retries: retries - 1, rid: cid })
+        } else {
+            this.exitCode = this.exitCode || exitCode
+            this.runnerFailed += !passed ? 1 : 0
+        }
+        this.interface.emit('job:end', { cid, passed, retries })
 
         // Update schedule now this process has ended
         if (!this.isMultiremote) {
