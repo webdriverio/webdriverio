@@ -142,7 +142,7 @@ class Launcher {
             this.configParser.getSpecs(capabilities.specs, capabilities.exclude).forEach((specFile) => {
                 
                 let dataProvider = this.dataProvidersMap[specFile]
-                if (typeof dataProvider !== 'undefined') {
+                if (typeof dataProvider === 'undefined') {
                     specs.push({ files: [specFile], testData: '', retries: config.specFileRetries })
                 } else {
                     dataProvider.dataSet.forEach((data) => {
