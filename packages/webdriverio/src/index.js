@@ -89,7 +89,7 @@ export const multiremote = async function (params = {}) {
      */
     const origAddCommand = ::driver.addCommand
     driver.addCommand = (name, fn, attachToElement) => {
-        origAddCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance))
+        origAddCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
     }
 
     return driver
