@@ -13,7 +13,6 @@ export class AppiumLauncher {
         this.logPath = null
         this.command = ''
         this.appiumArgs = []
-        this.waitStartTime = 0
     }
 
     async onPrepare(config) {
@@ -22,7 +21,6 @@ export class AppiumLauncher {
         this.logPath = appiumConfig.logPath
         this.command = appiumConfig.command || this._getAppiumCommand()
         this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
-        this.waitStartTime = appiumConfig.waitStartTime || 1000
 
         const asyncStartAppium = promisify(this._startAppium)
         this.process = await asyncStartAppium(this.command, this.appiumArgs, this.waitStartTime)
@@ -43,18 +41,16 @@ export class AppiumLauncher {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
 
-        const exitCallback = (exitCode) => {
-            clearTimeout(timer)
+        process.stdout.on('data', (data) => {
+            if (data.includes('Appium REST http interface listener started')) {
+                log.debug(`Appium started with ID: ${process.pid}`)
+                callback(null, process)
+            }
+        })
+
+        process.once('exit', (exitCode) => {
             callback(new Error(`Appium exited before timeout (exit code: ${exitCode})`), null)
-        }
-
-        const timer = setTimeout(() => {
-            process.removeListener('exit', exitCallback)
-            log.debug(`Appium started with ID: ${process.pid}`)
-            callback(null, process)
-        }, waitStartTime)
-
-        process.once('exit', exitCallback)
+        })
     }
 
     _redirectLogStream(logPath) {

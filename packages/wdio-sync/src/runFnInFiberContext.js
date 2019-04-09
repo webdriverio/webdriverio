@@ -7,9 +7,13 @@ import Fiber from 'fibers'
  */
 export default function runFnInFiberContext (fn) {
     return function (...args) {
-        return new Promise((resolve) => Fiber(() => {
-            const result = fn.apply(this, args)
-            resolve(result)
+        return new Promise((resolve, reject) => Fiber(() => {
+            try {
+                const result = fn.apply(this, args)
+                return resolve(result)
+            } catch (err) {
+                return reject(err)
+            }
         }).run())
     }
 }

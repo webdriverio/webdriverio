@@ -60,17 +60,6 @@ describe('handleMessage', () => {
         expect(worker.emit).toBeCalledWith('message', expectedMessage)
         expect(worker.childProcess.send).toBeCalledWith(expectedMessage)
     })
-
-    it('should forward worker result to repl', () => {
-        const worker = new Worker({}, {})
-        worker.repl = { onResult: jest.fn() }
-        worker._handleMessage({
-            origin: 'debugger',
-            name: 'result',
-            params: 'foobar'
-        })
-        expect(worker.repl.onResult).toBeCalledWith('foobar')
-    })
 })
 
 describe('handleError', () => {

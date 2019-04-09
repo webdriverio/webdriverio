@@ -103,9 +103,11 @@ describe('launcher', () => {
         })
 
         it('should reschedule when runner failed and retries remain', () => {
+            delete process.env.CI
             launcher.schedule = [{ cid: 0, specs: [] }]
             launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
+            process.env.CI = 1
         })
     })
 

@@ -11,11 +11,27 @@ jest.mock('fs-extra', () => ({
     ensureFileSync : jest.fn(),
 }))
 
+class eventHandler {
+    registered = {};
+
+    delegate(event, callback) {
+        this.registered[event] = callback
+    }
+
+    trigger(event, data) {
+        this.registered[event](data)
+    }
+}
+
 class MockProcess {
-    once() {}
+    _eventHandler = new eventHandler()
+    once() {
+        this._eventHandler.trigger('data', '[Appium] Welcome to Appium v1.11.1')
+        this._eventHandler.trigger('data', '[Appium] Appium REST http interface listener started on 0.0.0.0:4723')
+    }
     removeListener() {}
     kill() {}
-    stdout = { pipe: jest.fn() }
+    stdout = { pipe: jest.fn(), on: this._eventHandler.delegate.bind(this._eventHandler) }
     stderr = { pipe: jest.fn() }
 }
 
@@ -44,7 +60,6 @@ describe('Appium launcher', () => {
         test('should set correct config properties', async () => {
             const config = {
                 appium: {
-                    waitStartTime: 2500,
                     logPath: './',
                     command: 'path/to/my_custom_appium',
                     args: { foo: 'bar' }
@@ -55,7 +70,6 @@ describe('Appium launcher', () => {
             expect(launcher.logPath).toBe(config.appium.logPath)
             expect(launcher.command).toBe(config.appium.command)
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
-            expect(launcher.waitStartTime).toBe(config.appium.waitStartTime)
         })
 
         test('should set correct config properties when empty', async () => {
@@ -64,7 +78,6 @@ describe('Appium launcher', () => {
             expect(launcher.logPath).toBe(undefined)
             expect(launcher.command).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/appium/build/lib/main.js'))
             expect(launcher.appiumArgs).toEqual([])
-            expect(launcher.waitStartTime).toBe(1000)
         })
 
         test('should start Appium', async () => {
