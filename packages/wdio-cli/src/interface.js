@@ -236,10 +236,10 @@ export default class WDIOCLInterface extends EventEmitter {
             if (runningJobs > MAX_RUNNING_JOBS_DISPLAY_COUNT) {
                 logString.push(
                     runningJobs - MAX_RUNNING_JOBS_DISPLAY_COUNT,
-                    'running tests' + (pendingJobs ? ' -' : ''))
+                    'running test suites' + (pendingJobs ? ' -' : ''))
             }
             if (pendingJobs) {
-                logString.push(pendingJobs, 'pending tests')
+                logString.push(pendingJobs, 'pending test suites')
             }
             this.display.push(chalk.yellow('...', ...logString.filter(l => Boolean(l))))
         }
