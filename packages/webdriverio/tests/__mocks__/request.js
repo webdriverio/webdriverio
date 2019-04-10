@@ -14,7 +14,9 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         sessionId,
         capabilities: {
             browserName: 'mockBrowser',
-            platformName: 'node'
+            platformName: 'node',
+            browserVersion: '1234',
+            setWindowRect: true
         }
     }
 

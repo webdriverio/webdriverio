@@ -1,0 +1,25 @@
+{
+  "value": {
+    "sessionId": "867A8C76-537F-4F2B-897C-85F87DF2C995",
+    "capabilities": {
+      "ms:inPrivate": false,
+      "browserVersion": "44.17763.1.0",
+      "takesScreenshot": true,
+      "acceptSslCerts": true,
+      "cssSelectorsEnabled": true,
+      "javascriptEnabled": true,
+      "browserName": "MicrosoftEdge",
+      "locationContextEnabled": true,
+      "platform": "ANY",
+      "takesElementScreenshot": true,
+      "webdriver.remote.sessionid": "199008b1e1e64a039d45e534d71b1e32",
+      "hasMetadata": true,
+      "applicationCacheEnabled": true,
+      "webStorageEnabled": true,
+      "pageLoadStrategy": "normal",
+      "platformName": "windows",
+      "platformVersion": "10",
+      "unhandledPromptBehavior": "dismiss and notify"
+    }
+  }
+}
