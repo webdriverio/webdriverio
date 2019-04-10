@@ -73,7 +73,7 @@ class JasmineAdapter {
          * wrap commands with wdio-sync
          */
         INTERFACES['bdd'].forEach((fnName) => runTestInFiberContext(
-            ['it', 'fit'],
+            ['it', 'fit', 'xit'],
             this.config.beforeHook,
             this.config.afterHook,
             fnName
