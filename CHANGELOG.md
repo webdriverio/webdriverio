@@ -15,6 +15,25 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.12 (2019-04-10)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3832](https://github.com/webdriverio/webdriverio/pull/3832) Ensure ms edge runs on w3c on Sauce ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriver`, `webdriverio`
+  * [#3825](https://github.com/webdriverio/webdriverio/pull/3825) fix addCommand in multiremote ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#3828](https://github.com/webdriverio/webdriverio/pull/3828) wdio-cli: fix typo ([@carlos-gva](https://github.com/carlos-gva))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@carlos-gva](https://github.com/carlos-gva)
+
 ## 5.7.11 (2019-04-08)
 
 #### :nail_care: Polish
