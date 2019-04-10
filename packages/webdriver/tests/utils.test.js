@@ -8,6 +8,7 @@ import chromedriverResponse from './__fixtures__/chromedriver.response.json'
 import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
+import edgedriverResponse from './__fixtures__/edgedriver.response.json'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -118,6 +119,7 @@ describe('utils', () => {
         const chromeCaps = chromedriverResponse.value
         const appiumCaps = appiumResponse.value.capabilities
         const geckoCaps = geckodriverResponse.value.capabilities
+        const edgeCaps = edgedriverResponse.value.capabilities
         const safariCaps = safaridriverResponse.value.capabilities
         const safariLegacyCaps = safaridriverLegacyResponse.value
 
@@ -127,6 +129,7 @@ describe('utils', () => {
             expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(false)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
+            expect(environmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
             expect(isW3C()).toBe(false)
         })
