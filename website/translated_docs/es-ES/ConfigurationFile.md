@@ -2,7 +2,7 @@
 id: configurationfile
 title: Configuración de Testrunner
 ---
-El archivo de configuración contiene toda la información necesaria para ejecutar su suite de pruebas. Es un módulo de nodo que exporta un JSON. Aquí hay una configuración de ejemplo con todas las propiedades soportadas e información adicional:
+El archivo de configuración contiene toda la información necesaria para ejecutar su suite de pruebas. Es un módulo de Node que exporta un JSON. Aquí hay una configuración de ejemplo con todas las propiedades soportadas e información adicional:
 
 ```js
 exports.config = {
@@ -11,54 +11,54 @@ exports.config = {
     // Configuraciones del servidor
     // =====================
     // Dirección del servidor que corre Selenium. Esta información usualmente no se necesita 
-    // ya que WebdriverIO se conecta automaticamente al localhost. Además, si esta utilizando uno de los
-    // servicios de nube como Sauce Labs, Browserstack o Testing Bot, no se requiere
-    // que defina la dirección del servido ya que WebdriverIO resuelve esto
-    // dependiendo de su información de usuario y la llave. Sin embaro, si esta utilizando un servidor providado
-    // de Selenium, debe definir la dirreción, el puerto, y  el path aqui.
+    // ya que WebdriverIO se conecta automaticamente al localhost. También si usas uno de
+    / soportan servicios de nube como salsa Labs, Browserstack o Bot prueba también no
+    / / necesario para definir información de host y puerto porque puede WebdriverIO figura que fuera
+    / / según la información de su usuario y clave. Sin embargo, si está usando un Selenium privado
+    // backend debe definir la dirección de host, puerto y ruta aquí.
     //
     host: '0.0.0.0',
     port: 4444,
     path: '/wd/hub',
     //
     // =================
-    // Service Providers
+    // Proveedores de Servicios
     // =================
-    // WebdriverIO supports Sauce Labs, Browserstack and Testing Bot (other cloud providers
-    // should work too though). These services define specific user and key (or access key)
-    // values you need to put in here in order to connect to these services.
+    // WebdriverIO soporta Sauce Labs, Browserstack y Testing Bot (otros proveedores Cloud
+    // también deberían funcionar). Estos servicios definen usuario y clave específicos (o clave de acceso)
+    // Cuyos valores se necesitan especificar aquí para conectarse a estos servicios.
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
-    // If you run your tests on SauceLabs you can specify the region you want to run your tests
-    // in via the `region` property. Available short handles for regions are:
+    // Si ejecutas tus pruebas en SauceLabs puedes especificar la región que quieres ejecutar tus pruebas
+    // en la propiedad `region`. Las abreviaturas para regiones disponibles son:
     // us: us-west-1 (default)
     // eu: eu-central-1
     region: 'us',
     //
     // ==================
-    // Specify Test Files
+    // Especifica los Archivos de Pruebas
     // ==================
-    // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called. Notice that, if you are calling `wdio` from an
-    // NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
-    // directory is where your package.json resides, so `wdio` will be called from there.
+    // Define cuales specs de pruebas deben ejecutarse. El patrón es relativo al directorio
+    // desde donde se llamó a `wdio`. Notese que, si está llamando `wdio` desde un script
+    // NPM (vea https://docs.npmjs.com/cli/run-script) entonces el actual directorio
+    // de trabajo es donde reside su package.json, así que `wdio` será llamado desde allí.
     //
     specs: [
         'test/spec/**'
     ],
-    // Patterns to exclude.
+    // Patrones a excluir.
     exclude: [
         'test/spec/multibrowser/**',
         'test/spec/mobile/**'
     ],
     //
     // ============
-    // Capabilities
+    // Capacidades
     // ============
-    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
-    // time. Depending on the number of capabilities, WebdriverIO launches several test
+    // Defina las capacidades aqui. WebdriverIO puede ejecutar múltiples capacidades al mismo
+    // tiempo. Depending on the number of capabilities, WebdriverIO launches several test
     // sessions. Within your capabilities you can overwrite the spec and exclude option in
     // order to group specific specs to a specific capability.
     //
