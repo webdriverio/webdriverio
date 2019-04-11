@@ -58,21 +58,21 @@ exports.config = {
     // Capacidades
     // ============
     // Defina las capacidades aqui. WebdriverIO puede ejecutar múltiples capacidades al mismo
-    // tiempo. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your capabilities you can overwrite the spec and exclude option in
-    // order to group specific specs to a specific capability.
+    // tiempo. Dependiendo del número de capacidades, WebdriverIO lanza varias sesiones de
+    // pruebas. Dentro de sus capacidades puede sobreescribir la especificación y excluir la opción 
+    // para agrupar  determinados Specs a una capacidad específica.
     //
     //
-    // First you can define how many instances should be started at the same time. Let's
-    // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
-    // set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
-    // files and you set maxInstances to 10, all spec files will get tested at the same time
-    // and 30 processes will get spawned. The property basically handles how many capabilities
-    // from the same test should run tests.
+    // Primero puede definir cuántas instancias deben iniciarse al mismo tiempo. Digamos que
+    // tienes 3 capacidades diferentes (Chrome, Firefox y Safari) y tienes
+    // set maxInstances  en 1, wdio generará 3 procesos. De este modo, si tienes 10 archivos
+    // spec y configuras maxInstances a 10, todos los archivos spec se probarán al mismo tiempo
+    // y 30 procesos serán generados. La propiedad básicamente maneja cuántas capacidades
+    // de la misma prueba deberían ejecutarse.
     //
     maxInstances: 10,
     //
-    // Or set a limit to run tests with a specific capability.
+    // O establezca un límite para ejecutar pruebas con una capacidad específica.
     maxInstancesPerCapability: 10,
     //
     // If you have trouble getting all important capabilities together, check out the
