@@ -17,6 +17,10 @@ export default class WebDriver {
     static async newSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
         const params = validateConfig(DEFAULTS, options)
 
+        const disableW3cCapabilities = Object.prototype.hasOwnProperty.call(options, 'disableW3cCapabilities')
+            ? options.disableW3cCapabilities
+            : false
+
         if (!options.logLevels || !options.logLevels['webdriver']) {
             logger.setLevel('webdriver', params.logLevel)
         }
@@ -41,8 +45,8 @@ export default class WebDriver {
             'POST',
             '/session',
             {
-                capabilities: w3cCaps, // W3C compliant
-                desiredCapabilities: jsonwpCaps // JSONWP compliant
+                desiredCapabilities: jsonwpCaps, // JSONWP compliant
+                ...(disableW3cCapabilities ? {} : { capabilities: w3cCaps }), // W3C compliant
             }
         )
 

@@ -40,6 +40,23 @@ test('should allow to create a new session using w3c compliant caps', async () =
     })
 })
 
+test('should allow to disable w3c caps', async () => {
+    await WebDriver.newSession({
+        path: '/',
+        capabilities: {
+            alwaysMatch: { browserName: 'firefox' },
+            firstMatch: [{}]
+        },
+        disableW3cCapabilities: true
+    })
+
+    const req = request.mock.calls[0][0]
+    expect(req.uri.pathname).toBe('/session')
+    expect(req.body).toEqual({
+        desiredCapabilities: { browserName: 'firefox' }
+    })
+})
+
 test('should be possible to skip setting logLevel', async () => {
     logger.setLevel.mockClear()
     await WebDriver.newSession({
