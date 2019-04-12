@@ -8,6 +8,7 @@ import {
     REPORT,
     SAUCELABS_REPORT,
     SAUCELABS_EU_REPORT,
+    SAUCELABS_HEADLESS_REPORT,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
@@ -202,6 +203,15 @@ describe('SpecReporter', () => {
                 sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
             }))
             expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+
+            printReporter.printReport(Object.assign({}, RUNNER, {
+                config: {
+                    hostname: 'ondemand.saucelabs.com',
+                    headless: true
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            }))
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_HEADLESS_REPORT)
         })
 
         it('should print report for suites with no tests but failed hooks', () => {
