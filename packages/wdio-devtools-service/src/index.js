@@ -7,7 +7,8 @@ const log = logger('@wdio/devtools-service')
 const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up'
 
 export default class DevToolsService {
-    constructor () {
+    constructor (options = {}) {
+        this.options = options
         this.isSupported = false
     }
 
@@ -27,8 +28,14 @@ export default class DevToolsService {
         }
 
         try {
-            const { host, port } = await findCDPInterface()
-            const client = await getCDPClient(host, port)
+            let debuggerAddress
+            if (this.options.debuggerAddress) {
+                const [host, port] = this.options.debuggerAddress.split(':')
+                debuggerAddress = { host, port: parseInt(port, 10) }
+            } else {
+                debuggerAddress = await findCDPInterface()
+            }
+            const client = await getCDPClient(debuggerAddress)
             this.commandHandler = new CommandHandler(client, global.browser)
         } catch (err) {
             log.error(`Couldn't connect to chrome: ${err.stack}`)

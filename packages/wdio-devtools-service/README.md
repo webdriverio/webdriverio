@@ -35,10 +35,13 @@ In order to use the service you just need to add the service to your service lis
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['devtools'],
+  services: [['devtools', {
+      debuggerAddress: '10.0.0.3:9222'
+  }]],
   // ...
 };
 ```
+- `debuggerAddress` - optional parameter, you could set host and port.
 
 ## Usage
 
