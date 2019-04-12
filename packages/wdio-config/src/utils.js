@@ -5,7 +5,8 @@ const DEFAULT_PROTOCOL = 'http'
 const REGION_MAPPING = {
     'us': '', // default endpoint
     'eu': 'eu-central-1.',
-    'us-east-1': 'us-east-1.'
+    'eu-central-1': 'eu-central-1.',
+    'us-east-1': 'us-east1.'
 }
 
 export function getSauceEndpoint (region, isRDC, isHeadless) {
@@ -23,7 +24,7 @@ export function getSauceEndpoint (region, isRDC, isHeadless) {
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {
-    const { port, hostname, user, key, protocol, region, headless } = options
+    let { port, hostname, user, key, protocol, region, headless } = options
 
     /**
      * browserstack
@@ -60,6 +61,15 @@ export function detectBackend (options = {}, isRDC = false) {
     ) {
         // Sauce headless is currently only in us-east-1
         const sauceRegion = headless ? 'us-east-1' : region
+
+        /**
+         * headless runs not over SSL which might change soon
+         * see https://wiki.saucelabs.com/display/DOCS/Sauce+Headless+Beta
+         */
+        if (headless) {
+            protocol = 'http'
+            port = 4444
+        }
 
         return {
             protocol: protocol || 'https',

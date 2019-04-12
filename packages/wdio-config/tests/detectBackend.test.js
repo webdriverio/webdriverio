@@ -133,9 +133,9 @@ describe('detectBackend', () => {
             region: 'eu',
             headless: true
         })
-        expect(caps.hostname).toBe('ondemand.us-east-1.headless.saucelabs.com')
-        expect(caps.port).toBe(443)
-        expect(caps.protocol).toBe('https')
+        expect(caps.hostname).toBe('ondemand.us-east1.headless.saucelabs.com')
+        expect(caps.port).toBe(4444)
+        expect(caps.protocol).toBe('http')
     })
 
     it('should throw if user and key are given but can not be connected to a cloud', () => {
