@@ -21,7 +21,7 @@ export function getSauceEndpoint (region, isRDC) {
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {
-    const { port, hostname, user, key, protocol, region } = options
+    const { port, hostname, user, key, protocol, region, headless } = options
 
     /**
      * browserstack
@@ -58,10 +58,12 @@ export function detectBackend (options = {}, isRDC = false) {
     ) {
         // For the VM cloud a prefix needs to be added, the RDC cloud doesn't have that
         const preFix = isRDC ? '' : 'ondemand.'
+        // Sauce headless region is us-east
+        const sauceRegion = headless ? 'us-east-1.' : region
 
         return {
             protocol: protocol || 'https',
-            hostname: hostname || (preFix + getSauceEndpoint(region, isRDC)),
+            hostname: hostname || (preFix + getSauceEndpoint(sauceRegion, isRDC)),
             port: port || 443
         }
     }
