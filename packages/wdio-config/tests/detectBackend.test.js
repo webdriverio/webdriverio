@@ -126,6 +126,18 @@ describe('detectBackend', () => {
         expect(caps.protocol).toBe('https')
     })
 
+    it('should detect saucelabs headless user', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'eu',
+            headless: true
+        })
+        expect(caps.hostname).toBe('ondemand.us-east1.headless.saucelabs.com')
+        expect(caps.port).toBe(4444)
+        expect(caps.protocol).toBe('http')
+    })
+
     it('should throw if user and key are given but can not be connected to a cloud', () => {
         expect(() => detectBackend({
             user: 'foobar',

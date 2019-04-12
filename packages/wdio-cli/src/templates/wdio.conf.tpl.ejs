@@ -6,8 +6,9 @@ exports.config = {
     //
     // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
     // on a remote machine).
-    runner: '<%= answers.runner %>',
-    <% if(answers.host && answers.port) { %>//
+    runner: '<%= answers.runner %>',<%
+    if(answers.hostname && answers.port) { %>
+    //
     // =====================
     // Server Configurations
     // =====================
@@ -20,9 +21,10 @@ exports.config = {
     //
     hostname: '<%= answers.hostname %>',
     port: <%= answers.port %>,
-    path: '<%= answers.path %>',
-    <% }
-    if(answers.env_user && answers.env_key) { %>//
+    path: '<%= answers.path %>',<% }
+
+    if(answers.env_user && answers.env_key) { %>
+    //
     // =================
     // Service Providers
     // =================
@@ -38,8 +40,8 @@ exports.config = {
     // These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud.
     // If you don't provide the region it will default for the `us`
     <% }
-    if(answers.backend.indexOf('In the cloud') > -1) { %>
-    <% } %>
+    if(answers.headless) { %>headless: true,<% }
+    if(answers.region) { %>region: '<%= answers.region %>',<% } %>
     //
     // ==================
     // Specify Test Files
