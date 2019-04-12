@@ -133,7 +133,7 @@ describe('detectBackend', () => {
             region: 'eu',
             headless: true
         })
-        expect(caps.hostname).toBe('ondemand.us-east-1.saucelabs.com')
+        expect(caps.hostname).toBe('ondemand.us-east-1.headless.saucelabs.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
     })

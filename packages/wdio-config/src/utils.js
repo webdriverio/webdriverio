@@ -5,17 +5,18 @@ const DEFAULT_PROTOCOL = 'http'
 const REGION_MAPPING = {
     'us': '', // default endpoint
     'eu': 'eu-central-1.',
-    'headless': 'us-east-1.'
+    'us-east-1': 'us-east-1.'
 }
 
-export function getSauceEndpoint (region, isRDC) {
-    const dcRegion = REGION_MAPPING[region] ? region : 'us'
+export function getSauceEndpoint (region, isRDC, isHeadless) {
+    const shortRegion = REGION_MAPPING[region] ? region : 'us'
+    const product = isHeadless ? 'headless.' : ''
 
     if (isRDC){
-        return `${dcRegion}1.appium.testobject.com`
+        return `${shortRegion}1.appium.testobject.com`
     }
 
-    return `${REGION_MAPPING[dcRegion]}saucelabs.com`
+    return `ondemand.${REGION_MAPPING[shortRegion]}${product}saucelabs.com`
 }
 
 /**
@@ -57,14 +58,12 @@ export function detectBackend (options = {}, isRDC = false) {
         // Or only RDC
         isRDC
     ) {
-        // For the VM cloud a prefix needs to be added, the RDC cloud doesn't have that
-        const preFix = isRDC ? '' : 'ondemand.'
-        // Sauce headless is a special region
-        const sauceRegion = headless ? 'headless' : region
+        // Sauce headless is currently only in us-east-1
+        const sauceRegion = headless ? 'us-east-1' : region
 
         return {
             protocol: protocol || 'https',
-            hostname: hostname || (preFix + getSauceEndpoint(sauceRegion, isRDC)),
+            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC, headless),
             port: port || 443
         }
     }
