@@ -15,6 +15,32 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.7.13 (2019-04-12)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-spec-reporter`
+  * [#3845](https://github.com/webdriverio/webdriverio/pull/3845) better sauce headless support ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-devtools-service`
+  * [#3841](https://github.com/webdriverio/webdriverio/pull/3841) wdio-devtools-service: adding debuggerAddress parameter ([@CrispusDH](https://github.com/CrispusDH))
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#3836](https://github.com/webdriverio/webdriverio/pull/3836) wdio-jasmine-framework: Fix xit logging code to the console ([@WillBrock](https://github.com/WillBrock))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#3833](https://github.com/webdriverio/webdriverio/pull/3833) wdio-browserstack-service: Add configuration to modify session url fo… ([@garethleonard](https://github.com/garethleonard))
+
+#### :memo: Documentation
+* [#3846](https://github.com/webdriverio/webdriverio/pull/3846) Boilerplate Page update ([@jonyet](https://github.com/jonyet))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Gareth Leonard ([@garethleonard](https://github.com/garethleonard))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- jonathan terry ([@jonyet](https://github.com/jonyet))
+
 ## 5.7.12 (2019-04-10)
 
 #### :eyeglasses: Spec Compliancy
@@ -1543,7 +1569,7 @@ This version comes with a variety of technical changes that might affect the fun
   console.log(typeof elem2.myElemCommand) // outputs "undefined"
   ```
 
-* spec and suite cli arguments are now passed as an array, e.g. 
+* spec and suite cli arguments are now passed as an array, e.g.
   ```js
   // v4
   ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js,./tests/baz.js

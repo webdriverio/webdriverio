@@ -34,6 +34,15 @@ const BANNER = `
 ###                 ###
 #######################`
 
+/**
+ * in case the error check above doesn't has any effect and a release
+ * was made without updating changelogs, just put
+ *
+ * `{ tagFrom: 'v5.7.12' }`
+ *
+ * as parameter into `createMarkdown` and set the version from which
+ * a release was made (the older version).
+ */
 // eslint-disable-next-line no-console
 console.log('Start generating changelog...')
 changelog.createMarkdown({}).then((newChangelog) => {
