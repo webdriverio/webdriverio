@@ -1,4 +1,5 @@
-import { zip, merge } from 'lodash'
+import zip from 'lodash.zip'
+import merge from 'lodash.merge'
 import { webdriverMonad } from 'webdriver'
 import { wrapCommand } from '@wdio/config'
 
