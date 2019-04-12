@@ -4,7 +4,8 @@ const DEFAULT_PROTOCOL = 'http'
 
 const REGION_MAPPING = {
     'us': '', // default endpoint
-    'eu': 'eu-central-1.'
+    'eu': 'eu-central-1.',
+    'headless': 'us-east-1.'
 }
 
 export function getSauceEndpoint (region, isRDC) {
@@ -58,8 +59,8 @@ export function detectBackend (options = {}, isRDC = false) {
     ) {
         // For the VM cloud a prefix needs to be added, the RDC cloud doesn't have that
         const preFix = isRDC ? '' : 'ondemand.'
-        // Sauce headless region is us-east
-        const sauceRegion = headless ? 'us-east-1.' : region
+        // Sauce headless is a special region
+        const sauceRegion = headless ? 'headless' : region
 
         return {
             protocol: protocol || 'https',

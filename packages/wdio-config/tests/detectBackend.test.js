@@ -127,7 +127,12 @@ describe('detectBackend', () => {
     })
 
     it('should detect saucelabs headless user', () => {
-        const caps = detectBackend({ region: 'eu', headless: true }, true)
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'eu',
+            headless: true
+        })
         expect(caps.hostname).toBe('ondemand.us-east-1.saucelabs.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
