@@ -11,7 +11,7 @@ jest.mock('fs', () => ({
 }))
 
 test('getCDPClient', async () => {
-    const cdp = await getCDPClient('localhost', 1234)
+    const cdp = await getCDPClient({ host: 'localhost', port: 1234 })
     expect(CDP.mock.calls).toHaveLength(1)
     expect(CDP.mock.calls[0][0].port).toBe(1234)
     expect(CDP.mock.calls[0][0].host).toBe('localhost')
