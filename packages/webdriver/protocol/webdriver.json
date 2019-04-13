@@ -53,7 +53,7 @@
     "POST": {
       "command": "setTimeouts",
       "description": "The Set Timeouts command sets timeout durations associated with the current session. The timeouts that can be controlled are listed in the table of session timeouts below.",
-      "ref": "https://w3c.github.io/webdriver/#dfn-timeouts",
+      "ref": "https://w3c.github.io/webdriver/#dfn-set-timeouts",
       "parameters": [{
         "name": "implicit",
         "type": "number",
