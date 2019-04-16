@@ -15,6 +15,28 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.7.14 (2019-04-16)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3850](https://github.com/webdriverio/webdriverio/pull/3850) Fix imports according to package dependencies. ([@blueimp](https://github.com/blueimp))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3858](https://github.com/webdriverio/webdriverio/pull/3858) fix path to image in debug API page ([@klamping](https://github.com/klamping))
+* `webdriver`
+  * [#3849](https://github.com/webdriverio/webdriverio/pull/3849) webdriver: Fix link for setTimeouts ([@WillBrock](https://github.com/WillBrock))
+
+#### :house: Internal
+* `wdio-mocha-framework`
+  * [#3856](https://github.com/webdriverio/webdriverio/pull/3856) [@wdio/mocha-framework] Upgrade mocha min version to v6.1.0 to avoid security issue ([@tadashi0713](https://github.com/tadashi0713))
+
+#### Committers: 4
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Sebastian Tschan ([@blueimp](https://github.com/blueimp))
+- Tadashi Nemoto ([@tadashi0713](https://github.com/tadashi0713))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
 ## v5.7.13 (2019-04-12)
 
 #### :rocket: New Feature
