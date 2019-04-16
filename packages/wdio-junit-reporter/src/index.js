@@ -29,7 +29,7 @@ class JunitReporter extends WDIOReporter {
             ? `${runner.sanitizedCapabilities}-${this.options.packageName}`
             : runner.sanitizedCapabilities
 
-        let index = 0
+        const index = 0
 
         for (let suiteKey of Object.keys(this.suites)) {
             /**
@@ -82,8 +82,6 @@ class JunitReporter extends WDIOReporter {
                     if (output) testCase.standardOutput(`\n${output}\n`)
                 }
             }
-
-            index++
         }
 
         return builder.build()
