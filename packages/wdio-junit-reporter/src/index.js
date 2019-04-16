@@ -29,8 +29,6 @@ class JunitReporter extends WDIOReporter {
             ? `${runner.sanitizedCapabilities}-${this.options.packageName}`
             : runner.sanitizedCapabilities
 
-        const index = 0
-
         for (let suiteKey of Object.keys(this.suites)) {
             /**
              * ignore root before all
@@ -40,14 +38,15 @@ class JunitReporter extends WDIOReporter {
                 continue
             }
 
-            const specFileName = runner.specs[index]
+            // The specs array will always return only one spec file since each reporter is invoked per spec file
+            const specFileName = runner.specs[0]
             const suite = this.suites[suiteKey]
             const suiteName = this.prepareName(suite.title)
             const testSuite = builder.testSuite()
                 .name(suiteName)
                 .timestamp(suite.start)
                 .time(suite._duration / 1000)
-                .property('specId', index)
+                .property('specId', 0)
                 .property('suiteName', suite.title)
                 .property('capabilities', runner.sanitizedCapabilities)
                 .property('file', specFileName.replace(process.cwd(), '.'))
