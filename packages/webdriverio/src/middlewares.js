@@ -29,11 +29,15 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
 
                 return result
             } catch (error) {
-                if (error.name === 'stale element reference') {
+                if (error.name.toLowerCase() === 'stale element reference') {
                     const element = await refetchElement(this, commandName)
                     this.elementId = element.elementId
                     this.parent = element.parent
 
+                    return await fn(commandName, commandFn).apply(this, args)
+                }
+                if (error.name.toLowerCase().includes('is not clickable at point')) {
+                    await element.scrollIntoView()
                     return await fn(commandName, commandFn).apply(this, args)
                 }
                 throw error
