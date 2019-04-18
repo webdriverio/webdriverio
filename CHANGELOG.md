@@ -15,6 +15,73 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.7.14 (2019-04-16)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3850](https://github.com/webdriverio/webdriverio/pull/3850) Fix imports according to package dependencies. ([@blueimp](https://github.com/blueimp))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#3858](https://github.com/webdriverio/webdriverio/pull/3858) fix path to image in debug API page ([@klamping](https://github.com/klamping))
+* `webdriver`
+  * [#3849](https://github.com/webdriverio/webdriverio/pull/3849) webdriver: Fix link for setTimeouts ([@WillBrock](https://github.com/WillBrock))
+
+#### :house: Internal
+* `wdio-mocha-framework`
+  * [#3856](https://github.com/webdriverio/webdriverio/pull/3856) [@wdio/mocha-framework] Upgrade mocha min version to v6.1.0 to avoid security issue ([@tadashi0713](https://github.com/tadashi0713))
+
+#### Committers: 4
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Sebastian Tschan ([@blueimp](https://github.com/blueimp))
+- Tadashi Nemoto ([@tadashi0713](https://github.com/tadashi0713))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+## v5.7.13 (2019-04-12)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-spec-reporter`
+  * [#3845](https://github.com/webdriverio/webdriverio/pull/3845) better sauce headless support ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-devtools-service`
+  * [#3841](https://github.com/webdriverio/webdriverio/pull/3841) wdio-devtools-service: adding debuggerAddress parameter ([@CrispusDH](https://github.com/CrispusDH))
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`
+  * [#3836](https://github.com/webdriverio/webdriverio/pull/3836) wdio-jasmine-framework: Fix xit logging code to the console ([@WillBrock](https://github.com/WillBrock))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#3833](https://github.com/webdriverio/webdriverio/pull/3833) wdio-browserstack-service: Add configuration to modify session url fo… ([@garethleonard](https://github.com/garethleonard))
+
+#### :memo: Documentation
+* [#3846](https://github.com/webdriverio/webdriverio/pull/3846) Boilerplate Page update ([@jonyet](https://github.com/jonyet))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Gareth Leonard ([@garethleonard](https://github.com/garethleonard))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- jonathan terry ([@jonyet](https://github.com/jonyet))
+
+## 5.7.12 (2019-04-10)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3832](https://github.com/webdriverio/webdriverio/pull/3832) Ensure ms edge runs on w3c on Sauce ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriver`, `webdriverio`
+  * [#3825](https://github.com/webdriverio/webdriverio/pull/3825) fix addCommand in multiremote ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#3828](https://github.com/webdriverio/webdriverio/pull/3828) wdio-cli: fix typo ([@carlos-gva](https://github.com/carlos-gva))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@carlos-gva](https://github.com/carlos-gva)
+
 ## 5.7.11 (2019-04-08)
 
 #### :nail_care: Polish
@@ -1524,7 +1591,7 @@ This version comes with a variety of technical changes that might affect the fun
   console.log(typeof elem2.myElemCommand) // outputs "undefined"
   ```
 
-* spec and suite cli arguments are now passed as an array, e.g. 
+* spec and suite cli arguments are now passed as an array, e.g.
   ```js
   // v4
   ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js,./tests/baz.js

@@ -4,24 +4,27 @@ const DEFAULT_PROTOCOL = 'http'
 
 const REGION_MAPPING = {
     'us': '', // default endpoint
-    'eu': 'eu-central-1.'
+    'eu': 'eu-central-1.',
+    'eu-central-1': 'eu-central-1.',
+    'us-east-1': 'us-east1.'
 }
 
-export function getSauceEndpoint (region, isRDC) {
-    const dcRegion = REGION_MAPPING[region] ? region : 'us'
+export function getSauceEndpoint (region, isRDC, isHeadless) {
+    const shortRegion = REGION_MAPPING[region] ? region : 'us'
+    const product = isHeadless ? 'headless.' : ''
 
     if (isRDC){
-        return `${dcRegion}1.appium.testobject.com`
+        return `${shortRegion}1.appium.testobject.com`
     }
 
-    return `${REGION_MAPPING[dcRegion]}saucelabs.com`
+    return `ondemand.${REGION_MAPPING[shortRegion]}${product}saucelabs.com`
 }
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {
-    const { port, hostname, user, key, protocol, region } = options
+    let { port, hostname, user, key, protocol, region, headless } = options
 
     /**
      * browserstack
@@ -56,12 +59,21 @@ export function detectBackend (options = {}, isRDC = false) {
         // Or only RDC
         isRDC
     ) {
-        // For the VM cloud a prefix needs to be added, the RDC cloud doesn't have that
-        const preFix = isRDC ? '' : 'ondemand.'
+        // Sauce headless is currently only in us-east-1
+        const sauceRegion = headless ? 'us-east-1' : region
+
+        /**
+         * headless runs not over SSL which might change soon
+         * see https://wiki.saucelabs.com/display/DOCS/Sauce+Headless+Beta
+         */
+        if (headless) {
+            protocol = 'http'
+            port = 4444
+        }
 
         return {
             protocol: protocol || 'https',
-            hostname: hostname || (preFix + getSauceEndpoint(region, isRDC)),
+            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC, headless),
             port: port || 443
         }
     }

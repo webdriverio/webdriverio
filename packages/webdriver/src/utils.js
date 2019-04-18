@@ -198,11 +198,19 @@ export function isW3C (capabilities) {
      * assume session to be a WebDriver session when
      * - capabilities are returned
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
-     * - a `platform` capability is not given but a platformName is returned
-     *   which is not defined in the JSONWire protocol
+     * - it is an Appium session (since Appium is full W3C compliant)
      */
     const isAppium = capabilities.automationName || capabilities.deviceName
-    return Boolean((!capabilities.platform && capabilities.platformName) || isAppium)
+    const hasW3CCaps = (
+        capabilities.platformName &&
+        capabilities.browserVersion &&
+        /**
+         * local safari doesn't provide platformVersion therefor
+         * check also for setWindowRect
+         */
+        (capabilities.platformVersion || capabilities.setWindowRect)
+    )
+    return Boolean(hasW3CCaps || isAppium)
 }
 
 /**

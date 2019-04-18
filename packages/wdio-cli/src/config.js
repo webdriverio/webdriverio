@@ -161,13 +161,13 @@ export const QUESTIONNAIRE = [{
     message: 'Where is your automation backend located?',
     choices: [
         'On my local machine',
-        'In the cloud using Sauce Labs, Browserstack or Testingbot',
-        'In the cloud using a different service',
+        'In the cloud using Sauce Labs',
+        'In the cloud using Browserstack or Testingbot or a different service',
         'I have my own Selenium cloud'
     ]
 }, {
     type: 'input',
-    name: 'host',
+    name: 'hostname',
     message: 'What is the host address of that cloud service?',
     when: (answers) => answers.backend.indexOf('different service') > -1
 }, {
@@ -180,30 +180,57 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
+    default: 'BROWSERSTACK_USER',
+    when: (answers) => answers.backend.startsWith('In the cloud using Browserstack')
+}, {
+    type: 'input',
+    name: 'env_key',
+    message: 'Environment variable for access key',
+    default: 'BROWSERSTACK_ACCESSKEY',
+    when: (answers) => answers.backend.startsWith('In the cloud using Browserstack')
+}, {
+    type: 'input',
+    name: 'env_user',
+    message: 'Environment variable for username',
     default: 'SAUCE_USERNAME',
-    when: (answers) => answers.backend.indexOf('In the cloud') > -1
+    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'SAUCE_ACCESS_KEY',
-    when: (answers) => answers.backend.indexOf('In the cloud') > -1
+    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
+}, {
+    type: 'confirm',
+    name: 'headless',
+    message: 'Do you want to run your test on Sauce Headless? (https://saucelabs.com/products/web-testing/sauce-headless)',
+    default: false,
+    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
+}, {
+    type: 'list',
+    name: 'region',
+    message: 'In which region do you want to run your Sauce Labs tests in?',
+    choices: [
+        'us',
+        'eu'
+    ],
+    when: (answers) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
-    name: 'hosthame',
-    message: 'What is the IP or URI to your Selenium standalone server?',
+    name: 'hostname',
+    message: 'What is the IP or URI to your Selenium standalone or grid server?',
     default: '0.0.0.0',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'port',
-    message: 'What is the port which your Selenium standalone server is running on?',
+    message: 'What is the port which your Selenium standalone or grid server is running on?',
     default: '4444',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'path',
-    message: 'What is the path to your Selenium standalone server?',
+    message: 'What is the path to your Selenium standalone or grid server?',
     default: '/wd/hub',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {

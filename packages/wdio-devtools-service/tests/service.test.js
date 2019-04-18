@@ -1,6 +1,7 @@
 import DevToolsService from '../src'
 
 import logger from '@wdio/logger'
+import { getCDPClient } from '../src/utils'
 
 jest.mock('../src/commands', () => {
     class CommandHandlerMock {
@@ -52,10 +53,21 @@ test('if not supported by browser', async () => {
 })
 
 test('if supported by browser', async () => {
-
     const service = new DevToolsService()
     service.isSupported = true
     await service.before()
+    expect(service.commandHandler.cdp).toBeCalledWith('Network', 'enable')
+    expect(service.commandHandler.cdp).toBeCalledWith('Page', 'enable')
+})
+
+test('initialised with the debuggerAddress as option', async () => {
+    const options = {
+        debuggerAddress: 'localhost:4444'
+    }
+    const service = new DevToolsService(options)
+    service.isSupported = true
+    await service.before()
+    expect(getCDPClient).toBeCalledWith({ host: 'localhost', port: 4444 })
     expect(service.commandHandler.cdp).toBeCalledWith('Network', 'enable')
     expect(service.commandHandler.cdp).toBeCalledWith('Page', 'enable')
 })
