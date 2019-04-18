@@ -1,8 +1,13 @@
 import junit from 'junit-report-builder'
 import WDIOReporter from '@wdio/reporter'
-
 import { limit } from './utils'
 
+/**
+ * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
+ * uses junit-report-builder (https://github.com/davidparsson/junit-report-builder) to build report.The report
+ * generated from this reporter should conform to the standard JUnit report schema
+ * (https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd).
+ */
 class JunitReporter extends WDIOReporter {
     constructor (options) {
         super(options)
@@ -24,12 +29,9 @@ class JunitReporter extends WDIOReporter {
 
     prepareXml (runner) {
         const builder = junit.newBuilder()
-
         const packageName = this.options.packageName
             ? `${runner.sanitizedCapabilities}-${this.options.packageName}`
             : runner.sanitizedCapabilities
-
-        let index = 0
 
         for (let suiteKey of Object.keys(this.suites)) {
             /**
@@ -40,14 +42,15 @@ class JunitReporter extends WDIOReporter {
                 continue
             }
 
-            const specFileName = runner.specs[index]
+            // there should only be one spec file per runner so we can safely take the first element of the array
+            const specFileName = runner.specs[0]
             const suite = this.suites[suiteKey]
             const suiteName = this.prepareName(suite.title)
             const testSuite = builder.testSuite()
                 .name(suiteName)
                 .timestamp(suite.start)
                 .time(suite._duration / 1000)
-                .property('specId', index)
+                .property('specId', 0)
                 .property('suiteName', suite.title)
                 .property('capabilities', runner.sanitizedCapabilities)
                 .property('file', specFileName.replace(process.cwd(), '.'))
@@ -63,27 +66,27 @@ class JunitReporter extends WDIOReporter {
 
                     if (test.state === 'pending' || test.state === 'skipped') {
                         testCase.skipped()
-                    }
-
-                    if (test.error) {
-                        const errorOptions = this.options.errorOptions
-                        if (errorOptions) {
-                            for (const key of Object.keys(errorOptions)) {
-                                testCase[key](test.error[errorOptions[key]])
+                    } else if (test.state === 'failed') {
+                        if (test.error) {
+                            if (this.options.errorOptions) {
+                                const errorOptions = this.options.errorOptions
+                                for (const key of Object.keys(errorOptions)) {
+                                    testCase[key](test.error[errorOptions[key]])
+                                }
+                            } else {
+                                // default
+                                testCase.error(test.error.message)
                             }
+                            testCase.standardError(`\n${test.error.stack}\n`)
                         } else {
-                            // default
-                            testCase.error(test.error.message)
+                            testCase.error()
                         }
-                        testCase.standardError(`\n${test.error.stack}\n`)
                     }
 
                     const output = this.getStandardOutput(test)
                     if (output) testCase.standardOutput(`\n${output}\n`)
                 }
             }
-
-            index++
         }
 
         return builder.build()
