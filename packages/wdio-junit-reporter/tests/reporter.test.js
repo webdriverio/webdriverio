@@ -4,11 +4,11 @@ import WDIOJunitReporter from '../src'
 
 import runnerLog from './__fixtures__/runner.json'
 import suitesLog from './__fixtures__/suites.json'
-import runnerMultipleSpecsLog from './__fixtures__/runner-multiple-specs.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 
 const testLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter.txt'))
-const testMultipleLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-multiple.txt'))
+const testMultipleLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-multiple-suites.txt'))
+const testErrorOptionsSetLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-error-options-used.txt'))
 
 describe('wdio-junit-reporter', () => {
     let reporter
@@ -71,8 +71,20 @@ describe('wdio-junit-reporter', () => {
         expect(reporter.prepareXml(runnerLog)).toBe(testLog.toString().trim())
     })
 
-    it('generates xml output from a runner with multiple specs', () => {
+    it('generates xml output for multiple describe blocks', () => {
         reporter.suites = suitesMultipleLog
-        expect(reporter.prepareXml(runnerMultipleSpecsLog)).toBe(testMultipleLog.toString().trim())
+        expect(reporter.prepareXml(runnerLog)).toBe(testMultipleLog.toString().trim())
+    })
+
+    it('generates xml output correctly when error options are set', () => {
+        const errorOptions = {
+            error: 'message',
+            failure: 'message',
+            stacktrace: 'stack'
+        }
+
+        reporter = new WDIOJunitReporter({ stdout: true, errorOptions })
+        reporter.suites = suitesLog
+        expect(reporter.prepareXml(runnerLog)).toBe(testErrorOptionsSetLog.toString().trim())
     })
 })
