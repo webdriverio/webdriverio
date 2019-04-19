@@ -72,7 +72,7 @@ describe('launcher', () => {
         it('should emit and resolve failed status', () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            launcher.schedule = [{ cid: 1 }, { cid: 2}]
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
             launcher.interface.emit = jest.fn()
             launcher.resolve = jest.fn()
             launcher.endHandler({ cid: 1, exitCode: 1 })
@@ -83,7 +83,7 @@ describe('launcher', () => {
         it('should emit and resolve passed status', () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            launcher.schedule = [{ cid: 1 }, { cid: 2}]
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
             launcher.interface.emit = jest.fn()
             launcher.resolve = jest.fn()
             launcher.endHandler({ cid: 1, exitCode: 0 })
@@ -94,7 +94,7 @@ describe('launcher', () => {
         it('should do nothing if not all specs are run', () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(0)
-            launcher.schedule = [{ cid: 1 }, { cid: 2}]
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
             launcher.interface.emit = jest.fn()
             launcher.resolve = jest.fn()
             launcher.endHandler({ cid: 1, exitCode: 0 })
@@ -103,9 +103,11 @@ describe('launcher', () => {
         })
 
         it('should reschedule when runner failed and retries remain', () => {
+            delete process.env.CI
             launcher.schedule = [{ cid: 0, specs: [] }]
             launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
+            process.env.CI = 1
         })
     })
 

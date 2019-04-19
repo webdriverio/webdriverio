@@ -42,7 +42,7 @@ export async function findCDPInterface () {
     return { host: 'localhost', port }
 }
 
-export function getCDPClient (host, port) {
+export function getCDPClient ({ host, port }) {
     return new Promise((resolve) => CDP({
         host,
         port,

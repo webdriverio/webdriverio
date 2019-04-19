@@ -37,11 +37,11 @@ class Launcher {
                 .reduce((a, b) => a + b, 0)
             : 1
 
-        this.interface = new CLInterface(config, specs, totalWorkerCnt)
-        config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
-
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
+
+        this.interface = new CLInterface(config, specs, totalWorkerCnt, this.runner.stdout, this.runner.stderr)
+        config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)
         this.exitCode = 0
@@ -290,7 +290,7 @@ class Launcher {
         let defaultArgs = (capExecArgs.length) ? process.execArgv : []
 
         // If an arg appears multiple times the last occurrence is used
-        let execArgv = [ ...defaultArgs, ...debugArgs, ...capExecArgs ]
+        let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
         // prefer launcher settings in capabilities over general launcher
         const worker = this.runner.run({

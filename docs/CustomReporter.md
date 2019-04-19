@@ -23,7 +23,7 @@ export default class CustomReporter extends WDIOReporter {
 };
 ```
 
-The only thing to do now in order to use this reporter is to assign it to the reporter property. Therefor
+The only thing to do now in order to use this reporter is to assign it to the reporter property. Therefore
 your wdio.conf.js file should look like this:
 
 ```js

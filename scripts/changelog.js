@@ -12,7 +12,7 @@ const { Changelog } = require('lerna-changelog')
 const { load } = require('lerna-changelog/lib/configuration')
 
 const root = path.resolve(__dirname, '..')
-const { version } = require(path.join(root,'lerna.json'))
+const { version } = require(path.join(root, 'lerna.json'))
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
 if (!process.env.GITHUB_AUTH) {
@@ -34,6 +34,15 @@ const BANNER = `
 ###                 ###
 #######################`
 
+/**
+ * in case the error check above doesn't has any effect and a release
+ * was made without updating changelogs, just put
+ *
+ * `{ tagFrom: 'v5.7.12' }`
+ *
+ * as parameter into `createMarkdown` and set the version from which
+ * a release was made (the older version).
+ */
 // eslint-disable-next-line no-console
 console.log('Start generating changelog...')
 changelog.createMarkdown({}).then((newChangelog) => {

@@ -63,11 +63,18 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func, attachToElement = false, proto) {
+        client.addCommand = function (name, func, attachToElement = false, proto, instances) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                if (instances) {
+                    Object.values(instances).forEach(instance => {
+                        instance.__propertiesObject__[name] = {
+                            value: customCommand
+                        }
+                    })
+                }
                 this.__propertiesObject__[name] = { value: customCommand }
             } else {
                 unit.lift(name, customCommand, proto)

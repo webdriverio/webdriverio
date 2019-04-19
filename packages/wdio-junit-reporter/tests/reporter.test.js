@@ -4,8 +4,11 @@ import WDIOJunitReporter from '../src'
 
 import runnerLog from './__fixtures__/runner.json'
 import suitesLog from './__fixtures__/suites.json'
+import runnerMultipleSpecsLog from './__fixtures__/runner-multiple-specs.json'
+import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 
 const testLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter.txt'))
+const testMultipleLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-multiple.txt'))
 
 describe('wdio-junit-reporter', () => {
     let reporter
@@ -42,7 +45,7 @@ describe('wdio-junit-reporter', () => {
             `{"a":"${'@'.repeat(200)} ... (9800 more bytes)"}`)
         expect(reporter.format({ a: '@'.repeat(100).split('') })).toBe(
             '{"a":["@","@","@","@","@","@","@","@","@","@","(90 more items)"]}')
-        expect(reporter.format([...Array(11)].map((item, i) => i).reduce((a,b) => {
+        expect(reporter.format([...Array(11)].map((item, i) => i).reduce((a, b) => {
             a['entry' + b] = 'foobar'
             return a
         }, {}))).toBe('{"entry0":"foobar","entry1":"foobar","entry2":"foobar","entry3":"foobar","entry4":"foobar","entry5":"foobar","entry6":"foobar","entry7":"foobar","entry8":"foobar","entry9":"foobar","_":"1 more keys: [\\"entry10\\"]"}')
@@ -66,5 +69,10 @@ describe('wdio-junit-reporter', () => {
     it('generates xml output', () => {
         reporter.suites = suitesLog
         expect(reporter.prepareXml(runnerLog)).toBe(testLog.toString().trim())
+    })
+
+    it('generates xml output from a runner with multiple specs', () => {
+        reporter.suites = suitesMultipleLog
+        expect(reporter.prepareXml(runnerMultipleSpecsLog)).toBe(testMultipleLog.toString().trim())
     })
 })

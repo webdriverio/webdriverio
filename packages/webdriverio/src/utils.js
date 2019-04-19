@@ -5,145 +5,13 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
+import { URL } from 'url'
 
-import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
+import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
+import { findStrategy } from './utils/findStrategy'
 
 const log = logger('webdriverio')
-const DEFAULT_SELECTOR = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
-
-export const findStrategy = function (value, isW3C, isMobile) {
-    /**
-     * set default selector
-     */
-    let using = DEFAULT_SELECTOR
-
-    /**
-     * check if user has specified locator strategy directly
-     */
-    const match = value.match(DIRECT_SELECTOR_REGEXP)
-    if (match) {
-        /**
-         * ensure selector strategy is supported
-         */
-        if (!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
-            throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
-        }
-
-        return {
-            using: match[1],
-            value: match[2]
-        }
-    }
-
-    // use xPath strategy if value starts with //
-    if (value.indexOf('/') === 0 || value.indexOf('(') === 0 ||
-               value.indexOf('../') === 0 || value.indexOf('./') === 0 ||
-               value.indexOf('*/') === 0) {
-        using = 'xpath'
-
-    // use link text strategy if value starts with =
-    } else if (value.indexOf('=') === 0) {
-        using = 'link text'
-        value = value.slice(1)
-
-    // use partial link text strategy if value starts with *=
-    } else if (value.indexOf('*=') === 0) {
-        using = 'partial link text'
-        value = value.slice(2)
-
-    // recursive element search using the UiAutomator library (Android only)
-    } else if (value.indexOf('android=') === 0) {
-        using = '-android uiautomator'
-        value = value.slice(8)
-
-    // recursive element search using the UIAutomation library (iOS-only)
-    } else if (value.indexOf('ios=') === 0) {
-        using = '-ios uiautomation'
-        value = value.slice(4)
-
-    // recursive element search using accessibility id
-    } else if (value.indexOf('~') === 0) {
-        using = 'accessibility id'
-        value = value.slice(1)
-
-    // class name mobile selector
-    // for iOS = UIA...
-    // for Android = android.widget
-    } else if (value.slice(0, 3) === 'UIA' || value.slice(0, 15) === 'XCUIElementType' || value.slice(0, 14).toLowerCase() === 'android.widget') {
-        using = 'class name'
-
-    // use tag name strategy if value contains a tag
-    // e.g. "<div>" or "<div />"
-    } else if (value.search(/<[a-zA-Z-]+( \/)*>/g) >= 0) {
-        using = 'tag name'
-        value = value.replace(/<|>|\/|\s/g, '')
-
-    // use name strategy if value queries elements with name attributes for JSONWP
-    // e.g. "[name='myName']" or '[name="myName"]'
-    } else if (!isW3C && value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
-        using = 'name'
-        value = value.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
-
-    // allow to move up to the parent or select current element
-    } else if (value === '..' || value === '.') {
-        using = 'xpath'
-
-    // any element with given class, id, or attribute and content
-    // e.g. h1.header=Welcome or [data-name=table-row]=Item or #content*=Intro
-    } else {
-        const match = value.match(new RegExp([
-            // HTML tag
-            /^([a-z0-9|-]*)/,
-            // optional . or # + class or id
-            /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
-            // optional [attribute-name="attribute-value"]
-            /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
-            // *=query or =query
-            /(\*)?=(.+)$/,
-        ].map(rx => rx.source).join('')))
-
-        if (match) {
-            const PREFIX_NAME = { '.': 'class', '#': 'id' }
-            const conditions = []
-            const [
-                tag,
-                prefix, name,
-                attrName, attrValue,
-                partial, query
-            ] =  match.slice(1)
-
-            if (prefix) {
-                conditions.push(`contains(@${PREFIX_NAME[prefix]}, "${name}")`)
-            }
-            if (attrName) {
-                conditions.push(
-                    attrValue
-                        ? `contains(@${attrName}, "${attrValue}")`
-                        : `@${attrName}`
-                )
-            }
-            if (partial) {
-                conditions.push(`contains(., "${query}")`)
-            } else {
-                conditions.push(`normalize-space() = "${query}"`)
-            }
-
-            using = 'xpath'
-            value = `.//${tag || '*'}[${conditions.join(' and ')}]`
-        }
-    }
-
-    /**
-     * ensure selector strategy is supported
-     */
-    if(!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)){
-        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
-    }
-
-    return { using, value }
-}
 
 const applyScopePrototype = (prototype, scope) => {
     const dir = path.resolve(__dirname, 'commands', scope)
@@ -432,7 +300,7 @@ export async function getElementRect(scope) {
             if (typeof rectJs[key] === 'number') {
                 rect[key] = Math.floor(rectJs[key])
             } else {
-                log.error('getElementRect', {rect, rectJs, key})
+                log.error('getElementRect', { rect, rectJs, key })
                 throw new Error('Failed to receive element rects via execute command')
             }
         })
@@ -453,5 +321,27 @@ export function getAbsoluteFilepath(filepath) {
 export function assertDirectoryExists(filepath) {
     if (!fs.existsSync(path.dirname(filepath))) {
         throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
+    }
+}
+
+/**
+ * check if urls are valid and fix them if necessary
+ * @param  {string}  url                url to navigate to
+ * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
+ * @return {string}                     fixed url
+ */
+export function validateUrl (url, origError) {
+    try {
+        const urlObject = new URL(url)
+        return urlObject.href
+    } catch (e) {
+        /**
+         * if even adding http:// doesn't help, fail with original error
+         */
+        if (origError) {
+            throw origError
+        }
+
+        return validateUrl(`http://${url}`, e)
     }
 }

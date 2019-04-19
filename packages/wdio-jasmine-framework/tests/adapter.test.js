@@ -267,7 +267,7 @@ test('formatMessage should pass all failedExpectations as errors', () => {
     const message = adapter.formatMessage({
         type: 'foobar',
         payload: {
-            failedExpectations: [new Error('foobar'), {message: 'I am also a failed expectation but not an exception'}]
+            failedExpectations: [new Error('foobar'), { message: 'I am also a failed expectation but not an exception' }]
         }
     })
 

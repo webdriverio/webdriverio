@@ -23,7 +23,7 @@ test('should run command on all instances', async () => {
     expect(browser.browserB).toBeDefined()
 
     const result = await browser.execute(() => 'foobar')
-    expect(result).toEqual([ 'foobar', 'foobar' ])
+    expect(result).toEqual(['foobar', 'foobar'])
 
     expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session')
     expect(request.mock.calls[0][0].method).toBe('POST')
@@ -89,6 +89,34 @@ test('should be able to fetch multiple elements', async () => {
 
     const size = await elems[0].getSize()
     expect(size).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
+})
+
+test('should be able to add a command to and element in multiremote', async () => {
+    const browser = await multiremote({
+        browserA: {
+            logLevel: 'debug',
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        browserB: {
+            logLevel: 'debug',
+            port: 4445,
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+    })
+
+    browser.addCommand('myCustomElementCommand', async function () {
+        return this.execute(function () {return 1})
+    }, true)
+
+    const elem = await browser.$('#foo')
+
+    expect(await elem.browserA.myCustomElementCommand()).toBe(1)
+    expect(await elem.browserB.myCustomElementCommand()).toBe(1)
+    expect(await elem.myCustomElementCommand()).toEqual([1, 1])
 })
 
 afterEach(() => {

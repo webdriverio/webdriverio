@@ -209,7 +209,7 @@ describe('wdio-runner', () => {
             const failures = await runner.run({ argv: {}, caps: {} })
 
             expect(failures).toBe(1)
-            expect(runner.emit.mock.calls[0]).toEqual([ 'error', new Error('framework testThrows failed') ])
+            expect(runner.emit.mock.calls[0]).toEqual(['error', new Error('framework testThrows failed')])
         })
 
         it('should return if sigintWasCalled', async () => {

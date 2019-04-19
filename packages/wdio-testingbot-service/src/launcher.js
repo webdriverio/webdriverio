@@ -4,6 +4,10 @@ import testingbotTunnel from 'testingbot-tunnel-launcher'
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class TestingBotLauncher {
+    constructor (config) {
+        this.config = config
+    }
+
     /**
      * Modify config and launch tb tunnel
      * @param   {Object} config Wdio config
@@ -53,9 +57,8 @@ export default class TestingBotLauncher {
     before (capabilities) {
         this.sessionId = global.browser.sessionId
         this.capabilities = capabilities
-        this.auth = global.browser.requestHandler.auth || {}
-        this.tbUser = this.auth.user
-        this.tbSecret = this.auth.pass
+        this.tbUser = this.config.user
+        this.tbSecret = this.config.key
         this.testCnt = 0
         this.failures = 0
     }
@@ -117,7 +120,20 @@ export default class TestingBotLauncher {
      * @param {Object} feature Feature
      */
     afterStep (feature) {
-        if (feature.failureException || feature.getFailureException()) {
+        if (
+            /**
+             * Cucumber v1
+             */
+            feature.failureException ||
+            /**
+             * Cucumber v2
+             */
+            (typeof feature.getFailureException === 'function' && feature.getFailureException()) ||
+            /**
+             * Cucumber v3, v4
+             */
+            (feature.status === 'failed')
+        ) {
             ++this.failures
         }
     }

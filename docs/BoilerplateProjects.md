@@ -5,7 +5,7 @@ title: Boilerplate Projects
 
 Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite. __Note:__ WebdriverIO recently
 
-## v5 Boileplate Projects
+## v5 Boilerplate Projects
 
 ### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
@@ -40,6 +40,8 @@ The boilerplate holds the following things
     - TypeScript Setup
     - Page Object Pattern
     - Chai Integration
+    - CI examples (CircleCI, Travis CI, Jenkins)
+    - Allure reporter
 
 ### [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
 
@@ -105,7 +107,18 @@ The only project requirement is Docker. Since WebdriverIO is also containerized,
         - Email form submission
         - Email reception success
 
-## v4 Boileplate Projects
+### [jonyet/webdriverio-boilerplate](https://github.com/jonyet/webdriverio-boilerplate)
+
+Designed to be quick to get you started without getting terribly complex.
+
+- Framework: Mocha
+- Features:
+    - cloud integration with [BrowserStack](https://www.browserstack.com/)
+    - Page Objects usage
+    - additional approach that is component specific rather than page, allowing for a split e2e and integration test writing approach
+    - introduces extension of config files for readability and flexibility, in the event that you have multiple teams/projects working out of the same project repository
+
+## v4 Boilerplate Projects
 
 ### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD/tree/wdio-v4)
 
@@ -141,16 +154,6 @@ Simple boilerplate project that runs multiple browser on [SauceLabs](https://sau
 - Features:
     - Page Object usage
     - Integration with [SauceLabs](https://saucelabs.com/)
-
-### [jonyet/webdriverio-boilerplate](https://github.com/jonyet/webdriverio-boilerplate)
-
-Designed to be quick to get you started without getting terribly complex, as well as to share examples of how one can leverage external node modules to work in conjunction with wdio specs.
-
-- Framework: Mocha
-- Features:
-    - examples for using Visual Regression testing with WebdriverIO v4
-    - cloud integration with [BrowserStack](https://www.browserstack.com/)
-    - Page Objects usage
 
 ### [cognitom/webdriverio-examples](https://github.com/cognitom/webdriverio-examples)
 

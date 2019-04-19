@@ -26,12 +26,45 @@ describe('isDisplayed test', () => {
         expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
+    it('should allow to check if element is displayed in mobile mode without browserName', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                keepBrowserName: true,
+                mobileMode: true
+            }
+        })
+        elem = await browser.$('#foo')
+        request.mockClear()
+        expect(await elem.isDisplayed()).toBe(true)
+        expect(request).toBeCalledTimes(1)
+        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+    })
+
     it('should refetch element if non existing', async () => {
         delete elem.elementId
         expect(await elem.isDisplayed()).toBe(true)
         expect(request).toBeCalledTimes(2)
         expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+    })
+
+    it('should return false if element is not existing anymore', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'safari',
+                keepBrowserName: true
+            }
+        })
+        elem = await browser.$('#foo')
+
+        expect(await elem.isDisplayed()).toBe(true)
+
+        elem.selector = '#nonexisting'
+        request.setMockResponse([{ error: 'no such element', statusCode: 404 }])
+
+        expect(await elem.isDisplayed()).toBe(false)
     })
 
     it('should return false if element can\'t be found after refetching it', async () => {

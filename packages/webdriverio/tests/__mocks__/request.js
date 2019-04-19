@@ -14,7 +14,9 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         sessionId,
         capabilities: {
             browserName: 'mockBrowser',
-            platformName: 'node'
+            platformName: 'node',
+            browserVersion: '1234',
+            setWindowRect: true
         }
     }
 
@@ -50,7 +52,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     case '/wd/hub/session':
         value = sessionResponse
 
-        if (params.body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
+        if (params.body.capabilities.alwaysMatch.browserName && params.body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
             value.desiredCapabilities = { browserName: 'mockBrowser' }
             delete value.capabilities
         }
@@ -66,7 +68,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             ++requestMock.retryCnt
             if (requestMock.retryCnt === 2) {
                 ++requestMock.retryCnt
-                value = {elementId: null}
+                value = { elementId: null }
                 break
             }
         }
@@ -239,8 +241,13 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     /**
      * overwrite if manual response is set
      */
+    let statusCode = 200
     if (Array.isArray(manualMockResponse)) {
         value = manualMockResponse.shift() || value
+
+        if (typeof value.statusCode === 'number') {
+            statusCode = value.statusCode
+        }
 
         if (manualMockResponse.length === 0) {
             manualMockResponse = null
@@ -257,7 +264,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
 
     cb(null, {
         headers: { foo: 'bar' },
-        statusCode: 200,
+        statusCode,
         body: response
     }, response)
 })

@@ -61,7 +61,7 @@ export const DEFAULTS = {
      */
     connectionRetryCount: {
         type: 'number',
-        default: 2
+        default: 3
     },
     /**
      * cloud user if applicable

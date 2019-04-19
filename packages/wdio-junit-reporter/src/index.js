@@ -29,59 +29,63 @@ class JunitReporter extends WDIOReporter {
             ? `${runner.sanitizedCapabilities}-${this.options.packageName}`
             : runner.sanitizedCapabilities
 
-        for (let specId of Object.keys(runner.specs)) {
-            for (let suiteKey of Object.keys(this.suites)) {
-                /**
-                 * ignore root before all
-                 */
-                /* istanbul ignore if  */
-                if (suiteKey.match(/^"before all"/)) {
-                    continue
-                }
+        let index = 0
 
-                const suite = this.suites[suiteKey]
-                const suiteName = this.prepareName(suite.title)
-                const testSuite = builder.testSuite()
-                    .name(suiteName)
-                    .timestamp(suite.start)
-                    .time(suite._duration / 1000)
-                    .property('specId', specId)
-                    .property('suiteName', suite.title)
-                    .property('capabilities', runner.sanitizedCapabilities)
-                    .property('file', runner.specs[0].replace(process.cwd(), '.'))
+        for (let suiteKey of Object.keys(this.suites)) {
+            /**
+             * ignore root before all
+             */
+            /* istanbul ignore if  */
+            if (suiteKey.match(/^"before all"/)) {
+                continue
+            }
 
-                for (let testKey of Object.keys(suite.tests)) {
-                    if (testKey !== 'undefined') { // fix cucumber hooks crashing reporter
-                        const test = suite.tests[testKey]
-                        const testName = this.prepareName(test.title)
-                        const testCase = testSuite.testCase()
-                            .className(`${packageName}.${suiteName}`)
-                            .name(testName)
-                            .time(test._duration / 1000)
+            const specFileName = runner.specs[index]
+            const suite = this.suites[suiteKey]
+            const suiteName = this.prepareName(suite.title)
+            const testSuite = builder.testSuite()
+                .name(suiteName)
+                .timestamp(suite.start)
+                .time(suite._duration / 1000)
+                .property('specId', index)
+                .property('suiteName', suite.title)
+                .property('capabilities', runner.sanitizedCapabilities)
+                .property('file', specFileName.replace(process.cwd(), '.'))
 
-                        if (test.state === 'pending' || test.state === 'skipped') {
-                            testCase.skipped()
-                        }
+            for (let testKey of Object.keys(suite.tests)) {
+                if (testKey !== 'undefined') { // fix cucumber hooks crashing reporter
+                    const test = suite.tests[testKey]
+                    const testName = this.prepareName(test.title)
+                    const testCase = testSuite.testCase()
+                        .className(`${packageName}.${suiteName}`)
+                        .name(testName)
+                        .time(test._duration / 1000)
 
-                        if (test.error) {
-                            const errorOptions = this.options.errorOptions
-                            if (errorOptions) {
-                                for (const key of Object.keys(errorOptions)) {
-                                    testCase[key](test.error[errorOptions[key]])
-                                }
-                            } else {
-                                // default
-                                testCase.error(test.error.message)
-                            }
-                            testCase.standardError(`\n${test.error.stack}\n`)
-                        }
-
-                        const output = this.getStandardOutput(test)
-                        if (output) testCase.standardOutput(`\n${output}\n`)
+                    if (test.state === 'pending' || test.state === 'skipped') {
+                        testCase.skipped()
                     }
+
+                    if (test.error) {
+                        const errorOptions = this.options.errorOptions
+                        if (errorOptions) {
+                            for (const key of Object.keys(errorOptions)) {
+                                testCase[key](test.error[errorOptions[key]])
+                            }
+                        } else {
+                            // default
+                            testCase.error(test.error.message)
+                        }
+                        testCase.standardError(`\n${test.error.stack}\n`)
+                    }
+
+                    const output = this.getStandardOutput(test)
+                    if (output) testCase.standardOutput(`\n${output}\n`)
                 }
             }
+
+            index++
         }
+
         return builder.build()
     }
 

@@ -4,30 +4,33 @@ const DEFAULT_PROTOCOL = 'http'
 
 const REGION_MAPPING = {
     'us': '', // default endpoint
-    'eu': 'eu-central-1.'
+    'eu': 'eu-central-1.',
+    'eu-central-1': 'eu-central-1.',
+    'us-east-1': 'us-east1.'
 }
 
-export function getSauceEndpoint (region, isRDC) {
-    const dcRegion = REGION_MAPPING[region] ? region : 'us'
+export function getSauceEndpoint (region, isRDC, isHeadless) {
+    const shortRegion = REGION_MAPPING[region] ? region : 'us'
+    const product = isHeadless ? 'headless.' : ''
 
     if (isRDC){
-        return `${dcRegion}1.appium.testobject.com`
+        return `${shortRegion}1.appium.testobject.com`
     }
 
-    return `${REGION_MAPPING[dcRegion]}saucelabs.com`
+    return `ondemand.${REGION_MAPPING[shortRegion]}${product}saucelabs.com`
 }
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {
-    const { port, hostname, user, key, protocol, region } = options
+    let { port, hostname, user, key, protocol, region, headless } = options
 
     /**
      * browserstack
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
-    if (typeof user === 'string' && key.length === 20) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
         return {
             protocol: 'https',
             hostname: 'hub-cloud.browserstack.com',
@@ -39,7 +42,7 @@ export function detectBackend (options = {}, isRDC = false) {
      * testingbot
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
-    if (typeof user === 'string' && key.length === 32) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
             hostname: 'hub.testingbot.com',
             port: 80
@@ -50,20 +53,46 @@ export function detectBackend (options = {}, isRDC = false) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    if ((typeof user === 'string' && key.length === 36) ||
+    if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
         // When SC is used a user needs to be provided and `isRDC` needs to be true
         (typeof user === 'string' && isRDC) ||
         // Or only RDC
         isRDC
     ) {
-        // For the VM cloud a prefix needs to be added, the RDC cloud doesn't have that
-        const preFix = isRDC ? '' : 'ondemand.'
+        // Sauce headless is currently only in us-east-1
+        const sauceRegion = headless ? 'us-east-1' : region
+
+        /**
+         * headless runs not over SSL which might change soon
+         * see https://wiki.saucelabs.com/display/DOCS/Sauce+Headless+Beta
+         */
+        if (headless) {
+            protocol = 'http'
+            port = 4444
+        }
 
         return {
             protocol: protocol || 'https',
-            hostname: hostname || (preFix + getSauceEndpoint(region, isRDC)),
+            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC, headless),
             port: port || 443
         }
+    }
+
+    if (
+        /**
+         * user and key are set in config
+         */
+        (typeof user === 'string' || typeof key === 'string') &&
+        /**
+         * but no custom WebDriver endpoint was configured
+         */
+        !hostname
+    ) {
+        throw new Error(
+            'A "user" or "key" was provided but could not be connected to a ' +
+            'known cloud service (SauceLabs, Browerstack or Testingbot). ' +
+            'Please check if given user and key properties are correct!'
+        )
     }
 
     /**

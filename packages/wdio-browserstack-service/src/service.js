@@ -9,13 +9,34 @@ export default class BrowserstackService {
     constructor (config) {
         this.config = config
         this.failures = 0
+        this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
+    }
+
+    /**
+     * if no user and key is specified even though a sauce service was
+     * provided set user and key with values so that the session request
+     * will fail
+     */
+    beforeSession (config) {
+        if (!config.user) {
+            config.user = 'NotSetUser'
+        }
+
+        if (!config.key) {
+            config.key = 'NotSetKey'
+        }
+        this.config.user = config.user
+        this.config.key = config.key
     }
 
     before() {
         this.sessionId = global.browser.sessionId
         this.auth = {
-            user: this.config.user || 'NotSetUser',
-            pass: this.config.key || 'NotSetKey'
+            user: this.config.user,
+            pass: this.config.key
+        }
+        if (global.browser.capabilities.app) {
+            this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
         return this._printSessionURL()
     }
@@ -69,7 +90,7 @@ export default class BrowserstackService {
 
     _update(sessionId, requestBody) {
         return new Promise((resolve, reject) => {
-            request.put(`https://api.browserstack.com/automate/sessions/${sessionId}.json`, {
+            request.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
                 json: true,
                 auth: this.auth,
                 body: requestBody
@@ -93,8 +114,8 @@ export default class BrowserstackService {
 
     _printSessionURL() {
         const capabilities = global.browser.capabilities
-        return new Promise((resolve,reject) => request.get(
-            `https://api.browserstack.com/automate/sessions/${this.sessionId}.json`,
+        return new Promise((resolve, reject) => request.get(
+            `${this.sessionBaseUrl}/${this.sessionId}.json`,
             {
                 json: true,
                 auth: this.auth

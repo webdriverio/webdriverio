@@ -3,7 +3,6 @@ import { filterPackageName } from './utils'
 export const SUPPORTED_FRAMEWORKS = [
     'mocha', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework
     'jasmine' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
-    // 'cucumber' not yet supported (see #2872)
 ]
 
 export const SUPPORTED_REPORTER = [
@@ -13,11 +12,9 @@ export const SUPPORTED_REPORTER = [
     ' allure - https://www.npmjs.com/package/@wdio/allure-reporter',
     ' sumologic - https://www.npmjs.com/package/@wdio/sumologic-reporter',
     ' concise - https://www.npmjs.com/package/@wdio/concise-reporter',
-    ' teamcity - https://www.npmjs.com/package/wdio-teamcity-reporter',
-    ' json - https://www.npmjs.com/package/wdio-json-reporter',
-    ' testrail - https://www.npmjs.com/package/wdio-testrail-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
-    // ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter' not supported yet see https://github.com/QualityOps/wdio-timeline-reporter/issues/9
+    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-reporter',
+    ' video - https://www.npmjs.com/package/wdio-video-reporter',
+    ' html - https://www.npmjs.com/package/@rpii/wdio-html-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
@@ -27,21 +24,16 @@ export const SUPPORTED_SERVICES = [
     ' selenium-standalone - https://www.npmjs.com/package/@wdio/selenium-standalone-service',
     ' devtools - https://www.npmjs.com/package/@wdio/devtools-service',
     ' applitools - https://www.npmjs.com/package/@wdio/applitools-service',
-    ' browserstack - https://www.npmjs.com/package/wdio-browserstack-service',
-    ' appium - https://www.npmjs.com/package/wdio-appium-service',
-    ' phantomjs - https://www.npmjs.com/package/wdio-phantomjs-service',
-    ' static-server - https://www.npmjs.com/package/wdio-static-server-service',
-    ' visual-regression - https://www.npmjs.com/package/wdio-visual-regression-service',
-    ' webpack - https://www.npmjs.com/package/wdio-webpack-service',
-    ' webpack-dev-server - https://www.npmjs.com/package/wdio-webpack-dev-server-service',
+    ' browserstack - https://www.npmjs.com/package/@wdio/browserstack-service',
+    ' appium - https://www.npmjs.com/package/@wdio/appium-service',
     ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
-    ' iedriver - https://www.npmjs.com/package/wdio-iedriver-service',
-    ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service'
+    ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
+    ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
+    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
     ' local - https://www.npmjs.com/package/@wdio/local-runner'
-    // ' lambda - https://www.npmjs.com/package/@wdio/lambda-runner'
 ]
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
@@ -169,13 +161,13 @@ export const QUESTIONNAIRE = [{
     message: 'Where is your automation backend located?',
     choices: [
         'On my local machine',
-        'In the cloud using Sauce Labs, Browserstack or Testingbot',
-        'In the cloud using a different service',
+        'In the cloud using Sauce Labs',
+        'In the cloud using Browserstack or Testingbot or a different service',
         'I have my own Selenium cloud'
     ]
 }, {
     type: 'input',
-    name: 'host',
+    name: 'hostname',
     message: 'What is the host address of that cloud service?',
     when: (answers) => answers.backend.indexOf('different service') > -1
 }, {
@@ -188,30 +180,57 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
+    default: 'BROWSERSTACK_USER',
+    when: (answers) => answers.backend.startsWith('In the cloud using Browserstack')
+}, {
+    type: 'input',
+    name: 'env_key',
+    message: 'Environment variable for access key',
+    default: 'BROWSERSTACK_ACCESSKEY',
+    when: (answers) => answers.backend.startsWith('In the cloud using Browserstack')
+}, {
+    type: 'input',
+    name: 'env_user',
+    message: 'Environment variable for username',
     default: 'SAUCE_USERNAME',
-    when: (answers) => answers.backend.indexOf('In the cloud') > -1
+    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'SAUCE_ACCESS_KEY',
-    when: (answers) => answers.backend.indexOf('In the cloud') > -1
+    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
+}, {
+    type: 'confirm',
+    name: 'headless',
+    message: 'Do you want to run your test on Sauce Headless? (https://saucelabs.com/products/web-testing/sauce-headless)',
+    default: false,
+    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
+}, {
+    type: 'list',
+    name: 'region',
+    message: 'In which region do you want to run your Sauce Labs tests in?',
+    choices: [
+        'us',
+        'eu'
+    ],
+    when: (answers) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
-    name: 'hosthame',
-    message: 'What is the IP or URI to your Selenium standalone server?',
+    name: 'hostname',
+    message: 'What is the IP or URI to your Selenium standalone or grid server?',
     default: '0.0.0.0',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'port',
-    message: 'What is the port which your Selenium standalone server is running on?',
+    message: 'What is the port which your Selenium standalone or grid server is running on?',
     default: '4444',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'path',
-    message: 'What is the path to your Selenium standalone server?',
+    message: 'What is the path to your Selenium standalone or grid server?',
     default: '/wd/hub',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {

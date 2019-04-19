@@ -8,16 +8,17 @@ import chromedriverResponse from './__fixtures__/chromedriver.response.json'
 import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
+import edgedriverResponse from './__fixtures__/edgedriver.response.json'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
         expect(isSuccessfulResponse()).toBe(false)
         expect(isSuccessfulResponse(200)).toBe(false)
         expect(isSuccessfulResponse(200, { value: { some: 'result' } })).toBe(true)
-        expect(isSuccessfulResponse(404, { value: { error: new Error('foobar' )} })).toBe(false)
+        expect(isSuccessfulResponse(404, { value: { error: new Error('foobar' ) } })).toBe(false)
         expect(isSuccessfulResponse(404, { value: { error: 'no such element' } })).toBe(true)
         expect(isSuccessfulResponse(404, { value: {
-            message: 'An element could not be located on the page using the given search parameters.'}
+            message: 'An element could not be located on the page using the given search parameters.' }
         })).toBe(true)
         expect(isSuccessfulResponse(200, { status: 7 })).toBe(false)
         expect(isSuccessfulResponse(undefined, { status: 7, value: {} })).toBe(false)
@@ -118,6 +119,7 @@ describe('utils', () => {
         const chromeCaps = chromedriverResponse.value
         const appiumCaps = appiumResponse.value.capabilities
         const geckoCaps = geckodriverResponse.value.capabilities
+        const edgeCaps = edgedriverResponse.value.capabilities
         const safariCaps = safaridriverResponse.value.capabilities
         const safariLegacyCaps = safaridriverLegacyResponse.value
 
@@ -127,6 +129,7 @@ describe('utils', () => {
             expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(false)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
+            expect(environmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
             expect(isW3C()).toBe(false)
         })
@@ -159,7 +162,7 @@ describe('utils', () => {
         it('should not detect mobile app for browserName===undefined', function () {
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
             const capabilities = {}
-            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
+            const { isMobile, isIOS, isAndroid } = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
@@ -168,7 +171,7 @@ describe('utils', () => {
         it('should not detect mobile app for browserName==="firefox"', function () {
             const capabilities = { browserName: 'firefox' }
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
+            const { isMobile, isIOS, isAndroid } = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
@@ -177,7 +180,7 @@ describe('utils', () => {
         it('should not detect mobile app for browserName==="chrome"', function () {
             const capabilities = { browserName: 'chrome' }
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
+            const { isMobile, isIOS, isAndroid } = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(false)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
@@ -186,7 +189,7 @@ describe('utils', () => {
         it('should detect mobile app for browserName===""', function () {
             const capabilities = { browserName: '' }
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
+            const { isMobile, isIOS, isAndroid } = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(false)
@@ -200,7 +203,7 @@ describe('utils', () => {
                 app: 'foo.apk'
             }
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
+            const { isMobile, isIOS, isAndroid } = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(true)
@@ -217,7 +220,7 @@ describe('utils', () => {
                 appWaitActivity: 'com.example.gui.LauncherActivity'
             }
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-            const {isMobile, isIOS, isAndroid} = environmentDetector({ capabilities, requestedCapabilities })
+            const { isMobile, isIOS, isAndroid } = environmentDetector({ capabilities, requestedCapabilities })
             expect(isMobile).toEqual(true)
             expect(isIOS).toEqual(false)
             expect(isAndroid).toEqual(true)
@@ -253,7 +256,7 @@ describe('utils', () => {
         expect(error.message).toBe('bar')
 
         //Chrome
-        error = new CustomRequestError({ value: { message: 'stale element reference'}})
+        error = new CustomRequestError({ value: { message: 'stale element reference' } })
         expect(error.name).toBe('stale element reference')
         expect(error.message).toBe('stale element reference')
 

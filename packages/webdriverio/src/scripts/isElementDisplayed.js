@@ -180,9 +180,8 @@ export default function isElementDisplayed(element) {
         if (element.type === 'hidden')
             return false
         break
-
-    //case 'MAP':
-    // FIXME: Selenium has special handling for <map> elements. We don't do anything now.
+        // case 'MAP':
+        // FIXME: Selenium has special handling for <map> elements. We don't do anything now.
 
     default:
         break

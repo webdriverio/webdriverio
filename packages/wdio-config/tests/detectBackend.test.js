@@ -113,16 +113,45 @@ describe('detectBackend', () => {
     })
 
     it('should detect saucelabs us rdc user', () => {
-        const caps = detectBackend({ region: 'us'}, true)
+        const caps = detectBackend({ region: 'us' }, true)
         expect(caps.hostname).toBe('us1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
     })
 
     it('should detect saucelabs eu rdc user', () => {
-        const caps = detectBackend({ region: 'eu'}, true)
+        const caps = detectBackend({ region: 'eu' }, true)
         expect(caps.hostname).toBe('eu1.appium.testobject.com')
         expect(caps.port).toBe(443)
         expect(caps.protocol).toBe('https')
+    })
+
+    it('should detect saucelabs headless user', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            region: 'eu',
+            headless: true
+        })
+        expect(caps.hostname).toBe('ondemand.us-east1.headless.saucelabs.com')
+        expect(caps.port).toBe(4444)
+        expect(caps.protocol).toBe('http')
+    })
+
+    it('should throw if user and key are given but can not be connected to a cloud', () => {
+        expect(() => detectBackend({
+            user: 'foobar',
+            key: 'barfoo'
+        })).toThrow()
+    })
+
+    it('should not throw if user and key are invalid but a custom host was set', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'barfoo',
+            hostname: 'foobar.com'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(4444)
     })
 })
