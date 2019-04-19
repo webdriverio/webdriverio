@@ -281,7 +281,7 @@ test('updateJob for RDC', () => {
 
     service.updateJob('12345', 23)
     const reqCall = request.mock.calls[0][0]
-    expect(reqCall.uri).toBe('https://app.us-west-1.testobject.com/api/rest/v2/appium/session/12345/test')
+    expect(reqCall.uri).toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
     expect(reqCall.body).toEqual({ passed: false })
     expect(service.failures).toBe(0)
 })
