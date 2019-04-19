@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.7.15 (2019-04-19)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#3868](https://github.com/webdriverio/webdriverio/pull/3868) wdio-junit-reporter: Fix nested and multiple describes ([@naddison](https://github.com/naddison))
+
+#### Committers: 1
+- Nikolas Addison ([@naddison](https://github.com/naddison))
+
 ## v5.7.15 (2019-04-19)
 
 #### :eyeglasses: Spec Compliancy
