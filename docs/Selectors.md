@@ -270,3 +270,81 @@ With selector chaining it gets way easier as you can narrow down the desired ele
 ```js
 $('.row .entry:nth-child(2)').$('button*=Add').click();
 ```
+
+## React Selectors
+
+WebdriverIO provides a way to select React components based on the component name. To do this you have an option of two commands, `react$` and `react$$`. These commands allow you to select components off the React VirtualDOM and return either a single WebdriverIO Element or an array of elements depending on which function is being used.
+
+```jsx
+// index.jsx
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+function MyComponent() {
+    return (
+        <div>
+            MyComponent
+        </div>
+    )
+}
+
+function App() {
+    return (<MyComponent />)
+}
+
+ReactDOM.render(<App />, document.querySelector('#root'))
+```
+
+Take the above example, we have a simple `MyComponent` instance inside the application which React is rendering inside a HTML element with `id="root"`. With the `browser.react$` command we can select our instance of `MyComponent`:
+
+```js
+const myCmp = browser.react$('MyComponent')
+```
+
+Now that we have the WebdriverIO element stored in our `myCmp` variable, we can execute element commands against it.
+
+**Note**: The comamnds `react$` and `react$$` are similar in fuctionality, except that `react$$` will return all the instances that match the selector as an array of WebdriverIO elements.
+
+#### Filtering components
+
+The library that WebdriverIO uses internally allows to filter your selection by props and/or state of the component. Todo so you need to pass a second argument for props and/or a third argument for state to the browser command.
+
+```jsx
+// index.jsx
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+function MyComponent(props) {
+    return (
+        <div>
+            Hello { props.name || 'World' }!
+        </div>
+    )
+}
+
+function App() {
+    return (
+        <div>
+            <MyComponent name="WebdriverIO" />
+            <MyComponent />
+        </div>
+    )
+}
+
+ReactDOM.render(<App />, document.querySelector('#root'))
+```
+
+If we want to select the instance of `MyComponent` that has a prop `name` as `WebdriverIO` we would execute the command like so:
+
+```js
+const myCmp = browser.react$('MyComponent', { name: 'WebdriverIO' })
+```
+
+If we wanted to filter our selection by state, the browser command would looks something like so:
+
+```js
+const myCmp = browser.react$('MyComponent', undefined, { myState: 'some value' })
+```
+
+#### Dealing with `React.Fragment`
+
