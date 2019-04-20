@@ -273,7 +273,11 @@ $('.row .entry:nth-child(2)').$('button*=Add').click();
 
 ## React Selectors
 
-WebdriverIO provides a way to select React components based on the component name. To do this you have an option of two commands, `react$` and `react$$`. These commands allow you to select components off the React VirtualDOM and return either a single WebdriverIO Element or an array of elements depending on which function is being used.
+WebdriverIO provides a way to select React components based on the component name. To do this you have an option of two commands, `react$` and `react$$`. These commands allow you to select components off the [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) and return either a single WebdriverIO Element or an array of elements depending on which function is being used.
+
+**Note**: The commands `react$` and `react$$` are similar in fuctionality, except that `react$$` will return all the instances that match the selector as an array of WebdriverIO elements and `react$` will return the first found instance.
+
+#### Basic example
 
 ```jsx
 // index.jsx
@@ -295,7 +299,7 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-Take the above example, we have a simple `MyComponent` instance inside the application which React is rendering inside a HTML element with `id="root"`. With the `browser.react$` command we can select our instance of `MyComponent`:
+Given the above code, we have a simple `MyComponent` instance inside the application which React is rendering inside a HTML element with `id="root"`. With the `browser.react$` command we can select our instance of `MyComponent`:
 
 ```js
 const myCmp = browser.react$('MyComponent')
@@ -303,11 +307,9 @@ const myCmp = browser.react$('MyComponent')
 
 Now that we have the WebdriverIO element stored in our `myCmp` variable, we can execute element commands against it.
 
-**Note**: The comamnds `react$` and `react$$` are similar in fuctionality, except that `react$$` will return all the instances that match the selector as an array of WebdriverIO elements.
-
 #### Filtering components
 
-The library that WebdriverIO uses internally allows to filter your selection by props and/or state of the component. Todo so you need to pass a second argument for props and/or a third argument for state to the browser command.
+The library that WebdriverIO uses internally allows to filter your selection by props and/or state of the component. To do so you need to pass a second argument for props and/or a third argument for state to the browser command.
 
 ```jsx
 // index.jsx
@@ -348,3 +350,38 @@ const myCmp = browser.react$('MyComponent', undefined, { myState: 'some value' }
 
 #### Dealing with `React.Fragment`
 
+When using the `react$` command to select React [fragments](https://reactjs.org/docs/fragments.html), WebdriverIO will return the first child of that component as the component's node. If you use `react$$` you will receive an array containing all the HTML nodes inside the fragments that match the selector.
+
+```jsx
+// index.jsx
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+function MyComponent() {
+    return (
+        <React.Fragment>
+            <div>
+                MyComponent
+            </div>
+            <div>
+                MyComponent
+            </div>
+        </React.Fragment>
+    )
+}
+
+function App() {
+    return (<MyComponent />)
+}
+
+ReactDOM.render(<App />, document.querySelector('#root'))
+```
+
+Given the above example, this is how the commands would work
+
+```js
+browser.react$('MyComponent') // returns the WebdriverIO Element for the first <div />
+browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array [<div />, <div />]
+```
+
+It is important to note that if you have multiple instances of `MyComponent` and you use `react$$` to select these fragment components, you will be returned an one-dimensional array of all the nodes. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
