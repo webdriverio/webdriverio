@@ -218,7 +218,17 @@ export default class Runner extends EventEmitter {
             return
         }
 
-        const logTypes = filterLogTypes(excludeDriverLogs, await global.browser.getLogTypes())
+        let logTypes
+        try {
+            logTypes = await global.browser.getLogTypes()
+        } catch (errIgnored) {
+            /**
+             * getLogTypes is not supported by browser
+             */
+            return
+        }
+
+        logTypes = filterLogTypes(excludeDriverLogs, logTypes)
 
         log.debug(`Fetching logs for ${logTypes.join(', ')}`)
         return Promise.all(logTypes.map(async (logType) => {
