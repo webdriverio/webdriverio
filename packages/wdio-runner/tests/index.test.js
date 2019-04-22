@@ -57,6 +57,17 @@ describe('wdio-runner', () => {
             expect(fs.writeFile.mock.calls[1]).toEqual(['/foo/bar/wdio-0-1-bar.log', '"#1 bar log"\n"#2 bar log"', 'utf-8'])
         })
 
+        it('should not fail if logsTypes can not be received', async () => {
+            global.browser = {
+                getLogTypes: () => Promise.reject(new Error('boom')),
+                getLogs: (type) => Promise.resolve([`#1 ${type} log`, `#2 ${type} log`]),
+                sessionId: '123'
+            }
+
+            await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
+            expect(fs.writeFile).toHaveBeenCalledTimes(0)
+        })
+
         it('should not fail if logs can not be received', async () => {
             global.browser = {
                 getLogTypes: () => Promise.resolve(['corrupt']),
