@@ -24,8 +24,14 @@ export const react$ = function react$ (selector, props = {}, state = {}) {
 
 export const react$$ = function react$$ (selector, props, state) {
     let elements = window.resq.resq$$(selector)
-        .byProps(props)
-        .byState(state)
+
+    if (Object.keys(props).length) {
+        elements = elements.byProps(props)
+    }
+
+    if (Object.keys(state).length) {
+        elements = elements.byState(state)
+    }
 
     if (!elements.length) {
         return []

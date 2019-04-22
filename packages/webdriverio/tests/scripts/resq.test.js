@@ -20,36 +20,93 @@ beforeEach(() => {
 })
 
 describe('resq script', () => {
-    it('should call the window resq$', () => {
-        const result = react$('Test', { foo: 'bar' }, { test: 123 })
+    describe('react$', () => {
+        it('should call the window function', () => {
+            const result = react$('Test', { foo: 'bar' }, { test: 123 })
 
-        const { resq$ } = global.window.resq
-        const { byProps } = resq$.mock.results[0].value
-        const { byState } = byProps.mock.results[0].value
+            const { resq$ } = global.window.resq
+            const { byProps } = resq$.mock.results[0].value
+            const { byState } = byProps.mock.results[0].value
 
-        expect(resq$).toBeCalledTimes(1)
-        expect(resq$).toBeCalledWith('Test')
-        expect(byProps).toBeCalledTimes(1)
-        expect(byProps).toBeCalledWith({ foo: 'bar' })
-        expect(byState).toBeCalledTimes(1)
-        expect(byState).toBeCalledWith({ test: 123 })
-        expect(result).toMatchObject({ message: 'React element with selector "Test" wasn\'t found' })
+            expect(resq$).toBeCalledTimes(1)
+            expect(resq$).toBeCalledWith('Test')
+            expect(byProps).toBeCalledTimes(1)
+            expect(byProps).toBeCalledWith({ foo: 'bar' })
+            expect(byState).toBeCalledTimes(1)
+            expect(byState).toBeCalledWith({ test: 123 })
+            expect(result).toMatchObject({ message: 'React element with selector "Test" wasn\'t found' })
+        })
+
+        it('should return node object found', () => {
+            global.window.resq.resq$ = jest.fn().mockImplementation(() => ([{
+                node: global.document.createElement('div')
+            }]))
+
+            const result = react$('Test', {}, {})
+
+            expect(result).toMatchObject(global.document.createElement('div'))
+        })
+
+        it('should return the first node object for fragments', () => {
+            global.window.resq.resq$ = jest.fn().mockImplementation(() => ([{
+                node: [global.document.createElement('div'), global.document.createElement('div')],
+                isFragment: true,
+            }]))
+
+            const result = react$('Test', {}, {})
+
+            expect(result).toMatchObject(global.document.createElement('div'))
+        })
     })
 
-    it('should call the window resq$$', () => {
-        const result = react$$('Test', { foo: 'bar' }, { test: 123 })
+    describe('react$$"', () => {
+        it('should call the window functiom', () => {
+            const result = react$$('Test', { foo: 'bar' }, { test: 123 })
 
-        const { resq$$ } = global.window.resq
-        const { byProps } = resq$$.mock.results[0].value
-        const { byState } = byProps.mock.results[0].value
+            const { resq$$ } = global.window.resq
+            const { byProps } = resq$$.mock.results[0].value
+            const { byState } = byProps.mock.results[0].value
 
-        expect(resq$$).toBeCalledTimes(1)
-        expect(resq$$).toBeCalledWith('Test')
-        expect(byProps).toBeCalledTimes(1)
-        expect(byProps).toBeCalledWith({ foo: 'bar' })
-        expect(byState).toBeCalledTimes(1)
-        expect(byState).toBeCalledWith({ test: 123 })
-        expect(result).toMatchObject([])
+            expect(resq$$).toBeCalledTimes(1)
+            expect(resq$$).toBeCalledWith('Test')
+            expect(byProps).toBeCalledTimes(1)
+            expect(byProps).toBeCalledWith({ foo: 'bar' })
+            expect(byState).toBeCalledTimes(1)
+            expect(byState).toBeCalledWith({ test: 123 })
+            expect(result).toMatchObject([])
+        })
+
+        it('should return node objects found', () => {
+            global.window.resq.resq$$ = jest.fn().mockImplementation(() => ([
+                { node: global.document.createElement('div') }
+            ]))
+
+            const result = react$$('Test', {}, {})
+
+            expect(result).toMatchObject([global.document.createElement('div')])
+        })
+
+        it('should return array node objects for fragments', () => {
+            global.window.resq.resq$$ = jest.fn().mockImplementation(() => ([
+                {
+                    node: [global.document.createElement('div'), global.document.createElement('div')],
+                    isFragment: true,
+                },
+                {
+                    node: [global.document.createElement('div'), global.document.createElement('div')],
+                    isFragment: true,
+                }
+            ]))
+
+            const result = react$$('Test', {}, {})
+
+            expect(result).toMatchObject([
+                global.document.createElement('div'),
+                global.document.createElement('div'),
+                global.document.createElement('div'),
+                global.document.createElement('div')
+            ])
+        })
     })
 
     it('should call window waitToLoadReact', () => {
