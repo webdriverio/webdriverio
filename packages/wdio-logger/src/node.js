@@ -5,7 +5,7 @@ import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
 
-const DEFAULT_LEVEL = 0
+const DEFAULT_LEVEL = 'trace'
 const COLORS = {
     error: 'red',
     warn: 'yellow',
@@ -126,20 +126,36 @@ export default function getLogger (name) {
 }
 
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
-getLogger.setLogLevelsConfig = (logLevels = {}) => {
+getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) => {
+    /**
+     * set log level
+     */
+    if (process.env.WDIO_LOG_LEVEL === undefined) {
+        process.env.WDIO_LOG_LEVEL = wdioLogLevel
+    }
+
     logLevelsConfig = {}
 
-    Object.keys(logLevels).forEach(loggerName => {
-        const logLevelName = getLogLevelName(loggerName)
-        logLevelsConfig[logLevelName] = logLevels[loggerName]
+    /**
+     * build logLevelsConfig object
+     */
+    Object.entries(logLevels).forEach(([logName, logLevel]) => {
+        const logLevelName = getLogLevelName(logName)
+        logLevelsConfig[logLevelName] = logLevel
     })
 
-    Object.keys(loggers).forEach(loggerName => {
-        const logLevelName = getLogLevelName(loggerName)
+    /**
+     * set log level for each logger
+     */
+    Object.keys(loggers).forEach(logName => {
+        const logLevelName = getLogLevelName(logName)
 
-        if (logLevelsConfig[logLevelName] !== undefined) {
-            loggers[loggerName].setLevel(logLevelsConfig[logLevelName])
-        }
+        /**
+         * either apply log level from logLevels object or use global logLevel
+         */
+        const logLevel = logLevelsConfig[logLevelName] !== undefined ? logLevelsConfig[logLevelName] : process.env.WDIO_LOG_LEVEL
+
+        loggers[logName].setLevel(logLevel)
     })
 }
-const getLogLevelName = (logName) => logName.split(':').shift()
+const getLogLevelName = logName => logName.split(':').shift()

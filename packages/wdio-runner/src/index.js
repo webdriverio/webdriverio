@@ -55,7 +55,7 @@ export default class Runner extends EventEmitter {
         this.configParser.merge(server)
 
         this.config = this.configParser.getConfig()
-        logger.setLogLevelsConfig(this.config.logLevels)
+        logger.setLogLevelsConfig(this.config.logLevels, this.config.logLevel)
         this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
