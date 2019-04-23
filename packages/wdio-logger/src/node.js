@@ -128,12 +128,16 @@ export default function getLogger (name) {
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
 getLogger.setLogLevelsConfig = (logLevels = {}) => {
     logLevelsConfig = {}
+
     Object.keys(logLevels).forEach(loggerName => {
         const logLevelName = getLogLevelName(loggerName)
-
         logLevelsConfig[logLevelName] = logLevels[loggerName]
+    })
 
-        if (loggers[loggerName]) {
+    Object.keys(loggers).forEach(loggerName => {
+        const logLevelName = getLogLevelName(loggerName)
+
+        if (logLevelsConfig[logLevelName] !== undefined) {
             loggers[loggerName].setLevel(logLevelsConfig[logLevelName])
         }
     })

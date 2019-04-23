@@ -89,17 +89,14 @@ describe('wdio-logger node', () => {
 
         it('should apply logLevels after loggers are created', () => {
             const log1 = nodeLogger('test-applyLogLevelsConfig1')
-            const log2 = nodeLogger('test-applyLogLevelsConfig2')
+            const log2 = nodeLogger('test-applyLogLevelsConfig1:foobar')
             expect(log1.getLevel()).toEqual(0)
             expect(log2.getLevel()).toEqual(0)
 
-            nodeLogger.setLogLevelsConfig({
-                'test-applyLogLevelsConfig1': 'error',
-                'test-applyLogLevelsConfig2': 'debug'
-            })
+            nodeLogger.setLogLevelsConfig({ 'test-applyLogLevelsConfig1': 'error' })
 
             expect(log1.getLevel()).toEqual(4)
-            expect(log2.getLevel()).toEqual(1)
+            expect(log2.getLevel()).toEqual(4)
         })
 
         it('should not change logLevel if not provided in config', () => {
