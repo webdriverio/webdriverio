@@ -44,6 +44,12 @@ import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
 
 export default async function $ (selector) {
-    const res = await findElement.call(this, selector)
+    let res;
+    try {
+      res = await findElement.call(this, selector)
+    } catch (error) {
+      res = error
+    }
+
     return getElement.call(this, selector, res)
 }
