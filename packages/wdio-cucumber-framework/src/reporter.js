@@ -3,8 +3,6 @@ import { CucumberEventListener } from './CucumberEventListener'
 import { createStepArgument } from './utils'
 import * as path from 'path'
 
-const SETTLE_TIMEOUT = 5000
-
 class CucumberReporter {
     gherkinDocEvents = []
 
@@ -141,7 +139,7 @@ class CucumberReporter {
             }
         }
 
-        this.emit('test:' + e, {
+        const payload = {
             uid: this.getUniqueIdentifier(step),
             title: stepTitle.trim(),
             type: 'test',
@@ -152,7 +150,9 @@ class CucumberReporter {
             tags: scenario.tags,
             keyword: step.keyword,
             argument: createStepArgument(step)
-        })
+        }
+
+        this.emit('test:' + e, payload)
     }
 
     handleAfterScenario (uri, feature, scenario, sourceLocation) {
@@ -179,51 +179,13 @@ class CucumberReporter {
     }
 
     emit (event, payload) {
-        const message = {
-            event: event,
-            cid: this.cid,
-            uid: payload.uid,
-            title: payload.title,
-            pending: payload.pending || false,
-            parent: payload.parent || null,
-            type: payload.type,
-            file: payload.file,
-            err: payload.error || {},
-            duration: payload.duration,
-            runner: {
-                [this.cid]: this.capabilities
-            },
-            specs: this.specs,
-            tags: payload.tags || [],
-            featureName: payload.featureName,
-            scenarioName: payload.scenarioName,
-            description: payload.description,
-            keyword: payload.keyword || null,
-            argument: payload.argument
-        }
+        let message = this.formatMessage({ type: event, payload })
 
-        //let message = this.formatMessage({ type: event, payload, err })
-        this.reporter.emit(event, message)
-    }
+        message.cid = this.cid
+        message.specs = this.specs
+        message.uid = payload.uid
 
-    send (...args) {
-        return process.send.apply(process, args)
-    }
-
-    /**
-     * wait until all messages were sent to parent
-     */
-    waitUntilSettled () {
-        return new Promise((resolve) => {
-            const start = (new Date()).getTime()
-            const interval = setInterval(() => {
-                const now = (new Date()).getTime()
-
-                if (this.sentMessages !== this.receivedMessages && now - start < SETTLE_TIMEOUT) return
-                clearInterval(interval)
-                resolve()
-            }, 100)
-        })
+        this.reporter.emit(message.type, message)
     }
 
     getTitle (featureOrScenario) {
@@ -268,6 +230,49 @@ class CucumberReporter {
         }
 
         return name + line
+    }
+
+    formatMessage (params) {
+        let message = {
+            type: params.type
+        }
+
+        if (params.payload && params.payload.error) {
+            message.error = params.payload.error
+
+            /**
+             * hook failures are emitted as "test:fail"
+             */
+            if (params.payload.title && params.payload.title.match(/^"(before|after)( all)*" hook/g)) {
+                message.type = 'hook:end'
+            }
+        }
+
+        if (params.payload) {
+            message.title = params.payload.title
+            message.parent = params.payload.parent ? params.payload.parent.title : null
+
+            message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
+            message.pending = params.payload.pending || false
+            message.file = params.payload.file
+            message.duration = params.payload.duration
+
+            /**
+             * Add the current test title to the payload for cases where it helps to
+             * identify the test, e.g. when running inside a beforeEach hook
+             */
+            if (params.payload.ctx && params.payload.ctx.currentTest) {
+                message.currentTest = params.payload.ctx.currentTest.title
+            }
+
+            if (params.type.match(/Test/)) {
+                message.passed = (params.payload.state === 'passed')
+            }
+
+            if (params.payload.context) { message.context = params.payload.context }
+        }
+
+        return message
     }
 }
 

@@ -11,7 +11,7 @@ import { EventEmitter } from 'events'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/config'
-import { executeSync, executeAsync, runFnInFiberContextWithCallback, runTestInFiberContext } from '@wdio/sync'
+import { executeSync, executeAsync, runFnInFiberContextWithCallback } from '@wdio/sync'
 import { DEFAULT_OPTS } from './constants'
 
 const log = logger('@wdio/cucumber-framework')
@@ -75,8 +75,7 @@ class CucumberAdapter {
 
             await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
             result = await runtime.start() ? 0 : 1
-        }
-        catch (e) {
+        } catch (e) {
             runtimeError = e
             result = 1
         }
