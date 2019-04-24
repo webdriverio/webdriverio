@@ -1,8 +1,9 @@
 ---
 id: customcommands
-title: Custom Commands
+title: Comandos Personalizados
 ---
-If you want to extend the browser instance with your own set of commands there is a method called `addCommand` available from the browser object. You can write your command in a synchronous (default) way the same way as in your specs or asynchronous (like when using WebdriverIO in standalone mode). The following example shows how to add a new command that returns the current url and title as one result only using synchronous commands:
+
+Si quieres ampliar la instancia del navegador con tu propio conjunto de comandos, hay un método llamado `addCommand` disponible desde el objeto browser. Puede escribir su comando de una manera síncrona (por defecto) de la misma manera que en sus specs o de modo asíncrono (como cuando se usa WebdriverIO en modo independiente). El siguiente ejemplo muestra cómo agregar un nuevo comando que devuelva la url actual y el título como un resultado, usando sólo comandos síncronos:
 
 ```js
 browser.addCommand("getUrlAndTitle", (customVar) => {
