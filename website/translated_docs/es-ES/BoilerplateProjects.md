@@ -81,81 +81,81 @@ Diseñado para ser rápido para empezar sin ser muy complejo, así como comparti
 
 ## [cognitom/webdriverio-examples](https://github.com/cognitom/webdriverio-examples)
 
-Project with various examples to setup WebdriverIO with an internal grid and PhantomJS or using cloud services like [TestingBot](https://testingbot.com/).
+Proyecto con varios ejemplos para configurar WebdriverIO con una red interna y PhantomJS o usando servicios en la nube como [TestingBot](https://testingbot.com/).
 
-- Framework: Mocha
-- Features: 
-    - examples for the tunneling feature from TestingBot
-    - standalone examples
-    - simple demonstration of how to integrate PhantomJS as a service so no that no Java is required
+- Marco: Mocha
+- Características: 
+    - ejemplos para la función de túnel de TestingBot
+    - ejemplos independientes
+    - demostración simple de cómo integrar PhantomJS como un servicio para no que no se requiere Java
 
 ## [michaelguild13/Selenium-WebdriverIO-Mocha-Chai-Sinon-Boilerplate](https://github.com/michaelguild13/Selenium-WebdriverIO-Mocha-Chai-Sinon-Boilerplate)
 
-Enhance testing stack demonstration with Mocha and Chai allows you to write simple assertion using the [Chai](http://chaijs.com/) assertion library.
+Demostración de pila de pruebas con Mocha y Chai. Te permite escribir una simple aseveración usando la biblioteca de aseveración [Chai](http://chaijs.com/).
 
-- Framework: Mocha
-- Features: 
-    - Chai integration
-    - Babel setup
+- Marco: Mocha
+- Características: 
+    - Integración del chai
+    - Configuración de Babel
 
 ## [dcypherthis/wdio-boilerplate-cucumber](https://github.com/dcypherthis/wdio-boilerplate-cucumber)
 
-This project is an example of how to get started with WebdriverIO for Selenium testing in Node.js. It makes use of the Cucumber BDD framework and works with dot, junit, and allure reporters. It is ES6 friendly (via babel-register) and uses Grunt to manage tasks.
+Este proyecto es un ejemplo de cómo empezar con WebdriverIO para pruebas de Selenium en Node.js. Hace uso del marco de BDD Cucumber y trabaja con dot, junit y reportes de allure. Es amigable ES6 (a través del registro de bebés) y utiliza Grunt para gestionar tareas.
 
-- Framework: Cucumber
-- Features: 
-    - detailed documentation
-    - runs tests in a [Docker](https://www.docker.com/) container
-    - Babel setup
+- Marco: Cucumber
+- Características: 
+    - documentación detallada
+    - ejecuta pruebas en un contenedor de [Docker](https://www.docker.com/) 
+    - Configuración de Babel
 
 ## [WillLuce/WebdriverIO_Typescript](https://github.com/WillLuce/WebdriverIO_Typescript)
 
-This directory contains the WebdriverIO page object example written using TypeScript.
+Este directorio contiene el ejemplo de objeto de página web de la página de driverIO escrito usando TypeScript.
 
-- Framework: Mocha
-- Features: 
-    - examples of Page Object Model implementation
+- Marco: Mocha
+- Características: 
+    - ejemplos de implementación del Modelo de Objetos de Página
     - Intellisense
 
 ## [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
 
-Boilerplate repo for quick set up of WebdriverIO test scripts with TravisCI, Sauce Labs and Visual Regression Testing
+Repo de Boilerplate para la configuración rápida de scripts de prueba WebdriverIO con TravisCI, Sauce Labs y pruebas de regresión visual
 
-- Framework: Mocha, Chai
-- Features: 
-    - Login & Registration Tests, with Page Objects
+- Marco: Mocha, Chai
+- Características: 
+    - Inicia sesión & Pruebas de Registro, con Objetos de Página
     - Mocha
-    - Chai with expect global
-    - Chai WebdriverIO
-    - Sauce Labs integration
-    - Visual Regression Tests
-    - Local notifications
-    - ESLint using Semistandard style
-    - WebdriverIO tuned Gitignore file
+    - Chai con expect global
+    - WebdriverIO Chai
+    - Integración de Sauce Labs
+    - Pruebas de Regresión Visual
+    - Notificaciones locales
+    - ESLint usando estilo semiestándar
+    - Archivo Gitignore de WebdriverIO sintonizado
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
-Boilerplate project to run Appium tests together with WebdriverIO for:
+Proyecto Boilerplate para ejecutar pruebas de Appium junto con WebdriverIO para:
 
 - iOS/Android Native Apps
 - iOS/Android Hybrid Apps
-- Android Chrome and iOS Safari browser
+- Navegador Android Chrome y iOS Safari
 
-The boilerplate holds the following things
+El proyecto contiene las siguientes
 
-- Framework: Jasmine
-- Features: 
-    - Configs for: 
-        - iOS and Android app
-        - iOS and Android browsers
-    - Helpers for: 
+- Marco: Jasmine
+- Características: 
+    - Configs para: 
+        - Apps para iOS y Android
+        - iOS y Android navegadores
+    - Ayuda para: 
         - WebView
-        - Gestures
-        - Native alerts
-        - Pickers
-        - Tests examples for:
+        - Gestos
+        - Alertas nativas
+        - Selectores
+        - Ejemplos de prueba para:
         - WebView
-        - Login
-        - Forms
-        - Swipe
-        - Browsers
+        - Ingreso
+        - Formularios
+        - Deslizar
+        - Navegadores
