@@ -108,6 +108,15 @@ describe('wdio-logger node', () => {
             expect(log.getLevel()).toEqual(0)
         })
 
+        it('should set wdio logLevel passed as argument', () => {
+            const log = nodeLogger('test-wdio-log-level')
+            expect(log.getLevel()).toEqual(0)
+
+            nodeLogger.setLogLevelsConfig(undefined, 'info')
+
+            expect(log.getLevel()).toEqual(2)
+        })
+
         afterEach(() => {
             delete process.env.WDIO_LOG_LEVEL
         })

@@ -29,7 +29,7 @@ class Launcher {
             process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
         }
 
-        logger.setLogLevelsConfig(config.logLevels)
+        logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
