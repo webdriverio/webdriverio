@@ -153,7 +153,7 @@ getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) =>
         /**
          * either apply log level from logLevels object or use global logLevel
          */
-        const logLevel = logLevelsConfig[logLevelName] !== undefined ? logLevelsConfig[logLevelName] : process.env.WDIO_LOG_LEVEL
+        const logLevel = typeof logLevelsConfig[logLevelName] !== 'undefined' ? logLevelsConfig[logLevelName] : process.env.WDIO_LOG_LEVEL
 
         loggers[logName].setLevel(logLevel)
     })
