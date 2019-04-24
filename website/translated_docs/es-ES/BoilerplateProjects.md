@@ -2,6 +2,7 @@
 id: ejemplos
 title: Proyectos de Ejemplo
 ---
+
 Con el tiempo nuestra comunidad ha desarrollado un montón de `proyectos de ejemplo` que pueden ser utilizados como inspiración para crear su propia suite de pruebas.
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
@@ -21,7 +22,7 @@ Con el tiempo nuestra comunidad ha desarrollado un montón de `proyectos de ejem
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
-- Framework: Jasmine (v3.x)
+- Marco: Jasmine (v3.x)
 - Características: 
     - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
     - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
@@ -36,7 +37,7 @@ Con el tiempo nuestra comunidad ha desarrollado un montón de `proyectos de ejem
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
-- Framework: Mocha (v5.x)
+- Marco: Mocha (v5.x)
 - Características: 
     - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
     - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
@@ -51,32 +52,32 @@ Con el tiempo nuestra comunidad ha desarrollado un montón de `proyectos de ejem
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
-Nuestro propio proyecto de ejemplo para suites de pruebas con Cucumber. We created over 150 predefined step definitions for you so that you can start write feature files for your project right away.
+Nuestro propio proyecto de ejemplo para suites de pruebas con Cucumber. Hemos creado más de 150 definiciones de pasos predefinidas para que puedas empezar a escribir archivos de características para tu proyecto inmediatamente.
 
-- Framework: Cucumber
-- Features: 
-    - over 150 predefined steps that cover almost everything you need
-    - integration of WebdriverIO's Multiremote functionality
-    - own demo app
+- Marco: Cucumber
+- Características: 
+    - más de 150 pasos predefinidos que cubren casi todo lo que necesitas
+    - integración de la funcionalidad Multiremota de WebdriverIO
+    - propia aplicación demo
 
 ## [saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium](https://github.com/saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium)
 
-Simple boilerplate project that runs multiple browser on [SauceLabs](https://saucelabs.com/) in parallel.
+Proyecto simple que ejecuta múltiples navegadores en [SauceLabs](https://saucelabs.com/) en paralelo.
 
-- Framework: Mocha
-- Features: 
-    - Page Object usage
-    - Integration with [SauceLabs](https://saucelabs.com/)
+- Marco: Mocha
+- Características: 
+    - Uso de objeto de página
+    - Integración con [SauceLabs](https://saucelabs.com/)
 
 ## [jonyet/webdriverio-boilerplate](https://github.com/jonyet/webdriverio-boilerplate)
 
-Designed to be quick to get you started without getting terribly complex, as well as to share examples of how one can leverage external node modules to work in conjunction with wdio specs.
+Diseñado para ser rápido para empezar sin ser muy complejo, así como compartir ejemplos de cómo se puede apalancar módulos externos de Node para trabajar junto con especificaciones de wdio.
 
-- Framework: Mocha
-- Features: 
-    - examples for using Visual Regression testing with WebdriverIO v4
-    - cloud integration with [BrowserStack](https://www.browserstack.com/)
-    - Page Objects usage
+- Marco: Mocha
+- Características: 
+    - ejemplos para usar pruebas de Regresión Visual con WebdriverIO v4
+    - integración en la nube con [BrowserStack](https://www.browserstack.com/)
+    - Uso de objetos de página
 
 ## [cognitom/webdriverio-examples](https://github.com/cognitom/webdriverio-examples)
 
