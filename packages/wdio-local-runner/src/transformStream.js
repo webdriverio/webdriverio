@@ -19,12 +19,8 @@ export default class RunnerTransformStream extends Transform {
         callback()
     }
 
-    _final () {
-        /**
-         * we don't want to do anything here otherwise we would end the
-         * stream of the local runner that captures stdout/stderr or all
-         * runners and therefor would loose all incoming messages after
-         * the first runner finishes.
-         */
+    _final (callback) {
+        this.unpipe()
+        callback()
     }
 }
