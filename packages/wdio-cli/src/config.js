@@ -29,7 +29,8 @@ export const SUPPORTED_SERVICES = [
     ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
     ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
     ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
-    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service'
+    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service',
+    ' docker - https://www.npmjs.com/package/wdio-docker-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
