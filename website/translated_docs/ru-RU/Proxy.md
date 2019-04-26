@@ -2,7 +2,8 @@
 id: proxy
 title: Proxy Setup
 ---
-You can tunnel two different types of request through a proxy:
+
+Вы можете туннелировать два типа запросов через прокси:
 
 - connection between your test script and the browser driver (or WebDriver endpoint)
 - connection between the browser and the internet
