@@ -42,7 +42,8 @@ describe('ignores service hook errors', () => {
         const adapter = new CucumberAdapter('0a', {
             cucumberOpts: {
                 timeout: 5000,
-                require: [path.join(__dirname, '/fixtures/sync-async-step-definition.js')]
+                require: [path.join(__dirname, '/fixtures/sync-async-step-definition.js')],
+                compiler: ['js:@babel/register']
             },
             beforeFeature: () => { throw new Error('beforeFeature failed') },
             beforeScenario: () => { throw new Error('beforeScenario failed') },
@@ -60,7 +61,8 @@ describe('ignores service hook errors', () => {
         const adapter = new CucumberAdapter('0a', {
             cucumberOpts: {
                 timeout: 5000,
-                require: [path.join(__dirname, '/fixtures/sync-async-step-definition.js')]
+                require: [path.join(__dirname, '/fixtures/sync-async-step-definition.js')],
+                compiler: ['js:@babel/register']
             },
             beforeFeature: () => Promise.reject(new Error('beforeFeature failed')),
             beforeScenario: () => Promise.reject(new Error('beforeScenario failed')),
@@ -98,7 +100,8 @@ describe('ignores service hook errors', () => {
         const adapter = new CucumberAdapter('0a', {
             cucumberOpts: {
                 timeout: 5000,
-                require: [path.join(__dirname, '/fixtures/async-step-definitions.js')]
+                require: [path.join(__dirname, '/fixtures/async-step-definitions.js')],
+                compiler: ['js:@babel/register']
             },
             beforeFeature: () => Promise.reject(new Error('beforeFeature failed')),
             beforeScenario: () => Promise.reject(new Error('beforeScenario failed')),

@@ -1,17 +1,19 @@
 import path from 'path'
-import CucumberAdapterFactory  from '../src'
+import * as cucumber from 'cucumber'
+import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 import { NOOP } from '../src/constants'
+//import { executeHooksWithArgs } from '@wdio/config'
 
 process.send(NOOP)
 
 const conf = {
     cucumberOpts: {
         compiler: [],
-        require: [path.join(__dirname, '/fixtures/es6-definition.js')]
+        require: ['/fixtures/bar-definition.js']
     }
 }
 
-const feature = [path.join(__dirname, '/fixtures/es6.feature')]
+const feature = [path.join(__dirname, '/fixtures/foo.feature')]
 
 global.browser = {
     config: {},
@@ -24,29 +26,53 @@ global.browser = {
     }
 }
 
+jest.mock('cucumber', () => ({
+    supportCodeLibraryBuilder: jest.fn().mockReturnValue({ reset: jest.fn() }),
+    setDefaultTimeout: jest.fn(),
+
+}))
+
 const wdioReporter = {
     write: jest.fn(),
     emit: jest.fn(),
     on: jest.fn()
 }
 
-describe('adapter',  () => {
-    it('comes with a factory', async () => {
-        expect(typeof CucumberAdapterFactory.run).toBe('function')
+test('comes with a factory', async () => {
+    expect(typeof CucumberAdapterFactory.run).toBe('function')
+})
+
+describe('register compilers', () => {
+    it('should throw an error when no compiler is defined', () => {
+        const adapter = new CucumberAdapter(0, conf, feature, {}, wdioReporter)
+
+        expect(() => adapter.registerCompilers())
+            .toThrow('A compiler must be defined')
     })
+})
 
-    describe('should use the compiler as defined in the options', () => {
+test('should properly set up cucumber', async () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        {},
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    const result = await adapter.run()
+    expect(result).toBe(0)
 
-        it('should throw an error when no compiler is defined', async () => {
-            await expect(CucumberAdapterFactory.run(0, conf, feature, {}, wdioReporter))
-                .rejects.toThrow('A compiler must be defined')
-        })
+    expect(adapter.registerCompilers).toBeCalled()
+    expect(adapter.loadSpecFiles).toBeCalled()
+    expect(adapter.wrapSteps).toBeCalled()
+    expect(cucumber.setDefaultTimeout).toBeCalledWith(60000)
+    // expect(cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
+    // expect(executeHooksWithArgs.mock.calls).toHaveLength(2)
+    // expect(adapter.mocha.runner.on.mock.calls).toHaveLength(Object.keys(EVENTS).length)
+    // expect(adapter.mocha.runner.suite.beforeAll).toBeCalled()
+    // expect(adapter.mocha.runner.suite.beforeEach).toBeCalled()
+    // expect(adapter.mocha.runner.suite.afterEach).toBeCalled()
+    // expect(adapter.mocha.runner.suite.afterAll).toBeCalled()
 
-        it('should run if the compiler is defined', async () => {
-            conf.cucumberOpts.compiler.push('js:@babel/register')
-
-            await expect(CucumberAdapterFactory.run(0, conf, feature, {}, wdioReporter))
-                .resolves.toBe(0)
-        }, 10000)
-    })
+    expect(adapter.mocha.addFile).toBeCalledWith('/foo/bar.test.js')
 })
