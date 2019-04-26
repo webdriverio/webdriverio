@@ -116,7 +116,7 @@ class CucumberAdapter {
         // because of that we don't have to attach anything to the global object, and the current cucumber spec files
         // should just work with no changes with this framework
         mockery.enable({
-            useCleanCache: true,
+            useCleanCache: false,
             warnOnReplace: false,
             warnOnUnregistered: false
         })
@@ -153,7 +153,7 @@ class CucumberAdapter {
 
     /**
      * wrap step definition to enable retry ability
-     * @param  {Function} code       step definitoon
+     * @param  {Function} code       step definition
      * @param  {Number}   retryTest  amount of allowed repeats is case of a failure
      * @return {Function}            wrapped step definiton for sync WebdriverIO code
      */
