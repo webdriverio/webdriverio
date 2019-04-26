@@ -399,7 +399,7 @@
     }
   },
   "/session/:sessionId/element/active": {
-    "POST": {
+    "GET": {
       "command": "getActiveElement",
       "description": "Get Active Element returns the active element of the current browsing context’s document element.",
       "ref": "https://w3c.github.io/webdriver/#dfn-get-active-element",
