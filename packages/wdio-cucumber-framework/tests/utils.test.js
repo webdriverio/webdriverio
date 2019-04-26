@@ -8,7 +8,7 @@ describe('utils', () => {
         })
 
         it('Works with unexpected type', () => {
-            expect({ result: createStepArgument({ argument: {type: 'smth'} }) }).toEqual({ result: undefined })
+            expect({ result: createStepArgument({ argument: { type: 'smth' } }) }).toEqual({ result: undefined })
         })
 
         it('Works with DataTable', () => {
@@ -16,9 +16,9 @@ describe('utils', () => {
                 argument: {
                     type: 'DataTable',
                     rows: [
-                        {cells: [{value: 1}, {value: 2}]},
-                        {cells: [{value: 3}, {value: 4}]},
-                        {cells: [{value: 5}, {value: 6}]}
+                        { cells: [{ value: 1 }, { value: 2 }] },
+                        { cells: [{ value: 3 }, { value: 4 }] },
+                        { cells: [{ value: 5 }, { value: 6 }] }
                     ]
                 }
             })).toEqual([{

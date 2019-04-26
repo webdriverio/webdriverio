@@ -1,6 +1,6 @@
 import path from 'path'
-import CucumberAdapterFactory, { CucumberAdapter } from '../src'
-import {DEFAULT_OPTS, NOOP} from '../src/constants'
+import CucumberAdapterFactory  from '../src'
+import { NOOP } from '../src/constants'
 
 process.send(NOOP)
 

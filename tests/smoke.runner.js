@@ -14,8 +14,19 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
         { specs: [path.resolve(__dirname, 'mocha', 'test.js')] })
 
     /**
+     * cucumber wdio testrunner tests
+     */
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'cucumber', 'features', 'sample.feature')],
+            framework: 'cucumber'
+        })
+
+    /**
      * wdio test run with custom service
      */
+
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {

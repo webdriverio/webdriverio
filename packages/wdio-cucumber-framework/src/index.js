@@ -9,12 +9,9 @@ import CucumberReporter from './reporter'
 import Hookrunner from './Hookrunner'
 import { EventEmitter } from 'events'
 
-import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/config'
 import { executeSync, executeAsync, runFnInFiberContextWithCallback } from '@wdio/sync'
 import { DEFAULT_OPTS } from './constants'
-
-const log = logger('@wdio/cucumber-framework')
 
 class CucumberAdapter {
     constructor (cid, config, specs, capabilities, reporter) {

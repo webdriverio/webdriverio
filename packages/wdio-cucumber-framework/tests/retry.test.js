@@ -30,10 +30,10 @@ global.browser = {
     click: () => new Promise((resolve) => {
         setTimeout(() => resolve('click'), 1000)
     }),
-    getTitle: (ms = 500) => new Promise((resolve) => {
+    getTitle: () => new Promise((resolve) => {
         setTimeout(() => resolve('Google'), 1000)
     }),
-    pause: (ms = 500) => new Promise((resolve) => {
+    pause: () => new Promise((resolve) => {
         setTimeout(() => resolve('pause'), 1000)
     })
 }

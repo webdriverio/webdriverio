@@ -1,4 +1,4 @@
-import CucumberReporter from '../../../../wdio-cucumber-framework/src/CucumberReporter'
+import CucumberReporter from '../src/reporter'
 import { EventEmitter } from 'events'
 
 const gherkinDocEvent = {
@@ -40,7 +40,7 @@ const gherkinDocEvent = {
                 steps: [
                     {
                         type: 'Step',
-                        location: {line: 127, column: 1},
+                        location: { line: 127, column: 1 },
                         keyword: 'Given ',
                         text: 'step-title-passing',
                         argument: {

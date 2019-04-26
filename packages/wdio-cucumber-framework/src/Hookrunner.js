@@ -29,7 +29,7 @@ class Hookrunner {
     }
 
     handleAfterStep (uri, feature, scenario, step, result) {
-        return executeHooksWithArgs(this.config.afterStep, {...step, feature: feature.name, scenario: scenario.name, status: result.status}, result)
+        return executeHooksWithArgs(this.config.afterStep, { ...step, feature: feature.name, scenario: scenario.name, status: result.status }, result)
     }
 
     handleAfterScenario (uri, feature, scenario) {

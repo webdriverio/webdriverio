@@ -11,13 +11,3 @@ Feature: Example feature
         Given I set retryTest to "2"
         Then  should the title of the page be "Google"
         And   the last command should be "getTitle"
-
-    Scenario: Async Foo Bar
-        Given I set retryTest to "3"
-        And   I go on the website "foobar" the async way
-        Then  the last command should be "url"
-
-    Scenario: Next async Foo Bar
-        Given I set retryTest to "2"
-        Then  I click on link "foobar" the async way
-        Then  the last command should be "click"

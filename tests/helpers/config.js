@@ -28,5 +28,11 @@ exports.config = {
         ui: 'bdd',
         timeout: 10000,
         compilers: ['js:@babel/register']
+    },
+
+    cucumberOpts: {
+        timeout: 5000,
+        compiler: ['js:@babel/register'],
+        require: ['./tests/cucumber/step-definitions/*.js']
     }
 }

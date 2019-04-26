@@ -200,33 +200,6 @@ export class CucumberEventListener extends EventEmitter {
     }
 }
 
-/* eslint-disable-next-line no-unused-vars
-function attachEventLogger (eventBroadcaster) {
-    // for debugging purposed
-    // from https://github.com/cucumber/cucumber-js/blob/v4.1.0/src/formatter/event_protocol_formatter.js
-    const EVENTS = [
-        'source',
-        'attachment',
-        'gherkin-document',
-        'pickle',
-        'pickle-accepted',
-        'pickle-rejected',
-        'test-run-started',
-        'test-case-prepared',
-        'test-case-started',
-        'test-step-started',
-        'test-step-attachment',
-        'test-step-finished',
-        'test-case-finished',
-        'test-run-finished'
-    ]
-    EVENTS.forEach(e => {
-        eventBroadcaster.on(e, x => {
-            console.log('\n-----' + e + ' -----\n' + JSON.stringify(x, null, 2))
-        })
-    })
-}*/
-
 export function compareScenarioLineWithSourceLine (scenario, sourceLocation) {
     if (scenario.type.indexOf('ScenarioOutline') > -1) {
         return scenario.examples[0].tableBody.some((tableEntry) => tableEntry.location.line === sourceLocation.line)
