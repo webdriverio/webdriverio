@@ -21,7 +21,8 @@
       "parameters": [{
         "name": "seconds",
         "type": "number",
-        "description": "how long to lock the screen (iOS only)"
+        "description": "how long to lock the screen (iOS only)",
+        "required": false
       }],
       "support": {
         "ios": {
@@ -216,7 +217,8 @@
       }, {
         "name": "dataReadTimeout",
         "type": "number",
-        "description": "the number of attempts to read"
+        "description": "the number of attempts to read",
+        "required": false
       }],
       "support": {
         "android": {
@@ -238,7 +240,13 @@
       }, {
         "name": "metastate",
         "type": "number",
-        "description": "meta state to press the keycode with"
+        "description": "meta state to press the keycode with",
+        "required": false
+      }, {
+        "name": "flags",
+        "type": "number",
+        "description": "flags for the keypress",
+        "required": false
       }],
       "support": {
         "android": {
@@ -260,7 +268,13 @@
       }, {
         "name": "metastate",
         "type": "number",
-        "description": "metastate for the keypress"
+        "description": "metastate for the keypress",
+        "required": false
+      }, {
+        "name": "flags",
+        "type": "number",
+        "description": "flags for the keypress",
+        "required": false
       }],
       "support": {
         "android": {
@@ -282,7 +296,8 @@
       }, {
         "name": "metastate",
         "type": "string",
-        "description": "meta state to press the keycode with"
+        "description": "meta state to press the keycode with",
+        "required": false
       }],
       "support": {}
     }
@@ -296,36 +311,43 @@
         "name": "x",
         "type": "number",
         "description": "x offset to use for the center of the rotate gesture",
+        "required": true,
         "default": 0
       }, {
         "name": "y",
         "type": "number",
         "description": "y offset to use for the center of the rotate gesture",
+        "required": true,
         "default": 0
       }, {
         "name": "radius",
         "type": "number",
         "description": "the distance in points from the center to the edge of the circular path",
+        "required": true,
         "default": 0
       }, {
         "name": "rotation",
         "type": "number",
         "description": "the length of rotation in radians",
+        "required": true,
         "default": 3.14159265359
       }, {
         "name": "touchCount",
         "type": "number",
         "description": "the number of touches to use in the specified gesture",
+        "required": true,
         "default": 2
       }, {
         "name": "duration",
         "type": "number",
         "description": "the length of hold time for the specified gesture, in seconds",
+        "required": true,
         "default": 1
       }, {
         "name": "element",
         "type": "string",
-        "description": "the id of an element returned in a previous call to execute the rotation on"
+        "description": "the id of an element returned in a previous call to execute the rotation on",
+        "required": false
       }],
       "support": {
         "ios": {
@@ -382,6 +404,32 @@
       }
     }
   },
+  "/session/:sessionId/appium/device/activate_app": {
+    "POST": {
+      "command": "activateApp",
+      "description": "Activate the given app onto the device",
+      "ref": "http://appium.io/docs/en/commands/device/app/activate-app/",
+      "parameters": [{
+        "name": "appId",
+        "type": "string",
+        "description": "REQUIRED for Android",
+        "required": false
+      }, {
+        "name": "bundleId",
+        "type": "string",
+        "description": "REQUIRED for iOS",
+        "required": false
+      }],
+      "support": {
+        "ios": {
+          "XCUITest": "9.3+"
+        },
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
+  },
   "/session/:sessionId/appium/device/remove_app": {
     "POST": {
       "command": "removeApp",
@@ -389,18 +437,45 @@
       "ref": "http://appium.io/docs/en/commands/device/app/remove-app/",
       "parameters": [{
         "name": "appId",
-        "type": "string[]",
-        "description": "id of applications to remove",
-        "required": true
+        "type": "string",
+        "description": "REQUIRED for Android",
+        "required": false
       }, {
         "name": "bundleId",
-        "type": "string[]",
-        "description": "id of bundles to remove"
+        "type": "string",
+        "description": "REQUIRED for iOS",
+        "required": false
       }],
       "support": {
         "ios": {
           "XCUITest": "9.3+",
           "UIAutomation": "8.0 to 9.3"
+        },
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
+  },
+  "/session/:sessionId/appium/device/terminate_app": {
+    "POST": {
+      "command": "terminateApp",
+      "description": "Terminate the given app on the device",
+      "ref": "http://appium.io/docs/en/commands/device/app/terminate-app/",
+      "parameters": [{
+        "name": "appId",
+        "type": "string",
+        "description": "REQUIRED for Android",
+        "required": false
+      }, {
+        "name": "bundleId",
+        "type": "string",
+        "description": "REQUIRED for iOS",
+        "required": false
+      }],
+      "support": {
+        "ios": {
+          "XCUITest": "9.3+"
         },
         "android": {
           "UiAutomator": "4.2+"
@@ -414,15 +489,56 @@
       "description": "Check whether the specified app is installed on the device.",
       "ref": "http://appium.io/docs/en/commands/device/app/is-app-installed/",
       "parameters": [{
+        "name": "appId",
+        "type": "string",
+        "description": "REQUIRED for Android",
+        "required": false
+      }, {
         "name": "bundleId",
         "type": "string",
-        "description": "id of bundle to check if installed",
-        "required": true
+        "description": "REQUIRED for iOS",
+        "required": false
       }],
+      "returns": {
+        "type": "boolean",
+        "name": "isAppInstalled",
+        "description": "Return true if installed, false if not"
+      },
       "support": {
         "ios": {
           "XCUITest": "9.3+",
           "UIAutomation": "8.0 to 9.3"
+        },
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
+  },
+  "/session/:sessionId/appium/device/app_state": {
+    "GET": {
+      "command": "queryAppState",
+      "description": "Get the given app status on the device",
+      "ref": "http://appium.io/docs/en/commands/device/app/app-state/",
+      "parameters": [{
+        "name": "appId",
+        "type": "string",
+        "description": "REQUIRED for Android",
+        "required": false
+      }, {
+        "name": "bundleId",
+        "type": "string",
+        "description": "REQUIRED for iOS",
+        "required": false
+      }],
+      "returns": {
+        "type": "number",
+        "name": "appStatus",
+        "description": "0 is not installed. 1 is not running. 2 is running in background or suspended. 3 is running in background. 4 is running in foreground"
+      },
+      "support": {
+        "ios": {
+          "XCUITest": "9.3+"
         },
         "android": {
           "UiAutomator": "4.2+"
@@ -438,19 +554,23 @@
       "parameters": [{
         "name": "strategy",
         "type": "string",
-        "description": "hide keyboard strategy (UIAutomation only), available strategies - 'press', 'pressKey', 'swipeDown', 'tapOut', 'tapOutside', 'default'"
+        "description": "hide keyboard strategy (UIAutomation only), available strategies - 'press', 'pressKey', 'swipeDown', 'tapOut', 'tapOutside', 'default'",
+        "required": false
       }, {
         "name": "key",
         "type": "string",
-        "description": "key value if strategy is 'pressKey'"
+        "description": "key value if strategy is 'pressKey'",
+        "required": false
       }, {
         "name": "keyCode",
         "type": "string",
-        "description": "key code if strategy is 'pressKey'"
+        "description": "key code if strategy is 'pressKey'",
+        "required": false
       }, {
         "name": "keyName",
         "type": "string",
-        "description": "key name if strategy is 'pressKey'"
+        "description": "key name if strategy is 'pressKey'",
+        "required": false
       }],
       "support": {
         "ios": {
@@ -640,34 +760,41 @@
       }, {
         "name": "appWaitPackage",
         "type": "string",
-        "description": "name of app to wait for"
+        "description": "name of app to wait for",
+        "required": false
       }, {
         "name": "appWaitActivity",
         "type": "string",
-        "description": "name of activity to wait for"
+        "description": "name of activity to wait for",
+        "required": false
       }, {
         "name": "intentAction",
         "type": "string",
         "description": "intent action which will be used to start activity",
+        "required": false,
         "default": "android.intent.action.MAIN"
       }, {
         "name": "intentCategory",
         "type": "string",
         "description": "intent category which will be used to start activity",
+        "required": false,
         "default": "android.intent.category.LAUNCHER"
       }, {
         "name": "intentFlags",
         "type": "string",
         "description": "flags that will be used to start activity",
+        "required": false,
         "default": "0x10200000"
       }, {
         "name": "optionalIntentArguments",
         "type": "string",
-        "description": "additional intent arguments that will be used to start activity"
+        "description": "additional intent arguments that will be used to start activity",
+        "required": false
       }, {
         "name": "dontStopAppOnReset",
         "type": "string",
-        "description": "doesn’t stop the process of the app under test, before starting the app using adb"
+        "description": "doesn’t stop the process of the app under test, before starting the app using adb",
+        "required": false
       }],
       "support": {
         "android": {
@@ -746,6 +873,7 @@
         "name": "enabled",
         "type": "boolean",
         "description": "equals to true if TouchID enrollment should be enabled",
+        "required": false,
         "default": true
       }],
       "support": {
@@ -815,6 +943,7 @@
         "name": "seconds",
         "type": "(number|null)",
         "description": "timeout to restore app, if 'null' app won't be restored",
+        "required": true,
         "default": "null"
       }],
       "support": {
@@ -859,11 +988,13 @@
       "parameters": [{
         "name": "language",
         "type": "string",
-        "description": "language code"
+        "description": "language code",
+        "required": false
       }, {
         "name": "stringFile",
         "type": "string",
-        "description": "path to the string file"
+        "description": "path to the string file",
+        "required": false
       }],
       "support": {
         "ios": {
@@ -1016,7 +1147,44 @@
       }, {
         "name": "signalStrengh",
         "type": "string",
-        "description": "signal strength in the range [0, 4]. Please also set this parameter with the same value if you use Appium v1.11.0 or lower (see https://github.com/appium/appium/issues/12234)."
+        "description": "signal strength in the range [0, 4]. Please also set this parameter with the same value if you use Appium v1.11.0 or lower (see https://github.com/appium/appium/issues/12234).",
+        "required": false
+      }],
+      "support": {
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
+  },
+  "/session/:sessionId/appium/device/power_capacity": {
+    "POST": {
+      "command": "powerCapacity",
+      "description": "Set the battery percentage (Emulator only).",
+      "ref": "http://appium.io/docs/en/commands/device/emulator/power_capacity/",
+      "parameters": [{
+        "name": "percent",
+        "type": "number",
+        "description": "percentage value in range [0, 100]",
+        "required": true
+      }],
+      "support": {
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
+  },
+  "/session/:sessionId/appium/device/power_ac": {
+    "POST": {
+      "command": "powerAC",
+      "description": "Set the state of the battery charger to connected or not (Emulator only).",
+      "ref": "http://appium.io/docs/en/commands/device/emulator/power_ac/",
+      "parameters": [{
+        "name": "state",
+        "type": "string",
+        "description": "set the state. on or off",
+        "required": true
       }],
       "support": {
         "android": {
@@ -1081,6 +1249,52 @@
         "android": {
           "UiAutomator": "4.2+"
         }
+      }
+    }
+  },
+  "/session/:sessionId/appium/device/set_clipboard": {
+    "POST": {
+      "command": "setClipboard",
+      "description": "Set the content of the system clipboard",
+      "ref": "http://appium.io/docs/en/commands/device/clipboard/set-clipboard/",
+      "parameters": [{
+        "name": "content",
+        "type": "string",
+        "description": "The actual base64 encoded clipboard content",
+        "required": true
+      }, {
+        "name": "contentType",
+        "type": "string",
+        "description": "The type of the content to get. Plaintext, Image, URL. Android supports only plaintext",
+        "required": false
+      }, {
+        "name": "label",
+        "type": "string",
+        "description": "Clipboard data label for Android",
+        "required": false
+      }],
+      "returns": {
+        "type": "string",
+        "name": "response",
+        "description": "Response from Appium server"
+      }
+    }
+  },
+  "/session/:sessionId/appium/device/get_clipboard": {
+    "POST": {
+      "command": "getClipboard",
+      "description": "Get the content of the system clipboard",
+      "ref": "http://appium.io/docs/en/commands/device/clipboard/get-clipboard/",
+      "parameters": [{
+        "name": "contentType",
+        "type": "string",
+        "description": "The type of the content to get. Plaintext, Image, URL. Android supports only plaintext",
+        "required": false
+      }],
+      "returns": {
+        "type": "string",
+        "name": "response",
+        "description": "Clipboard content as base64-encoded string or an empty string if the clipboard is empty"
       }
     }
   },
