@@ -6,18 +6,16 @@ const REGION_MAPPING = {
     'us': '', // default endpoint
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
-    'us-east-1': 'us-east1.'
+    'us-east-1': 'us-east-1.'
 }
 
-export function getSauceEndpoint (region, isRDC, isHeadless) {
+export function getSauceEndpoint (region, isRDC) {
     const shortRegion = REGION_MAPPING[region] ? region : 'us'
-    const product = isHeadless ? 'headless.' : ''
-
     if (isRDC){
         return `${shortRegion}1.appium.testobject.com`
     }
 
-    return `ondemand.${REGION_MAPPING[shortRegion]}${product}saucelabs.com`
+    return `ondemand.${REGION_MAPPING[shortRegion]}saucelabs.com`
 }
 
 /**
@@ -62,18 +60,9 @@ export function detectBackend (options = {}, isRDC = false) {
         // Sauce headless is currently only in us-east-1
         const sauceRegion = headless ? 'us-east-1' : region
 
-        /**
-         * headless runs not over SSL which might change soon
-         * see https://wiki.saucelabs.com/display/DOCS/Sauce+Headless+Beta
-         */
-        if (headless) {
-            protocol = 'http'
-            port = 4444
-        }
-
         return {
             protocol: protocol || 'https',
-            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC, headless),
+            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC),
             port: port || 443
         }
     }
