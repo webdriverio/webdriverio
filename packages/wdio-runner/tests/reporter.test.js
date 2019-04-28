@@ -42,7 +42,6 @@ describe('BaseReporter', () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
             reporters: [
-                'dot',
                 ['dot', {
                     foo: 'bar',
                     outputDir: '/foo/bar/baz'
@@ -50,7 +49,7 @@ describe('BaseReporter', () => {
             ]
         }, '0-0')
 
-        expect(reporter.getLogFile('foobar')).toBe('/foo/bar/baz/wdio-0-0-foobar-reporter.log')
+        expect(reporter.getLogFile('dot')).toBe('/foo/bar/baz/wdio-0-0-dot-reporter.log')
     })
 
     it('should return custom log file name', () => {
