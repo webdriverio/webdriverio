@@ -42,7 +42,9 @@ describe('wdio-runner', () => {
 
             expect(fs.writeFile).toHaveBeenCalledTimes(1)
 
-            expect(fs.writeFile.mock.calls[0]).toEqual(['/foo/bar/wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
+            expect(fs.writeFile.mock.calls[0][0]).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-foo.log/)
+            expect(fs.writeFile.mock.calls[0][1]).toEqual('"#1 foo log"\n"#2 foo log"')
+            expect(fs.writeFile.mock.calls[0][2]).toEqual('utf-8')
         })
 
         it('should fetch logs', async () => {
@@ -53,8 +55,14 @@ describe('wdio-runner', () => {
             }
 
             await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
-            expect(fs.writeFile.mock.calls[0]).toEqual(['/foo/bar/wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
-            expect(fs.writeFile.mock.calls[1]).toEqual(['/foo/bar/wdio-0-1-bar.log', '"#1 bar log"\n"#2 bar log"', 'utf-8'])
+            expect(fs.writeFile.mock.calls[0][0]).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-foo.log/)
+            expect(fs.writeFile.mock.calls[0][1]).toEqual('"#1 foo log"\n"#2 foo log"')
+            expect(fs.writeFile.mock.calls[0][2]).toEqual('utf-8')
+
+            expect(fs.writeFile.mock.calls[1][0]).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-bar.log/)
+            expect(fs.writeFile.mock.calls[0][1]).toEqual('"#1 foo log"\n"#2 foo log"')
+            expect(fs.writeFile.mock.calls[0][2]).toEqual('utf-8')
+
         })
 
         it('should not fail if logsTypes can not be received', async () => {
