@@ -30,10 +30,10 @@ test('should fork a new process', () => {
     worker.emit = jest.fn()
 
     expect(worker.isBusy).toBe(true)
-    expect(child.fork.mock.calls[0][0].endsWith('/run.js')).toBe(true)
+    expect(child.fork.mock.calls[0][0].endsWith('run.js')).toBe(true)
 
     const { env } = child.fork.mock.calls[0][2]
-    expect(env.WDIO_LOG_PATH).toBe('/foo/bar/wdio-0-5.log')
+    expect(env.WDIO_LOG_PATH).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/)
     expect(env.FORCE_COLOR).toBe('1')
     expect(childProcess.on).toBeCalled()
 
