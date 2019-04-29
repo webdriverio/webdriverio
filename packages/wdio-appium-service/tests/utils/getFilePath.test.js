@@ -20,10 +20,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/', () => {
         const dir = '/'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)appium-standalone\.txt/)
     })
 
     test('should handle dir "./log"', () => {
@@ -36,10 +35,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/log', () => {
         const dir = '/log'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium-standalone\.txt/)
     })
 
     test('should handle dir "./log/"', () => {
@@ -52,10 +50,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/log/', () => {
         const dir = '/log/'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium-standalone\.txt/)
     })
 
     test('should handle dir "./log/appium"', () => {
@@ -76,10 +73,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/log/appium', () => {
         const dir = '/log/appium'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium(\\|\/)appium-standalone\.txt/)
     })
 
     test('should handle file ".log"', () => {
@@ -124,10 +120,9 @@ describe('getFilePath', () => {
 
     test('should handle file "/appium-log.txt', () => {
         const file = '/appium-log.txt'
-        const expectedPath = file
         const filePath = getFilePath(file, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)appium-log\.txt/)
     })
 
     test('should handle file "./log/appium-log.txt"', () => {
@@ -148,9 +143,8 @@ describe('getFilePath', () => {
 
     test('should handle file "/log/appium-log.txt', () => {
         const file = '/log/appium-log.txt'
-        const expectedPath = file
         const filePath = getFilePath(file, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium-log\.txt/)
     })
 })
