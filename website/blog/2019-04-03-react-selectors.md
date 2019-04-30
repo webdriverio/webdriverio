@@ -54,7 +54,6 @@ ReactDOM.render(
     </div>,
     document.getElementById('#root'),
 )
-
 ```
 
 In this app, we have one component that renders some text depending on the property `name` passed to it.
@@ -71,7 +70,6 @@ test('it should be displayed', () => {
 
     expect(myComponent.isDisplayed()).toBe(true) // pass
 })
-
 ```
 Simple, no? But what if we want to select the component that says `Hello WebdriverIO` and verify that the text is correct? Well, we can filter our queries!
 
@@ -83,7 +81,6 @@ test('it should correctly display "Hello WebdriverIO"', () => {
 
     expect(myComponent.getText()).toBe('Hello WebdriverIO') // pass
 })
-
 ```
 In React, the props will always be an object so for this filter parameter we can only pass an object to be used to filter our results.
 
@@ -97,7 +94,6 @@ test('it should correctly display "Hello WebdriverIO"', () => {
 
     expect(myComponent.getText()).toBe('Hello there, how are you?') // pass
 })
-
 ```
 As you can see, for the state filter we pass the string that equivalates to the current state of the component, this last parameter in the function can be any of the following: string, number, boolean, array, or object. This is because all these types are valid state types for React.
 
