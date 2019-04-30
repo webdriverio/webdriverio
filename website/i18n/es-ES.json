@@ -288,52 +288,52 @@
         "title": "Page Object Pattern"
       },
       "proxy": {
-        "title": "Proxy Setup"
+        "title": "Configuración de proxy"
       },
       "repl": {
-        "title": "REPL interface"
+        "title": "Interfaz REPL"
       },
       "retry": {
-        "title": "Retry Flaky Tests"
+        "title": "Reintentar pruebas Frágiles"
       },
       "selectors": {
-        "title": "Selectors"
+        "title": "Selectores"
       },
       "setuptypes": {
-        "title": "How to setup WebdriverIO"
+        "title": "Cómo configurar WebdriverIO"
       },
       "timeouts": {
-        "title": "Timeouts"
+        "title": "Tiempos de espera"
       },
       "typescript": {
-        "title": "TypeScript Setup"
+        "title": "Configurar TypeScript"
       },
       "watcher": {
-        "title": "Watch Test Files"
+        "title": "Monitoreo de los Archivos de Pruebas"
       }
     },
     "links": {
-      "Guide": "Guide",
+      "Guide": "Guía",
       "API": "API",
-      "Help": "Help",
+      "Help": "Ayuda",
       "Blog": "Blog",
       "GitHub": "GitHub"
     },
     "categories": {
-      "Introduction": "Introduction",
-      "Configuration": "Configuration",
-      "Usage": "Usage",
+      "Introduction": "Introducción",
+      "Configuration": "Configuración",
+      "Usage": "Uso",
       "Testrunner": "Testrunner",
-      "Reporter": "Reporter",
-      "Services": "Services",
-      "Protocols": "Protocols",
-      "browser": "browser",
-      "element": "element"
+      "Reporter": "Reporte",
+      "Services": "Servicios",
+      "Protocols": "Protocolos",
+      "browser": "navegador",
+      "element": "elemento"
     }
   },
   "pages-strings": {
-    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)",
-    "Browse Docs|no description given": "Browse Docs",
+    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Aprende más usando la [documentación de este sitio.](/test-site/docs/es/doc1.html)",
+    "Browse Docs|no description given": "Ver documentación",
     "Ask questions about the documentation and project|no description given": "Pregunta sobre el proyecto y la documentación",
     "Join the community|no description given": "Únete a la comunidad",
     "Find out what's new with this project|no description given": "Descubre lo que es nuevo en este proyecto",
