@@ -231,58 +231,58 @@
         "title": "Sauce Labs"
       },
       "api/webdriver": {
-        "title": "Webdriver Protocol"
+        "title": "Protocolo de Webdriver"
       },
       "autocompletion": {
-        "title": "Autocompletion"
+        "title": "Autocompletado"
       },
       "babel": {
-        "title": "Babel Setup"
+        "title": "Configuración de Babel"
       },
       "boilerplate": {
-        "title": "Boilerplate Projects"
+        "title": "Proyectos de Ejemplo"
       },
       "browserobject": {
-        "title": "The Browser Object"
+        "title": "El objeto Browser"
       },
       "clioptions": {
-        "title": "WDIO CLI Options"
+        "title": "Opciones de CLI de WDIO"
       },
       "cloudservices": {
-        "title": "Using Cloud Services"
+        "title": "Usando Servicios Cloud"
       },
       "configurationfile": {
-        "title": "Testrunner Configuration"
+        "title": "Configuración de Testrunner"
       },
       "customcommands": {
-        "title": "Custom Commands"
+        "title": "Comandos Personalizados"
       },
       "customreporter": {
-        "title": "Custom Reporter"
+        "title": "Reporte personalizado"
       },
       "customservices": {
-        "title": "Custom Services"
+        "title": "Servicios personalizados"
       },
       "debugging": {
-        "title": "Debugging"
+        "title": "Depuración"
       },
       "frameworks": {
         "title": "Frameworks"
       },
       "gettingstarted": {
-        "title": "Getting Started"
+        "title": "Primeros pasos"
       },
       "jenkins": {
-        "title": "Jenkins Integration"
+        "title": "Integración con Jenkins"
       },
       "multiremote": {
-        "title": "Multiremote"
+        "title": "Multiremoto"
       },
       "options": {
-        "title": "Options"
+        "title": "Opciones"
       },
       "organizingsuites": {
-        "title": "Organizing Test Suite"
+        "title": "Organizando la Suite de Pruebas"
       },
       "pageobjects": {
         "title": "Page Object Pattern"
