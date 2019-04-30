@@ -2,6 +2,7 @@
 id: cloudservices
 title: Añadir Servicio en la Nube
 ---
+
 El uso de servicios como Sauce Labs, Browserstack o TestingBot con WebdriverIO es bastante sencillo. Todo lo que necesitas hacer es establecer las propiedades `user` y `key`, que el servicio de nube te provee, en tus opciones. Opcional también puede parametrizar su prueba configurando capacidades específicas para la nube como `build`. Si sólo quieres ejecutar los servicios en la nube en Travis, puedes usar la variable de entorno `CI` para comprobar si estás en Travis y modificar la configuración.
 
 ```js
@@ -39,7 +40,7 @@ Si lo haces, debes establecer la opción de configuración de prueba `tunnel-ide
 
 También si quieres tener el grupo de Sauce Labs de tus pruebas mediante número de compilación, puedes establecer el `build` a `TRAVIS_BUILD_NUMBER`.
 
-Por último, si establece el `name`, esto cambia el nombre de esta prueba en Sauce Labs para esta construcción. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
+Por último, si establece el `name`, esto cambia el nombre de esta prueba en Sauce Labs para esta construcción. Si está usando el testrunner WDIO combinado con el [`@wdio/sauce-service`](https://github. com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automáticamente establece un nombre apropiado para la prueba.
 
 Ejemplo `desiredCapabilities`:
 
