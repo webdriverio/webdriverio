@@ -23,9 +23,9 @@ for (const protocol of protocols) {
 }
 
 export default class WebDriverMock {
-    constructor (host = 'http://0.0.0.0', port = 4444, path = '/') {
+    constructor (host = 'localhost', port = 4444, path = '/') {
         this.path = path
-        this.scope = nock(`${host}:${port}`, { 'encodedQueryParams':true })
+        this.scope = nock(`http://${host}:${port}`, { 'encodedQueryParams':true })
         this.command = new Proxy({}, { get: ::this.get })
     }
 

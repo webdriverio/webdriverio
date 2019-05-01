@@ -26,7 +26,7 @@ export const getSauceEndpoint = getSauceEndpointMock
 export const validateConfig = jest.fn().mockImplementation(
     (_, config) => Object.assign(
         DEFAULT_CONFIGS_IMPORT,
-        { hostname: '0.0.0.0', port: 4444, protocol: 'http', path: '/wd/hub' },
+        { hostname: 'localhost', port: 4444, protocol: 'http', path: '/wd/hub' },
         config
     )
 )

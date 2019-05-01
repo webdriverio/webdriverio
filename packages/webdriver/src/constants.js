@@ -12,7 +12,7 @@ export const DEFAULTS = {
      */
     hostname: {
         type: 'string',
-        default: '0.0.0.0'
+        default: 'localhost'
     },
     /**
      * port of automation driver

@@ -3,7 +3,7 @@ import { detectBackend } from '../src/utils'
 describe('detectBackend', () => {
     it('should not set anything if host is set in caps', () => {
         const caps = {
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             protocol: 'http'
         }

@@ -220,7 +220,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'hostname',
     message: 'What is the IP or URI to your Selenium standalone or grid server?',
-    default: '0.0.0.0',
+    default: 'localhost',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
