@@ -59,11 +59,11 @@ export default class Runner extends EventEmitter {
         this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
-        this.reporter = new BaseReporter(this.config, this.cid, this.caps)
-        this.inWatchMode = Boolean(this.config.watch)
-
         await runHook('beforeSession', this.config, this.caps, this.specs)
         const browser = await this._initSession(this.config, this.caps)
+
+        this.reporter = new BaseReporter(this.config, this.cid, browser.capabilities)
+        this.inWatchMode = Boolean(this.config.watch)
 
         /**
          * return if session initialisation failed
@@ -103,7 +103,7 @@ export default class Runner extends EventEmitter {
                     caps[browserName] = browser[browserName].capabilities
                     return caps
                 }, {})
-                : browser.options.capabilities,
+                : browser.capabilities,
             retry: (this.config.specFileRetries || 0) - (retries || 0)
         })
 
@@ -287,10 +287,11 @@ export default class Runner extends EventEmitter {
             return this.endSession(shutdown)
         }
 
+        const capabilities = global.browser.capabilities
         await global.browser.deleteSession()
         delete global.browser.sessionId
 
-        await runHook('afterSession', global.browser.config, this.caps, this.specs)
+        await runHook('afterSession', global.browser.config, capabilities, this.specs)
 
         if (shutdown) {
             return this._shutdown()
