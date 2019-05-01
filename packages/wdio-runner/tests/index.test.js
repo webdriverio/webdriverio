@@ -169,11 +169,15 @@ describe('wdio-runner', () => {
             const specs = ['foobar']
             const config = {
                 reporters: [],
-                beforeSession: [beforeSession]
+                beforeSession: [beforeSession],
+                framework: 'testWithFailures'
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn()
-            runner._initSession = jest.fn().mockReturnValue(null)
+            runner._initSession = jest.fn().mockReturnValue({
+                capabilities: { browserName: 'chrome' },
+                options: {}
+            })
             await runner.run({
                 argv: { reporters: [] },
                 cid: '0-0',
@@ -181,7 +185,7 @@ describe('wdio-runner', () => {
                 specs
             })
 
-            expect(runner._shutdown).toBeCalledWith(1)
+            expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
         })
 
