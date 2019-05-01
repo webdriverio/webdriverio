@@ -222,6 +222,8 @@ __Note:__ This only has an effect if you provide `user` and `key` options that a
 Type: `String`<br>
 Default: `us`
 
+*(only for vm and or em/simulators)*
+
 ### headless
 Sauce Labs provides an [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing) that allows you to run Chrome and Firefox tests headless.
 
