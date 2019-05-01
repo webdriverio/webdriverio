@@ -27,7 +27,7 @@ class MockProcess {
     _eventHandler = new eventHandler()
     once() {
         this._eventHandler.trigger('data', '[Appium] Welcome to Appium v1.11.1')
-        this._eventHandler.trigger('data', '[Appium] Appium REST http interface listener started on 0.0.0.0:4723')
+        this._eventHandler.trigger('data', '[Appium] Appium REST http interface listener started on localhost:4723')
     }
     removeListener() {}
     kill() {}
