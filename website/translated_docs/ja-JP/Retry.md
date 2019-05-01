@@ -1,6 +1,6 @@
 ---
-id: retry
-title: Retry Flaky Tests
+id: リトライ
+title: 不安定なテストをリトライする
 ---
 
 You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to e.g. flaky network or race conditions. However it is not recommended to just increase the rerun rate if tests become unstable.
