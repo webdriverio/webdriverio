@@ -148,7 +148,7 @@ export const CLI_PARAMS = [{
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
-    message: 'Where should your tests be launched',
+    message: 'Where should your tests be launched?',
     choices: SUPPORTED_RUNNERS,
     filter: (runner) => runner.split(/-/)[0].trim()
 }, {
