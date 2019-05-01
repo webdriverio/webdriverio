@@ -15,6 +15,25 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.8.1 (2019-05-01)
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-utils`
+  * [#3908](https://github.com/webdriverio/webdriverio/pull/3908) Propagate given capabilities to reporter ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`, `wdio-cli`, `wdio-config`, `wdio-webdriver-mock-service`, `webdriver`
+  * [#3907](https://github.com/webdriverio/webdriverio/pull/3907) Don't try to connect to localhost anymore ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-sauce-service`
+  * [#3909](https://github.com/webdriverio/webdriverio/pull/3909) move cloud service documentation to the options page ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-applitools-service`
+  * [#3910](https://github.com/webdriverio/webdriverio/pull/3910) Replace own fork with Applitools package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
 ## v5.8.0 (2019-04-30)
 
 #### :eyeglasses: Spec Compliancy
