@@ -303,20 +303,20 @@
         "title": "How to setup WebdriverIO"
       },
       "timeouts": {
-        "title": "Timeouts"
+        "title": "タイムアウト"
       },
       "typescript": {
-        "title": "TypeScript Setup"
+        "title": "TypeScriptのセットアップ"
       },
       "watcher": {
         "title": "Watch Test Files"
       }
     },
     "links": {
-      "Guide": "Guide",
+      "Guide": "ガイド",
       "API": "API",
-      "Help": "Help",
-      "Blog": "Blog",
+      "Help": "ヘルプ",
+      "Blog": "ブログ",
       "GitHub": "GitHub"
     },
     "categories": {
