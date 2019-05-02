@@ -270,7 +270,7 @@
         "title": "フレームワーク"
       },
       "gettingstarted": {
-        "title": "Getting Started"
+        "title": "はじめに"
       },
       "jenkins": {
         "title": "Jenkinsとの連携"
@@ -279,7 +279,7 @@
         "title": "Multiremote"
       },
       "options": {
-        "title": "Options"
+        "title": "オプション"
       },
       "organizingsuites": {
         "title": "Organizing Test Suite"
