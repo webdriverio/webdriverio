@@ -1,13 +1,13 @@
 ---
-id: options
-title: Options
+id: オプション
+title: オプション
 ---
 
 WebdriverIO is not only a WebDriver protocol binding like Selenium. It is a full test framework that comes with a lot of additional features and utilities. It is based on the [webdriver](https://www.npmjs.com/package/webdriver) package which is a lightweight, non-opinionated implementation of the WebDriver specification including mobile commands supported by Appium. WebdriverIO takes the protocol commands and creates smart user commands that make it easier to use the protocol for test automation.
 
 WebdriverIO enhances the WebDriver package with additional commands. They share the same set of options when run in a standalone script. When running tests using `@wdio/cli` (wdio testrunner) some additional options are available that belong into the `wdio.conf.js`.
 
-## WebDriver Options
+## WebDriver のオプション
 
 The following options are defined:
 
@@ -97,7 +97,7 @@ Default: `3`
 
 * * *
 
-## WDIO Options
+## WDIO のオプション
 
 The following options are defined for running WebdriverIO with the `@wdio/cli` testrunner:
 
@@ -150,14 +150,14 @@ Default interval for all waitForXXX commands to check if an expected state (e.g.
 Type: `Number`  
 Default: `500`
 
-### framework
+### フレームワーク
 
 Defines the test framework to be used by the wdio testrunner.
 
 Type: `String`  
 Default: `mocha` Options: `mocha` | `jasmine` | `cucumber`
 
-### reporters
+### レポーター
 
 List of reporters to use. A reporter can be either a string or an array where the first element is a string with the reporter name and the second element an object with reporter options.
 
