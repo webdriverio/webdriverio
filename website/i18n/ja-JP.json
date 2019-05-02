@@ -15,37 +15,37 @@
         "title": "Browserstack サービス"
       },
       "concise-reporter": {
-        "title": "Concise Reporter"
+        "title": "Concise レポーター"
       },
       "devtools-service": {
         "title": "Devtools サービス"
       },
       "dot-reporter": {
-        "title": "Dot Reporter"
+        "title": "Dot レポーター"
       },
       "firefox-profile-service": {
-        "title": "Firefox Profile Service"
+        "title": "Firefox Profile サービス"
       },
       "junit-reporter": {
         "title": "Junit レポーター"
       },
       "sauce-service": {
-        "title": "Sauce Service"
+        "title": "Sauce サービス"
       },
       "selenium-standalone-service": {
-        "title": "Selenium Standalone Service"
+        "title": "Selenium Standalone サービス"
       },
       "spec-reporter": {
-        "title": "Spec Reporter"
+        "title": "Spec レポーター"
       },
       "sumologic-reporter": {
-        "title": "Sumologic Reporter"
+        "title": "Sumologic レポーター"
       },
       "testingbot-service": {
-        "title": "Testingbot Service"
+        "title": "Testingbot サービス"
       },
       "api": {
-        "title": "API Docs"
+        "title": "APIドキュメント"
       },
       "api/appium": {
         "title": "Appium"
@@ -237,31 +237,31 @@
         "title": "自動補完"
       },
       "babel": {
-        "title": "Babel Setup"
+        "title": "Babelのセットアップ"
       },
       "boilerplate": {
-        "title": "Boilerplate Projects"
+        "title": "ボイラープレートプロジェクト"
       },
       "browserobject": {
-        "title": "The Browser Object"
+        "title": "ブラウザオブジェクト"
       },
       "clioptions": {
-        "title": "WDIO CLI Options"
+        "title": "WDIO CLI オプション"
       },
       "cloudservices": {
-        "title": "Using Cloud Services"
+        "title": "クラウドサービスを利用する"
       },
       "configurationfile": {
-        "title": "Testrunner Configuration"
+        "title": "テストランナーの設定"
       },
       "customcommands": {
-        "title": "Custom Commands"
+        "title": "カスタムコマンド"
       },
       "customreporter": {
-        "title": "Custom Reporter"
+        "title": "カスタムレポーター"
       },
       "customservices": {
-        "title": "Custom Services"
+        "title": "カスタムサービス"
       },
       "debugging": {
         "title": "デバッグ"
@@ -282,16 +282,16 @@
         "title": "オプション"
       },
       "organizingsuites": {
-        "title": "Organizing Test Suite"
+        "title": "テストスイートを整理する"
       },
       "pageobjects": {
         "title": "Page Object Pattern"
       },
       "proxy": {
-        "title": "Proxy Setup"
+        "title": "プロキシのセットアップ"
       },
       "repl": {
-        "title": "REPL interface"
+        "title": "REPL インターフェイス"
       },
       "retry": {
         "title": "不安定なテストをリトライする"
@@ -300,7 +300,7 @@
         "title": "セレクター"
       },
       "setuptypes": {
-        "title": "How to setup WebdriverIO"
+        "title": "WebdriverIOのセットアップ方法"
       },
       "timeouts": {
         "title": "タイムアウト"
@@ -323,10 +323,10 @@
       "Introduction": "はじめに",
       "Configuration": "設定",
       "Usage": "使い方",
-      "Testrunner": "Testrunner",
+      "Testrunner": "テストランナー",
       "Reporter": "レポーター",
-      "Services": "Services",
-      "Protocols": "Protocols",
+      "Services": "サービス",
+      "Protocols": "プロトコル",
       "browser": "ブラウザ",
       "element": "要素"
     }
@@ -334,7 +334,7 @@
   "pages-strings": {
     "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)",
     "Browse Docs|no description given": "Browse Docs",
-    "Ask questions about the documentation and project|no description given": "Ask questions about the documentation and project",
+    "Ask questions about the documentation and project|no description given": "ドキュメント・プロジェクトに関する質問",
     "Join the community|no description given": "コミュニティに参加する",
     "Find out what's new with this project|no description given": "Find out what's new with this project",
     "Stay up to date|no description given": "最新情報を確認する",
@@ -342,16 +342,16 @@
     "This project is maintained by a dedicated group of people.|statement made to reader": "This project is maintained by a dedicated group of people.",
     "Watch Talks about WebdriverIO|no description given": "Watch Talks about WebdriverIO",
     "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).|no description given": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).",
-    "Watch more videos|no description given": "Watch more videos",
+    "Watch more videos|no description given": "さらにビデオを見る",
     "Applitools Support|no description given": "Applitools サポート",
     "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__",
     "Extendable|no description given": "Extendable",
     "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.|no description given": "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.",
-    "Compatible|no description given": "Compatible",
+    "Compatible|no description given": "互換性",
     "It implements all Webdriver protocol commands and provides useful integrations with other tools.|no description given": "It implements all Webdriver protocol commands and provides useful integrations with other tools.",
     "Feature Rich|no description given": "Feature Rich",
-    "Help Translate|recruit community translators for your project": "Help Translate",
-    "Edit this Doc|recruitment message asking to edit the doc source": "Edit",
+    "Help Translate|recruit community translators for your project": "翻訳を助ける",
+    "Edit this Doc|recruitment message asking to edit the doc source": "編集",
     "Translate this Doc|recruitment message asking to translate the docs": "翻訳"
   }
 }
