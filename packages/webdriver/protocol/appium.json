@@ -618,8 +618,8 @@
       "ref": "http://appium.io/docs/en/commands/device/keys/is-keyboard-shown/",
       "parameters": [],
       "returns": {
-        "type": "isKeyboardShown",
-        "name": "isLocked",
+        "type": "boolean",
+        "name": "isKeyboardShown",
         "description": "True if the keyboard is shown"
       },
       "support": {
