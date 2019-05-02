@@ -35,22 +35,20 @@ describe('BaseReporter', () => {
             ]
         }, '0-0')
 
-        expect(reporter.getLogFile('foobar')).toBe('/foo/bar/wdio-0-0-foobar-reporter.log')
+        expect(reporter.getLogFile('foobar')).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-0-foobar-reporter.log/)
     })
 
     it('should output log file to custom outputDir', () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
             reporters: [
-                'dot',
                 ['dot', {
                     foo: 'bar',
                     outputDir: '/foo/bar/baz'
                 }]
             ]
         }, '0-0')
-
-        expect(reporter.getLogFile('foobar')).toBe('/foo/bar/baz/wdio-0-0-foobar-reporter.log')
+        expect(reporter.getLogFile('dot')).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)baz(\\|\/)wdio-0-0-dot-reporter.log/)
     })
 
     it('should return custom log file name', () => {
@@ -67,7 +65,7 @@ describe('BaseReporter', () => {
             ]
         }, '0-0')
 
-        expect(reporter.getLogFile('dot')).toBe('/foo/bar/wdio-results-0-0.xml')
+        expect(reporter.getLogFile('dot')).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-results-0-0.xml/)
     })
 
     it('should throw error if outputFileFormat is not a function', () => {
@@ -130,7 +128,7 @@ describe('BaseReporter', () => {
             }]]
         }, '0-0')
 
-        expect(reporter.getLogFile('CustomReporter')).toBe('/foo/baz/bar/wdio-0-0-CustomReporter-reporter.log')
+        expect(reporter.getLogFile('CustomReporter')).toMatch(/(\\|\/)foo(\\|\/)baz(\\|\/)bar(\\|\/)wdio-0-0-CustomReporter-reporter.log/)
     })
 
     it('should throw if reporters are in a wrong format', () => {

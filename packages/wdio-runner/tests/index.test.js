@@ -42,7 +42,9 @@ describe('wdio-runner', () => {
 
             expect(fs.writeFile).toHaveBeenCalledTimes(1)
 
-            expect(fs.writeFile.mock.calls[0]).toEqual(['/foo/bar/wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
+            expect(fs.writeFile.mock.calls[0][0]).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-foo.log/)
+            expect(fs.writeFile.mock.calls[0][1]).toEqual('"#1 foo log"\n"#2 foo log"')
+            expect(fs.writeFile.mock.calls[0][2]).toEqual('utf-8')
         })
 
         it('should fetch logs', async () => {
@@ -53,8 +55,25 @@ describe('wdio-runner', () => {
             }
 
             await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
-            expect(fs.writeFile.mock.calls[0]).toEqual(['/foo/bar/wdio-0-1-foo.log', '"#1 foo log"\n"#2 foo log"', 'utf-8'])
-            expect(fs.writeFile.mock.calls[1]).toEqual(['/foo/bar/wdio-0-1-bar.log', '"#1 bar log"\n"#2 bar log"', 'utf-8'])
+            expect(fs.writeFile.mock.calls[0][0]).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-foo.log/)
+            expect(fs.writeFile.mock.calls[0][1]).toEqual('"#1 foo log"\n"#2 foo log"')
+            expect(fs.writeFile.mock.calls[0][2]).toEqual('utf-8')
+
+            expect(fs.writeFile.mock.calls[1][0]).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-bar.log/)
+            expect(fs.writeFile.mock.calls[0][1]).toEqual('"#1 foo log"\n"#2 foo log"')
+            expect(fs.writeFile.mock.calls[0][2]).toEqual('utf-8')
+
+        })
+
+        it('should not fail if logsTypes can not be received', async () => {
+            global.browser = {
+                getLogTypes: () => Promise.reject(new Error('boom')),
+                getLogs: (type) => Promise.resolve([`#1 ${type} log`, `#2 ${type} log`]),
+                sessionId: '123'
+            }
+
+            await runner._fetchDriverLogs({ outputDir: '/foo/bar' })
+            expect(fs.writeFile).toHaveBeenCalledTimes(0)
         })
 
         it('should not fail if logs can not be received', async () => {
@@ -150,11 +169,15 @@ describe('wdio-runner', () => {
             const specs = ['foobar']
             const config = {
                 reporters: [],
-                beforeSession: [beforeSession]
+                beforeSession: [beforeSession],
+                framework: 'testWithFailures'
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn()
-            runner._initSession = jest.fn().mockReturnValue(null)
+            runner._initSession = jest.fn().mockReturnValue({
+                capabilities: { browserName: 'chrome' },
+                options: {}
+            })
             await runner.run({
                 argv: { reporters: [] },
                 cid: '0-0',
@@ -162,7 +185,7 @@ describe('wdio-runner', () => {
                 specs
             })
 
-            expect(runner._shutdown).toBeCalledWith(1)
+            expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
         })
 

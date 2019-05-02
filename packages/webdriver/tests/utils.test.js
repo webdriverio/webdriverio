@@ -27,6 +27,10 @@ describe('utils', () => {
             undefined,
             { status: 7, value: { message: 'no such element: foobar' } }
         )).toBe(true)
+        expect(isSuccessfulResponse(
+            200,
+            { value: { message: 'Unable to find element with xpath == //foobar' } }
+        )).toBe(true)
     })
 
     it('isValidParameter', () => {

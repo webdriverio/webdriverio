@@ -50,7 +50,6 @@ export default class WorkerInstance extends EventEmitter {
         const argv = process.argv.slice(2)
 
         const runnerEnv = Object.assign(process.env, this.config.runnerEnv, {
-            WDIO_LOG_LEVEL: this.config.logLevel,
             WDIO_WORKER: true
         })
 

@@ -241,7 +241,7 @@ exports.config = {
 }
 ```
 
-Be sure to save the file afte your changes.
+Be sure to save the file after your changes.
 
 ### Create Spec Files
 
