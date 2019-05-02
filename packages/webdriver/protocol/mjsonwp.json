@@ -37,7 +37,11 @@
     "GET": {
       "command": "getPageIndex",
       "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#mobile-json-wire-protocol-endpoints",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "pageIndex"
+      }
     }
   },
   "/session/:sessionId/network_connection": {

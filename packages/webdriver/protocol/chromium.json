@@ -164,7 +164,7 @@
       "description": "Get current network conditions used for emulation.",
       "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L839-L859",
       "parameters": [],
-      "return": {
+      "returns": {
         "type": "Object",
         "name": "networkConditions",
         "description": "Object containing network conditions for `offline`, `latency`, `download_throughput` and `upload_throughput`. Network conditions must be set before it can be retrieved."
