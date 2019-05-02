@@ -197,6 +197,11 @@
       "description": "Returns the information types of the system state which is supported to read as like cpu, memory, network traffic, and battery.",
       "ref": "http://appium.io/docs/en/commands/device/performance-data/performance-data-types/",
       "parameters": [],
+      "returns": {
+        "type": "string[]",
+        "name": "performanceTypes",
+        "description": "The available performance data types (cpuinfo|batteryinfo|networkinfo|memoryinfo)"
+      },
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -225,6 +230,11 @@
         "description": "the number of attempts to read",
         "required": false
       }],
+      "returns": {
+        "type": "string[]",
+        "name": "performanceData",
+        "description": "The information type of the system state which is supported to read as like cpu, memory, network traffic, and battery"
+      },
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -367,6 +377,11 @@
       "description": "Get the name of the current Android activity.",
       "ref": "http://appium.io/docs/en/commands/device/activity/current-activity/",
       "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "activity",
+        "description": "Name of the current activity"
+      },
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -380,6 +395,11 @@
       "description": "Get the name of the current Android package.",
       "ref": "http://appium.io/docs/en/commands/device/activity/current-package/",
       "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "package",
+        "description": "Name of the current package"
+      },
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -819,6 +839,11 @@
       "description": "Retrieve visibility and bounds information of the status and navigation bars.",
       "ref": "http://appium.io/docs/en/commands/device/system/system-bars/",
       "parameters": [],
+      "returns": {
+        "type": "object[]",
+        "name": "systemBars",
+        "description": "Information about visibility and bounds of status and navigation bar"
+      },
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -832,6 +857,11 @@
       "description": "Get the time on the device.",
       "ref": "http://appium.io/docs/en/commands/device/system/system-time/",
       "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "time",
+        "description": "Time on the device"
+      },
       "support": {
         "ios": {
           "XCUITest": "9.3+",
@@ -849,6 +879,10 @@
       "description": "Get display density from device.",
       "ref": "https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints",
       "parameters": [],
+      "returns": {
+        "type": "*",
+        "name": "displayDensity"
+      },
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -1006,6 +1040,11 @@
         "description": "path to the string file",
         "required": false
       }],
+      "returns": {
+        "type": "object",
+        "name": "appStrings",
+        "description": "all defined Strings from an app for the specified language and strings filename"
+      },
       "support": {
         "ios": {
           "XCUITest": "9.3+",
@@ -1070,6 +1109,11 @@
       "description": "Retrieve the current settings on the device.",
       "ref": "http://appium.io/docs/en/commands/session/settings/get-settings/",
       "parameters": [],
+      "returns": {
+        "type": "object",
+        "name": "settings",
+        "description": "JSON hash of all the currently specified settings, see Settings API"
+      },
       "support": {
         "ios": {
           "XCUITest": "9.3+",
