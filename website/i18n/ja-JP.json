@@ -309,7 +309,7 @@
         "title": "TypeScriptのセットアップ"
       },
       "watcher": {
-        "title": "Watch Test Files"
+        "title": "テストファイルをウォッチする"
       }
     },
     "links": {
@@ -332,21 +332,21 @@
     }
   },
   "pages-strings": {
-    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)",
-    "Browse Docs|no description given": "Browse Docs",
+    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "[このサイトのドキュメント](/test-site/docs/ja/doc1.html) でより学ぶ",
+    "Browse Docs|no description given": "ドキュメントを参照",
     "Ask questions about the documentation and project|no description given": "ドキュメント・プロジェクトに関する質問",
     "Join the community|no description given": "コミュニティに参加する",
-    "Find out what's new with this project|no description given": "Find out what's new with this project",
+    "Find out what's new with this project|no description given": "このプロジェクトの新機能",
     "Stay up to date|no description given": "最新情報を確認する",
     "Need help?|no description given": "サポートが必要ですか？",
-    "This project is maintained by a dedicated group of people.|statement made to reader": "This project is maintained by a dedicated group of people.",
-    "Watch Talks about WebdriverIO|no description given": "Watch Talks about WebdriverIO",
+    "This project is maintained by a dedicated group of people.|statement made to reader": "このプロジェクトは献身的な人々によって維持されています。",
+    "Watch Talks about WebdriverIO|no description given": "WebdriverIO に関するトークを見る",
     "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).|no description given": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).",
     "Watch more videos|no description given": "さらにビデオを見る",
     "Applitools Support|no description given": "Applitools サポート",
-    "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__",
+    "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "ヘルパー関数を追加したり、既存のコマンドとのより複雑な組み合わせは __シンプル__ でとても __使いやすい__ です。",
     "Extendable|no description given": "拡張できる",
-    "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.|no description given": "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.",
+    "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.|no description given": "WebdriverIO は__WebDriver 仕様__と__Appium__に対してファーストクラスのサポートをし 、デスクトップとモバイルでテストを実行することを可能にします。",
     "Compatible|no description given": "互換性",
     "It implements all Webdriver protocol commands and provides useful integrations with other tools.|no description given": "全ての Webdriver プロトコルのコマンドを実装し、他のツールとの便利な連携も提供しています",
     "Feature Rich|no description given": "豊富な機能",
