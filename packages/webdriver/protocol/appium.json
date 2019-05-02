@@ -59,6 +59,11 @@
       "description": "Check whether the device is locked or not.",
       "ref": "http://appium.io/docs/en/commands/device/interactions/is-locked/",
       "parameters": [],
+      "returns": {
+        "type": "boolean",
+        "name": "isLocked",
+        "description": "True if the device is locked, false if not"
+      },
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -592,6 +597,11 @@
       "description": "Whether or not the soft keyboard is shown.",
       "ref": "http://appium.io/docs/en/commands/device/keys/is-keyboard-shown/",
       "parameters": [],
+      "returns": {
+        "type": "isKeyboardShown",
+        "name": "isLocked",
+        "description": "True if the keyboard is shown"
+      },
       "support": {
         "ios": {
           "XCUITest": "9.3+",
