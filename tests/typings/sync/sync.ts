@@ -24,6 +24,13 @@ const el5 = el4.$('')
 el4.getAttribute('class')
 el5.scrollIntoView(false)
 
+// shadow$ shadow$$
+const el6 = $('')
+const shadowElem = el6.shadow$('')
+shadowElem.click()
+const shadowElems = el6.shadow$$('')
+shadowElems[0].click()
+
 // selenium-standalone-service
 const config: WebdriverIO.Config = {
     skipSeleniumInstall: true
