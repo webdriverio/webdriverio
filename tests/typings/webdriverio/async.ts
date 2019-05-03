@@ -26,6 +26,13 @@ async function bar() {
     const el5 = await el4.$('')
     await el4.getAttribute('class')
     await el5.scrollIntoView(false)
+
+    // shadow$ shadow$$
+    const el6 = await $('')
+    const shadowElem = await el6.shadow$('')
+    await shadowElem.click()
+    const shadowElems = await el6.shadow$$('')
+    await shadowElems[0].click()
 }
 
 // selenium-standalone-service
