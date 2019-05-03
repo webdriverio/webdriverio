@@ -16,8 +16,6 @@ declare namespace WebdriverIO {
 declare var browser: BrowserObject;
 declare function $(selector: string | Function): WebdriverIO.Element;
 declare function $$(selector: string | Function): WebdriverIO.Element[];
-declare function shadow$(selector: string | Function): WebdriverIO.Element;
-declare function shadow$$(selector: string | Function): WebdriverIO.Element[];
 
 declare module "@wdio/sync" {
     export = WebdriverIO

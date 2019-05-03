@@ -11,8 +11,6 @@ type ElementPromise = Omit<WebdriverIO.Element, 'addCommand' | '$' | '$$' | 'sha
 interface AsyncSelectors {
     $: $;
     $$: $$;
-    shadow$: $;
-    shadow$$: $$;
 }
 
 // Element commands wrapper with Promise
@@ -51,8 +49,6 @@ declare namespace WebdriverIOAsync {
 declare var browser: BrowserObject;
 declare var $: $;
 declare var $$: $$;
-declare var shadow$: $;
-declare var shadow$$: $$;
 
 declare module "webdriverio" {
     export = WebdriverIOAsync
