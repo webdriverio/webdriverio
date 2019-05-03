@@ -11,8 +11,8 @@ type ElementPromise = Omit<WebdriverIO.Element, 'addCommand' | '$' | '$$' | 'sha
 interface AsyncSelectors {
     $: $;
     $$: $$;
-    shadow$: shadow$;
-    shadow$$: shadow$$;
+    shadow$: $;
+    shadow$$: $$;
 }
 
 // Element commands wrapper with Promise
