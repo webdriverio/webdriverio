@@ -18,6 +18,15 @@ $ export HTTPS_PROXY=https://my.corp.proxy.com:9090
 $ wdio wdio.conf.js
 ```
 
+Additionally, if you run into errors concerning SSL certificates during test execution, you can set the `STRICT_SSL` environment variable to `false`, which will turn off SSL key validation when making requests with https:
+
+```sh
+$ export HTTP_PROXY=http://my.corp.proxy.com:9090
+$ export HTTPS_PROXY=https://my.corp.proxy.com:9090
+$ export STRICT_SSL=false
+$ wdio wdio.conf.js
+```
+
 If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) start it via:
 
 ```sh
@@ -38,7 +47,7 @@ exports.config = {
         // ...
         proxy: {
             proxyType: "manual",
-            httpProxy: "http://corporate.proxy:8080",
+            httpProxy: "corporate.proxy:8080",
             socksUsername: "codeceptjs",
             socksPassword: "secret",
             noProxy: "127.0.0.1,localhost"

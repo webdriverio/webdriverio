@@ -40,6 +40,8 @@ The boilerplate holds the following things
     - TypeScript Setup
     - Page Object Pattern
     - Chai Integration
+    - CI examples (CircleCI, Travis CI, Jenkins)
+    - Allure reporter
 
 ### [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
 
@@ -79,6 +81,31 @@ The boilerplate holds the following things
         - Forms
         - Swipe
         - Browsers
+
+### [blueimp/wdio](https://github.com/blueimp/wdio)
+
+Docker setup for WebdriverIO with automatic screenshots, image diffing and screen recording support for containerized versions of Chrome and Firefox. Also includes MacOS host configs to test an app running in Docker with Safari Desktop as well as Safari Mobile and Chrome Mobile via Appium.
+
+Sample app demonstrates a simple Email application with email test automation support via [MailHog](https://github.com/mailhog/MailHog).
+
+The only project requirement is Docker. Since WebdriverIO is also containerized, not even NodeJS is required.
+
+- Framework: Mocha (v5.x)
+- Features:
+    - Configs for:
+        - Dockerized Google Chrome
+        - Dockerized Mozilla Firefox
+        - Safari Desktop
+        - Safari Mobile via Appium
+        - Chrome Mobile via Appium
+    - Helpers for:
+        - Automatic screenshots based on test failure/success (part of [wdio-screen-commands](https://github.com/blueimp/wdio-screen-commands))
+        - Screenshot image diffing via [node-ffmpeg-image-diff](https://github.com/blueimp/node-ffmpeg-image-diff)
+        - Screen recording support for Chrome+Firefox via [record-screen](https://github.com/blueimp/record-screen)
+        - Email test automation support via [mailhog-node](https://github.com/blueimp/mailhog-node)
+    - Test examples for:
+        - Email form submission
+        - Email reception success
 
 ## v4 Boileplate Projects
 

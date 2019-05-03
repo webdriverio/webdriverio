@@ -1,13 +1,12 @@
+
 import request from 'request'
 import { remote } from '../../../src'
-import path from 'path'
+import * as utils from '../../../src/utils'
 
 describe('saveScreenshot', () => {
     jest.mock('fs')
     const fs = require('fs').default
-
-    let browser
-    let spy
+    let browser, getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
 
     beforeEach(async () => {
         browser = await remote({
@@ -16,68 +15,49 @@ describe('saveScreenshot', () => {
                 browserName: 'foobar'
             }
         })
-
-        spy = jest.spyOn(fs, 'writeFileSync')
-        fs.existsSync.mockReturnValue(true)
+        getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
+        assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
+        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
     })
 
     afterEach(() => {
-        if(spy) {
-            spy.mockClear()
-        }
+        getAbsoluteFilepathSpy.mockClear()
+        assertDirectoryExistsSpy.mockClear()
+        writeFileSyncSpy.mockClear()
     })
 
     it('should take screenshot of page', async () => {
         const screenshot = await browser.saveScreenshot('./packages/bar.png')
+
+        // get path
+        expect(getAbsoluteFilepathSpy).toHaveBeenCalledTimes(1)
+        expect(getAbsoluteFilepathSpy).toHaveBeenCalledWith('./packages/bar.png')
+
+        // assert directory
+        expect(assertDirectoryExistsSpy).toHaveBeenCalledTimes(1)
+        expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
+
+        // request
         expect(request.mock.calls[1][0].method).toBe('GET')
         expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session/foobar-123/screenshot')
         expect(screenshot.toString()).toBe('some screenshot')
+
+        // write to file
+        expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
+        expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
     })
 
     it('should fail if no filename provided', async () => {
         const expectedError = new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
 
+        // no file
         await expect(
             browser.saveScreenshot()
         ).rejects.toEqual(expectedError)
+
+        // wrong extension
         await expect(
             browser.saveScreenshot('./file.txt')
         ).rejects.toEqual(expectedError)
-    })
-
-    it('should fail if not existing directory', async () => {
-        fs.existsSync.mockReturnValue(false)
-
-        await expect(
-            browser.saveScreenshot('/i/dont/exist.png')
-        ).rejects.toEqual(new Error('directory (/i/dont) doesn\'t exist'))
-    })
-
-    it('should not change filepath if starts with forward slash', async () => {
-        await browser.saveScreenshot('/packages/bar.png')
-
-        expect(spy).toHaveBeenCalledTimes(1)
-        expect(spy).toHaveBeenCalledWith('/packages/bar.png', expect.any(Buffer))
-    })
-
-    it('should not change filepath if starts with backslash slash', async () => {
-        await browser.saveScreenshot('\\packages\\bar.png')
-
-        expect(spy).toHaveBeenCalledTimes(1)
-        expect(spy).toHaveBeenCalledWith('\\packages\\bar.png', expect.any(Buffer))
-    })
-
-    it('should not change filepath if starts with windows drive letter', async () => {
-        await browser.saveScreenshot('E:\\foo\\bar.png')
-
-        expect(spy).toHaveBeenCalledTimes(1)
-        expect(spy).toHaveBeenCalledWith('E:\\foo\\bar.png', expect.any(Buffer))
-    })
-
-    it('should change filepath if does not start with forward or back slash', async () => {
-        await browser.saveScreenshot('packages/bar.png')
-
-        expect(spy).toHaveBeenCalledTimes(1)
-        expect(spy).toHaveBeenCalledWith(path.join(process.cwd(), 'packages/bar.png'), expect.any(Buffer))
     })
 })

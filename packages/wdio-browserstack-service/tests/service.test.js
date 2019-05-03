@@ -42,7 +42,7 @@ describe('onReload()', () => {
             }
         ))
         request.put.mockImplementation((url, opts, cb) => {
-            cb(null, {statusCode: 200}, {})
+            cb(null, { statusCode: 200 }, {})
         })
     })
 
@@ -95,7 +95,7 @@ describe('_printSessionURL', () => {
     })
 
     it('should throw an error if it recieves a non 200 status code', () => {
-        request.get.mockImplementationOnce((url, opts, cb) => cb(null,{statusCode: 404}, {}))
+        request.get.mockImplementationOnce((url, opts, cb) => cb(null, { statusCode: 404 }, {}))
 
         expect(service._printSessionURL())
             .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
@@ -109,52 +109,52 @@ describe('_printSessionURL', () => {
 })
 
 describe('before', () => {
-    beforeAll(() => {
-        global.browser.sessionId = 12
-    })
-
     it('should set auth to default values if not provided', () => {
-        let beforeService = new BrowserstackService({})
+        let service = new BrowserstackService({})
 
-        beforeService.before()
+        service.beforeSession({})
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+        expect(service.auth).toEqual({
             user: 'NotSetUser',
             pass: 'NotSetKey'
         })
 
-        beforeService = new BrowserstackService({ user: 'blah'})
-        beforeService.before()
+        service = new BrowserstackService({})
+        service.beforeSession({ user: 'blah' })
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+
+        expect(service.auth).toEqual({
             user: 'blah',
             pass: 'NotSetKey'
         })
-        beforeService = new BrowserstackService({ key: 'blah'})
-        beforeService.before()
+        service = new BrowserstackService({})
+        service.beforeSession({ key: 'blah' })
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+        expect(service.auth).toEqual({
             user: 'NotSetUser',
             pass: 'blah'
         })
     })
 
     it('should initialize correctly', () => {
-        const beforeService = new BrowserstackService({
+        const service = new BrowserstackService({
             user: 'foo',
             key: 'bar'
         })
-        beforeService.before()
+        service.before()
 
-        expect(beforeService.sessionId).toEqual(12)
-        expect(beforeService.failures).toEqual(0)
-        expect(beforeService.auth).toEqual({
+        expect(service.sessionId).toEqual(12)
+        expect(service.failures).toEqual(0)
+        expect(service.auth).toEqual({
             user: 'foo',
             pass: 'bar'
         })
@@ -162,9 +162,9 @@ describe('before', () => {
 
     it('should log the url', () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
-        const beforeService = new BrowserstackService({})
+        const service = new BrowserstackService({})
 
-        beforeService.before()
+        service.before()
         expect(logInfoSpy).toHaveBeenCalled()
     })
 })
@@ -176,7 +176,7 @@ describe('afterSuite', () => {
         service.afterSuite({})
         expect(service.failures).toBe(0)
 
-        service.afterSuite({ error: new Error('foobar')})
+        service.afterSuite({ error: new Error('foobar') })
         expect(service.failures).toBe(1)
     })
 })
@@ -184,16 +184,23 @@ describe('afterSuite', () => {
 describe('afterTest', () => {
     it('should increment failures on fails', () => {
         service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
 
-        service.afterTest({ passed: false })
+        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: { message: 'error message' }  })
         expect(service.failures).toBe(1)
+        expect(service.fullTitle).toBe('foo - bar')
+        expect(service.failReason).toBe('error message')
     })
 
     it('should not increment failures on passes', () => {
         service.failures = 0
+        service.fullTitle = ''
+        service.failReason = ''
 
-        service.afterTest({ passed: true })
+        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
         expect(service.failures).toBe(0)
+        expect(service.fullTitle).toBe('foo - bar')
     })
 })
 
@@ -204,7 +211,7 @@ describe('afterStep', () => {
         service.afterStep({})
         expect(service.failures).toBe(0)
 
-        service.afterStep({ failureException: { what: 'ever' }})
+        service.afterStep({ failureException: { what: 'ever' } })
         expect(service.failures).toBe(1)
 
         service.afterStep({ getFailureException: () => 'whatever' })
@@ -228,11 +235,16 @@ describe('after', () => {
 describe('_getBody', () => {
     it('should return "error" if failures', () => {
         service.failures = 1
-        expect(service._getBody()).toEqual({ status: 'error' })
+        service.failReason = 'error message'
+        service.fullTitle = 'foo - bar',
+
+        expect(service._getBody()).toEqual({ status: 'error', reason: 'error message', name: 'foo - bar' })
     })
 
     it('should return "completed" if no errors', () => {
         service.failures = 0
-        expect(service._getBody()).toEqual({ status: 'completed' })
+        service.fullTitle = 'foo - bar'
+
+        expect(service._getBody()).toEqual({ status: 'completed', name: 'foo - bar', reason: undefined })
     })
 })

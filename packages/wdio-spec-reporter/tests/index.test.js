@@ -7,7 +7,9 @@ import {
     SUITES_NO_TESTS,
     REPORT,
     SAUCELABS_REPORT,
-    SUITES_NO_TESTS_WITH_HOOK_ERROR
+    SAUCELABS_EU_REPORT,
+    SUITES_NO_TESTS_WITH_HOOK_ERROR,
+    SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
 
 const reporter = new SpecReporter({})
@@ -172,6 +174,36 @@ describe('SpecReporter', () => {
             expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
         })
 
+        it('should print link to SauceLabs EU job details page', () => {
+            printReporter.suiteUids = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.stateCounts = {
+                passed : 4,
+                failed : 1,
+                skipped : 1,
+            }
+
+            printReporter.printReport(Object.assign({}, RUNNER, {
+                config: {
+                    hostname: 'ondemand.saucelabs.com',
+                    region: 'eu'
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            }))
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+
+            printReporter.write.mockClear()
+
+            printReporter.printReport(Object.assign({}, RUNNER, {
+                config: {
+                    hostname: 'ondemand.saucelabs.com',
+                    region: 'eu-central-1'
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            }))
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+        })
+
         it('should print report for suites with no tests but failed hooks', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
@@ -294,6 +326,20 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getFailureDisplay()
 
             expect(result.length).toBe(0)
+        })
+
+        it('should return mutliple failing results if they exist', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_MULTIPLE_ERRORS)
+            tmpReporter.suites = SUITES_MULTIPLE_ERRORS
+
+            const result = tmpReporter.getFailureDisplay()
+            expect(result.length).toBe(6)
+            expect(result[0]).toBe('')
+            expect(result[1]).toBe('1) Bar test a test with two failures')
+            expect(result[2]).toBe('red expected the party on the first part to be the party on the first part')
+            expect(result[3]).toBe('gray First failed stack trace')
+            expect(result[4]).toBe('red expected the party on the second part to be the party on the second part')
+            expect(result[5]).toBe('gray Second failed stack trace')
         })
     })
 

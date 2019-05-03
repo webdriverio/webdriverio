@@ -1,4 +1,4 @@
-import {testStatuses, stepStatuses, events} from '../src/constants'
+import { testStatuses, stepStatuses, events } from '../src/constants'
 
 describe('Important constants', () => {
 
@@ -18,10 +18,12 @@ describe('Important constants', () => {
     })
 
     it('should have correct step statuses', () => {
-        expect(Object.values(events)).toHaveLength(10)
+        expect(Object.values(events)).toHaveLength(12)
         expect(events.addSeverity).toEqual('allure:addSeverity')
         expect(events.addIssue).toEqual('allure:addIssue')
         expect(events.addTestId).toEqual('allure:addTestId')
+        expect(events.startStep).toEqual('allure:startStep')
+        expect(events.endStep).toEqual('allure:endStep')
         expect(events.addStep).toEqual('allure:addStep')
         expect(events.addAttachment).toEqual('allure:addAttachment')
         expect(events.addDescription).toEqual('allure:addDescription')

@@ -1,7 +1,7 @@
 import Fiber from 'fibers'
 import logger from '@wdio/logger'
 
-const log = logger('wdio-sync')
+const log = logger('@wdio/sync')
 
 /**
  * Helper method to execute a row of hooks with certain parameters.

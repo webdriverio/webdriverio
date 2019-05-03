@@ -23,7 +23,7 @@ export default class CustomReporter extends WDIOReporter {
 };
 ```
 
-The only thing to do now in order to use this reporter is to assign it to the reporter property. Therefor
+The only thing to do now in order to use this reporter is to assign it to the reporter property. Therefore
 your wdio.conf.js file should look like this:
 
 ```js
@@ -78,3 +78,16 @@ export default class CustomReporter extends WDIOReporter {
 ```
 
 Note that you can't defer the test execution in any way. All event handler should execute synchronous routines otherwise you will run into race conditions. Make sure you check out the [example section](https://github.com/webdriverio/webdriverio/tree/master/examples/wdio) where you can find an example for a custom reporter that prints the event name for each event. If you have implemented a custom reporter that can be useful for the community, don't hesitate to make a Pull Request so we can make the reporter available for the public.
+
+Also if you run the wdio testrunner via the launcher interface you can't apply a custom reporter as function as follows:
+
+```js
+import Launcher from '@wdio/cli';
+
+import CustomReporter from './reporter/my.custom.reporter';
+
+const launcher = new Launcher('/path/to/config.file.js', {
+    // this will NOT work because CustomReporter is not serializable
+    reporters: ['dot', CustomReporter]
+})
+```

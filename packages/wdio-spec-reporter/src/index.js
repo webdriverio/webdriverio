@@ -96,7 +96,8 @@ class SpecReporter extends WDIOReporter {
      */
     getTestLink ({ config, sessionId }) {
         if (config.hostname.includes('saucelabs')) {
-            return ['', `Check out job at https://app.saucelabs.com/tests/${sessionId}`]
+            const dc = ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
+            return ['', `Check out job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
         }
 
         return []
@@ -162,12 +163,12 @@ class SpecReporter extends WDIOReporter {
 
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                const test_title = test.title
+                const testTitle = test.title
                 const state = test.state
-                const test_indent = `${this.defaultTestIndent}${suiteIndent}`
+                const testIndent = `${this.defaultTestIndent}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${test_indent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${test_title}`)
+                output.push(`${testIndent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
             }
 
             // Put a line break after each suite (only if tests exist in that suite)
@@ -228,14 +229,19 @@ class SpecReporter extends WDIOReporter {
                 }
 
                 const testTitle = test.title
-
+                const errors = test.errors || [test.error]
                 // If we get here then there is a failed test
                 output.push(
                     '',
                     `${++failureLength}) ${suiteTitle} ${testTitle}`,
-                    this.chalk.red(test.error.message),
-                    ...test.error.stack.split(/\n/g).map(value => this.chalk.gray(value))
+
                 )
+                for (let error of errors) {
+                    output.push(
+                        this.chalk.red(error.message),
+                        ...error.stack.split(/\n/g).map(value => this.chalk.gray(value))
+                    )
+                }
             }
         }
 

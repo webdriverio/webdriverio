@@ -39,11 +39,11 @@ export default async function doubleClick () {
         id: 'pointer1',
         parameters: { pointerType: 'mouse' },
         actions: [
-            {type: 'pointerDown', button: 0},
-            {type: 'pointerUp', button: 0},
-            {type: 'pause', duration: 10},
-            {type: 'pointerDown', button: 0},
-            {type: 'pointerUp', button: 0}
+            { type: 'pointerDown', button: 0 },
+            { type: 'pointerUp', button: 0 },
+            { type: 'pause', duration: 10 },
+            { type: 'pointerDown', button: 0 },
+            { type: 'pointerUp', button: 0 }
         ]
     }])
 

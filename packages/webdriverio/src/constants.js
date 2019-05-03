@@ -68,7 +68,7 @@ export const WDIO_DEFAULTS = {
                 if (typeof param === 'object') {
                     return true
                 }
-                
+
                 throw new Error('the "capabilities" options needs to be an object or a list of objects')
             }
 
@@ -79,10 +79,10 @@ export const WDIO_DEFAULTS = {
                 if (typeof option === 'object') { // Check does not work recursively
                     continue
                 }
-    
+
                 throw new Error('expected every item of a list of capabilities to be of type object')
             }
-    
+
             return true
         },
         required: true
@@ -141,14 +141,19 @@ export const WDIO_DEFAULTS = {
                 throw new Error('the "reporters" options needs to be a list of strings')
             }
 
+            const isValidReporter = (option) => (
+                (typeof option === 'string') ||
+                (typeof option === 'function')
+            )
+
             /**
              * array elements must be:
              */
             for (const option of param) {
                 /**
-                 * either a string
+                 * either a string or a function (custom reporter)
                  */
-                if (typeof option === 'string') {
+                if (isValidReporter(option)) {
                     continue
                 }
 
@@ -159,10 +164,7 @@ export const WDIO_DEFAULTS = {
                 if (
                     Array.isArray(option) &&
                     typeof option[1] === 'object' &&
-                    (
-                        (typeof option[0] === 'string') ||
-                        (typeof option[0] === 'function')
-                    )
+                    isValidReporter(option[0])
                 ) {
                     continue
                 }
@@ -193,14 +195,14 @@ export const WDIO_DEFAULTS = {
              * with arrays and/or strings
              */
             for (const option of param) {
-                if (!Array.isArray(option)) {         
+                if (!Array.isArray(option)) {
                     if (typeof option === 'string') {
                         continue
                     }
                     throw new Error('the "services" options needs to be a list of strings and/or arrays')
                 }
             }
-    
+
             return true
         },
         default: []
@@ -296,6 +298,7 @@ export const UNICODE_CHARACTERS = {
     'Return': '\uE006',
     'Enter': '\uE007',
     'Shift': '\uE008',
+    'Control': '\uE009',
     'Control Left': '\uE009',
     'Control Right': '\uE051',
     'Alt': '\uE00A',

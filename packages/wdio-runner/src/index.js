@@ -4,12 +4,13 @@ import util from 'util'
 import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
-import { ConfigParser, initialisePlugin } from '@wdio/config'
+import { initialiseServices, initialisePlugin } from '@wdio/utils'
+import { ConfigParser } from '@wdio/config'
 
 import BaseReporter from './reporter'
-import { runHook, initialiseServices, initialiseInstance } from './utils'
+import { runHook, initialiseInstance, filterLogTypes } from './utils'
 
-const log = logger('wdio-runner')
+const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
     constructor () {
@@ -27,9 +28,10 @@ export default class Runner extends EventEmitter {
      * @param  {String}    configFile     path to config file to get config from
      * @param  {Object}    server         modified WebDriver target
      * @param  {object}    testData          test data for each run
+     * @param  {Number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
-    async run ({ cid, argv, specs, caps, configFile, server, testData }) {
+    async run ({ cid, argv, specs, caps, configFile, server, retries, testData }) {
         this.cid = cid
         this.specs = specs
         this.caps = caps
@@ -53,6 +55,7 @@ export default class Runner extends EventEmitter {
         this.configParser.merge(server)
 
         this.config = this.configParser.getConfig()
+        logger.setLogLevelsConfig(this.config.logLevels)
         this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
@@ -100,7 +103,8 @@ export default class Runner extends EventEmitter {
                     caps[browserName] = browser[browserName].capabilities
                     return caps
                 }, {})
-                : browser.options.capabilities
+                : browser.options.capabilities,
+            retry: (this.config.specFileRetries || 0) - (retries || 0)
         })
 
         /**
@@ -119,8 +123,8 @@ export default class Runner extends EventEmitter {
          */
         let failures = 0
         try {
-            failures = failures = await this.framework.run(cid, this.config, specs, caps, this.reporter)
-            await this._fetchDriverLogs(this.config)
+            failures = await this.framework.run(cid, this.config, specs, caps, this.reporter)
+            await this._fetchDriverLogs(this.config, caps.excludeDriverLogs)
         } catch (e) {
             log.error(e)
             this.emit('error', e)
@@ -138,7 +142,8 @@ export default class Runner extends EventEmitter {
 
         this.reporter.emit('runner:end', {
             failures,
-            cid: this.cid
+            cid: this.cid,
+            retries
         })
 
         return this._shutdown(failures)
@@ -174,6 +179,7 @@ export default class Runner extends EventEmitter {
         /**
          * register command event
          */
+        // console.log(this)
         browser.on('command', (command) => this.reporter.emit(
             'client:beforeCommand',
             Object.assign(command, { sessionId: browser.sessionId })
@@ -193,7 +199,7 @@ export default class Runner extends EventEmitter {
     /**
      * fetch logs provided by browser driver
      */
-    async _fetchDriverLogs (config) {
+    async _fetchDriverLogs (config, excludeDriverLogs) {
         /**
          * only fetch logs if
          */
@@ -214,7 +220,8 @@ export default class Runner extends EventEmitter {
             return
         }
 
-        const logTypes = await global.browser.getLogTypes()
+        const logTypes = filterLogTypes(excludeDriverLogs, await global.browser.getLogTypes())
+
         log.debug(`Fetching logs for ${logTypes.join(', ')}`)
         return Promise.all(logTypes.map(async (logType) => {
             let logs

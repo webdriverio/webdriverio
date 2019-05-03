@@ -19,7 +19,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p) => `${p.name}${p.required === false ? '?' : ''}: ${p.type.toLowerCase()}`)
             const varsAndParams = vars.concat(params)
-            let returnValue = returns ? returns.type.toLowerCase() : 'undefined'
+            let returnValue = returns ? returns.type.toLowerCase() : 'void'
             returnValue = returnValue === '*' ? 'any' : returnValue
             lines.push(`        ${command}(${varsAndParams.join(', ')}): ${returnValue};`)
         }

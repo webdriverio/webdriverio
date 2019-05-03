@@ -2,15 +2,6 @@
 /// <reference types="webdriver"/>
 
 declare namespace WebdriverIO {
-    function remote(
-        options?: WebDriver.Options,
-        modifier?: (...args: any[]) => any
-    ): WebDriver.Client & WebdriverIO.Browser;
-
-    function multiremote(
-        options: any
-    ): WebDriver.Client;
-
     type LocationParam = 'x' | 'y';
 
     interface LocationReturn {
@@ -28,14 +19,7 @@ declare namespace WebdriverIO {
     interface Cookie {
         name: string,
         value: string,
-        path?: string,
-        expiry?: number,
-    }
-
-    interface Cookie {
-        name: string,
-        value: string,
-        domain?: string
+        domain?: string,
         path?: string,
         expiry?: number,
         isSecure?: boolean,
@@ -80,6 +64,10 @@ declare namespace WebdriverIO {
         execArgv?: string[]
     }
 
+    interface MultiRemoteOptions {
+        [capabilityName: string]: Options;
+    }
+
     interface Suite {}
     interface Test {}
 
@@ -90,7 +78,6 @@ declare namespace WebdriverIO {
     }
 
     interface Hooks {
-
         onPrepare?(
             config: Config,
             capabilities: WebDriver.DesiredCapabilities
@@ -166,7 +153,7 @@ declare namespace WebdriverIO {
         addCommand(
             name: string,
             func: Function
-        ): undefined;
+        ): void;
         // ... element commands ...
     }
 
@@ -184,7 +171,7 @@ declare namespace WebdriverIO {
             name: string,
             func: Function,
             attachToElement?: boolean
-        ): undefined;
+        ): void;
         execute: Execute;
         executeAsync: ExecuteAsync;
         call: Call;
@@ -194,19 +181,9 @@ declare namespace WebdriverIO {
             timeout?: number,
             timeoutMsg?: string,
             interval?: number
-        ): undefined
+        ): void
         // ... browser commands ...
     }
 
-    type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
-}
-
-declare var browser: WebDriver.Client & WebdriverIO.Browser;
-declare function $(selector: string | Function): WebdriverIO.Element;
-declare function $$(selector: string | Function): WebdriverIO.Element[];
-
-declare module "webdriverio" {
-    export = WebdriverIO
 }

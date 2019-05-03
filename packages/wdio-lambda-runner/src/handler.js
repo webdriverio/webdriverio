@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import Runner from '@wdio/runner'
 
-const log = logger('wdio-lambda-runner')
+const log = logger('@wdio/lambda-runner')
 
 module.exports.run = (event, context, callback) => {
     log.info('Start Lambda function...')

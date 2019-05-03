@@ -1,0 +1,31 @@
+{
+  "name": "@wdio/smoke-test-service",
+  "version": "5.7.8",
+  "description": "A WebdriverIO utility to smoke test services for internal testing purposes.",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-smoke-test-service",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">= 8.11.0"
+  },
+  "scripts": {
+    "build": "run-s clean compile",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
+    "test": "run-s test:*",
+    "test:eslint": "eslint src test",
+    "test:unit": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

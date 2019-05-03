@@ -22,7 +22,6 @@ In order to set up this project and start contributing follow this step by step 
 * Setup project:
 
     ```sh
-    $ cd ./webdriverio
     $ npm install
     $ npm run setup
     ```
@@ -67,7 +66,7 @@ $ npm run watch
 If you only work on a single package you can watch only for that one by calling:
 
 ```sh
-# e.g. `$ npm run watch:pkg wdio-runner`
+# e.g. `$ npm run watch:pkg @wdio/runner`
 $ npm run watch:pkg <package-name>
 ```
 

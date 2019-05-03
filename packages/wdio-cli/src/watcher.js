@@ -6,8 +6,7 @@ import union from 'lodash.union'
 
 import Launcher from './launcher.js'
 
-const log = logger('wdio-cli:watch')
-
+const log = logger('@wdio/cli:watch')
 
 export default class Watcher {
     constructor (configFile, argv) {

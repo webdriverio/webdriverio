@@ -16,7 +16,7 @@ browser.addCommand("getUrlAndTitle", function (customVar) {
 });
 ```
 
-Additionally, you can extend the element instance with your own set of commands, by passing 'true' as the final argument.
+Additionally, you can extend the element instance with your own set of commands, by passing 'true' as the final argument. By default element is expected to be existing in `waitforTimeout` milliseconds otherwise exception will be thrown.
 
 ```js
 browser.addCommand("waitAndClick", function () {
@@ -37,6 +37,19 @@ it('should use my custom command', () => {
     assert.strictEqual(result.title, 'GitHub · Where software is built');
     assert.strictEqual(result.customVar, 'foobar');
 });
+```
+
+If there is a need to control element existance in custom commands it is possible either to add command to browser and pass selector or add command to element with name that starts with one of: waitUntil, waitFor, isExisting, isDisplayed.
+
+```js
+browser.addCommand("isDisplayedWithin", function (timeout) {
+    try {
+        this.waitForDisplayed(timeout)
+        return true
+    } catch (err) {
+        return false
+    }
+}, true);
 ```
 
 __Note:__ if you register a custom command to the browser scope the command won't be accessible for elements. Likewise, if you register a command to the element scope, it won't be accessible at the browser scope:

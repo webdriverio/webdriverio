@@ -29,7 +29,7 @@ describe('keys', () => {
 
         await browser.keys('foobar')
         expect(request.mock.calls[1][0].uri.path).toContain('/keys')
-        expect(request.mock.calls[1][0].body.value).toEqual([ 'f', 'o', 'o', 'b', 'a', 'r' ])
+        expect(request.mock.calls[1][0].body.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
         expect(request.mock.calls[2][0].uri.path).toContain('/keys')
@@ -46,7 +46,7 @@ describe('keys', () => {
 
         await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
         expect(request.mock.calls[1][0].uri.path).toContain('/keys')
-        expect(request.mock.calls[1][0].body.value).toEqual([ 'f', 'o', '\uE007', 'b', 'a', 'r' ])
+        expect(request.mock.calls[1][0].body.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
         expect(request.mock.calls[2][0].uri.path).toContain('/keys')

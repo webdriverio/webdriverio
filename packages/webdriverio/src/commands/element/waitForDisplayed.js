@@ -19,7 +19,7 @@
     });
     it('should detect when element is no longer visible', () => {
         const elem = $('#elem')
-        // passing 'undefined' allows us to keep the default timeout value without overwriting it 
+        // passing 'undefined' allows us to keep the default timeout value without overwriting it
         elem.waitForDisplayed(undefined, true);
     });
  * </example>
@@ -28,6 +28,7 @@
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
  * @param {String=}  error    if exists it overrides the default error message
+ * @return {Boolean} true     if element is displayed (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isDisplayed
  * @type utility
  *

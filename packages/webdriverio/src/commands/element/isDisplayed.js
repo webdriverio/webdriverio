@@ -34,13 +34,21 @@
  * </example>
  *
  * @alias element.isDisplayed
- * @return {Boolean} true if element(s)* [is|are] displayed
+ * @return {Boolean} true if element is displayed
  * @uses protocol/elements, protocol/elementIdDisplayed
  * @type state
  *
  */
 
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import isElementDisplayedScript from '../../scripts/isElementDisplayed'
+
+const noW3CEndpoint = ['microsoftedge', 'safari']
+
 export default async function isDisplayed() {
+
+    let browser = getBrowserObject(this)
 
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
@@ -49,5 +57,23 @@ export default async function isDisplayed() {
         this.elementId = (await this.parent.$(this.selector)).elementId
     }
 
-    return this.elementId ? await this.isElementDisplayed(this.elementId) : false
+    /*
+     * if element was still not found it also is not displayed
+     */
+    if (!this.elementId) {
+        return false
+    }
+
+    /*
+     * https://www.w3.org/TR/webdriver/#element-displayedness
+     * Certain drivers have decided to remove the endpoint as the spec
+     * no longer dictates it. In those instances, we pass the element through a script
+     * that was provided by Brian Burg of safaridriver.
+     */
+    return browser.isW3C && !browser.isMobile && noW3CEndpoint.includes(browser.capabilities.browserName.toLowerCase()) ?
+        await browser.execute(isElementDisplayedScript, {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId // jsonwp compatible
+        }) :
+        await this.isElementDisplayed(this.elementId)
 }
