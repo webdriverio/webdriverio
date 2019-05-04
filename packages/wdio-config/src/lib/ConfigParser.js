@@ -147,21 +147,18 @@ export default class ConfigParser {
             }
         }
     }
-
-    /**
-     * get excluded files from config pattern
-     */
+    
     getSpecs (capSpecs, capExclude) {
         let specs = ConfigParser.getFilePaths(this._config.specs)
         let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude)
-        let suites = Array.isArray(this._config.suite) ? this._config.suite : []
+        let suites = Array.isArray(this._config.suite) ? this._config.suite : []  
+        let suiteSpecs = []
 
         /**
          * check if user has specified a specific suites to run
          */
         if (suites.length > 0) {
-            let suiteSpecs = []
             for (let suiteName of suites) {
                 // ToDo: log warning if suite was not found
                 let suite = this._config.suites[suiteName]
@@ -174,16 +171,24 @@ export default class ConfigParser {
                 throw new Error(`The suite(s) "${suites.join('", "')}" you specified don't exist ` +
                                 'in your config file or doesn\'t contain any files!')
             }
-
-            // Allow --suite and --spec to both be defined on the command line
-            // Removing any duplicate tests that could be included
-            const tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
-
-            return [...new Set(tmpSpecs)]
         }
 
+        // Allow --suite and --spec to both be defined on the command line
+         if (suites.length > 0 || spec.length > 0) {
+            
+            // Removing any duplicate tests that could be included
+            const tmpSpecs = spec.length > 0 ? [...spec, ...suiteSpecs] : suiteSpecs
+            let commandLineSpecs = [...new Set(tmpSpecs)]
+            specs = specs.filter(spec => commandLineSpecs.indexOf(spec) > 0)
+        }
+
+         /**
+         * if there is specs configuration under a capability, 
+         * then it should take only this specs and filter against the main specs
+         */
         if (Array.isArray(capSpecs)) {
-            specs = specs.concat(ConfigParser.getFilePaths(capSpecs))
+            const cSpecs = ConfigParser.getFilePaths(capSpecs)
+            specs = specs.filter(spec => cSpecs.indexOf(spec) > 0)
         }
 
         if (Array.isArray(capExclude)) {
