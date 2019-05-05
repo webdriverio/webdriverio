@@ -2,7 +2,7 @@ import allure from '@wdio/allure-reporter'
 
 // browser
 browser.pause(1)
-browser.waitUntil(() => true, 1, '', 1)
+const waitUntil: boolean = browser.waitUntil(() => true, 1, '', 1)
 browser.getCookies()
 let res = browser.execute(function (x: number) {
     return x
