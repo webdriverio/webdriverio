@@ -11,8 +11,9 @@
  * </example>
  *
  * @alias element.shadow$$
- * @uses commands/$$
- * @type action
+ * @param {String|Function} selector  selector or JS Function to fetch a certain element
+ * @return {Element[]}
+ * @type utility
  *
  */
 

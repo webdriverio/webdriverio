@@ -29,7 +29,8 @@ export const SUPPORTED_SERVICES = [
     ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
     ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
     ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
-    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service'
+    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service',
+    ' docker - https://www.npmjs.com/package/wdio-docker-service'
 ]
 
 export const SUPPORTED_RUNNERS = [
@@ -147,7 +148,7 @@ export const CLI_PARAMS = [{
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
-    message: 'Where should your tests be launched',
+    message: 'Where should your tests be launched?',
     choices: SUPPORTED_RUNNERS,
     filter: (runner) => runner.split(/-/)[0].trim()
 }, {
@@ -219,7 +220,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'hostname',
     message: 'What is the IP or URI to your Selenium standalone or grid server?',
-    default: '0.0.0.0',
+    default: 'localhost',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',

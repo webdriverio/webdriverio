@@ -11,7 +11,7 @@ import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
 import { findStrategy } from './utils/findStrategy'
 
 const log = logger('webdriverio')
-const INVALID_SELECTOR_ERROR = new Error('selector needs to be typeof `string` or `function`')
+const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
 const applyScopePrototype = (prototype, scope) => {
     const dir = path.resolve(__dirname, 'commands', scope)
@@ -213,7 +213,7 @@ export async function findElement(selector) {
         return getElementFromResponse(elem) ? elem : notFoundError
     }
 
-    throw INVALID_SELECTOR_ERROR
+    throw new Error(INVALID_SELECTOR_ERROR)
 }
 
 /**
@@ -239,7 +239,7 @@ export async function findElements(selector) {
         return elems.filter((elem) => elem && getElementFromResponse(elem))
     }
 
-    throw INVALID_SELECTOR_ERROR
+    throw new Error(INVALID_SELECTOR_ERROR)
 }
 
 /**

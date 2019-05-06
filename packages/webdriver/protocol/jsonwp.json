@@ -609,7 +609,7 @@
       "parameters": []
     }
   },
-  "/session/:sessionId/element/:elementId/equals/:otherElementId": {
+  "/session/:sessionId/element/:elementId/equals/:otherId": {
     "GET": {
       "command": "elementEquals",
       "description": "Compare elements with each other.",
@@ -914,9 +914,9 @@
       "description": "",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidorientation",
       "parameters": [{
-        "name": "engine",
+        "name": "orientation",
         "type": "string",
-        "description": "name of the engine to activate",
+        "description": "the new browser orientation as defined in ScreenOrientation: {LANDSCAPE|PORTRAIT}",
         "required": true
       }]
     }
@@ -1013,12 +1013,12 @@
         "name": "x",
         "type": "number",
         "description": "x coordinate on the screen",
-        "required": false
+        "required": true
       }, {
         "name": "y",
         "type": "number",
         "description": "y coordinate on the screen",
-        "required": false
+        "required": true
       }]
     }
   },
@@ -1031,12 +1031,12 @@
         "name": "x",
         "type": "number",
         "description": "x coordinate on the screen",
-        "required": false
+        "required": true
       }, {
         "name": "y",
         "type": "number",
         "description": "y coordinate on the screen",
-        "required": false
+        "required": true
       }]
     }
   },
@@ -1049,12 +1049,12 @@
         "name": "x",
         "type": "number",
         "description": "x coordinate on the screen",
-        "required": false
+        "required": true
       }, {
         "name": "y",
         "type": "number",
         "description": "y coordinate on the screen",
-        "required": false
+        "required": true
       }]
     }
   },
@@ -1116,12 +1116,12 @@
         "name": "xoffset",
         "type": "number",
         "description": "the x offset in pixels to flick by",
-        "required": true
+        "required": false
       }, {
         "name": "yoffset",
         "type": "number",
         "description": "the y offset in pixels to flick by",
-        "required": true
+        "required": false
       }, {
         "name": "element",
         "type": "string",
@@ -1131,6 +1131,16 @@
         "name": "speed",
         "type": "number",
         "description": "the speed in pixels per seconds",
+        "required": false
+      }, {
+        "name": "xspeed",
+        "type": "number",
+        "description": "the x speed in pixels per second",
+        "required": false
+      }, {
+        "name": "yspeed",
+        "type": "number",
+        "description": "the y speed in pixels per second",
         "required": false
       }]
     }

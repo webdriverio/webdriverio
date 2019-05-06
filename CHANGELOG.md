@@ -15,6 +15,79 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.8.1 (2019-05-01)
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-utils`
+  * [#3908](https://github.com/webdriverio/webdriverio/pull/3908) Propagate given capabilities to reporter ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`, `wdio-cli`, `wdio-config`, `wdio-webdriver-mock-service`, `webdriver`
+  * [#3907](https://github.com/webdriverio/webdriverio/pull/3907) Don't try to connect to localhost anymore ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-sauce-service`
+  * [#3909](https://github.com/webdriverio/webdriverio/pull/3909) move cloud service documentation to the options page ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-applitools-service`
+  * [#3910](https://github.com/webdriverio/webdriverio/pull/3910) Replace own fork with Applitools package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## v5.8.0 (2019-04-30)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3886](https://github.com/webdriverio/webdriverio/pull/3886) webdriver: fix appium protocols ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3862](https://github.com/webdriverio/webdriverio/pull/3862) Fixes to react$ and react$ scripts ([@baruchvlz](https://github.com/baruchvlz))
+
+#### :bug: Bug Fix
+* `wdio-config`, `wdio-spec-reporter`
+  * [#3876](https://github.com/webdriverio/webdriverio/pull/3876) Fix headless endpoint ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#3874](https://github.com/webdriverio/webdriverio/pull/3874) Don't fail element command in IE ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-logger`
+  * [#3871](https://github.com/webdriverio/webdriverio/pull/3871) wdio-logger: fix setting log level for subloggers and docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`, `wdio-runner`
+  * [#3892](https://github.com/webdriverio/webdriverio/pull/3892) junit-reporter: fix log file names ([@naddison](https://github.com/naddison))
+* `wdio-local-runner`
+  * [#3882](https://github.com/webdriverio/webdriverio/pull/3882) wdio-local-runner: unpipe streams in the end ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-local-runner`, `wdio-logger`, `wdio-runner`
+  * [#3872](https://github.com/webdriverio/webdriverio/pull/3872) apply wdioLogLevel before starting workers ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-runner`
+  * [#3870](https://github.com/webdriverio/webdriverio/pull/3870) wdio-runner: catch getLogTypes error ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3900](https://github.com/webdriverio/webdriverio/pull/3900) blog: add blog for react selector command ([@baruchvlz](https://github.com/baruchvlz))
+* [#3885](https://github.com/webdriverio/webdriverio/pull/3885) Update JenkinsIntegration.md ([@YannVerr](https://github.com/YannVerr))
+
+#### :house: Internal
+* `wdio-sync`
+  * [#3898](https://github.com/webdriverio/webdriverio/pull/3898) wdio-sync: bump fibers version to 4 ([@baruchvlz](https://github.com/baruchvlz))
+* `wdio-appium-service`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-runner`, `wdio-selenium-standalone-service`
+  * [#3891](https://github.com/webdriverio/webdriverio/pull/3891) Fix unit tests when contributing on Windows 10 ([@naddison](https://github.com/naddison))
+
+#### Committers: 5
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nikolas Addison ([@naddison](https://github.com/naddison))
+- Yann Verreault ([@YannVerr](https://github.com/YannVerr))
+
+## 5.7.15 (2019-04-19)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#3868](https://github.com/webdriverio/webdriverio/pull/3868) wdio-junit-reporter: Fix nested and multiple describes ([@naddison](https://github.com/naddison))
+
+#### Committers: 1
+- Nikolas Addison ([@naddison](https://github.com/naddison))
+
 ## v5.7.15 (2019-04-19)
 
 #### :eyeglasses: Spec Compliancy

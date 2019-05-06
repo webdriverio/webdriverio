@@ -40,51 +40,10 @@
  * @type utility
  *
  */
-import { webdriverMonad } from 'webdriver'
-import { wrapCommand, runFnInFiberContext } from '@wdio/config'
-import merge from 'lodash.merge'
-
-import { findElement, getPrototype as getWDIOPrototype, getElementFromResponse } from '../../utils'
-import { elementErrorHandler } from '../../middlewares'
-import { ELEMENT_KEY } from '../../constants'
+import { findElement } from '../../utils'
+import { getElement } from '../../utils/getElementObject'
 
 export default async function $ (selector) {
     const res = await findElement.call(this, selector)
-    const prototype = merge({}, this.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
-
-    const element = webdriverMonad(this.options, (client) => {
-        const elementId = getElementFromResponse(res)
-
-        if (elementId) {
-            /**
-             * set elementId for easy access
-             */
-            client.elementId = elementId
-
-            /**
-             * set element id with proper key so element can be passed into execute commands
-             */
-            if (this.isW3C) {
-                client[ELEMENT_KEY] = elementId
-            } else {
-                client.ELEMENT = elementId
-            }
-        } else {
-            client.error = res
-        }
-
-        client.selector = selector
-        client.parent = this
-        client.emit = ::this.emit
-        return client
-    }, prototype)
-
-    const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
-
-    const origAddCommand = ::elementInstance.addCommand
-    elementInstance.addCommand = (name, fn) => {
-        this.__propertiesObject__[name] = { value: fn }
-        origAddCommand(name, runFnInFiberContext(fn))
-    }
-    return elementInstance
+    return getElement.call(this, selector, res)
 }

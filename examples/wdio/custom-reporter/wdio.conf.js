@@ -5,7 +5,7 @@ exports.config = {
     /**
      * server configurations
      */
-    hostname: '0.0.0.0',
+    hostname: 'localhost',
     port: 4444,
 
     /**

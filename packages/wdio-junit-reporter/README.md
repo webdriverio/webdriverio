@@ -23,6 +23,123 @@ npm install @wdio/junit-reporter --save-dev
 
 Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
 
+## Output
+
+This reporter will output a report for each runner, so in turn you will receive an xml report for each spec file. Below
+are examples of XML output given different scenarios in the spec file.
+
+### Single describe block
+```javascript
+describe('a test suite', () => {
+    it('a test case', function () {
+      // do something
+      // assert something
+    });
+});
+```
+becomes
+```xml
+<testsuites>
+    <testsuite name="a test suite" timestamp="2019-04-18T13:45:21" time="11.735" tests="0" failures="0" errors="0" skipped="0">
+        <properties>
+          <property name="specId" value="0"/>
+          <property name="suiteName" value="a test suite"/>
+          <property name="capabilities" value="chrome"/>
+          <property name="file" value=".\test\specs\asuite.spec.js"/>
+        </properties>
+        <testcase classname="chrome.a_test_case" name="a_test_suite_a_test_case" time="11.706"/>
+    </testsuite>
+</testsuites>
+```
+
+### Nested describe block
+```javascript
+describe('a test suite', () => {
+    describe('a nested test suite', function() {
+        it('a test case', function () {
+          // do something
+          // assert something
+        });
+    });
+});
+```
+becomes
+```xml
+<testsuites>
+    <testsuite name="a test suite" timestamp="2019-04-18T13:45:21" time="11.735" tests="0" failures="0" errors="0" skipped="0">
+    <properties>
+      <property name="specId" value="0"/>
+      <property name="suiteName" value="a test suite"/>
+      <property name="capabilities" value="chrome"/>
+      <property name="file" value=".\test\specs\asuite.spec.js"/>
+    </properties>
+  </testsuite>
+  <testsuite name="a nested test suite" timestamp="2019-04-18T13:45:21" time="11.735" tests="0" failures="0" errors="0" skipped="0">
+    <properties>
+      <property name="specId" value="0"/>
+      <property name="suiteName" value="a nested test suite"/>
+      <property name="capabilities" value="chrome"/>
+      <property name="file" value=".\test\specs\asuite.spec.js"/>
+    </properties>
+    <testcase classname="chrome.a_test_case" name="a_nested_test_suite_a_test_case" time="11.706"/>
+  </testsuite>
+</testsuites>
+```
+
+### Multiple describe block
+```javascript
+describe('a test suite', () => {
+    it('a test case', function () {
+      // do something
+      // assert something
+    });
+});
+describe('a second test suite', () => {
+    it('a second test case', function () {
+      // do something
+      // assert something
+    });
+});
+```
+becomes
+```xml
+<testsuites>
+    <testsuite name="a test suite" timestamp="2019-04-18T13:45:21" time="11.735" tests="0" failures="0" errors="0" skipped="0">
+    <properties>
+      <property name="specId" value="0"/>
+      <property name="suiteName" value="a test suite"/>
+      <property name="capabilities" value="chrome"/>
+      <property name="file" value=".\test\specs\asuite.spec.js"/>
+      <testcase classname="chrome.a_test_case" name="a_nested_test_suite_a_test_case" time="11.706"/>
+    </properties>
+  </testsuite>
+  <testsuite name="a second test suite" timestamp="2019-04-18T13:45:21" time="11.735" tests="0" failures="0" errors="0" skipped="0">
+    <properties>
+      <property name="specId" value="0"/>
+      <property name="suiteName" value="a second test suite"/>
+      <property name="capabilities" value="chrome"/>
+      <property name="file" value=".\test\specs\asuite.spec.js"/>
+    </properties>
+    <testcase classname="chrome.a_second_test_case" name="a_second_test_suite_a_second_test_case" time="11.706"/>
+  </testsuite>
+</testsuites>
+```
+
+### Failures and Errors
+All test case failures are mapped as JUnit test case errors. A failed test case due to assertion failure or error will look like:
+
+```xml
+<testcase classname="chrome.a_test_case" name="a_test_suite_a_test_case" time="0.372">
+  <error message="Error: some error"/>
+    <system-err>
+        <![CDATA[
+Error: some assertion failure
+    at UserContext.<anonymous> (C:\repo\webdriver-example\test\specs/a_test_suite.spec.js:22:17)
+]]>
+  </system-err>
+</testcase>
+```
+
 ## Configuration
 
 Following code shows the default wdio test runner configuration. Just add `'junit'` as reporter
@@ -36,8 +153,8 @@ module.exports = {
         'dot',
         ['junit', {
             outputDir: './',
-            outputFileFormat: function(opts) { // optional
-                return `results-${opts.cid}.${opts.capabilities}.xml`
+            outputFileFormat: function(options) { // optional
+                return `results-${options.cid}.${options.capabilities}.xml`
             }
         }]
     ],
@@ -57,15 +174,16 @@ Required
 Define the xml files created after the test execution.
 
 Type: `Object`<br>
-Default: ``function(opts){return `WDIO.xunit.${opts.capabilities}.${opts.cid}.xml`}``
+Default: ``function(opts){return `wdio-${this.cid}-${name}-reporter.log`}``
 
 ```
 outputFileFormat: {
-    single: function (config) {
+    single: function (options) {
         return 'mycustomfilename.xml';
     }
 }
 ```
+> Note: `options.capabilities` is your capabilities object for that runner, so specifying `${options.capabilities}` in your string will return [Object object]. You must specify which properties of capabilities you want in your filename.
 
 ### suiteNameFormat
 
