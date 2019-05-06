@@ -65,9 +65,9 @@ Browserstack también es compatible con facilidad.
 
 El único requisito es establecer el `user`y `key` en tu configuración (ya sea exportado por `wdio.conf.js` o pasado a `webdriverio.remote(...)`) con tu nombre de usuario de Sauce Labs y clave de acceso.
 
-You can also pass in any optional [supported capabilities](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
+También puede pasar cualquier [configuración opcional de prueba](https://www.browserstack.com/automate/capabilities) como clave/valor en las capacidades de cualquier navegador. Si establece `browserstack.debug` a `true`, grabará la ejecución de la sesión, lo que podría ser útil.
 
-### [Local Testing](https://www.browserstack.com/local-testing#command-line)
+### [Pruebas locales](https://www.browserstack.com/local-testing#command-line)
 
 If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing.
 
