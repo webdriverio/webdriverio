@@ -112,5 +112,24 @@ describe('isDisplayed test', () => {
                 ELEMENT: 'some-elem-123'
             })
         })
+        it('should be used if chrome and wc3', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'chrome',
+                    keepBrowserName: true
+                }
+            })
+            elem = await browser.$('#foo')
+            request.mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(request).toBeCalledTimes(1)
+            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
     })
 })
