@@ -210,10 +210,10 @@ export function isW3C (capabilities) {
         capabilities.platformName &&
         capabilities.browserVersion &&
         /**
-         * local safari doesn't provide platformVersion therefor
-         * check also for setWindowRect
+         * local safari and BrowserStack don't provide platformVersion therefor
+         * check also if setWindowRect is provided
          */
-        (capabilities.platformVersion || capabilities.setWindowRect)
+        (capabilities.platformVersion || capabilities.hasOwnProperty('setWindowRect'))
     )
     return Boolean(hasW3CCaps || isAppium)
 }
