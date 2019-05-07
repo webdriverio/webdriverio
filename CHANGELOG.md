@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.8.3 (2019-05-07)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3936](https://github.com/webdriverio/webdriverio/pull/3936) Fix determining w3c for browserstack ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 1
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.8.2 (2019-05-06)
 
 #### :eyeglasses: Spec Compliancy

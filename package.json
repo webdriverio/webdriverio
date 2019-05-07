@@ -4,6 +4,7 @@
     "create": "node ./scripts/generateSubPackage",
     "bootstrap": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "build": "lerna run build",
+    "changelog": "node ./scripts/changelog.js",
     "clean": "run-p clean:*",
     "clean:build": "rimraf ./packages/*/build",
     "clean:pkglock": "rimraf ./packages/*/package-lock.json",
@@ -32,7 +33,6 @@
     "ts:webdriverio": "cd tests/typings/webdriverio && tsc",
     "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && tsc",
     "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc",
-    "version": "node ./scripts/changelog.js && git add CHANGELOG.md && npm run generate:typings",
     "watch": "node ./scripts/watch",
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
