@@ -15,6 +15,26 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.8.2 (2019-05-06)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriverio`
+  * [#3930](https://github.com/webdriverio/webdriverio/pull/3930) Fix/is displayed chrome ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3922](https://github.com/webdriverio/webdriverio/pull/3922) webdriverio: throw INVALID_SELECTOR_ERROR in correct spot ([@kellyselden](https://github.com/kellyselden))
+
+#### :memo: Documentation
+* `webdriver`
+  * [#3918](https://github.com/webdriverio/webdriverio/pull/3918) webdriver: Add return values for some commands ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 4
+- Kelly Selden ([@kellyselden](https://github.com/kellyselden))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Tadashi Nemoto ([@tadashi0713](https://github.com/tadashi0713))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.8.1 (2019-05-01)
 
 #### :bug: Bug Fix
