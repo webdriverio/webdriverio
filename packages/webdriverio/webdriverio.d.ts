@@ -37,6 +37,10 @@ declare namespace WebdriverIOAsync {
         modifier?: (...args: any[]) => any
     ): BrowserObject;
 
+    function attach(
+        options?: WebDriver.Options,
+    ): BrowserObject;
+
     function multiremote(
         options: WebdriverIO.MultiRemoteOptions
     ): WebDriver.ClientAsync;
