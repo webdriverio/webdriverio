@@ -1,8 +1,5 @@
-import speedline from 'speedline'
 import logger from '@wdio/logger'
 
-import FirstInteractiveAudit from './lighthouse/firstInteractive'
-import TraceOfTab from './lighthouse/tabTraces'
 import NetworkHandler from './handler/network'
 
 import { DEFAULT_TRACING_CATEGORIES } from './constants'
@@ -142,44 +139,6 @@ export default class CommandHandler {
      */
     getTraceLogs () {
         return this.traceEvents
-    }
-
-    /**
-     * get speedindex metrics using speedline package
-     */
-    async getSpeedIndex () {
-        const { speedIndex, perceptualSpeedIndex } = await speedline(this.traceEvents)
-        return { speedIndex, perceptualSpeedIndex }
-    }
-
-    /**
-     * get performance metrics
-     */
-    getPerformanceMetrics () {
-        const traces = TraceOfTab.compute(this.traceEvents)
-        const audit = new FirstInteractiveAudit()
-        let ttfi = null
-
-        /**
-         * There are cases where TTFI can't be computed as the tracing window is not long enough.
-         * In order to always be able to capture TTFI we would need to wait around 5 seconds after
-         * the page has been loaded to have high enough chances there is a quite window in that
-         * time frame.
-         */
-        try {
-            ttfi = audit.computeWithArtifacts(traces).timeInMs
-        } catch (e) {
-            log.warn(`Couldn't compute timeToFirstInteractive due to "${e.friendlyMessage}"`)
-        }
-
-        return {
-            firstPaint: traces.timings.firstPaint,
-            firstContentfulPaint: traces.timings.firstContentfulPaint,
-            firstMeaningfulPaint: traces.timings.firstMeaningfulPaint,
-            domContentLoaded: traces.timings.domContentLoaded,
-            timeToFirstInteractive: ttfi,
-            load: traces.timings.load
-        }
     }
 
     /**

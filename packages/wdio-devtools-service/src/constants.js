@@ -43,3 +43,9 @@ export const IGNORED_URLS = [
     'about:', // new tabs
     'chrome-extension://' // all chrome extensions
 ]
+
+export const FRAME_LOAD_START_TIMEOUT = 2000
+export const TRACING_TIMEOUT = 15000
+export const CPU_IDLE_TRESHOLD = 10000
+export const MAX_TRACE_WAIT_TIME = 45000
+export const NETWORK_IDLE_TIMEOUT = 5000
