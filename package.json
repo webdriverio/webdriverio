@@ -13,7 +13,7 @@
     "clean:tests": "rimraf tests/typings/*/*.js && rimraf tests/typings/**/node_modules",
     "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
     "link": "node ./scripts/link",
-    "release": "NODE_ENV=production npm run setup && lerna publish",
+    "release": "NODE_ENV=production npm run setup && npm run generate:typings && lerna publish",
     "setup": "run-s bootstrap build",
     "docs": "run-s docs:*",
     "docs:setup": "cd ./website && npm install && cd ..",
