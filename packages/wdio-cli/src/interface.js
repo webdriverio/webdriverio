@@ -14,7 +14,6 @@ export default class WDIOCLInterface extends EventEmitter {
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
-        this.sigintTriggered = false
         this.isWatchMode = false
         this.inDebugMode = false
         this.specFileRetries = config.specFileRetries || 0
@@ -83,9 +82,9 @@ export default class WDIOCLInterface extends EventEmitter {
     onJobComplete(cid, job, retries, message) {
         const details = []
         if (job) {
-            const filename = job.specs.join(', ').replace(process.cwd(), '')
+            const filename = Array.isArray(job.specs) ? job.specs.join(', ').replace(process.cwd(), '') : ''
             const retryCount = retries > 0 ? `(${retries} retries)` : ''
-            details.push('in', getRunnerName(job.caps), '-', filename, retryCount)
+            details.push('in', getRunnerName(job.caps), filename ? `- ${filename}` : '', retryCount)
         }
 
         this.log(
@@ -146,12 +145,12 @@ export default class WDIOCLInterface extends EventEmitter {
         if (event.origin === 'debugger' && event.name === 'start') {
             this.log(chalk.yellow(event.params.introMessage))
             this.inDebugMode = true
-            return
+            return this.inDebugMode
         }
 
         if (event.origin === 'debugger' && event.name === 'stop') {
-            this.sigintTriggered = false
             this.inDebugMode = false
+            return this.inDebugMode
         }
 
         if (!event.origin || !this.messages[event.origin]) {
@@ -177,12 +176,16 @@ export default class WDIOCLInterface extends EventEmitter {
          * allow to exit repl mode via Ctrl+C
          */
         if (this.inDebugMode) {
-            return
+            return false
         }
 
-        const isFinished = this.jobs.size === 0
-        const shutdownMessage = !isFinished ? 'Ending WebDriver sessions gracefully ...\n' + '(press ctrl+c again to hard kill the runner)' : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
-        return this.log('\n\n' + shutdownMessage)
+        const isRunning = this.jobs.size !== 0
+        const shutdownMessage = isRunning
+            ? 'Ending WebDriver sessions gracefully ...\n' +
+            '(press ctrl+c again to hard kill the runner)'
+            : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+        this.log('\n\n' + shutdownMessage)
+        return true
     }
 
     printReporters () {

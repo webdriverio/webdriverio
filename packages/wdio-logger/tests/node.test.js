@@ -129,7 +129,8 @@ describe('wdio-logger node', () => {
         const logCacheForEachSpy = jest.spyOn(Set.prototype, 'forEach')
         logInfoSpy.mockImplementation((path) => ({
             path,
-            write
+            write,
+            writable: jest.fn()
         }))
 
         it('should be possible to add to cache', () => {

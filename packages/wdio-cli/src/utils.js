@@ -30,7 +30,7 @@ export function filterPackageName (type) {
 /**
  * get runner identification by caps
  */
-export function getRunnerName (caps) {
+export function getRunnerName (caps = {}) {
     return (
         caps.browserName ||
         caps.appPackage ||

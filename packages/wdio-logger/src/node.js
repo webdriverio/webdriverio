@@ -82,7 +82,7 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
         })
 
         const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
-        if (logFile) {
+        if (logFile && logFile.writable) {
             /**
              * empty logging cache if stuff got logged before
              */
