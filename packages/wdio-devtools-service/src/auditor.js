@@ -66,7 +66,7 @@ export default class Auditor {
     updateCommands (browser) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
-        commands.forEach(fnName => browser.addCommand(fnName, ::this[fnName], true))
+        commands.forEach(fnName => browser.addCommand(fnName, ::this[fnName]))
     }
 
     async getMainThreadWorkBreakdown () {

@@ -35,47 +35,61 @@ export default class DevToolsService {
 
         try {
             let debuggerAddress
+
             if (this.options.debuggerAddress) {
                 const [host, port] = this.options.debuggerAddress.split(':')
                 debuggerAddress = { host, port: parseInt(port, 10) }
             } else {
                 debuggerAddress = await findCDPInterface()
             }
+
             this.client = await getCDPClient(debuggerAddress)
             this.commandHandler = new CommandHandler(this.client, global.browser)
-            this.devtoolsDriver = new DevToolsDriver(debuggerAddress)
-            this.traceGatherer = new TraceGatherer(this.devtoolsDriver, global.browser)
+            this.devtoolsDriver = await DevToolsDriver.attach(`http://${debuggerAddress.host}:${debuggerAddress.port}`)
+            this.traceGatherer = new TraceGatherer(this.devtoolsDriver)
+
+            const session = await this.devtoolsDriver.getCDPSession()
+            session.on('Page.loadEventFired', ::this.traceGatherer.onLoadEventFired)
+            session.on('Page.frameNavigated', ::this.traceGatherer.onFrameNavigated)
+
+            /**
+             * enable domains for client
+             */
+            await Promise.all(['Page', 'Network', 'Console'].map(
+                (domain) => Promise.all([
+                    session.send(`${domain}.enable`),
+                    this.client[domain]['enable']()
+                ])
+            ))
+
             this.devtoolsGatherer = new DevtoolsGatherer()
             this.client.on('event', ::this.devtoolsGatherer.onMessage)
 
-            /**
-             * set flag to run performance audits for page transitions
-             */
-            global.browser.addCommand('runPerformanceAudits', (doRun) => {
-                this.shouldRunPerformanceAudits = Boolean(doRun)
-            })
+            log.info(`Connected to Chrome on ${debuggerAddress.host}:${debuggerAddress.port}`)
         } catch (err) {
             log.error(`Couldn't connect to chrome: ${err.stack}`)
             return
         }
 
         /**
-         * enable network and page domain for resource analysis
+         * set flag to run performance audits for page transitions
          */
-        await this.commandHandler.cdp('Network', 'enable')
-        await this.commandHandler.cdp('Page', 'enable')
+        global.browser.addCommand('runPerformanceAudits', (doRun) => {
+            this.shouldRunPerformanceAudits = Boolean(doRun)
+        })
     }
 
-    beforeCommand (commandName) {
-        if (!this.shouldRunPerformanceAudits || !this.traceGatherer || TRACE_COMMANDS.includes(commandName)) {
+    beforeCommand (commandName, params) {
+        if (!this.shouldRunPerformanceAudits || !this.traceGatherer || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
 
-        return this.traceGatherer.startTracing()
+        const url = commandName === 'navigateTo' ? params[0] : 'click transition'
+        return this.traceGatherer.startTracing(url)
     }
 
     async afterCommand (commandName) {
-        if (!this.traceGatherer || !this.traceGatherer.isTracing || TRACE_COMMANDS.includes(commandName)) {
+        if (!this.traceGatherer || !this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
 
@@ -88,7 +102,7 @@ export default class DevToolsService {
         })
 
         return new Promise((resolve) => {
-            log.info(`Wait until tracing for frame ${this.frameId} finishes`)
+            log.info(`Wait until tracing for command ${commandName} finishes`)
 
             /**
              * wait until tracing stops

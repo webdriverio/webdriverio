@@ -11,7 +11,7 @@ import {
 } from '../constants'
 import { isSupportedUrl } from '../utils'
 
-const log = logger('@wdio/devtools-service')
+const log = logger('@wdio/devtools-service:TraceGatherer')
 
 const NETWORK_RECORDER_EVENTS = [
     'Network.requestWillBeSent',
@@ -28,11 +28,6 @@ export default class TraceGatherer extends EventEmitter {
         super()
         this.networkListeners = {}
         this.driver = driver
-
-        this.driver.getCDPSession().then((session) => {
-            session.on('Page.loadEventFired', ::this.onLoadEventFired)
-            session.on('Page.frameNavigated', ::this.onFrameNavigated)
-        })
 
         this.networkListeners = {}
         NETWORK_RECORDER_EVENTS.forEach((method) => {
