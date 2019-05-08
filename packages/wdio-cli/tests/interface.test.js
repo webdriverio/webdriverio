@@ -10,7 +10,7 @@ jest.useFakeTimers()
 const stdout = { getContentsAsString: jest.fn().mockReturnValue(false) }
 const stderr = { getContentsAsString: jest.fn().mockReturnValue(false) }
 
-describe('cli interface', () => {
+describe.skip('cli interface', () => {
     let wdioClInterface
 
     beforeEach(() => {

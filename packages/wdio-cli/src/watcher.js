@@ -48,7 +48,6 @@ export default class Watcher {
          * run initial test suite
          */
         await this.launcher.run()
-        this.launcher.interface.updateView()
 
         /**
          * clean interface once all worker finish
@@ -139,6 +138,5 @@ export default class Watcher {
 
     cleanUp () {
         this.launcher.interface.setup()
-        this.launcher.interface.updateView()
     }
 }

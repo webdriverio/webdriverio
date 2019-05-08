@@ -124,7 +124,15 @@ export default function getLogger (name) {
     loggers[name].setLevel(logLevel)
     return loggers[name]
 }
-
+/**
+ * Wait for writable stream to end and data to be flushed.
+ */
+getLogger.closeLogFile = async () => new Promise(resolve => {
+    if (logFile && Array.isArray(logFile.writableBuffer) && logFile.writableBuffer.length !== 0) {
+        return logFile.end(resolve)
+    }
+    resolve()
+})
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
 getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) => {
     /**
