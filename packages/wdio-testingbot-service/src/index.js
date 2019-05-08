@@ -1,4 +1,5 @@
 import TestingBotLauncher from './launcher'
+import TestingBotService from './service'
 
-export default class TestingBotService {}
+export default TestingBotService
 export const launcher = TestingBotLauncher

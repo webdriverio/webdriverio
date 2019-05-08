@@ -1,9 +1,7 @@
 jest.unmock('request')
-
-import TestingBotService from '../src/launcher'
+import TestingBotService from '../src/service'
 
 describe('wdio-testingbot-service', () => {
-    const tbService = new TestingBotService({})
     const execute = jest.fn()
     global.browser = {
         execute,
@@ -18,63 +16,19 @@ describe('wdio-testingbot-service', () => {
 
     afterEach(() => execute.mockReset())
 
-    it('onPrepare: tbTunnel is undefined', () => {
-        const config = {
-            tbTunnel: undefined
-        }
-
-        tbService.onPrepare(config)
-        expect(tbService.tbTunnelOpts).toBeUndefined()
-        expect(tbService.tunnel).toBeUndefined()
-        expect(config.protocol).toBeUndefined()
-        expect(config.hostname).toBeUndefined()
-        expect(config.port).toBeUndefined()
-    })
-
-    it('onPrepare', () => {
-        const config = {
-            tbTunnel: {},
-            tbTunnelOpts: {
-                options: 'some options'
-            },
-            user: 'user',
-            key: 'key'
-        }
-
-        tbService.onPrepare(config)
-        expect(tbService.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
-        expect(config.protocol).toEqual('http')
-        expect(config.hostname).toEqual('localhost')
-        expect(config.port).toEqual(4445)
-    })
-
-    it('onComplete', () => {
-        tbService.tunnel = {
-            close: resolve => resolve('tunnel closed')
-        }
-
-        return expect(tbService.onComplete()).resolves.toEqual('tunnel closed')
-    })
-
-    it('onComplete: no tunnel', () => {
-        tbService.tunnel = undefined
-        expect(tbService.onComplete()).toBeUndefined()
-    })
-
     it('before', () => {
-        const tbService = new TestingBotService({
-            user: 'foobar',
-            key: 'fookey'
-        })
+        const tbService = new TestingBotService()
         const capabilities = {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
             public: true,
             build: 344
         }
-        tbService.before(capabilities)
+        tbService.beforeSession({
+            user: 'foobar',
+            key: 'fookey'
+        }, capabilities)
 
-        expect(tbService.sessionId).toEqual('globalSessionId')
         expect(tbService.capabilities).toEqual(capabilities)
         expect(tbService.tbUser).toEqual('foobar')
         expect(tbService.tbSecret).toEqual('fookey')
@@ -83,6 +37,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeSuite', () => {
+        const tbService = new TestingBotService()
         const suiteTitle = 'Test Suite Title'
         tbService.beforeSuite({ title: suiteTitle })
 
@@ -90,6 +45,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeTest: execute not called', () => {
+        const tbService = new TestingBotService()
         const test = {
             fullName: 'Test #1',
             parent: 'Test parent'
@@ -104,15 +60,18 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeTest: execute called', () => {
+        const tbService = new TestingBotService()
         const test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
             parent: 'Test parent'
         }
-        tbService.tbUser = 'user'
-        tbService.tbSecret = 'secret'
-        tbService.suiteTitle = 'Test suite'
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+        tbService.beforeSuite({ title: 'Test suite' })
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
@@ -120,15 +79,19 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeTest: execute called', () => {
+        const tbService = new TestingBotService()
         const test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
             parent: 'Test parent'
         }
-        tbService.tbUser = 'user'
-        tbService.tbSecret = 'secret'
-        tbService.suiteTitle = 'Jasmine__TopLevel__Suite'
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
+        tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' })
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
@@ -136,6 +99,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('afterTest: failed test', () => {
+        const tbService = new TestingBotService()
         tbService.failures = 0
         const test = {
             passed: true
@@ -146,6 +110,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('afterTest: passed test', () => {
+        const tbService = new TestingBotService()
         tbService.failures = 0
         const test = {
             passed: false
@@ -156,6 +121,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeFeature: execute not called', () => {
+        const tbService = new TestingBotService()
         const feature = {
             name: 'Feature name',
             getName: () => 'Feature name'
@@ -168,12 +134,15 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeFeature: execute called', () => {
+        const tbService = new TestingBotService()
         const feature = {
             name: 'Feature name',
             getName: () => 'Feature name'
         }
-        tbService.tbUser = 'user'
-        tbService.tbSecret = 'secret'
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
         tbService.beforeFeature(feature)
 
         expect(tbService.suiteTitle).toEqual('Feature name')
@@ -181,6 +150,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('afterStep: exception happened', () => {
+        const tbService = new TestingBotService()
         tbService.failures = 0
         const feature = {
             failureException: 'Unhandled error!'
@@ -191,6 +161,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('afterStep: getFailureException func exists', () => {
+        const tbService = new TestingBotService()
         tbService.failures = 0
         const feature = {
             getFailureException: () => 'Unhandled error!'
@@ -201,44 +172,59 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeScenario: execute not called', () => {
+        const tbService = new TestingBotService()
         const scenario = {
             name: 'Scenario name',
             getName: () => 'Scenario name'
         }
-        tbService.tbUser = 'user'
-        tbService.tbSecret = undefined
+        tbService.beforeSession({
+            user: 'user',
+            key: undefined
+        }, {})
         tbService.beforeScenario(scenario)
 
         expect(execute).not.toBeCalled()
     })
 
     it('beforeScenario: execute called', () => {
+        const tbService = new TestingBotService()
         const scenario = {
             name: 'Scenario name',
             getName: () => 'Scenario name'
         }
-        tbService.tbUser = 'user'
-        tbService.tbSecret = 'secret'
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
         tbService.beforeScenario(scenario)
 
         expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })
 
     it('after: updatedJob not called', () => {
+        const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-        tbService.tbUser = undefined
-        tbService.tbSecret = undefined
+        tbService.beforeSession({
+            user: undefined,
+            key: undefined
+        }, {})
         tbService.after()
 
         expect(updateJobSpy).not.toBeCalled()
     })
 
     it('after: updatedJob called with passed params', () => {
+        const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-        tbService.capabilities = {}
-        tbService.tbUser = 'user'
-        tbService.tbSecret = 'secret'
-        tbService.sessionId = 'sessionId'
+
+        global.browser.config = { mochaOpts: { bail: 1 } }
+        global.browser.sessionId = 'sessionId'
+
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
         tbService.failures = 2
         tbService.after()
 
@@ -246,42 +232,51 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onReload: updatedJob not called', () => {
+        const tbService = new TestingBotService()
         const tbService2 = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService2, 'updateJob')
-        tbService.tbUser = undefined
-        tbService.tbSecret = undefined
-        tbService.sessionId = 'sessionId'
+        tbService.beforeSession({
+            user: undefined,
+            key: undefined
+        }, {})
+
+        global.browser.sessionId = 'sessionId'
         tbService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).not.toBeCalled()
-        expect(tbService.sessionId).not.toEqual('newSessionId')
     })
 
     it('onReload: updatedJob called with passed params', () => {
+        const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-        tbService.tbUser = 'user'
-        tbService.tbSecret = 'secret'
-        tbService.sessionId = 'sessionId'
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
+        global.browser.sessionId = 'sessionId'
         tbService.failures = 2
         tbService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true)
-        expect(tbService.sessionId).toEqual('newSessionId')
     })
 
     it('getRestUrl', () => {
+        const tbService = new TestingBotService()
         expect(tbService.getRestUrl('testSessionId'))
             .toEqual('https://api.testingbot.com/v1/tests/testSessionId')
     })
 
     it('getBody', () => {
-        tbService.capabilities = {
+        const tbService = new TestingBotService()
+        tbService.beforeSession({}, {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
             public: true,
             build: 344
-        }
-        tbService.suiteTitle = 'Suite title'
+        })
+
+        tbService.beforeSuite({ title: 'Suite title' })
 
         expect(tbService.getBody(0, false)).toEqual({
             test: {
