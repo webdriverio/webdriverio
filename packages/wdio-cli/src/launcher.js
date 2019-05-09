@@ -95,7 +95,7 @@ class Launcher {
             exitCode = 1
         }
 
-        await logger.closeLogFile()
+        await logger.waitForBuffer()
 
         this.interface.finalise()
         return exitCode

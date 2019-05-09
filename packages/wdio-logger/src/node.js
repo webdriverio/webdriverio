@@ -125,11 +125,15 @@ export default function getLogger (name) {
     return loggers[name]
 }
 /**
- * Wait for writable stream to end and data to be flushed.
+ * Wait for writable stream to be flushed.
+ * Calling this prevents part of the logs in the very env to be lost.
  */
-getLogger.closeLogFile = async () => new Promise(resolve => {
+getLogger.waitForBuffer = async () => new Promise(resolve => {
     if (logFile && Array.isArray(logFile.writableBuffer) && logFile.writableBuffer.length !== 0) {
-        return logFile.end(resolve)
+        return setTimeout(async () => {
+            await getLogger.waitForBuffer(resolve)
+            resolve()
+        }, 20)
     }
     resolve()
 })

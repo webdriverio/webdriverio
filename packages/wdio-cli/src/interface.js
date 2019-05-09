@@ -80,18 +80,20 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onJobComplete(cid, job, retries, message) {
-        const details = []
+        const details = [`[${cid}]`, message]
         if (job) {
-            const filename = Array.isArray(job.specs) ? job.specs.join(', ').replace(process.cwd(), '') : ''
-            const retryCount = retries > 0 ? `(${retries} retries)` : ''
-            details.push('in', getRunnerName(job.caps), filename ? `- ${filename}` : '', retryCount)
+            details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
         }
+        details.push(retries > 0 ? `(${retries} retries)` : '')
 
-        this.log(
-            `[${cid}]`,
-            message,
-            ...details
-        )
+        this.log(...details)
+    }
+
+    getFilenames(specs = []) {
+        if (specs.length > 0) {
+            return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
+        }
+        return ''
     }
 
     /**
