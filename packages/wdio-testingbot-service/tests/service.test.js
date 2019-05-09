@@ -16,10 +16,17 @@ describe('wdio-testingbot-service', () => {
                 user: 'user',
                 pass: 'pass'
             }
-        }
+        },
+        chromeA: { sessionId: 'sessionChromeA' },
+        chromeB: { sessionId: 'sessionChromeB' },
+        chromeC: { sessionId: 'sessionChromeC' },
+        instances: ['chromeA', 'chromeB', 'chromeC'],
     }
 
-    afterEach(() => execute.mockReset())
+    afterEach(() => {
+        global.browser.isMultiremote = false
+        execute.mockReset()
+    })
 
     it('before', () => {
         const tbService = new TestingBotService()
@@ -245,6 +252,24 @@ describe('wdio-testingbot-service', () => {
         expect(updateJobSpy).toBeCalledWith('sessionId', 2)
     })
 
+    it('after: with multi-remote: updatedJob called with passed params', () => {
+        const tbService = new TestingBotService()
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, { chromeA: {}, chromeB: {}, chromeC: {} })
+
+        global.browser.isMultiremote = true
+        global.browser.sessionId = 'sessionId'
+        tbService.failures = 2
+        tbService.after()
+
+        expect(updateJobSpy).toBeCalledWith('sessionChromeA', 2, false, 'chromeA')
+        expect(updateJobSpy).toBeCalledWith('sessionChromeB', 2, false, 'chromeB')
+        expect(updateJobSpy).toBeCalledWith('sessionChromeC', 2, false, 'chromeC')
+    })
+
     it('onReload: updatedJob not called', () => {
         const tbService = new TestingBotService()
         const tbService2 = new TestingBotService()
@@ -273,6 +298,24 @@ describe('wdio-testingbot-service', () => {
         tbService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true)
+        expect(request.put).toHaveBeenCalled()
+    })
+
+    it('onReload with multi-remote: updatedJob called with passed params', () => {
+        const tbService = new TestingBotService()
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
+        global.browser.isMultiremote = true
+        global.browser.sessionId = 'sessionId'
+        tbService.failures = 2
+        tbService.onReload('oldSessionId', 'sessionChromeA')
+
+        expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true, 'chromeA')
+        expect(request.put).toHaveBeenCalled()
     })
 
     it('getRestUrl', () => {
