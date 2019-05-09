@@ -30,7 +30,7 @@ export const SUPPORTED_SERVICES = [
     ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
     ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
     ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service',
-    ' docker - https://www.npmjs.com/package/wdio-docker-service'
+    ' docker - https://www.npmjs.com/package/wdio-docker-service',
     ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service'
 ]
 
