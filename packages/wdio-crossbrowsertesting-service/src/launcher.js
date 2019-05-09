@@ -1,43 +1,35 @@
-var cbt = require('cbt_tunnels');
+var cbt = require('cbt_tunnels')
 
 export default class CrossBrowserTestingLauncher{
-    onPrepare(config, capabilities) {
+    onPrepare(config) {
         if(!config.cbtTunnel){
-            return;
+            return
         }
-
-
         this.cbtOpts = Object.assign({
             username: config.user,
             authkey: config.key
         }, config.cbtOpts)
-
         this.tunnel = cbt
-
         return new Promise(function(resolve, reject){
             this.tunnel.start({'username': config.user,'authkey': config.key},function(err){
-                if(!err){
-                    
-                    return resolve();
+                if(!err){  
+                    return resolve()
                 }else{
-                    return reject(err);
+                    return reject(err)
                 }
-            });
+            })
         })
      }
-    
     onComplete() {         
         return new Promise(function(resolve, reject){
             this.tunnel.stop(function(err){
                 if(!err){
-                    return resolve();
+                    return resolve()
                 }else{
-                    return reject(err);
+                    return reject(err)
                 }
-            });
+            })
         })
      }
-  
-
 }
 
