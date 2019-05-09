@@ -149,6 +149,70 @@ describe('wdio-runner', () => {
             expect(runner._shutdown).toBeCalledTimes(1)
             expect(end - start).toBeGreaterThanOrEqual(200)
         })
+
+        it ('should work normally when called after framework run in multiremote', async () => {
+            const hook = jest.fn()
+            const runner = new WDIORunner()
+            runner.isMultiremote = true
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: jest.fn(),
+                instances: ['foo', 'bar'],
+                foo: {
+                    sessionId: '123',
+                },
+                bar: {
+                    sessionId: '456',
+                },
+                config: { afterSession: [hook] }
+            }
+            await runner.endSession()
+            expect(hook).toBeCalledTimes(1)
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!global.browser.foo.sessionId).toBe(true)
+            expect(!global.browser.bar.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(0)
+        })
+
+        it('should do nothing when triggered by run method without session in multiremote', async () => {
+            const hook = jest.fn()
+            const runner = new WDIORunner()
+            runner.isMultiremote = true
+            runner._shutdown = jest.fn()
+            await runner.endSession()
+            expect(hook).toBeCalledTimes(0)
+        })
+
+        it('should wait for all sessions to be created until shutting down in multiremote', async () => {
+            const hook = jest.fn()
+            const runner = new WDIORunner()
+            runner.isMultiremote = true
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: jest.fn(),
+                config: { afterSession: [hook] },
+                instances: ['foo', 'bar', 'foobar'],
+                foo: {
+                    sessionId: '123',
+                },
+                bar: {},
+            }
+            setTimeout(() => {
+                global.browser.bar.sessionId = 456
+                global.browser.foobar = { sessionId: 789 }
+            }, 200)
+
+            const start = Date.now()
+            await runner.endSession(true)
+            const end = Date.now()
+            expect(hook).toBeCalledTimes(1)
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!global.browser.foo.sessionId).toBe(true)
+            expect(!global.browser.bar.sessionId).toBe(true)
+            expect(!global.browser.foobar.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(1)
+            expect(end - start).toBeGreaterThanOrEqual(200)
+        })
     })
 
     describe('run', () => {

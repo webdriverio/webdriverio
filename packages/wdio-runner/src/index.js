@@ -270,7 +270,10 @@ export default class Runner extends EventEmitter {
      * within a hook by the user
      */
     async endSession (shutdown) {
-        const hasSessionId = global.browser && (this.isMultiremote ? global.browser.instances.some(i => global.browser[i] && global.browser[i].sessionId) : global.browser.sessionId)
+        /**
+         * For Multiremote - make sure that all the instances have sessionId
+         */
+        const hasSessionId = global.browser && (this.isMultiremote ? !global.browser.instances.some(i => global.browser[i] && !global.browser[i].sessionId) : global.browser.sessionId)
         /**
          * don't do anything if test framework returns after SIGINT
          * if endSession is called without shutdown flag we expect a session id
