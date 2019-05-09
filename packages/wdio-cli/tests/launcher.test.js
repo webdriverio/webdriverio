@@ -43,12 +43,12 @@ describe('launcher', () => {
         })
 
         it('should start instance in multiremote', () => {
-            launcher.startInstance = jest.fn()
+            launcher.runSpecs = jest.fn()
             launcher.isMultiremote = true
             launcher.runMode({ specs: './' }, [{ browserName: 'multiremote' }])
 
             expect(typeof launcher.resolve).toBe('function')
-            expect(launcher.startInstance).toBeCalledTimes(1)
+            expect(launcher.runSpecs).toBeCalledTimes(1)
         })
     })
 
