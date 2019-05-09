@@ -181,7 +181,7 @@ declare namespace WebdriverIO {
             timeout?: number,
             timeoutMsg?: string,
             interval?: number
-        ): boolean
+        ): Promise<boolean>
         // ... browser commands ...
     }
 

@@ -27,7 +27,7 @@
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
  * @param {String=}  error    if exists it overrides the default error message
- * @return {Boolean} true     if element is (dis/en)abled
+ * @return {Promise<boolean>} true if element is (dis/en)abled
  * @uses utility/waitUntil, state/isEnabled
  * @type utility
  *
