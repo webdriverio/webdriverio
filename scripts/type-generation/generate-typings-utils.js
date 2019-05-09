@@ -22,10 +22,7 @@ const changeType = (text) => {
 }
 
 const getTypes = (types, alwaysType) => {
-    types.forEach((type, index, array) => {
-        array[index] = changeType(type)
-    })
-    types = types.join(' | ')
+    types = types.map(changeType).join(' | ')
     if (types === '' && !alwaysType) {
         types = 'void'
     } else if (types === '*' || (types === '' && alwaysType)) {
