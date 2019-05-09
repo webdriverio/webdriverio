@@ -1,5 +1,10 @@
-jest.unmock('request')
 import TestingBotService from '../src/service'
+import request from 'request'
+
+jest.mock('request', () => ({
+    put: jest.fn(),
+    get: jest.fn()
+}))
 
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
@@ -327,5 +332,39 @@ describe('wdio-testingbot-service', () => {
                 tags: ['tag3', 'tag4']
             }
         })
+    })
+
+    it('updateJob success', async () => {
+        request.put.mockImplementation((url, opts, cb) => {
+            cb(null, { statusCode: 200 }, {})
+        })
+
+        const service = new TestingBotService()
+        service.beforeSession({ user: 'foobar', key: '123' }, {})
+        service.suiteTitle = 'my test'
+
+        await service.updateJob('12345', 23, true)
+
+        expect(request.put).toHaveBeenCalled()
+        expect(service.failures).toBe(0)
+    })
+
+    it('updateJob failure', async () => {
+        request.put.mockImplementation((url, opts, cb) => {
+            cb(new Error('Failure'), { statusCode: 500 }, {})
+        })
+
+        const service = new TestingBotService()
+        service.beforeSession({ user: 'foobar', key: '123' }, {})
+        service.suiteTitle = 'my test'
+        try {
+            await service.updateJob('12345', 23, true)
+            expect(true).toBe(false)
+        } catch (e) {
+            expect(e.message).toBe('Failure')
+        }
+
+        expect(request.put).toHaveBeenCalled()
+        expect(service.failures).toBe(0)
     })
 })
