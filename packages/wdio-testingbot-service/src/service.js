@@ -205,10 +205,6 @@ export default class TestingBotService {
          */
         body.test['name'] = this.suiteTitle
 
-        if (browserName) {
-            body.test['name'] = `${browserName}: ${body.test['name']}`
-        }
-
         /**
          * add reload count to title if reload is used
          */
@@ -227,6 +223,10 @@ export default class TestingBotService {
             }
 
             body.test[prop] = this.capabilities[prop]
+        }
+
+        if (browserName) {
+            body.test['name'] = `${browserName}: ${body.test['name']}`
         }
 
         body.test['success'] = failures === 0 ? '1' : '0'

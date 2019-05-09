@@ -126,8 +126,6 @@ describe('wdio-testingbot-service', () => {
             name: 'Feature name',
             getName: () => 'Feature name'
         }
-        tbService.tbUser = undefined
-        tbService.tbSecret = undefined
         tbService.beforeFeature(feature)
 
         expect(execute).not.toBeCalled()
@@ -165,6 +163,17 @@ describe('wdio-testingbot-service', () => {
         tbService.failures = 0
         const feature = {
             getFailureException: () => 'Unhandled error!'
+        }
+        tbService.afterStep(feature)
+
+        expect(tbService.failures).toEqual(1)
+    })
+
+    it('afterStep: cucumber failure', () => {
+        const tbService = new TestingBotService()
+        tbService.failures = 0
+        const feature = {
+            status: 'failed'
         }
         tbService.afterStep(feature)
 
@@ -296,6 +305,26 @@ describe('wdio-testingbot-service', () => {
                 public: true,
                 success: '0',
                 tags: ['tag1', 'tag2']
+            }
+        })
+    })
+
+    it('getBody should contain browserName if passed', () => {
+        const tbService = new TestingBotService()
+        tbService.beforeSession({}, {
+            name: 'Test suite',
+            tags: ['tag3', 'tag4'],
+            public: true,
+            build: 344
+        })
+
+        expect(tbService.getBody(0, false, 'internet explorer')).toEqual({
+            test: {
+                build: 344,
+                name: 'internet explorer: Test suite',
+                public: true,
+                success: '1',
+                tags: ['tag3', 'tag4']
             }
         })
     })
