@@ -33,12 +33,12 @@ type BrowserAsync = {
 type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'options'>;
 declare namespace WebdriverIOAsync {
     function remote(
-        options?: WebDriver.Options,
+        options?: WebDriver.Options & WebdriverIO.Options,
         modifier?: (...args: any[]) => any
     ): BrowserObject;
 
     function attach(
-        options?: WebDriver.Options,
+        options?: WebDriver.AttachSessionOptions,
     ): BrowserObject;
 
     function multiremote(
