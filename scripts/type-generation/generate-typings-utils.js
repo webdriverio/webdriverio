@@ -16,8 +16,12 @@ const changeType = (text) => {
     default: {
         text = text.toLowerCase()
     }
-
     }
+
+    if (text.indexOf('promise.<') === 0) {
+        text = text.replace('promise.', 'Promise')
+    }
+
     return text
 }
 
@@ -46,7 +50,7 @@ const buildCommand = (commandName, commandTags, indentation = 0) => {
 
             // skipping param with dot in name that stands for Object properties description, ex: attachmentObject.name
             if (name.indexOf('.') < 0) {
-                // get rid from default values from param name, ex: [paramName='someString'] will become paramName
+                // get rid of default values from param name, ex: [paramName='someString'] will become paramName
                 allParameters.push(`${name.split('[').pop().split('=')[0]}${optional ? '?' : ''}: ${commandTypes}`)
             }
         }
