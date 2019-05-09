@@ -232,8 +232,20 @@ declare namespace WebDriver {
         key?: string;
     }
 
+    interface AttachSessionOptions extends Options {
+        sessionId: string,
+        isW3C?: boolean
+    }
+
     function newSession(
         options?: Options,
+        modifier?: (...args: any[]) => any,
+        proto?: object,
+        commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
+    ): Promise<Client>;
+
+    function attachToSession(
+        options: AttachSessionOptions,
         modifier?: (...args: any[]) => any,
         proto?: object,
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
