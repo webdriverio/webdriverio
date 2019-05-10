@@ -40,7 +40,7 @@ export function getRunnerName (caps = {}) {
 
     // MultiRemote
     if (!runner) {
-        runner = Object.values(caps).some(cap => !cap.capabilities) ? 'undefined' : 'MultiRemote'
+        runner = Object.values(caps).length === 0 || Object.values(caps).some(cap => !cap.capabilities) ? 'undefined' : 'MultiRemote'
     }
 
     return runner
