@@ -31,6 +31,12 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe('search.input')
     })
 
+    it('should find an element using "name" method with a . in the name', () => {
+        const element = findStrategy('[name="searchinput[@isDisplayed=\'true\']"]')
+        expect(element.using).toBe('name')
+        expect(element.value).toBe('searchinput[@isDisplayed=\'true\']')
+    })
+
     it('should find an element using "name" method by "name" strategy if isMobile is used even when w3c is used', () => {
         const element = findStrategy('[name="searchinput"]', true, true)
         expect(element.using).toBe('name')
@@ -47,6 +53,12 @@ describe('selector strategies helper', () => {
         const element = findStrategy('*=new')
         expect(element.using).toBe('partial link text')
         expect(element.value).toBe('new')
+    })
+
+    it('should find an element using "id" method', () => {
+        const element = findStrategy('id=purplebox')
+        expect(element.using).toBe('id')
+        expect(element.value).toBe('purplebox')
     })
 
     it('should find an element using "tag name" method and tag format <XXX />', () => {
@@ -272,6 +284,11 @@ describe('selector strategies helper', () => {
 
     it('should find an mobile android element class name', () => {
         const element = findStrategy('android.widget.EditText')
+        expect(element.using).toBe('class name')
+    })
+
+    it('should find an mobile youi.tv element class name', () => {
+        const element = findStrategy('CYIPushButtonView')
         expect(element.using).toBe('class name')
     })
 
