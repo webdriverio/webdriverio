@@ -42,11 +42,7 @@ export default class WDIOCLInterface extends EventEmitter {
             /**
              * messages from worker reporters
              */
-            reporter: {},
-            /**
-             * messages from worker itself
-             */
-            worker: {}
+            reporter: {}
         }
 
         this.onStart()
@@ -84,9 +80,11 @@ export default class WDIOCLInterface extends EventEmitter {
         if (job) {
             details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
         }
-        details.push(retries > 0 ? `(${retries} retries)` : '')
+        if (retries > 0) {
+            details.push(`(${retries} retries)`)
+        }
 
-        this.log(...details)
+        return this.log(...details)
     }
 
     getFilenames(specs = []) {
@@ -133,11 +131,10 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * for testing purposes call console log in a static method
      */
-    /* istanbul ignore next */
     log (...args) {
-        /* istanbul ignore next */
         // eslint-disable-next-line no-console
         console.log(...args)
+        return args
     }
 
     /**
@@ -155,21 +152,21 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.inDebugMode
         }
 
-        if (!event.origin || !this.messages[event.origin]) {
+        if (!event.origin) {
             return log.warn(`Can't identify message from worker: ${JSON.stringify(event)}, ignoring!`)
+        }
+
+        if (event.origin !== 'reporter') {
+            return this.log(event.cid, event.origin, event.name, event.content)
         }
 
         if (!this.messages[event.origin][event.name]) {
             this.messages[event.origin][event.name] = []
         }
 
-        if (event.origin === 'reporter') {
-            this.messages[event.origin][event.name].push(event.content)
-            if (this.isWatchMode) {
-                this.printReporters()
-            }
-        } else {
-            this.log(event.cid, event.origin, event.name, event.content)
+        this.messages[event.origin][event.name].push(event.content)
+        if (this.isWatchMode) {
+            this.printReporters()
         }
     }
 
@@ -186,8 +183,7 @@ export default class WDIOCLInterface extends EventEmitter {
             ? 'Ending WebDriver sessions gracefully ...\n' +
             '(press ctrl+c again to hard kill the runner)'
             : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
-        this.log('\n\n' + shutdownMessage)
-        return true
+        return this.log('\n\n' + shutdownMessage)
     }
 
     printReporters () {
