@@ -362,4 +362,40 @@ describe('launcher', () => {
             ensureDirSyncSpy.mockClear()
         })
     })
+
+    describe('run', () => {
+        let config = {}
+
+        beforeEach(() => {
+            config = {
+                onPrepare: jest.fn(),
+                onComplete: jest.fn(),
+            }
+            launcher.configParser = {
+                getCapabilities: jest.fn().mockReturnValue(0),
+                getConfig: jest.fn().mockReturnValue(config)
+            }
+            launcher.runner = { initialise: jest.fn() }
+            launcher.runMode = jest.fn().mockImplementation((config, caps) => caps)
+            launcher.interface = { finalise: jest.fn() }
+        })
+
+        it('exit code 0', async () => {
+            expect(await launcher.run()).toBe(0)
+
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
+            expect(launcher.configParser.getConfig).toBeCalledTimes(1)
+            expect(launcher.runner.initialise).toBeCalledTimes(1)
+            expect(config.onPrepare).toBeCalledTimes(1)
+            expect(launcher.runMode).toBeCalledTimes(1)
+            expect(config.onPrepare).toBeCalledTimes(1)
+            expect(launcher.interface.finalise).toBeCalledTimes(1)
+        })
+
+        it('onComplete error', async () => {
+            config.onComplete = () => { throw new Error() }
+
+            expect(await launcher.run()).toBe(1)
+        })
+    })
 })
