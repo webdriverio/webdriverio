@@ -135,7 +135,7 @@ getLogger.waitForBuffer = async () => new Promise(resolve => {
             resolve()
         }, 20)
     }
-    resolve()
+    resolve(true)
 })
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
 getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) => {
