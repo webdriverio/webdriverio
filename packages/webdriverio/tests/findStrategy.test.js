@@ -31,7 +31,7 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe('search.input')
     })
 
-    it('should find an element using "name" method with a . in the name', () => {
+    it('should find an element using "name" method with an attribute', () => {
         const element = findStrategy('[name="searchinput[@isDisplayed=\'true\']"]')
         expect(element.using).toBe('name')
         expect(element.value).toBe('searchinput[@isDisplayed=\'true\']')

@@ -105,7 +105,7 @@ const classNameAndText = $('<my-element />');
 console.log(classNameAndText.getText()); // outputs: "WebdriverIO is the best"
 ```
 
-## ID
+## id
 
 To find an element using an element using their id, query it by using `id=` in front of the query string (e.g. `id=driver`).
 Note: you can use id in css selectors by using `#` before the id name. See [element with certain text](#element-with-certain-text).
