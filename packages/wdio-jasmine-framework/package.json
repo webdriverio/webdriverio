@@ -33,7 +33,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "@types/jasmine": "^3.3.8",
+    "@types/jasmine": "^3.3.8"
   },
   "dependencies": {
     "@wdio/config": "^5.8.1",
