@@ -123,7 +123,7 @@ Type: `Object`<br>
 Default: `{}`
 
 ### capabilities
-Like the capabilities section described above, except with the option to specifiy either a [multiremote](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
+Like the capabilities section described above, except with the option to specify either a [multiremote](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
 
 Type: `Object`|`Object[]`<br>
 Default: `[{ maxInstances: 5, browserName: 'firefox' }]`

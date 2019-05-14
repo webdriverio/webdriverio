@@ -77,7 +77,12 @@
       "command": "getUrl",
       "description": "The Get Current URL command returns the URL of the current top-level browsing context.",
       "ref": "https://w3c.github.io/webdriver/#dfn-get-current-url",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "url",
+        "description": "current top-level browsing context’s active document’s document URL"
+      }
     },
     "POST": {
       "command": "navigateTo",
@@ -624,7 +629,12 @@
       "command": "getPageSource",
       "description": "The Get Page Source command returns a string serialization of the DOM of the current browsing context active document.",
       "ref": "https://w3c.github.io/webdriver/#dfn-get-page-source",
-      "parameters": []
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "pageSource",
+        "description": "the DOM of the current browsing context active document"
+      }
     }
   },
   "/session/:sessionId/execute/sync": {

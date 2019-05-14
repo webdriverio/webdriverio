@@ -29,6 +29,7 @@
  * @param {Number=}  timeout    timeout in ms (default: 500)
  * @param {String=}  timeoutMsg error message to throw when waitUntil times out
  * @param {Number=}  interval   interval between condition checks (default: 500)
+ * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
  * @type utility
  *

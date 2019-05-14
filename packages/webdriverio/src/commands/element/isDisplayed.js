@@ -44,7 +44,7 @@ import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject } from '../../utils'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
 
-const noW3CEndpoint = ['microsoftedge', 'safari']
+const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome']
 
 export default async function isDisplayed() {
 
@@ -69,6 +69,10 @@ export default async function isDisplayed() {
      * Certain drivers have decided to remove the endpoint as the spec
      * no longer dictates it. In those instances, we pass the element through a script
      * that was provided by Brian Burg of safaridriver.
+     *
+     * 6th of May 2019 APPIUM response (mykola-mokhnach) :
+     * - Appium didn't enable W3C mode for mobile drivers.
+     * - Safari and Chrome work in jsonwp mode and Appium just rewrites W3C requests from upstream to jsonwp if needed
      */
     return browser.isW3C && !browser.isMobile && noW3CEndpoint.includes(browser.capabilities.browserName.toLowerCase()) ?
         await browser.execute(isElementDisplayedScript, {
