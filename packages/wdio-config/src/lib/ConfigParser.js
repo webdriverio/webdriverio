@@ -175,11 +175,13 @@ export default class ConfigParser {
 
         // Allow --suite and --spec to both be defined on the command line
          if (suites.length > 0 || spec.length > 0) {
-            
+
             // Removing any duplicate tests that could be included
             const tmpSpecs = spec.length > 0 ? [...spec, ...suiteSpecs] : suiteSpecs
+            tmpSpecs = ConfigParser.getFilePaths(tmpSpecs)
+
             let commandLineSpecs = [...new Set(tmpSpecs)]
-            specs = specs.filter(spec => commandLineSpecs.indexOf(spec) > 0)
+            specs = specs.filter(spec => commandLineSpecs.indexOf(spec) >= 0)
         }
 
          /**
@@ -188,7 +190,7 @@ export default class ConfigParser {
          */
         if (Array.isArray(capSpecs)) {
             const cSpecs = ConfigParser.getFilePaths(capSpecs)
-            specs = specs.filter(spec => cSpecs.indexOf(spec) > 0)
+            specs = specs.filter(spec => cSpecs.indexOf(spec) >= 0)
         }
 
         if (Array.isArray(capExclude)) {
