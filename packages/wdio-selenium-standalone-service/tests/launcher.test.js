@@ -22,7 +22,8 @@ describe('Selenium standalone launcher', () => {
             const config = {
                 seleniumLogs : './',
                 seleniumArgs : { foo : 'foo' },
-                seleniumInstallArgs : { bar : 'bar' }
+                seleniumInstallArgs : { bar : 'bar' },
+                watch: true
             }
 
             await Launcher.onPrepare(config)
@@ -31,6 +32,7 @@ describe('Selenium standalone launcher', () => {
             expect(Launcher.seleniumInstallArgs).toBe(config.seleniumInstallArgs)
             expect(Launcher.seleniumArgs).toBe(config.seleniumArgs)
             expect(Launcher.skipSeleniumInstall).toBe(false)
+            expect(Launcher.watchMode).toEqual(true)
         })
 
         test('should set correct config properties when empty', async () => {
@@ -42,6 +44,7 @@ describe('Selenium standalone launcher', () => {
             expect(Launcher.seleniumInstallArgs).toEqual({})
             expect(Launcher.seleniumArgs).toEqual({})
             expect(Launcher.skipSeleniumInstall).toEqual(false)
+            expect(Launcher.watchMode).toEqual(false)
         })
 
         test('should call selenium install and start', async () => {
@@ -113,6 +116,23 @@ describe('Selenium standalone launcher', () => {
 
             expect(Launcher._redirectLogStream).not.toBeCalled()
         })
+
+        test('should add exit listeners to kill process in watch mode', async () => {
+            const processOnSpy = jest.spyOn(process, 'on')
+
+            const Launcher = new SeleniumStandaloneLauncher()
+            Launcher._redirectLogStream = jest.fn()
+
+            await Launcher.onPrepare({
+                seleniumInstallArgs : {},
+                seleniumArgs : {},
+                watch: true
+            })
+
+            expect(processOnSpy).toHaveBeenCalledWith('SIGINT', Launcher._stopProcess)
+            expect(processOnSpy).toHaveBeenCalledWith('exit', Launcher._stopProcess)
+            expect(processOnSpy).toHaveBeenCalledWith('uncaughtException', Launcher._stopProcess)
+        })
     })
 
     describe('onComplete', () => {
@@ -135,6 +155,20 @@ describe('Selenium standalone launcher', () => {
             Launcher.onComplete()
 
             expect(Launcher.process).toBeFalsy()
+        })
+
+        test('should not call process.kill in watch mode', async () => {
+            const Launcher = new SeleniumStandaloneLauncher()
+            Launcher._redirectLogStream = jest.fn()
+
+            await Launcher.onPrepare({
+                seleniumInstallArgs : {},
+                seleniumArgs : {},
+                watch: true
+            })
+
+            Launcher.onComplete()
+            expect(Launcher.process.kill).not.toBeCalled()
         })
     })
 
