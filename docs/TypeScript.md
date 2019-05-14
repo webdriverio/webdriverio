@@ -60,7 +60,7 @@ All you have to do is create a plain js config file that registers typescript an
 
 ```javascript
 require("ts-node/register")
-module.exports = require("wdio.conf.ts")
+module.exports = require("./wdio.conf")
 ```
 
 And in your typed configuration file:
