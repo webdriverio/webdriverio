@@ -61,7 +61,7 @@ test('should be possible to set logLevel', async () => {
     expect(logger.setLevel).toBeCalled()
 })
 
-test('should allow to attach to existing session', async () => {
+test('should allow to attach to existing session W3C', async () => {
     const client = WebDriver.attachToSession({
         protocol: 'http',
         hostname: 'localhost',
@@ -73,6 +73,25 @@ test('should allow to attach to existing session', async () => {
     await client.getUrl()
     const req = request.mock.calls[0][0]
     expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
+    expect(client.getApplicationCacheStatus).toBeFalsy()
+    expect(client.takeElementScreenshot).toBeTruthy()
+})
+
+test('should allow to attach to existing session non W3C', async () => {
+    const client = WebDriver.attachToSession({
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4444,
+        path: '/',
+        sessionId: 'foobar',
+        isW3C: false
+    })
+
+    await client.getUrl()
+    const req = request.mock.calls[0][0]
+    expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
+    expect(client.getApplicationCacheStatus).toBeTruthy()
+    expect(client.takeElementScreenshot).toBeFalsy()
 })
 
 test('should fail attaching to session if sessionId is not given', () => {

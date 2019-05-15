@@ -88,8 +88,8 @@ export default class WebDriver {
         logger.setLevel('webdriver', options.logLevel)
 
         options.capabilities = options.capabilities || {}
-        options.isW3C = options.isW3C || true
-        const prototype = Object.assign(getPrototype(options.isW3C), userPrototype)
+        options.isW3C = options.isW3C === false ? false : true
+        const prototype = Object.assign(getPrototype({ isW3C: options.isW3C }), userPrototype)
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }
