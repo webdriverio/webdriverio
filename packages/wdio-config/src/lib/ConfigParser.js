@@ -177,7 +177,7 @@ export default class ConfigParser {
          if (suites.length > 0 || spec.length > 0) {
 
             // Removing any duplicate tests that could be included
-            const tmpSpecs = spec.length > 0 ? [...spec, ...suiteSpecs] : suiteSpecs
+            let tmpSpecs = spec.length > 0 ? [...spec, ...suiteSpecs] : suiteSpecs
             tmpSpecs = ConfigParser.getFilePaths(tmpSpecs)
 
             let commandLineSpecs = [...new Set(tmpSpecs)]
