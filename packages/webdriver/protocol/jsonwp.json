@@ -273,7 +273,7 @@
   },
   "/session/:sessionId/window/current/size": {
     "GET": {
-      "command": "getWindowSize",
+      "command": "_getWindowSize",
       "description": "Get the size of the current focused window.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidwindowwindowhandlesize",
       "parameters": [],
