@@ -71,7 +71,7 @@ export default class WebDriver {
             isChrome: { value: isChrome }
         }
 
-        const protocolCommands = getPrototype({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce })
+        const protocolCommands = getPrototype({ isW3C, isChrome, isMobile, isSauce })
         const prototype = merge(protocolCommands, environmentFlags, userPrototype)
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
@@ -88,8 +88,8 @@ export default class WebDriver {
         logger.setLevel('webdriver', options.logLevel)
 
         options.capabilities = options.capabilities || {}
-        options.isW3C = options.isW3C || true
-        const prototype = Object.assign(getPrototype(options.isW3C), userPrototype)
+        options.isW3C = options.isW3C === false ? false : true
+        const prototype = Object.assign(getPrototype({ ...options }), userPrototype)
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }
