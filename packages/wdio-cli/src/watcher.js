@@ -11,9 +11,7 @@ const log = logger('@wdio/cli:watch')
 export default class Watcher {
     constructor (configFile, argv) {
         log.info('Starting launcher in watch mode')
-        this.launcher = new Launcher(configFile, argv)
-        this.totalWorkerCnt = this.launcher.interface.totalWorkerCnt
-        this.launcher.interface.isWatchMode = true
+        this.launcher = new Launcher(configFile, argv, true)
         this.argv = argv
 
         const specs = this.launcher.configParser.getSpecs()
@@ -115,15 +113,15 @@ export default class Watcher {
         }
 
         /**
-         * clean up interface
-         */
-        this.cleanUp()
-
-        /**
          * update total worker count interface
          * ToDo: this should have a cleaner solution
          */
         this.launcher.interface.totalWorkerCnt = Object.entries(workers).length
+
+        /**
+         * clean up interface
+         */
+        this.cleanUp()
 
         /**
          * trigger new run for non busy worker

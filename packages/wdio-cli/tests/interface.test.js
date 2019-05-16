@@ -150,7 +150,6 @@ describe('cli interface', () => {
                 failed: 0
             })
             expect(wdioClInterface.messages).toEqual({ reporter: {} })
-            expect(wdioClInterface.onStart).toBeCalledTimes(1)
         })
     })
 
@@ -286,6 +285,15 @@ describe('cli interface', () => {
             wdioClInterface.finalise()
             expect(wdioClInterface.printReporters).toBeCalledTimes(1)
             expect(wdioClInterface.printSummary).toBeCalledTimes(1)
+        })
+
+        it('finalise should do nothing in watch mode', () => {
+            wdioClInterface.isWatchMode = true
+            wdioClInterface.printReporters = jest.fn()
+            wdioClInterface.printSummary = jest.fn()
+            wdioClInterface.finalise()
+            expect(wdioClInterface.printReporters).toBeCalledTimes(0)
+            expect(wdioClInterface.printSummary).toBeCalledTimes(0)
         })
     })
 

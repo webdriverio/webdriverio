@@ -12,7 +12,7 @@ import { runServiceHook } from './utils'
 const log = logger('@wdio/cli:Launcher')
 
 class Launcher {
-    constructor (configFile, argv) {
+    constructor (configFile, argv, isWatchMode) {
         this.argv = argv
         this.configFile = configFile
 
@@ -40,7 +40,7 @@ class Launcher {
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
 
-        this.interface = new CLInterface(config, specs, totalWorkerCnt)
+        this.interface = new CLInterface(config, specs, totalWorkerCnt, isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)

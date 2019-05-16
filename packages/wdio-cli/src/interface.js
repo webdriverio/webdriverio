@@ -7,14 +7,13 @@ import { getRunnerName } from './utils'
 const log = logger('@wdio/cli')
 
 export default class WDIOCLInterface extends EventEmitter {
-    constructor (config, specs, totalWorkerCnt) {
+    constructor (config, specs, totalWorkerCnt, isWatchMode = false) {
         super()
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.isTTY = !!process.stdout.isTTY
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
-        this.isWatchMode = false
+        this.isWatchMode = isWatchMode
         this.inDebugMode = false
         this.specFileRetries = config.specFileRetries || 0
 
@@ -22,6 +21,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.on('job:end', ::this.clearJob)
 
         this.setup()
+        this.onStart()
     }
 
     setup () {
@@ -44,8 +44,6 @@ export default class WDIOCLInterface extends EventEmitter {
              */
             reporter: {}
         }
-
-        this.onStart()
     }
 
     onStart() {
@@ -211,6 +209,10 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     finalise () {
+        if (this.isWatchMode) {
+            return
+        }
+
         this.printReporters()
         this.printSummary()
     }
