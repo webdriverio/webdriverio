@@ -9,6 +9,12 @@ const log = logger('@wdio/cli')
 export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs, totalWorkerCnt, isWatchMode = false) {
         super()
+
+        /**
+         * Colors can be forcibly enabled/disabled with env variable `FORCE_COLOR`
+         * `FORCE_COLOR=1` - forcibly enable colors
+         * `FORCE_COLOR=0` - forcibly disable colors
+         */
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
         this.specs = specs
         this.config = config
