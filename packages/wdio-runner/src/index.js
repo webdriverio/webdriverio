@@ -271,14 +271,23 @@ export default class Runner extends EventEmitter {
      */
     async endSession (shutdown) {
         /**
-         * For Multiremote - make sure that all the instances have sessionId
+         * make sure instance(s) exist and have `sessionId`
          */
-        const hasSessionId = global.browser && (this.isMultiremote ? !global.browser.instances.some(i => global.browser[i] && !global.browser[i].sessionId) : global.browser.sessionId)
+        const hasSessionId = global.browser && (this.isMultiremote
+            /**
+             * every multiremote instance should exist and should have `sessionId`
+             */
+            ? !global.browser.instances.some(i => global.browser[i] && !global.browser[i].sessionId)
+            /**
+             * browser object should have `sessionId` in regular mode
+             */
+            : global.browser.sessionId)
+
         /**
          * don't do anything if test framework returns after SIGINT
          * if endSession is called without shutdown flag we expect a session id
          */
-        if (!shutdown && (!global.browser || !hasSessionId)) {
+        if (!shutdown && !hasSessionId) {
             return
         }
 
@@ -286,7 +295,7 @@ export default class Runner extends EventEmitter {
          * if shutdown was called but no session was created, wait until it was
          * and try to end it
          */
-        if (shutdown && (!global.browser || !hasSessionId)) {
+        if (shutdown && !hasSessionId) {
             await new Promise((resolve) => setTimeout(resolve, 250))
             return this.endSession(shutdown)
         }
@@ -296,7 +305,7 @@ export default class Runner extends EventEmitter {
          */
         let capabilities = global.browser.capabilities || {}
         if (this.isMultiremote) {
-            global.browser.instances.forEach(i => { capabilities[i] = global.browser[i] ? global.browser[i].capabilities : {} })
+            global.browser.instances.forEach(i => { capabilities[i] = global.browser[i].capabilities })
         }
 
         await global.browser.deleteSession()
@@ -305,7 +314,7 @@ export default class Runner extends EventEmitter {
          * delete session(s)
          */
         if (this.isMultiremote) {
-            global.browser.instances.forEach(i => { global.browser[i] && delete global.browser[i].sessionId })
+            global.browser.instances.forEach(i => { delete global.browser[i].sessionId })
         } else {
             delete global.browser.sessionId
         }
