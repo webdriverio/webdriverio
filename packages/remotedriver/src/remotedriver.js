@@ -62,13 +62,13 @@ export default class RemoteDriver {
         }
 
         const { debuggerAddress } = scope.capabilities['goog:chromeOptions']
-        const [host, port] = debuggerAddress.split(':')
+        // const [host, port] = debuggerAddress.split(':')
         return new Promise((resolve, reject) => {
             const connectionTimeout = setTimeout(
                 () => reject(new Error(`Couldn't connect to ${debuggerAddress}`)),
                 CONNECTION_TIMEOUT)
 
-            CDP({ host, port, target: (targets) => targets.findIndex((t) => t.type === 'page') }, (connection) => {
+            CDP({ host: '54.183.225.161', port: 9222, target: (targets) => targets.findIndex((t) => t.type === 'page') }, (connection) => {
                 clearTimeout(connectionTimeout)
                 this.connection = connection
                 return resolve(connection)
