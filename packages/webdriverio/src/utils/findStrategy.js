@@ -4,7 +4,7 @@ import isPlainObject from 'lodash.isplainobject'
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const XPATH_SELECTORS_START = [
-    '/', '(', '\'../\'', './', '*/'
+    '/', '(', '../', './', '*/'
 ]
 const NAME_MOBILE_SELECTORS_START = [
     'uia', 'xcuielementtype', 'android.widget', 'cyi'

@@ -198,6 +198,8 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('xpath')
         element = findStrategy('.')
         expect(element.using).toBe('xpath')
+        element = findStrategy('../')
+        expect(element.using).toBe('xpath')
     })
 
     it('should find an element by ui automator strategy (android only)', () => {
