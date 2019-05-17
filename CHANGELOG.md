@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.8.5 (2019-05-17)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3979](https://github.com/webdriverio/webdriverio/pull/3979) Add getWindowSize command ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3983](https://github.com/webdriverio/webdriverio/pull/3983) Fix xpath selector start ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#3978](https://github.com/webdriverio/webdriverio/pull/3978) Fix attach to session w3c handling ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.8.4 (2019-05-15)
 
 #### :rocket: New Feature
