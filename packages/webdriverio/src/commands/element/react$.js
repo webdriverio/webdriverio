@@ -34,8 +34,8 @@ import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
 const resqScript = fs.readFileSync(require.resolve('resq'))
 
 export default async function react$(selector, props = {}, state = {}) {
-    await global.browser.executeScript(resqScript.toString(), [])
+    await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
-    const res = await global.browser.execute(react$Script, selector, props, state, this)
+    const res = await this.execute(react$Script, selector, props, state, this)
     return getElement.call(this, selector, res)
 }
