@@ -210,6 +210,7 @@ declare namespace WebDriver {
 
         // Appium
         deviceName?: string;
+        automationName?: string;
         platformVersion?: string;
         app?: string;
         udid?: string;
