@@ -15,6 +15,73 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.8.5 (2019-05-17)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3979](https://github.com/webdriverio/webdriverio/pull/3979) Add getWindowSize command ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3983](https://github.com/webdriverio/webdriverio/pull/3983) Fix xpath selector start ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#3978](https://github.com/webdriverio/webdriverio/pull/3978) Fix attach to session w3c handling ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.8.4 (2019-05-15)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3964](https://github.com/webdriverio/webdriverio/pull/3964) webdriverio: Modify findStrategy.js to work with Youi.tv selectors. ([@richmond998999](https://github.com/richmond998999))
+
+#### :bug: Bug Fix
+* `wdio-selenium-standalone-service`
+  * [#3970](https://github.com/webdriverio/webdriverio/pull/3970) wdio-selenium-standalone: fix watch mode ([@artur-michalak](https://github.com/artur-michalak))
+
+#### :nail_care: Polish
+* `wdio-testingbot-service`
+  * [#3946](https://github.com/webdriverio/webdriverio/pull/3946) wdio-testingbot-service: split up code between Launcher and Service ([@testingbot](https://github.com/testingbot))
+* `wdio-appium-service`
+  * [#3947](https://github.com/webdriverio/webdriverio/pull/3947) wdio-appium-service: Better handling of exit code = 2 ([@MortenGregersen](https://github.com/MortenGregersen))
+
+#### :memo: Documentation
+* Other
+  * [#3967](https://github.com/webdriverio/webdriverio/pull/3967) Update TypeScript.md file require ([@nekiscz](https://github.com/nekiscz))
+  * [#3949](https://github.com/webdriverio/webdriverio/pull/3949) Fix 'specifiy' typo ([@klamping](https://github.com/klamping))
+* `webdriverio`
+  * [#3953](https://github.com/webdriverio/webdriverio/pull/3953) webdriverio: Update types for attach and remote methods ([@MunGell](https://github.com/MunGell))
+  * [#3944](https://github.com/webdriverio/webdriverio/pull/3944) Documentation update for react$ and react$ ([@Raulster24](https://github.com/Raulster24))
+  * [#3941](https://github.com/webdriverio/webdriverio/pull/3941) webdriverio: add attach method to TypeScript definitions file ([@MunGell](https://github.com/MunGell))
+
+#### :house: Internal
+* `wdio-jasmine-framework`
+  * [#3968](https://github.com/webdriverio/webdriverio/pull/3968) Move `@types/jasmine` to devDependency ([@kfrancois](https://github.com/kfrancois))
+* `wdio-cli`
+  * [#3963](https://github.com/webdriverio/webdriverio/pull/3963) Add wdio-json-reporter to supported reporters ([@fijijavis](https://github.com/fijijavis))
+
+#### Committers: 10
+- David Nekovář ([@nekiscz](https://github.com/nekiscz))
+- Jim Davis ([@fijijavis](https://github.com/fijijavis))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Koen François ([@kfrancois](https://github.com/kfrancois))
+- Morten Bjerg Gregersen ([@MortenGregersen](https://github.com/MortenGregersen))
+- Rahul Srivastava ([@Raulster24](https://github.com/Raulster24))
+- Shmavon Gazanchyan ([@MunGell](https://github.com/MunGell))
+- TestingBot ([@testingbot](https://github.com/testingbot))
+- [@artur-michalak](https://github.com/artur-michalak)
+- [@richmond998999](https://github.com/richmond998999)
+
+## v5.8.3 (2019-05-07)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3936](https://github.com/webdriverio/webdriverio/pull/3936) Fix determining w3c for browserstack ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 1
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.8.2 (2019-05-06)
 
 #### :eyeglasses: Spec Compliancy

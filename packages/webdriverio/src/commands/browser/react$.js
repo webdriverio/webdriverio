@@ -20,6 +20,7 @@
  * </example>
  *
  * @alias browser.react$
+ * @param {String=} selector of React component
  * @param {Object=} props  React props the element should contain
  * @param {Object=} state  React state the element should be in
  * @return {Element}
