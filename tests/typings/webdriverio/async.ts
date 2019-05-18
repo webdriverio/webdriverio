@@ -33,6 +33,13 @@ async function bar() {
     await shadowElem.click()
     const shadowElems = await el6.shadow$$('')
     await shadowElems[0].click()
+
+    // react$ react$$
+    const reactWrapper = await browser.react$('')
+    const reactElement = await reactWrapper.react$('')
+    await reactElement.click()
+    const reactElements = await reactWrapper.react$$('')
+    await reactElements[0].click()
 }
 
 // selenium-standalone-service
