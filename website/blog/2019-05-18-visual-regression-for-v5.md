@@ -76,7 +76,7 @@ exports.config = {
 };
 ``` 
 
-More plugin options can be found [here](./docs/OPTIONS.md#plugin-options).
+More plugin options can be found [here](https://github.com/wswebcreation/wdio-image-comparison-service/blob/master/docs/OPTIONS.md#plugin-options).
 
 ### Writing tests
 *wdio-image-comparison-service* is framework agnostic, meaning that you can use it with all the frameworks WebdriverIO supports like `Jasmine|Mocha`. 
