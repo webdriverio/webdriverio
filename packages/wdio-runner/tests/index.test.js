@@ -104,7 +104,7 @@ describe('wdio-runner', () => {
     })
 
     describe('endSession', () => {
-        it ('should work normally when called after framework run', async () => {
+        it('should work normally when called after framework run', async () => {
             const hook = jest.fn()
             const runner = new WDIORunner()
             runner._shutdown = jest.fn()
@@ -150,7 +150,7 @@ describe('wdio-runner', () => {
             expect(end - start).toBeGreaterThanOrEqual(200)
         })
 
-        it ('should work normally when called after framework run in multiremote', async () => {
+        it('should work normally when called after framework run in multiremote', async () => {
             const hook = jest.fn()
             const runner = new WDIORunner()
             runner.isMultiremote = true
