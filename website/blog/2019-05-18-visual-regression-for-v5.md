@@ -37,7 +37,6 @@ For versions check below
 Install this module locally with the following command to be used as a (dev-)dependency:
 
 ```shell
-npm install --save wdio-image-comparison-service
 npm install --save-dev wdio-image-comparison-service
 ```
 
