@@ -30,6 +30,12 @@ const shadowElem = el6.shadow$('')
 shadowElem.click()
 const shadowElems = el6.shadow$$('')
 shadowElems[0].click()
+// react$ react$$
+const reactWrapper = browser.react$('')
+const reactElement = reactWrapper.react$('')
+reactElement.click()
+const reactElements = reactWrapper.react$$('')
+reactElements[0].click()
 
 // selenium-standalone-service
 const config: WebdriverIO.Config = {
