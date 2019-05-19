@@ -15,6 +15,24 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.8.6 (2019-05-19)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3977](https://github.com/webdriverio/webdriverio/pull/3977) Fix queryAppState protocol ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3986](https://github.com/webdriverio/webdriverio/pull/3986) feat: add React selectors to element commands ([@baruchvlz](https://github.com/baruchvlz))
+
+#### :memo: Documentation
+* [#3988](https://github.com/webdriverio/webdriverio/pull/3988) typings: add automationName desired capability ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
 ## v5.8.5 (2019-05-17)
 
 #### :eyeglasses: Spec Compliancy
