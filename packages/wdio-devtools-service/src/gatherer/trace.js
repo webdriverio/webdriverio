@@ -28,8 +28,9 @@ export default class TraceGatherer extends EventEmitter {
         super()
         this.networkListeners = {}
         this.driver = driver
+        this.failingFrameLoadIds = []
+        this.pageLoadDetected = false
 
-        this.networkListeners = {}
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this.networkListeners[method] = (params) => this.networkStatusMonitor.dispatch({ method, params })
         })
@@ -77,13 +78,25 @@ export default class TraceGatherer extends EventEmitter {
         await page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
         this.waitForNetworkIdleEvent = this.waitForNetworkIdle(session)
-        this.waitForCPUIdleEvent = this.waitForCPUIdle(page)
+        this.waitForCPUIdleEvent = this.waitForCPUIdle()
     }
 
     /**
      * store frame id of frames that are being traced
      */
-    onFrameNavigated (msgObj) {
+    async onFrameNavigated (msgObj) {
+        /**
+         * page load failed, cancel tracing
+         */
+        if (this.failingFrameLoadIds.includes(msgObj.frame.id)) {
+            delete this.traceStart
+            this.waitForNetworkIdleEvent.cancel()
+            this.waitForCPUIdleEvent.cancel()
+            this.frameId = '"unsuccessful loaded frame"'
+            this.finishTracing()
+            return clearTimeout(this.clickTraceTimeout)
+        }
+
         /**
          * ignore event if
          */
@@ -95,6 +108,7 @@ export default class TraceGatherer extends EventEmitter {
             // we don't support the url of given frame
             !isSupportedUrl(msgObj.frame.url)
         ) {
+            log.info(`Ignore navigated frame with url ${msgObj.frame.url}`)
             return
         }
 
@@ -173,6 +187,11 @@ export default class TraceGatherer extends EventEmitter {
         return cleanupFn()
     }
 
+    onFrameLoadFail (request) {
+        const frame = request.frame()
+        this.failingFrameLoadIds.push(frame._id)
+    }
+
     get isTracing () {
         return typeof this.traceStart === 'number'
     }
@@ -219,7 +238,9 @@ export default class TraceGatherer extends EventEmitter {
                 ...traceEvents,
                 frameId: this.frameId,
                 loaderId: this.loaderId,
-                pageUrl: this.pageUrl
+                pageUrl: this.pageUrl,
+                traceStart: this.traceStart,
+                traceEnd: Date.now()
             }
             this.emit('tracingComplete', this.trace)
             this.finishTracing()
@@ -235,12 +256,16 @@ export default class TraceGatherer extends EventEmitter {
     finishTracing () {
         log.info(`Tracing for ${this.frameId} completed`)
         this.pageLoadDetected = false
-        // clean up the listeners
+
+        /**
+         * clean up the listeners
+         */
         this.driver.getCDPSession().then((session) => {
             NETWORK_RECORDER_EVENTS.forEach(
                 (method) => session.removeListener(method, this.networkListeners[method]))
+            delete this.networkStatusMonitor
         })
-        delete this.networkStatusMonitor
+
         delete this.traceStart
         delete this.frameId
         delete this.loaderId
@@ -253,10 +278,12 @@ export default class TraceGatherer extends EventEmitter {
     /**
      * Returns a promise that resolves when the network has been idle (after DCL) for
      * `networkQuietThresholdMs` ms and a method to cancel internal network listeners/timeout.
+     * (code from lighthouse source)
      * @param {number} networkQuietThresholdMs
      * @return {{promise: Promise<void>, cancel: function(): void}}
      * @private
      */
+    /* istanbul ignore next */
     waitForNetworkIdle (session, networkQuietThresholdMs = NETWORK_IDLE_TIMEOUT) {
         let hasDCLFired = false
         let idleTimeout
@@ -322,6 +349,7 @@ export default class TraceGatherer extends EventEmitter {
             cancel = () => {
                 if (canceled) return
                 canceled = true
+                log.info('Wait for network idle canceled')
                 idleTimeout && clearTimeout(idleTimeout)
 
                 session.off('Page.domContentEventFired', domContentLoadedListener)
@@ -339,10 +367,12 @@ export default class TraceGatherer extends EventEmitter {
 
     /**
      * Resolves when there have been no long tasks for at least waitForCPUIdle ms.
+     * (code from lighthouse source)
      * @param {number} waitForCPUIdle
      * @return {{promise: Promise<void>, cancel: function(): void}}
      */
-    waitForCPUIdle (page, waitForCPUIdle = CPU_IDLE_TRESHOLD) {
+    /* istanbul ignore next */
+    waitForCPUIdle (waitForCPUIdle = CPU_IDLE_TRESHOLD) {
         if (!waitForCPUIdle) {
             return {
                 promise: Promise.resolve(),
@@ -355,22 +385,25 @@ export default class TraceGatherer extends EventEmitter {
         let canceled = false
 
         const checkForQuietExpression = `(${checkTimeSinceLastLongTask.toString()})()`
-
-        async function checkForQuiet (resolve) {
+        async function checkForQuiet (resolve, reject) {
             if (canceled) return
+            const page = await this.driver.getActivePage()
             let timeSinceLongTask
             try {
                 timeSinceLongTask = await page.evaluate(checkForQuietExpression)
-            } catch(e) {
+            } catch (e) {
                 log.warn(`Page evaluate rejected while evaluating checkForQuietExpression: ${e.stack}`)
-                return
+                return setTimeout(() => checkForQuiet.call(this, resolve, reject), 100)
             }
+
             if (canceled) return
 
             if (typeof timeSinceLongTask !== 'number') {
                 log.warn(`unexpected value for timeSinceLongTask: ${timeSinceLongTask}`)
-                return
+                return reject(new Error('timeSinceLongTask is not a number'))
             }
+
+            log.info('Driver', `CPU has been idle for ${timeSinceLongTask} ms`)
 
             if (timeSinceLongTask >= waitForCPUIdle) {
                 log.info('Driver', `CPU has been idle for ${timeSinceLongTask} ms`)
@@ -379,21 +412,20 @@ export default class TraceGatherer extends EventEmitter {
 
             log.info('Driver', `CPU has been idle for ${timeSinceLongTask} ms`)
             const timeToWait = waitForCPUIdle - timeSinceLongTask
-            lastTimeout = setTimeout(() => checkForQuiet(resolve), timeToWait)
+            lastTimeout = setTimeout(() => checkForQuiet.call(this, resolve, reject), timeToWait)
         }
 
-        /** @type {(() => void)} */
         let cancel = () => {
-            throw new Error('waitForCPUIdle.cancel() called before it was defined')
+            throw new Error('_waitForCPUIdle.cancel() called before it was defined')
         }
-        const promise = new Promise(async (resolve, reject) => {
+        const promise = new Promise((resolve, reject) => {
             log.info('Waiting for CPU to become idle')
-            checkForQuiet(resolve).catch(reject)
+            checkForQuiet.call(this, resolve, reject)
             cancel = () => {
                 if (canceled) return
                 canceled = true
                 if (lastTimeout) clearTimeout(lastTimeout)
-                reject(new Error('Wait for CPU idle canceled'))
+                resolve(new Error('Wait for CPU idle canceled'))
             }
         })
 

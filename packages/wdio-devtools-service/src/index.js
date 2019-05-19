@@ -52,6 +52,9 @@ export default class DevToolsService {
             session.on('Page.loadEventFired', ::this.traceGatherer.onLoadEventFired)
             session.on('Page.frameNavigated', ::this.traceGatherer.onFrameNavigated)
 
+            const page = await this.devtoolsDriver.getActivePage()
+            page.on('requestfailed', ::this.traceGatherer.onFrameLoadFail)
+
             /**
              * enable domains for client
              */
