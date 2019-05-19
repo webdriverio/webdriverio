@@ -21,9 +21,9 @@
  * </example>
  *
  * @alias react$
- * @param {String=} selector of React component
+ * @param {String} selector of React component
  * @param {Object=} props  React props the element should contain
- * @param {Object=} state  React state the element should be in
+ * @param {Array<any>|number|string|object|boolean=} state  React state the element should be in
  * @return {Element}
  *
  */
