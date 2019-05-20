@@ -15,6 +15,14 @@ jest.mock('../src/commands', () => {
 
 jest.mock('../src/utils', () => {
     let wasCalled = false
+
+    const cdpClientMock = {
+        Network: { enable: jest.fn() },
+        Console: { enable: jest.fn() },
+        Page: { enable: jest.fn() },
+        on: jest.fn()
+    }
+
     return {
         findCDPInterface: jest.fn().mockImplementation(() => {
             if (!wasCalled) {
@@ -23,7 +31,7 @@ jest.mock('../src/utils', () => {
             }
             throw new Error('boom')
         }),
-        getCDPClient: jest.fn()
+        getCDPClient: jest.fn().mockReturnValue(cdpClientMock)
     }
 })
 
@@ -53,32 +61,34 @@ test('if not supported by browser', async () => {
 })
 
 test('if supported by browser', async () => {
+    global.browser = { addCommand: jest.fn() }
     const service = new DevToolsService()
     service.isSupported = true
     await service.before()
-    expect(service.commandHandler.cdp).toBeCalledWith('Network', 'enable')
-    expect(service.commandHandler.cdp).toBeCalledWith('Page', 'enable')
+    expect(service.client.Network.enable).toBeCalledTimes(1)
+    service.client.Network.enable.mockClear()
+    expect(service.client.Console.enable).toBeCalledTimes(1)
+    service.client.Console.enable.mockClear()
+    expect(service.client.Page.enable).toBeCalledTimes(1)
+    service.client.Page.enable.mockClear()
 })
 
 test('initialised with the debuggerAddress as option', async () => {
     const options = {
         debuggerAddress: 'localhost:4444'
     }
+    global.browser = { addCommand: jest.fn() }
     const service = new DevToolsService(options)
     service.isSupported = true
     await service.before()
     expect(getCDPClient).toBeCalledWith({ host: 'localhost', port: 4444 })
-    expect(service.commandHandler.cdp).toBeCalledWith('Network', 'enable')
-    expect(service.commandHandler.cdp).toBeCalledWith('Page', 'enable')
+    expect(service.client.Network.enable).toBeCalledTimes(1)
+    expect(service.client.Console.enable).toBeCalledTimes(1)
+    expect(service.client.Page.enable).toBeCalledTimes(1)
 })
 
 test('initialization fails', async () => {
-    jest.mock('../src/utils', () => ({
-        findCDPInterface: () => {
-            throw new Error('boom!')
-        },
-        getCDPClient: jest.fn()
-    }))
+    global.browser = { addCommand: jest.fn() }
 
     const service = new DevToolsService()
     service.isSupported = true
@@ -86,4 +96,52 @@ test('initialization fails', async () => {
 
     expect(service.commandHandler).toBe(undefined)
     expect(logger().error.mock.calls.pop()[0]).toContain('Couldn\'t connect to chrome: Error: boom')
+})
+
+test('beforeCommand', () => {
+    const service = new DevToolsService()
+    service.traceGatherer = { startTracing: jest.fn() }
+
+    service.beforeCommand()
+    expect(service.traceGatherer.startTracing).toBeCalledTimes(0)
+
+    service.shouldRunPerformanceAudits = true
+    service.beforeCommand()
+    expect(service.traceGatherer.startTracing).toBeCalledTimes(0)
+
+    service.beforeCommand('foobar')
+    expect(service.traceGatherer.startTracing).toBeCalledTimes(0)
+
+    service.beforeCommand('navigateTo', ['some page'])
+    expect(service.traceGatherer.startTracing).toBeCalledTimes(1)
+    expect(service.traceGatherer.startTracing).toBeCalledWith('some page')
+
+    service.beforeCommand('click', ['some other page'])
+    expect(service.traceGatherer.startTracing).toBeCalledTimes(2)
+    expect(service.traceGatherer.startTracing).toBeCalledWith('click transition')
+})
+
+test('afterCommand', () => {
+    const service = new DevToolsService()
+    service.traceGatherer = { once: jest.fn() }
+
+    service.afterCommand()
+    expect(service.traceGatherer.once).toBeCalledTimes(0)
+
+    service.traceGatherer.isTracing = true
+    service.afterCommand()
+    expect(service.traceGatherer.once).toBeCalledTimes(0)
+
+    service.afterCommand('foobar')
+    expect(service.traceGatherer.once).toBeCalledTimes(0)
+
+    service.afterCommand('navigateTo')
+    expect(service.traceGatherer.once).toBeCalledTimes(2)
+
+    service.afterCommand('click')
+    expect(service.traceGatherer.once).toBeCalledTimes(4)
+})
+
+afterEach(() => {
+    delete global.browser
 })

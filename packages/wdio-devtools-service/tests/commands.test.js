@@ -1,8 +1,6 @@
 import EventEmitter from 'events'
 import CommandHandler from '../src/commands'
 
-import traceEvents from './__fixtures__/traceEvents.json'
-
 class MyEmitter extends EventEmitter {}
 
 jest.mock('../src/utils', () => ({
@@ -14,7 +12,7 @@ test('initialization', () => {
     const clientMock = { on: jest.fn() }
     const browserMock = { addCommand: jest.fn(), emit: jest.fn() }
     new CommandHandler(clientMock, browserMock)
-    expect(browserMock.addCommand.mock.calls).toHaveLength(10)
+    expect(browserMock.addCommand.mock.calls).toHaveLength(8)
     expect(clientMock.on).toBeCalled()
 
     const event = { method: 'foobar.bar', params: 123 }
@@ -116,37 +114,6 @@ test('endTracing throws if not tracing', async () => {
 
     const handler = new CommandHandler(clientMock, browserMock)
     await expect(handler.endTracing()).rejects.toBeInstanceOf(Error)
-})
-
-test('getTraceLogs', () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-    handler.traceEvents = 'foobar'
-    expect(handler.getTraceLogs()).toBe('foobar')
-})
-
-test('getSpeedIndex', async () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-    const speedIndex = await handler.getSpeedIndex()
-    expect(speedIndex).toEqual({ speedIndex: 1234, perceptualSpeedIndex: 4321 })
-})
-
-test('getPerformanceMetrics', () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-    handler.traceEvents = traceEvents
-    expect(handler.getPerformanceMetrics()).toEqual({
-        firstPaint: 735.666,
-        firstContentfulPaint: 735.669,
-        firstMeaningfulPaint: 735.671,
-        domContentLoaded: 574.546,
-        timeToFirstInteractive: 735.671,
-        load: 1379.895
-    })
 })
 
 test('getPageWeight', () => {

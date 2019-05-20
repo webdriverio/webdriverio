@@ -103,7 +103,7 @@
     "coveragePathIgnorePatterns": [
       "node_modules/",
       "packages/webdriverio/src/scripts",
-      "packages/wdio-devtools-service/src/lighthouse",
+      "packages/wdio-devtools-service/src/scripts",
       "packages/webdriverio/build",
       "packages/webdriver/build"
     ]
