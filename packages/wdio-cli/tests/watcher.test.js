@@ -14,8 +14,7 @@ jest.mock('../src/launcher', () => {
             this.runner = {}
             this.interface = {
                 emit: jest.fn(),
-                setup: jest.fn(),
-                updateView: jest.fn()
+                setup: jest.fn()
             }
         }
     }
@@ -49,8 +48,7 @@ describe('watcher', () => {
         watcher.launcher = {
             run: jest.fn(),
             interface: {
-                finalise: jest.fn(),
-                updateView: jest.fn()
+                finalise: jest.fn()
             },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: [] })
@@ -72,8 +70,7 @@ describe('watcher', () => {
         watcher.launcher = {
             run: jest.fn(),
             interface: {
-                finalise: jest.fn(),
-                updateView: jest.fn()
+                finalise: jest.fn()
             },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
@@ -107,8 +104,7 @@ describe('watcher', () => {
         watcher.launcher = {
             run: jest.fn(),
             interface: {
-                finalise: jest.fn(),
-                updateView: jest.fn()
+                finalise: jest.fn()
             },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })

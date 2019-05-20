@@ -12,7 +12,7 @@ import { runServiceHook } from './utils'
 const log = logger('@wdio/cli:Launcher')
 
 class Launcher {
-    constructor (configFile, argv) {
+    constructor (configFile, argv, isWatchMode) {
         this.argv = argv
         this.configFile = configFile
 
@@ -40,7 +40,7 @@ class Launcher {
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
 
-        this.interface = new CLInterface(config, specs, totalWorkerCnt, this.runner.stdout, this.runner.stderr)
+        this.interface = new CLInterface(config, specs, totalWorkerCnt, isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)
@@ -80,14 +80,22 @@ class Launcher {
          */
         exitHook(::this.exitHandler)
 
-        const exitCode = await this.runMode(config, caps)
+        let exitCode = await this.runMode(config, caps)
 
         /**
          * run onComplete hook
+         * even if it fails we still want to see result and end logger stream
          */
         log.info('Run onComplete hook')
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-        await config.onComplete(exitCode, config, caps, this.interface.result)
+        try {
+            await config.onComplete(exitCode, config, caps, this.interface.result)
+        } catch (err) {
+            log.error(err)
+            exitCode = 1
+        }
+
+        await logger.waitForBuffer()
 
         this.interface.finalise()
         return exitCode
@@ -103,7 +111,6 @@ class Launcher {
         if (!caps || (!this.isMultiremote && !caps.length)) {
             return new Promise((resolve) => {
                 log.error('Missing capabilities, exiting with failure')
-                this.interface.updateView()
                 return resolve(1)
             })
         }
@@ -147,7 +154,6 @@ class Launcher {
              */
             if (Object.values(this.schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
                 log.error('No specs found to run, exiting with failure')
-                this.interface.updateView()
                 return resolve(1)
             }
 
