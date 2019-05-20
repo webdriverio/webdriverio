@@ -103,11 +103,9 @@ describe('launcher', () => {
         })
 
         it('should reschedule when runner failed and retries remain', () => {
-            delete process.env.CI
             launcher.schedule = [{ cid: 0, specs: [] }]
             launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
-            process.env.CI = 1
         })
     })
 
@@ -362,6 +360,42 @@ describe('launcher', () => {
         })
         afterEach(() => {
             ensureDirSyncSpy.mockClear()
+        })
+    })
+
+    describe('run', () => {
+        let config = {}
+
+        beforeEach(() => {
+            config = {
+                onPrepare: jest.fn(),
+                onComplete: jest.fn(),
+            }
+            launcher.configParser = {
+                getCapabilities: jest.fn().mockReturnValue(0),
+                getConfig: jest.fn().mockReturnValue(config)
+            }
+            launcher.runner = { initialise: jest.fn() }
+            launcher.runMode = jest.fn().mockImplementation((config, caps) => caps)
+            launcher.interface = { finalise: jest.fn() }
+        })
+
+        it('exit code 0', async () => {
+            expect(await launcher.run()).toBe(0)
+
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
+            expect(launcher.configParser.getConfig).toBeCalledTimes(1)
+            expect(launcher.runner.initialise).toBeCalledTimes(1)
+            expect(config.onPrepare).toBeCalledTimes(1)
+            expect(launcher.runMode).toBeCalledTimes(1)
+            expect(config.onPrepare).toBeCalledTimes(1)
+            expect(launcher.interface.finalise).toBeCalledTimes(1)
+        })
+
+        it('onComplete error', async () => {
+            config.onComplete = () => { throw new Error() }
+
+            expect(await launcher.run()).toBe(1)
         })
     })
 })
