@@ -3,6 +3,7 @@ import chalk from 'chalk'
 
 const config = {}
 const specs = ['/some/path/to/test.js']
+global.console.log = jest.fn()
 
 describe('cli interface', () => {
     let wdioClInterface

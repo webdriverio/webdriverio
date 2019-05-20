@@ -15,12 +15,10 @@ export default class Watcher {
         this.argv = argv
 
         const specs = this.launcher.configParser.getSpecs()
-        this.specs = [
-            ...specs,
-            ...union(flattenDeep(
-                this.launcher.configParser.getCapabilities().map(cap => cap.specs || [])
-            ))
-        ]
+        const capSpecs = this.launcher.isMultiremote ? [] : union(flattenDeep(
+            this.launcher.configParser.getCapabilities().map(cap => cap.specs || [])
+        ))
+        this.specs = [...specs, ...capSpecs]
         this.isRunningTests = false
     }
 

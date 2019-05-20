@@ -116,6 +116,11 @@ class Launcher {
         }
 
         /**
+         * avoid retries in watch mode
+         */
+        const specFileRetries = config.watch ? 0 : config.specFileRetries
+
+        /**
          * schedule test runs
          */
         let cid = 0
@@ -126,7 +131,7 @@ class Launcher {
             this.schedule.push({
                 cid: cid++,
                 caps,
-                specs: this.configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: config.specFileRetries })),
+                specs: this.configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: specFileRetries })),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -138,7 +143,7 @@ class Launcher {
                 this.schedule.push({
                     cid: cid++,
                     caps: capabilities,
-                    specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: config.specFileRetries })),
+                    specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
                     availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0,
                     seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
