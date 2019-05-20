@@ -271,10 +271,23 @@ export default class Runner extends EventEmitter {
      */
     async endSession (shutdown) {
         /**
+         * make sure instance(s) exist and have `sessionId`
+         */
+        const hasSessionId = global.browser && (this.isMultiremote
+            /**
+             * every multiremote instance should exist and should have `sessionId`
+             */
+            ? !global.browser.instances.some(i => global.browser[i] && !global.browser[i].sessionId)
+            /**
+             * browser object should have `sessionId` in regular mode
+             */
+            : global.browser.sessionId)
+
+        /**
          * don't do anything if test framework returns after SIGINT
          * if endSession is called without shutdown flag we expect a session id
          */
-        if (!shutdown && (!global.browser || !global.browser.sessionId)) {
+        if (!shutdown && !hasSessionId) {
             return
         }
 
@@ -282,14 +295,29 @@ export default class Runner extends EventEmitter {
          * if shutdown was called but no session was created, wait until it was
          * and try to end it
          */
-        if (shutdown && (!global.browser || !global.browser.sessionId)) {
+        if (shutdown && !hasSessionId) {
             await new Promise((resolve) => setTimeout(resolve, 250))
             return this.endSession(shutdown)
         }
 
-        const capabilities = global.browser.capabilities
+        /**
+         * store capabilities for afterSession hook
+         */
+        let capabilities = global.browser.capabilities || {}
+        if (this.isMultiremote) {
+            global.browser.instances.forEach(i => { capabilities[i] = global.browser[i].capabilities })
+        }
+
         await global.browser.deleteSession()
-        delete global.browser.sessionId
+
+        /**
+         * delete session(s)
+         */
+        if (this.isMultiremote) {
+            global.browser.instances.forEach(i => { delete global.browser[i].sessionId })
+        } else {
+            delete global.browser.sessionId
+        }
 
         await runHook('afterSession', global.browser.config, capabilities, this.specs)
 
