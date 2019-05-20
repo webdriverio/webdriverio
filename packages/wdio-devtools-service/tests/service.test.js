@@ -101,6 +101,11 @@ test('initialization fails', async () => {
 test('beforeCommand', () => {
     const service = new DevToolsService()
     service.traceGatherer = { startTracing: jest.fn() }
+    service._setThrottlingProfile = jest.fn()
+
+    service.networkThrottling = 1
+    service.cpuThrottling = 2
+    service.cacheEnabled = 3
 
     service.beforeCommand()
     expect(service.traceGatherer.startTracing).toBeCalledTimes(0)
@@ -115,6 +120,7 @@ test('beforeCommand', () => {
     service.beforeCommand('navigateTo', ['some page'])
     expect(service.traceGatherer.startTracing).toBeCalledTimes(1)
     expect(service.traceGatherer.startTracing).toBeCalledWith('some page')
+    expect(service._setThrottlingProfile).toBeCalledWith(1, 2, 3)
 
     service.beforeCommand('click', ['some other page'])
     expect(service.traceGatherer.startTracing).toBeCalledTimes(2)
@@ -140,6 +146,66 @@ test('afterCommand', () => {
 
     service.afterCommand('click')
     expect(service.traceGatherer.once).toBeCalledTimes(4)
+})
+
+test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
+    const service = new DevToolsService()
+    expect(() => service._enablePerformanceAudits({ networkThrottling: 'super fast 3g' }))
+    expect(() => service._enablePerformanceAudits({ cpuThrottling: '34' }))
+})
+
+test('_enablePerformanceAudits: applies some default values', () => {
+    const service = new DevToolsService()
+    service._enablePerformanceAudits()
+
+    expect(service.networkThrottling).toBe('Good 3G')
+    expect(service.cpuThrottling).toBe(4)
+    expect(service.cacheEnabled).toBe(false)
+})
+
+test('_enablePerformanceAudits: applies some custom values', () => {
+    const service = new DevToolsService()
+    service._enablePerformanceAudits({
+        networkThrottling: 'Regular 2G',
+        cpuThrottling: 42,
+        cacheEnabled: true,
+    })
+
+    expect(service.networkThrottling).toBe('Regular 2G')
+    expect(service.cpuThrottling).toBe(42)
+    expect(service.cacheEnabled).toBe(true)
+})
+
+test('_disablePerformanceAudits', () => {
+    const service = new DevToolsService()
+    service._enablePerformanceAudits({
+        networkThrottling: 'Regular 2G',
+        cpuThrottling: 42,
+        cacheEnabled: true,
+    })
+    service._disablePerformanceAudits()
+    expect(service.networkThrottling).toBe(undefined)
+    expect(service.cpuThrottling).toBe(undefined)
+    expect(service.cacheEnabled).toBe(undefined)
+})
+
+test('_setThrottlingProfile', async () => {
+    const pageMock = { setCacheEnabled: jest.fn() }
+    const service = new DevToolsService()
+    service.devtoolsDriver = {
+        getActivePage: jest.fn().mockReturnValue(Promise.resolve(pageMock)),
+        send: jest.fn()
+    }
+
+    await service._setThrottlingProfile('Good 3G', 4, true)
+    expect(pageMock.setCacheEnabled).toBeCalledWith(true)
+    expect(service.devtoolsDriver.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 4 })
+    expect(service.devtoolsDriver.send).toBeCalledWith('Network.emulateNetworkConditions', {
+        downloadThroughput: 188743,
+        latency: 562.5,
+        offline: false,
+        uploadThroughput: 86400
+    })
 })
 
 afterEach(() => {

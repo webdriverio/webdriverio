@@ -18,7 +18,6 @@ exports.config = {
     capabilities: [{
         browserName: 'chrome'
     }],
-    services: ['devtools'],
 
     /**
      * test configurations

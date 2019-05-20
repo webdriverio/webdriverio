@@ -6,6 +6,7 @@ import Auditor from './auditor'
 import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer from './gatherer/devtools'
 import { findCDPInterface, getCDPClient } from './utils'
+import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE } from './constants'
 
 const log = logger('@wdio/devtools-service')
 const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up'
@@ -74,18 +75,25 @@ export default class DevToolsService {
             return
         }
 
+        global.browser.addCommand('enablePerformanceAudits', ::this._enablePerformanceAudits)
+        global.browser.addCommand('disablePerformanceAudits', ::this._disablePerformanceAudits)
+
         /**
-         * set flag to run performance audits for page transitions
+         * allow user to work with Puppeteer directly
          */
-        global.browser.addCommand('runPerformanceAudits', (doRun) => {
-            this.shouldRunPerformanceAudits = Boolean(doRun)
-        })
+        global.browser.addCommand('getPuppeteer',
+            () => this.devtoolsDriver)
     }
 
-    beforeCommand (commandName, params) {
-        if (!this.shouldRunPerformanceAudits || !this.traceGatherer || !TRACE_COMMANDS.includes(commandName)) {
+    async beforeCommand (commandName, params) {
+        if (!this.shouldRunPerformanceAudits || !this.traceGatherer || this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
+
+        /**
+         * set browser profile
+         */
+        this._setThrottlingProfile(this.networkThrottling, this.cpuThrottling, this.cacheEnabled)
 
         const url = commandName === 'navigateTo' ? params[0] : 'click transition'
         return this.traceGatherer.startTracing(url)
@@ -110,10 +118,51 @@ export default class DevToolsService {
             /**
              * wait until tracing stops
              */
-            this.traceGatherer.once('tracingFinished', () => {
+            this.traceGatherer.once('tracingFinished', async () => {
+                log.info('Disable throttling')
+                await this._setThrottlingProfile('online', 0, true)
+
                 log.info('continuing with next WebDriver command')
                 resolve()
             })
         })
+    }
+
+    /**
+     * set flag to run performance audits for page transitions
+     */
+    _enablePerformanceAudits ({ networkThrottling = DEFAULT_NETWORK_THROTTLING_STATE, cpuThrottling = 4, cacheEnabled = false } = {}) {
+        if (!NETWORK_STATES.hasOwnProperty(networkThrottling)) {
+            throw new Error(`Network throttling profile "${networkThrottling}" is unknown, choose between ${Object.keys(NETWORK_STATES).join(', ')}`)
+        }
+
+        if (typeof cpuThrottling !== 'number') {
+            throw new Error(`CPU throttling rate needs to be typeof number but was "${typeof cpuThrottling}"`)
+        }
+
+        this.networkThrottling = networkThrottling
+        this.cpuThrottling = cpuThrottling
+        this.cacheEnabled = Boolean(cacheEnabled)
+        this.shouldRunPerformanceAudits = true
+    }
+
+    /**
+     * custom command to disable performance audits
+     */
+    _disablePerformanceAudits () {
+        delete this.networkThrottling
+        delete this.cpuThrottling
+        delete this.cacheEnabled
+        this.shouldRunPerformanceAudits = false
+    }
+
+    /**
+     * helper method to set throttling profile
+     */
+    async _setThrottlingProfile (networkThrottling, cpuThrottling, cacheEnabled) {
+        const page = await this.devtoolsDriver.getActivePage()
+        await page.setCacheEnabled(Boolean(cacheEnabled))
+        await this.devtoolsDriver.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottling })
+        await this.devtoolsDriver.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
     }
 }
