@@ -98,19 +98,9 @@ class Launcher {
      */
     runMode (config, caps) {
         /**
-         * if it is an object run multiremote test
-         */
-        if (this.isMultiremote) {
-            return new Promise((resolve) => {
-                this.resolve = resolve
-                this.startInstance(this.configParser.getSpecs(), caps, 0)
-            })
-        }
-
-        /**
          * fail if no caps were found
          */
-        if (!caps || !caps.length) {
+        if (!caps || (!this.isMultiremote && !caps.length)) {
             return new Promise((resolve) => {
                 log.error('Missing capabilities, exiting with failure')
                 this.interface.updateView()
@@ -122,15 +112,31 @@ class Launcher {
          * schedule test runs
          */
         let cid = 0
-        for (let capabilities of caps) {
+        if (this.isMultiremote) {
+            /**
+             * Multiremote mode
+             */
             this.schedule.push({
                 cid: cid++,
-                caps: capabilities,
-                specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: config.specFileRetries })),
-                availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
-                runningInstances: 0,
-                seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+                caps,
+                specs: this.configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: config.specFileRetries })),
+                availableInstances: config.maxInstances || 1,
+                runningInstances: 0
             })
+        } else {
+            /**
+             * Regular mode
+             */
+            for (let capabilities of caps) {
+                this.schedule.push({
+                    cid: cid++,
+                    caps: capabilities,
+                    specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: config.specFileRetries })),
+                    availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
+                    runningInstances: 0,
+                    seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+                })
+            }
         }
 
         return new Promise((resolve) => {
@@ -342,16 +348,16 @@ class Launcher {
         }
         this.interface.emit('job:end', { cid, passed, retries })
 
-        // Update schedule now this process has ended
-        if (!this.isMultiremote) {
-            // get cid (capability id) from rid (runner id)
-            cid = parseInt(cid, 10)
+        /**
+         * Update schedule now this process has ended
+         */
+        // get cid (capability id) from rid (runner id)
+        cid = parseInt(cid, 10)
 
-            this.schedule[cid].availableInstances++
-            this.schedule[cid].runningInstances--
-        }
+        this.schedule[cid].availableInstances++
+        this.schedule[cid].runningInstances--
 
-        if (!this.isMultiremote && !this.runSpecs()) {
+        if (!this.runSpecs()) {
             return
         }
 
