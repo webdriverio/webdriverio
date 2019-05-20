@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.0 (2019-05-20)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`, `wdio-logger`
+  * [#3950](https://github.com/webdriverio/webdriverio/pull/3950) new logger - initial version ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-runner`, `wdio-webdriver-mock-service`
+  * [#3958](https://github.com/webdriverio/webdriverio/pull/3958) fix multiremote instances spawning ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3990](https://github.com/webdriverio/webdriverio/pull/3990) Visual regression blog ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.8.6 (2019-05-19)
 
 #### :eyeglasses: Spec Compliancy
