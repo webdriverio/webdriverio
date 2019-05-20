@@ -55,6 +55,21 @@ class JunitReporter extends WDIOReporter {
                 .property('capabilities', runner.sanitizedCapabilities)
                 .property('file', specFileName.replace(process.cwd(), '.'))
 
+            /**
+             * Add failed before and after all hooks to suite as tests.
+             */
+            const failedHooks = suite.hooks.filter(hook => hook.error && (hook.title === '"before all" hook' || hook.title === '"after all" hook'))
+            failedHooks.forEach(hook => {
+                const { title, _duration, error, state } = hook
+                suite.tests.push({
+                    _duration,
+                    title,
+                    error,
+                    state,
+                    output: []
+                })
+            })
+
             for (let testKey of Object.keys(suite.tests)) {
                 if (testKey !== 'undefined') { // fix cucumber hooks crashing reporter
                     const test = suite.tests[testKey]
