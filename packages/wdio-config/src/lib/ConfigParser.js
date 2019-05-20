@@ -186,7 +186,7 @@ export default class ConfigParser {
             }
 
             specs = [...new Set(tmpSpecs)]
-            return specs.filter(spec => exclude.indexOf(spec) < 0)
+            return specs.filter(spec => !exclude.includes(spec))
         }
 
         if (Array.isArray(capSpecs)) {
@@ -197,7 +197,7 @@ export default class ConfigParser {
             exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
         }
 
-        return specs.filter(spec => exclude.indexOf(spec) < 0)
+        return specs.filter(spec => !exclude.includes(spec))
     }
 
     /**
