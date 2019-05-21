@@ -91,6 +91,15 @@ export default class WDIOCLInterface extends EventEmitter {
         return this.log(...details)
     }
 
+    onTestError(payload) {
+        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Uknown error.' }
+        if (payload.error) {
+            error.type = payload.error.type || error.type
+            error.message = payload.error.message || error.message
+        }
+        return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.message)}`)
+    }
+
     getFilenames(specs = []) {
         if (specs.length > 0) {
             return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
@@ -162,6 +171,10 @@ export default class WDIOCLInterface extends EventEmitter {
 
         if (event.origin !== 'reporter') {
             return this.log(event.cid, event.origin, event.name, event.content)
+        }
+
+        if (event.name === 'printFailureMessage') {
+            return this.onTestError(event.content)
         }
 
         if (!this.messages[event.origin][event.name]) {

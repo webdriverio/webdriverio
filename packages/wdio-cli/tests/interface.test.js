@@ -76,6 +76,17 @@ describe('cli interface', () => {
         expect(wdioClInterface.messages).toEqual({ reporter: { foo: ['123', '456'] } })
     })
 
+    it('should print test error', () => {
+        wdioClInterface.onTestError = jest.fn()
+        wdioClInterface.onMessage({
+            origin: 'reporter',
+            name: 'printFailureMessage',
+            content: 'printFailureMessage'
+        })
+        expect(wdioClInterface.onTestError).toBeCalledWith('printFailureMessage')
+        expect(wdioClInterface.messages).toEqual({ reporter: {} })
+    })
+
     it('should print reporter messages in watch mode', () => {
         wdioClInterface.isWatchMode = true
         wdioClInterface.printReporters = jest.fn()
@@ -319,6 +330,45 @@ describe('cli interface', () => {
         it('percentCompleted without workers', () => {
             wdioClInterface.totalWorkerCnt = 0
             expect(wdioClInterface.printSummary().some(x => x.includes(0))).toBe(true)
+        })
+    })
+
+    describe('onTestError', () => {
+        it('onTestError', () => {
+            const result = wdioClInterface.onTestError({
+                cid: 'CID',
+                fullTitle: 'FULL_TITLE',
+                error: {
+                    type: 'ERROR_TYPE',
+                    message: 'ERROR_MESSAGE'
+                }
+            })
+
+            expect(result[0]).toContain('CID')
+            expect(result[1]).toContain('ERROR_TYPE')
+            expect(result[1]).toContain('ERROR_MESSAGE')
+            expect(result[1]).toContain('FULL_TITLE')
+        })
+
+        it('no error', () => {
+            const result = wdioClInterface.onTestError({
+                cid: 'CID',
+                fullTitle: 'FULL_TITLE'
+            })
+
+            expect(result[1]).toContain('Error')
+            expect(result[1]).toContain('Uknown error.')
+        })
+
+        it('string error', () => {
+            const result = wdioClInterface.onTestError({
+                cid: 'CID',
+                fullTitle: 'FULL_TITLE',
+                error: 'STRING_ERROR'
+            })
+
+            expect(result[1]).toContain('Error')
+            expect(result[1]).toContain('STRING_ERROR')
         })
     })
 })

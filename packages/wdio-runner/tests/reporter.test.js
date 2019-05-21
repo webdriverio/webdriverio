@@ -13,6 +13,8 @@ class CustomReporter {
     }
 }
 
+process.send = jest.fn()
+
 describe('BaseReporter', () => {
     it('should load all reporters', () => {
         const reporter = new BaseReporter({
@@ -109,6 +111,26 @@ describe('BaseReporter', () => {
             [['runner:start', Object.assign(payload, { cid: '0-0' })]],
             [['runner:start', Object.assign(payload, { cid: '0-0' })]]
         ])
+        expect(process.send).not.toBeCalled()
+    })
+
+    it('should send printFailureMessage', () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [
+                'dot',
+                ['dot', { foo: 'bar' }]
+            ]
+        }, '0-0')
+
+        const payload = { foo: [1, 2, 3] }
+        reporter.emit('test:fail', payload)
+        expect(reporter.reporters.map((r) => r.emit.mock.calls)).toEqual([
+            [['test:fail', Object.assign(payload, { cid: '0-0' })]],
+            [['test:fail', Object.assign(payload, { cid: '0-0' })]]
+        ])
+        expect(process.send).toBeCalledTimes(1)
+        expect(process.send.mock.calls[0][0].name).toBe('printFailureMessage')
     })
 
     it('should allow to load custom reporters', () => {
@@ -171,5 +193,9 @@ describe('BaseReporter', () => {
         setTimeout(() => (reporter.reporters[0].inSync = true), 112)
         await expect(reporter.waitForSync())
             .rejects.toEqual(new Error('Some reporters are still unsynced: CustomReporter'))
+    })
+
+    afterEach(() => {
+        process.send.mockClear()
     })
 })

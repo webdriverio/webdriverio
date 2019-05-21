@@ -1,7 +1,9 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseInstance, sanitizeCaps } from '../src/utils'
+import { runHook, initialiseInstance, sanitizeCaps, sendFailureMessage } from '../src/utils'
+
+process.send = jest.fn()
 
 describe('utils', () => {
     beforeEach(() => {
@@ -107,5 +109,48 @@ describe('utils', () => {
             ...invalidCaps,
             ...validCaps
         })).toEqual(validCaps)
+    })
+
+    describe('sendFailureMessage', () => {
+        const scenarios = [{
+            name: 'should send message on test fail',
+            event: 'test:fail',
+            calls: 1
+        }, {
+            name: 'should not send message on any other event',
+            event: 'test:pass',
+            calls: 0
+        }, {
+            name: 'should send message on before all hook failure',
+            event: 'hook:end',
+            payload: { error: true, title: '"before all" hook foobar' },
+            calls: 1
+        }, {
+            name: 'should send message on after all hook failure',
+            event: 'hook:end',
+            payload: { error: true, title: '"before all" hook foobar' },
+            calls: 1
+        }, {
+            name: 'should not send message on after all hook success',
+            event: 'hook:end',
+            payload: { error: false, title: '"before all" hook foobar' },
+            calls: 0
+        }, {
+            name: 'should not send message for other hooks',
+            event: 'hook:end',
+            payload: { error: true, title: '"after each" hook foobar' },
+            calls: 0
+        }]
+
+        scenarios.forEach(scenario => {
+            it(scenario.name, () => {
+                sendFailureMessage(scenario.event, scenario.payload)
+                expect(process.send).toHaveBeenCalledTimes(scenario.calls)
+            })
+        })
+
+        afterEach(() => {
+            process.send.mockClear()
+        })
     })
 })
