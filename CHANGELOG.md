@@ -15,6 +15,26 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.1 (2019-05-21)
+
+#### :rocket: New Feature
+* `wdio-config`
+  * [#3995](https://github.com/webdriverio/webdriverio/pull/3995) wdio-config: include and exclude at capability level ([@ergbouncex](https://github.com/ergbouncex))
+* `wdio-cli`, `wdio-runner`
+  * [#3996](https://github.com/webdriverio/webdriverio/pull/3996) Print error message on test and "before/after all" hooks failure ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#3993](https://github.com/webdriverio/webdriverio/pull/3993) wdio-junit-reporter: include before and after all failures ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3997](https://github.com/webdriverio/webdriverio/pull/3997) Docs: grammar changes to chaining selectors docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 3
+- Evan Giordanella ([@ergbouncex](https://github.com/ergbouncex))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.9.0 (2019-05-20)
 
 #### :bug: Bug Fix
