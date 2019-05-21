@@ -1,4 +1,4 @@
-import { filterPackageName, runServiceHook, getRunnerName } from '../src/utils'
+import { runOnPrepareHook, runOnCompleteHook, filterPackageName, runServiceHook, getRunnerName } from '../src/utils'
 
 test('filterPackageName', () => {
     const reporter = [
@@ -24,6 +24,37 @@ test('runServiceHook', () => {
         { onPrepare: hookFailing },
         { onComplete: hookSuccess }
     ], 'onPrepare', 1, true, 'abc')
+    expect(hookSuccess).toBeCalledTimes(1)
+    expect(hookFailing).toBeCalledTimes(1)
+})
+
+test('runOnPrepareHook', () => {
+    const hookSuccess = jest.fn()
+    const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
+
+    runOnPrepareHook([hookSuccess, hookFailing], {}, {})
+    expect(hookSuccess).toBeCalledTimes(1)
+    expect(hookFailing).toBeCalledTimes(1)
+})
+
+test('runOnCompleteHook with no failure returns 0', async () => {
+    const hookSuccess = jest.fn()
+    const hookFailing = jest.fn()
+
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {})
+
+    expect(result).not.toContain(1)
+    expect(hookSuccess).toBeCalledTimes(1)
+    expect(hookFailing).toBeCalledTimes(1)
+})
+
+test('runOnCompleteHook with failure returns 1', async () => {
+    const hookSuccess = jest.fn()
+    const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
+
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {})
+
+    expect(result).toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
     expect(hookFailing).toBeCalledTimes(1)
 })

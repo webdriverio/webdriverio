@@ -43,7 +43,8 @@ export default class ConfigParser {
             delete fileConfig.capabilities
 
             /**
-             * add service hooks and remove them from config
+             * Add hooks from the file config and remove them from file config object to avoid
+             * complications when using merge function
              */
             this.addService(fileConfig)
             for (let hookName of SUPPORTED_HOOKS) {
@@ -124,8 +125,8 @@ export default class ConfigParser {
     }
 
     /**
-     * add hooks from services to runner config
-     * @param {Object} service  a service is basically an object that contains hook methods
+     * Add hooks from an existing service to the runner config.
+     * @param {Object} service - an object that contains hook methods.
      */
     addService (service) {
         for (let hookName of SUPPORTED_HOOKS) {
