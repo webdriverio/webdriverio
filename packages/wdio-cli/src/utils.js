@@ -26,10 +26,6 @@ export async function runServiceHook (launcher, hookName, ...args) {
 export async function runOnPrepareHook(onPrepareHook, config, capabilities) {
     const catchFn = (e) => log.error(`Error in onPrepareHook: ${e.stack}`)
 
-    if (!onPrepareHook || onPrepareHook.length === 0) {
-        return
-    }
-
     return Promise.all(onPrepareHook.map((hook) => {
         try {
             return hook(config, capabilities)
@@ -48,10 +44,6 @@ export async function runOnPrepareHook(onPrepareHook, config, capabilities) {
  * @param {*} results
  */
 export async function runOnCompleteHook(onCompleteHook, config, capabilities, exitCode, results) {
-    if (!onCompleteHook) {
-        return
-    }
-
     return Promise.all(onCompleteHook.map((hook) => {
         try {
             hook(exitCode, config, capabilities, results)
