@@ -15,7 +15,8 @@ export const SUPPORTED_REPORTER = [
     ' reportportal - https://www.npmjs.com/package/wdio-reportportal-reporter',
     ' video - https://www.npmjs.com/package/wdio-video-reporter',
     ' html - https://www.npmjs.com/package/@rpii/wdio-html-reporter',
-    ' json - https://www.npmjs.com/package/wdio-json-reporter'
+    ' json - https://www.npmjs.com/package/wdio-json-reporter',
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter'
 ]
 
 export const SUPPORTED_SERVICES = [
