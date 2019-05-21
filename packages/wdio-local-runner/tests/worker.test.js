@@ -27,6 +27,7 @@ describe('handleMessage', () => {
                 server: { foo: 'bar' }
             }
         )
+        worker.emit = jest.fn()
         const payload = {
             name: 'sessionStarted',
             content: {
@@ -41,6 +42,7 @@ describe('handleMessage', () => {
             foo: 'bar',
             bar: 'foo'
         })
+        expect(worker.emit).not.toBeCalled()
     })
 
     it('handle debug command called within worker process', async () => {

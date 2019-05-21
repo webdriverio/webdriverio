@@ -49,7 +49,11 @@ export class AppiumLauncher {
         })
 
         process.once('exit', (exitCode) => {
-            callback(new Error(`Appium exited before timeout (exit code: ${exitCode})`), null)
+            let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
+            if (exitCode == 2) {
+                errorMessage += ' - Check that you don\'t already have a running Appium service.'
+            }
+            callback(new Error(errorMessage), null)
         })
     }
 

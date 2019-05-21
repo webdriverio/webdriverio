@@ -25,6 +25,9 @@ const pluginMocks = {
         testNoFailures: {
             run() { return 0 }
         },
+        testWithFailures: {
+            run() { return 123 }
+        },
         testThrows: {
             run() { throw new Error('framework testThrows failed') }
         }

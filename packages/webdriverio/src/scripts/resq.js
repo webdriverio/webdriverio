@@ -2,8 +2,8 @@ export const waitToLoadReact = function waitToLoadReact () {
     window.resq.waitToLoadReact()
 }
 
-export const react$ = function react$ (selector, props = {}, state = {}) {
-    let element = window.resq.resq$(selector)
+export const react$ = function react$ (selector, props = {}, state = {}, reactElement) {
+    let element = window.resq.resq$(selector, reactElement)
 
     if (Object.keys(props).length) {
         element = element.byProps(props)
@@ -22,8 +22,8 @@ export const react$ = function react$ (selector, props = {}, state = {}) {
     return element.isFragment ? element.node[0] : element.node
 }
 
-export const react$$ = function react$$ (selector, props, state) {
-    let elements = window.resq.resq$$(selector)
+export const react$$ = function react$$ (selector, props, state, reactElement) {
+    let elements = window.resq.resq$$(selector, reactElement)
 
     if (Object.keys(props).length) {
         elements = elements.byProps(props)

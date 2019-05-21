@@ -59,11 +59,11 @@ export default class Runner extends EventEmitter {
         this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
-        this.reporter = new BaseReporter(this.config, this.cid, this.caps)
-        this.inWatchMode = Boolean(this.config.watch)
-
         await runHook('beforeSession', this.config, this.caps, this.specs)
         const browser = await this._initSession(this.config, this.caps)
+
+        this.reporter = new BaseReporter(this.config, this.cid, browser.capabilities)
+        this.inWatchMode = Boolean(this.config.watch)
 
         /**
          * return if session initialisation failed
@@ -103,7 +103,7 @@ export default class Runner extends EventEmitter {
                     caps[browserName] = browser[browserName].capabilities
                     return caps
                 }, {})
-                : browser.options.capabilities,
+                : browser.capabilities,
             retry: (this.config.specFileRetries || 0) - (retries || 0)
         })
 
@@ -271,10 +271,23 @@ export default class Runner extends EventEmitter {
      */
     async endSession (shutdown) {
         /**
+         * make sure instance(s) exist and have `sessionId`
+         */
+        const hasSessionId = global.browser && (this.isMultiremote
+            /**
+             * every multiremote instance should exist and should have `sessionId`
+             */
+            ? !global.browser.instances.some(i => global.browser[i] && !global.browser[i].sessionId)
+            /**
+             * browser object should have `sessionId` in regular mode
+             */
+            : global.browser.sessionId)
+
+        /**
          * don't do anything if test framework returns after SIGINT
          * if endSession is called without shutdown flag we expect a session id
          */
-        if (!shutdown && (!global.browser || !global.browser.sessionId)) {
+        if (!shutdown && !hasSessionId) {
             return
         }
 
@@ -282,15 +295,31 @@ export default class Runner extends EventEmitter {
          * if shutdown was called but no session was created, wait until it was
          * and try to end it
          */
-        if (shutdown && (!global.browser || !global.browser.sessionId)) {
+        if (shutdown && !hasSessionId) {
             await new Promise((resolve) => setTimeout(resolve, 250))
             return this.endSession(shutdown)
         }
 
-        await global.browser.deleteSession()
-        delete global.browser.sessionId
+        /**
+         * store capabilities for afterSession hook
+         */
+        let capabilities = global.browser.capabilities || {}
+        if (this.isMultiremote) {
+            global.browser.instances.forEach(i => { capabilities[i] = global.browser[i].capabilities })
+        }
 
-        await runHook('afterSession', global.browser.config, this.caps, this.specs)
+        await global.browser.deleteSession()
+
+        /**
+         * delete session(s)
+         */
+        if (this.isMultiremote) {
+            global.browser.instances.forEach(i => { delete global.browser[i].sessionId })
+        } else {
+            delete global.browser.sessionId
+        }
+
+        await runHook('afterSession', global.browser.config, capabilities, this.specs)
 
         if (shutdown) {
             return this._shutdown()

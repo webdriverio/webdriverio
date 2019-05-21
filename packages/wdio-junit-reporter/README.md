@@ -32,7 +32,7 @@ are examples of XML output given different scenarios in the spec file.
 ```javascript
 describe('a test suite', () => {
     it('a test case', function () {
-      // do something 
+      // do something
       // assert something
     });
 });
@@ -57,7 +57,7 @@ becomes
 describe('a test suite', () => {
     describe('a nested test suite', function() {
         it('a test case', function () {
-          // do something 
+          // do something
           // assert something
         });
     });
@@ -90,13 +90,13 @@ becomes
 ```javascript
 describe('a test suite', () => {
     it('a test case', function () {
-      // do something 
+      // do something
       // assert something
     });
 });
 describe('a second test suite', () => {
     it('a second test case', function () {
-      // do something 
+      // do something
       // assert something
     });
 });
@@ -153,8 +153,8 @@ module.exports = {
         'dot',
         ['junit', {
             outputDir: './',
-            outputFileFormat: function(opts) { // optional
-                return `results-${opts.cid}.${opts.capabilities}.xml`
+            outputFileFormat: function(options) { // optional
+                return `results-${options.cid}.${options.capabilities}.xml`
             }
         }]
     ],
@@ -174,15 +174,16 @@ Required
 Define the xml files created after the test execution.
 
 Type: `Object`<br>
-Default: ``function(opts){return `WDIO.xunit.${opts.capabilities}.${opts.cid}.xml`}``
+Default: ``function(opts){return `wdio-${this.cid}-${name}-reporter.log`}``
 
 ```
 outputFileFormat: {
-    single: function (config) {
+    single: function (options) {
         return 'mycustomfilename.xml';
     }
 }
 ```
+> Note: `options.capabilities` is your capabilities object for that runner, so specifying `${options.capabilities}` in your string will return [Object object]. You must specify which properties of capabilities you want in your filename.
 
 ### suiteNameFormat
 

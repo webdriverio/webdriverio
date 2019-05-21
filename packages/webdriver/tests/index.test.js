@@ -3,6 +3,14 @@ import logger from '@wdio/logger'
 
 import WebDriver from '../src'
 
+const sessionOptions = {
+    protocol: 'http',
+    hostname: 'localhost',
+    port: 4444,
+    path: '/',
+    sessionId: 'foobar'
+}
+
 test('should allow to create a new session using jsonwire caps', async () => {
     await WebDriver.newSession({
         path: '/',
@@ -62,17 +70,51 @@ test('should be possible to set logLevel', async () => {
 })
 
 test('should allow to attach to existing session', async () => {
-    const client = WebDriver.attachToSession({
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4444,
-        path: '/',
-        sessionId: 'foobar'
-    })
-
+    const client = WebDriver.attachToSession({ ...sessionOptions })
     await client.getUrl()
     const req = request.mock.calls[0][0]
     expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
+})
+
+test('should allow to attach to existing session - W3C', async () => {
+    const client = WebDriver.attachToSession({ ...sessionOptions })
+    await client.getUrl()
+
+    expect(client.options.isChrome).toBeFalsy()
+    expect(client.options.isMobile).toBeFalsy()
+    expect(client.options.isSauce).toBeFalsy()
+    expect(client.getApplicationCacheStatus).toBeFalsy()
+    expect(client.takeElementScreenshot).toBeTruthy()
+    expect(client.getDeviceTime).toBeFalsy()
+})
+
+test('should allow to attach to existing session - non W3C', async () => {
+    const client = WebDriver.attachToSession({ ...sessionOptions,
+        isW3C: false,
+        isSauce: true,
+    })
+
+    await client.getUrl()
+
+    expect(client.options.isSauce).toBe(true)
+    expect(client.getApplicationCacheStatus).toBeTruthy()
+    expect(client.takeElementScreenshot).toBeFalsy()
+    expect(client.getDeviceTime).toBeFalsy()
+})
+
+test('should allow to attach to existing session - mobile', async () => {
+    const client = WebDriver.attachToSession({ ...sessionOptions,
+        isChrome: true,
+        isMobile: true
+    })
+
+    await client.getUrl()
+
+    expect(client.options.isChrome).toBe(true)
+    expect(client.options.isMobile).toBe(true)
+    expect(client.getApplicationCacheStatus).toBeTruthy()
+    expect(client.takeElementScreenshot).toBeTruthy()
+    expect(client.getDeviceTime).toBeTruthy()
 })
 
 test('should fail attaching to session if sessionId is not given', () => {

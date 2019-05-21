@@ -40,6 +40,18 @@ describe('wdio-applitools-service', () => {
         expect(service.viewport).toEqual({ width: 1440, height: 123 })
     })
 
+    it('should prefer options before environment variable', () => {
+        const service = new ApplitoolsService()
+        process.env.APPLITOOLS_KEY = 'foobarenv'
+        process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
+        service.beforeSession({
+            applitoolsKey: 'foobar',
+            applitoolsServerUrl: 'foobarserver'
+        })
+        expect(service.eyes.setApiKey).toBeCalledWith('foobar')
+        expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver')
+    })
+
     describe('before hook', () => {
         it('should do nothing if key was not applied', () => {
             const service = new ApplitoolsService()

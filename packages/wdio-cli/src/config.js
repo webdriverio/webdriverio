@@ -14,7 +14,10 @@ export const SUPPORTED_REPORTER = [
     ' concise - https://www.npmjs.com/package/@wdio/concise-reporter',
     ' reportportal - https://www.npmjs.com/package/wdio-reportportal-reporter',
     ' video - https://www.npmjs.com/package/wdio-video-reporter',
-    ' html - https://www.npmjs.com/package/@rpii/wdio-html-reporter'
+    ' html - https://www.npmjs.com/package/@rpii/wdio-html-reporter',
+    ' json - https://www.npmjs.com/package/wdio-json-reporter',
+    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
+    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter',
 ]
 
 export const SUPPORTED_SERVICES = [
@@ -148,7 +151,7 @@ export const CLI_PARAMS = [{
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
-    message: 'Where should your tests be launched',
+    message: 'Where should your tests be launched?',
     choices: SUPPORTED_RUNNERS,
     filter: (runner) => runner.split(/-/)[0].trim()
 }, {
@@ -220,7 +223,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'hostname',
     message: 'What is the IP or URI to your Selenium standalone or grid server?',
-    default: '0.0.0.0',
+    default: 'localhost',
     when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',

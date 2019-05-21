@@ -27,7 +27,7 @@ class MockProcess {
     _eventHandler = new eventHandler()
     once() {
         this._eventHandler.trigger('data', '[Appium] Welcome to Appium v1.11.1')
-        this._eventHandler.trigger('data', '[Appium] Appium REST http interface listener started on 0.0.0.0:4723')
+        this._eventHandler.trigger('data', '[Appium] Appium REST http interface listener started on localhost:4723')
     }
     removeListener() {}
     kill() {}
@@ -36,9 +36,14 @@ class MockProcess {
 }
 
 class MockFailingProcess extends MockProcess {
+    constructor(exitCode = 2) {
+        super()
+        this.exitCode = exitCode
+    }
+
     once(event, callback) {
         if (event === 'exit') {
-            callback(2)
+            callback(this.exitCode)
         }
     }
 }
@@ -93,7 +98,7 @@ describe('Appium launcher', () => {
         })
 
         test('should fail if Appium exits', async () => {
-            childProcess.spawn.mockReturnValue(new MockFailingProcess())
+            childProcess.spawn.mockReturnValue(new MockFailingProcess(1))
 
             let error
             try {
@@ -101,7 +106,20 @@ describe('Appium launcher', () => {
             } catch (e) {
                 error = e
             }
-            const expectedError = new Error('Appium exited before timeout (exit code: 2)')
+            const expectedError = new Error('Appium exited before timeout (exit code: 1)')
+            expect(error).toEqual(expectedError)
+        })
+
+        test('should fail and error message if Appium already runs', async () => {
+            childProcess.spawn.mockReturnValue(new MockFailingProcess(2))
+
+            let error
+            try {
+                await launcher.onPrepare({})
+            } catch (e) {
+                error = e
+            }
+            const expectedError = new Error("Appium exited before timeout (exit code: 2) - Check that you don't already have a running Appium service.")
             expect(error).toEqual(expectedError)
         })
     })

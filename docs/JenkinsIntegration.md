@@ -30,6 +30,7 @@ Then make sure it grabs always the newest version of your repository:
 ![Jenkins Git Setup](/img/jenkins/gitsetup.png "Jenkins Git Setup")
 
 Now the important part: create a build step to execute shell commands. That build step needs to build your project. Since this demo project only tests an external app we don't need to build anything but install the node dependencies and run our test command `npm test` which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`.
+If you have installed plugin like AnsiColor but logs are still not colored, run tests with env variable `FORCE_COLOR=1`, example : `FORCE_COLOR=1 npm test`.
 
 ![Build Step](/img/jenkins/runjob.png "Build Step")
 

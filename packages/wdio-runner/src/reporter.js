@@ -1,6 +1,7 @@
 import path from 'path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
+import { sendFailureMessage } from './utils'
 
 const log = logger('@wdio/runner')
 
@@ -17,7 +18,6 @@ export default class BaseReporter {
     constructor (config, cid, caps) {
         this.config = config
         this.cid = cid
-        this.reporters = config.reporters.map(::this.initReporter)
         this.caps = caps
 
         /**
@@ -25,6 +25,10 @@ export default class BaseReporter {
          */
         this.reporterSyncInterval = this.config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
         this.reporterSyncTimeout = this.config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
+
+        // ensure all properties are set before initializing the reporters
+        this.reporters = config.reporters.map(::this.initReporter)
+
     }
 
     /**
@@ -35,11 +39,18 @@ export default class BaseReporter {
      */
     emit (e, payload) {
         payload.cid = this.cid
+
+        /**
+         * Send failure message (only once) in case of test or hook failure
+         */
+        sendFailureMessage(e, payload)
+
         this.reporters.forEach((reporter) => reporter.emit(e, payload))
     }
 
     getLogFile(name) {
-        let options = this.config
+        // clone the config to avoid changing original properties
+        let options = Object.assign({}, this.config)
         let filename = `wdio-${this.cid}-${name}-reporter.log`
 
         const reporterOptions = this.config.reporters.find((reporter) => (

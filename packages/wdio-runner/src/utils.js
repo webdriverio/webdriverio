@@ -6,6 +6,7 @@ import { DEFAULT_CONFIGS } from '@wdio/config'
 const log = logger('@wdio/local-runner:utils')
 
 const MERGE_OPTIONS = { clone: false }
+const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
 /**
  * run before/after session hook
@@ -100,4 +101,19 @@ export function filterLogTypes(excludeDriverLogs, driverLogTypes) {
     }
 
     return logTypes
+}
+
+/**
+ * Send event to WDIOCLInterface if test or before/after all hook failed
+ * @param {string} e        event
+ * @param {object} payload  payload
+ */
+export function sendFailureMessage(e, payload) {
+    if (e === 'test:fail' || (e === 'hook:end' && payload.error && mochaAllHooks.some(hook => payload.title.startsWith(hook)))) {
+        process.send({
+            origin: 'reporter',
+            name: 'printFailureMessage',
+            content: payload
+        })
+    }
 }

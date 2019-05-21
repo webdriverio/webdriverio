@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { Eyes, Target } from '@wdio/eyes.webdriverio'
+import { Eyes, Target } from '@applitools/eyes-webdriverio'
 
 const log = logger('@wdio/applitools-service')
 
@@ -17,8 +17,8 @@ export default class ApplitoolsService {
      * set API key in onPrepare hook and start test
      */
     beforeSession (config) {
-        const key = process.env.APPLITOOLS_KEY || config.applitoolsKey
-        const serverUrl = process.env.APPLITOOLS_SERVER_URL || config.applitoolsServerUrl
+        const key = config.applitoolsKey || process.env.APPLITOOLS_KEY
+        const serverUrl = config.applitoolsServerUrl || process.env.APPLITOOLS_SERVER_URL
         const applitoolsConfig = config.applitools || {}
 
         if (!key) {

@@ -21,7 +21,7 @@ Default: `http`
 Host of your driver server.
 
 Type: `String`<br>
-Default: `0.0.0.0`
+Default: `localhost`
 
 ### port
 Port your driver server is on.
@@ -123,7 +123,7 @@ Type: `Object`<br>
 Default: `{}`
 
 ### capabilities
-Like the capabilities section described above, except with the option to specifiy either a [multiremote](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
+Like the capabilities section described above, except with the option to specify either a [multiremote](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
 
 Type: `Object`|`Object[]`<br>
 Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
@@ -197,10 +197,42 @@ reporters: [
 ```
 
 ### execArgv
-Node arguments to specify when launching child processes
+Node arguments to specify when launching child processes.
 
 Type: `String[]`
 Default: `null`
+
+### user
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com/), [Browserstack](https://www.browserstack.com/) or [TestingBot](https://testingbot.com/) accounts). If set, WebdriverIO will automatically set connection options for you.
+
+Type: `String`
+Default: `null`
+
+### key
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com/), [Browserstack](https://www.browserstack.com/) or [TestingBot](https://testingbot.com/) accounts). If set, WebdriverIO will automatically set connection options for you.
+
+Type: `String`
+Default: `null`
+
+### region
+If running on Saue Labs you can choose to run tests between different datacenters: US or EU. To change your region to EU add `region: 'eu'` to your config.
+
+__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+
+Type: `String`<br>
+Default: `us`
+
+*(only for vm and or em/simulators)*
+
+### headless
+Sauce Labs provides an [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing) that allows you to run Chrome and Firefox tests headless.
+
+__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+
+Type: `Boolean`<br>
+Default: `false`
+
+*(only for vm and or em/simulators)*
 
 ## Hooks
 

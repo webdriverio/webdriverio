@@ -102,7 +102,7 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toContain(__filename)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).toContain(path.join(__dirname, 'validateConfig.test.js'))
+            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.js'))
             expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
         })
 
@@ -231,6 +231,16 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs([INDEX_PATH], [__filename])
             expect(specs).not.toContain(__filename)
             expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.js'))
+            expect(specs).toContain(INDEX_PATH)
+        })
+
+        it('should exclude/include capability excludes in suites', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ suite: ['unit', 'mobile'] })
+
+            const specs = configParser.getSpecs([INDEX_PATH], [path.join(__dirname, 'detectBackend.test.js')])
+            expect(specs).not.toContain(path.join(__dirname, 'detectBackend.test.js'))
             expect(specs).toContain(INDEX_PATH)
         })
 

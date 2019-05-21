@@ -15,6 +15,210 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.1 (2019-05-21)
+
+#### :rocket: New Feature
+* `wdio-config`
+  * [#3995](https://github.com/webdriverio/webdriverio/pull/3995) wdio-config: include and exclude at capability level ([@ergbouncex](https://github.com/ergbouncex))
+* `wdio-cli`, `wdio-runner`
+  * [#3996](https://github.com/webdriverio/webdriverio/pull/3996) Print error message on test and "before/after all" hooks failure ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#3993](https://github.com/webdriverio/webdriverio/pull/3993) wdio-junit-reporter: include before and after all failures ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3997](https://github.com/webdriverio/webdriverio/pull/3997) Docs: grammar changes to chaining selectors docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 3
+- Evan Giordanella ([@ergbouncex](https://github.com/ergbouncex))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.9.0 (2019-05-20)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`, `wdio-logger`
+  * [#3950](https://github.com/webdriverio/webdriverio/pull/3950) new logger - initial version ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-runner`, `wdio-webdriver-mock-service`
+  * [#3958](https://github.com/webdriverio/webdriverio/pull/3958) fix multiremote instances spawning ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3990](https://github.com/webdriverio/webdriverio/pull/3990) Visual regression blog ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+## v5.8.6 (2019-05-19)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3977](https://github.com/webdriverio/webdriverio/pull/3977) Fix queryAppState protocol ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3986](https://github.com/webdriverio/webdriverio/pull/3986) feat: add React selectors to element commands ([@baruchvlz](https://github.com/baruchvlz))
+
+#### :memo: Documentation
+* [#3988](https://github.com/webdriverio/webdriverio/pull/3988) typings: add automationName desired capability ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+## v5.8.5 (2019-05-17)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`, `webdriverio`
+  * [#3979](https://github.com/webdriverio/webdriverio/pull/3979) Add getWindowSize command ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#3983](https://github.com/webdriverio/webdriverio/pull/3983) Fix xpath selector start ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#3978](https://github.com/webdriverio/webdriverio/pull/3978) Fix attach to session w3c handling ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.8.4 (2019-05-15)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3964](https://github.com/webdriverio/webdriverio/pull/3964) webdriverio: Modify findStrategy.js to work with Youi.tv selectors. ([@richmond998999](https://github.com/richmond998999))
+
+#### :bug: Bug Fix
+* `wdio-selenium-standalone-service`
+  * [#3970](https://github.com/webdriverio/webdriverio/pull/3970) wdio-selenium-standalone: fix watch mode ([@artur-michalak](https://github.com/artur-michalak))
+
+#### :nail_care: Polish
+* `wdio-testingbot-service`
+  * [#3946](https://github.com/webdriverio/webdriverio/pull/3946) wdio-testingbot-service: split up code between Launcher and Service ([@testingbot](https://github.com/testingbot))
+* `wdio-appium-service`
+  * [#3947](https://github.com/webdriverio/webdriverio/pull/3947) wdio-appium-service: Better handling of exit code = 2 ([@MortenGregersen](https://github.com/MortenGregersen))
+
+#### :memo: Documentation
+* Other
+  * [#3967](https://github.com/webdriverio/webdriverio/pull/3967) Update TypeScript.md file require ([@nekiscz](https://github.com/nekiscz))
+  * [#3949](https://github.com/webdriverio/webdriverio/pull/3949) Fix 'specifiy' typo ([@klamping](https://github.com/klamping))
+* `webdriverio`
+  * [#3953](https://github.com/webdriverio/webdriverio/pull/3953) webdriverio: Update types for attach and remote methods ([@MunGell](https://github.com/MunGell))
+  * [#3944](https://github.com/webdriverio/webdriverio/pull/3944) Documentation update for react$ and react$ ([@Raulster24](https://github.com/Raulster24))
+  * [#3941](https://github.com/webdriverio/webdriverio/pull/3941) webdriverio: add attach method to TypeScript definitions file ([@MunGell](https://github.com/MunGell))
+
+#### :house: Internal
+* `wdio-jasmine-framework`
+  * [#3968](https://github.com/webdriverio/webdriverio/pull/3968) Move `@types/jasmine` to devDependency ([@kfrancois](https://github.com/kfrancois))
+* `wdio-cli`
+  * [#3963](https://github.com/webdriverio/webdriverio/pull/3963) Add wdio-json-reporter to supported reporters ([@fijijavis](https://github.com/fijijavis))
+
+#### Committers: 10
+- David Nekovář ([@nekiscz](https://github.com/nekiscz))
+- Jim Davis ([@fijijavis](https://github.com/fijijavis))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Koen François ([@kfrancois](https://github.com/kfrancois))
+- Morten Bjerg Gregersen ([@MortenGregersen](https://github.com/MortenGregersen))
+- Rahul Srivastava ([@Raulster24](https://github.com/Raulster24))
+- Shmavon Gazanchyan ([@MunGell](https://github.com/MunGell))
+- TestingBot ([@testingbot](https://github.com/testingbot))
+- [@artur-michalak](https://github.com/artur-michalak)
+- [@richmond998999](https://github.com/richmond998999)
+
+## v5.8.3 (2019-05-07)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3936](https://github.com/webdriverio/webdriverio/pull/3936) Fix determining w3c for browserstack ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 1
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+## v5.8.2 (2019-05-06)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriverio`
+  * [#3930](https://github.com/webdriverio/webdriverio/pull/3930) Fix/is displayed chrome ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#3922](https://github.com/webdriverio/webdriverio/pull/3922) webdriverio: throw INVALID_SELECTOR_ERROR in correct spot ([@kellyselden](https://github.com/kellyselden))
+
+#### :memo: Documentation
+* `webdriver`
+  * [#3918](https://github.com/webdriverio/webdriverio/pull/3918) webdriver: Add return values for some commands ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 4
+- Kelly Selden ([@kellyselden](https://github.com/kellyselden))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Tadashi Nemoto ([@tadashi0713](https://github.com/tadashi0713))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+## v5.8.1 (2019-05-01)
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-utils`
+  * [#3908](https://github.com/webdriverio/webdriverio/pull/3908) Propagate given capabilities to reporter ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`, `wdio-cli`, `wdio-config`, `wdio-webdriver-mock-service`, `webdriver`
+  * [#3907](https://github.com/webdriverio/webdriverio/pull/3907) Don't try to connect to localhost anymore ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-sauce-service`
+  * [#3909](https://github.com/webdriverio/webdriverio/pull/3909) move cloud service documentation to the options page ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-applitools-service`
+  * [#3910](https://github.com/webdriverio/webdriverio/pull/3910) Replace own fork with Applitools package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## v5.8.0 (2019-04-30)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#3886](https://github.com/webdriverio/webdriverio/pull/3886) webdriver: fix appium protocols ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#3862](https://github.com/webdriverio/webdriverio/pull/3862) Fixes to react$ and react$ scripts ([@baruchvlz](https://github.com/baruchvlz))
+
+#### :bug: Bug Fix
+* `wdio-config`, `wdio-spec-reporter`
+  * [#3876](https://github.com/webdriverio/webdriverio/pull/3876) Fix headless endpoint ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#3874](https://github.com/webdriverio/webdriverio/pull/3874) Don't fail element command in IE ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-logger`
+  * [#3871](https://github.com/webdriverio/webdriverio/pull/3871) wdio-logger: fix setting log level for subloggers and docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`, `wdio-runner`
+  * [#3892](https://github.com/webdriverio/webdriverio/pull/3892) junit-reporter: fix log file names ([@naddison](https://github.com/naddison))
+* `wdio-local-runner`
+  * [#3882](https://github.com/webdriverio/webdriverio/pull/3882) wdio-local-runner: unpipe streams in the end ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-local-runner`, `wdio-logger`, `wdio-runner`
+  * [#3872](https://github.com/webdriverio/webdriverio/pull/3872) apply wdioLogLevel before starting workers ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-runner`
+  * [#3870](https://github.com/webdriverio/webdriverio/pull/3870) wdio-runner: catch getLogTypes error ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#3900](https://github.com/webdriverio/webdriverio/pull/3900) blog: add blog for react selector command ([@baruchvlz](https://github.com/baruchvlz))
+* [#3885](https://github.com/webdriverio/webdriverio/pull/3885) Update JenkinsIntegration.md ([@YannVerr](https://github.com/YannVerr))
+
+#### :house: Internal
+* `wdio-sync`
+  * [#3898](https://github.com/webdriverio/webdriverio/pull/3898) wdio-sync: bump fibers version to 4 ([@baruchvlz](https://github.com/baruchvlz))
+* `wdio-appium-service`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-runner`, `wdio-selenium-standalone-service`
+  * [#3891](https://github.com/webdriverio/webdriverio/pull/3891) Fix unit tests when contributing on Windows 10 ([@naddison](https://github.com/naddison))
+
+#### Committers: 5
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nikolas Addison ([@naddison](https://github.com/naddison))
+- Yann Verreault ([@YannVerr](https://github.com/YannVerr))
+
 ## 5.7.15 (2019-04-19)
 
 #### :bug: Bug Fix
