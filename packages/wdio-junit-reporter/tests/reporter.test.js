@@ -4,9 +4,11 @@ import WDIOJunitReporter from '../src'
 
 import runnerLog from './__fixtures__/runner.json'
 import suitesLog from './__fixtures__/suites.json'
+import suitesHooksLog from './__fixtures__/suites-hooks.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 
 const testLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter.txt'))
+const testHooksLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-hooks.txt'))
 const testMultipleLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-multiple-suites.txt'))
 const testErrorOptionsSetLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-error-options-used.txt'))
 
@@ -71,6 +73,13 @@ describe('wdio-junit-reporter', () => {
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter.prepareXml(runnerLog).replace(/\s/g, '')).toBe(testLog.toString().replace(/\s/g, ''))
+    })
+
+    it('generates xml output if before all hook failed', () => {
+        reporter.suites = suitesHooksLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.prepareXml(runnerLog).replace(/\s/g, '')).toBe(testHooksLog.toString().replace(/\s/g, ''))
     })
 
     it('generates xml output for multiple describe blocks', () => {
