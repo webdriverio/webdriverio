@@ -55,6 +55,7 @@ WebdriverIO CLI runner
 Usage: wdio [options] [configFile]
 Usage: wdio config
 Usage: wdio repl <browserName>
+Usage: wdio install <type> <name>
 
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
