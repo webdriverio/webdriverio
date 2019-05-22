@@ -42,6 +42,16 @@ describe('monad', () => {
         expect(client.foo()).toBe('bar')
     })
 
+    it('should allow to overwrite command in base prototype', () => {
+        const monad = webdriverMonad({ isW3C: true }, (client) => client, { ...prototype })
+        const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
+        const client = monad(sessionId, commandWrapperMock)
+        const fn = () => 'bar'
+
+        client.overwriteCommand('someFunc', fn)
+        expect(client.someFunc()).toBe('bar')
+    })
+
     it('should add element commands to the __propertiesObject__ cache', () => {
         const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
         const client = monad(sessionId)
