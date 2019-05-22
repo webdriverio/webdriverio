@@ -95,7 +95,17 @@ Keep this running in the background and open a new terminal window. Next step is
 
 ### Download WebdriverIO
 
-By calling:
+Before installing dependencies, we need to initialize an empty NPM project (this will allow us to the cli to install needed dependencies to our local project).
+
+To do this, run:
+
+```sh
+$ npm init -y
+```
+
+The `-y` will answer 'yes' to all the prompts, giving us a standard NPM project. Feel free to omit the `-y` if you'd like to specify your own project details.
+
+Next, install `webdriverio` by calling:
 
 ```sh
 $ npm install webdriverio
@@ -147,16 +157,6 @@ Yay, Congratulations! You've just run your first automation script with Webdrive
 *(If you haven't already, navigate back to the project root directory)*
 
 This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend using the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up, the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package.
-
-Before installing the test runner, we need to initialize an empty NPM project (this will allow us to the cli to install needed dependencies).
-
-To do this, run:
-
-```sh
-$ npm init -y
-```
-
-The `-y` will answer 'yes' to all the prompts, giving us a standard NPM project. Feel free to omit the `-y` if you'd like to specify your own project details.
 
 Now we need to install the cli. Do that by running:
 
