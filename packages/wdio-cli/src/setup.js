@@ -28,14 +28,14 @@ export default function setup () {
         }
         console.log('\nPackages installed successfully, creating configuration file...') // eslint-disable-line no-console
 
-        renderConfigurationFile(answers)
+        renderConfigurationFile({ ...answers, logLevel: 'info' })
         process.exit(0)
     })
 }
 
 function renderConfigurationFile (answers) {
-    let tpl = fs.readFileSync(path.join(__dirname, '/templates/wdio.conf.tpl.ejs'), 'utf8')
-    let renderedTpl = ejs.render(tpl, { answers })
+    const tpl = fs.readFileSync(path.join(__dirname, '/templates/wdio.conf.tpl.ejs'), 'utf8')
+    const renderedTpl = ejs.render(tpl, { answers })
     fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
     console.log(CONFIG_HELPER_SUCCESS_MESSAGE) // eslint-disable-line no-console
 }

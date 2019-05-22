@@ -314,12 +314,6 @@ export const QUESTIONNAIRE = [{
     default: './',
     when: (answers) => answers.reporters.includes('mochawesome')
 }, {
-    type: 'list',
-    name: 'logLevel',
-    message: 'Level of logging verbosity',
-    default: 'info',
-    choices: LOG_LEVELS
-}, {
     type: 'input',
     name: 'baseUrl',
     message: 'What is the base url?',
