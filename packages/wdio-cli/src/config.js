@@ -162,11 +162,6 @@ export const QUESTIONNAIRE = [{
     choices: SUPPORTED_RUNNERS,
     filter: (runner) => runner.split(/-/)[0].trim()
 }, {
-    type: 'confirm',
-    name: 'installRunner',
-    message: 'Shall I install the runner plugin for you?',
-    default: true
-}, {
     type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',
@@ -250,11 +245,6 @@ export const QUESTIONNAIRE = [{
     message: 'Which framework do you want to use?',
     choices: SUPPORTED_FRAMEWORKS
 }, {
-    type: 'confirm',
-    name: 'installFramework',
-    message: 'Shall I install the framework adapter for you?',
-    default: true
-}, {
     type: 'list',
     name: 'executionMode',
     message: 'Do you want to run WebdriverIO commands synchronous or asynchronous?',
@@ -288,12 +278,6 @@ export const QUESTIONNAIRE = [{
     default: SUPPORTED_REPORTER.filter(reporter => reporter.includes('spec-reporter')),
     filter: filterPackageName('reporter')
 }, {
-    type: 'confirm',
-    name: 'installReporter',
-    message: 'Shall I install the reporter library for you?',
-    default: true,
-    when: (answers) => answers.reporters.length > 0
-}, {
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
@@ -311,12 +295,6 @@ export const QUESTIONNAIRE = [{
 
         return result
     }
-}, {
-    type: 'confirm',
-    name: 'installServices',
-    message: 'Shall I install the services for you?',
-    default: true,
-    when: (answers) => answers.services.length > 0
 }, {
     type: 'input',
     name: 'outputDir',

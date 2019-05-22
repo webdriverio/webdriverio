@@ -9,34 +9,24 @@ import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } fro
 export default function setup () {
     console.log(CONFIG_HELPER_INTRO) // eslint-disable-line no-console
     inquirer.prompt(QUESTIONNAIRE).then((answers) => {
-        let packagesToInstall = []
-        if (answers.installRunner) {
-            packagesToInstall.push(`@wdio/${answers.runner}-runner`)
-        }
-        if (answers.installFramework) {
-            packagesToInstall.push(`@wdio/${answers.framework}-framework`)
-        }
-        if (answers.installReporter) {
-            packagesToInstall = packagesToInstall.concat(answers.reporters)
-        }
-        if (answers.installServices) {
-            packagesToInstall = packagesToInstall.concat(answers.services)
-            if (answers.services.includes('wdio-chromedriver-service')) {
-                packagesToInstall.push('chromedriver')
-            }
-        }
+        // todo verify package names for when introduction `install` command
+        let packagesToInstall = [
+            `@wdio/${answers.runner}-runner`,
+            `@wdio/${answers.framework}-framework`,
+            ...answers.reporters,
+            ...answers.services
+        ]
+
         if (answers.executionMode === 'sync') {
             packagesToInstall.push('@wdio/sync')
         }
 
-        if (packagesToInstall.length > 0) {
-            console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
-            const result = yarnInstall({ deps: packagesToInstall, dev: true })
-            if (result.status != 0) {
-                throw new Error(result.stderr)
-            }
-            console.log('\nPackages installed successfully, creating configuration file...') // eslint-disable-line no-console
+        console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
+        const result = yarnInstall({ deps: packagesToInstall, dev: true })
+        if (result.status != 0) {
+            throw new Error(result.stderr)
         }
+        console.log('\nPackages installed successfully, creating configuration file...') // eslint-disable-line no-console
 
         renderConfigurationFile(answers)
         process.exit(0)
