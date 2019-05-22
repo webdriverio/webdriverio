@@ -8,4 +8,5 @@ export const mockLocal = jest.fn().mockImplementation( function () {
     this.stop = mockStop
 })
 
+Cbt.Local = mockLocal
 module.exports = Cbt
