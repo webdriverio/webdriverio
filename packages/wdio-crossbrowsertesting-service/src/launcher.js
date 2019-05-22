@@ -11,13 +11,14 @@ export default class CrossBrowserTestingLauncher {
             authkey: config.key
         }, config.cbtTunnelOpts)
 
-        return new Promise((resolve, reject) => cbt.start({ 'username': config.user, 'authkey': config.key }, (err, tunnel) => {
+        this.cbtTunnel = cbt
+
+        return new Promise((resolve, reject) => this.cbtTunnel.start({ 'username': config.user, 'authkey': config.key }, (err) => {
             if (err) {
                 return reject(err)
             }
-
-            this.tunnel = tunnel
-            return resolve('connected!!!!!!')
+            this.tunnel = true
+            return resolve()
         }))
     }
 
@@ -26,6 +27,11 @@ export default class CrossBrowserTestingLauncher {
             return
         }
 
-        return new Promise(resolve => cbt.stop(resolve))
+        return new Promise((resolve, reject) => this.cbtTunnel.stop(err => {
+            if (err) {
+                return reject(err)
+            }
+            return resolve()
+        }))
     }
 }
