@@ -6,11 +6,11 @@ import yarnInstall from 'yarn-install'
 
 import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
 
-export default function setup () {
-    console.log(CONFIG_HELPER_INTRO) // eslint-disable-line no-console
-    inquirer.prompt(QUESTIONNAIRE).then((answers) => {
-        // todo verify package names for when introduction `install` command
-        let packagesToInstall = [
+export default async function setup (exit = true) {
+    try {
+        console.log(CONFIG_HELPER_INTRO) // eslint-disable-line no-console
+        const answers = await inquirer.prompt(QUESTIONNAIRE)
+        const packagesToInstall = [
             `@wdio/${answers.runner}-runner`,
             `@wdio/${answers.framework}-framework`,
             ...answers.reporters,
@@ -23,14 +23,19 @@ export default function setup () {
 
         console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
         const result = yarnInstall({ deps: packagesToInstall, dev: true })
-        if (result.status != 0) {
+        if (result.status !== 0) {
             throw new Error(result.stderr)
         }
         console.log('\nPackages installed successfully, creating configuration file...') // eslint-disable-line no-console
 
         renderConfigurationFile({ ...answers, logLevel: 'info' })
-        process.exit(0)
-    })
+
+        if (exit) {
+            process.exit(0)
+        }
+    } catch (error) {
+        throw new Error(error)
+    }
 }
 
 function renderConfigurationFile (answers) {
