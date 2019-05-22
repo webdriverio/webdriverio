@@ -47,6 +47,24 @@ test('beforeTest should set context for test', () => {
     expect(global.browser.execute).toBeCalledWith('sauce:context=foobar')
 })
 
+test('beforeTest should not set context for RDC test', () => {
+
+    // not for RDC since sauce:context is not available there
+    const rdcService = new SauceService()
+    rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
+    rdcService.beforeTest({
+        parent: 'my test',
+        title: 'can do something'
+    })
+    expect(global.browser.execute).not.toBeCalled()
+
+    rdcService.beforeTest({
+        fullName: 'foobar',
+        parent: 'Jasmine__TopLevel__Suite'
+    })
+    expect(global.browser.execute).not.toBeCalled()
+})
+
 test('beforeTest should not set context if user does not use sauce', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
@@ -92,6 +110,15 @@ test('beforeFeature should set context', () => {
     expect(global.browser.execute).toBeCalledWith('sauce:context=Feature: barfoo')
 })
 
+test('beforeFeature should set context if RDC test', () => {
+    const rdcService = new SauceService()
+    rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
+    rdcService.beforeFeature({ name: 'foobar' })
+    expect(global.browser.execute).not.toBeCalled()
+    rdcService.beforeFeature({ getName: () => 'barfoo' })
+    expect(global.browser.execute).not.toBeCalled()
+})
+
 test('beforeFeature should not set context if no sauce user was applied', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
@@ -125,6 +152,13 @@ test('beforeScenario should set context', () => {
     expect(global.browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
     service.beforeScenario({ getName: () => 'barfoo' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Scenario: barfoo')
+})
+
+test('beforeScenario should not set context if RDC test', () => {
+    const rdcService = new SauceService()
+    rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
+    rdcService.beforeScenario({ name: 'foobar' })
+    expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('beforeScenario should not set context if no sauce user was applied', () => {
