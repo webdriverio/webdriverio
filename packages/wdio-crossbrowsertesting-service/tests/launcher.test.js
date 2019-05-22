@@ -26,7 +26,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         expect(cbtLauncher.cbtTunnel).toBeUndefined()
     })
 
-    it('onPrepare', () => {
+    it('onPrepare', async () => {
         const config = {
             cbtTunnel: {},
             cbtTunnelOpts: {
@@ -38,6 +38,7 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         cbtLauncher.onPrepare(config)
         expect(cbtLauncher.cbtTunnelOpts).toEqual({ username: 'test', authkey: 'testy', options: 'some options' })
+        expect(cbtLauncher.cbtTunnel.start).toHaveBeenCalled()
     })
 
     it('onComplete: no tunnel', () => {
@@ -46,6 +47,8 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('onComplete', async () => {
-        return expect(await cbtLauncher.onComplete())
+        cbtLauncher.tunnel = true
+        cbtLauncher.onComplete()
+        expect(cbtLauncher.cbtTunnel.stop).toHaveBeenCalled()
     })
 })
