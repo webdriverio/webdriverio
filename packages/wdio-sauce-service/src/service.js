@@ -48,7 +48,7 @@ export default class SauceService {
     }
 
     beforeTest (test) {
-        if (!this.isServiceEnabled) {
+        if (!this.isServiceEnabled || this.isRDC) {
             return
         }
 
@@ -80,7 +80,7 @@ export default class SauceService {
     }
 
     beforeFeature (feature) {
-        if (!this.isServiceEnabled) {
+        if (!this.isServiceEnabled || this.isRDC) {
             return
         }
 
@@ -108,7 +108,7 @@ export default class SauceService {
     }
 
     beforeScenario (scenario) {
-        if (!this.isServiceEnabled) {
+        if (!this.isServiceEnabled || this.isRDC) {
             return
         }
 
