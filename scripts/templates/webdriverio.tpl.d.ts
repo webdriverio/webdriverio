@@ -176,12 +176,6 @@ declare namespace WebdriverIO {
         executeAsync: ExecuteAsync;
         call: Call;
         options: Options;
-        waitUntil(
-            condition: () => boolean,
-            timeout?: number,
-            timeoutMsg?: string,
-            interval?: number
-        ): boolean
         // ... browser commands ...
     }
 
