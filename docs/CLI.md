@@ -16,14 +16,17 @@ WebdriverIO CLI runner
 Usage: wdio [options] [configFile]
 Usage: wdio config
 Usage: wdio repl <browserName>
+Usage: wdio install <type> <name>
 
 config file defaults to wdio.conf.js
 The [options] object will override values from the config file.
-An optional list of spec files can be piped to wdio that will override
-configured specs
+An optional list of spec files can be piped to wdio that will override configured specs.
+Same applies to the exclude option. It can take a list of specs to exclude for a given run
+and it also overrides the exclude key from the config file.
 
 Commands:
   wdio.js repl <browserName>  Run WebDriver session in command line
+  wdio.js install <type> <name> Add a `reporter` or a `service` to your WebdriverIO project
 
 Options:
   --help                prints WebdriverIO help menu                   [boolean]
@@ -73,6 +76,59 @@ $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
 That's it! Now, you can access to the selenium instance via the global variable `browser`.
+
+## Commands
+
+### $ wdio install
+The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.
+
+Example:
+
+```bash
+$ wdio install service sauce # installs @wdio/sauce-service
+$ wdio install reporter dot # installs @wdio/dot-reporter
+```
+
+If your project is using `package-lock.json` instead of `yarn.lock`, you can pass a `--npm` flag to make sure the packages are installed via NPM.
+
+```bash
+$ wdio install servcie sauce --npm
+```
+
+#### List of supported services
+
+```
+    sauce
+    testingbot
+    firefox-profile
+    selenium-standalone
+    devtools
+    applitools
+    browserstack
+    appium
+    chromedriver
+    intercept
+    zafira-listener
+    reportportal
+    docker
+```
+
+#### List of supported reporters
+```
+    dot
+    spec
+    junit
+    allure
+    sumologic
+    concise
+    reportportal
+    video
+    html
+    json
+    mochawesome
+    timeline
+```
+
 
 ## Run the test runner programmatically
 
