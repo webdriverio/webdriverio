@@ -28,13 +28,36 @@ test('runServiceHook', () => {
     expect(hookFailing).toBeCalledTimes(1)
 })
 
-test('runOnPrepareHook', () => {
+test('runOnPrepareHook handles array of functions', () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
 
     runOnPrepareHook([hookSuccess, hookFailing], {}, {})
     expect(hookSuccess).toBeCalledTimes(1)
     expect(hookFailing).toBeCalledTimes(1)
+})
+
+test('runOnPrepareHook handles a single function', () => {
+    const hookSuccess = jest.fn()
+
+    runOnPrepareHook(hookSuccess, {}, {})
+    expect(hookSuccess).toBeCalledTimes(1)
+})
+
+test('runOnCompleteHook handles array of functions', () => {
+    const hookSuccess = jest.fn()
+    const secondHook = jest.fn()
+
+    runOnCompleteHook([hookSuccess, secondHook], {}, {})
+    expect(hookSuccess).toBeCalledTimes(1)
+    expect(secondHook).toBeCalledTimes(1)
+})
+
+test('runOnCompleteHook handles a single function', () => {
+    const hookSuccess = jest.fn()
+
+    runOnCompleteHook(hookSuccess, {}, {})
+    expect(hookSuccess).toBeCalledTimes(1)
 })
 
 test('runOnCompleteHook with no failure returns 0', async () => {
