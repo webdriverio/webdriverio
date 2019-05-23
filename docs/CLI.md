@@ -92,7 +92,7 @@ $ wdio install reporter dot # installs @wdio/dot-reporter
 If your project is using `package-lock.json` instead of `yarn.lock`, you can pass a `--npm` flag to make sure the packages are installed via NPM.
 
 ```bash
-$ wdio install servcie sauce --npm
+$ wdio install service sauce --npm
 ```
 
 #### List of supported services
