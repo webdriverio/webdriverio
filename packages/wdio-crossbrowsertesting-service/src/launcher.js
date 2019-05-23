@@ -1,4 +1,4 @@
-var cbt = require('cbt_tunnels')
+const cbt = require('cbt_tunnels')
 
 export default class CrossBrowserTestingLauncher {
     onPrepare (config) {
