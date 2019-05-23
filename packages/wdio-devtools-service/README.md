@@ -306,8 +306,8 @@ describe('use Puppeteer', () => {
 
     it('by using async/await', async () => {
         const puppeteer = browser.getPuppeteer()
-        const pages = await puppeteer.browser.pages()
-        console.log(await pages[0].title())
+        const page = (await puppeteer.browser.pages())[0]
+        console.log(await page.title())
     })
 })
 ```

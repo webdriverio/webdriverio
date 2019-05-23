@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer-core'
 
 import logger from '@wdio/logger'
 
-const log = logger('@wdio/devtools-service')
+const log = logger('@wdio/devtools-service:DevToolsDriver')
 
 /**
  * connects a puppeteer instance to the browser
@@ -18,10 +18,10 @@ export default class DevToolsDriver {
          */
     }
 
-    static async attach (browserURL) {
-        log.info(`Connect to ${browserURL}`)
+    static async attach (url) {
+        log.info(`Connect to ${url}`)
         const browser = await puppeteer.connect({
-            browserURL,
+            url,
             defaultViewport: null
         })
         return new DevToolsDriver(browser)

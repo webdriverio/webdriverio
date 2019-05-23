@@ -8,7 +8,7 @@ import TTFBMetric from 'lighthouse/lighthouse-core/audits/time-to-first-byte'
 import { quantileAtValue } from './utils'
 import logger from '@wdio/logger'
 
-const log = logger('Auditor')
+const log = logger('@wdio/devtools-service:Auditor')
 
 /**
  * metric scoring to calculate Lighthouse Performance Score
@@ -47,7 +47,7 @@ export default class Auditor {
 
     _audit (AUDIT, params = {}) {
         const auditContext = {
-            options: Object.assign({}, AUDIT.defaultOptions),
+            options: { ...AUDIT.defaultOptions },
             ...SHARED_AUDIT_CONTEXT
         }
 
@@ -63,6 +63,10 @@ export default class Auditor {
         }
     }
 
+    /**
+     * an Auditor instance is created for every trace so provide an updateCommands
+     * function to receive the latest performance metrics with the browser instance
+     */
     updateCommands (browser) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
@@ -78,6 +82,14 @@ export default class Auditor {
 
     async getDiagnostics () {
         const result = await this._audit(Diagnostics)
+
+        /**
+         * return null if Audit fails
+         */
+        if (!result.hasOwnProperty('details')) {
+            return null
+        }
+
         return result.details.items[0]
     }
 
