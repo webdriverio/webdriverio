@@ -3,7 +3,7 @@ import allure from '@wdio/allure-reporter'
 async function bar() {
     // browser
     await browser.pause(1)
-    const waitUntil: boolean = await browser.waitUntil(() => true, 1, '', 1)
+    const waitUntil: boolean = await browser.waitUntil(() => Promise.resolve(true), 1, '', 1)
     await browser.getCookies()
 
     // ToDo fix typing for `execute` and `call`

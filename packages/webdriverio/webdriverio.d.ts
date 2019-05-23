@@ -45,7 +45,15 @@ declare namespace WebdriverIOAsync {
         options: WebdriverIO.MultiRemoteOptions
     ): WebDriver.ClientAsync;
 
-    interface Browser extends BrowserAsync, BrowserStatic { }
+    interface Browser extends BrowserAsync, BrowserStatic {
+        waitUntil(
+            condition: () => Promise<boolean>,
+            timeout?: number,
+            timeoutMsg?: string,
+            interval?: number
+        ): Promise<boolean>
+    }
+
     interface Element extends ElementAsync, ElementStatic { }
     interface Config {}
 }

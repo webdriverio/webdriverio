@@ -11,6 +11,15 @@ declare namespace WebdriverIO {
     function multiremote(
         options: WebdriverIO.MultiRemoteOptions
     ): WebDriver.Client;
+
+    interface Browser {
+        waitUntil(
+            condition: () => boolean,
+            timeout?: number,
+            timeoutMsg?: string,
+            interval?: number
+        ): boolean
+    }
 }
 
 declare var browser: BrowserObject;
