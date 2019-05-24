@@ -150,9 +150,6 @@ export default class DevToolsService {
      * custom command to disable performance audits
      */
     _disablePerformanceAudits () {
-        delete this.networkThrottling
-        delete this.cpuThrottling
-        delete this.cacheEnabled
         this.shouldRunPerformanceAudits = false
     }
 
