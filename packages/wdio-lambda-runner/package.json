@@ -34,10 +34,10 @@
   "dependencies": {
     "@wdio/logger": "^5.9.0",
     "@wdio/runner": "^5.9.2",
-    "find-node-modules": "^1.0.4",
+    "find-node-modules": "^2.0.0",
     "serverless": "^1.25.0",
-    "shelljs": "^0.7.8",
-    "tmp": "^0.0.33"
+    "shelljs": "^0.8.3",
+    "tmp": "^0.1.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"
