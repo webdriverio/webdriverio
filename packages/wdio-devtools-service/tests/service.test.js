@@ -1,4 +1,7 @@
+import EventEmitter from 'events'
+
 import DevToolsService from '../src'
+import Auditor from '../src/auditor'
 
 import logger from '@wdio/logger'
 import { getCDPClient } from '../src/utils'
@@ -11,6 +14,17 @@ jest.mock('../src/commands', () => {
     }
 
     return CommandHandlerMock
+})
+
+jest.mock('../src/auditor', () => {
+    const updateCommandsMock = jest.fn()
+    return class AuditorMock {
+        constructor (traceEvents, logs) {
+            this.traceEvents = traceEvents
+            this.logs = logs
+            this.updateCommands = updateCommandsMock
+        }
+    }
 })
 
 jest.mock('../src/utils', () => {
@@ -148,10 +162,42 @@ test('afterCommand', () => {
     expect(service.traceGatherer.once).toBeCalledTimes(4)
 })
 
+test('afterCommand: should create a new auditor instance and should update the browser commands', () => {
+    const service = new DevToolsService()
+    service.traceGatherer = new EventEmitter()
+    service.traceGatherer.isTracing = true
+    service.devtoolsGatherer = { getLogs: jest.fn() }
+    global.browser = 'some browser'
+    service.afterCommand('navigateTo')
+    service.traceGatherer.emit('tracingComplete', { some: 'events' })
+
+    const auditor = new Auditor()
+    expect(auditor.updateCommands).toBeCalledWith('some browser')
+    delete global.browser
+})
+
+test('afterCommand: should continue with command after tracingFinished was emitted', async () => {
+    const service = new DevToolsService()
+    service.traceGatherer = new EventEmitter()
+    service.traceGatherer.isTracing = true
+    service._setThrottlingProfile = jest.fn()
+
+    const start = Date.now()
+    setTimeout(() => service.traceGatherer.emit('tracingFinished'), 100)
+    await service.afterCommand('navigateTo')
+
+    expect(Date.now() - start).toBeGreaterThan(99)
+    expect(service._setThrottlingProfile).toBeCalledWith('online', 0, true)
+})
+
 test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
     const service = new DevToolsService()
-    expect(() => service._enablePerformanceAudits({ networkThrottling: 'super fast 3g' }))
-    expect(() => service._enablePerformanceAudits({ cpuThrottling: '34' }))
+    expect(
+        () => service._enablePerformanceAudits({ networkThrottling: 'super fast 3g' })
+    ).toThrow()
+    expect(
+        () => service._enablePerformanceAudits({ cpuThrottling: '34' })
+    ).toThrow()
 })
 
 test('_enablePerformanceAudits: applies some default values', () => {
@@ -184,9 +230,7 @@ test('_disablePerformanceAudits', () => {
         cacheEnabled: true,
     })
     service._disablePerformanceAudits()
-    expect(service.networkThrottling).toBe(undefined)
-    expect(service.cpuThrottling).toBe(undefined)
-    expect(service.cacheEnabled).toBe(undefined)
+    expect(service.shouldRunPerformanceAudits).toBe(false)
 })
 
 test('_setThrottlingProfile', async () => {

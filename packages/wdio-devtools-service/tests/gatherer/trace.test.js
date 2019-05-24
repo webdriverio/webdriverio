@@ -40,6 +40,15 @@ beforeEach(() => {
     traceGatherer.emit = jest.fn()
 })
 
+test('should register eventlisteners for network monitor', () => {
+    traceGatherer.networkStatusMonitor = { dispatch: jest.fn() }
+    for (const fn of Object.values(traceGatherer.networkListeners)) {
+        fn({ some: 'params' })
+    }
+    expect(traceGatherer.networkStatusMonitor.dispatch.mock.calls)
+        .toMatchSnapshot()
+})
+
 test('onFrameLoadFail', () => {
     traceGatherer.onFrameLoadFail({ frame: () => ({ _id: 123 }) })
     expect(traceGatherer.failingFrameLoadIds).toEqual([123])

@@ -173,8 +173,6 @@ export default class TraceGatherer extends EventEmitter {
             }
 
             return this.completeTracing()
-        }, (err) => () => {
-            throw err
         })
 
         const cleanupFn = await Promise.race([
