@@ -23,17 +23,17 @@ export const SUPPORTED_REPORTER = [
 export const SUPPORTED_SERVICES = [
     ' sauce - https://www.npmjs.com/package/@wdio/sauce-service',
     ' testingbot - https://www.npmjs.com/package/@wdio/testingbot-service',
-    ' firefox-profile - https://www.npmjs.com/package/@wdio/firefox-profile-service',
     ' selenium-standalone - https://www.npmjs.com/package/@wdio/selenium-standalone-service',
+    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
     ' devtools - https://www.npmjs.com/package/@wdio/devtools-service',
     ' applitools - https://www.npmjs.com/package/@wdio/applitools-service',
     ' browserstack - https://www.npmjs.com/package/@wdio/browserstack-service',
     ' appium - https://www.npmjs.com/package/@wdio/appium-service',
-    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
     ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
     ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
     ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service',
-    ' docker - https://www.npmjs.com/package/wdio-docker-service'
+    ' docker - https://www.npmjs.com/package/wdio-docker-service',
+    ' firefox-profile - https://www.npmjs.com/package/@wdio/firefox-profile-service',
 ]
 
 export const SUPPORTED_RUNNERS = [
@@ -278,6 +278,7 @@ export const QUESTIONNAIRE = [{
     name: 'reporters',
     message: 'Which reporter do you want to use?',
     choices: SUPPORTED_REPORTER,
+    default: SUPPORTED_REPORTER.filter(reporter => reporter.includes('spec-reporter')),
     filter: filterPackageName('reporter')
 }, {
     type: 'confirm',
@@ -290,7 +291,25 @@ export const QUESTIONNAIRE = [{
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
     choices: SUPPORTED_SERVICES,
-    filter: filterPackageName('service')
+    default: SUPPORTED_SERVICES.filter(service => service.includes('wdio-chromedriver-service')),
+    filter: filterPackageName('service'),
+    validate: (answers) => {
+        let result = true
+        const exclusiveServices = {
+            'wdio-chromedriver-service': {
+                services: ['@wdio/selenium-standalone-service'],
+                message: '@wdio/selenium-standalone-service already includes chromedriver'
+            }
+        }
+
+        Object.entries(exclusiveServices).forEach(([name, { services, message }]) => {
+            if (answers.includes(name) && answers.some(s => services.includes(s))) {
+                result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
+            }
+        })
+
+        return result
+    }
 }, {
     type: 'confirm',
     name: 'installServices',
