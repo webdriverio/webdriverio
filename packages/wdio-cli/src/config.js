@@ -36,6 +36,13 @@ export const SUPPORTED_SERVICES = [
     ' firefox-profile - https://www.npmjs.com/package/@wdio/firefox-profile-service',
 ]
 
+export const EXCLUSIVE_SERVICES = {
+    'wdio-chromedriver-service': {
+        services: ['@wdio/selenium-standalone-service'],
+        message: '@wdio/selenium-standalone-service already includes chromedriver'
+    }
+}
+
 export const SUPPORTED_RUNNERS = [
     ' local - https://www.npmjs.com/package/@wdio/local-runner'
 ]
@@ -295,14 +302,8 @@ export const QUESTIONNAIRE = [{
     filter: filterPackageName('service'),
     validate: (answers) => {
         let result = true
-        const exclusiveServices = {
-            'wdio-chromedriver-service': {
-                services: ['@wdio/selenium-standalone-service'],
-                message: '@wdio/selenium-standalone-service already includes chromedriver'
-            }
-        }
 
-        Object.entries(exclusiveServices).forEach(([name, { services, message }]) => {
+        Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
             if (answers.includes(name) && answers.some(s => services.includes(s))) {
                 result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
             }
