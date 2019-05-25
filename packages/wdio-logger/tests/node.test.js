@@ -147,9 +147,9 @@ describe('wdio-logger node', () => {
             expect(logCacheAddSpy).toBeCalledTimes(2)
             expect(logCache.size).toBe(2)
 
-            const it = logCache.values()
-            expect(it.next().value).toContain('test-logFile1: foo')
-            expect(it.next().value).toContain('test-logFile1: bar')
+            const logCacheValues = logCache.values()
+            expect(logCacheValues.next().value).toContain('test-logFile1: foo')
+            expect(logCacheValues.next().value).toContain('test-logFile1: bar')
 
             // after
             logCache.clear()
