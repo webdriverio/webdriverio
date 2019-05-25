@@ -1,0 +1,32 @@
+[
+  {
+    "packageName": "wdio-chromedriver-service",
+    "title": "ChromeDriver",
+    "githubUrl": "https://github.com/atti187/wdio-chromedriver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-chromedriver-service"
+  },
+  {
+    "packageName": "wdio-intercept-service",
+    "title": "Intercept",
+    "githubUrl": "https://github.com/chmanie/wdio-intercept-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-intercept-service"
+  },
+  {
+    "packageName": "wdio-zafira-listener-service",
+    "title": "Zafira Listener",
+    "githubUrl": "https://github.com/shashidharus/wdio-zafira-listener-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-zafira-listener-service"
+  },
+  {
+    "packageName": "wdio-reportportal-service",
+    "title": "Report Portal",
+    "githubUrl": "https://github.com/borisosipov/wdio-reportportal-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-reportportal-service"
+  },
+  {
+    "packageName": "wdio-docker-service",
+    "title": "Docker",
+    "githubUrl": "https://github.com/stsvilik/wdio-docker-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-docker-service"
+  }
+]

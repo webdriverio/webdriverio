@@ -1,0 +1,38 @@
+[
+  {
+    "packageName": "wdio-reportportal-reporter",
+    "title": "Report Portal",
+    "githubUrl": "https://github.com/borisosipov/wdio-reportportal-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-reportportal-reporter"
+  },
+  {
+    "packageName": "wdio-video-reporter",
+    "title": "Video",
+    "githubUrl": "https://github.com/presidenten/wdio-video-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-video-reporter"
+  },
+  {
+    "packageName": "@rpii/wdio-html-reporter",
+    "title": "HTML",
+    "githubUrl": "https://github.com/rpii/wdio-html-reporter",
+    "npmUrl": "https://www.npmjs.com/package/@rpii/wdio-html-reporter"
+  },
+  {
+    "packageName": "wdio-json-reporter",
+    "title": "JSON",
+    "githubUrl": "https://github.com/fijijavis/wdio-json-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-json-reporter"
+  },
+  {
+    "packageName": "wdio-mochawesome-reporter",
+    "title": "Mochawesome",
+    "githubUrl": "https://github.com/fijijavis/wdio-mochawesome-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-mochawesome-reporter"
+  },
+  {
+    "packageName": "wdio-timeline-reporter",
+    "title": "Timeline",
+    "githubUrl": "https://github.com/QualityOps/wdio-timeline-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-timeline-reporter"
+  }
+]
