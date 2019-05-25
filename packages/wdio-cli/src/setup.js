@@ -5,16 +5,17 @@ import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
 import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
+import { getNpmPackageName, getPackageName } from './utils'
 
 export default async function setup (exit = true) {
     try {
         console.log(CONFIG_HELPER_INTRO) // eslint-disable-line no-console
         const answers = await inquirer.prompt(QUESTIONNAIRE)
         const packagesToInstall = [
-            `@wdio/${answers.runner}-runner`,
-            `@wdio/${answers.framework}-framework`,
-            ...answers.reporters,
-            ...answers.services
+            getNpmPackageName(answers.runner),
+            getNpmPackageName(answers.framework),
+            ...answers.reporters.map(getNpmPackageName),
+            ...answers.services.map(getNpmPackageName)
         ]
 
         if (answers.executionMode === 'sync') {
@@ -28,7 +29,15 @@ export default async function setup (exit = true) {
         }
         console.log('\nPackages installed successfully, creating configuration file...') // eslint-disable-line no-console
 
-        renderConfigurationFile({ ...answers, logLevel: 'info' })
+        const parsedAnswers = {
+            ...answers,
+            runner: getPackageName(answers.runner),
+            framework: getPackageName(answers.framework),
+            reporters: answers.reporters.map(getPackageName),
+            services: answers.services.map(getPackageName)
+        }
+
+        renderConfigurationFile(parsedAnswers)
 
         if (exit) {
             process.exit(0)

@@ -1,18 +1,26 @@
-import { runOnPrepareHook, runOnCompleteHook, filterPackageName, runServiceHook, getRunnerName } from '../src/utils'
+import {
+    runOnPrepareHook,
+    runOnCompleteHook,
+    getNpmPackageName,
+    runServiceHook,
+    getRunnerName,
+    parseInstallNameAndPackage
+} from '../src/utils'
 
-test('filterPackageName', () => {
-    const reporter = [
+test('getNpmPackageName', () => {
+    const reporters = [
         ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
         ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
         ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
         ' random - https://www.npmjs.com/package/wdio-random-reporter'
     ]
-    expect(filterPackageName('reporter')(reporter)).toEqual([
+    expect(getNpmPackageName(reporters)).toEqual([
         '@wdio/dot-reporter',
         '@wdio/spec-reporter',
         '@wdio/junit-reporter',
         'wdio-random-reporter'
     ])
+    expect(getNpmPackageName(' mocha - https://www.npmjs.com/package/wdio-mocha-framework')).toEqual('wdio-mocha-framework')
 })
 
 test('runServiceHook', () => {
@@ -93,4 +101,17 @@ test('getRunnerName', () => {
     expect(getRunnerName({ foo: {} })).toBe('undefined')
     expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe('undefined')
     expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
+})
+
+test('parseInstallNameAndPackage', () => {
+    const reporters = [
+        ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
+        ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
+        ' random - https://www.npmjs.com/package/wdio-random-reporter'
+    ]
+    expect(parseInstallNameAndPackage(reporters)).toEqual({
+        dot: '@wdio/dot-reporter',
+        spec: '@wdio/spec-reporter',
+        random: 'wdio-random-reporter'
+    })
 })

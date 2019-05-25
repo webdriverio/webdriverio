@@ -1,8 +1,6 @@
-import { filterPackageName } from './utils'
-
 export const SUPPORTED_FRAMEWORKS = [
-    'mocha', // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework
-    'jasmine' // https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework
+    ' mocha - https://www.npmjs.com/package/wdio-mocha-framework',
+    ' jasmine - https://www.npmjs.com/package/wdio-jasmine-framework'
 ]
 
 export const SUPPORTED_REPORTER = [
@@ -161,7 +159,6 @@ export const QUESTIONNAIRE = [{
     name: 'runner',
     message: 'Where should your tests be launched?',
     choices: SUPPORTED_RUNNERS,
-    filter: (runner) => runner.split(/-/)[0].trim()
 }, {
     type: 'list',
     name: 'backend',
@@ -244,7 +241,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'framework',
     message: 'Which framework do you want to use?',
-    choices: SUPPORTED_FRAMEWORKS
+    choices: SUPPORTED_FRAMEWORKS,
 }, {
     type: 'list',
     name: 'executionMode',
@@ -264,27 +261,25 @@ export const QUESTIONNAIRE = [{
     name: 'specs',
     message: 'Where are your feature files located?',
     default: './features/**/*.feature',
-    when: (answers) => answers.framework === 'cucumber'
+    when: (answers) => answers.framework.includes('cucumber')
 }, {
     type: 'input',
     name: 'stepDefinitions',
     message: 'Where are your step definitions located?',
     default: './features/step-definitions',
-    when: (answers) => answers.framework === 'cucumber'
+    when: (answers) => answers.framework.includes('cucumber')
 }, {
     type: 'checkbox',
     name: 'reporters',
     message: 'Which reporter do you want to use?',
     choices: SUPPORTED_REPORTER,
-    default: SUPPORTED_REPORTER.filter(reporter => reporter.includes('spec-reporter')),
-    filter: filterPackageName('reporter')
+    default: SUPPORTED_REPORTER.filter(reporter => reporter.includes('spec-reporter'))
 }, {
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
     choices: SUPPORTED_SERVICES,
     default: SUPPORTED_SERVICES.filter(service => service.includes('wdio-chromedriver-service')),
-    filter: filterPackageName('service'),
     validate: (answers) => {
         let result = true
 

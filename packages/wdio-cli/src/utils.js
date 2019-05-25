@@ -65,12 +65,20 @@ export async function runOnCompleteHook(onCompleteHook, config, capabilities, ex
 
 /**
  * map package names
+ * used in the CLI to find the name of the package for different questions
+ * answers.framework {String}
+ * answers.reporters | answer.services {Array<string>}
  */
-export function filterPackageName (type) {
-    return (pkgLabels) => pkgLabels.map(
-        (pkgLabel) => pkgLabel.trim().includes('@wdio')
-            ? `@wdio/${pkgLabel.split(/- /)[0].trim()}-${type}`
-            : `wdio-${pkgLabel.split(/- /)[0].trim()}-${type}`)
+export function getNpmPackageName(pkgLabels) {
+    if (typeof pkgLabels === 'string') {
+        return pkgLabels.split('/package/')[1]
+    }
+
+    return pkgLabels.map(pkgLabel => pkgLabel.split('/package/')[1])
+}
+
+export function getPackageName(pkg) {
+    return pkg.trim().split(' -')[0]
 }
 
 /**
@@ -90,4 +98,17 @@ export function getRunnerName (caps = {}) {
     }
 
     return runner
+}
+
+/**
+ * used by the install command to better find the package to install
+ */
+export function parseInstallNameAndPackage(list) {
+    const returnObj = {}
+
+    for(let item of list) {
+        returnObj[getPackageName(item)] = getNpmPackageName(item)
+    }
+
+    return returnObj
 }
