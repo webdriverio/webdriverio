@@ -35,7 +35,7 @@ export default async function saveRecordingScreen (filepath) {
     assertDirectoryExists(absoluteFilepath)
 
     const videoBuffer = await this.stopRecordingScreen()
-    const video = new Buffer(videoBuffer, 'base64')
+    const video = Buffer.from(videoBuffer, 'base64')
     fs.writeFileSync(absoluteFilepath, video)
 
     return video

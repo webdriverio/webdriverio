@@ -5,6 +5,8 @@ import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
 
+prefix.reg(log)
+
 const DEFAULT_LEVEL = 'trace'
 const COLORS = {
     error: 'red',

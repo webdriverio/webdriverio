@@ -33,7 +33,7 @@ export default async function saveScreenshot (filepath) {
     assertDirectoryExists(absoluteFilepath)
 
     const screenBuffer = await this.takeElementScreenshot(this.elementId)
-    const screenshot = new Buffer(screenBuffer, 'base64')
+    const screenshot = Buffer.from(screenBuffer, 'base64')
     fs.writeFileSync(absoluteFilepath, screenshot)
 
     return screenshot
