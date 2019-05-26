@@ -23,11 +23,19 @@ export default class SauceLauncher {
         if (sauceConnectTunnelIdentifier) {
             if (Array.isArray(capabilities)) {
                 capabilities.forEach(capability => {
-                    capability.tunnelIdentifier = capability.tunnelIdentifier || sauceConnectTunnelIdentifier
+                    if (capability['sauce:options'] === undefined) {
+                        capability.tunnelIdentifier = capability.tunnelIdentifier || sauceConnectTunnelIdentifier
+                    } else {
+                        capability['sauce:options'].tunnelIdentifier = capability['sauce:options'].tunnelIdentifier || sauceConnectTunnelIdentifier
+                    }
                 })
             } else {
                 Object.keys(capabilities).forEach(browser => {
-                    capabilities[browser].capabilities.tunnelIdentifier = capabilities[browser].capabilities.tunnelIdentifier || sauceConnectTunnelIdentifier
+                    if (capabilities[browser].capabilities['sauce:options'] === undefined) {
+                        capabilities[browser].capabilities.tunnelIdentifier = capabilities[browser].capabilities.tunnelIdentifier || sauceConnectTunnelIdentifier
+                    } else {
+                        capabilities[browser].capabilities['sauce:options'].tunnelIdentifier = capabilities[browser].capabilities['sauce:options'].tunnelIdentifier || sauceConnectTunnelIdentifier
+                    }
                 })
             }
         }
