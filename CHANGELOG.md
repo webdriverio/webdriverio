@@ -15,6 +15,32 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.2 (2019-05-24)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#4002](https://github.com/webdriverio/webdriverio/pull/4002) avoid sauce:contexts calls being made for Sauce RDC tests ([@enriquegh](https://github.com/enriquegh))
+
+#### :nail_care: Polish
+* `wdio-mocha-framework`
+  * [#4005](https://github.com/webdriverio/webdriverio/pull/4005) wdio-mocha-framework: remove @types from runtime dependencies ([@vgrigoruk](https://github.com/vgrigoruk))
+
+#### :memo: Documentation
+* `wdio-cli`, `wdio-selenium-standalone-service`
+  * [#4014](https://github.com/webdriverio/webdriverio/pull/4014) Simplify getting started ([@mgrybyk](https://github.com/mgrybyk))
+* Other
+  * [#4017](https://github.com/webdriverio/webdriverio/pull/4017) Remove obsolete info about Object.create ([@BorisOsipov](https://github.com/BorisOsipov))
+  * [#4007](https://github.com/webdriverio/webdriverio/pull/4007) Move `npm init -y` up in docs to avoid global installation ([@klamping](https://github.com/klamping))
+* `wdio-sync`, `webdriverio`
+  * [#4009](https://github.com/webdriverio/webdriverio/pull/4009) Typings: wrap waitUntil condition function return type with Promise ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 5
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+
 ## v5.9.1 (2019-05-21)
 
 #### :rocket: New Feature
