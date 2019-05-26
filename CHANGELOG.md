@@ -15,6 +15,28 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.3 (2019-05-26)
+
+#### :rocket: New Feature
+* `wdio-devtools-service`, `wdio-testingbot-service`, `webdriverio`
+  * [#3992](https://github.com/webdriverio/webdriverio/pull/3992) Updates to Performance Features ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#4022](https://github.com/webdriverio/webdriverio/pull/4022) Fixed issue #4021 - Not able to run tests with Sauce Connect and W3C caps ([@yamkay](https://github.com/yamkay))
+
+#### :memo: Documentation
+* [#4006](https://github.com/webdriverio/webdriverio/pull/4006) Update CLI.md ([@ducle91](https://github.com/ducle91))
+
+#### :house: Internal
+* `wdio-appium-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-logger`, `wdio-reporter`, `wdio-runner`, `wdio-selenium-standalone-service`, `wdio-spec-reporter`, `webdriver`, `webdriverio`
+  * [#4013](https://github.com/webdriverio/webdriverio/pull/4013) Update dependencies to enable Greenkeeper 🌴 ([@greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Duc Le ([@ducle91](https://github.com/ducle91))
+- Mohan Kumar Selvaraj ([@yamkay](https://github.com/yamkay))
+
 ## v5.9.2 (2019-05-24)
 
 #### :bug: Bug Fix
