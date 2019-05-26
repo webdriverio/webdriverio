@@ -55,12 +55,18 @@ class JasmineAdapter {
         const stopOnSpecFailure = !!this.jasmineNodeOpts.stopOnSpecFailure
 
         /**
+         * Set whether to stop suite execution when a spec fails
+         */
+        const stopSpecOnExpectationFailure = !!this.jasmineNodeOpts.stopSpecOnExpectationFailure
+
+        /**
          * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
          */
         jasmineEnv.configure({
             specFilter: ::this.customSpecFilter,
             stopOnSpecFailure: stopOnSpecFailure,
             random: Boolean(this.jasmineNodeOpts.random),
+            oneFailurePerSpec: stopSpecOnExpectationFailure,
             failFast: this.jasmineNodeOpts.failFast
         })
 
