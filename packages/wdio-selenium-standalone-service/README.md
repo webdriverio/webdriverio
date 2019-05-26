@@ -5,6 +5,8 @@ Handling the Selenium server is out of scope of the actual WebdriverIO project. 
 
 ## Installation
 
+Before starting make sure you have JDK installed.
+
 The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependency in your `package.json`.
 
 ```json
@@ -62,10 +64,10 @@ Default: `{}`
 Example:
 ```js
 seleniumArgs: {
-  version : "3.9.1",
+  version : "3.141.5",
   drivers : {
     chrome : {
-      version : "2.38",
+      version : "74.0.3729.6",
       arch    : process.arch,
     }
   }
@@ -84,11 +86,11 @@ Default: `{}`
 Example:
 ```js
 seleniumInstallArgs: {
-  version : "3.9.1",
+  version : "3.141.5",
   baseURL : "https://selenium-release.storage.googleapis.com",
   drivers : {
     chrome : {
-      version : "2.38",
+      version : "74.0.3729.6",
       arch    : process.arch,
       baseURL : "https://chromedriver.storage.googleapis.com",
     }

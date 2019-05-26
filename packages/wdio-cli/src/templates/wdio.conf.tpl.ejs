@@ -23,6 +23,16 @@ exports.config = {
     port: <%= answers.port %>,
     path: '<%= answers.path %>',<% }
 
+    if(answers.services.includes('wdio-chromedriver-service')) { %>
+    //
+    // Override default path ('/wd/hub') for chromedriver service.
+    path: '/',<% }
+
+    if(answers.services.length === 0) { %>
+    //
+    // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
+    // path: '/',<% }
+
     if(answers.env_user && answers.env_key) { %>
     //
     // =================
@@ -86,7 +96,7 @@ exports.config = {
         // 5 instances get started at a time.
         maxInstances: 5,
         //
-        browserName: 'firefox',
+        browserName: '<%= answers.services.includes('wdio-chromedriver-service') ? 'chrome' : 'firefox' %>',
         // If outputDir is provided WebdriverIO can capture driver session logs
         // it is possible to configure which logTypes to include/exclude.
         // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs

@@ -30,13 +30,18 @@ export function filterPackageName (type) {
 /**
  * get runner identification by caps
  */
-export function getRunnerName (caps) {
-    return (
+export function getRunnerName (caps = {}) {
+    let runner =
         caps.browserName ||
         caps.appPackage ||
         caps.appWaitActivity ||
         caps.app ||
-        caps.platformName ||
-        'undefined'
-    )
+        caps.platformName
+
+    // MultiRemote
+    if (!runner) {
+        runner = Object.values(caps).length === 0 || Object.values(caps).some(cap => !cap.capabilities) ? 'undefined' : 'MultiRemote'
+    }
+
+    return runner
 }

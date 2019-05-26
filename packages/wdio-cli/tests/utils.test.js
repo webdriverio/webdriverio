@@ -35,4 +35,8 @@ test('getRunnerName', () => {
     expect(getRunnerName({ app: 'foobar' })).toBe('foobar')
     expect(getRunnerName({ platformName: 'foobar' })).toBe('foobar')
     expect(getRunnerName({})).toBe('undefined')
+    expect(getRunnerName()).toBe('undefined')
+    expect(getRunnerName({ foo: {} })).toBe('undefined')
+    expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe('undefined')
+    expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
 })

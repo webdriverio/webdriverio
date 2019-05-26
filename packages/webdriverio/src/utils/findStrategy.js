@@ -4,10 +4,10 @@ import isPlainObject from 'lodash.isplainobject'
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const XPATH_SELECTORS_START = [
-    '/', '(', '\'../\'', './', '*/'
+    '/', '(', '../', './', '*/'
 ]
 const NAME_MOBILE_SELECTORS_START = [
-    'uia', 'xcuielementtype', 'android.widget'
+    'uia', 'xcuielementtype', 'android.widget', 'cyi'
 ]
 const XPATH_SELECTOR_REGEXP = [
     // HTML tag
@@ -44,6 +44,10 @@ const defineStrategy = function (selector) {
     if (selector.startsWith('*=')) {
         return 'partial link text'
     }
+    // Use id strategy if the selector starts with id=
+    if (selector.startsWith('id=')) {
+        return 'id'
+    }
     // Recursive element search using the UiAutomator library (Android only)
     if (selector.startsWith('android=')) {
         return '-android uiautomator'
@@ -70,7 +74,7 @@ const defineStrategy = function (selector) {
     // Use name strategy if selector queries elements with name attributes for JSONWP
     // or if isMobile is used even when w3c is used
     // e.g. "[name='myName']" or '[name="myName"]'
-    if (selector.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
+    if (selector.search(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/) >= 0) {
         return 'name'
     }
     // Allow to move up to the parent or select current element
@@ -100,6 +104,11 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     }
     case 'xpath': {
         using = 'xpath'
+        break
+    }
+    case 'id': {
+        using = 'id'
+        value = selector.slice(3)
         break
     }
     case 'link text': {
@@ -144,7 +153,7 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     case 'name': {
         if (isMobile || !isW3C) {
             using = 'name'
-            value = selector.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
+            value = selector.match(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/)[2]
         }
         break
     }

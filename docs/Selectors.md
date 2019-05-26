@@ -105,6 +105,22 @@ const classNameAndText = $('<my-element />');
 console.log(classNameAndText.getText()); // outputs: "WebdriverIO is the best"
 ```
 
+## id
+
+To find an element using an element using their id, query it by using `id=` in front of the query string (e.g. `id=driver`).
+Note: you can use id in css selectors by using `#` before the id name. See [element with certain text](#element-with-certain-text).
+
+```html
+<a id="driver" href="https://webdriver.io">WebdriverIO</a>
+```
+
+You can query this element with id by calling:
+
+```js
+const id = $('id=driver');
+console.log(id.getText()); // outputs: "WebdriverIO"
+```
+
 ## xPath
 
 It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath). The selector has to have a format like `//BODY/DIV[6]/DIV[1]/SPAN[1]`.
@@ -230,18 +246,21 @@ The `class name` strategy is a `string` representing a UI element on the current
 
 - For iOS it is the full name of a [UIAutomation class](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html), and will begin with `UIA-`, such as `UIATextField` for a text field. A full reference can be found [here](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation).
 - For Android it is the fully qualified name of a [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [class](https://developer.android.com/reference/android/widget/package-summary.html), such `android.widget.EditText` for a text field. A full reference can be found [here](https://developer.android.com/reference/android/widget/package-summary.html).
+- For Youi.tv it is the full name of a Youi.tv class, and will being with `CYI-`, such as `CYIPushButtonView` for a push button element. A full reference can be found at [You.i Engine Driver's GitHub page](https://github.com/YOU-i-Labs/appium-youiengine-driver)
 
 ```js
 // iOS example
 $('UIATextField').click();
 // Android example
 $('android.widget.DatePicker').click();
+// Youi.tv example
+$('CYIPushButtonView').click();
 ```
 
 ## Chain Selectors
 
 If you want to be more specific in your query, you can chain your selector until you've found the right
-element. If you call element before your actual command, WebdriverIO starts query from that element. For example
+element. If you call element before your actual command, WebdriverIO starts the query from that element. For example
 if you have a DOM structure like:
 
 ```html
@@ -264,7 +283,7 @@ if you have a DOM structure like:
 </div>
 ```
 
-And you want to add product B to the cart it would be difficult to do that just by using the CSS selector.
+And you want to add product B to the cart, it would be difficult to do that just by using the CSS selector.
 With selector chaining it gets way easier as you can narrow down the desired element step by step:
 
 ```js

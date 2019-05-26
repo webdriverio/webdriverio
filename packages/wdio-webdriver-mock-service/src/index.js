@@ -28,6 +28,7 @@ export default class WebdriverMockService {
         // in case run with multiremote
         this.command.newSession().reply(200, newSession)
         this.command.getTitle().reply(200, { value: 'Mock Page Other Title' })
+        this.command.deleteSession().reply(200, deleteSession)
     }
 
     before () {

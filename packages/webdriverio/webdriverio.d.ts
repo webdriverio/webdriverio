@@ -33,19 +33,27 @@ type BrowserAsync = {
 type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'options'>;
 declare namespace WebdriverIOAsync {
     function remote(
-        options?: WebDriver.Options,
+        options?: WebDriver.Options & WebdriverIO.Options,
         modifier?: (...args: any[]) => any
     ): BrowserObject;
 
     function attach(
-        options?: WebDriver.Options,
+        options?: WebDriver.AttachSessionOptions,
     ): BrowserObject;
 
     function multiremote(
         options: WebdriverIO.MultiRemoteOptions
     ): WebDriver.ClientAsync;
 
-    interface Browser extends BrowserAsync, BrowserStatic { }
+    interface Browser extends BrowserAsync, BrowserStatic {
+        waitUntil(
+            condition: () => Promise<boolean>,
+            timeout?: number,
+            timeoutMsg?: string,
+            interval?: number
+        ): Promise<boolean>
+    }
+
     interface Element extends ElementAsync, ElementStatic { }
     interface Config {}
 }

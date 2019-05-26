@@ -541,7 +541,7 @@
     }
   },
   "/session/:sessionId/appium/device/app_state": {
-    "GET": {
+    "POST": {
       "command": "queryAppState",
       "description": "Get the given app status on the device",
       "ref": "http://appium.io/docs/en/commands/device/app/app-state/",

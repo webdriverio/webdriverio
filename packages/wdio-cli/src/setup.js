@@ -21,6 +21,9 @@ export default function setup () {
         }
         if (answers.installServices) {
             packagesToInstall = packagesToInstall.concat(answers.services)
+            if (answers.services.includes('wdio-chromedriver-service')) {
+                packagesToInstall.push('chromedriver')
+            }
         }
         if (answers.executionMode === 'sync') {
             packagesToInstall.push('@wdio/sync')
