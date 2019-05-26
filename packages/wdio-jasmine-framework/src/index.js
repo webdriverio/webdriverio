@@ -55,8 +55,8 @@ class JasmineAdapter {
         const stopOnSpecFailure = !!this.jasmineNodeOpts.stopOnSpecFailure
 
         /**
-         * Set whether to stop suite execution when a spec fails
-         */
+         * Set whether to stop spec execution when an expectation fails
+        */
         const stopSpecOnExpectationFailure = !!this.jasmineNodeOpts.stopSpecOnExpectationFailure
 
         /**
