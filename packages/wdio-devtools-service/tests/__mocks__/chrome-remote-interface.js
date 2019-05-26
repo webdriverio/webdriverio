@@ -5,6 +5,12 @@ const CDPMock = {
     emit: jest.fn(),
     Network: {
         enable: jest.fn().mockImplementation((args, cb) => cb(null, args))
+    },
+    Console: {
+        enable: jest.fn().mockImplementation((args, cb) => cb(null, args))
+    },
+    Page: {
+        enable: jest.fn().mockImplementation((args, cb) => cb(null, args))
     }
 }
 

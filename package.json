@@ -93,17 +93,17 @@
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 95,
-        "functions": 98,
-        "lines": 97,
-        "statements": 97
+        "branches": 96,
+        "functions": 99,
+        "lines": 99,
+        "statements": 99
       }
     },
     "testEnvironment": "node",
     "coveragePathIgnorePatterns": [
       "node_modules/",
       "packages/webdriverio/src/scripts",
-      "packages/wdio-devtools-service/src/lighthouse",
+      "packages/wdio-devtools-service/src/scripts",
       "packages/webdriverio/build",
       "packages/webdriver/build"
     ]
