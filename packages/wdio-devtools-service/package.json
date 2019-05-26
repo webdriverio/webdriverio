@@ -36,8 +36,11 @@
   "dependencies": {
     "@wdio/logger": "^5.9.0",
     "chrome-remote-interface": "^0.27.1",
+    "lighthouse": "^4.3.1",
+    "puppeteer-core": "^1.15.0",
     "speedline": "^1.4.1",
-    "stable": "^0.1.8"
+    "stable": "^0.1.8",
+    "weighted-mean": "^1.0.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"

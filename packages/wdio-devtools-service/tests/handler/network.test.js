@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
-import NetworkHandler from '../src/handler/network'
+import NetworkHandler from '../../src/handler/network'
 
-import eventLog from './__fixtures__/events.json'
+import eventLog from '../__fixtures__/events.json'
 
 class MyEmitter extends EventEmitter {}
 
@@ -19,6 +19,6 @@ test('network handler', () => {
 
     expect(handler.requestTypes).toEqual({
         Document: { size: 24714, encoded: 0, count: 1 },
-        Other: { size: 311, encoded: 311, count: 7 }
+        Other: { size: 311, encoded: 311, count: 8 }
     })
 })
