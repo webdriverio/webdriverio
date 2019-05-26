@@ -29,7 +29,7 @@ exports.generate3rdPartyDocs = async (sidebars) => {
             const readme = await downloadReadme(githubUrl)
             const id = `3rd-party-${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
-            const doc = normalizeDoc(readme, buildPreface(id, title, nameSingular, `${githubUrl}/edit/${githubReadme}`))
+            const doc = normalizeDoc(readme, githubUrl, buildPreface(id, title, nameSingular, `${githubUrl}/edit/${githubReadme}`))
             fs.writeFileSync(path.join(__dirname, '..', '..', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
 
             if (!sidebars.docs[namePlural]) {
@@ -73,11 +73,11 @@ function downloadReadme(githubUrl) {
  * @param {string}  preface readme content
  * @return {string}         readme content without header
  */
-function normalizeDoc(readme, preface) {
+function normalizeDoc(readme, githubUrl, preface) {
     /**
      * remove badges
      */
-    const readmeArr = readme.split('\n').filter(row => !row.includes(readmeBadges))
+    let readmeArr = readme.split('\n').filter(row => !row.includes(readmeBadges))
 
     /**
      * get index of header to remove further
@@ -88,6 +88,22 @@ function normalizeDoc(readme, preface) {
             sliceIdx = i + 1
         }
     }
+    readmeArr = readmeArr.slice(sliceIdx)
 
-    return [...preface, ...readmeArr.slice(sliceIdx)].join('\n')
+    /**
+     * prepend additional # to header rows
+     * and add path to links
+     */
+    readmeArr.forEach((row, idx) => {
+        if (row.match(/^(#)\1* /)) {
+            readmeArr[idx] = `#${row}`
+        }
+        const urlMatcher = row.match(/\[.*\]\(((?!(#|http)).*)\)/)
+        if (urlMatcher && urlMatcher.length > 1) {
+            const url = `${githubUrl}/master/${urlMatcher[1]}`.replace(githubHost, githubRawHost)
+            readmeArr[idx] = readmeArr[idx].replace(`](${urlMatcher[1]})`, `](${url})`)
+        }
+    })
+
+    return [...preface, ...readmeArr].join('\n')
 }
