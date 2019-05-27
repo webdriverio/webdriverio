@@ -214,6 +214,16 @@ declare namespace WebDriver {
         platformVersion?: string;
         app?: string;
         udid?: string;
+        newCommandTimeout?: number;
+        language?: string;
+        locale?: string;
+        orientation?: string;
+        autoWebview?: boolean;
+        noReset?: boolean;
+        fullReset?: boolean;
+        eventTimings?: boolean;
+        enablePerformanceLogging?: boolean;
+        printPageSourceOnFindFailure?: boolean;
     }
 
     interface Options {
