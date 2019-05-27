@@ -13,6 +13,7 @@
     ],
     "Usage": [
       "selectors",
+      "browserobject",
       "customcommands",
       "multiremote",
       "cloudservices",
@@ -21,18 +22,21 @@
     "Testrunner": [
       "clioptions",
       "configurationfile",
-      "browserobject",
       "frameworks",
-      "organizingsuites",
-      "timeouts",
+      "customreporter",
+      "customservices"
+    ],
+    "Guides": [
       "pageobjects",
-      "debugging",
+      "timeouts",
+      "organizingsuites",
       "retry",
+      "debugging",
       "repl",
       "watcher",
       "jenkins",
-      "customreporter",
-      "customservices"
+      "runprogrammatically",
+      "driverbinaries"
     ]
   },
   "api": {

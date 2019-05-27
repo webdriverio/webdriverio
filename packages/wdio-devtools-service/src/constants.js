@@ -1,3 +1,5 @@
+import { throttling } from 'lighthouse/lighthouse-core/config/constants'
+
 /**
  * performance tracing categories
  */
@@ -43,3 +45,75 @@ export const IGNORED_URLS = [
     'about:', // new tabs
     'chrome-extension://' // all chrome extensions
 ]
+
+export const FRAME_LOAD_START_TIMEOUT = 2000
+export const TRACING_TIMEOUT = 10000
+export const CPU_IDLE_TRESHOLD = 10000
+export const MAX_TRACE_WAIT_TIME = 45000
+export const NETWORK_IDLE_TIMEOUT = 5000
+export const DEFAULT_NETWORK_THROTTLING_STATE = 'Good 3G'
+
+export const NETWORK_STATES = {
+    offline: {
+        offline: true,
+        latency: 0,
+        downloadThroughput: 0,
+        uploadThroughput: 0
+    },
+    GPRS: {
+        offline: false,
+        downloadThroughput: 50 * 1024 / 8,
+        uploadThroughput: 20 * 1024 / 8,
+        latency: 500
+    },
+    'Regular 2G': {
+        offline: false,
+        downloadThroughput: 250 * 1024 / 8,
+        uploadThroughput: 50 * 1024 / 8,
+        latency: 300
+    },
+    'Good 2G': {
+        offline: false,
+        downloadThroughput: 450 * 1024 / 8,
+        uploadThroughput: 150 * 1024 / 8,
+        latency: 150
+    },
+    'Regular 3G': {
+        offline: false,
+        latency: throttling.mobileRegluar3G.requestLatencyMs,
+        // DevTools expects throughput in bytes per second rather than kbps
+        downloadThroughput: Math.floor(throttling.mobileRegluar3G.downloadThroughputKbps * 1024 / 8),
+        uploadThroughput: Math.floor(throttling.mobileRegluar3G.uploadThroughputKbps * 1024 / 8)
+    },
+    'Good 3G': {
+        offline: false,
+        latency: throttling.mobileSlow4G.requestLatencyMs,
+        // DevTools expects throughput in bytes per second rather than kbps
+        downloadThroughput: Math.floor(throttling.mobileSlow4G.downloadThroughputKbps * 1024 / 8),
+        uploadThroughput: Math.floor(throttling.mobileSlow4G.uploadThroughputKbps * 1024 / 8)
+    },
+    'Regular 4G': {
+        offline: false,
+        downloadThroughput: 4 * 1024 * 1024 / 8,
+        uploadThroughput: 3 * 1024 * 1024 / 8,
+        latency: 20
+    },
+    'DSL': {
+        offline: false,
+        downloadThroughput: 2 * 1024 * 1024 / 8,
+        uploadThroughput: 1 * 1024 * 1024 / 8,
+        latency: 5
+    },
+    'Wifi': {
+        offline: false,
+        downloadThroughput: 30 * 1024 * 1024 / 8,
+        uploadThroughput: 15 * 1024 * 1024 / 8,
+        latency: 2
+    },
+    online: {
+        offline: false,
+        latency: 0,
+        downloadThroughput: -1,
+        uploadThroughput: -1
+    }
+}

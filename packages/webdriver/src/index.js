@@ -85,7 +85,10 @@ export default class WebDriver {
             throw new Error('sessionId is required to attach to existing session')
         }
 
-        logger.setLevel('webdriver', options.logLevel)
+        // logLevel can be undefined in watch mode when SIGINT is called
+        if (options.logLevel !== undefined) {
+            logger.setLevel('webdriver', options.logLevel)
+        }
 
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C === false ? false : true

@@ -82,6 +82,11 @@ Instead of calling the wdio command you can also include the test runner as modu
 import Launcher from '@wdio/cli';
 ```
 
+ES5
+```js
+const Launcher = require('@wdio/cli').default;
+
+```
 After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and parameters that will overwrite the value in the config.
 
 ```js

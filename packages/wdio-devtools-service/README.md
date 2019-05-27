@@ -45,6 +45,139 @@ export.config = {
 
 ## Usage
 
+The `@wdio/devtools-service` offers you a variety of features that helps you to automate Chrome beyond the WebDriver protocol. It gives you access to the Chrome DevTools protocol as well as to a [Puppeteer](https://pptr.dev/) instance that you can use to automate Chrome with the Puppeteer automation interface.
+
+### Performance Testing
+
+The DevTools service allows you to capture performance data from every page load or page transition that was caused by a click. To enable it call `browser.enablePerformanceAudits(<options>)`. After you are done capturing all necessary performance data disable it to revert the throttling settings, e.g.:
+
+```js
+const assert = require('assert')
+
+describe('JSON.org page', () => {
+    before(() => {
+        browser.enablePerformanceAudits()
+    })
+
+    it('should load within performance budget', () => {
+
+        browser.url('http://json.org')
+
+        let metrics = browser.getMetrics()
+        assert.ok(metrics.speedIndex < 1500) // check that speedIndex is below 1.5ms
+
+        let score = browser.getPerformanceScore() // get Lighthouse Performance score
+        assert.ok(score >= .99) // Lighthouse Performance score is at 99% or higher
+
+        $('=Esperanto').click()
+
+        metrics = browser.getMetrics()
+        assert.ok(metrics.speedIndex < 1500)
+        score = browser.getPerformanceScore()
+        assert.ok(score >= .99)
+    })
+
+    after(() => {
+        browser.disablePerformanceAudits()
+    })
+})
+```
+
+The following commands with their results are available:
+
+#### getMetrics
+
+Get most common used performance metrics.
+
+```js
+console.log(browser.getMetrics())
+/**
+ * { load: 355,
+ *   speedIndex: 281,
+ *   firstInteractive: 366,
+ *   firstVisualChange: 264,
+ *   lastVisualChange: 389,
+ *   firstMeaningfulPaint: 263,
+ *   firstCPUIdle: 366,
+ *   timeToFirstByte: 16,
+ *   firstPaint: 263,
+ *   estimatedInputLatency: 16,
+ *   firstContentfulPaint: 263,
+ *   score: 0.9999913442537731,
+ *   domContentLoaded: 346 }
+ */
+```
+
+#### getDiagnostics
+
+Get some useful diagnostics about the page load.
+
+```js
+console.log(browser.getDiagnostics())
+/**
+ * { numRequests: 8,
+ *   numScripts: 0,
+ *   numStylesheets: 0,
+ *   numFonts: 0,
+ *   numTasks: 237,
+ *   numTasksOver10ms: 5,
+ *   numTasksOver25ms: 2,
+ *   numTasksOver50ms: 2,
+ *   numTasksOver100ms: 0,
+ *   numTasksOver500ms: 0,
+ *   rtt: 147.20600000000002,
+ *   throughput: 47729.68474448835,
+ *   maxRtt: 176.085,
+ *   maxServerLatency: 1016.813,
+ *   totalByteWeight: 62929,
+ *   totalTaskTime: 254.07899999999978,
+ *   mainDocumentTransferSize: 8023 }
+ */
+```
+
+#### getMainThreadWorkBreakdown
+
+Returns a list with a breakdown of all main thread task and their total duration.
+
+```js
+console.log(browser.getMainThreadWorkBreakdown())
+/**
+ * [ { group: 'styleLayout', duration: 130.59099999999998 },
+ *   { group: 'other', duration: 44.819 },
+ *   { group: 'paintCompositeRender', duration: 13.732000000000005 },
+ *   { group: 'parseHTML', duration: 3.9080000000000004 },
+ *   { group: 'scriptEvaluation', duration: 2.437999999999999 },
+ *   { group: 'scriptParseCompile', duration: 0.20800000000000002 } ]
+ */
+```
+
+#### getPerformanceScore
+
+Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstMeaningfulPaint`, `firstCPUIdle`, `firstInteractive`, `speedIndex`, `estimatedInputLatency`.
+
+```js
+console.log(browser.getPerformanceScore())
+/**
+ * 0.897826278457836
+ */
+```
+
+#### enablePerformanceAudits
+
+Enables auto performance audits for all page loads that are cause by calling the `url` command or clicking on a link or anything that causes a page load. You can pass in a config object to determine some throttling options. The default throttling profile is `Good 3G` network with a 4x CPU trottling.
+
+```js
+browser.enablePerformanceAudits({
+    networkThrottling: 'Good 3G',
+    cpuThrottling: 4,
+    cacheEnabled: true
+})
+```
+
+The following network throttling profiles are available: `offline`, `GPRS`, `Regular 2G`, `Good 2G`, `Regular 3G`, `Good 3G`, `Regular 4G`, `DSL`, `Wifi` and `online` (no throttling).
+
+### Chrome DevTools Access
+
 For now the service allows two different ways to access the Chrome DevTools Protocol:
 
 ### `cdp` Command
@@ -132,40 +265,6 @@ browser.endTracing()
 fs.writeFileSync('/path/to/tracelog.json', JSON.stringify(browser.getTraceLogs()))
 ```
 
-### `getSpeedIndex` Command
-
-Returns the [Speed Index](https://sites.google.com/a/webpagetest.org/docs/using-webpagetest/metrics/speed-index) and [Perceptual Speed Index](https://developers.google.com/web/tools/lighthouse/audits/speed-index) from the page load that happened between the tracing period.
-
-```js
-browser.startTracing()
-browser.url('http://json.org')
-browser.endTracing()
-
-console.log(browser.getSpeedIndex())
-// outputs
-// { speedIndex: 689.6634800064564,
-//   perceptualSpeedIndex: 785.0901860232523 }
-```
-
-### `getPerformanceMetrics` Command
-
-Returns an object with a variety of performance metrics.
-
-```js
-browser.startTracing()
-browser.url('http://json.org')
-browser.endTracing()
-
-console.log(browser.getPerformanceMetrics())
-// outputs:
-// { firstPaint: 621.432,
-//   firstContentfulPaint: 621.44,
-//   firstMeaningfulPaint: 621.442,
-//   domContentLoaded: 474.96,
-//   timeToFirstInteractive: 621.442,
-//   load: 1148.313 }
-```
-
 ### `getPageWeight` Command
 
 Returns page weight information of the last page load.
@@ -189,6 +288,28 @@ console.log(browser.getPageWeight())
 //       Other: { size: 1790, encoded: 1790, count: 2 },
 //       XHR: { size: 509246, encoded: 112131, count: 1 } }
 // }
+```
+
+### Access Puppeteer Instance
+
+The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the `getPuppeteer` command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
+
+```js
+describe('use Puppeteer', () => {
+    it('by wrapping commands with call', () => {
+        browser.url('http://json.org')
+
+        const puppeteer = browser.getPuppeteer()
+        const page = browser.call(() => puppeteer.browser.pages())[0]
+        console.log(browser.call(() => page.title()))
+    })
+
+    it('by using async/await', async () => {
+        const puppeteer = browser.getPuppeteer()
+        const page = (await puppeteer.browser.pages())[0]
+        console.log(await page.title())
+    })
+})
 ```
 
 ### Event Listener

@@ -5,6 +5,7 @@ import fs from 'fs-extra'
 const caps = { maxInstances: 1, browserName: 'chrome' }
 
 jest.mock('fs-extra')
+global.console.log = jest.fn()
 
 describe('launcher', () => {
     let launcher
@@ -45,9 +46,34 @@ describe('launcher', () => {
         it('should start instance in multiremote', () => {
             launcher.runSpecs = jest.fn()
             launcher.isMultiremote = true
-            launcher.runMode({ specs: './' }, [{ browserName: 'multiremote' }])
+            launcher.runMode({ specs: './', specFileRetries: 2 }, { foo: { capabilities: { browserName: 'chrome' } } })
+
+            expect(launcher.schedule).toHaveLength(1)
+            expect(launcher.schedule[0].specs[0].retries).toBe(2)
 
             expect(typeof launcher.resolve).toBe('function')
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
+        it('should ignore specFileRetries in watch mode', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.runMode({ specs: './', specFileRetries: 2, watch: true }, [caps, caps])
+
+            expect(launcher.schedule).toHaveLength(2)
+            expect(launcher.schedule[0].specs[0].retries).toBe(0)
+            expect(launcher.schedule[1].specs[0].retries).toBe(0)
+
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
+        it('should apply maxInstancesPerCapability if maxInstances is not passed', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.runMode({ specs: './', specFileRetries: 3, maxInstancesPerCapability: 4 }, [{ browserName: 'chrome' }])
+
+            expect(launcher.schedule).toHaveLength(1)
+            expect(launcher.schedule[0].specs[0].retries).toBe(3)
+            expect(launcher.schedule[0].availableInstances).toBe(4)
+
             expect(launcher.runSpecs).toBeCalledTimes(1)
         })
     })

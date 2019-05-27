@@ -410,4 +410,13 @@ describe('wdio-testingbot-service', () => {
         expect(request.put).toHaveBeenCalled()
         expect(service.failures).toBe(0)
     })
+
+    it('afterSuite', () => {
+        const service = new TestingBotService()
+        expect(service.failures).toBe(0)
+        service.afterSuite({})
+        expect(service.failures).toBe(0)
+        service.afterSuite({ error: new Error('boom!') })
+        expect(service.failures).toBe(1)
+    })
 })

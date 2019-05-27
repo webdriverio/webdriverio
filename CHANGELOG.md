@@ -15,6 +15,54 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.3 (2019-05-26)
+
+#### :rocket: New Feature
+* `wdio-devtools-service`, `wdio-testingbot-service`, `webdriverio`
+  * [#3992](https://github.com/webdriverio/webdriverio/pull/3992) Updates to Performance Features ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#4022](https://github.com/webdriverio/webdriverio/pull/4022) Fixed issue #4021 - Not able to run tests with Sauce Connect and W3C caps ([@yamkay](https://github.com/yamkay))
+
+#### :memo: Documentation
+* [#4006](https://github.com/webdriverio/webdriverio/pull/4006) Update CLI.md ([@ducle91](https://github.com/ducle91))
+
+#### :house: Internal
+* `wdio-appium-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-logger`, `wdio-reporter`, `wdio-runner`, `wdio-selenium-standalone-service`, `wdio-spec-reporter`, `webdriver`, `webdriverio`
+  * [#4013](https://github.com/webdriverio/webdriverio/pull/4013) Update dependencies to enable Greenkeeper 🌴 ([@greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Duc Le ([@ducle91](https://github.com/ducle91))
+- Mohan Kumar Selvaraj ([@yamkay](https://github.com/yamkay))
+
+## v5.9.2 (2019-05-24)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#4002](https://github.com/webdriverio/webdriverio/pull/4002) avoid sauce:contexts calls being made for Sauce RDC tests ([@enriquegh](https://github.com/enriquegh))
+
+#### :nail_care: Polish
+* `wdio-mocha-framework`
+  * [#4005](https://github.com/webdriverio/webdriverio/pull/4005) wdio-mocha-framework: remove @types from runtime dependencies ([@vgrigoruk](https://github.com/vgrigoruk))
+
+#### :memo: Documentation
+* `wdio-cli`, `wdio-selenium-standalone-service`
+  * [#4014](https://github.com/webdriverio/webdriverio/pull/4014) Simplify getting started ([@mgrybyk](https://github.com/mgrybyk))
+* Other
+  * [#4017](https://github.com/webdriverio/webdriverio/pull/4017) Remove obsolete info about Object.create ([@BorisOsipov](https://github.com/BorisOsipov))
+  * [#4007](https://github.com/webdriverio/webdriverio/pull/4007) Move `npm init -y` up in docs to avoid global installation ([@klamping](https://github.com/klamping))
+* `wdio-sync`, `webdriverio`
+  * [#4009](https://github.com/webdriverio/webdriverio/pull/4009) Typings: wrap waitUntil condition function return type with Promise ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 5
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+
 ## v5.9.1 (2019-05-21)
 
 #### :rocket: New Feature
