@@ -26,7 +26,7 @@ and it also overrides the exclude key from the config file.
 
 Commands:
   wdio.js repl <browserName>  Run WebDriver session in command line
-  wdio.js install <type> <name> Add a `reporter` or a `service` to your WebdriverIO project
+  wdio.js install <type> <name> Add a `reporter`, `service`, or `framework` to your WebdriverIO project
 
 Options:
   --help                prints WebdriverIO help menu                   [boolean]
@@ -87,6 +87,7 @@ Example:
 ```bash
 $ wdio install service sauce # installs @wdio/sauce-service
 $ wdio install reporter dot # installs @wdio/dot-reporter
+$ wdio install framework mocka # installs wdio-mocha-framework
 ```
 
 If your project is using `package-lock.json` instead of `yarn.lock`, you can pass a `--npm` flag to make sure the packages are installed via NPM.
@@ -96,39 +97,43 @@ $ wdio install service sauce --npm
 ```
 
 #### List of supported services
-
 ```
-    sauce
-    testingbot
-    firefox-profile
-    selenium-standalone
-    devtools
-    applitools
-    browserstack
-    appium
-    chromedriver
-    intercept
-    zafira-listener
-    reportportal
-    docker
+sauce
+testingbot
+firefox-profile
+selenium-standalone
+devtools
+applitools
+browserstack
+appium
+chromedriver
+intercept
+zafira-listener
+reportportal
+docker
 ```
 
 #### List of supported reporters
 ```
-    dot
-    spec
-    junit
-    allure
-    sumologic
-    concise
-    reportportal
-    video
-    html
-    json
-    mochawesome
-    timeline
+dot
+spec
+junit
+allure
+sumologic
+concise
+reportportal
+video
+html
+json
+mochawesome
+timeline
 ```
 
+#### List of supported frameworks
+```
+mocha
+jasmine
+```
 
 ## Run the test runner programmatically
 
