@@ -92,3 +92,104 @@ test('should shut down worker processes', async () => {
     expect(call2.cid).toBe('0-4')
     expect(call2.command).toBe('endSession')
 })
+
+test('should avoid shutting down if worker is not busy', async () => {
+    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+        outputDir: '/foo/bar',
+        runnerEnv: { FORCE_COLOR: 1 }
+    })
+
+    runner.run({
+        cid: '0-8',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        argv: { sessionId: 'abc' },
+        caps: {},
+        processNumber: 231,
+        specs: ['/foo/bar2.test.js'],
+    })
+    runner.workerPool['0-8'].isBusy = false
+
+    await runner.shutdown()
+
+    expect(runner.workerPool['0-8']).toBeFalsy()
+})
+
+test('should shut down worker processes in watch mode - regular', async () => {
+    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+        outputDir: '/foo/bar',
+        runnerEnv: { FORCE_COLOR: 1 },
+        watch: true,
+    })
+
+    const worker = runner.run({
+        cid: '0-6',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        argv: { sessionId: 'abc' },
+        caps: {},
+        processNumber: 231,
+        specs: ['/foo/bar2.test.js'],
+    })
+    runner.workerPool['0-6'].sessionId = 'abc'
+    runner.workerPool['0-6'].server = { host: 'foo' }
+    runner.workerPool['0-6'].caps = { browser: 'chrome' }
+
+    setTimeout(() => {
+        worker.isBusy = false
+    }, 260)
+
+    const before = Date.now()
+    await runner.shutdown()
+    const after = Date.now()
+
+    expect(after - before).toBeGreaterThanOrEqual(300)
+
+    const call2 = worker.childProcess.send.mock.calls.pop()[0]
+    expect(call2.cid).toBe('0-6')
+    expect(call2.command).toBe('endSession')
+    expect(call2.argv.watch).toBe(true)
+    expect(call2.argv.isMultiremote).toBeFalsy()
+    expect(call2.argv.config.sessionId).toBe('abc')
+    expect(call2.argv.config.host).toEqual('foo')
+    expect(call2.argv.caps).toEqual({ browser: 'chrome' })
+})
+
+test('should shut down worker processes in watch mode - mutliremote', async () => {
+    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+        outputDir: '/foo/bar',
+        runnerEnv: { FORCE_COLOR: 1 },
+        watch: true,
+    })
+
+    const worker = runner.run({
+        cid: '0-7',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        argv: {},
+        caps: {},
+        processNumber: 232,
+        specs: ['/foo/bar.test.js'],
+    })
+    runner.workerPool['0-7'].isMultiremote = true
+    runner.workerPool['0-7'].instances = { foo: {} }
+    runner.workerPool['0-7'].caps = { foo: { capabilities: { browser: 'chrome' } } }
+
+    setTimeout(() => {
+        worker.isBusy = false
+    }, 260)
+
+    const before = Date.now()
+    await runner.shutdown()
+    const after = Date.now()
+
+    expect(after - before).toBeGreaterThanOrEqual(300)
+
+    const call1 = worker.childProcess.send.mock.calls.pop()[0]
+    expect(call1.cid).toBe('0-7')
+    expect(call1.command).toBe('endSession')
+    expect(call1.argv.watch).toBe(true)
+    expect(call1.argv.isMultiremote).toBe(true)
+    expect(call1.argv.instances).toEqual({ foo: {} })
+    expect(call1.argv.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
+})

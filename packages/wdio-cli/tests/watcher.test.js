@@ -11,6 +11,7 @@ jest.mock('../src/launcher', () => {
             this.configParser = new ConfigParser()
             this.configParser.addConfigFile(configFile)
             this.configParser.merge(argv)
+            this.isMultiremote = argv.isMultiremote
             this.runner = {}
             this.interface = {
                 emit: jest.fn(),
@@ -39,6 +40,14 @@ describe('watcher', () => {
         expect(watcher.specs).toEqual([
             './tests/test1.js',
             './tests/test2.js'
+        ])
+    })
+
+    it('should initialise properly in Multiremote', async () => {
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, { isMultiremote: true })
+        expect(watcher.specs).toEqual([
+            './tests/test1.js',
         ])
     })
 
