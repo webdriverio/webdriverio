@@ -50,6 +50,7 @@ test('should properly set up jasmine', async () => {
 
 test('should properly configure the jasmine environment', async () => {
     const stopOnSpecFailure = false
+    const stopSpecOnExpectationFailure = false
     const random = false
     const failFast = false
 
@@ -58,6 +59,7 @@ test('should properly configure the jasmine environment', async () => {
         {
             jasmineNodeOpts: {
                 stopOnSpecFailure,
+                stopSpecOnExpectationFailure,
                 random,
                 failFast,
             }
@@ -69,6 +71,7 @@ test('should properly configure the jasmine environment', async () => {
     await adapter.run()
     expect(adapter.jrunner.jasmine.getEnv().configure).toBeCalledWith({
         specFilter: expect.any(Function),
+        oneFailurePerSpec: stopSpecOnExpectationFailure,
         stopOnSpecFailure,
         random,
         failFast,
