@@ -232,44 +232,37 @@ class CucumberReporter {
         return name + line
     }
 
-    formatMessage (params) {
+    formatMessage ({ type, payload = {} }) {
         let message = {
-            type: params.type
+            ...payload,
+            type: type
         }
 
-        if (params.payload && params.payload.error) {
-            message.error = params.payload.error
+        if (!payload) {
+            return message
+        }
+
+        if (payload.error) {
+            message.error = payload.error
 
             /**
              * hook failures are emitted as "test:fail"
              */
-            if (params.payload.title && params.payload.title.match(/^"(before|after)( all)*" hook/g)) {
+            if (payload.title && payload.title.match(/^"(before|after)( all)*" hook/g)) {
                 message.type = 'hook:end'
             }
         }
 
-        if (params.payload) {
-            message.title = params.payload.title
-            message.parent = params.payload.parent ? params.payload.parent.title : null
+        /**
+         * Add the current test title to the payload for cases where it helps to
+         * identify the test, e.g. when running inside a beforeEach hook
+         */
+        if (payload.ctx && payload.ctx.currentTest) {
+            message.currentTest = payload.ctx.currentTest.title
+        }
 
-            message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
-            message.pending = params.payload.pending || false
-            message.file = params.payload.file
-            message.duration = params.payload.duration
-
-            /**
-             * Add the current test title to the payload for cases where it helps to
-             * identify the test, e.g. when running inside a beforeEach hook
-             */
-            if (params.payload.ctx && params.payload.ctx.currentTest) {
-                message.currentTest = params.payload.ctx.currentTest.title
-            }
-
-            if (params.type.match(/Test/)) {
-                message.passed = (params.payload.state === 'passed')
-            }
-
-            if (params.payload.context) { message.context = params.payload.context }
+        if (type.match(/Test/)) {
+            message.passed = (payload.state === 'passed')
         }
 
         return message

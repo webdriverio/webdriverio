@@ -1,7 +1,7 @@
 {
   "name": "@wdio/cucumber-framework",
   "version": "5.6.4",
-  "description": "A WebdriverIO plugin. Adapter for Mocha testing framework.",
+  "description": "A WebdriverIO plugin. Adapter for Cucumber.js testing framework.",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework",
   "license": "MIT",
@@ -24,24 +24,23 @@
   "keywords": [
     "webdriver",
     "wdio",
-    "wdio-reporter"
+    "cucumber"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/cucumber": "^4.0.5",
-    "@wdio/config": "^5.7.0",
-    "@wdio/logger": "^5.7.0",
-    "@wdio/sync": "^5.7.1",
+    "@wdio/config": "^5.9.3",
+    "@wdio/logger": "^5.9.3",
+    "@wdio/sync": "^5.9.3",
     "cucumber": "^5.1.0",
-    "fibers": "^3.1.1",
+    "fibers": "^4.0.0",
     "glob": "^7.1.2",
     "is-glob": "^4.0.0",
     "mockery": "~2.1.0"
   },
   "devDependencies": {
-
+    "@types/cucumber": "^4.0.5"
   },
   "peerDependencies": {
     "webdriverio": "^5.0.0"

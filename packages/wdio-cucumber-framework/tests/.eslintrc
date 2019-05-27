@@ -1,5 +1,9 @@
 {
   "env": {
     "jest": true
+  },
+  "globals": {
+    "browser": true,
+    "$": true
   }
 }
