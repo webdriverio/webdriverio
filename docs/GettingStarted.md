@@ -49,17 +49,11 @@ A question interface pops up. It will help to create the config easy and fast. I
 __Q: Where should your tests be launched?__<br>
 A: _local_<br>
 <br>
-__Q: Shall I install the runner plugin for you?__<br>
-A: _Yes_<br>
-<br>
 __Q: Where is your automation backend located?__<br>
 A: _On my local machine_<br>
 <br>
 __Q: Which framework do you want to use?__<br>
 A: _mocha_<br>
-<br>
-__Q: Shall I install the framework adapter for you?__<br>
-A: _Yes_ (just press enter)<br>
 <br>
 __Q: Do you want to run WebdriverIO commands synchronous or asynchronous?__<br>
 A: _sync_ (just press enter, you can also run commands async and handle promises by yourself but for the sake of simplicity let's run them synchronously)<br>
@@ -70,14 +64,8 @@ A: _./test/specs/**/*.js_ (just press enter)<br>
 __Q: Which reporter do you want to use?__<br>
 A: _dot_ (just press space and enter)<br>
 <br>
-__Q: Shall I install the reporter library for you?__<br>
-A: _Yes_ (just press enter)<br>
-<br>
 __Q: Do you want to add a service to your test setup?__<br>
 A: choose either _selenium-standalone_ (if you have JDK installed) or just _chromedriver_<br>
-<br>
-__Q: Level of logging verbosity:__<br>
-A: _info_<br>
 <br>
 __Q: What is the base url?__<br>
 A: _http://localhost_ (just press enter)<br>
