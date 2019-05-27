@@ -22,6 +22,10 @@ export default async function setup (exit = true) {
             packagesToInstall.push('@wdio/sync')
         }
 
+        if (answers.services.includes('wdio-chromedriver-service')) {
+            packagesToInstall.push('chromedriver')
+        }
+
         console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
         const result = yarnInstall({ deps: packagesToInstall, dev: true })
         if (result.status !== 0) {
