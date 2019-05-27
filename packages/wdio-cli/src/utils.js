@@ -112,3 +112,49 @@ export function parseInstallNameAndPackage(list) {
 
     return returnObj
 }
+
+function buildNewConfigArray(str, type, change) {
+    const newStr = str
+        .split(`${type}s: `)[1]
+        .replace('\'', '')
+
+    let newArray = newStr.match(/(\w*)/gmi).filter(e => !!e).concat([change])
+
+    return str
+        .replace('// ', '')
+        .replace(
+            new RegExp(`(${type}s: )((.*\\s*)*)`), `$1[${newArray.map(e => `'${e}'`)}]`
+        )
+}
+
+function buildNewConfigString(str, type, change) {
+    return str.replace(new RegExp(`(${type}: )('\\w*')`), `$1'${change}'`)
+}
+
+export function findInConfig(config, type) {
+    let regexStr = `[\\/\\/]*[\\s]*${type}s: [\\s]*\\[([\\s]*['|"]\\w*['|"],*)*[\\s]*\\]`
+
+    if (type === 'framework') {
+        regexStr = `[\\/\\/]*[\\s]*${type}: ([\\s]*['|"]\\w*['|"])`
+    }
+
+    const regex = new RegExp(regexStr, 'gmi')
+
+    return config.match(regex)
+}
+
+export function replaceConfig(
+    config,
+    type,
+    name
+) {
+    const match = findInConfig(config, type)
+    if (match && match.length) {
+        if (type === 'framework') {
+            return buildNewConfigString(config, type, name)
+        }
+        const text = match.pop()
+
+        return config.replace(text, buildNewConfigArray(text, type, name))
+    }
+}

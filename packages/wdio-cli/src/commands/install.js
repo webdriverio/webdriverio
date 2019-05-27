@@ -3,17 +3,25 @@ import fs from 'fs'
 import path from 'path'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
-
+/**
+    wdio install <type> <packageName>
+ */
 import setup from '../setup'
-import { SUPPORTED_SERVICES, SUPPORTED_REPORTER } from '../config'
+import { SUPPORTED_SERVICES, SUPPORTED_REPORTER, SUPPORTED_FRAMEWORKS } from '../config'
+import {
+    parseInstallNameAndPackage,
+    replaceConfig,
+    findInConfig
+} from '../utils'
 
 const supportedInstallations = {
-    reporter: SUPPORTED_REPORTER.map(service => service.split('-')[0].trim()),
-    service: SUPPORTED_SERVICES.map(service => service.split('-')[0].trim())
+    service: parseInstallNameAndPackage(SUPPORTED_SERVICES),
+    reporter: parseInstallNameAndPackage(SUPPORTED_REPORTER),
+    framework: parseInstallNameAndPackage(SUPPORTED_FRAMEWORKS)
 }
 
 export const command = 'install <type> <name>'
-export const desc = 'Add a `reporter` or a `service` to your WebdriverIO project'
+export const desc = 'Add a `reporter`, `service`, or `framework` to your WebdriverIO project'
 
 export default function builder(yargs) {
     return yargs
@@ -23,11 +31,11 @@ export default function builder(yargs) {
             default: false
         })
 }
-export async function handler(argv) {
 
+export async function handler(argv) {
     /**
-     * type = service | reporter
-     * name = array of names for the supported services or reporters
+     * type = service | reporter | framework
+     * name = names for the supported service or reporter
      * npm = optional flag to install package using npm instead of default yarn
      */
     const { type, name, npm } = argv
@@ -40,13 +48,12 @@ export async function handler(argv) {
     }
 
     // verify if the name of the `type` is valid
-    if (!supportedInstallations[type].includes(name)) {
+    if (!Object.keys(supportedInstallations[type]).includes(name)) {
         console.log(`${name} is not a supported ${type}.`)
         process.exit(0)
         return
     }
 
-    // only verify configuration if the type and name options are valid
     const localConfPath = path.join(process.cwd(), 'wdio.conf.js')
 
     if (!fs.existsSync(localConfPath)) {
@@ -73,10 +80,17 @@ You can create one by running 'wdio config'`)
             process.exit(1)
         }
     }
+    const configFile = fs.readFileSync(localConfPath, { encoding: 'UTF-8' })
+    const match = findInConfig(configFile, type)
 
-    const pkgName = `@wdio/${name}-${type}`
-    console.log(`Installing ${pkgName}${npm ? ' using npm.' : '.'}
-`)
+    if (match && match[0].includes(name)) {
+        console.log(`The ${type} ${name} is already part of your configuration`)
+        process.exit(0)
+        return
+    }
+
+    const pkgName = supportedInstallations[type][name]
+    console.log(`Installing ${pkgName}${npm ? ' using npm.' : '.'}`)
     const install = yarnInstall({ deps: [pkgName], dev: true, respectNpm5: npm })
 
     if (install.status !== 0) {
@@ -84,11 +98,14 @@ You can create one by running 'wdio config'`)
         process.exit(1)
     }
 
-    console.log(`
-Package ${pkgName} installed successfully.`)
-    // todo: update config file
+    console.log(`Package ${pkgName} installed successfully.`)
+    console.log('Updating wdio.conf.js file.')
 
+    const newConfig = replaceConfig(configFile, type, name)
+
+    fs.writeFileSync(localConfPath, newConfig, { encoding: 'utf-8' })
+
+    console.log('Your wdio.conf.js file has been updated')
     process.exit(0)
-
 }
 /* eslint-enable no-console */

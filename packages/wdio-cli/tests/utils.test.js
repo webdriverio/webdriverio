@@ -4,7 +4,9 @@ import {
     getNpmPackageName,
     runServiceHook,
     getRunnerName,
-    parseInstallNameAndPackage
+    parseInstallNameAndPackage,
+    findInConfig,
+    replaceConfig
 } from '../src/utils'
 
 test('getNpmPackageName', () => {
@@ -113,5 +115,66 @@ test('parseInstallNameAndPackage', () => {
         dot: '@wdio/dot-reporter',
         spec: '@wdio/spec-reporter',
         random: 'wdio-random-reporter'
+    })
+})
+
+describe('findInConfig', () => {
+    it('finds text for services', () => {
+        const str = "services: ['foo', 'bar'],"
+
+        expect(findInConfig(str, 'service')).toMatchObject([
+            'services: [\'foo\', \'bar\']'
+        ])
+    })
+
+    it('finds text for frameworks', () => {
+        const str = "framework: 'mocha'"
+
+        expect(findInConfig(str, 'framework')).toMatchObject([
+            "framework: 'mocha'"
+        ])
+    })
+})
+
+describe('replaceConfig', () => {
+    it('correctly changes framework', () => {
+        const fakeConfig = `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    framework: 'mocha',
+}`
+
+        expect(replaceConfig(fakeConfig, 'framework', 'jasmine')).toBe(
+            `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    framework: 'jasmine',
+}`
+        )
+    })
+
+    it('correctly changes service', () => {
+        const fakeConfig = `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    services: ['chromedriver'],
+    framework: 'mocha',
+}`
+        expect(replaceConfig(fakeConfig, 'service', 'sauce')).toBe(
+            `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    services: ['chromedriver','sauce'],
+    framework: 'mocha',
+}`
+        )
     })
 })
