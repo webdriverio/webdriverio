@@ -15,6 +15,26 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.4 (2019-05-28)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`, `wdio-runner`, `webdriver`, `webdriverio`
+  * [#3987](https://github.com/webdriverio/webdriverio/pull/3987) Fix browser session close in watch mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-config`, `webdriverio`
+  * [#4000](https://github.com/webdriverio/webdriverio/pull/4000) #3980 Support array of functions for onPrepare and onComplete hooks ([@naddison](https://github.com/naddison))
+* `wdio-jasmine-framework`
+  * [#4025](https://github.com/webdriverio/webdriverio/pull/4025) Implement issue#4024: jasmine-framework - introduce new jasmineOpts option: stopSpecOnExpectationFailure ([@mike-d-davydov](https://github.com/mike-d-davydov))
+
+#### :memo: Documentation
+* [#4020](https://github.com/webdriverio/webdriverio/pull/4020) scripts: generate 3rd party reporters and services ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Mikhail Davydov ([@mike-d-davydov](https://github.com/mike-d-davydov))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Nikolas Addison ([@naddison](https://github.com/naddison))
+
 ## v5.9.3 (2019-05-26)
 
 #### :rocket: New Feature
