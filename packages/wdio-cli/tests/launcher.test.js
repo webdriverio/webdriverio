@@ -394,8 +394,9 @@ describe('launcher', () => {
 
         beforeEach(() => {
             config = {
-                onPrepare: jest.fn(),
-                onComplete: jest.fn(),
+                // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
+                onPrepare: [jest.fn()],
+                onComplete: [jest.fn()],
             }
             launcher.configParser = {
                 getCapabilities: jest.fn().mockReturnValue(0),
@@ -412,14 +413,15 @@ describe('launcher', () => {
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
             expect(launcher.runner.initialise).toBeCalledTimes(1)
-            expect(config.onPrepare).toBeCalledTimes(1)
+            expect(config.onPrepare[0]).toBeCalledTimes(1)
             expect(launcher.runMode).toBeCalledTimes(1)
-            expect(config.onPrepare).toBeCalledTimes(1)
+            expect(config.onPrepare[0]).toBeCalledTimes(1)
             expect(launcher.interface.finalise).toBeCalledTimes(1)
         })
 
         it('onComplete error', async () => {
-            config.onComplete = () => { throw new Error() }
+            // ConfigParser.addFileConfig() will return onComplete as an array of functions
+            config.onComplete = [() => { throw new Error() }]
 
             expect(await launcher.run()).toBe(1)
         })

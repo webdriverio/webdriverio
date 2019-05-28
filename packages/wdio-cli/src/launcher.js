@@ -7,7 +7,7 @@ import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseServices } from '@wdio/utils'
 
 import CLInterface from './interface'
-import { runServiceHook } from './utils'
+import { runOnPrepareHook, runOnCompleteHook, runServiceHook } from './utils'
 
 const log = logger('@wdio/cli:Launcher')
 
@@ -64,15 +64,15 @@ class Launcher {
 
         /**
          * run pre test tasks for runner plugins
-         * (e.g. deploy Lambda functio to AWS)
+         * (e.g. deploy Lambda function to AWS)
          */
         await this.runner.initialise()
 
         /**
          * run onPrepare hook
          */
-        await config.onPrepare(config, caps)
         log.info('Run onPrepare hook')
+        await runOnPrepareHook(config.onPrepare, config, caps)
         await runServiceHook(launcher, 'onPrepare', config, caps)
 
         /**
@@ -88,12 +88,11 @@ class Launcher {
          */
         log.info('Run onComplete hook')
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-        try {
-            await config.onComplete(exitCode, config, caps, this.interface.result)
-        } catch (err) {
-            log.error(err)
-            exitCode = 1
-        }
+
+        const onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
+
+        // if any of the onComplete hooks failed, update the exit code
+        exitCode = onCompleteResults.includes(1) ? 1 : exitCode
 
         await logger.waitForBuffer()
 

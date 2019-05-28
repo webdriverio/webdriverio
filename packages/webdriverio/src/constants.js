@@ -251,9 +251,7 @@ export const WDIO_DEFAULTS = {
     /**
      * hooks
      */
-    onPrepare: {
-        type: 'function'
-    },
+    onPrepare: HOOK_DEFINITION,
     before: HOOK_DEFINITION,
     beforeSession: HOOK_DEFINITION,
     beforeSuite: HOOK_DEFINITION,
@@ -266,9 +264,7 @@ export const WDIO_DEFAULTS = {
     afterSuite: HOOK_DEFINITION,
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
-    onComplete: {
-        type: 'function'
-    },
+    onComplete: HOOK_DEFINITION,
     onReload: HOOK_DEFINITION,
 
     /**

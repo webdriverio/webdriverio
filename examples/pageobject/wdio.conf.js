@@ -158,7 +158,8 @@ exports.config = {
     // after: function (result, capabilities, specs) {
     // },
     //
-    // Gets executed after all workers got shut down and the process is about to exit.
+    // Gets executed after all workers got shut down and the process is about to exit. An error
+    // thrown in the onComplete hook will result in the test run failing.
     // onComplete: function(exitCode, config, capabilities, results) {
     // }
 }
