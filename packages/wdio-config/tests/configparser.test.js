@@ -185,6 +185,33 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
         })
+
+        it('should set hooks to empty arrays as default', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({})
+
+            expect(configParser.getConfig().onPrepare).toHaveLength(0)
+            expect(configParser.getConfig().before).toHaveLength(0)
+            expect(configParser.getConfig().after).toHaveLength(0)
+            expect(configParser.getConfig().onComplete).toHaveLength(0)
+        })
+
+        it('should overwrite hooks if provided', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({
+                onPrepare: jest.fn(),
+                before: jest.fn(),
+                after: jest.fn(),
+                onComplete: jest.fn()
+            })
+
+            expect(typeof configParser.getConfig().onPrepare).toBe('function')
+            expect(typeof configParser.getConfig().before).toBe('function')
+            expect(typeof configParser.getConfig().after).toBe('function')
+            expect(typeof configParser.getConfig().onComplete).toBe('function')
+        })
     })
 
     describe('addService', () => {
@@ -192,16 +219,20 @@ describe('ConfigParser', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.addService({
+                onPrepare: jest.fn(),
                 before: undefined,
                 beforeTest: 123,
                 afterTest: () => 'foobar',
-                after: [1, () => 'barfoo', () => 'lala']
+                after: [1, () => 'barfoo', () => 'lala'],
+                onComplete: jest.fn()
             })
 
             expect(configParser._config.before).toHaveLength(0)
             expect(configParser._config.beforeTest).toHaveLength(0)
             expect(configParser._config.afterTest).toHaveLength(1)
             expect(configParser._config.after).toHaveLength(2)
+            expect(configParser._config.onPrepare).toHaveLength(1)
+            expect(configParser._config.onComplete).toHaveLength(1)
         })
     })
 
