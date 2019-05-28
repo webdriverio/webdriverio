@@ -15,4 +15,14 @@ const getSubPackages = () => shell.ls(path.join(__dirname, '..', '..', 'packages
     !IGNORED_SUBPACKAGES_FOR_DOCS.includes(pkg)
 ))
 
-module.exports = { getSubPackages }
+function buildPreface(id, title, titleSuffix, editUrl) {
+    return [
+        '---',
+        `id: ${id}`,
+        `title: ${title} ${titleSuffix}`,
+        `custom_edit_url: ${editUrl}`,
+        '---\n'
+    ]
+}
+
+module.exports = { getSubPackages, buildPreface }

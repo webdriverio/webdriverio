@@ -32,6 +32,9 @@
       "junit-reporter": {
         "title": "Junit Reporter"
       },
+      "rpii-wdio-html-reporter": {
+        "title": "HTML Reporter"
+      },
       "sauce-service": {
         "title": "Sauce Service"
       },
@@ -46,6 +49,36 @@
       },
       "testingbot-service": {
         "title": "Testingbot Service"
+      },
+      "wdio-chromedriver-service": {
+        "title": "ChromeDriver Service"
+      },
+      "wdio-docker-service": {
+        "title": "Docker Service"
+      },
+      "wdio-intercept-service": {
+        "title": "Intercept Service"
+      },
+      "wdio-json-reporter": {
+        "title": "JSON Reporter"
+      },
+      "wdio-mochawesome-reporter": {
+        "title": "Mochawesome Reporter"
+      },
+      "wdio-reportportal-reporter": {
+        "title": "Report Portal Reporter"
+      },
+      "wdio-reportportal-service": {
+        "title": "Report Portal Service"
+      },
+      "wdio-timeline-reporter": {
+        "title": "Timeline Reporter"
+      },
+      "wdio-video-reporter": {
+        "title": "Video Reporter"
+      },
+      "wdio-zafira-listener-service": {
+        "title": "Zafira Listener Service"
       },
       "api": {
         "title": "API Docs"
@@ -77,6 +110,9 @@
       "api/browser/getCookies": {
         "title": "getCookies"
       },
+      "api/browser/getWindowSize": {
+        "title": "getWindowSize"
+      },
       "api/browser/keys": {
         "title": "keys"
       },
@@ -85,6 +121,12 @@
       },
       "api/browser/pause": {
         "title": "pause"
+      },
+      "api/browser/react$": {
+        "title": "react$"
+      },
+      "api/browser/react$$": {
+        "title": "react$$"
       },
       "api/browser/reloadSession": {
         "title": "reloadSession"
@@ -188,6 +230,12 @@
       "api/element/moveTo": {
         "title": "moveTo"
       },
+      "api/element/react$": {
+        "title": "react$"
+      },
+      "api/element/react$$": {
+        "title": "react$$"
+      },
       "api/element/saveScreenshot": {
         "title": "saveScreenshot"
       },
@@ -272,6 +320,9 @@
       "debugging": {
         "title": "Debugging"
       },
+      "driverbinaries": {
+        "title": "Driver Binaries"
+      },
       "frameworks": {
         "title": "Frameworks"
       },
@@ -302,6 +353,9 @@
       "retry": {
         "title": "Retry Flaky Tests"
       },
+      "runprogrammatically": {
+        "title": "Running Programmatically"
+      },
       "selectors": {
         "title": "Selectors"
       },
@@ -330,6 +384,7 @@
       "Configuration": "Configuration",
       "Usage": "Usage",
       "Testrunner": "Testrunner",
+      "Guides": "Guides",
       "Reporter": "Reporter",
       "Services": "Services",
       "Protocols": "Protocols",
@@ -339,7 +394,7 @@
   },
   "pages-strings": {
     "Watch Talks about WebdriverIO|no description given": "Watch Talks about WebdriverIO",
-    "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).|no description given": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).",
+    "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest \"This.JavaScript: State of Frontend Testing\" event about [The State of WebdriverIO v5](https://www.youtube.com/watch?v=fex2NlN-soQ&feature=youtu.be&t=3204) by [@klamping](https://twitter.com/klamping). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [him as well](https://twitter.com/klamping).|no description given": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest \"This.JavaScript: State of Frontend Testing\" event about [The State of WebdriverIO v5](https://www.youtube.com/watch?v=fex2NlN-soQ&feature=youtu.be&t=3204) by [@klamping](https://twitter.com/klamping). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [him as well](https://twitter.com/klamping).",
     "Watch more videos|no description given": "Watch more videos",
     "Applitools Support|no description given": "Applitools Support",
     "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__",
