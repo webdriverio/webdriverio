@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen WebDriver test automation framework for Node.js",
-  "version": "5.9.3",
+  "version": "5.9.4",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -55,9 +55,9 @@
     "test:unit": "jest"
   },
   "dependencies": {
-    "@wdio/config": "^5.9.3",
+    "@wdio/config": "^5.9.4",
     "@wdio/logger": "^5.9.3",
-    "@wdio/repl": "^5.9.3",
+    "@wdio/repl": "^5.9.4",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.2",
     "lodash.isobject": "^3.0.2",
@@ -67,6 +67,6 @@
     "resq": "^1.5.0",
     "rgb2hex": "^0.1.0",
     "serialize-error": "^4.1.0",
-    "webdriver": "^5.9.3"
+    "webdriver": "^5.9.4"
   }
 }
