@@ -179,5 +179,5 @@ declare namespace WebdriverIO {
         // ... browser commands ...
     }
 
-    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+    interface Config extends Options, WdioOmit<WebDriver.Options, "capabilities">, Hooks {}
 }
