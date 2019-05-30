@@ -4,6 +4,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
+type WdioOmit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
 type ArgumentTypes<T> = T extends (...args: infer U) => infer R ? U : never;
 type WrapWithPromise<T, R> = (...args: ArgumentTypes<T>) => Promise<R>;
 
