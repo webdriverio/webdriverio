@@ -217,7 +217,7 @@ test('onLoadEventFired: using min trace time', async () => {
 
     const start = Date.now()
     await traceGatherer.onLoadEventFired()
-    expect(Date.now() - start).toBeGreaterThan(299)
+    expect(Date.now() - start).toBeGreaterThanOrEqual(299)
 })
 
 test('waitForMaxTimeout', async () => {

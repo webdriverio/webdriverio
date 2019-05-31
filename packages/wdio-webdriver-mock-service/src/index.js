@@ -109,12 +109,12 @@ export default class WebdriverMockService {
         this.command.findElements().times(4).reply(200, { value: [elem2Response] })
     }
 
-    customCommandScenario () {
+    customCommandScenario (times = 1) {
         this.nockReset()
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
-        this.command.findElement().once().reply(200, { value: elemResponse })
-        this.command.executeScript().once().reply(200, { value: '2' })
+        this.command.findElement().times(times).reply(200, { value: elemResponse })
+        this.command.executeScript().times(times).reply(200, { value: '2' })
     }
 
     waitForDisplayedScenario () {
