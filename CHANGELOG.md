@@ -15,6 +15,17 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.6 (2019-05-31)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#4047](https://github.com/webdriverio/webdriverio/pull/4047) Wrap addCommand function with Fibers in multiremote mode ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`
+  * [#4048](https://github.com/webdriverio/webdriverio/pull/4048) fix runOnCompleteHook to respect async functions ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.9.5 (2019-05-31)
 
 #### :bug: Bug Fix
