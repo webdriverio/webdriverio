@@ -15,6 +15,26 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.9.5 (2019-05-31)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#4041](https://github.com/webdriverio/webdriverio/pull/4041) @wdio/devtools-service: updating puppeteer.connect arguments ([@smarkows](https://github.com/smarkows))
+* `webdriverio`
+  * [#4037](https://github.com/webdriverio/webdriverio/pull/4037) Fix build ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#4034](https://github.com/webdriverio/webdriverio/pull/4034) Update executeAsync.js ([@DustinX](https://github.com/DustinX))
+* Other
+  * [#4031](https://github.com/webdriverio/webdriverio/pull/4031) Update retry documentation as per #4008 ([@mike-d-davydov](https://github.com/mike-d-davydov))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dustin ([@DustinX](https://github.com/DustinX))
+- Mikhail Davydov ([@mike-d-davydov](https://github.com/mike-d-davydov))
+- [@smarkows](https://github.com/smarkows)
+
 ## v5.9.4 (2019-05-28)
 
 #### :bug: Bug Fix
