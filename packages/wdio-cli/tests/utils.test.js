@@ -37,6 +37,14 @@ test('runOnPrepareHook handles array of functions', () => {
     expect(hookFailing).toBeCalledTimes(1)
 })
 
+test('runOnPrepareHook handles async functions', async () => {
+    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 30))
+
+    const start = Date.now()
+    await runOnPrepareHook([hookSuccess], {}, {})
+    expect(Date.now() - start).toBeGreaterThanOrEqual(30)
+})
+
 test('runOnPrepareHook handles a single function', () => {
     const hookSuccess = jest.fn()
 
@@ -51,6 +59,14 @@ test('runOnCompleteHook handles array of functions', () => {
     runOnCompleteHook([hookSuccess, secondHook], {}, {})
     expect(hookSuccess).toBeCalledTimes(1)
     expect(secondHook).toBeCalledTimes(1)
+})
+
+test('runOnCompleteHook handles async functions', async () => {
+    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 30))
+
+    const start = Date.now()
+    await runOnCompleteHook([hookSuccess], {}, {})
+    expect(Date.now() - start).toBeGreaterThanOrEqual(30)
 })
 
 test('runOnCompleteHook handles a single function', () => {

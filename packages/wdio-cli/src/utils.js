@@ -52,9 +52,9 @@ export async function runOnCompleteHook(onCompleteHook, config, capabilities, ex
         onCompleteHook = [onCompleteHook]
     }
 
-    return Promise.all(onCompleteHook.map((hook) => {
+    return Promise.all(onCompleteHook.map(async (hook) => {
         try {
-            hook(exitCode, config, capabilities, results)
+            await hook(exitCode, config, capabilities, results)
             return 0
         } catch (e) {
             log.error(`Error in onCompleteHook: ${e.stack}`)
