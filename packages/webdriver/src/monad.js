@@ -116,7 +116,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 delete client[name]
                 unit.lift(name, customCommand, proto, (...args) => origCommands[name].apply(this, args))
             } else {
-                throw new Error('overwriteCommand: no command to be overwritten ' + name)
+                throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }
         }
 

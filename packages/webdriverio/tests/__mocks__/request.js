@@ -190,6 +190,10 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         break
     }
 
+    if (params.uri.path && params.uri.path.startsWith(`/wd/hub/session/${sessionId}/element/`) && params.uri.path.includes('/attribute/')) {
+        value = `${params.uri.path.substring(params.uri.path.lastIndexOf('/') + 1)}-value`
+    }
+
     /**
      * Simulate a stale element
      */
