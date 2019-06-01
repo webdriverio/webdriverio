@@ -1,18 +1,28 @@
-import { runOnPrepareHook, runOnCompleteHook, filterPackageName, runServiceHook, getRunnerName } from '../src/utils'
+import {
+    runOnPrepareHook,
+    runOnCompleteHook,
+    getNpmPackageName,
+    runServiceHook,
+    getRunnerName,
+    parseInstallNameAndPackage,
+    findInConfig,
+    replaceConfig
+} from '../src/utils'
 
-test('filterPackageName', () => {
-    const reporter = [
+test('getNpmPackageName', () => {
+    const reporters = [
         ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
         ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
         ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
         ' random - https://www.npmjs.com/package/wdio-random-reporter'
     ]
-    expect(filterPackageName('reporter')(reporter)).toEqual([
+    expect(getNpmPackageName(reporters)).toEqual([
         '@wdio/dot-reporter',
         '@wdio/spec-reporter',
         '@wdio/junit-reporter',
         'wdio-random-reporter'
     ])
+    expect(getNpmPackageName(' mocha - https://www.npmjs.com/package/wdio-mocha-framework')).toEqual('wdio-mocha-framework')
 })
 
 test('runServiceHook', () => {
@@ -109,4 +119,78 @@ test('getRunnerName', () => {
     expect(getRunnerName({ foo: {} })).toBe('undefined')
     expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe('undefined')
     expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
+})
+
+test('parseInstallNameAndPackage', () => {
+    const reporters = [
+        ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
+        ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
+        ' random - https://www.npmjs.com/package/wdio-random-reporter'
+    ]
+    expect(parseInstallNameAndPackage(reporters)).toEqual({
+        dot: '@wdio/dot-reporter',
+        spec: '@wdio/spec-reporter',
+        random: 'wdio-random-reporter'
+    })
+})
+
+describe('findInConfig', () => {
+    it('finds text for services', () => {
+        const str = "services: ['foo', 'bar'],"
+
+        expect(findInConfig(str, 'service')).toMatchObject([
+            'services: [\'foo\', \'bar\']'
+        ])
+    })
+
+    it('finds text for frameworks', () => {
+        const str = "framework: 'mocha'"
+
+        expect(findInConfig(str, 'framework')).toMatchObject([
+            "framework: 'mocha'"
+        ])
+    })
+})
+
+describe('replaceConfig', () => {
+    it('correctly changes framework', () => {
+        const fakeConfig = `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    framework: 'mocha',
+}`
+
+        expect(replaceConfig(fakeConfig, 'framework', 'jasmine')).toBe(
+            `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    framework: 'jasmine',
+}`
+        )
+    })
+
+    it('correctly changes service', () => {
+        const fakeConfig = `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    services: ['chromedriver'],
+    framework: 'mocha',
+}`
+        expect(replaceConfig(fakeConfig, 'service', 'sauce')).toBe(
+            `exports.config = {
+    runner: 'local',
+    specs: [
+        './test/specs/**/*.js'
+    ],
+    services: ['chromedriver','sauce'],
+    framework: 'mocha',
+}`
+        )
+    })
 })
