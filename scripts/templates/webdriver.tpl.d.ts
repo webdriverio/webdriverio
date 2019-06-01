@@ -273,7 +273,7 @@ declare namespace WebDriver {
         nativeWebScreenshot?: boolean;
         androidScreenshotPath?: string;
         autoGrantPermissions?: boolean;
-        networkSpeed?: string[];
+        networkSpeed?: string;
         gpsEnabled?: boolean;
         isHeadless?: boolean;
         adbExecTimeout?: number;
