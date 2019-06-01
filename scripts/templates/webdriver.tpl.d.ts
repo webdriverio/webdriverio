@@ -208,12 +208,121 @@ declare namespace WebDriver {
         // wdio-sauce-service specific
         build?: string;
 
-        // Appium
-        deviceName?: string;
+        // Appium General Capabilities
         automationName?: string;
         platformVersion?: string;
+        deviceName?: string;
         app?: string;
+        newCommandTimeout?: number;
+        language?: string;
+        locale?: string;
         udid?: string;
+        orientation?: string;
+        autoWebview?: boolean;
+        noReset?: boolean;
+        fullReset?: boolean;
+        eventTimings?: boolean;
+        enablePerformanceLogging?: boolean;
+        printPageSourceOnFindFailure?: boolean;
+
+        // Appium Android Only
+        appActivity?: string;
+        appPackage?: string;
+        appWaitActivity?: string;
+        appWaitPackage?: string;
+        appWaitDuration?: number;
+        deviceReadyTimeout?: number;
+        allowTestPackages?: boolean;
+        androidCoverage?: string;
+        androidCoverageEndIntent?: string;
+        androidDeviceReadyTimeout?: number;
+        androidInstallTimeout?: number;
+        androidInstallPath?: string;
+        adbPort?: number;
+        systemPort?: number;
+        remoteAdbHost?: string;
+        androidDeviceSocket?: string;
+        avd?: string;
+        avdLaunchTimeout?: number;
+        avdReadyTimeout?: number;
+        avdArgs?: string;
+        useKeystore?: boolean;
+        keystorePath?: string;
+        keystorePassword?: string;
+        keyAlias?: string;
+        keyPassword?: string;
+        chromedriverExecutable?: string;
+        chromedriverArgs?: string[];
+        chromedriverExecutableDir?: string;
+        chromedriverChromeMappingFile?: string;
+        chromedriverUseSystemExecutable?: boolean;
+        autoWebviewTimeout?: number;
+        chromedriverPort?: number;
+        chromedriverPorts?: (number | number[])[]
+        intentAction?: string;
+        intentCategory?: string;
+        intentFlags?: string;
+        optionalIntentArguments?: string;
+        dontStopAppOnReset?: boolean;
+        unicodeKeyboard?: boolean;
+        resetKeyboard?: boolean;
+        noSign?: boolean;
+        ignoreUnimportantViews?: boolean;
+        disableAndroidWatchers?: boolean;
+        recreateChromeDriverSessions?: boolean;
+        nativeWebScreenshot?: boolean;
+        androidScreenshotPath?: string;
+        autoGrantPermissions?: boolean;
+        networkSpeed?: string;
+        gpsEnabled?: boolean;
+        isHeadless?: boolean;
+        adbExecTimeout?: number;
+        localeScript?: string;
+        skipDeviceInitialization?: boolean;
+        chromedriverDisableBuildCheck?: boolean;
+        skipUnlock?: boolean;
+        unlockType?: string;
+        unlockKey?: string;
+        autoLaunch?: boolean;
+        skipLogcatCapture?: boolean;
+        uninstallOtherPackages?: string;
+        disableWindowAnimation?: boolean;
+        otherApps?: string;
+        uiautomator2ServerLaunchTimeout?: number;
+        uiautomator2ServerInstallTimeout?: number;
+        skipServerInstallation?: boolean;
+        espressoServerLaunchTimeout?: number;
+
+        // Appium iOS Only
+        calendarFormat?: string;
+        bundleId?: string;
+        launchTimeout?: number;
+        locationServicesEnabled?: boolean;
+        locationServicesAuthorized?: boolean;
+        autoAcceptAlerts?: boolean;
+        autoDismissAlerts?: boolean;
+        nativeInstrumentsLib?: boolean;
+        nativeWebTap?: boolean;
+        safariInitialUrl?: string;
+        safariAllowPopups?: boolean;
+        safariIgnoreFraudWarning?: boolean;
+        safariOpenLinksInBackground?: boolean;
+        keepKeyChains?: boolean;
+        localizableStringsDir?: string;
+        processArguments?: string;
+        interKeyDelay?: number;
+        showIOSLog?: boolean;
+        sendKeyStrategy?: string;
+        screenshotWaitTimeout?: number;
+        waitForAppScript?: string;
+        webviewConnectRetries?: number;
+        appName?: string;
+        customSSLCert?: string;
+        webkitResponseTimeout?: number;
+        remoteDebugProxy?: string;
+        enableAsyncExecuteFromHttps?: boolean;
+        skipLogCapture?: boolean;
+        webkitDebugProxyPort?: number;
     }
 
     interface Options {
