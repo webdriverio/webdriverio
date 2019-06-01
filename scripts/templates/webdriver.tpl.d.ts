@@ -281,11 +281,11 @@ declare namespace WebDriver {
         skipDeviceInitialization?: boolean;
         chromedriverDisableBuildCheck?: boolean;
         skipUnlock?: boolean;
-        unlockType?: string[];
+        unlockType?: string;
         unlockKey?: string;
         autoLaunch?: boolean;
         skipLogcatCapture?: boolean;
-        uninstallOtherPackages?: string | string[];
+        uninstallOtherPackages?: string;
         disableWindowAnimation?: boolean;
         otherApps?: string | string[];
         uiautomator2ServerLaunchTimeout?: number;
