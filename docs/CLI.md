@@ -87,7 +87,7 @@ Example:
 ```bash
 $ wdio install service sauce # installs @wdio/sauce-service
 $ wdio install reporter dot # installs @wdio/dot-reporter
-$ wdio install framework mocha # installs wdio-mocha-framework
+$ wdio install framework mocha # installs @wdio/mocha-framework
 ```
 
 If your project is using `package-lock.json` instead of `yarn.lock`, you can pass a `--npm` flag to make sure the packages are installed via NPM.

@@ -1,6 +1,6 @@
 export const SUPPORTED_FRAMEWORKS = [
-    ' mocha - https://www.npmjs.com/package/wdio-mocha-framework',
-    ' jasmine - https://www.npmjs.com/package/wdio-jasmine-framework'
+    ' mocha - https://www.npmjs.com/package/@wdio/mocha-framework',
+    ' jasmine - https://www.npmjs.com/package/@wdio/jasmine-framework'
 ]
 
 export const SUPPORTED_REPORTER = [
