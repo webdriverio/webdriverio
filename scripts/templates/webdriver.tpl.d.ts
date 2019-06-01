@@ -287,7 +287,7 @@ declare namespace WebDriver {
         skipLogcatCapture?: boolean;
         uninstallOtherPackages?: string;
         disableWindowAnimation?: boolean;
-        otherApps?: string | string[];
+        otherApps?: string;
         uiautomator2ServerLaunchTimeout?: number;
         uiautomator2ServerInstallTimeout?: number;
         skipServerInstallation?: boolean;
