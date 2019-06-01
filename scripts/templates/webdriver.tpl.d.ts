@@ -319,7 +319,7 @@ declare namespace WebDriver {
         appName?: string;
         customSSLCert?: string;
         webkitResponseTimeout?: number;
-        remoteDebugProxy?: number | string;
+        remoteDebugProxy?: string;
         enableAsyncExecuteFromHttps?: boolean;
         skipLogCapture?: boolean;
         webkitDebugProxyPort?: number;
