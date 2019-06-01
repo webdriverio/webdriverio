@@ -265,6 +265,7 @@ declare namespace WebDriver {
         optionalIntentArguments?: string;
         dontStopAppOnReset?: boolean;
         unicodeKeyboard?: boolean;
+        resetKeyboard?: boolean;
         noSign?: boolean;
         ignoreUnimportantViews?: boolean;
         disableAndroidWatchers?: boolean;
