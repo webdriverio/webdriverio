@@ -4,7 +4,7 @@ title: TypeScript Setup
 ---
 
 Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org/) to compile your .ts files in your before hook of your config file. You will need [ts-node](https://github.com/TypeStrong/ts-node) and [tsconfig-paths](https://github.com/dividab/tsconfig-paths) as the installed devDependencies.
-Minimal TypeScript version is 3.2.1
+Minimal TypeScript version is 3.5.1
 
 ```js
 // wdio.conf.js
@@ -53,7 +53,9 @@ For sync mode (@wdio/sync) `webdriverio` types have to be replaced with `@wdio/s
 }
 ```
 
-Please avoid importing webdriverio or @wdio/sync explicitly. `WebdriverIO` and `WebDriver` typings are accessible from anywhere once added to types in `tsconfig.json`.
+Please avoid importing webdriverio or @wdio/sync explicitly. `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to types in `tsconfig.json`.
+
+### Typed Configuration
 
 You can even use a typed configuration if you desire.
 All you have to do is create a plain js config file that registers typescript and requires the typed config:
@@ -73,8 +75,10 @@ const config: WebdriverIO.Config = {
 export { config }
 ```
 
-Depending on the framework you use, you will need to add the typings for that framework to your `tsconfig.json` types property.
-For instance, if we decide to use the mocha framework, we need to add it like this to have all typings globally available:
+### Framework types
+
+Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property.
+For instance, if we decide to use the mocha framework, we need to add it like this to have all types globally available:
 
 ```json
 {
@@ -92,7 +96,7 @@ For instance, if we decide to use the mocha framework, we need to add it like th
 }
 ```
 
-Instead of having all type definitions globally available, you can also import only the typings that you need like this:
+Instead of having all type definitions globally available, you can also import only the types that you need like this:
 
 ```typescript
 /*
@@ -100,4 +104,42 @@ Instead of having all type definitions globally available, you can also import o
 * the beforeTest, afterTest, beforeSuite and afterSuite hooks.
 */
 import { Suite, Test } from "@wdio/mocha-framework"
+```
+
+### Adding custom command
+
+With TypeScript it's easy to extend WebdriverIO interfaces. Adding types for your [custom commands](CustomCommands.md) looks like this:
+
+1. Create types definition file, ex: `./types/wdio.d.ts`
+2. Specify path to types in `tsconfig.json`
+```json
+{
+    "compilerOptions": {
+        "typeRoots": ["./types"]
+    }
+}
+```
+3. Add defintions for your commands depending on mode.
+
+**Sync mode**
+
+```
+declare module WebdriverIO {
+    // adding command to `browser`
+    interface Browser {
+        browserCustomCommand: (arg) => void
+    }
+}
+```
+
+**Async mode**
+
+```
+declare module WebdriverIOAsync {
+    adding command to `$()`
+    interface Element {
+        // don't forget to wrap return values with Promise
+        elementCustomCommand: (arg) => Promise<number>
+    }
+}
 ```
