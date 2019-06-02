@@ -54,6 +54,10 @@ async function bar() {
     // browser custom command
     await browser.browserCustomCommand(14)
 
+    browser.overwriteCommand('click', function (origCommand) {
+        origCommand()
+    })
+
     // $
     const el1 = await $('')
     const el2 = await el1.$('')

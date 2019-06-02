@@ -94,6 +94,15 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             }
         }
 
+        /**
+         * overwriteCommand
+         * @param  {String}   name              command name to be overwritten
+         * @param  {Function} func              function to replace original command with;
+         *                                      takes original function as first argument.
+         * @param  {boolean=} attachToElement   overwrite browser command (false) or element command (true)
+         * @param  {Object=}  proto             prototype to add function to (optional)
+         * @param  {Object=}  instances         multiremote instances
+         */
         client.overwriteCommand = function (name, func, attachToElement = false, proto, instances) {
             let customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)

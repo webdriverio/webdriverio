@@ -22,7 +22,7 @@ type ElementAsync = {
 type ElementStatic = Pick<WebdriverIO.Element, 'addCommand'>
 
 // Browser commands that should be wrapper with Promise
-type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'options' | '$' | '$$'>;
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
@@ -31,7 +31,7 @@ type BrowserAsync = {
 } & AsyncSelectors;
 
 // Browser commands that should not be wrapper with promise
-type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'options'>;
+type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options'>;
 declare namespace WebdriverIOAsync {
     function remote(
         options?: WebdriverIO.RemoteOptions,
