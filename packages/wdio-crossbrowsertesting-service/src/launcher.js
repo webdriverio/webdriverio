@@ -18,7 +18,7 @@ export default class CrossBrowserTestingLauncher {
                 return reject(err)
             }
             this.tunnel = true
-            return resolve()
+            return resolve('connected')
         }))
     }
 
@@ -31,7 +31,7 @@ export default class CrossBrowserTestingLauncher {
             if (err) {
                 return reject(err)
             }
-            return resolve()
+            return resolve('stopped')
         }))
     }
 }
