@@ -23,8 +23,6 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     const eventHandler = new EventEmitter()
     const EVENTHANDLER_FUNCTIONS = Object.getPrototypeOf(eventHandler)
 
-    const origCommands = {}
-
     /**
      * WebDriver monad
      */
@@ -44,7 +42,6 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
 
                 propertiesObject[commandName].value = commandWrapper(commandName, value)
                 propertiesObject[commandName].configurable = true
-                origCommands[commandName] = propertiesObject[commandName].value
             }
         }
 
@@ -121,9 +118,10 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                      */
                     this.__propertiesObject__.__elementOverrides__.value[name] = customCommand
                 }
-            } else if (client[name] && origCommands[name]) {
+            } else if (client[name]) {
+                const origCommand = client[name]
                 delete client[name]
-                unit.lift(name, customCommand, proto, (...args) => origCommands[name].apply(this, args))
+                unit.lift(name, customCommand, proto, (...args) => origCommand.apply(this, args))
             } else {
                 throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }
