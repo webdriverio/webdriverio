@@ -136,7 +136,7 @@ declare module WebdriverIO {
 
 ```
 declare module WebdriverIOAsync {
-    adding command to `$()`
+    // adding command to `$()`
     interface Element {
         // don't forget to wrap return values with Promise
         elementCustomCommand: (arg) => Promise<number>
