@@ -101,7 +101,7 @@ Note that the result of your custom command will be the result of the promise yo
 
 ### Overwriting native commands
 
-You can also overwrite native commands with `overwriteCommand`. It is highly unrecommended to do that because it may lead to unpredictable behavior of framework! Overall approach is similar to `addCommand`, the only difference is that first argument in command function is original function, please see some examples below.
+You can also overwrite native commands with `overwriteCommand`. It is not recommended to do this because it may lead to unpredictable behavior of the framework! The overall approach is similar to `addCommand`, the only difference is that the first argument in the command function is the original function that you are about to overwrite. Please see some examples below:
 
 NOTE: examples below assumes sync mode. If you are not using it don't forget to add async/await.
 
@@ -111,9 +111,9 @@ NOTE: examples below assumes sync mode. If you are not using it don't forget to 
 /**
  * print milliseconds before pause and return its value.
  */
-// "pause"            - command to be overwritten
+// 'pause'            - name of command to be overwritten
 // origPauseFunction  - original pause function
-browser.overwriteCommand("pause", function (origPauseFunction, ms) {
+browser.overwriteCommand('pause', function (origPauseFunction, ms) {
     console.log(`sleeping for ${ms}`);
     origPauseFunction(ms);
     return ms;
@@ -132,9 +132,9 @@ Overwriting commands on element level is almost the same, simply pass `true` as 
  * Attempt to scroll to element if it is not clickable.
  * Pass { force: true } to click with JS even if element is not visible or clickable.
  */
-// "click"            - command to be overwritten
+// 'click'            - name of command to be overwritten
 // origClickFunction  - original click function
-browser.overwriteCommand("click", function (origClickFunction, { force = false } = {}) {
+browser.overwriteCommand('click', function (origClickFunction, { force = false } = {}) {
     if (!force) {
         try {
             // attempt to click
