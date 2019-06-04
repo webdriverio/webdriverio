@@ -73,7 +73,7 @@
     "shelljs": "^0.8.3",
     "source-map-support": "^0.5.11",
     "tempy": "^0.3.0",
-    "typescript": "^3.4.1"
+    "typescript": "^3.5.1"
   },
   "husky": {
     "hooks": {

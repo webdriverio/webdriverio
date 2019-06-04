@@ -43,6 +43,12 @@ declare namespace WebdriverIO {
         }
     }
 
+    interface MultiRemoteCapabilities {
+        [instanceName: string]: {
+            capabilities: WebDriver.DesiredCapabilities;
+        };
+    }
+
     interface Options {
         runner?: string,
         specs?: string[],
@@ -50,7 +56,7 @@ declare namespace WebdriverIO {
         suites?: object,
         maxInstances?: number,
         maxInstancesPerCapability?: number,
-        capabilities?: WebDriver.DesiredCapabilities | WebDriver.DesiredCapabilities[],
+        capabilities?: WebDriver.DesiredCapabilities[] | MultiRemoteCapabilities,
         outputDir?: string,
         baseUrl?: string,
         bail?: number,
@@ -64,8 +70,10 @@ declare namespace WebdriverIO {
         execArgv?: string[]
     }
 
+    interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
+
     interface MultiRemoteOptions {
-        [capabilityName: string]: Options;
+        [instanceName: string]: WebDriver.DesiredCapabilities;
     }
 
     interface Suite {}
@@ -157,9 +165,6 @@ declare namespace WebdriverIO {
         // ... element commands ...
     }
 
-    type Execute = <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => T;
-    type ExecuteAsync = (script: string | ((...arguments: any[]) => any), ...arguments: any[]) => any;
-    type Call = <T>(callback: Function) => T;
     interface Timeouts {
         implicit?: number,
         pageLoad?: number,
@@ -172,12 +177,9 @@ declare namespace WebdriverIO {
             func: Function,
             attachToElement?: boolean
         ): void;
-        execute: Execute;
-        executeAsync: ExecuteAsync;
-        call: Call;
-        options: Options;
+        options: RemoteOptions;
         // ... browser commands ...
     }
 
-    interface Config extends Options, WdioOmit<WebDriver.Options, "capabilities">, Hooks {}
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
 }

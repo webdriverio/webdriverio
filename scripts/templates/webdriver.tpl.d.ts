@@ -4,11 +4,6 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
-type WdioOmit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
-type ArgumentTypes<T> = T extends (...args: infer U) => infer R ? U : never;
-type WrapWithPromise<T, R> = (...args: ArgumentTypes<T>) => Promise<R>;
-
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
     type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
@@ -373,11 +368,12 @@ declare namespace WebDriver {
     // generated typings
     // ... insert here ...
 
-    interface ClientAsync extends AsyncClient {}
+    interface ClientAsync extends AsyncClient { }
 }
 
 type AsyncClient = {
-    [K in keyof WebDriver.Client]: WrapWithPromise<WebDriver.Client[K], ReturnType<WebDriver.Client[K]>>
+    [K in keyof WebDriver.Client]:
+    (...args: Parameters<WebDriver.Client[K]>) => Promise<ReturnType<WebDriver.Client[K]>>;
 }
 
 declare module "webdriver" {
