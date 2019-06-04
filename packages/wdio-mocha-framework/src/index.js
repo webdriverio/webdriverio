@@ -274,7 +274,7 @@ class MochaAdapter {
         if (message.type === 'hook:end') {
             return this.getSyncEventIdEnd('hook')
         }
-        if (message.type === 'test:start') {
+        if (['test:start', 'test:pending'].includes(message.type)) {
             return this.getSyncEventIdStart('test')
         }
         if (['test:pending', 'test:end', 'test:pass', 'test:fail'].includes(message.type)) {
