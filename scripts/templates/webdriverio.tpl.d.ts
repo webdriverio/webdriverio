@@ -177,6 +177,11 @@ declare namespace WebdriverIO {
             func: Function,
             attachToElement?: boolean
         ): void;
+        overwriteCommand(
+            name: string,
+            func: Function,
+            attachToElement?: boolean
+            ): void;
         options: RemoteOptions;
         // ... browser commands ...
     }

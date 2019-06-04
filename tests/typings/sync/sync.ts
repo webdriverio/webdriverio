@@ -25,6 +25,10 @@ callResult.toFixed(2)
 // browser custom command
 browser.browserCustomCommand(5)
 
+browser.overwriteCommand('click', function (origCommand) {
+    origCommand()
+}, true)
+
 // $
 const el1 = $('')
 const el2 = el1.$('')

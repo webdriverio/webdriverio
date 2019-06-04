@@ -18,17 +18,12 @@ export default class WebdriverMockService {
         this.command = this.mock.command
 
         // define required responses
-        this.command.newSession().reply(200, newSession)
-        this.command.deleteSession().reply(200, deleteSession)
-        this.command.getTitle().reply(200, { value: 'Mock Page Title' })
-        this.command.getUrl().reply(200, { value: 'https://mymockpage.com' })
-        this.command.getElementRect(ELEMENT_ID).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
+        this.command.newSession().times(2).reply(200, newSession)
+        this.command.deleteSession().times(2).reply(200, deleteSession)
+        this.command.getTitle().times(2).reply(200, { value: 'Mock Page Title' })
+        this.command.getUrl().times(2).reply(200, { value: 'https://mymockpage.com' })
+        this.command.getElementRect(ELEMENT_ID).times(2).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this.command.getLogTypes().reply(200, { value: [] })
-
-        // in case run with multiremote
-        this.command.newSession().reply(200, newSession)
-        this.command.getTitle().reply(200, { value: 'Mock Page Other Title' })
-        this.command.deleteSession().reply(200, deleteSession)
     }
 
     before () {
@@ -115,6 +110,9 @@ export default class WebdriverMockService {
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
         this.command.findElement().times(times).reply(200, { value: elemResponse })
         this.command.executeScript().times(times).reply(200, { value: '2' })
+
+        // overwrite
+        this.command.deleteAllCookies().times(times).reply(200, { value: 'deleteAllCookies' })
     }
 
     waitForDisplayedScenario () {

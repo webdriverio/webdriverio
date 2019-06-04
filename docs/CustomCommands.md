@@ -3,6 +3,8 @@ id: customcommands
 title: Custom Commands
 ---
 
+### Adding custom commands
+
 If you want to extend the browser instance with your own set of commands there is a method called `addCommand` available from the browser object. You can write your command in a synchronous (default) way the same way as in your specs or asynchronous (like when using WebdriverIO in standalone mode). The following example shows how to add a new command that returns the current url and title as one result only using synchronous commands:
 
 ```js
@@ -96,3 +98,71 @@ it('execute external library in a sync way', () => {
 ```
 
 Note that the result of your custom command will be the result of the promise you return. Also there is no support for synchronous commands in standalone mode therefore you always have to handle asynchronous commands using promises.
+
+### Overwriting native commands
+
+You can also overwrite native commands with `overwriteCommand`. It is not recommended to do this because it may lead to unpredictable behavior of the framework! The overall approach is similar to `addCommand`, the only difference is that the first argument in the command function is the original function that you are about to overwrite. Please see some examples below:
+
+NOTE: examples below assumes sync mode. If you are not using it don't forget to add async/await.
+
+#### Overwriting browser commands
+
+```js
+/**
+ * print milliseconds before pause and return its value.
+ */
+// 'pause'            - name of command to be overwritten
+// origPauseFunction  - original pause function
+browser.overwriteCommand('pause', function (origPauseFunction, ms) {
+    console.log(`sleeping for ${ms}`);
+    origPauseFunction(ms);
+    return ms;
+});
+
+// then use it as before
+console.log(`was sleeping for ${browser.pause(1000)}`);
+```
+
+#### Overwriting element commands
+
+Overwriting commands on element level is almost the same, simply pass `true` as 3rd argument to `overwriteCommand`
+
+```js
+/**
+ * Attempt to scroll to element if it is not clickable.
+ * Pass { force: true } to click with JS even if element is not visible or clickable.
+ */
+// 'click'            - name of command to be overwritten
+// origClickFunction  - original click function
+browser.overwriteCommand('click', function (origClickFunction, { force = false } = {}) {
+    if (!force) {
+        try {
+            // attempt to click
+            return origClickFunction();
+        } catch (err) {
+            if (err.message.includes('not clickable at point')) {
+                console.warn('WARN: Element', this.selector, 'is not clickable.',
+                    'Scrolling to it before clicking again.');
+
+                // scroll to element and click again
+                this.scrollIntoView();
+                return origClickFunction();
+            }
+            throw err;
+        }
+    }
+
+    // clicking with js
+    console.warn('WARN: Using force click for', this.selector)
+    browser.execute(function (el) {
+        el.click();
+    }, this);
+}, true); // don't forget to pass `true` as 3rd argument
+
+// then use it as before
+const elem = $('body')
+elem.click()
+
+// or pass params
+elem.click({ force: true })
+```
