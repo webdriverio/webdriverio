@@ -710,7 +710,7 @@
         "name": "args",
         "type": "(string|object|number|boolean|undefined)[]",
         "description": "the script arguments",
-        "required": true
+        "required": false
       }],
       "returns": {
         "type": "*",

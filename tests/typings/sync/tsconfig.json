@@ -4,6 +4,7 @@
       "@wdio/sync",
       "@wdio/allure-reporter",
       "@wdio/selenium-standalone-service"
-    ]
+    ],
+    "typeRoots" : ["./types"]
   }
 }
