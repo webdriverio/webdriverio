@@ -71,6 +71,7 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('onComplete: cbtTunnel.stop succesful', async () => {
+        cbtLauncher.tunnel = true
         expect(cbtLauncher.onComplete()).resolves.toBe('stopped')
             .then(() => expect(cbtLauncher.cbtTunnel.stop).toHaveBeenCalled())
     })
