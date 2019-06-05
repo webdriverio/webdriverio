@@ -78,6 +78,7 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 - [@wdio/testingbot-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) - A WebdriverIO service that provides a better integration into TestingBot
 - [@wdio/selenium-standalone-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-selenium-standalone-service) - A WebdriverIO service that automatically sets up a selenium standalone server
 - [@wdio/browserstack-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) - A WebdriverIO service that provides a better integration into Browserstack
+- [@wdio/crossbrowsertesting-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-crossbrowsertesting-service) - A WebdriverIO service that provides a better integration into CrossBrowserTesting
 
 ### Runner
 
