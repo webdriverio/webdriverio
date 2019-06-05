@@ -26,12 +26,13 @@ export const SUPPORTED_SERVICES = [
     ' devtools - https://www.npmjs.com/package/@wdio/devtools-service',
     ' applitools - https://www.npmjs.com/package/@wdio/applitools-service',
     ' browserstack - https://www.npmjs.com/package/@wdio/browserstack-service',
+    ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service',
     ' appium - https://www.npmjs.com/package/@wdio/appium-service',
     ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
     ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
     ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service',
     ' docker - https://www.npmjs.com/package/wdio-docker-service',
-    ' firefox-profile - https://www.npmjs.com/package/@wdio/firefox-profile-service',
+    ' firefox-profile - https://www.npmjs.com/package/@wdio/firefox-profile-service'
 ]
 
 export const EXCLUSIVE_SERVICES = {
