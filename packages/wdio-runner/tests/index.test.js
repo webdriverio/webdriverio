@@ -2,6 +2,7 @@ import fs from 'fs'
 
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
+import logger from '@wdio/logger';
 
 jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
@@ -105,6 +106,20 @@ describe('wdio-runner', () => {
     })
 
     describe('endSession', () => {
+        it('should continue if the delete session throws an error', async () => {
+            const log = logger('@wdio/runner')
+            log.warn = jest.fn()
+            const runner = new WDIORunner()
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: () => Promise.reject(new Error('boom')),
+                sessionId: '123'
+            }
+            await runner.endSession()
+            expect(log.warn.mock.calls.length).toBe(1)
+            expect(runner._shutdown).toBeCalledTimes(0)
+        })
+
         it('should work normally when called after framework run', async () => {
             const hook = jest.fn()
             const runner = new WDIORunner()
