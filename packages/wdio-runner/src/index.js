@@ -323,7 +323,7 @@ export default class Runner extends EventEmitter {
         try {
             await global.browser.deleteSession()
         } catch(err) {
-            log.warn(`Couldn't clean up sessions: ${e.message}`)
+            log.warn(`Couldn't clean up sessions: ${err.message}`)
         }
 
         /**
