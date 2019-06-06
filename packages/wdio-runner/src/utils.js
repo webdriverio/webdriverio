@@ -6,6 +6,7 @@ import { DEFAULT_CONFIGS } from '@wdio/config'
 const log = logger('@wdio/local-runner:utils')
 
 const MERGE_OPTIONS = { clone: false }
+const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
 /**
  * run before/after session hook
@@ -13,13 +14,13 @@ const MERGE_OPTIONS = { clone: false }
 export function runHook (hookName, config, caps, specs) {
     const catchFn = (e) => log.error(`Error in ${hookName}: ${e.stack}`)
 
-    return Promise.all(config[hookName].map((hook) => {
+    return config && Array.isArray(config[hookName]) ? Promise.all(config[hookName].map((hook) => {
         try {
             return hook(config, caps, specs)
         } catch (e) {
             return catchFn(e)
         }
-    })).catch(catchFn)
+    })).catch(catchFn) : undefined
 }
 
 /**
@@ -100,4 +101,68 @@ export function filterLogTypes(excludeDriverLogs, driverLogTypes) {
     }
 
     return logTypes
+}
+
+/**
+ * Send event to WDIOCLInterface if test or before/after all hook failed
+ * @param {string} e        event
+ * @param {object} payload  payload
+ */
+export function sendFailureMessage(e, payload) {
+    if (e === 'test:fail' || (e === 'hook:end' && payload.error && mochaAllHooks.some(hook => payload.title.startsWith(hook)))) {
+        process.send({
+            origin: 'reporter',
+            name: 'printFailureMessage',
+            content: payload
+        })
+    }
+}
+
+/**
+ * Gets { sessionId, isW3C, protocol, hostname, port, path, queryParams } of every Multiremote instance
+ * @param {object} browser browser
+ * @param {boolean} isMultiremote isMultiremote
+ * @return {object}
+ */
+export function getInstancesData(browser, isMultiremote) {
+    let instances
+
+    if (isMultiremote) {
+        instances = {}
+        browser.instances.forEach(i => {
+            const { protocol, hostname, port, path, queryParams } = browser[i].options
+            const { isW3C, sessionId } = browser[i]
+
+            instances[i] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
+        })
+    }
+
+    return instances
+}
+
+/**
+ * Attach to Multiremote
+ * @param {object} instances mutliremote instances object
+ * @param {object} caps multiremote capabilities
+ * @return {object}
+ */
+export async function attachToMultiremote(instances, caps) {
+    // emulate multiremote browser object
+    const browser = {
+        instances: Object.keys(instances),
+        deleteSession () {
+            return Promise.all(Object.keys(instances).map(name => browser[name].deleteSession()))
+        }
+    }
+
+    /**
+     * attach to every multiremote instance
+     */
+    await Promise.all(
+        Object.keys(instances).map(async name => {
+            browser[name] = await initialiseInstance(instances[name], caps[name].capabilities, false)
+        })
+    )
+
+    return browser
 }

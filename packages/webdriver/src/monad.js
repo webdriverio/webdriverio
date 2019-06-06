@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
 
-import { commandCallStructure } from './utils'
+import { commandCallStructure, overwriteElementCommands } from './utils'
 
 const SCOPE_TYPES = {
     'browser': /* istanbul ignore next */ function Browser () {},
@@ -41,8 +41,14 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 }
 
                 propertiesObject[commandName].value = commandWrapper(commandName, value)
+                propertiesObject[commandName].configurable = true
             }
         }
+
+        /**
+         * overwrite native element commands with user defined
+         */
+        overwriteElementCommands.call(this, propertiesObject)
 
         /**
          * assign propertiesObject to itself so the client can be recreated
@@ -68,6 +74,9 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
+                /**
+                 * add command to every multiremote instance
+                 */
                 if (instances) {
                     Object.values(instances).forEach(instance => {
                         instance.__propertiesObject__[name] = {
@@ -75,9 +84,46 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                         }
                     })
                 }
+
                 this.__propertiesObject__[name] = { value: customCommand }
             } else {
                 unit.lift(name, customCommand, proto)
+            }
+        }
+
+        /**
+         * overwriteCommand
+         * @param  {String}   name              command name to be overwritten
+         * @param  {Function} func              function to replace original command with;
+         *                                      takes original function as first argument.
+         * @param  {boolean=} attachToElement   overwrite browser command (false) or element command (true)
+         * @param  {Object=}  proto             prototype to add function to (optional)
+         * @param  {Object=}  instances         multiremote instances
+         */
+        client.overwriteCommand = function (name, func, attachToElement = false, proto, instances) {
+            let customCommand = typeof commandWrapper === 'function'
+                ? commandWrapper(name, func)
+                : func
+            if (attachToElement) {
+                if (instances) {
+                    /**
+                     * add command to every multiremote instance
+                     */
+                    Object.values(instances).forEach(instance => {
+                        instance.__propertiesObject__.__elementOverrides__.value[name] = customCommand
+                    })
+                } else {
+                    /**
+                     * regular mode
+                     */
+                    this.__propertiesObject__.__elementOverrides__.value[name] = customCommand
+                }
+            } else if (client[name]) {
+                const origCommand = client[name]
+                delete client[name]
+                unit.lift(name, customCommand, proto, (...args) => origCommand.apply(this, args))
+            } else {
+                throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }
         }
 
@@ -86,12 +132,12 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
 
     /**
      * Enhance monad prototype with function
-     * @param  {String}   name   name of function to attach to prototype
-     * @param  {Function} func   function to be added to prototype
-     * @param  {Object}   proto  prototype to add function to (optional)
+     * @param  {String}   name          name of function to attach to prototype
+     * @param  {Function} func          function to be added to prototype
+     * @param  {Object}   proto         prototype to add function to (optional)
+     * @param  {Function} origCommand   original command to be passed to custom command as first argument
      */
-    unit.lift = function (name, func, proto) {
-
+    unit.lift = function (name, func, proto, origCommand) {
         (proto || prototype)[name] = function next (...args) {
             log.info('COMMAND', commandCallStructure(name, args))
 
@@ -103,7 +149,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 writable: false,
             })
 
-            const result = func.apply(this, args)
+            const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
             /**
              * always transform result into promise as we don't know whether or not

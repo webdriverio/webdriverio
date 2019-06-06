@@ -1,6 +1,7 @@
 import path from 'path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
+import { sendFailureMessage } from './utils'
 
 const log = logger('@wdio/runner')
 
@@ -38,6 +39,12 @@ export default class BaseReporter {
      */
     emit (e, payload) {
         payload.cid = this.cid
+
+        /**
+         * Send failure message (only once) in case of test or hook failure
+         */
+        sendFailureMessage(e, payload)
+
         this.reporters.forEach((reporter) => reporter.emit(e, payload))
     }
 

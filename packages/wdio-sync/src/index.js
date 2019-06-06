@@ -21,8 +21,6 @@ const executeSync = function (fn, repeatTest = 0, args = []) {
      * if a new hook gets executed we can assume that all commands should have finised
      * with exception of timeouts where `commandIsRunning` will never be reset but here
      */
-    // commandIsRunning = false
-
     return new Promise((resolve, reject) => {
         try {
             const res = fn.apply(this, args)

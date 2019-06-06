@@ -23,7 +23,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
     it('should execute async JavaScript on the page', () => {
         browser.setTimeout({ script: 5000 })
         const result = browser.executeAsync(function(a, b, c, d, done) {
-            // browser context - you may access neither client nor console
+            // browser context - you may not access client or console
             setTimeout(() => {
                 done(a + b + c + d)
             }, 3000);

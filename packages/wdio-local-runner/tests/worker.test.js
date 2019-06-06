@@ -27,6 +27,7 @@ describe('handleMessage', () => {
                 server: { foo: 'bar' }
             }
         )
+        worker.emit = jest.fn()
         const payload = {
             name: 'sessionStarted',
             content: {
@@ -41,6 +42,24 @@ describe('handleMessage', () => {
             foo: 'bar',
             bar: 'foo'
         })
+        expect(worker.emit).not.toBeCalled()
+    })
+
+    it('stores instances to worker instance in Multiremote mode', () => {
+        const worker = new Worker({}, {
+            cid: '0-3',
+            server: { foo: 'bar' }
+        })
+        const payload = {
+            name: 'sessionStarted',
+            content: {
+                instances: { foo: { sessionId: 'abc123' } },
+                isMultiremote: true
+            }
+        }
+        worker._handleMessage(payload)
+        expect(worker.instances).toEqual({ foo: { sessionId: 'abc123' } })
+        expect(worker.isMultiremote).toEqual(true)
     })
 
     it('handle debug command called within worker process', async () => {

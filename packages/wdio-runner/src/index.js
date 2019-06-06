@@ -8,7 +8,7 @@ import { initialiseServices, initialisePlugin } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 
 import BaseReporter from './reporter'
-import { runHook, initialiseInstance, filterLogTypes } from './utils'
+import { runHook, initialiseInstance, filterLogTypes, getInstancesData, attachToMultiremote } from './utils'
 
 const log = logger('@wdio/runner')
 
@@ -89,6 +89,8 @@ export default class Runner extends EventEmitter {
          */
         this.framework = initialisePlugin(this.config.framework, 'framework')
 
+        const instances = getInstancesData(browser, isMultiremote)
+
         /**
          * initialisation successful, send start message
          */
@@ -115,7 +117,7 @@ export default class Runner extends EventEmitter {
         process.send({
             origin: 'worker',
             name: 'sessionStarted',
-            content: { sessionId, isW3C, protocol, hostname, port, path, queryParams }
+            content: { sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances }
         })
 
         /**
@@ -132,12 +134,10 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * in watch mode we don't close the session and open a blank page instead
+         * in watch mode we don't close the session and leave current page opened
          */
         if (!argv.watch) {
             await this.endSession()
-        } else {
-            await global.browser.url('about:blank')
         }
 
         this.reporter.emit('runner:end', {
@@ -269,31 +269,71 @@ export default class Runner extends EventEmitter {
      * end WebDriver session, a config object can be applied if object has changed
      * within a hook by the user
      */
-    async endSession (shutdown) {
+    async endSession (payload) {
+        /**
+         * Attach to browser session before killing it in Multiremote
+         */
+        if (!global.browser && payload && payload.argv && payload.argv.watch) {
+            if (payload.argv.isMultiremote) {
+                this.isMultiremote = true
+                global.browser = await attachToMultiremote(payload.argv.instances, payload.argv.caps)
+            } else {
+                global.browser = await initialiseInstance(payload.argv.config, payload.argv.caps, false)
+            }
+        }
+
+        /**
+         * make sure instance(s) exist and have `sessionId`
+         */
+        const hasSessionId = global.browser && (this.isMultiremote
+            /**
+             * every multiremote instance should exist and should have `sessionId`
+             */
+            ? !global.browser.instances.some(i => global.browser[i] && !global.browser[i].sessionId)
+            /**
+             * browser object should have `sessionId` in regular mode
+             */
+            : global.browser.sessionId)
+
         /**
          * don't do anything if test framework returns after SIGINT
-         * if endSession is called without shutdown flag we expect a session id
+         * if endSession is called without payload we expect a session id
          */
-        if (!shutdown && (!global.browser || !global.browser.sessionId)) {
+        if (!payload && !hasSessionId) {
             return
         }
 
         /**
-         * if shutdown was called but no session was created, wait until it was
+         * if payload was called but no session was created, wait until it was
          * and try to end it
          */
-        if (shutdown && (!global.browser || !global.browser.sessionId)) {
+        if (payload && !hasSessionId) {
             await new Promise((resolve) => setTimeout(resolve, 250))
-            return this.endSession(shutdown)
+            return this.endSession(payload)
         }
 
-        const capabilities = global.browser.capabilities
+        /**
+         * store capabilities for afterSession hook
+         */
+        let capabilities = global.browser.capabilities || {}
+        if (this.isMultiremote) {
+            global.browser.instances.forEach(i => { capabilities[i] = global.browser[i].capabilities })
+        }
+
         await global.browser.deleteSession()
-        delete global.browser.sessionId
+
+        /**
+         * delete session(s)
+         */
+        if (this.isMultiremote) {
+            global.browser.instances.forEach(i => { delete global.browser[i].sessionId })
+        } else {
+            delete global.browser.sessionId
+        }
 
         await runHook('afterSession', global.browser.config, capabilities, this.specs)
 
-        if (shutdown) {
+        if (payload) {
             return this._shutdown()
         }
     }

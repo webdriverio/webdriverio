@@ -6,7 +6,8 @@ import { remote, multiremote, attach } from '../src'
 jest.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',
-        addCommand: jest.fn()
+        addCommand: jest.fn(),
+        overwriteCommand: jest.fn()
     }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))

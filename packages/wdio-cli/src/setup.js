@@ -5,44 +5,55 @@ import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
 import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
+import { getNpmPackageName, getPackageName } from './utils'
 
-export default function setup () {
-    console.log(CONFIG_HELPER_INTRO) // eslint-disable-line no-console
-    inquirer.prompt(QUESTIONNAIRE).then((answers) => {
-        let packagesToInstall = []
-        if (answers.installRunner) {
-            packagesToInstall.push(`@wdio/${answers.runner}-runner`)
-        }
-        if (answers.installFramework) {
-            packagesToInstall.push(`@wdio/${answers.framework}-framework`)
-        }
-        if (answers.installReporter) {
-            packagesToInstall = packagesToInstall.concat(answers.reporters)
-        }
-        if (answers.installServices) {
-            packagesToInstall = packagesToInstall.concat(answers.services)
-        }
+export default async function setup (exit = true) {
+    try {
+        console.log(CONFIG_HELPER_INTRO) // eslint-disable-line no-console
+        const answers = await inquirer.prompt(QUESTIONNAIRE)
+        const packagesToInstall = [
+            getNpmPackageName(answers.runner),
+            getNpmPackageName(answers.framework),
+            ...answers.reporters.map(getNpmPackageName),
+            ...answers.services.map(getNpmPackageName)
+        ]
+
         if (answers.executionMode === 'sync') {
             packagesToInstall.push('@wdio/sync')
         }
 
-        if (packagesToInstall.length > 0) {
-            console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
-            const result = yarnInstall({ deps: packagesToInstall, dev: true })
-            if (result.status != 0) {
-                throw new Error(result.stderr)
-            }
-            console.log('\nPackages installed successfully, creating configuration file...') // eslint-disable-line no-console
+        if (answers.services.includes('wdio-chromedriver-service')) {
+            packagesToInstall.push('chromedriver')
         }
 
-        renderConfigurationFile(answers)
-        process.exit(0)
-    })
+        console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- ')) // eslint-disable-line no-console
+        const result = yarnInstall({ deps: packagesToInstall, dev: true })
+        if (result.status !== 0) {
+            throw new Error(result.stderr)
+        }
+        console.log('\nPackages installed successfully, creating configuration file...') // eslint-disable-line no-console
+
+        const parsedAnswers = {
+            ...answers,
+            runner: getPackageName(answers.runner),
+            framework: getPackageName(answers.framework),
+            reporters: answers.reporters.map(getPackageName),
+            services: answers.services.map(getPackageName)
+        }
+
+        renderConfigurationFile(parsedAnswers)
+
+        if (exit) {
+            process.exit(0)
+        }
+    } catch (error) {
+        throw new Error(error)
+    }
 }
 
 function renderConfigurationFile (answers) {
-    let tpl = fs.readFileSync(path.join(__dirname, '/templates/wdio.conf.tpl.ejs'), 'utf8')
-    let renderedTpl = ejs.render(tpl, { answers })
+    const tpl = fs.readFileSync(path.join(__dirname, '/templates/wdio.conf.tpl.ejs'), 'utf8')
+    const renderedTpl = ejs.render(tpl, { answers })
     fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
     console.log(CONFIG_HELPER_SUCCESS_MESSAGE) // eslint-disable-line no-console
 }

@@ -1,7 +1,9 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseInstance, sanitizeCaps } from '../src/utils'
+import { runHook, initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData, attachToMultiremote } from '../src/utils'
+
+process.send = jest.fn()
 
 describe('utils', () => {
     beforeEach(() => {
@@ -31,6 +33,12 @@ describe('utils', () => {
             expect(logMock.error.mock.calls).toHaveLength(2)
             expect(logMock.error.mock.calls[0][0]).toContain('foobar123')
             expect(logMock.error.mock.calls[1][0]).toContain('foobar321')
+        })
+
+        it('should do nothing if hook is not array', async () => {
+            expect(runHook('before', null)).toBe(undefined)
+            expect(runHook('before', { before: {} })).toBe(undefined)
+            expect(runHook('before', {})).toBe(undefined)
         })
     })
 
@@ -107,5 +115,104 @@ describe('utils', () => {
             ...invalidCaps,
             ...validCaps
         })).toEqual(validCaps)
+    })
+
+    describe('sendFailureMessage', () => {
+        const scenarios = [{
+            name: 'should send message on test fail',
+            event: 'test:fail',
+            calls: 1
+        }, {
+            name: 'should not send message on any other event',
+            event: 'test:pass',
+            calls: 0
+        }, {
+            name: 'should send message on before all hook failure',
+            event: 'hook:end',
+            payload: { error: true, title: '"before all" hook foobar' },
+            calls: 1
+        }, {
+            name: 'should send message on after all hook failure',
+            event: 'hook:end',
+            payload: { error: true, title: '"before all" hook foobar' },
+            calls: 1
+        }, {
+            name: 'should not send message on after all hook success',
+            event: 'hook:end',
+            payload: { error: false, title: '"before all" hook foobar' },
+            calls: 0
+        }, {
+            name: 'should not send message for other hooks',
+            event: 'hook:end',
+            payload: { error: true, title: '"after each" hook foobar' },
+            calls: 0
+        }]
+
+        scenarios.forEach(scenario => {
+            it(scenario.name, () => {
+                sendFailureMessage(scenario.event, scenario.payload)
+                expect(process.send).toHaveBeenCalledTimes(scenario.calls)
+            })
+        })
+
+        afterEach(() => {
+            process.send.mockClear()
+        })
+    })
+
+    describe('getInstancesData', () => {
+        it('isMultiremote = true', () => {
+            const { sessionId, isW3C, protocol, hostname, port, path, queryParams } = {
+                isW3C: true,
+                sessionId: 'bar',
+                protocol: 'http',
+                hostname: 'localhost',
+                port: 4441,
+                path: '/foo/bar',
+                queryParams: '123'
+            }
+
+            expect(getInstancesData({
+                instances: ['foo'],
+                foo: {
+                    isW3C,
+                    sessionId,
+                    options: { protocol, hostname, port, path, queryParams }
+                }
+            }, true)).toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
+        })
+
+        it('isMultiremote = false', () => {
+            expect(getInstancesData(null, false)).toEqual(undefined)
+        })
+    })
+
+    describe('attachToMultiremote', () => {
+        it('should build browser object', async () => {
+            const browser = await attachToMultiremote({
+                foo: { sessionId: 'foo' },
+                bar: { sessionId: 'bar' }
+            }, {
+                foo: { capabilities: { browserName: 'chrome' } },
+                bar: { capabilities: { browserName: 'firefox' } }
+            })
+
+            expect(attach.mock.calls[0][0]).toEqual({
+                sessionId: 'foo',
+                capabilities: { browserName: 'chrome' }
+            })
+            expect(attach.mock.calls[1][0]).toEqual({
+                sessionId: 'bar',
+                capabilities: { browserName: 'firefox' }
+            })
+
+            expect(typeof browser.deleteSession).toEqual('function')
+            expect(typeof browser.foo.deleteSession).toEqual('function')
+            expect(typeof browser.bar.deleteSession).toEqual('function')
+            expect(browser.foo.sessionId).toBeTruthy()
+            expect(browser.bar.sessionId).toBeTruthy()
+
+            expect(await browser.deleteSession()).toHaveLength(2)
+        })
     })
 })

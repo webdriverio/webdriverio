@@ -23,6 +23,16 @@ exports.config = {
     port: <%= answers.port %>,
     path: '<%= answers.path %>',<% }
 
+    if(answers.services.includes('wdio-chromedriver-service')) { %>
+    //
+    // Override default path ('/wd/hub') for chromedriver service.
+    path: '/',<% }
+
+    if(answers.services.length === 0) { %>
+    //
+    // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
+    // path: '/',<% }
+
     if(answers.env_user && answers.env_key) { %>
     //
     // =================
@@ -86,7 +96,7 @@ exports.config = {
         // 5 instances get started at a time.
         maxInstances: 5,
         //
-        browserName: 'firefox',
+        browserName: '<%= answers.services.includes('wdio-chromedriver-service') ? 'chrome' : 'firefox' %>',
         // If outputDir is provided WebdriverIO can capture driver session logs
         // it is possible to configure which logTypes to include/exclude.
         // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
@@ -99,7 +109,7 @@ exports.config = {
     // Define all options that are relevant for the WebdriverIO instance here
     //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
-    logLevel: '<%= answers.logLevel %>',
+    logLevel: 'info',
     //
     // Set specific log levels per logger
     // loggers:
@@ -140,9 +150,7 @@ exports.config = {
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
     <% if(answers.services.length) {
-    %>services: ['<%- answers.services.map(function(service) {
-        return service.slice(service.startsWith('@wdio') ? 6 : 5, -8)
-    }).join("','") %>'],
+    %>services: [<%- answers.services.map(service => `'${service}'`) %>],
     <% } else {
     %>// services: [],<% } %>//
     // Framework you want to run your specs with.
@@ -160,9 +168,7 @@ exports.config = {
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter.html
     <% if(answers.reporters.length) {
-    %>reporters: ['<%- answers.reporters.map(function(reporter) {
-        return reporter.slice(reporter.startsWith('@wdio') ? 6 : 5, -9)
-    }).join("','") %>'],
+    %>reporters: [<%- answers.reporters.map(reporter => `'${reporter}'`) %>],
     <% } else {
     %>// reporters: ['dot'],<%
     }
@@ -351,7 +357,8 @@ exports.config = {
     // afterSession: function (config, capabilities, specs) {
     // },
     /**
-     * Gets executed after all workers got shut down and the process is about to exit.
+     * Gets executed after all workers got shut down and the process is about to exit. An error
+     * thrown in the onComplete hook will result in the test run failing.
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details

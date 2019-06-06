@@ -80,7 +80,13 @@ Type: `Boolean`<br>
 Default: `false`
 
 ### stopOnSpecFailure
-Stops spec execution on first fail (other specs continue running)
+Stops test suite (`describe`) execution on first spec (`it`) failure (other suites continue running)
+
+Type: `Boolean`<br>
+Default: `false`
+
+### stopSpecOnExpectationFailure
+Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
 
 Type: `Boolean`<br>
 Default: `false`

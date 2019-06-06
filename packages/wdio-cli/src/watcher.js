@@ -11,18 +11,14 @@ const log = logger('@wdio/cli:watch')
 export default class Watcher {
     constructor (configFile, argv) {
         log.info('Starting launcher in watch mode')
-        this.launcher = new Launcher(configFile, argv)
-        this.totalWorkerCnt = this.launcher.interface.totalWorkerCnt
-        this.launcher.interface.isWatchMode = true
+        this.launcher = new Launcher(configFile, argv, true)
         this.argv = argv
 
         const specs = this.launcher.configParser.getSpecs()
-        this.specs = [
-            ...specs,
-            ...union(flattenDeep(
-                this.launcher.configParser.getCapabilities().map(cap => cap.specs || [])
-            ))
-        ]
+        const capSpecs = this.launcher.isMultiremote ? [] : union(flattenDeep(
+            this.launcher.configParser.getCapabilities().map(cap => cap.specs || [])
+        ))
+        this.specs = [...specs, ...capSpecs]
         this.isRunningTests = false
     }
 
@@ -48,7 +44,6 @@ export default class Watcher {
          * run initial test suite
          */
         await this.launcher.run()
-        this.launcher.interface.updateView()
 
         /**
          * clean interface once all worker finish
@@ -116,15 +111,15 @@ export default class Watcher {
         }
 
         /**
-         * clean up interface
-         */
-        this.cleanUp()
-
-        /**
          * update total worker count interface
          * ToDo: this should have a cleaner solution
          */
         this.launcher.interface.totalWorkerCnt = Object.entries(workers).length
+
+        /**
+         * clean up interface
+         */
+        this.cleanUp()
 
         /**
          * trigger new run for non busy worker
@@ -139,6 +134,5 @@ export default class Watcher {
 
     cleanUp () {
         this.launcher.interface.setup()
-        this.launcher.interface.updateView()
     }
 }

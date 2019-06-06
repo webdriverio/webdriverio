@@ -27,9 +27,9 @@ describe('retries', function() {
 });
 ```
 
-## Rerun single tests in Jasmine or Mocha
+## Rerun single tests in Jasmine or Mocha (@wdio/sync only)
 
-To rerun a certain test block just apply the number of reruns as last parameter after the test block function:
+If you are using `@wdio/sync`, to rerun a certain test block you can just apply the number of reruns as last parameter after the test block function:
 
 ```js
 describe('my flaky app', () => {
@@ -56,6 +56,8 @@ describe('my flaky app', () => {
     // ...
 });
 ```
+
+If you are using Jasmine, it also means that second parameter of both *test functions* (e.g., `it`) and *hooks* (e.g., `beforeEach`) , which is a `timeout` in Jasmine, is treated as retry count.
 
 It is __not__ possible to rerun whole suites with Jasmine, only hooks or test blocks.
 

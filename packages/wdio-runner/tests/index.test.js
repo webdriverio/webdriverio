@@ -1,5 +1,6 @@
 import fs from 'fs'
 
+import { attach } from 'webdriverio'
 import WDIORunner from '../src'
 
 jest.mock('fs')
@@ -104,7 +105,7 @@ describe('wdio-runner', () => {
     })
 
     describe('endSession', () => {
-        it ('should work normally when called after framework run', async () => {
+        it('should work normally when called after framework run', async () => {
             const hook = jest.fn()
             const runner = new WDIORunner()
             runner._shutdown = jest.fn()
@@ -148,6 +149,117 @@ describe('wdio-runner', () => {
             expect(!global.browser.sessionId).toBe(true)
             expect(runner._shutdown).toBeCalledTimes(1)
             expect(end - start).toBeGreaterThanOrEqual(200)
+        })
+
+        it('should attach to session in watch mode', async () => {
+            const runner = new WDIORunner()
+            runner._shutdown = jest.fn()
+            await runner.endSession({ argv: {
+                watch: true,
+                config: { sessionId: 'foo' },
+                caps: { browserName: 'chrome' }
+            } })
+
+            expect(attach).toBeCalledWith({
+                sessionId: 'foo',
+                capabilities: { browserName: 'chrome' }
+            })
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!global.browser.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(1)
+        })
+
+        it('should work normally when called after framework run in multiremote', async () => {
+            const hook = jest.fn()
+            const runner = new WDIORunner()
+            runner.isMultiremote = true
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: jest.fn(),
+                instances: ['foo', 'bar'],
+                foo: {
+                    sessionId: '123',
+                },
+                bar: {
+                    sessionId: '456',
+                },
+                config: { afterSession: [hook] }
+            }
+            await runner.endSession()
+            expect(hook).toBeCalledTimes(1)
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!global.browser.foo.sessionId).toBe(true)
+            expect(!global.browser.bar.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(0)
+        })
+
+        it('should do nothing when triggered by run method without session in multiremote', async () => {
+            const hook = jest.fn()
+            const runner = new WDIORunner()
+            runner.isMultiremote = true
+            runner._shutdown = jest.fn()
+            await runner.endSession()
+            expect(hook).toBeCalledTimes(0)
+        })
+
+        it('should wait for all sessions to be created until shutting down in multiremote', async () => {
+            const hook = jest.fn()
+            const runner = new WDIORunner()
+            runner.isMultiremote = true
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: jest.fn(),
+                config: { afterSession: [hook] },
+                instances: ['foo', 'bar', 'foobar'],
+                foo: {
+                    sessionId: '123',
+                },
+                bar: {},
+            }
+            setTimeout(() => {
+                global.browser.bar.sessionId = 456
+                global.browser.foobar = { sessionId: 789 }
+            }, 200)
+
+            const start = Date.now()
+            await runner.endSession(true)
+            const end = Date.now()
+            expect(hook).toBeCalledTimes(1)
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!global.browser.foo.sessionId).toBe(true)
+            expect(!global.browser.bar.sessionId).toBe(true)
+            expect(!global.browser.foobar.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(1)
+            expect(end - start).toBeGreaterThanOrEqual(200)
+        })
+
+        it('should attach to session in watch mode in multiremote', async () => {
+            const runner = new WDIORunner()
+            runner._shutdown = jest.fn()
+            await runner.endSession({ argv: {
+                watch: true,
+                isMultiremote: true,
+                instances: {
+                    foo: { sessionId: 'foo' },
+                    bar: { sessionId: 'bar' }
+                },
+                caps: {
+                    foo: { capabilities: { browserName: 'chrome' } },
+                    bar: { capabilities: { browserName: 'firefox' } }
+                }
+            } })
+
+            expect(attach.mock.calls[0][0]).toEqual({
+                sessionId: 'foo',
+                capabilities: { browserName: 'chrome' }
+            })
+            expect(attach.mock.calls[1][0]).toEqual({
+                sessionId: 'bar',
+                capabilities: { browserName: 'firefox' }
+            })
+            expect(!global.browser.foo.sessionId).toBe(true)
+            expect(!global.browser.bar.sessionId).toBe(true)
+            expect(runner._shutdown).toBeCalledTimes(1)
         })
     })
 
@@ -203,7 +315,7 @@ describe('wdio-runner', () => {
             expect(failures).toBe(0)
         })
 
-        it('should call browser url if args watch', async () => {
+        it('should not call browser url if args watch', async () => {
             const runner = new WDIORunner()
             const config = {
                 framework: 'testNoFailures',
@@ -216,7 +328,7 @@ describe('wdio-runner', () => {
             const failures = await runner.run({ argv: { watch: true }, caps: {} })
 
             expect(failures).toBe(0)
-            expect(global.browser.url).toBeCalledWith('about:blank')
+            expect(global.browser.url).not.toBeCalled()
         })
 
         it('should set failures to 1 in case of error', async () => {
@@ -349,6 +461,7 @@ describe('wdio-runner', () => {
     })
 
     afterEach(() => {
+        attach.mockClear()
         delete global.browser
     })
 })
