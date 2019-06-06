@@ -11,6 +11,6 @@ declare module WebdriverIOAsync {
     }
 
     interface Element {
-        elementCustomCommand: (arg) => Promise<number>
+        elementCustomCommand: (arg: unknown) => Promise<number>
     }
 }

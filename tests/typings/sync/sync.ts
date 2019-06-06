@@ -3,7 +3,7 @@ import allure from '@wdio/allure-reporter'
 // An example of adding command withing ts file with @wdio/sync
 declare module "@wdio/sync" {
     interface Element {
-        elementCustomCommand: (arg) => number
+        elementCustomCommand: (arg: unknown) => number
     }
 }
 

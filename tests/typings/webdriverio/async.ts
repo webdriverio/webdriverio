@@ -4,7 +4,7 @@ import { remote, multiremote } from 'webdriverio'
 // An example of adding command withing ts file to WebdriverIOAsync
 declare module "webdriverio" {
     interface Browser {
-        browserCustomCommand: (arg) => Promise<void>
+        browserCustomCommand: (arg: unknown) => Promise<void>
     }
 }
 
@@ -55,7 +55,7 @@ async function bar() {
     await browser.browserCustomCommand(14)
 
     browser.overwriteCommand('click', function (origCommand) {
-        origCommand()
+        return origCommand()
     })
 
     // $
