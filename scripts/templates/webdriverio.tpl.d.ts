@@ -179,7 +179,7 @@ declare namespace WebdriverIO {
         ): void;
         overwriteCommand(
             name: string,
-            func: Function,
+            func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
             ): void;
         options: RemoteOptions;

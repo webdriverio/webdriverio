@@ -12,7 +12,7 @@ declare namespace WebdriverIO {
         // there is no way to wrap generic functions, like `<T>(arg: T) => T`
         // have to declare explicitly for sync and async typings.
         // https://github.com/microsoft/TypeScript/issues/5453
-        call: <T>(callback: (...args) => Promise<T>) => T;
+        call: <T>(callback: (...args: any[]) => Promise<T>) => T;
         execute: <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => T;
 
         // also there is no way to add callback as last parameter after `...args`.
