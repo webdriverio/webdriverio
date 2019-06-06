@@ -320,7 +320,11 @@ export default class Runner extends EventEmitter {
             global.browser.instances.forEach(i => { capabilities[i] = global.browser[i].capabilities })
         }
 
-        await global.browser.deleteSession()
+        try {
+            await global.browser.deleteSession()
+        } catch(err) {
+            log.warn(`Couldn't clean up sessions: ${e.message}`)
+        }
 
         /**
          * delete session(s)
