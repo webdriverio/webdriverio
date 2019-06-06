@@ -2,7 +2,7 @@ import fs from 'fs'
 
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
-import logger from '@wdio/logger';
+import logger from '@wdio/logger'
 
 jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
