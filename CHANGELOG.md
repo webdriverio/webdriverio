@@ -15,6 +15,28 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.0 (2019-06-06)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-crossbrowsertesting-service`
+  * [#3959](https://github.com/webdriverio/webdriverio/pull/3959) Add CrossBrowserTesting Service ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+* `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#4049](https://github.com/webdriverio/webdriverio/pull/4049) Overwrite native commands ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`
+  * [#4010](https://github.com/webdriverio/webdriverio/pull/4010) introduce 'install' command to wdio-cli ([@baruchvlz](https://github.com/baruchvlz))
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#4050](https://github.com/webdriverio/webdriverio/pull/4050) Fix call, execute, executeAsync, remote, multiremote ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* [#4052](https://github.com/webdriverio/webdriverio/pull/4052) Rename CONDUCT.md to CODE_OF_CONDUCT.md ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Daphne Magsby ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.9.6 (2019-05-31)
 
 #### :bug: Bug Fix
