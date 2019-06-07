@@ -37,4 +37,10 @@ describe('setValue', () => {
         await elem.setValue({ a: 22 })
         expect(request.mock.calls[3][0].body.text).toEqual('{"a":22}')
     })
+
+    test('should stringify Array<any>', async () => {
+        const elem = await browser.$('#foo')
+        await elem.setValue([1, '2', true, [1, 2]])
+        expect(request.mock.calls[3][0].body.text).toEqual('12true[1,2]')
+    })
 })
