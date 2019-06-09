@@ -15,6 +15,22 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.1 (2019-06-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4064](https://github.com/webdriverio/webdriverio/pull/4064) webdriverio: change argument type for setValue and addValue commands  ([@CrispusDH](https://github.com/CrispusDH))
+* `wdio-devtools-service`, `wdio-mocha-framework`
+  * [#4056](https://github.com/webdriverio/webdriverio/pull/4056) wdio-mocha-framework: fix pending test test:end ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriverio`
+  * [#4062](https://github.com/webdriverio/webdriverio/pull/4062) Types fix for users with noImplicitAny set to true ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Oleksii ([@CrispusDH](https://github.com/CrispusDH))
+
 ## v5.10.0 (2019-06-06)
 
 #### :rocket: New Feature
