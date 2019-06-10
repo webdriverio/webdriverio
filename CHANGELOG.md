@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.2 (2019-06-10)
+
+#### :bug: Bug Fix
+* `wdio-crossbrowsertesting-service`
+  * [#4071](https://github.com/webdriverio/webdriverio/pull/4071) Move cbt tunnels to dependency block ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
 ## v5.10.1 (2019-06-10)
 
 #### :bug: Bug Fix
