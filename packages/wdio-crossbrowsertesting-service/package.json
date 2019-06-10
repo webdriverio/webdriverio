@@ -29,7 +29,7 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "devDependencies": {
+  "dependencies": {
     "cbt_tunnels": "^0.9.7"
   },
   "peerDependencies": {

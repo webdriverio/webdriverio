@@ -1,5 +1,5 @@
 import CrossBrowserTestingLauncher from '../src/launcher'
-import 'cbt_tunnels'
+import cbtTunnels from 'cbt_tunnels'
 
 describe('wdio-crossbrowsertesting-service', () => {
     const cbtLauncher = new CrossBrowserTestingLauncher({})
@@ -38,7 +38,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             key: 'testy'
         }
         expect(cbtLauncher.onPrepare(config)).resolves.toBe('connected')
-            .then(() => expect(cbtLauncher.cbtTunnel.start).toHaveBeenCalled())
+            .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
         expect(cbtLauncher.cbtTunnelOpts).toEqual({ username: 'test', authkey: 'testy', options: 'some options' })
 
     })
@@ -52,9 +52,9 @@ describe('wdio-crossbrowsertesting-service', () => {
             user: 'test',
             key: 'testy'
         }
-        cbtLauncher.cbtTunnel.start.mockImplementationOnce((options, cb) => cb(error))
+        cbtTunnels.start.mockImplementationOnce((options, cb) => cb(error))
         expect(cbtLauncher.onPrepare(config)).rejects.toThrow(error)
-            .then(() => expect(cbtLauncher.cbtTunnel.start).toHaveBeenCalled())
+            .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
 
     })
 
@@ -65,14 +65,14 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     it('onComplete: cbtTunnel.stop throws an error', () => {
         cbtLauncher.tunnel = true
-        cbtLauncher.cbtTunnel.stop.mockImplementationOnce((cb) => cb(error))
+        cbtTunnels.stop.mockImplementationOnce((cb) => cb(error))
         expect(cbtLauncher.onComplete()).rejects.toThrow(error)
-            .then(() => expect(cbtLauncher.cbtTunnel.stop).toHaveBeenCalled())
+            .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())
     })
 
     it('onComplete: cbtTunnel.stop succesful', async () => {
         cbtLauncher.tunnel = true
         expect(cbtLauncher.onComplete()).resolves.toBe('stopped')
-            .then(() => expect(cbtLauncher.cbtTunnel.stop).toHaveBeenCalled())
+            .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())
     })
 })
