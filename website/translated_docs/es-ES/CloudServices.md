@@ -69,9 +69,9 @@ También puede pasar cualquier [configuración opcional de prueba](https://www.b
 
 ### [Pruebas locales](https://www.browserstack.com/local-testing#command-line)
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing.
+Si quieres ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesitas usar Testing Local.
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+Esta functionalidad está fuera del alcance de WebdriverIO, así que usted debe iniciarlo manualmente.
 
 If you do use local, you should set `browserstack.local` to `true` in your capabilities.
 
