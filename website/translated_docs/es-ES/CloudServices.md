@@ -73,15 +73,15 @@ Si quieres ejecutar pruebas contra un servidor que no es accesible a Internet (c
 
 Esta functionalidad está fuera del alcance de WebdriverIO, así que usted debe iniciarlo manualmente.
 
-If you do use local, you should set `browserstack.local` to `true` in your capabilities.
+Si usas local, deberías establecer `browserstack.local` a `true` en tus capacidades.
 
-If you are using the WDIO testrunner download and configure the [`wdio-browserstack-service`](https://github.com/itszero/wdio-browserstack-service) in your `wdio.conf.js`. It helps getting BrowserStack running and comes with additional features that better integrate your tests into the BrowserStack service.
+Si está usando el testrunner WDIO, descarga y configura el [`@wdio/sauce-service`](https://github.com/itszero/wdio-browserstack-service) en su archivo `wdio.conf.js`. Ayuda a que BrowserStack se ejecute y viene con características adicionales para integrar sus pruebas de una mejor forma al servicio de BrowserStack.
 
-### With Travis CI
+### Con Travis CI
 
-If you want to add Local Testing in Travis you have to start it by yourself.
+Si quieres añadir Pruebas Locales en Travis, tienes que iniciarlo por tu cuenta.
 
-The following script will download and start it in the background. You should run this in Travis before starting the tests.
+El siguiente script lo descargará y lo iniciará en segundo plano. Debes ejecutar esto en Travis antes de iniciar las pruebas.
 
 ```bash
 wget https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip
@@ -90,9 +90,9 @@ unzip BrowserStackLocal-linux-x64.zip
 sleep 3
 ```
 
-Also, you might wanna set the `build` to the Travis build number.
+También, puedes definir el número de `build` para usarlo en Travis.
 
-Example `desiredCapabilities`:
+Ejemplo `desiredCapabilities`:
 
 ```javascript
 browserName: 'chrome',
@@ -105,14 +105,14 @@ build: 'myApp #' + process.env.TRAVIS_BUILD_NUMBER + '.' + process.env.TRAVIS_JO
 
 ## [TestingBot](https://testingbot.com/)
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your TestingBot username and secret key.
+El único requisito es establecer el usuario `` y ` clave` en tu configuración (ya sea exportado por `wdio.conf.js` o pasado a `webdriverio.remote(...)`) a tu nombre de usuario y clave secreta de TestingBot.
 
-You can also pass in any optional [supported capabilities](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
+También puede pasar cualquier [capacidad soportada](https://testingbot.com/support/other/test-options) como clave/valor en las capacidades de cualquier navegador.
 
-### [Local Testing](https://testingbot.com/support/other/tunnel)
+### [Pruebas locales](https://testingbot.com/support/other/tunnel)
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. TestingBot provides a JAVA based tunnel to allow you to test websites not accessible from the internet.
+Si quieres ejecutar pruebas contra un servidor que no es accesible mediante Internet (como en `localhost`), entonces necesitas usar Testing Local. TestingBot proporciona un túnel basado en JAVA para permitirle probar sitios web no accesibles desde Internet.
 
-Their tunnel support page contains the information necessary to get this up and running.
+Su página de soporte de túneles contiene la información necesaria para configurar esto.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps getting TestingBot running and comes with additional features that better integrate your tests into the TestingBot service.
+Si está usando el testrunner WDIO descargue y configure el [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) en su archivo `wdio.conf.js`. Ayuda a ejecutar TestingBot y viene con características adicionales que integran mejor sus pruebas en el servicio TestingBot.
