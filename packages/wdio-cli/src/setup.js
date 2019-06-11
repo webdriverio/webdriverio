@@ -22,7 +22,11 @@ export default async function setup (exit = true) {
             packagesToInstall.push('@wdio/sync')
         }
 
-        if (answers.services.includes('wdio-chromedriver-service')) {
+        /**
+         * automatically install latest Chromedriver if `wdio-chromedriver-service`
+         * was selected for install
+         */
+        if (answers.services.some((answer) => answer.includes('wdio-chromedriver-service'))) {
             packagesToInstall.push('chromedriver')
         }
 
