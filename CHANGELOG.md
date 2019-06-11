@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.3 (2019-06-11)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#4075](https://github.com/webdriverio/webdriverio/pull/4075) Fix Chromedriver install via config wizard ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
 ## v5.10.2 (2019-06-10)
 
 #### :bug: Bug Fix
