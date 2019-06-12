@@ -2,6 +2,7 @@
 id: configurationfile
 title: Configuración de Testrunner
 ---
+
 El archivo de configuración contiene toda la información necesaria para ejecutar su suite de pruebas. Es un módulo de Node que exporta un JSON. Aquí hay una configuración de ejemplo con todas las propiedades soportadas e información adicional:
 
 ```js
@@ -75,21 +76,21 @@ exports.config = {
     // O establezca un límite para ejecutar pruebas con una capacidad específica.
     maxInstancesPerCapability: 10,
     //
-    // If you have trouble getting all important capabilities together, check out the
-    // Sauce Labs platform configurator - a great tool to configure your capabilities:
+    // Si tienes problemas para hacer funcionar las capacidades más importantes, revisa 
+    // Sauce Labs platform configurator - un excelente utilidad para configurar las capacidades:
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
         browserName: 'chrome',
         chromeOptions: {
-        // to run chrome headless the following flags are required
-        // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
+        // para ejecutar Chrome en modo headless las siguientes banderas son necesarias
+        // (visita https://developers.google.com/web/updates/2017/04/headless-chrome)
         // args: ['--headless', '--disable-gpu'],
         }
     }, {
-        // maxInstances can get overwritten per capability. So if you have an in house Selenium
-        // grid with only 5 firefox instance available you can make sure that not more than
-        // 5 instance gets started at a time.
+        // maxInstances se puede sobreescribir por cada capacidad definida. Así que si tienes una solucion Selenium Grid
+        // con soporte para sólo 5 instancias de firefox disponible, puedes asegurarte de que no más de
+        // 5 instancias se inician a la vez.
         maxInstances: 5,
         browserName: 'firefox',
         specs: [
