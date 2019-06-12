@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.4 (2019-06-12)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#4077](https://github.com/webdriverio/webdriverio/pull/4077) Update utils.js ([@akume](https://github.com/akume))
+
+#### Committers: 1
+- Da Rod ([@akume](https://github.com/akume))
+
 ## v5.10.3 (2019-06-11)
 
 #### :bug: Bug Fix
