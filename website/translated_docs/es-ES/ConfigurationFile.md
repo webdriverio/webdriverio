@@ -97,27 +97,27 @@ exports.config = {
             'test/ffOnly/*'
         ],
         "moz:firefoxOptions": {
-          // flag to activate Firefox headless mode (see https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
+          // Bandera para activar  Firefox en modo headless (visita https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities para más información sobre  moz:firefoxOptions)
           // args: ['-headless']
         }
     }],
     //
-    // Additional list of node arguments to use when starting child processes
+    // Lista adicional de argumentos node a usar cuando se inician los procesos hijos
     execArgv: [],
     //
-    // ===================
-    // Test Configurations
-    // ===================
-    // Define all options that are relevant for the WebdriverIO instance here
+    // =======================
+    // Configuraciones de Pruebas
+    // =======================
+    // Define todas las opciones relevantes para la instancia de WebDriverIO aqui
     //
-    // Level of logging verbosity: trace | debug | info | warn | error
+    // Nivel de verbosidad de los logs: trace | debug | info | warn | error
     logLevel: 'info',
     //
-    // If you only want to run your tests until a specific amount of tests have failed use
-    // bail (default is 0 - don't bail, run all tests).
+    // Si unicamente quieres ejecutar tus pruebas hasta que cierta cantidad de ellas falle, usa
+    // bail(salir) ( (el valor por defecto es 0 - por ende todos los tests seran ejecutados).
     bail: 0,
     //
-    // Set a base URL in order to shorten url command calls. If your `url` parameter starts
+    // Establecer una URL base para acortar llamadas de comandos de url. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
