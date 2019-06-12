@@ -117,58 +117,58 @@ exports.config = {
     // bail(salir) ( (el valor por defecto es 0 - por ende todos los tests seran ejecutados).
     bail: 0,
     //
-    // Establecer una URL base para acortar llamadas de comandos de url. If your `url` parameter starts
-    // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
-    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
-    // gets prepended directly.
+    // Establecer una URL base para acortar llamadas de comandos de url. Si el parámetro `url` comienza
+    // con `/`, la url base se antepondrá, no incluyendo la porción de ruta de tu urlBase.
+    // Si el parámetro `url` comienza sin un esquema o `/` (como `alguna/ruta`), la url base
+    // se antepondrá directamente.
     baseUrl: 'http://localhost:8080',
     //
-    // Default timeout for all waitForXXX commands.
+    // Tiempo de espera predeterminado para todos los comandos waitForXXX.
     waitforTimeout: 1000,
     //
-    // Add files to watch (e.g. application code or page objects) when running `wdio` command
-    // with `--watch` flag (globbing is supported).
+    // Puedes añadir archivos para que sean monitoreados (por ejemplo, código de aplicación o objetos de página) al ejecutar el comando `wdio`
+    // con la bandera `--watch` (globbing es compatible).
     filesToWatch: [
-        // e.g. rerun tests if I change my application code
+        // ej. re-ejecutar pruebas si cambio mi código de aplicación
         // './app/**/*.js'
     ],
     //
-    // Framework you want to run your specs with.
-    // The following are supported: mocha, jasmine and cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // Framework con el que quieres ejecutar tus especificaciones(specs).
+    // Los siguientes son soportados: mocha, jasmine y cucumber
+    // ver también: http://webdriver.io/docs/frameworks.html
     //
-    // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
+    // Asegúrese de que tiene el paquete adaptador wdio para el framework específico instalado antes de ejecutar cualquier prueba.
     framework: 'mocha',
     //
-    // Test reporter for stdout.
-    // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
+    // Reportador de pruebas para stdout.
+    // El único soportado por defecto es 'dot'
+    // ver también: http://webdriver.io/docs/dot-reporter.html y haga clic en "Reporters" en la columna izquierda
     reporters: [
         'dot',
         ['allure', {
             //
-            // If you are using the "allure" reporter you should define the directory where
-            // WebdriverIO should save all allure reports.
+            // Si está usando el reportero "Allure" debe definir el directorio donde
+            // WebdriverIO debe guardar todos los informes de Allure.
             outputDir: './'
         }]
     ],
     //
-    // Options to be passed to Mocha.
-    // See the full list at http://mochajs.org/
+    // Opciones a pasar a Mocha.
+    // Ver la lista completa en http://mochajs.org/
     mochaOpts: {
         ui: 'bdd'
     },
     //
-    // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
+    // Opciones a pasar a Jasmine.
+    // Vea también : https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
-        // Jasmine default timeout
+        // Tiempo de espera por default para Jasmine 
         defaultTimeoutInterval: 5000,
         //
-        // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
-        // or website depending on the result. For example it is pretty handy to take a screenshot every time
-        // an assertion fails.
+        // El Framework Jasmine permite interceptar cada cromprobación(assertion) para poder obtener logs  
+        // del estado de la aplicación o website dependiendo del resultado de la misma. Por ejemplo, es muy práctico tomar una captura de pantalla cada vez que
+        // falla una comprobación.
         expectationResultHandler: function(passed, assertion) {
             // do something
         },
