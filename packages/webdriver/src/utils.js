@@ -136,12 +136,12 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? merge(JsonWProtocol, WebDriverProtocol)
+            ? merge({}, JsonWProtocol, WebDriverProtocol)
             : isW3C ? WebDriverProtocol : JsonWProtocol,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile ? merge(MJsonWProtocol, AppiumProtocol) : {},
+        isMobile ? merge({}, MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chrome commands if session is using Chrome
          */
