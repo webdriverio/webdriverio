@@ -1,3 +1,5 @@
+import * as childProcess from 'child_process'
+
 import {
     runOnPrepareHook,
     runOnCompleteHook,
@@ -6,8 +8,18 @@ import {
     getRunnerName,
     parseInstallNameAndPackage,
     findInConfig,
-    replaceConfig
+    replaceConfig,
+    addServiceDeps
 } from '../src/utils'
+
+jest.mock('child_process', function () {
+    const m = {
+        execSyncRes: 'APPIUM_MISSING',
+        execSync: function () { return m.execSyncRes }
+    }
+    return m
+})
+global.console.log = jest.fn()
 
 test('getNpmPackageName', () => {
     const reporters = [
@@ -48,7 +60,7 @@ test('runOnPrepareHook handles array of functions', () => {
 })
 
 test('runOnPrepareHook handles async functions', async () => {
-    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 30))
+    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
 
     const start = Date.now()
     await runOnPrepareHook([hookSuccess], {}, {})
@@ -72,7 +84,7 @@ test('runOnCompleteHook handles array of functions', () => {
 })
 
 test('runOnCompleteHook handles async functions', async () => {
-    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 30))
+    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
 
     const start = Date.now()
     await runOnCompleteHook([hookSuccess], {}, {})
@@ -192,5 +204,47 @@ describe('replaceConfig', () => {
     framework: 'mocha',
 }`
         )
+    })
+})
+
+describe('addServiceDeps', () => {
+    it('should add appium', () => {
+        const packages = []
+        addServiceDeps(['@wdio/appium-service'], packages)
+        expect(packages).toEqual(['appium'])
+        expect(global.console.log).not.toBeCalled()
+    })
+
+    it('should not add appium if globally installed', () => {
+        childProcess.default.execSyncRes = '1.13.0'
+        const packages = []
+        addServiceDeps(['@wdio/appium-service'], packages)
+        expect(packages).toEqual([])
+        expect(global.console.log).not.toBeCalled()
+    })
+
+    it('should add appium and print message if update and appium globally installed', () => {
+        const packages = []
+        addServiceDeps(['@wdio/appium-service'], packages, true)
+        expect(packages).toEqual([])
+        expect(global.console.log).toBeCalled()
+    })
+
+    it('should add chromedriver', () => {
+        const packages = []
+        addServiceDeps(['wdio-chromedriver-service'], packages)
+        expect(packages).toEqual(['chromedriver'])
+        expect(global.console.log).not.toBeCalled()
+    })
+
+    it('should add chromedriver and print message if update', () => {
+        const packages = []
+        addServiceDeps(['wdio-chromedriver-service'], packages, true)
+        expect(packages).toEqual(['chromedriver'])
+        expect(global.console.log).toBeCalled()
+    })
+
+    afterEach(() => {
+        global.console.log.mockClear()
     })
 })
