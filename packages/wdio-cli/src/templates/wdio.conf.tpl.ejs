@@ -21,9 +21,10 @@ exports.config = {
     //
     hostname: '<%= answers.hostname %>',
     port: <%= answers.port %>,
-    path: '<%= answers.path %>',<% }
+    path: '<%= answers.path %>',<% } else if (answers.services.includes('appium')) { %>
+    port: 4723,<% }
 
-    if(answers.services.includes('wdio-chromedriver-service')) { %>
+    if(answers.services.includes('chromedriver')) { %>
     //
     // Override default path ('/wd/hub') for chromedriver service.
     path: '/',<% }
@@ -96,7 +97,7 @@ exports.config = {
         // 5 instances get started at a time.
         maxInstances: 5,
         //
-        browserName: '<%= answers.services.includes('wdio-chromedriver-service') ? 'chrome' : 'firefox' %>',
+        browserName: '<%= answers.services.includes('chromedriver') ? 'chrome' : 'firefox' %>',
         // If outputDir is provided WebdriverIO can capture driver session logs
         // it is possible to configure which logTypes to include/exclude.
         // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
@@ -152,7 +153,14 @@ exports.config = {
     <% if(answers.services.length) {
     %>services: [<%- answers.services.map(service => `'${service}'`) %>],
     <% } else {
-    %>// services: [],<% } %>//
+    %>// services: [],<% }
+
+    if (answers.services.includes('appium')) {%>//
+    // Appium Service config
+    // see details: https://webdriver.io/docs/appium-service.html
+    appium: {
+        <%- answers.packagesToInstall.includes('appium') ? '// ' : '' %>command: 'appium',
+    }, <% } %>//
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
     // see also: https://webdriver.io/docs/frameworks.html

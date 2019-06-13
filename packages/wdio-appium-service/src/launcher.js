@@ -18,7 +18,7 @@ export class AppiumLauncher {
     async onPrepare(config) {
         const appiumConfig = config.appium || {}
 
-        this.logPath = appiumConfig.logPath
+        this.logPath = appiumConfig.logPath || config.outputDir
         this.command = appiumConfig.command || this._getAppiumCommand()
         this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
 
