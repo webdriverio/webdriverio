@@ -167,6 +167,14 @@ export function addServiceDeps(names, packages, update) {
      */
     if (names.some((answer) => answer.includes('wdio-chromedriver-service'))) {
         packages.push('chromedriver')
+        if (update) {
+            // eslint-disable-next-line no-console
+            console.log(
+                '\n=======',
+                '\nPlease change path to / in your wdio.conf.js:',
+                "\npath: '/'",
+                '\n=======\n')
+        }
     }
 
     /**
