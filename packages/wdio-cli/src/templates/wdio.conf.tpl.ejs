@@ -122,8 +122,8 @@ exports.config = {
     // - @wdio/cli, @wdio/config, @wdio/sync, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     // logLevels: {
-        // webdriver: 'info',
-        // '@wdio/applitools-service': 'info'
+    //     webdriver: 'info',
+    //     '@wdio/applitools-service': 'info'
     // },
     //
     // If you only want to run your tests until a specific amount of tests have failed use
@@ -153,14 +153,16 @@ exports.config = {
     <% if(answers.services.length) {
     %>services: [<%- answers.services.map(service => `'${service}'`) %>],
     <% } else {
-    %>// services: [],<% }
+    %>// services: [],
+    //<% }
 
-    if (answers.services.includes('appium')) {%>//
+    if (answers.services.includes('appium')) {%>
     // Appium Service config
     // see details: https://webdriver.io/docs/appium-service.html
     appium: {
         <%- answers.packagesToInstall.includes('appium') ? '// ' : '' %>command: 'appium',
-    }, <% } %>//
+    },
+    //<% } %>
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
     // see also: https://webdriver.io/docs/frameworks.html
@@ -261,8 +263,8 @@ exports.config = {
      * @param {Array} args arguments that command would receive
      */
     // beforeCommand: function (commandName, args) {
-    // },
-    <% if(answers.framework === 'mocha' || answers.framework === 'jasmine') { %>
+    // },<%
+    if(answers.framework === 'mocha' || answers.framework === 'jasmine') { %>
     /**
      * Hook that gets executed before the suite starts
      * @param {Object} suite suite details
@@ -298,8 +300,7 @@ exports.config = {
      * @param {Object} suite suite details
      */
     // afterSuite: function (suite) {
-    // },
-    <% }
+    // },<% }
     if(answers.framework === 'cucumber') { %>
     /**
      * Runs before a Cucumber feature

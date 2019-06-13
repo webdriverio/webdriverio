@@ -4,10 +4,9 @@ import ejs from 'ejs'
 import path from 'path'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
-import { execSync } from 'child_process'
 
 import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
-import { getNpmPackageName, getPackageName } from './utils'
+import { getNpmPackageName, getPackageName, addServiceDeps } from './utils'
 
 export default async function setup (exit = true) {
     try {
@@ -24,26 +23,8 @@ export default async function setup (exit = true) {
             packagesToInstall.push('@wdio/sync')
         }
 
-        /**
-         * automatically install latest Chromedriver if `wdio-chromedriver-service`
-         * was selected for install
-         */
-        if (answers.services.some((answer) => answer.includes('wdio-chromedriver-service'))) {
-            packagesToInstall.push('chromedriver')
-        }
-
-        /**
-         * install Appium if it is not installed globally if `@wdio/appium-service`
-         * was selected for install
-         */
-        if (answers.services.some((answer) => answer.includes('@wdio/appium-service'))) {
-            const result = execSync('appium --version || echo APPIUM_MISSING').toString().trim()
-            if (result === 'APPIUM_MISSING') {
-                packagesToInstall.push('appium')
-            } else {
-                console.log('Using globally installed appium', result)
-            }
-        }
+        // add packages that are required by services
+        addServiceDeps(answers.services, packagesToInstall)
 
         console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
         const result = yarnInstall({ deps: packagesToInstall, dev: true })

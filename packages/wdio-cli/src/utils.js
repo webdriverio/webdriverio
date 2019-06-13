@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { execSync } from 'child_process'
 
 const log = logger('@wdio/cli:utils')
 
@@ -156,5 +157,34 @@ export function replaceConfig(
         const text = match.pop()
 
         return config.replace(text, buildNewConfigArray(text, type, name))
+    }
+}
+
+export function addServiceDeps(names, packages, update) {
+    /**
+     * automatically install latest Chromedriver if `wdio-chromedriver-service`
+     * was selected for install
+     */
+    if (names.some((answer) => answer.includes('wdio-chromedriver-service'))) {
+        packages.push('chromedriver')
+    }
+
+    /**
+     * install Appium if it is not installed globally if `@wdio/appium-service`
+     * was selected for install
+     */
+    if (names.some((answer) => answer.includes('@wdio/appium-service'))) {
+        const result = execSync('appium --version || echo APPIUM_MISSING').toString().trim()
+        if (result === 'APPIUM_MISSING') {
+            packages.push('appium')
+        } else if (update) {
+            // eslint-disable-next-line no-console
+            console.log(
+                '\n=======',
+                '\nUsing globally installed appium', result,
+                '\nPlease add the following to your wdio.conf.js:',
+                "\nappium: { command: 'appium' }",
+                '\n=======\n')
+        }
     }
 }

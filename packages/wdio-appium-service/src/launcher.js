@@ -70,7 +70,15 @@ export class AppiumLauncher {
     }
 
     _getAppiumCommand(moduleName = 'appium') {
-        return require.resolve(moduleName)
+        try {
+            return require.resolve(moduleName)
+        } catch (err) {
+            log.error('appium is not installed locally.\n' +
+            'If you use globally installed appium please add\n' +
+            "appium: { command: 'appium' }\n" +
+            'to your wdio.conf.js!')
+            throw err
+        }
     }
 
     _cliArgsFromKeyValue(keyValueArgs) {
