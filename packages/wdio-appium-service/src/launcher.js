@@ -69,8 +69,8 @@ export class AppiumLauncher {
         this.process.stderr.pipe(logStream)
     }
 
-    _getAppiumCommand() {
-        return require.resolve('appium')
+    _getAppiumCommand(moduleName = 'appium') {
+        return require.resolve(moduleName)
     }
 
     _cliArgsFromKeyValue(keyValueArgs) {
