@@ -1,22 +1,26 @@
+import fs from 'fs'
 import request from 'request'
 import { remote } from '../../../src'
 import * as utils from '../../../src/utils'
 
+const writeFileSync = fs.writeFileSync
+
 describe('saveScreenshot', () => {
-    jest.mock('fs')
-    const fs = require('fs').default
-    let getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
+    let getAbsoluteFilepathSpy, assertDirectoryExistsSpy
+
+    beforeAll(() => {
+        fs.writeFileSync = jest.fn()
+    })
 
     beforeEach(() => {
         getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
         assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
-        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
     })
 
     afterEach(() => {
         getAbsoluteFilepathSpy.mockClear()
         assertDirectoryExistsSpy.mockClear()
-        writeFileSyncSpy.mockClear()
+        fs.writeFileSync.mockClear()
     })
 
     it('should take screenshot of page', async () => {
@@ -44,8 +48,8 @@ describe('saveScreenshot', () => {
         expect(screenshot.toString()).toBe('some element screenshot')
 
         // write to file
-        expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
-        expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
+        expect(fs.writeFileSync).toHaveBeenCalledTimes(1)
+        expect(fs.writeFileSync).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
     })
 
     it('should fail if no filename provided', async () => {
@@ -68,5 +72,9 @@ describe('saveScreenshot', () => {
         await expect(
             elem.saveScreenshot('./file.txt')
         ).rejects.toEqual(expectedError)
+    })
+
+    afterAll(() => {
+        fs.writeFileSync = writeFileSync
     })
 })

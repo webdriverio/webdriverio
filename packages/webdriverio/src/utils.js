@@ -13,13 +13,24 @@ import { findStrategy } from './utils/findStrategy'
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
-const applyScopePrototype = (prototype, scope) => {
+const scopes = {
+    browser: {},
+    element: {}
+}
+
+Object.entries(scopes).forEach(([scope, commands]) => {
     const dir = path.resolve(__dirname, 'commands', scope)
     const files = fs.readdirSync(dir)
     for (let filename of files) {
         const commandName = path.basename(filename, path.extname(filename))
-        prototype[commandName] = { value: require(path.join(dir, commandName)).default }
+        commands[commandName] = { value: require(path.join(dir, commandName)).default }
     }
+})
+
+const applyScopePrototype = (prototype, scope) => {
+    Object.entries(scopes[scope]).forEach(([commandName, command]) => {
+        prototype[commandName] = command
+    })
 }
 
 /**

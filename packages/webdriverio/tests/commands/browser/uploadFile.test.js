@@ -1,10 +1,11 @@
+import fs from 'fs'
 import path from 'path'
 import archiver from 'archiver'
 
 import { remote } from '../../../src'
 
 describe('uploadFile', () => {
-    jest.mock('fs')
+    fs.createReadStream = jest.fn().mockReturnValue(undefined)
 
     it('should throw if browser does not support it', async function () {
         const browser = await remote({
