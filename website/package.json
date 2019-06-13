@@ -10,7 +10,8 @@
     "write-translations": "docusaurus-write-translations",
     "version": "docusaurus-version",
     "rename-version": "docusaurus-rename-version",
-    "publish-gh-pages": "docusaurus-publish"
+    "publish-gh-pages": "docusaurus-publish",
+    "generate": "cd .. && npm run clean:website && ./scripts/generate-docs.js && cd website && npm run build"
   },
   "devDependencies": {
     "docusaurus": "^1.3.2",

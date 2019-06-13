@@ -27,13 +27,14 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
      */
-    constructor (config, { cid, configFile, caps, specs, server, execArgv, retries }, stdout, stderr) {
+    constructor (config, { cid, configFile, caps, specs, server, execArgv, retries, testData }, stdout, stderr) {
         super()
         this.cid = cid
         this.config = config
         this.configFile = configFile
         this.caps = caps
         this.specs = specs
+        this.testData = testData
         this.server = server || {}
         this.execArgv = execArgv
         this.retries = retries
@@ -132,7 +133,7 @@ export default class WorkerInstance extends EventEmitter {
     }
 
     _handleExit (exitCode) {
-        const { cid, childProcess, specs, retries } = this
+        const { cid, childProcess, specs, retries, testData } = this
 
         /**
          * delete process of worker
@@ -141,7 +142,7 @@ export default class WorkerInstance extends EventEmitter {
         this.isBusy = false
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
-        this.emit('exit', { cid, exitCode, specs, retries })
+        this.emit('exit', { cid, exitCode, specs, retries, testData })
         childProcess.kill('SIGTERM')
     }
 
@@ -152,7 +153,7 @@ export default class WorkerInstance extends EventEmitter {
      * @return null
      */
     postMessage (command, argv) {
-        const { cid, configFile, caps, specs, server, retries, isBusy } = this
+        const { cid, configFile, caps, specs, testData, server, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
             return log.info(`worker with cid ${cid} already busy and can't take new commands`)
@@ -166,7 +167,8 @@ export default class WorkerInstance extends EventEmitter {
             this.childProcess = this.startProcess()
         }
 
-        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server, retries })
+        this.childProcess.send({ cid, command, configFile, argv, caps, specs, server, retries, testData })
+
         this.isBusy = true
     }
 }
