@@ -74,7 +74,7 @@ const { addFeature } = require('@wdio/allure-reporter').default
 ES6
 
 ```js
-import { addFeature } from '@wdio/allure-reporter'
+import allureReporter from '@wdio/allure-reporter'
 ```
 
 Mocha example
@@ -82,7 +82,7 @@ Mocha example
 ```js
 describe('Suite', () => {
     it('Case', () => {
-        addFeature('Feature')
+        allureReporter.addFeature('Feature')
     })
 })
 ```
