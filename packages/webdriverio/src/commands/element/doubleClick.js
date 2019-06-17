@@ -25,9 +25,9 @@ export default async function doubleClick () {
     /**
      * move to element
      */
-    await this.moveTo()
 
     if (!this.isW3C) {
+        await this.moveTo()
         return this.positionDoubleClick()
     }
 
@@ -39,6 +39,7 @@ export default async function doubleClick () {
         id: 'pointer1',
         parameters: { pointerType: 'mouse' },
         actions: [
+            { type: 'pointerMove', origin: this, x: 0, y: 0 },
             { type: 'pointerDown', button: 0 },
             { type: 'pointerUp', button: 0 },
             { type: 'pause', duration: 10 },
