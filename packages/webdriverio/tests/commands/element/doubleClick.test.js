@@ -22,7 +22,7 @@ describe('doubleClick', () => {
         expect(request.mock.calls[2][0].body.actions).toHaveLength(1)
         expect(request.mock.calls[2][0].body.actions[0].type).toBe('pointer')
         expect(request.mock.calls[2][0].body.actions[0].actions).toHaveLength(6)
-        expect(request.mock.calls[2][0].body.actions[0].actions[0].type).toBe('pointerMove');
+        expect(request.mock.calls[2][0].body.actions[0].actions[0].type).toBe('pointerMove')
         expect(request.mock.calls[2][0].body.actions[0].actions[0].origin.elementId).toBe('some-elem-123')
         expect(request.mock.calls[2][0].body.actions[0].actions[0].origin['element-6066-11e4-a52e-4f735466cecf']).toBe('some-elem-123')
         expect(request.mock.calls[2][0].body.actions[0].actions[0].x).toBe(0)
