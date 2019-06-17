@@ -15,6 +15,23 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.5 (2019-06-17)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4095](https://github.com/webdriverio/webdriverio/pull/4095) webdriverio: fix doubleClick when using w3c ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* Other
+  * [#4092](https://github.com/webdriverio/webdriverio/pull/4092) Fixing broken link to Lerna homepage ([@vdua](https://github.com/vdua))
+* `wdio-allure-reporter`
+  * [#4094](https://github.com/webdriverio/webdriverio/pull/4094) Update readme for Allure reporter ([@shridharkalagi](https://github.com/shridharkalagi))
+
+#### Committers: 3
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Shridhar Kalagi ([@shridharkalagi](https://github.com/shridharkalagi))
+- Varun Dua ([@vdua](https://github.com/vdua))
+
 ## v5.10.4 (2019-06-12)
 
 #### :bug: Bug Fix
