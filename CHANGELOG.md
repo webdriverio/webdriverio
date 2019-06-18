@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.6 (2019-06-18)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#4043](https://github.com/webdriverio/webdriverio/pull/4043) Update lighthouse in group default to the latest version 🚀 ([@greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
+#### Committers: 0
+
+
 ## v5.10.5 (2019-06-17)
 
 #### :bug: Bug Fix
