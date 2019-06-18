@@ -31,6 +31,7 @@ In order to use the service you need to add `appium` to your service array:
 // wdio.conf.js
 export.config = {
   // ...
+  port: 4723, // default appium port
   services: ['appium'],
   // ...
 };
@@ -57,7 +58,7 @@ export.config = {
 ```
 
 ### command
-The name of the command which should be started.
+To use your own installation of Appium, ex globally installed, specify the command which should be started.
 
 Type: `String`
 
@@ -67,7 +68,8 @@ Example:
 ```js
 export.config = {
     appium: {
-        command: "myAppium",
+        // for globally installed Appium just pass appium
+        command: "appium",
     }
 }
 ```
@@ -76,9 +78,9 @@ export.config = {
 Map of arguments for the Appium server, passed directly to `appium`.
 
 See [the documentation](http://appium.io/docs/en/writing-running-appium/server-args/index.html) for possible arguments.
-The arguments should be supplied in lower camel case, so `--pre-launch true` becomes `preLaunch: true`.
+The arguments should be supplied in lower camel case, so `--pre-launch true` becomes `preLaunch: true` or passed as an array.
 
-Type: `Object`
+Type: `Object` or `Array`
 
 Default: `{}`
 
@@ -92,6 +94,8 @@ export.config = {
       platformName: 'iOS',
       // ...
     }
+    // or
+    // args: ['-p', '4722', '--relaxed-security', '--log-level', 'info:info']
   }
 },
 ```

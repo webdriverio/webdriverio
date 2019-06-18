@@ -11,7 +11,8 @@ import { SUPPORTED_SERVICES, SUPPORTED_REPORTER, SUPPORTED_FRAMEWORKS } from '..
 import {
     parseInstallNameAndPackage,
     replaceConfig,
-    findInConfig
+    findInConfig,
+    addServiceDeps
 } from '../utils'
 
 const supportedInstallations = {
@@ -89,16 +90,17 @@ You can create one by running 'wdio config'`)
         return
     }
 
-    const pkgName = supportedInstallations[type][name]
-    console.log(`Installing ${pkgName}${npm ? ' using npm.' : '.'}`)
-    const install = yarnInstall({ deps: [pkgName], dev: true, respectNpm5: npm })
+    const pkgNames = [supportedInstallations[type][name]]
+    addServiceDeps(pkgNames, pkgNames, true)
+    console.log(`Installing ${pkgNames}${npm ? ' using npm.' : '.'}`)
+    const install = yarnInstall({ deps: pkgNames, dev: true, respectNpm5: npm })
 
     if (install.status !== 0) {
         console.error('Error installing packages', install.stderr)
         process.exit(1)
     }
 
-    console.log(`Package ${pkgName} installed successfully.`)
+    console.log(`Package ${pkgNames} installed successfully.`)
     console.log('Updating wdio.conf.js file.')
 
     const newConfig = replaceConfig(configFile, type, name)

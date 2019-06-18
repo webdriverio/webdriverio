@@ -33,7 +33,7 @@ const customElementCommand = async (origCmd, origCmdArg, arg) => {
 }
 
 const customBrowserCommand = async (origCmd, origCmdArg, arg = 0) => {
-    const start = Date.now()
+    const start = Date.now() - 1
     await origCmd(origCmdArg + arg)
     return Date.now() - start
 }
