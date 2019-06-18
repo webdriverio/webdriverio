@@ -7,7 +7,7 @@ import ConfigParser from './lib/ConfigParser'
  */
 export function initializeDataProviders (dataProviderFilesPaths) {
     const dataProviderFiles =  ConfigParser.getFilePaths(dataProviderFilesPaths)
-    let dataProvidersMap = {}
+    const dataProvidersMap = {}
     let currentDataProviderFile = ''
 
     global.dataProvider = function (specFilePath, dataSet) {
