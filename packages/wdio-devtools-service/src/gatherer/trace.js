@@ -1,3 +1,5 @@
+import 'core-js/modules/web.url'
+
 import EventEmitter from 'events'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
 import logger from '@wdio/logger'
@@ -350,7 +352,7 @@ export default class TraceGatherer extends EventEmitter {
                 log.info('Wait for network idle canceled')
                 idleTimeout && clearTimeout(idleTimeout)
 
-                session.off('Page.domContentEventFired', domContentLoadedListener)
+                session.removeListener('Page.domContentEventFired', domContentLoadedListener)
 
                 networkStatusMonitor.removeListener('network-2-busy', onBusy)
                 networkStatusMonitor.removeListener('network-2-idle', onIdle)
