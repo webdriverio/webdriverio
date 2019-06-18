@@ -107,5 +107,10 @@
       "packages/webdriverio/build",
       "packages/webdriver/build"
     ]
+  },
+  "greenkeeper": {
+    "lockfiles": {
+      "outOfRangeUpdatesOnly": true
+    }
   }
 }
