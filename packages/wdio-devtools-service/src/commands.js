@@ -1,3 +1,4 @@
+import 'core-js/modules/web.url'
 import logger from '@wdio/logger'
 
 import NetworkHandler from './handler/network'
