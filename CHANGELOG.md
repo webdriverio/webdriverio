@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.7 (2019-06-18)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-cli`, `webdriverio`
+  * [#4089](https://github.com/webdriverio/webdriverio/pull/4089) update appium service ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.10.6 (2019-06-18)
 
 #### :bug: Bug Fix
