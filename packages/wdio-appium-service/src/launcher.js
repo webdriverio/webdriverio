@@ -18,7 +18,7 @@ export class AppiumLauncher {
     async onPrepare(config) {
         const appiumConfig = config.appium || {}
 
-        this.logPath = appiumConfig.logPath
+        this.logPath = appiumConfig.logPath || config.outputDir
         this.command = appiumConfig.command || this._getAppiumCommand()
         this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
 
@@ -69,8 +69,16 @@ export class AppiumLauncher {
         this.process.stderr.pipe(logStream)
     }
 
-    _getAppiumCommand() {
-        return require.resolve('appium')
+    _getAppiumCommand(moduleName = 'appium') {
+        try {
+            return require.resolve(moduleName)
+        } catch (err) {
+            log.error('appium is not installed locally.\n' +
+            'If you use globally installed appium please add\n' +
+            "appium: { command: 'appium' }\n" +
+            'to your wdio.conf.js!')
+            throw err
+        }
     }
 
     _cliArgsFromKeyValue(keyValueArgs) {

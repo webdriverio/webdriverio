@@ -7,8 +7,8 @@ jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }))
 jest.mock('fs-extra', () => ({
-    createWriteStream : jest.fn(),
-    ensureFileSync : jest.fn(),
+    createWriteStream: jest.fn(),
+    ensureFileSync: jest.fn(),
 }))
 
 class eventHandler {
@@ -50,11 +50,14 @@ class MockFailingProcess extends MockProcess {
 
 describe('Appium launcher', () => {
     let launcher = undefined
+    let getAppiumCommand
 
     beforeEach(() => {
         childProcess.spawn.mockClear()
         childProcess.spawn.mockReturnValue(new MockProcess())
         launcher = new AppiumLauncher()
+        getAppiumCommand = launcher._getAppiumCommand
+        launcher._getAppiumCommand = jest.fn().mockImplementation(() => require.resolve('param-case'))
     })
 
     afterEach(() => {
@@ -81,7 +84,7 @@ describe('Appium launcher', () => {
             await launcher.onPrepare({})
 
             expect(launcher.logPath).toBe(undefined)
-            expect(launcher.command).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/appium/build/lib/main.js'))
+            expect(launcher.command).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/param-case.js'))
             expect(launcher.appiumArgs).toEqual([])
         })
 
@@ -92,7 +95,7 @@ describe('Appium launcher', () => {
                 }
             })
 
-            expect(childProcess.spawn.mock.calls[0][0]).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/appium/build/lib/main.js'))
+            expect(childProcess.spawn.mock.calls[0][0]).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/param-case.js'))
             expect(childProcess.spawn.mock.calls[0][1]).toEqual(['--superspeed'])
             expect(childProcess.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
         })
@@ -167,7 +170,10 @@ describe('Appium launcher', () => {
 
     describe('_getAppiumCommand', () => {
         test('should return path to dependency', () => {
-            expect(launcher._getAppiumCommand()).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/appium/build/lib/main.js'))
+            expect(getAppiumCommand('fs-extra')).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/fs-extra/lib/index.js'))
+        })
+        test('should be appium by default', () => {
+            expect(() => getAppiumCommand()).toThrow("Cannot find module 'appium' from 'launcher.js'")
         })
     })
 
