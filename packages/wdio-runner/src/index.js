@@ -28,9 +28,10 @@ export default class Runner extends EventEmitter {
      * @param  {String}    configFile     path to config file to get config from
      * @param  {Object}    server         modified WebDriver target
      * @param  {Number}    retries        number of retries remaining
+     * @param  {Object}    testData       Test data for the instance
      * @return {Promise}                  resolves in number of failures for testrun
      */
-    async run ({ cid, argv, specs, caps, configFile, server, retries }) {
+    async run ({ cid, argv, specs, caps, configFile, server, retries, testData }) {
         this.cid = cid
         this.specs = specs
         this.caps = caps
@@ -60,7 +61,7 @@ export default class Runner extends EventEmitter {
         initialiseServices(this.config, caps).map(::this.configParser.addService)
 
         await runHook('beforeSession', this.config, this.caps, this.specs)
-        const browser = await this._initSession(this.config, this.caps)
+        const browser = await this._initSession(this.config, this.caps, testData)
 
         this.reporter = new BaseReporter(this.config, this.cid, browser.capabilities)
         this.inWatchMode = Boolean(this.config.watch)
@@ -153,12 +154,14 @@ export default class Runner extends EventEmitter {
      * init WebDriver session
      * @param  {object}  config        configuration of sessions
      * @param  {Object}  caps          desired cabilities of session
+     * @param  {Object}  testData      Test data for the instance
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
-    async _initSession (config, caps) {
+    async _initSession (config, caps, testData) {
         let browser = null
 
         try {
+            global.testData = testData
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this.isMultiremote)
         } catch (e) {
             log.error(e)

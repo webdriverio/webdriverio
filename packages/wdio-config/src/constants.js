@@ -26,6 +26,7 @@ export const DEFAULT_CONFIGS = {
     execArgv: [],
     runnerEnv: {},
     runner: 'local',
+    dataProviders: [],
 
     /**
      * framework defaults

@@ -13,6 +13,11 @@ exports.config = {
     specs: [path.resolve(__dirname, 'mocha.test.js')],
 
     /**
+     * specify data provider files
+     */
+    dataProviders: [path.resolve(__dirname, 'dataprovider.js')],
+
+    /**
      * capabilities
      */
     capabilities: [{

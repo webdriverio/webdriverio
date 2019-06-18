@@ -13,6 +13,10 @@ module.exports = {
     ecmaVersion: 2016,
     sourceType: 'module'
   },
+  globals: {
+    dataProvider: 'readonly',
+    testData: 'readonly'
+  },
   rules: {
     semi: ['error', 'never'],
     quotes: ['error', 'single'],

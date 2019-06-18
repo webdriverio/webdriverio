@@ -55,6 +55,7 @@ describe('launcher', () => {
 
         it('should start instance in multiremote', () => {
             launcher.runSpecs = jest.fn()
+            launcher.getSpecsWithDataProviderAndRetries = jest.fn().mockReturnValue([{ files: ['./'], testData: '', retries: 2 }])
             launcher.isMultiremote = true
             launcher.runMode({ specs: './', specFileRetries: 2 }, { foo: { capabilities: { browserName: 'chrome' } } })
 
@@ -78,6 +79,7 @@ describe('launcher', () => {
 
         it('should apply maxInstancesPerCapability if maxInstances is not passed', () => {
             launcher.runSpecs = jest.fn()
+            launcher.getSpecsWithDataProviderAndRetries = jest.fn().mockReturnValue([{ files: ['./'], testData: '', retries:3 }])
             launcher.runMode({ specs: './', specFileRetries: 3, maxInstancesPerCapability: 4 }, [{ browserName: 'chrome' }])
 
             expect(launcher.schedule).toHaveLength(1)

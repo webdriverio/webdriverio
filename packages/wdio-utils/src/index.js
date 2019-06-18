@@ -5,6 +5,7 @@ import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
     isFunctionAsync
 } from './utils'
+import safeRequire from './safeRequire'
 
 export {
     initialisePlugin,
