@@ -6,7 +6,7 @@ import ConfigParser from './lib/ConfigParser'
  * @param  {Object} dataProviderFilesPaths  List of files with data provider injections
  */
 export function initializeDataProviders (dataProviderFilesPaths) {
-    let dataProviderFiles =  ConfigParser.getFilePaths(dataProviderFilesPaths)
+    const dataProviderFiles =  ConfigParser.getFilePaths(dataProviderFilesPaths)
     let dataProvidersMap = {}
     let currentDataProviderFile = ''
 
