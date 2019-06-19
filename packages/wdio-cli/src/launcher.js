@@ -32,7 +32,10 @@ class Launcher {
         logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
         const totalWorkerCnt = Array.isArray(capabilities)
-            ? (capabilities.map((c) => this.calculateWorkerCountForCapability(c), this).reduce((a, b) => a + b, 0)): 1
+            ? (capabilities.map((c) => {
+                const specs = this.getSpecsWithDataProviderAndRetries(config, c.specs, c.exclude)
+                return specs.length
+            }, this).reduce((a, b) => a + b, 0)): 1
 
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
@@ -48,16 +51,6 @@ class Launcher {
         this.rid = []
         this.runnerStarted = 0
         this.runnerFailed = 0
-    }
-
-    /**
-     * calculates the worker count based on dataprovider injected for each spec file
-     * @return {Number} the worker count required for each capability
-     */
-    calculateWorkerCountForCapability(c) {
-        let config = this.configParser.getConfig()
-        let specs = this.getSpecsWithDataProviderAndRetries(config, c.specs, c.exclude)
-        return specs.length
     }
 
     /**
