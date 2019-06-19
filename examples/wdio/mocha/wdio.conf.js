@@ -10,12 +10,12 @@ exports.config = {
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'mocha.test.js')],
+    specs: [path.resolve(__dirname, 'mocha.test.js'), path.resolve(__dirname, 'mochaWithDataProvider.test.js')],
 
     /**
      * specify data provider files
      */
-    dataProviders: [path.resolve(__dirname, 'dataprovider.js')],
+    dataProviders: [path.resolve(__dirname, 'dataProvider.js')],
 
     /**
      * capabilities

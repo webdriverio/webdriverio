@@ -1,11 +1,11 @@
 const assert = require('assert')
 
-describe(`${testData.url} page`, () => {
+describe('webdriver.io page', () => {
     it('should be a pending test')
 
     it('should have the right title', () => {
-        browser.url(testData.url)
+        browser.url('https://webdriver.io')
         const title = browser.getTitle()
-        assert.equal(title, testData.title)
+        assert.equal(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js')
     })
 })

@@ -1,3 +1,5 @@
+const path = require('path')
+
 class WebPage {
     constructor(url, title) {
         this.url = url
@@ -11,4 +13,4 @@ pages.push(new WebPage('https://webdriver.io', 'WebdriverIO · Next-gen WebDrive
 pages.push(new WebPage('https://webdriver.io/docs/gettingstarted.html', 'Getting Started · WebdriverIO'))
 pages.push(new WebPage('https://webdriver.io/docs/api.html', 'API Docs · WebdriverIO'))
 
-dataProvider('./mocha/mocha.test.js', pages)
+dataProvider(path.resolve(__dirname, 'mochaWithDataProvider.test.js'), pages)
