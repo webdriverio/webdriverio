@@ -30,6 +30,10 @@ exports.config = {
         compilers: ['js:@babel/register']
     },
 
+    jasmineNodeOpts: {
+        defaultTimeoutInterval: 1000 * 60 * 3
+    },
+
     cucumberOpts: {
         timeout: 5000,
         compiler: ['js:@babel/register'],
