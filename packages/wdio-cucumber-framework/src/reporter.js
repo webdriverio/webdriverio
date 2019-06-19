@@ -1,5 +1,5 @@
 import { Status } from 'cucumber'
-import { CucumberEventListener } from './CucumberEventListener'
+import { CucumberEventListener } from './cucumberEventListener'
 import { createStepArgument } from './utils'
 import * as path from 'path'
 

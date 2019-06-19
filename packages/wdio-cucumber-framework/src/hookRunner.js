@@ -1,5 +1,5 @@
 import { executeHooksWithArgs } from '@wdio/config'
-import { CucumberEventListener } from './CucumberEventListener'
+import { CucumberEventListener } from './cucumberEventListener'
 
 class Hookrunner {
     gherkinDocEvents = []

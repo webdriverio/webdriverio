@@ -2,13 +2,13 @@ import { createStepArgument } from '../src/utils'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
-        // because should(arg).be.undefined() throws TypeError
         it('Works without argument', () => {
-            expect({ result: createStepArgument({}) }).toEqual({ result: undefined })
+            expect(typeof createStepArgument({})).toBe('undefined')
         })
 
         it('Works with unexpected type', () => {
-            expect({ result: createStepArgument({ argument: { type: 'smth' } }) }).toEqual({ result: undefined })
+            expect(typeof createStepArgument({ argument: { type: 'smth' } }))
+                .toBe('undefined')
         })
 
         it('Works with DataTable', () => {

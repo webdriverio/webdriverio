@@ -6,7 +6,7 @@ import path from 'path'
 
 import CucumberReporter from './reporter'
 
-import Hookrunner from './Hookrunner'
+import Hookrunner from './hookRunner'
 import { EventEmitter } from 'events'
 
 import { executeHooksWithArgs } from '@wdio/config'
