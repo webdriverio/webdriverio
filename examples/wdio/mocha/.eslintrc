@@ -3,6 +3,8 @@
     mocha: true
   },
   globals: {
-    browser: true
+    browser: true,
+    dataProvider: false,
+    testData: false
   }
 }
