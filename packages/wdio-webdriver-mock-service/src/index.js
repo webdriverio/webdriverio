@@ -42,7 +42,6 @@ export default class WebdriverMockService {
         global.browser.addCommand('customCommandScenario', ::this.customCommandScenario)
         global.browser.addCommand('waitForDisplayedScenario', ::this.waitForDisplayedScenario)
         global.browser.addCommand('cucumberScenario', ::this.cucumberScenario)
-        global.browser.addCommand('titleResponse', ::this.titleResponse)
     }
 
     waitForElementScenario () {
@@ -133,12 +132,6 @@ export default class WebdriverMockService {
         this.command.navigateTo().reply(200, { value: null })
         this.command.findElement().times(4).reply(200, { value: elemResponse })
         this.command.elementClick(ELEMENT_ID).reply(200, { value: null })
-    }
-
-    titleResponse (title) {
-        nock.cleanAll()
-        this.command.getTitle().once().reply(200, { value: title })
-        this.command.deleteSession().reply(200, deleteSession)
     }
 
     nockReset () {

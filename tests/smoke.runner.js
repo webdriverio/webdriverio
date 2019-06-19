@@ -24,6 +24,16 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
         })
 
     /**
+     * Jasmine wdio testrunner tests
+     */
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+            framework: 'cucumber'
+        })
+
+    /**
      * wdio test run with custom service
      */
     await launch(
