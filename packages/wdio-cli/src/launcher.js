@@ -66,15 +66,10 @@ class Launcher {
         const dataProvidersMap = this.configParser.getDataProviders()
 
         this.configParser.getSpecs(capSpecs, capExclude).forEach((specFile) => {
-            if (dataProvidersMap !== null) {
-                let dataProvider = dataProvidersMap[specFile]
-                if (typeof dataProvider === 'undefined') {
-                    specs.push({ files: [specFile], testData: '', retries: specFileRetries })
-                } else {
-                    dataProvider.dataSet.forEach((data) => {
-                        specs.push({ files: [specFile], testData: data, retries: specFileRetries })
-                    })
-                }
+            if (dataProvidersMap && dataProvidersMap[specFile]) {
+                dataProvidersMap[specFile].dataSet.forEach((data) => {
+                    specs.push({ files: [specFile], testData: data, retries: specFileRetries })
+                })
             } else {
                 specs.push({ files: [specFile], testData: '', retries: specFileRetries })
             }
