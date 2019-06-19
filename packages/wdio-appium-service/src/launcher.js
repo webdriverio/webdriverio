@@ -40,6 +40,7 @@ export class AppiumLauncher {
     _startAppium(command, args, waitStartTime, callback) {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        let error
 
         process.stdout.on('data', (data) => {
             if (data.includes('Appium REST http interface listener started')) {
@@ -48,10 +49,15 @@ export class AppiumLauncher {
             }
         })
 
+        // only capture first error to print it in case Appium failed to start.
+        process.stderr.once('data', err => { error = err })
+
         process.once('exit', (exitCode) => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
             if (exitCode == 2) {
-                errorMessage += ' - Check that you don\'t already have a running Appium service.'
+                errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
+                // eslint-disable-next-line no-console
+                console.error(errorMessage)
             }
             callback(new Error(errorMessage), null)
         })
@@ -82,6 +88,10 @@ export class AppiumLauncher {
     }
 
     _cliArgsFromKeyValue(keyValueArgs) {
+        if (Array.isArray(keyValueArgs)) {
+            return keyValueArgs
+        }
+
         const cliArgs = []
         for (let key in keyValueArgs) {
             const value = keyValueArgs[key]
