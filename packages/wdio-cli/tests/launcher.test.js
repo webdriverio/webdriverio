@@ -90,6 +90,98 @@ describe('launcher', () => {
         })
     })
 
+    describe('getSpecsWithDataProviderAndRetries', () => {
+        it('should return empty string as test data when configParser.getDataProviders() returns null', () => {
+            launcher.configParser.getDataProviders = jest.fn().mockReturnValue(null)
+            const config = { specFileRetries: 2 }
+            const specs = launcher.getSpecsWithDataProviderAndRetries(config)
+
+            expect(specs).toHaveLength(1)
+            expect(specs[0].files).toHaveLength(1)
+            expect(specs[0].files[0]).toBe('./tests/test1.js')
+            expect(specs[0].retries).toBe(2)
+            expect(specs[0].testData).toBe('')
+        })
+
+        it('should return empty string as test data when configParser.getDataProviders() returns undefined', () => {
+            launcher.configParser.getDataProviders = jest.fn().mockReturnValue(undefined)
+            const config = { specFileRetries: 3 }
+            const specs = launcher.getSpecsWithDataProviderAndRetries(config)
+
+            expect(specs).toHaveLength(1)
+            expect(specs[0].files).toHaveLength(1)
+            expect(specs[0].files[0]).toBe('./tests/test1.js')
+            expect(specs[0].retries).toBe(3)
+            expect(specs[0].testData).toBe('')
+        })
+
+        it('should return valid test data with one spec file when configParser.getDataProviders() returns valid value', () => {
+            launcher.configParser.getDataProviders = jest.fn().mockReturnValue({ './tests/test1.js': [{ url: 'url1', title: 'title1' }, { url: 'url2', title: 'title2' }] })
+            const config = { specFileRetries: 4 }
+            const specs = launcher.getSpecsWithDataProviderAndRetries(config)
+
+            expect(specs).toHaveLength(2)
+
+            //testData1
+            expect(specs[0].files).toHaveLength(1)
+            expect(specs[0].files[0]).toBe('./tests/test1.js')
+            expect(specs[0].retries).toBe(4)
+            expect(specs[0].testData.url).toBe('url1')
+            expect(specs[0].testData.title).toBe('title1')
+
+            //testData2
+            expect(specs[1].files).toHaveLength(1)
+            expect(specs[1].files[0]).toBe('./tests/test1.js')
+            expect(specs[1].retries).toBe(4)
+            expect(specs[1].testData.url).toBe('url2')
+            expect(specs[1].testData.title).toBe('title2')
+        })
+
+        it('should return valid test data with multiple specs when configParser.getDataProviders() returns valid value', () => {
+            launcher.configParser.getDataProviders = jest.fn().mockReturnValue({ './tests/test1.js': [{ url: 'url1', title: 'title1' }, { url: 'url2', title: 'title2' }] })
+            launcher.getSpecs = jest.fn().mockReturnValue(['./tests/test1.js', './tests/test2.js'])
+            const config = { specFileRetries: 5 }
+            const specs = launcher.getSpecsWithDataProviderAndRetries(config)
+
+            expect(specs).toHaveLength(3)
+
+            //test1 - testData1
+            expect(specs[0].files).toHaveLength(1)
+            expect(specs[0].files[0]).toBe('./tests/test1.js')
+            expect(specs[0].retries).toBe(5)
+            expect(specs[0].testData.url).toBe('url1')
+            expect(specs[0].testData.title).toBe('title1')
+
+            //test1 - testData2
+            expect(specs[1].files).toHaveLength(1)
+            expect(specs[1].files[0]).toBe('./tests/test1.js')
+            expect(specs[1].retries).toBe(5)
+            expect(specs[1].testData.url).toBe('url2')
+            expect(specs[1].testData.title).toBe('title2')
+
+            //test2 - empty testData
+            expect(specs[2].files).toHaveLength(1)
+            expect(specs[2].files[0]).toBe('./tests/test2.js')
+            expect(specs[2].retries).toBe(5)
+            expect(specs[2].testData).toBe('')
+        })
+
+        it('should handle test data injected for spec file which are excluded from the current test run gracefully', () => {
+            launcher.configParser.getDataProviders = jest.fn().mockReturnValue({ './tests/test1.js': ['data'] })
+            launcher.getSpecs = jest.fn().mockReturnValue(['./tests/test2.js'])
+            const config = { specFileRetries: 1 }
+            const specs = launcher.getSpecsWithDataProviderAndRetries(config)
+
+            expect(specs).toHaveLength(1)
+
+            //test2 - empty testData
+            expect(specs[0].files).toHaveLength(1)
+            expect(specs[0].files[0]).toBe('./tests/test2.js')
+            expect(specs[0].retries).toBe(1)
+            expect(specs[0].testData).toBe('')
+        })
+    })
+
     describe('hasTriggeredExitRoutine', () => {
         it('should return false if there are specs left of running when hasTriggeredExitRoutine is false', () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)

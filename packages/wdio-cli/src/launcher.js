@@ -63,16 +63,13 @@ class Launcher {
          */
         const specFileRetries = config.watch ? 0 : config.specFileRetries
         let specs = []
-        const dataProvidersMap = this.configParser.getDataProviders()
+        const dataProvidersMap = this.configParser.getDataProviders() || {}
 
         this.configParser.getSpecs(capSpecs, capExclude).forEach((specFile) => {
-            if (dataProvidersMap && dataProvidersMap[specFile]) {
-                dataProvidersMap[specFile].dataSet.forEach((data) => {
-                    specs.push({ files: [specFile], testData: data, retries: specFileRetries })
-                })
-            } else {
-                specs.push({ files: [specFile], testData: '', retries: specFileRetries })
-            }
+            let specDataSet = dataProvidersMap[specFile] || ['']
+            specDataSet.forEach((data) => {
+                specs.push({ files: [specFile], testData: data, retries: specFileRetries })
+            })
         })
 
         return specs
