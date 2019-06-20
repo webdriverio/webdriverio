@@ -24,7 +24,7 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
         })
 
     /**
-     * Jasmine wdio testrunner tests
+     * Cucumber wdio testrunner tests
      */
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
