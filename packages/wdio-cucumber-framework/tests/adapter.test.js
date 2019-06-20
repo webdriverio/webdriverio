@@ -1,12 +1,9 @@
 import path from 'path'
-import * as cucumber from 'cucumber'
+import mockery from 'mockery'
+import * as Cucumber from 'cucumber'
+import { executeHooksWithArgs, runTestInFiberContext, executeAsync } from '@wdio/config'
+
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
-import { NOOP } from '../src/constants'
-//import { executeHooksWithArgs } from '@wdio/config'
-
-process.send(NOOP)
-
-const feature = [path.join(__dirname, '/fixtures/features/async.feature')]
 
 global.browser = {
     config: {},
@@ -19,20 +16,6 @@ global.browser = {
     }
 }
 
-jest.mock('cucumber', () => ({
-    supportCodeLibraryBuilder: {
-        reset: jest.fn(),
-        finalize: jest.fn()
-    },
-    setDefaultTimeout: jest.fn(),
-    setDefinitionFunctionWrapper: jest.fn(),
-    getTestCasesFromFilesystem: jest.fn(),
-    PickleFilter: jest.fn(),
-    Runtime: jest.fn().mockImplementation(() => ({
-        start: jest.fn().mockImplementation(() => true)
-    }))
-}))
-
 const wdioReporter = {
     write: jest.fn(),
     emit: jest.fn(),
@@ -41,23 +24,6 @@ const wdioReporter = {
 
 test('comes with a factory', async () => {
     expect(typeof CucumberAdapterFactory.run).toBe('function')
-})
-
-describe('register compilers', () => {
-    // what is '/fixtures/bar-definition.js' ?
-    const conf = {
-        cucumberOpts: {
-            compiler: [],
-            require: ['/fixtures/bar-definition.js'],
-        }
-    }
-
-    it('should throw an error when no compiler is defined', () => {
-        const adapter = new CucumberAdapter(0, conf, feature, {}, wdioReporter)
-
-        expect(() => adapter.registerCompilers())
-            .toThrow('A compiler must be defined')
-    })
 })
 
 test('should properly set up cucumber', async () => {
@@ -77,15 +43,177 @@ test('should properly set up cucumber', async () => {
     expect(adapter.registerCompilers).toBeCalled()
     expect(adapter.loadSpecFiles).toBeCalled()
     expect(adapter.wrapSteps).toBeCalled()
-    expect(cucumber.setDefaultTimeout).toBeCalledWith(60000)
-    expect(cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
+    expect(Cucumber.setDefaultTimeout).toBeCalledWith(60000)
+    expect(Cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
 
-    // what are these comment lines from Mocha?
-    // expect(executeHooksWithArgs.mock.calls).toHaveLength(2)
-    // expect(adapter.mocha.runner.on.mock.calls).toHaveLength(Object.keys(EVENTS).length)
-    // expect(adapter.mocha.runner.suite.beforeAll).toBeCalled()
-    // expect(adapter.mocha.runner.suite.beforeEach).toBeCalled()
-    // expect(adapter.mocha.runner.suite.afterEach).toBeCalled()
-    // expect(adapter.mocha.runner.suite.afterAll).toBeCalled()
-    // expect(adapter.mocha.addFile).toBeCalledWith('/foo/bar.test.js')
+    expect(executeHooksWithArgs).toBeCalledTimes(2)
+    expect(Cucumber.PickleFilter).toBeCalled()
+    expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
+})
+
+test('should throw when initialization fails', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: { compiler: ['js:@babel/register'] } },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.registerCompilers = jest.fn()
+    adapter.loadSpecFiles = jest.fn()
+    adapter.wrapSteps = jest.fn()
+
+    const runtimeError = new Error('boom')
+    Cucumber.Runtime.mockImplementation(() => { throw runtimeError })
+    expect(adapter.run()).rejects.toEqual(runtimeError)
+})
+
+test('registerCompilers', () => {
+    const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: { compiler: ['js:' + compilerPath] } },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.registerCompilers()
+    expect(global.MY_VAR).toBe(1)
+})
+
+test('registerCompilers as method', () => {
+    const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: { compiler: [['js:' + compilerPath, { some: 'params' }]] } },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.registerCompilers()
+    expect(global.MY_PARAMS).toEqual({ some: 'params' })
+})
+
+test('requiredFiles', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: { require: ['/foo/bar.js', '/does/not/exist/*.js'] } },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    expect(adapter.requiredFiles()).toEqual(['/foo/bar.js'])
+})
+
+test('loadSpecFiles', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: { require: ['/foo/bar.js', '/does/not/exist/*.js'] } },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.requiredFiles = jest.fn().mockReturnValue([
+        path.join(__dirname, 'fixtures', 'stepDefinitionStub.js'),
+        'packages/wdio-cucumber-framework/tests/fixtures/stepDefinitionStub.js'
+    ])
+    adapter.loadSpecFiles()
+    expect(mockery.enable).toBeCalledTimes(1)
+    expect(mockery.registerMock).toBeCalledTimes(1)
+    expect(mockery.disable).toBeCalledTimes(1)
+})
+
+test('wrapSteps', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: {} },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.wrapStepSync = jest.fn()
+    adapter.wrapStepAsync = jest.fn()
+    adapter.wrapSteps()
+
+    const functionWrapper = Cucumber.setDefinitionFunctionWrapper.mock.calls[0].pop()
+    const wrappedFunction = jest.fn()
+    functionWrapper(wrappedFunction)
+
+    expect(adapter.wrapStepSync).toBeCalledTimes(0)
+    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 0)
+
+    functionWrapper(wrappedFunction, { retry: 123 })
+    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 123)
+})
+
+test('wrapStepSync', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: {} },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+
+    const fn = adapter.wrapStepSync('some code', 123)
+    expect(typeof fn).toBe('function')
+    expect(typeof fn(1, 2, 3).then).toBe('function')
+    expect(runTestInFiberContext).toBeCalledTimes(1)
+})
+
+test('wrapStepSync with default', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: {} },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+
+    const fn = adapter.wrapStepSync('some code')
+    expect(typeof fn).toBe('function')
+    expect(typeof fn(1, 2, 3).then).toBe('function')
+    expect(runTestInFiberContext).toBeCalledTimes(1)
+})
+
+test('wrapStepAsync', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: {} },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+
+    const fn = adapter.wrapStepAsync('fn', 123)
+    expect(typeof fn).toBe('function')
+
+    fn(1, 2, 3)
+    expect(executeAsync).toBeCalledWith('fn', 123, [1, 2, 3])
+})
+
+test('wrapStepAsync with default value', () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: {} },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+
+    const fn = adapter.wrapStepAsync('fn')
+    expect(typeof fn).toBe('function')
+
+    fn(1, 2, 3)
+    expect(executeAsync).toBeCalledWith('fn', 0, [1, 2, 3])
+})
+
+afterEach(() => {
+    Cucumber.supportCodeLibraryBuilder.reset.mockReset()
+    Cucumber.setDefaultTimeout.mockReset()
+    executeHooksWithArgs.mockClear()
+    runTestInFiberContext.mockClear()
+    mockery.enable.mockClear()
+    mockery.registerMock.mockClear()
+    mockery.disable.mockClear()
 })

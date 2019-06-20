@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`cucumber reporter formatMessage 1`] = `
+Object {
+  "ctx": Object {
+    "currentTest": Object {
+      "title": "barfoo",
+    },
+  },
+  "currentTest": "barfoo",
+  "type": "foobar",
+}
+`;
+
+exports[`cucumber reporter formatMessage 2`] = `
+Object {
+  "passed": true,
+  "state": "passed",
+  "type": "afterTest",
+}
+`;

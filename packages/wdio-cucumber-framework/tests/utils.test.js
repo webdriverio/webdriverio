@@ -1,4 +1,4 @@
-import { createStepArgument } from '../src/utils'
+import { createStepArgument, compareScenarioLineWithSourceLine } from '../src/utils'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -40,5 +40,32 @@ describe('utils', () => {
                 }
             })).toEqual('some string content')
         })
+    })
+
+    it('compareScenarioLineWithSourceLine', () => {
+        expect(compareScenarioLineWithSourceLine(
+            {
+                type: 'ScenarioOutline',
+                examples: [{
+                    tableBody: [
+                        { location: { line: 123 } },
+                        { location: { line: 321 } }
+                    ]
+                }]
+            },
+            { line: 111 }
+        )).toBe(false)
+        expect(compareScenarioLineWithSourceLine(
+            {
+                type: 'ScenarioOutline',
+                examples: [{
+                    tableBody: [
+                        { location: { line: 123 } },
+                        { location: { line: 321 } }
+                    ]
+                }]
+            },
+            { line: 321 }
+        )).toBe(true)
     })
 })

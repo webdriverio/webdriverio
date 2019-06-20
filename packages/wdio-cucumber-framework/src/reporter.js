@@ -1,5 +1,6 @@
 import { Status } from 'cucumber'
-import { CucumberEventListener } from './cucumberEventListener'
+
+import CucumberEventListener from './cucumberEventListener'
 import { createStepArgument } from './utils'
 import * as path from 'path'
 
@@ -15,7 +16,7 @@ class CucumberReporter {
         this.reporter = reporter
         this.failedCount = 0
 
-        new CucumberEventListener(eventBroadcaster)
+        this.eventListener = new CucumberEventListener(eventBroadcaster)
             .on('before-feature', this.handleBeforeFeature.bind(this))
             .on('before-scenario', this.handleBeforeScenario.bind(this))
             .on('before-step', this.handleBeforeStep.bind(this))
@@ -204,42 +205,41 @@ class CucumberReporter {
     }
 
     getUniqueIdentifier (target, sourceLocation) {
-        let name
-        let line
-
         if (target.type === 'Hook') {
-            name = path.basename(target.location.uri)
-            line = target.location.line
-        } else if (target.type === 'ScenarioOutline') {
-            name = target.name || target.text
-            line = sourceLocation.line
+            return `${path.basename(target.location.uri)}${target.location.line}`
+        }
 
-            target.examples[0].tableHeader.cells.forEach((header, idx) => {
-                if (name.indexOf('<' + header.value + '>') > -1) {
+        if (target.type === 'ScenarioOutline') {
+            let name = target.name || target.text
+            const line = sourceLocation.line
+
+            if (Array.isArray(target.examples)) {
+                target.examples[0].tableHeader.cells.forEach((header, idx) => {
+                    if (name.indexOf('<' + header.value + '>') === -1) {
+                        return
+                    }
+
                     target.examples[0].tableBody.forEach((tableEntry) => {
                         if (tableEntry.location.line === sourceLocation.line) {
                             name = name.replace('<' + header.value + '>', tableEntry.cells[idx].value)
                         }
                     })
-                }
-            })
-        } else {
-            name = target.name || target.text
-            const location = target.location || target.locations[0]
-            line = (location && location.line) || ''
+                })
+            }
+
+            return `${name}${line}`
         }
 
-        return name + line
+        const name = target.name || target.text
+        const location = target.location || target.locations[0]
+        const line = (location && location.line) || ''
+        return `${name}${line}`
     }
 
     formatMessage ({ type, payload = {} }) {
         let message = {
             ...payload,
             type: type
-        }
-
-        if (!payload) {
-            return message
         }
 
         if (payload.error) {

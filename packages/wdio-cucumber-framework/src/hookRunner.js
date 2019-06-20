@@ -1,13 +1,12 @@
 import { executeHooksWithArgs } from '@wdio/config'
-import { CucumberEventListener } from './cucumberEventListener'
+import CucumberEventListener from './cucumberEventListener'
 
-class Hookrunner {
+export default class HookRunner {
     gherkinDocEvents = []
 
     constructor (eventBroadcaster, config) {
         this.config = config
-
-        new CucumberEventListener(eventBroadcaster)
+        this.eventListener = new CucumberEventListener(eventBroadcaster)
             .on('before-feature', this.handleBeforeFeature.bind(this))
             .on('before-scenario', this.handleBeforeScenario.bind(this))
             .on('before-step', this.handleBeforeStep.bind(this))
@@ -40,5 +39,3 @@ class Hookrunner {
         return executeHooksWithArgs(this.config.afterFeature, feature)
     }
 }
-
-export default Hookrunner

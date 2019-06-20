@@ -1,6 +1,8 @@
 import { EventEmitter } from 'events'
 
-export class CucumberEventListener extends EventEmitter {
+import { compareScenarioLineWithSourceLine, getStepFromFeature } from './utils'
+
+export default class CucumberEventListener extends EventEmitter {
     gherkinDocEvents = []
     acceptedPickles = []
     currentPickle = null
@@ -131,22 +133,24 @@ export class CucumberEventListener extends EventEmitter {
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const scenario = doc.feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
 
-        const scenarioHasHooks = scenario.steps.filter((step) => step.type === 'Hook').length > 0
-        if (scenarioHasHooks) {
+        const hasScenarioHasHooks = scenario.steps.filter((step) => step.type === 'Hook').length > 0
+        if (hasScenarioHasHooks) {
             return
         }
         const allSteps = testCasePreparedEvent.steps
         allSteps.forEach((step, idx) => {
-            if (!step.sourceLocation) {
-                step.sourceLocation = { line: step.actionLocation.line, column: 0, uri: step.actionLocation.uri }
-                const hook = {
-                    type: 'Hook',
-                    location: step.sourceLocation,
-                    keyword: 'Hook',
-                    text: ''
-                }
-                scenario.steps.splice(idx, 0, hook)
+            if (step.sourceLocation) {
+                return
             }
+
+            step.sourceLocation = { line: step.actionLocation.line, column: 0, uri: step.actionLocation.uri }
+            const hook = {
+                type: 'Hook',
+                location: step.sourceLocation,
+                keyword: 'Hook',
+                text: ''
+            }
+            scenario.steps.splice(idx, 0, hook)
         })
     }
 
@@ -198,34 +202,4 @@ export class CucumberEventListener extends EventEmitter {
 
         this.emit('after-feature', uri, feature)
     }
-}
-
-export function compareScenarioLineWithSourceLine (scenario, sourceLocation) {
-    if (scenario.type.indexOf('ScenarioOutline') > -1) {
-        return scenario.examples[0].tableBody.some((tableEntry) => tableEntry.location.line === sourceLocation.line)
-    } else {
-        return scenario.location.line === sourceLocation.line
-    }
-}
-
-export function getStepFromFeature (feature, pickle, stepIndex, sourceLocation) {
-    let combinedSteps = []
-    feature.children.forEach((child) => {
-        if (child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)) {
-            return
-        }
-        combinedSteps = combinedSteps.concat(child.steps)
-    })
-    const targetStep = combinedSteps[stepIndex]
-
-    if (targetStep.type === 'Step') {
-        const stepLine = targetStep.location.line
-        const pickleStep = pickle.steps.find(s => s.locations.some(loc => loc.line === stepLine))
-
-        if (pickleStep) {
-            return { ...targetStep, text: pickleStep.text }
-        }
-    }
-
-    return targetStep
 }

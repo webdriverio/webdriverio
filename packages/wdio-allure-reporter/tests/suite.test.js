@@ -1,6 +1,9 @@
 import { directory } from 'tempy'
+
+// eslint-disable-next-line
+import { clean, getResults } from 'wdio-allure-helper'
+
 import AllureReporter from '../src/'
-import { clean, getResults } from './helper'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
 import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors } from './__fixtures__/testState'

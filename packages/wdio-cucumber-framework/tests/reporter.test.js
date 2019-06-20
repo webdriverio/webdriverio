@@ -404,22 +404,6 @@ describe('cucumber reporter', () => {
         })
     })
 
-    describe.skip('make sure all commands are sent properly', () => {
-        const reporter = new CucumberReporter(new EventEmitter(), { failAmbiguousDefinitions: true }, '0-1', ['/foobar.js'], wdioReporter)
-
-        it('should wait until all events were sent', () => {
-            const start = (new Date()).getTime()
-
-            reporter.emit('', {})
-
-            // reporter.waitUntilSettled is not a function
-            return reporter.waitUntilSettled().then(() => {
-                const end = (new Date()).getTime()
-                expect(end - start).toBeGreaterThan(500)
-            })
-        })
-    })
-
     describe('provides a fail counter', () => {
         let eventBroadcaster
         let reporter
@@ -543,6 +527,75 @@ describe('cucumber reporter', () => {
                 cid: '0-1'
             }))
         })
+    })
+
+    it('getUriOf', () => {
+        const eventBroadcaster = new EventEmitter()
+        const reporter = new CucumberReporter(eventBroadcaster, {})
+        expect(reporter.getUriOf()).toBe(undefined)
+        expect(reporter.getUriOf({})).toBe(undefined)
+        expect(reporter.getUriOf({ uri: __filename }))
+            .toBe('/packages/wdio-cucumber-framework/tests/reporter.test.js')
+    })
+
+    it('getUniqueIdentifier', () => {
+        const eventBroadcaster = new EventEmitter()
+        const reporter = new CucumberReporter(eventBroadcaster, {})
+        expect(reporter.getUniqueIdentifier({
+            type: 'Hook',
+            location: {
+                uri: __filename,
+                line: 54
+            }
+        })).toBe('reporter.test.js54')
+        expect(reporter.getUniqueIdentifier({
+            type: 'ScenarioOutline',
+            name: 'foobar'
+        }, {
+            line: 123
+        })).toBe('foobar123')
+        expect(reporter.getUniqueIdentifier({
+            type: 'ScenarioOutline',
+            name: '<someval> here',
+            examples: [{
+                tableHeader: {
+                    cells: [
+                        { value: 'valsome' },
+                        { value: 'someval' }
+                    ]
+                },
+                tableBody: [{
+                    location: { line: 54 }
+                }, {
+                    location: { line: 123 },
+                    cells: [{}, { value: 'realval' }]
+                }]
+            }]
+        }, {
+            line: 123
+        })).toBe('realval here123')
+    })
+
+    it('formatMessage', () => {
+        const eventBroadcaster = new EventEmitter()
+        const reporter = new CucumberReporter(eventBroadcaster, {})
+        expect(reporter.formatMessage({
+            type: 'foobar',
+            payload: { ctx: { currentTest: { title: 'barfoo' } } }
+        })).toMatchSnapshot()
+        expect(reporter.formatMessage({
+            type: 'afterTest',
+            payload: { state: 'passed' }
+        })).toMatchSnapshot()
+
+        expect(reporter.formatMessage({
+            type: 'foobar',
+            payload: {
+                title: '"before all" hook',
+                error: new Error('boom'),
+                state: 'passed'
+            }
+        }).type).toBe('hook:end')
     })
 
     afterEach(() => {

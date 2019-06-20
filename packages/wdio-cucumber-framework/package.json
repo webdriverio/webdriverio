@@ -34,7 +34,6 @@
     "@wdio/logger": "^5.9.3",
     "@wdio/sync": "^5.9.3",
     "cucumber": "^5.1.0",
-    "fibers": "^4.0.0",
     "glob": "^7.1.2",
     "is-glob": "^4.0.0",
     "mockery": "~2.1.0"

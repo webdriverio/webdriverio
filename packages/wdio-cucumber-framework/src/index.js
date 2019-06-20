@@ -9,8 +9,10 @@ import CucumberReporter from './reporter'
 import Hookrunner from './hookRunner'
 import { EventEmitter } from 'events'
 
-import { executeHooksWithArgs } from '@wdio/config'
-import { executeSync, executeAsync, runFnInFiberContextWithCallback } from '@wdio/sync'
+import {
+    executeHooksWithArgs, executeSync, executeAsync,
+    runTestInFiberContext, hasWdioSyncSupport
+} from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
 
 class CucumberAdapter {
@@ -31,8 +33,6 @@ class CucumberAdapter {
         Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
 
         try {
-            await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
-
             this.registerCompilers()
             this.loadSpecFiles()
             this.wrapSteps()
@@ -49,7 +49,7 @@ class CucumberAdapter {
                 tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
             }
 
-            new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+            this.reporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
 
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: this.specs,
@@ -91,24 +91,25 @@ class CucumberAdapter {
     }
 
     registerCompilers () {
-        if (!this.cucumberOpts.compiler || this.cucumberOpts.compiler.length === 0) {
-            throw new Error('A compiler must be defined')
-        }
-
         this.cucumberOpts.compiler.forEach(compiler => {
-            const parts = compiler.split(':')
+            if (compiler instanceof Array) {
+                let parts = compiler[0].split(':')
+                return require(parts[1])(compiler[1])
+            }
+
+            let parts = compiler.split(':')
             require(parts[1])
         })
     }
 
     requiredFiles () {
-        return this.cucumberOpts.require.reduce((files, requiredFile) => {
-            if (isGlob(requiredFile)) {
-                return files.concat(glob.sync(requiredFile))
-            } else {
-                return files.concat([requiredFile])
-            }
-        }, [])
+        return this.cucumberOpts.require.reduce(
+            (files, requiredFile) => files.concat(isGlob(requiredFile)
+                ? glob.sync(requiredFile)
+                : [requiredFile]
+            ),
+            []
+        )
     }
 
     loadSpecFiles () {
@@ -122,15 +123,13 @@ class CucumberAdapter {
         })
         mockery.registerMock('cucumber', Cucumber)
         this.requiredFiles().forEach((codePath) => {
-            let absolutePath
-            if (path.isAbsolute(codePath)) {
-                absolutePath = codePath
-            } else {
-                absolutePath = path.join(process.cwd(), codePath)
-            }
+            const filepath = path.isAbsolute(codePath)
+                ? codePath
+                : path.join(process.cwd(), codePath)
+
             // This allows rerunning a stepDefinitions file
-            delete require.cache[require.resolve(absolutePath)]
-            require(absolutePath)
+            delete require.cache[require.resolve(filepath)]
+            require(filepath)
         })
         mockery.disable()
     }
@@ -139,15 +138,15 @@ class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      */
     wrapSteps () {
-        const sync = this.config.sync
         const wrapStepSync = this.wrapStepSync
         const wrapStepAsync = this.wrapStepAsync
 
-        Cucumber.setDefinitionFunctionWrapper(function syncAsyncRetryWrapper (fn, options = {}) {
-            let retryTest = isFinite(options.retry) ? parseInt(options.retry, 10) : 0
-            let wrappedFunction = fn.name === 'async' || sync === false
-                ? wrapStepAsync(fn, retryTest) : wrapStepSync(fn, retryTest)
-            return wrappedFunction
+        Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
+            const retryTest = isFinite(options.retry) ? parseInt(options.retry, 10) : 0
+            return fn.name === 'async' || !hasWdioSyncSupport
+                ? wrapStepAsync(fn, retryTest)
+                /* istanbul ignore next */
+                : wrapStepSync(fn, retryTest)
         })
     }
 
@@ -159,8 +158,9 @@ class CucumberAdapter {
      */
     wrapStepSync (code, retryTest = 0) {
         return function (...args) {
-            return new Promise((resolve, reject) => runFnInFiberContextWithCallback(
+            return new Promise((resolve, reject) => runTestInFiberContext(
                 executeSync.bind(this, code, retryTest, args),
+                /* istanbul ignore next */
                 (resultPromise) => resultPromise.then(resolve, reject)
             ).apply(this))
         }
@@ -182,6 +182,10 @@ class CucumberAdapter {
 const _CucumberAdapter = CucumberAdapter
 const adapterFactory = {}
 
+/**
+ * tested by smoke tests
+ */
+/* istanbul ignore next */
 adapterFactory.run = async function (...args) {
     const adapter = new _CucumberAdapter(...args)
     const result = await adapter.run()

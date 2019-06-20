@@ -41,4 +41,36 @@ describe('selectByIndex test', () => {
             expect(e.toString()).toBe('Error: Index needs to be 0 or any other positive number')
         }
     })
+
+    it('should throw if there are no options elements', async () => {
+        expect.hasAssertions()
+        const mockElem = {
+            selector: 'foobar2',
+            elementId: 'some-elem-123',
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            findElementsFromElement: jest.fn().mockReturnValue(Promise.resolve([]))
+        }
+        mockElem.selectByIndex = elem.selectByIndex.bind(mockElem)
+
+        try {
+            await elem.selectByIndex.call(mockElem, 0)
+        } catch (e) {
+            expect(e.toString()).toBe('Error: Select element doesn\'t contain any option element')
+        }
+    })
+
+    it('should throw if index is out of range', async () => {
+        expect.hasAssertions()
+        const mockElem = {
+            selector: 'foobar',
+            findElementsFromElement: jest.fn().mockReturnValue(Promise.resolve([{ elem: 1 }]))
+        }
+        mockElem.selectByIndex = elem.selectByIndex.bind(mockElem)
+
+        try {
+            await mockElem.selectByIndex(2)
+        } catch (e) {
+            expect(e.toString()).toBe('Error: Can\'t call selectByIndex on element with selector "foobar" because element wasn\'t found')
+        }
+    })
 })
