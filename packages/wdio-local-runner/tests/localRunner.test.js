@@ -193,3 +193,9 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
     expect(call1.argv.instances).toEqual({ foo: {} })
     expect(call1.argv.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
 })
+
+test('should avoid shutting down if worker is not busy', async () => {
+    const runner = new LocalRunner('/path/to/wdio.conf.js', {})
+
+    expect(runner.initialise()).toBe(undefined)
+})

@@ -121,4 +121,10 @@ describe('monad', () => {
         const client = monad(sessionId)
         expect(client.commandList).toHaveLength(0)
     })
+
+    it('should be ok without modifier', () => {
+        const monad = webdriverMonad({ isW3C: true })
+        const client = monad(sessionId)
+        expect(client.commandList).toHaveLength(0)
+    })
 })
