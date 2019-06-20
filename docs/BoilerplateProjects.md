@@ -208,3 +208,14 @@ Boilerplate repo for quick set up of WebdriverIO test scripts with TravisCI, Sau
     - Local notifications
     - ESLint using Semistandard style
     - WebdriverIO tuned Gitignore file
+### [erickacorrales/wdio-mocha-chai-openwc](https://github.com/erickacorrales/webdriverio-mocha-chai-openwc/tree/add-test-shadow-DOM)
+- Framework: Mocha, chai (v5.x)
+- Features:
+    - Mocha
+    - Chai with expect global
+    - chromedriver service
+    - example with web components
+    - es 6
+    - Page objects using selectors using shadow$
+    - Spec calling openwc app url
+
