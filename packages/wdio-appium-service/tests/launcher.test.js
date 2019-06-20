@@ -10,6 +10,7 @@ jest.mock('fs-extra', () => ({
     createWriteStream: jest.fn(),
     ensureFileSync: jest.fn(),
 }))
+global.console.error = jest.fn()
 
 class eventHandler {
     registered = {};
@@ -32,7 +33,7 @@ class MockProcess {
     removeListener() {}
     kill() {}
     stdout = { pipe: jest.fn(), on: this._eventHandler.delegate.bind(this._eventHandler) }
-    stderr = { pipe: jest.fn() }
+    stderr = { pipe: jest.fn(), once: jest.fn() }
 }
 
 class MockFailingProcess extends MockProcess {
@@ -122,7 +123,8 @@ describe('Appium launcher', () => {
             } catch (e) {
                 error = e
             }
-            const expectedError = new Error("Appium exited before timeout (exit code: 2) - Check that you don't already have a running Appium service.")
+            const expectedError = new Error('Appium exited before timeout (exit code: 2)\n' +
+                "Check that you don't already have a running Appium service.")
             expect(error).toEqual(expectedError)
         })
     })
@@ -192,6 +194,12 @@ describe('Appium launcher', () => {
             expect(args[2]).toBe('--command-timeout')
             expect(args[3]).toBe('7200')
             expect(args[4]).toBe('--session-override')
+        })
+        test('should not format arguments if array passed', () => {
+            const argsArray = ['-p', 4723]
+            const args = launcher._cliArgsFromKeyValue(argsArray)
+
+            expect(args).toBe(argsArray)
         })
     })
 })
