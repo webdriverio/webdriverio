@@ -56,8 +56,7 @@ export class AppiumLauncher {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
             if (exitCode == 2) {
                 errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
-                // eslint-disable-next-line no-console
-                console.error(errorMessage)
+                log.error(errorMessage)
             }
             callback(new Error(errorMessage), null)
         })
