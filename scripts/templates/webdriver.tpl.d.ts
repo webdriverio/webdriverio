@@ -200,6 +200,10 @@ declare namespace WebDriver {
             bufferUsageReportingInterval?: boolean;
         };
 
+        // webdriverio specific
+        specs?: string[];
+        exclude?: string[];
+
         // wdio-sauce-service specific
         build?: string;
 
