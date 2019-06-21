@@ -24,3 +24,10 @@ Feature: Example feature
             | Apricot   | 5      |
             | Brocolli  | 2      |
             | Cucumber  | 10     |
+
+    Scenario: ignoreUndefinedDefinitions
+        Given this step doesn't exist
+
+    Scenario: failAmbiguousDefinitions
+        Given this is ambiguous
+        Then this is ambiguous

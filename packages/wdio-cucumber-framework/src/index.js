@@ -72,6 +72,14 @@ class CucumberAdapter {
 
             await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
             result = await runtime.start() ? 0 : 1
+
+            /**
+             * if we ignore undefined definitions we trust the reporter
+             * with the fail count
+             */
+            if (this.cucumberOpts.ignoreUndefinedDefinitions && result) {
+                result = this.cucumberReporter.failedCount
+            }
         } catch (e) {
             runtimeError = e
             result = 1
@@ -85,7 +93,6 @@ class CucumberAdapter {
         if (runtimeError) {
             throw runtimeError
         }
-        //await reporter.waitUntilSettled()
 
         return result
     }

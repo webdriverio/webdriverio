@@ -23,3 +23,6 @@ Then('I should fail once but pass on the second run', { wrapperOptions: { retry:
     someFlag = false
     assert.equal(1, 1)
 })
+
+Then('this is ambiguous', () => {
+})

@@ -32,3 +32,6 @@ Given(/^a table step$/, function(table) {
     ]
     assert.deepEqual(table.rows(), expected)
 })
+
+Given('this is ambiguous', () => {
+})
