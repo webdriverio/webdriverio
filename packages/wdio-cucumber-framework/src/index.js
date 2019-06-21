@@ -11,7 +11,7 @@ import { EventEmitter } from 'events'
 
 import {
     executeHooksWithArgs, executeSync, executeAsync,
-    runTestInFiberContext, hasWdioSyncSupport
+    runFnInFiberContext, hasWdioSyncSupport
 } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
 
@@ -49,7 +49,7 @@ class CucumberAdapter {
                 tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
             }
 
-            this.reporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+            this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
 
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: this.specs,
@@ -158,11 +158,9 @@ class CucumberAdapter {
      */
     wrapStepSync (code, retryTest = 0) {
         return function (...args) {
-            return new Promise((resolve, reject) => runTestInFiberContext(
+            return runFnInFiberContext(
                 executeSync.bind(this, code, retryTest, args),
-                /* istanbul ignore next */
-                (resultPromise) => resultPromise.then(resolve, reject)
-            ).apply(this))
+            ).apply(this)
         }
     }
 

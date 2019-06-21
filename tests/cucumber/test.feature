@@ -7,6 +7,20 @@ Feature: Example feature
         Given I choose the "cucumberScenario" scenario
         And   I go on the website "https://mymockpage.com"
 
-    Scenario: Foo Bar
+    Scenario: Sync Execution
         When  I click on link "=foo"
         Then  the title of the page should be "Mock Page Title"
+
+    Scenario: Async Execution
+        When  I click on link "=foo" async
+        Then  the title of the page should be "Mock Page Title" async
+
+    Scenario: Retry Check
+        Then  I should fail once but pass on the second run
+
+    Scenario: data tables
+        Given a table step
+            | Vegetable | Rating |
+            | Apricot   | 5      |
+            | Brocolli  | 2      |
+            | Cucumber  | 10     |
