@@ -139,7 +139,7 @@ describe('launcher', () => {
 
         it('should return valid test data with multiple specs when configParser.getDataProviders() returns valid value', () => {
             launcher.configParser.getDataProviders = jest.fn().mockReturnValue({ './tests/test1.js': [{ url: 'url1', title: 'title1' }, { url: 'url2', title: 'title2' }] })
-            launcher.getSpecs = jest.fn().mockReturnValue(['./tests/test1.js', './tests/test2.js'])
+            launcher.configParser.getSpecs = jest.fn().mockReturnValue(['./tests/test1.js', './tests/test2.js'])
             const config = { specFileRetries: 5 }
             const specs = launcher.getSpecsWithDataProviderAndRetries(config)
 
@@ -168,7 +168,7 @@ describe('launcher', () => {
 
         it('should handle test data injected for spec file which are excluded from the current test run gracefully', () => {
             launcher.configParser.getDataProviders = jest.fn().mockReturnValue({ './tests/test1.js': ['data'] })
-            launcher.getSpecs = jest.fn().mockReturnValue(['./tests/test2.js'])
+            launcher.configParser.getSpecs = jest.fn().mockReturnValue(['./tests/test2.js'])
             const config = { specFileRetries: 1 }
             const specs = launcher.getSpecsWithDataProviderAndRetries(config)
 
