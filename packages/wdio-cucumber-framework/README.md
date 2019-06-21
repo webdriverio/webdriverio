@@ -1,21 +1,16 @@
-WebdriverIO CUCUMBER Framework
-========================
+WDIO Cucumber Framework Adapter
+===============================
 
-
-[![Build Status](https://travis-ci.org/webdriverio/wdio-cucumber-framework.svg?branch=master)](https://travis-ci.org/webdriverio/wdio-cucumber-framework) [![Test Coverage](https://codeclimate.com/github/webdriverio/wdio-cucumber-framework/badges/coverage.svg)](https://codeclimate.com/github/webdriverio/wdio-cucumber-framework/coverage) [![dependencies Status](https://david-dm.org/webdriverio/wdio-cucumber-framework/status.svg)](https://david-dm.org/webdriverio/wdio-cucumber-framework)
-
-***
-
-> A WebdriverIO plugin. Adapter for CucumberJS v4 testing framework. To use v2 install this package with v1.1.1 and to use v1 with v0.3.1.
+> A WebdriverIO plugin. Adapter for CucumberJS v5 testing framework.
 
 ## Installation
 
-The easiest way is to keep `wdio-cucumber-framework` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/cucumber-framework` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-cucumber-framework": "~2.0.0"
+    "@wdio/cucumber-framework": "~5.11.0"
   }
 }
 ```
@@ -23,11 +18,10 @@ The easiest way is to keep `wdio-cucumber-framework` as a devDependency in your 
 You can simple do it by:
 
 ```bash
-npm install wdio-cucumber-framework --save-dev
+npm install @wdio/cucumber-framework --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/guide/getstarted/install.html)
-
 
 ## Configuration
 
@@ -61,7 +55,7 @@ Default: `*[]*`<br>
 Example: `['js:babel-core/register']`
 
 ### failAmbiguousDefinitions
-**Please note that this is a wdio-cucumber-framework specific option and not recognized by cucumber-js itself**
+**Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself**
 Treat ambiguous definitions as errors.
 
 Type: `Boolean`<br>
@@ -74,7 +68,7 @@ Type: `Boolean`<br>
 Default: `false`
 
 ### ignoreUndefinedDefinitions
-**Please note that this is a wdio-cucumber-framework specific option and not recognized by cucumber-js itself**
+**Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself**
 Treat undefined definitions as warnings.
 
 Type: `Boolean`<br>

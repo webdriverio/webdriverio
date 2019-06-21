@@ -1,7 +1,7 @@
 import path from 'path'
 import mockery from 'mockery'
 import * as Cucumber from 'cucumber'
-import { executeHooksWithArgs, runTestInFiberContext, executeAsync } from '@wdio/config'
+import { executeHooksWithArgs, runFnInFiberContext, executeAsync } from '@wdio/config'
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 
@@ -158,7 +158,7 @@ test('wrapStepSync', () => {
     const fn = adapter.wrapStepSync('some code', 123)
     expect(typeof fn).toBe('function')
     expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runTestInFiberContext).toBeCalledTimes(1)
+    expect(runFnInFiberContext).toBeCalledTimes(1)
 })
 
 test('wrapStepSync with default', () => {
@@ -173,7 +173,7 @@ test('wrapStepSync with default', () => {
     const fn = adapter.wrapStepSync('some code')
     expect(typeof fn).toBe('function')
     expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runTestInFiberContext).toBeCalledTimes(1)
+    expect(runFnInFiberContext).toBeCalledTimes(1)
 })
 
 test('wrapStepAsync', () => {
@@ -212,7 +212,7 @@ afterEach(() => {
     Cucumber.supportCodeLibraryBuilder.reset.mockReset()
     Cucumber.setDefaultTimeout.mockReset()
     executeHooksWithArgs.mockClear()
-    runTestInFiberContext.mockClear()
+    runFnInFiberContext.mockClear()
     mockery.enable.mockClear()
     mockery.registerMock.mockClear()
     mockery.disable.mockClear()
