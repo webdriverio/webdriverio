@@ -295,7 +295,8 @@ export default class ConfigParser {
      * returns the map of test and data from the data provider injection
      */
     getDataProviders () {
-        if (this._config.dataProviders.length > 0 && this._dataProvidersMap === null) {
+        const dataProviders = this._config.dataProviders || []
+        if (dataProviders.length > 0 && !this._dataProvidersMap) {
             this._dataProvidersMap = initializeDataProviders(this._config.dataProviders)
         }
         return this._dataProvidersMap

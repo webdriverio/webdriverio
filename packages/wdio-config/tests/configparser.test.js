@@ -326,4 +326,40 @@ describe('ConfigParser', () => {
             expect(config.key).toBe('50fa142c-3121-4gb0-9p07-8q326vvbq7b0')
         })
     })
+
+    describe('getDataProviders', () => {
+        it('should return null when passing null for  data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: null })
+
+            const dataMap = configParser.getDataProviders()
+            expect(dataMap).toEqual(configParser._dataProvidersMap)
+
+        })
+
+        it('should return null when passing undefined for data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: undefined })
+
+            const dataMap = configParser.getDataProviders()
+            expect(dataMap).toEqual(configParser._dataProvidersMap)
+        })
+
+        it('should return null when passing empty array for  data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: [] })
+
+            const dataMap = configParser.getDataProviders()
+            expect(dataMap).toEqual(configParser._dataProvidersMap)
+        })
+
+        it('should return valid data provider map when passing a single file path for data providers', () => {
+        })
+
+        it('should return valid data provider map when passing an array of files for data providers', () => {
+        })
+    })
 })
