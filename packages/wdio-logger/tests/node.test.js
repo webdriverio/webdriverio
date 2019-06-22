@@ -127,9 +127,14 @@ describe('wdio-logger node', () => {
         const logInfoSpy = jest.spyOn(fs, 'createWriteStream')
         const logCacheAddSpy = jest.spyOn(Set.prototype, 'add')
         const logCacheForEachSpy = jest.spyOn(Set.prototype, 'forEach')
+        let writableBuffer = null
         logInfoSpy.mockImplementation((path) => ({
             path,
-            write
+            write,
+            writable: jest.fn(),
+            get writableBuffer() {
+                return writableBuffer
+            }
         }))
 
         it('should be possible to add to cache', () => {
@@ -142,9 +147,9 @@ describe('wdio-logger node', () => {
             expect(logCacheAddSpy).toBeCalledTimes(2)
             expect(logCache.size).toBe(2)
 
-            const it = logCache.values()
-            expect(it.next().value).toContain('test-logFile1: foo')
-            expect(it.next().value).toContain('test-logFile1: bar')
+            const logCacheValues = logCache.values()
+            expect(logCacheValues.next().value).toContain('test-logFile1: foo')
+            expect(logCacheValues.next().value).toContain('test-logFile1: bar')
 
             // after
             logCache.clear()
@@ -195,6 +200,45 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[3].value).toContain('test-logFile4: Error: bar')
         })
 
+        describe('waitForBuffer with logFile', () => {
+            const scenarios = [{
+                name: 'should be ok buffer is empty',
+                writableBuffer: [],
+                logPath: 'wdio.test.log'
+            }, {
+                name: 'should f buffer is not defined',
+                writableBuffer: undefined,
+                logPath: 'wdio.test.log'
+            }]
+            scenarios.forEach((scenario, idx) => {
+                it(scenario.name, async () => {
+                    process.env.WDIO_LOG_PATH = scenario.logPath
+                    const log = nodeLogger(`test-logFile-buffer-${idx}`)
+                    log.info('foo')
+
+                    writableBuffer = scenario.writableBuffer
+
+                    expect(await nodeLogger.waitForBuffer()).toBe(true)
+                })
+            })
+
+            it('should wait for buffer to be empty', async () => {
+                process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                const log = nodeLogger('test-logFile-buffer-wait')
+                log.info('foo')
+                writableBuffer = ['bar']
+
+                const start = Date.now()
+                setTimeout(() => {
+                    writableBuffer = []
+                }, 200)
+                expect(await nodeLogger.waitForBuffer()).toBe(undefined)
+                const end = Date.now()
+                expect(end - start).toBeGreaterThanOrEqual(200)
+                expect(end - start).toBeLessThanOrEqual(300)
+            })
+        })
+
         beforeEach(() => {
             delete process.env.WDIO_LOG_PATH
         })
@@ -203,9 +247,15 @@ describe('wdio-logger node', () => {
             logCacheAddSpy.mockClear()
             logInfoSpy.mockClear()
             write.mockClear()
+            writableBuffer = undefined
         })
         afterAll(() => {
             logInfoSpy.mockRestore()
+        })
+    })
+    describe('waitForBuffer with no logFile', () => {
+        it('should be ok if logFile is undefined', async () => {
+            expect(await nodeLogger.waitForBuffer()).toBe(true)
         })
     })
 })

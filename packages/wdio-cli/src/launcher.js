@@ -7,12 +7,12 @@ import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseServices } from '@wdio/utils'
 
 import CLInterface from './interface'
-import { runServiceHook } from './utils'
+import { runOnPrepareHook, runOnCompleteHook, runServiceHook } from './utils'
 
 const log = logger('@wdio/cli:Launcher')
 
 class Launcher {
-    constructor (configFile, argv) {
+    constructor (configFile, argv, isWatchMode) {
         this.argv = argv
         this.configFile = configFile
 
@@ -40,7 +40,7 @@ class Launcher {
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
 
-        this.interface = new CLInterface(config, specs, totalWorkerCnt, this.runner.stdout, this.runner.stderr)
+        this.interface = new CLInterface(config, specs, totalWorkerCnt, isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)
@@ -64,15 +64,15 @@ class Launcher {
 
         /**
          * run pre test tasks for runner plugins
-         * (e.g. deploy Lambda functio to AWS)
+         * (e.g. deploy Lambda function to AWS)
          */
         await this.runner.initialise()
 
         /**
          * run onPrepare hook
          */
-        await config.onPrepare(config, caps)
         log.info('Run onPrepare hook')
+        await runOnPrepareHook(config.onPrepare, config, caps)
         await runServiceHook(launcher, 'onPrepare', config, caps)
 
         /**
@@ -80,14 +80,21 @@ class Launcher {
          */
         exitHook(::this.exitHandler)
 
-        const exitCode = await this.runMode(config, caps)
+        let exitCode = await this.runMode(config, caps)
 
         /**
          * run onComplete hook
+         * even if it fails we still want to see result and end logger stream
          */
         log.info('Run onComplete hook')
         await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-        await config.onComplete(exitCode, config, caps, this.interface.result)
+
+        const onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
+
+        // if any of the onComplete hooks failed, update the exit code
+        exitCode = onCompleteResults.includes(1) ? 1 : exitCode
+
+        await logger.waitForBuffer()
 
         this.interface.finalise()
         return exitCode
@@ -98,39 +105,49 @@ class Launcher {
      */
     runMode (config, caps) {
         /**
-         * if it is an object run multiremote test
-         */
-        if (this.isMultiremote) {
-            return new Promise((resolve) => {
-                this.resolve = resolve
-                this.startInstance(this.configParser.getSpecs(), caps, 0)
-            })
-        }
-
-        /**
          * fail if no caps were found
          */
-        if (!caps || !caps.length) {
+        if (!caps || (!this.isMultiremote && !caps.length)) {
             return new Promise((resolve) => {
                 log.error('Missing capabilities, exiting with failure')
-                this.interface.updateView()
                 return resolve(1)
             })
         }
 
         /**
+         * avoid retries in watch mode
+         */
+        const specFileRetries = config.watch ? 0 : config.specFileRetries
+
+        /**
          * schedule test runs
          */
         let cid = 0
-        for (let capabilities of caps) {
+        if (this.isMultiremote) {
+            /**
+             * Multiremote mode
+             */
             this.schedule.push({
                 cid: cid++,
-                caps: capabilities,
-                specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: config.specFileRetries })),
-                availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
-                runningInstances: 0,
-                seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+                caps,
+                specs: this.configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                availableInstances: config.maxInstances || 1,
+                runningInstances: 0
             })
+        } else {
+            /**
+             * Regular mode
+             */
+            for (let capabilities of caps) {
+                this.schedule.push({
+                    cid: cid++,
+                    caps: capabilities,
+                    specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
+                    runningInstances: 0,
+                    seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+                })
+            }
         }
 
         return new Promise((resolve) => {
@@ -141,7 +158,6 @@ class Launcher {
              */
             if (Object.values(this.schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
                 log.error('No specs found to run, exiting with failure')
-                this.interface.updateView()
                 return resolve(1)
             }
 
@@ -342,16 +358,16 @@ class Launcher {
         }
         this.interface.emit('job:end', { cid, passed, retries })
 
-        // Update schedule now this process has ended
-        if (!this.isMultiremote) {
-            // get cid (capability id) from rid (runner id)
-            cid = parseInt(cid, 10)
+        /**
+         * Update schedule now this process has ended
+         */
+        // get cid (capability id) from rid (runner id)
+        cid = parseInt(cid, 10)
 
-            this.schedule[cid].availableInstances++
-            this.schedule[cid].runningInstances--
-        }
+        this.schedule[cid].availableInstances++
+        this.schedule[cid].runningInstances--
 
-        if (!this.isMultiremote && !this.runSpecs()) {
+        if (!this.runSpecs()) {
             return
         }
 

@@ -14,3 +14,4 @@ export default function getLogger (component) {
 // logging interface expects a 'setLevel' method
 getLogger.setLevel = () => {}
 getLogger.setLogLevelsConfig = () => {}
+getLogger.waitForBuffer = () => {}

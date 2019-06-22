@@ -260,7 +260,7 @@ $('CYIPushButtonView').click();
 ## Chain Selectors
 
 If you want to be more specific in your query, you can chain your selector until you've found the right
-element. If you call element before your actual command, WebdriverIO starts query from that element. For example
+element. If you call element before your actual command, WebdriverIO starts the query from that element. For example
 if you have a DOM structure like:
 
 ```html
@@ -283,7 +283,7 @@ if you have a DOM structure like:
 </div>
 ```
 
-And you want to add product B to the cart it would be difficult to do that just by using the CSS selector.
+And you want to add product B to the cart, it would be difficult to do that just by using the CSS selector.
 With selector chaining it gets way easier as you can narrow down the desired element step by step:
 
 ```js

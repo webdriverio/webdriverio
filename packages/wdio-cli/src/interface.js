@@ -1,6 +1,4 @@
 import chalk from 'chalk'
-import logUpdate from 'log-update'
-import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
 import logger from '@wdio/logger'
 
@@ -8,37 +6,38 @@ import { getRunnerName } from './utils'
 
 const log = logger('@wdio/cli')
 
-const clockSpinner = cliSpinners['clock']
-const MAX_RUNNING_JOBS_DISPLAY_COUNT = 10
-
 export default class WDIOCLInterface extends EventEmitter {
-    constructor (config, specs, totalWorkerCnt, stdout, stderr) {
+    constructor (config, specs, totalWorkerCnt, isWatchMode = false) {
         super()
+
+        /**
+         * Colors can be forcibly enabled/disabled with env variable `FORCE_COLOR`
+         * `FORCE_COLOR=1` - forcibly enable colors
+         * `FORCE_COLOR=0` - forcibly disable colors
+         */
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.isTTY = !!process.stdout.isTTY
         this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
-        this.sigintTriggered = false
-        this.isWatchMode = false
+        this.isWatchMode = isWatchMode
         this.inDebugMode = false
-        this.stdout = stdout
-        this.stdoutBuffer = []
-        this.stderr = stderr
-        this.stderrBuffer = []
+        this.specFileRetries = config.specFileRetries || 0
 
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
 
         this.setup()
+        this.onStart()
     }
 
     setup () {
-        this.clockTimer = 0
         this.jobs = new Map()
-        this.start = Date.now()
-        // The relationship between totalWorkerCnt and these counters are as follows:
-        //   totalWorkerCnt - retries = finished = passed + failed
+        this.start = new Date()
+
+        /**
+         * The relationship between totalWorkerCnt and these counters are as follows:
+         * totalWorkerCnt - retries = finished = passed + failed
+         */
         this.result = {
             finished: 0,
             passed: 0,
@@ -49,17 +48,63 @@ export default class WDIOCLInterface extends EventEmitter {
             /**
              * messages from worker reporters
              */
-            reporter: {},
-            /**
-             * messages from worker itself
-             */
-            worker: {}
+            reporter: {}
         }
-        this.clearConsole()
     }
 
-    clearConsole () {
-        this.display = []
+    onStart() {
+        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} spec files started at`), this.start.toISOString())
+        if (this.inDebugMode) {
+            this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
+        }
+        if (this.isWatchMode) {
+            this.log(chalk.bgYellow.black('WATCH mode enabled!'))
+        }
+        this.log('')
+    }
+
+    onSpecRunning(cid) {
+        this.onJobComplete(cid, this.jobs.get(cid), 0, chalk.bold.cyan('RUNNING'))
+    }
+
+    onSpecRetry(cid, job, retries) {
+        this.onJobComplete(cid, job, retries, chalk.bold.yellow('RETRYING'))
+    }
+
+    onSpecPass(cid, job, retries) {
+        this.onJobComplete(cid, job, retries, chalk.bold.green('PASSED'))
+    }
+
+    onSpecFailure(cid, job, retries) {
+        this.onJobComplete(cid, job, retries, chalk.bold.red('FAILED'))
+    }
+
+    onJobComplete(cid, job, retries, message) {
+        const details = [`[${cid}]`, message]
+        if (job) {
+            details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
+        }
+        if (retries > 0) {
+            details.push(`(${retries} retries)`)
+        }
+
+        return this.log(...details)
+    }
+
+    onTestError(payload) {
+        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Uknown error.' }
+        if (payload.error) {
+            error.type = payload.error.type || error.type
+            error.message = payload.error.message || error.message
+        }
+        return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.message)}`)
+    }
+
+    getFilenames(specs = []) {
+        if (specs.length > 0) {
+            return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
+        }
+        return ''
     }
 
     /**
@@ -67,7 +112,7 @@ export default class WDIOCLInterface extends EventEmitter {
      */
     addJob({ cid, caps, specs }) {
         this.jobs.set(cid, { caps, specs })
-        this.updateView()
+        this.onSpecRunning(cid)
     }
 
     /**
@@ -77,6 +122,7 @@ export default class WDIOCLInterface extends EventEmitter {
         const job = this.jobs.get(cid)
 
         this.jobs.delete(cid)
+        const retryAttempts = this.specFileRetries - retries
         const retry = !passed && retries > 0
         if (!retry) {
             this.result.finished++
@@ -84,45 +130,24 @@ export default class WDIOCLInterface extends EventEmitter {
 
         if (passed) {
             this.result.passed++
+            this.onSpecPass(cid, job, retryAttempts)
         } else if (retry) {
             this.totalWorkerCnt++
             this.result.retries++
+            this.onSpecRetry(cid, job, retryAttempts)
         } else {
             this.result.failed++
+            this.onSpecFailure(cid, job, retryAttempts)
         }
-
-        if (!process.env.CI) {
-            return this.updateView(true)
-        }
-
-        return this.printJobUpdateCI(job, passed, retries)
-    }
-
-    /**
-     * print job result in stdout for CI tests
-     */
-    printJobUpdateCI (job, passed, retries) {
-        const filename = job.specs.join(', ').replace(process.cwd(), '')
-        const cap = getRunnerName(job.caps)
-        const status = passed ? 'PASS' : 'FAIL'
-        const retryCount = retries > 0 ? `(${retries} retries)` : ''
-
-        this.log(
-            chalk.white[passed ? 'bgGreen' : 'bgRed'](status) + ' -',
-            cap,
-            filename,
-            retryCount
-        )
     }
 
     /**
      * for testing purposes call console log in a static method
      */
-    /* istanbul ignore next */
     log (...args) {
-        /* istanbul ignore next */
         // eslint-disable-next-line no-console
         console.log(...args)
+        return args
     }
 
     /**
@@ -130,30 +155,36 @@ export default class WDIOCLInterface extends EventEmitter {
      */
     onMessage (event) {
         if (event.origin === 'debugger' && event.name === 'start') {
-            this.resetClock()
-            this.clearConsole()
-
-            logUpdate.clear()
-            logUpdate(chalk.yellow(event.params.introMessage))
+            this.log(chalk.yellow(event.params.introMessage))
             this.inDebugMode = true
-            return
+            return this.inDebugMode
         }
 
         if (event.origin === 'debugger' && event.name === 'stop') {
-            this.sigintTriggered = false
             this.inDebugMode = false
-            return this.updateView()
+            return this.inDebugMode
         }
 
-        if (!event.origin || !this.messages[event.origin]) {
+        if (!event.origin) {
             return log.warn(`Can't identify message from worker: ${JSON.stringify(event)}, ignoring!`)
+        }
+
+        if (event.origin !== 'reporter') {
+            return this.log(event.cid, event.origin, event.name, event.content)
+        }
+
+        if (event.name === 'printFailureMessage') {
+            return this.onTestError(event.content)
         }
 
         if (!this.messages[event.origin][event.name]) {
             this.messages[event.origin][event.name] = []
         }
+
         this.messages[event.origin][event.name].push(event.content)
-        this.updateView()
+        if (this.isWatchMode) {
+            this.printReporters()
+        }
     }
 
     sigintTrigger () {
@@ -161,207 +192,47 @@ export default class WDIOCLInterface extends EventEmitter {
          * allow to exit repl mode via Ctrl+C
          */
         if (this.inDebugMode) {
-            return
+            return false
         }
 
-        this.sigintTriggered = true
-        this.updateView()
-    }
-
-    updateView (wasJobCleared) {
-        const totalJobs = this.totalWorkerCnt - this.result.retries
-        const pendingJobs = totalJobs - this.jobs.size - this.result.finished
-        const runningJobs = this.jobs.size
-        const isFinished = runningJobs === 0
-
-        if (this.sigintTriggered) {
-            this.resetClock()
-            const shutdownMessage = !isFinished
-                ? 'Ending WebDriver sessions gracefully ...\n' +
-                '(press ctrl+c again to hard kill the runner)'
-                : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
-            return logUpdate(this.display.join('\n') + '\n\n' + shutdownMessage)
-        }
-
-        if(isFinished || this.inDebugMode) {
-            return
-        }
-
-        /**
-         * check if environment supports ansi or does not
-         * support TTY and print a limited update if not
-         */
-        if (!this.hasAnsiSupport || !this.isTTY) {
-            /**
-             * only update if a job finishes
-             */
-            if (!wasJobCleared) {
-                return
-            }
-
-            const clockSpinnerSymbol = this.getClockSymbol()
-            return this.display.push([
-                `${clockSpinnerSymbol} ` +
-                `${this.jobs.size} running, ` +
-                `${this.result.passed} passed, ` +
-                (this.result.retries ? `${this.result.retries} retries, ` : '') +
-                `${this.result.failed} failed, ` +
-                `${totalJobs} total ` +
-                `(${Math.round((this.result.finished / totalJobs) * 100)}% completed)`].join(' '))
-        }
-
-        this.clearConsole()
-        this.display.push('')
-
-        /**
-         * print running jobs
-         */
-        for (const [cid, job] of Array.from(this.jobs.entries()).slice(0, MAX_RUNNING_JOBS_DISPLAY_COUNT)) {
-            const filename = job.specs.join(', ').replace(process.cwd(), '')
-            this.display.push([
-                chalk.bgYellow.black(' RUNNING '),
-                cid,
-                'in',
-                getRunnerName(job.caps),
-                '-',
-                filename
-            ].join(' '))
-        }
-
-        /**
-         * show number of pending and running jobs
-         */
-        if (pendingJobs || runningJobs > MAX_RUNNING_JOBS_DISPLAY_COUNT) {
-            const logString = []
-            if (runningJobs > MAX_RUNNING_JOBS_DISPLAY_COUNT) {
-                logString.push(
-                    runningJobs - MAX_RUNNING_JOBS_DISPLAY_COUNT,
-                    'running test suites' + (pendingJobs ? ' -' : ''))
-            }
-            if (pendingJobs) {
-                logString.push(pendingJobs, 'pending test suites')
-            }
-            this.display.push(chalk.yellow('...', ...logString.filter(l => Boolean(l))))
-        }
-
-        /**
-         * print reporters in watch mode
-         */
-        if (this.isWatchMode) {
-            this.printReporters()
-        }
-
-        /**
-         * add empty line between "pending tests" and results
-         */
-        if (this.jobs.size) {
-            this.display.push('')
-        }
-
-        this.printStdout(10)
-        this.printSummary()
-        this.updateClock()
+        const isRunning = this.jobs.size !== 0
+        const shutdownMessage = isRunning
+            ? 'Ending WebDriver sessions gracefully ...\n' +
+            '(press ctrl+c again to hard kill the runner)'
+            : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+        return this.log('\n\n' + shutdownMessage)
     }
 
     printReporters () {
-        this.display.push('')
-
         /**
          * print reporter output
          */
-        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
-            this.display.push(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
-            this.display.push(messages.join(''))
-            this.display.push('')
-        }
-    }
-
-    /**
-     * print stdout and stderr from runners
-     */
-    printStdout (length) {
-        const stdout = this.stdout.getContentsAsString('utf8')
-        if (stdout) {
-            this.stdoutBuffer.push(stdout)
-        }
-
-        const stderr = this.stderr.getContentsAsString('utf8')
-        if (stderr) {
-            this.stderrBuffer.push(stderr)
-        }
-
-        if (this.stdoutBuffer.length) {
-            const bufferLength = this.stdoutBuffer.length
-            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
-            const buffer = this.stdoutBuffer.slice(bufferLength - maxBufferLength)
-            this.display.push(chalk.bgYellow.black('Stdout:\n') + buffer.join(''))
-        }
-
-        if (this.stderrBuffer.length) {
-            const bufferLength = this.stderrBuffer.length
-            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
-            const buffer = this.stderrBuffer.slice(bufferLength - maxBufferLength)
-            this.display.push(chalk.bgRed.black('Stderr:\n') + buffer.join(''))
-        }
-
-        if (this.messages.worker.error) {
-            const bufferLength = this.messages.worker.error.length
-            const maxBufferLength = !length || length > bufferLength ? bufferLength : length
-            const buffer = this.messages.worker.error.slice(bufferLength - maxBufferLength)
-            this.display.push(chalk.bgRed.black('Worker Error:\n') + buffer.map(
-                (e) => e.stack
-            ).join('\n'))
+        const reporter = this.messages.reporter
+        this.messages.reporter = {}
+        for (const [reporterName, messages] of Object.entries(reporter)) {
+            this.log('\n', chalk.bold.magenta(`"${reporterName}" Reporter:`))
+            this.log(messages.join(''))
         }
     }
 
     printSummary() {
         const totalJobs = this.totalWorkerCnt - this.result.retries
-        return this.display.push([
-            'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
-            (this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : '') +
-            (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
-            totalJobs, 'total',
-            `(${totalJobs ? Math.round((this.result.finished / totalJobs) * 100) : 0}% completed)`
-        ].join(' '))
-    }
-
-    updateClock (interval = 100) {
-        const clockSpinnerSymbol = this.getClockSymbol()
-
-        this.resetClock()
-
-        /**
-         * clear time row if given
-         */
-        if (this.display.length && this.display[this.display.length - 1].startsWith('Time:')) {
-            this.display.pop()
-        }
-
-        this.display.push('Time:\t\t ' + clockSpinnerSymbol + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
-        this.interval = setTimeout(() => this.updateClock(interval), interval)
-        logUpdate(this.display.join('\n'))
-    }
-
-    getClockSymbol () {
-        return clockSpinner.frames[this.clockTimer = ++this.clockTimer % clockSpinner.frames.length]
-    }
-
-    resetClock () {
-        clearTimeout(this.interval)
+        const elapsed = (new Date(Date.now() - this.start)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0]
+        const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
+        const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
+        const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
+        return this.log(
+            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
+            '\n'
+        )
     }
 
     finalise () {
-        this.clearConsole()
-        this.printStdout()
+        if (this.isWatchMode) {
+            return
+        }
+
         this.printReporters()
         this.printSummary()
-        this.updateClock()
-        this.resetClock()
-
-        /**
-         * add line break at the end of result
-         */
-        // eslint-disable-next-line
-        console.log('')
     }
 }

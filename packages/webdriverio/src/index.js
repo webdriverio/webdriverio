@@ -36,12 +36,17 @@ export const remote = async function (params = {}, remoteModifier) {
     const instance = await WebDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
-     * we need to overwrite the original addCommand in order to wrap the
-     * function within Fibers
+     * we need to overwrite the original addCommand and overwriteCommand
+     * in order to wrap the function within Fibers
      */
     const origAddCommand = ::instance.addCommand
     instance.addCommand = (name, fn, attachToElement) => (
         origAddCommand(name, runFnInFiberContext(fn), attachToElement)
+    )
+
+    const origOverwriteCommand = ::instance.overwriteCommand
+    instance.overwriteCommand = (name, fn, attachToElement) => (
+        origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
     )
 
     return instance
@@ -84,12 +89,17 @@ export const multiremote = async function (params = {}) {
     const driver = WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
 
     /**
-     * in order to get custom command added to multiremote instance we need to pass
-     * in the prototype of the multibrowser
+     * in order to get custom command overwritten or added to multiremote instance
+     * we need to pass in the prototype of the multibrowser
      */
     const origAddCommand = ::driver.addCommand
     driver.addCommand = (name, fn, attachToElement) => {
-        origAddCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+    }
+
+    const origOverwriteCommand = ::driver.overwriteCommand
+    driver.overwriteCommand = (name, fn, attachToElement) => {
+        origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
     }
 
     return driver

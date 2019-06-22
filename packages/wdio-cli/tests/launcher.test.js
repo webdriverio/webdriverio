@@ -5,6 +5,7 @@ import fs from 'fs-extra'
 const caps = { maxInstances: 1, browserName: 'chrome' }
 
 jest.mock('fs-extra')
+global.console.log = jest.fn()
 
 describe('launcher', () => {
     let launcher
@@ -43,12 +44,37 @@ describe('launcher', () => {
         })
 
         it('should start instance in multiremote', () => {
-            launcher.startInstance = jest.fn()
+            launcher.runSpecs = jest.fn()
             launcher.isMultiremote = true
-            launcher.runMode({ specs: './' }, [{ browserName: 'multiremote' }])
+            launcher.runMode({ specs: './', specFileRetries: 2 }, { foo: { capabilities: { browserName: 'chrome' } } })
+
+            expect(launcher.schedule).toHaveLength(1)
+            expect(launcher.schedule[0].specs[0].retries).toBe(2)
 
             expect(typeof launcher.resolve).toBe('function')
-            expect(launcher.startInstance).toBeCalledTimes(1)
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
+        it('should ignore specFileRetries in watch mode', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.runMode({ specs: './', specFileRetries: 2, watch: true }, [caps, caps])
+
+            expect(launcher.schedule).toHaveLength(2)
+            expect(launcher.schedule[0].specs[0].retries).toBe(0)
+            expect(launcher.schedule[1].specs[0].retries).toBe(0)
+
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
+        it('should apply maxInstancesPerCapability if maxInstances is not passed', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.runMode({ specs: './', specFileRetries: 3, maxInstancesPerCapability: 4 }, [{ browserName: 'chrome' }])
+
+            expect(launcher.schedule).toHaveLength(1)
+            expect(launcher.schedule[0].specs[0].retries).toBe(3)
+            expect(launcher.schedule[0].availableInstances).toBe(4)
+
+            expect(launcher.runSpecs).toBeCalledTimes(1)
         })
     })
 
@@ -103,11 +129,9 @@ describe('launcher', () => {
         })
 
         it('should reschedule when runner failed and retries remain', () => {
-            delete process.env.CI
             launcher.schedule = [{ cid: 0, specs: [] }]
             launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
-            process.env.CI = 1
         })
     })
 
@@ -362,6 +386,44 @@ describe('launcher', () => {
         })
         afterEach(() => {
             ensureDirSyncSpy.mockClear()
+        })
+    })
+
+    describe('run', () => {
+        let config = {}
+
+        beforeEach(() => {
+            config = {
+                // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
+                onPrepare: [jest.fn()],
+                onComplete: [jest.fn()],
+            }
+            launcher.configParser = {
+                getCapabilities: jest.fn().mockReturnValue(0),
+                getConfig: jest.fn().mockReturnValue(config)
+            }
+            launcher.runner = { initialise: jest.fn() }
+            launcher.runMode = jest.fn().mockImplementation((config, caps) => caps)
+            launcher.interface = { finalise: jest.fn() }
+        })
+
+        it('exit code 0', async () => {
+            expect(await launcher.run()).toBe(0)
+
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
+            expect(launcher.configParser.getConfig).toBeCalledTimes(1)
+            expect(launcher.runner.initialise).toBeCalledTimes(1)
+            expect(config.onPrepare[0]).toBeCalledTimes(1)
+            expect(launcher.runMode).toBeCalledTimes(1)
+            expect(config.onPrepare[0]).toBeCalledTimes(1)
+            expect(launcher.interface.finalise).toBeCalledTimes(1)
+        })
+
+        it('onComplete error', async () => {
+            // ConfigParser.addFileConfig() will return onComplete as an array of functions
+            config.onComplete = [() => { throw new Error() }]
+
+            expect(await launcher.run()).toBe(1)
         })
     })
 })

@@ -11,11 +11,11 @@ jest.mock('../src/launcher', () => {
             this.configParser = new ConfigParser()
             this.configParser.addConfigFile(configFile)
             this.configParser.merge(argv)
+            this.isMultiremote = argv.isMultiremote
             this.runner = {}
             this.interface = {
                 emit: jest.fn(),
-                setup: jest.fn(),
-                updateView: jest.fn()
+                setup: jest.fn()
             }
         }
     }
@@ -43,14 +43,21 @@ describe('watcher', () => {
         ])
     })
 
+    it('should initialise properly in Multiremote', async () => {
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, { isMultiremote: true })
+        expect(watcher.specs).toEqual([
+            './tests/test1.js',
+        ])
+    })
+
     it('should run initial suite when starting watching', async () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher.launcher = {
             run: jest.fn(),
             interface: {
-                finalise: jest.fn(),
-                updateView: jest.fn()
+                finalise: jest.fn()
             },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: [] })
@@ -72,8 +79,7 @@ describe('watcher', () => {
         watcher.launcher = {
             run: jest.fn(),
             interface: {
-                finalise: jest.fn(),
-                updateView: jest.fn()
+                finalise: jest.fn()
             },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
@@ -107,8 +113,7 @@ describe('watcher', () => {
         watcher.launcher = {
             run: jest.fn(),
             interface: {
-                finalise: jest.fn(),
-                updateView: jest.fn()
+                finalise: jest.fn()
             },
             configParser: {
                 getConfig: jest.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })

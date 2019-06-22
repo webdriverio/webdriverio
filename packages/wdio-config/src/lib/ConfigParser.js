@@ -43,7 +43,8 @@ export default class ConfigParser {
             delete fileConfig.capabilities
 
             /**
-             * add service hooks and remove them from config
+             * Add hooks from the file config and remove them from file config object to avoid
+             * complications when using merge function
              */
             this.addService(fileConfig)
             for (let hookName of SUPPORTED_HOOKS) {
@@ -124,8 +125,8 @@ export default class ConfigParser {
     }
 
     /**
-     * add hooks from services to runner config
-     * @param {Object} service  a service is basically an object that contains hook methods
+     * Add hooks from an existing service to the runner config.
+     * @param {Object} service - an object that contains hook methods.
      */
     addService (service) {
         for (let hookName of SUPPORTED_HOOKS) {
@@ -162,6 +163,7 @@ export default class ConfigParser {
             for (let suiteName of suites) {
                 // ToDo: log warning if suite was not found
                 let suite = this._config.suites[suiteName]
+
                 if (suite && Array.isArray(suite)) {
                     suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite))
                 }
@@ -174,9 +176,18 @@ export default class ConfigParser {
 
             // Allow --suite and --spec to both be defined on the command line
             // Removing any duplicate tests that could be included
-            const tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
+            let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
-            return [...new Set(tmpSpecs)]
+            if (Array.isArray(capSpecs)) {
+                tmpSpecs = tmpSpecs.concat(ConfigParser.getFilePaths(capSpecs))
+            }
+
+            if (Array.isArray(capExclude)) {
+                exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
+            }
+
+            specs = [...new Set(tmpSpecs)]
+            return specs.filter(spec => !exclude.includes(spec))
         }
 
         if (Array.isArray(capSpecs)) {
@@ -187,7 +198,7 @@ export default class ConfigParser {
             exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
         }
 
-        return specs.filter(spec => exclude.indexOf(spec) < 0)
+        return specs.filter(spec => !exclude.includes(spec))
     }
 
     /**

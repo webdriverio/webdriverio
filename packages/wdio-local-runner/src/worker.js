@@ -71,8 +71,8 @@ export default class WorkerInstance extends EventEmitter {
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(this.stdout)
-            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(this.stderr)
+            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
+            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
             process.stdin.pipe(childProcess.stdin)
         }
 
@@ -93,9 +93,14 @@ export default class WorkerInstance extends EventEmitter {
          * store sessionId and connection data to worker instance
          */
         if (payload.name === 'sessionStarted') {
-            this.sessionId = payload.content.sessionId
-            delete payload.content.sessionId
-            Object.assign(this.server, payload.content)
+            if (payload.content.isMultiremote) {
+                Object.assign(this, payload.content)
+            } else {
+                this.sessionId = payload.content.sessionId
+                delete payload.content.sessionId
+                Object.assign(this.server, payload.content)
+            }
+            return
         }
 
         /**

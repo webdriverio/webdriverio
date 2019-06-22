@@ -19,7 +19,7 @@
  * </example>
  *
  * @alias element.addValue
- * @param {*}      value     value to be added
+ * @param {string | number | boolean | object | Array<any>}      value     value to be added
  * @uses protocol/elements, protocol/elementIdValue
  * @type action
  *
@@ -34,8 +34,8 @@ export default function addValue (value) {
 
     // Workaround https://github.com/appium/appium/issues/12085
     if (this.isMobile) {
-        return this.elementSendKeys(this.elementId, value, transformToCharString(value))
+        return this.elementSendKeys(this.elementId, transformToCharString(value).join(''), transformToCharString(value))
     }
 
-    return this.elementSendKeys(this.elementId, value)
+    return this.elementSendKeys(this.elementId, transformToCharString(value).join(''))
 }

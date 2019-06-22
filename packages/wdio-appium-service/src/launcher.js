@@ -18,7 +18,7 @@ export class AppiumLauncher {
     async onPrepare(config) {
         const appiumConfig = config.appium || {}
 
-        this.logPath = appiumConfig.logPath
+        this.logPath = appiumConfig.logPath || config.outputDir
         this.command = appiumConfig.command || this._getAppiumCommand()
         this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
 
@@ -40,6 +40,7 @@ export class AppiumLauncher {
     _startAppium(command, args, waitStartTime, callback) {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        let error
 
         process.stdout.on('data', (data) => {
             if (data.includes('Appium REST http interface listener started')) {
@@ -48,10 +49,14 @@ export class AppiumLauncher {
             }
         })
 
+        // only capture first error to print it in case Appium failed to start.
+        process.stderr.once('data', err => { error = err })
+
         process.once('exit', (exitCode) => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
             if (exitCode == 2) {
-                errorMessage += ' - Check that you don\'t already have a running Appium service.'
+                errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
+                log.error(errorMessage)
             }
             callback(new Error(errorMessage), null)
         })
@@ -69,11 +74,23 @@ export class AppiumLauncher {
         this.process.stderr.pipe(logStream)
     }
 
-    _getAppiumCommand() {
-        return require.resolve('appium')
+    _getAppiumCommand(moduleName = 'appium') {
+        try {
+            return require.resolve(moduleName)
+        } catch (err) {
+            log.error('appium is not installed locally.\n' +
+            'If you use globally installed appium please add\n' +
+            "appium: { command: 'appium' }\n" +
+            'to your wdio.conf.js!')
+            throw err
+        }
     }
 
     _cliArgsFromKeyValue(keyValueArgs) {
+        if (Array.isArray(keyValueArgs)) {
+            return keyValueArgs
+        }
+
         const cliArgs = []
         for (let key in keyValueArgs) {
             const value = keyValueArgs[key]

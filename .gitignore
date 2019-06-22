@@ -63,12 +63,9 @@ typings/
 
 **/build
 /*.js
-*.d.ts
-!/scripts/templates/*.d.ts
-!/packages/wdio-mocha-framework/mocha-framework.d.ts
-!/packages/wdio-jasmine-framework/jasmine-framework.d.ts
-!/packages/wdio-selenium-standalone-service/selenium-standalone-service.d.ts
-!/packages/**/webdriverio.d.ts
+allure-reporter.d.ts
+webdriver.d.ts
+webdriverio-core.d.ts
 !babel.config.js
 !.eslintrc.js
 package-lock.json

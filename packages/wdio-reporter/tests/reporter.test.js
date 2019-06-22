@@ -1,37 +1,30 @@
 import fs from 'fs'
 import tmp from 'tmp'
 import fse from 'fs-extra'
+import EventEmitter from 'events'
 import WDIOReporter from '../src'
 
-jest.mock('events', () => {
-    class EventEmitterMock {
-        constructor () {
-            this.on = jest.fn()
-        }
-    }
-
-    return EventEmitterMock
-})
-
 describe('WDIOReporter', () => {
+    const eventsOnSpy = jest.spyOn(EventEmitter.prototype, 'on')
+
     it('constructor', () => {
         const tmpobj = tmp.fileSync()
-        const reporter = new WDIOReporter({ logFile: tmpobj.name })
-        expect(reporter.on).toBeCalledWith('client:beforeCommand', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('client:afterCommand', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('runner:start', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('suite:start', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('hook:start', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('hook:end', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('test:start', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('test:pass', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('test:fail', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('test:pending', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('test:end', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('suite:end', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('runner:end', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('client:command', expect.any(Function))
-        expect(reporter.on).toBeCalledWith('client:result', expect.any(Function))
+        new WDIOReporter({ logFile: tmpobj.name })
+        expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('runner:start', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('suite:start', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('hook:start', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('hook:end', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('test:start', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('test:pass', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('test:fail', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('test:pending', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('test:end', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('suite:end', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('runner:end', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:command', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:result', expect.any(Function))
     })
 
     it('should be by default synchronised', () => {
@@ -95,5 +88,9 @@ describe('WDIOReporter', () => {
         afterEach(() => {
             ensureDirSyncSpy.mockClear()
         })
+    })
+
+    afterAll(() => {
+        eventsOnSpy.mockClear()
     })
 })

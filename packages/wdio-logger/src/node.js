@@ -5,6 +5,8 @@ import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
 
+prefix.reg(log)
+
 const DEFAULT_LEVEL = 'trace'
 const COLORS = {
     error: 'red',
@@ -82,7 +84,7 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
         })
 
         const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
-        if (logFile) {
+        if (logFile && logFile.writable) {
             /**
              * empty logging cache if stuff got logged before
              */
@@ -124,7 +126,19 @@ export default function getLogger (name) {
     loggers[name].setLevel(logLevel)
     return loggers[name]
 }
-
+/**
+ * Wait for writable stream to be flushed.
+ * Calling this prevents part of the logs in the very env to be lost.
+ */
+getLogger.waitForBuffer = async () => new Promise(resolve => {
+    if (logFile && Array.isArray(logFile.writableBuffer) && logFile.writableBuffer.length !== 0) {
+        return setTimeout(async () => {
+            await getLogger.waitForBuffer(resolve)
+            resolve()
+        }, 20)
+    }
+    resolve(true)
+})
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
 getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) => {
     /**
