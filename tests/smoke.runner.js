@@ -124,7 +124,7 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
         () => false,
         () => true
     )
-    assert.equal(retryFailed, false, 'Expected retries to fail but they passed')
+    assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
 
     let retryFilename = path.join(__dirname, '.retry_succeeded')
     let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
