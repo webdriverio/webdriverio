@@ -160,6 +160,11 @@ declare namespace WebDriver {
         pageLoadingStrategy?: string;
         'moz:firefoxOptions'?: FirefoxOptions;
 
+        // Edge specific
+        'ms:inPrivate'?: boolean;
+        'ms:extensionPaths'?: string[];
+        'ms:startPage'?: string;
+
         // IE specific
         'ie.forceCreateProcessApi'?: boolean;
         'ie.browserCommandLineSwitches'?: string;
