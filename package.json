@@ -55,7 +55,6 @@
     "cheerio": "^1.0.0-rc.2",
     "codecov": "^3.2.0",
     "copyfiles": "^2.1.0",
-    "cucumber": "^5.1.0",
     "del": "^4.0.0",
     "dox": "^0.9.0",
     "eslint": "^6.0.0",
