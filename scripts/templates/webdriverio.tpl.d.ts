@@ -86,7 +86,7 @@ declare namespace WebdriverIO {
         failed: number
     }
 
-    interface Hooks {
+    interface HookFunctions {
         onPrepare?(
             config: Config,
             capabilities: WebDriver.DesiredCapabilities
@@ -148,6 +148,11 @@ declare namespace WebdriverIO {
         afterScenario?(scenario: any): void;
         afterStep?(stepResult: any): void;
     }
+    type _HooksArray = {
+        [K in keyof Pick<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
+    };
+    type _Hooks = Omit<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">;
+    interface Hooks extends _HooksArray, _Hooks { }
 
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
     interface TouchAction {
@@ -182,7 +187,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
-            ): void;
+        ): void;
         options: RemoteOptions;
         // ... browser commands ...
     }
