@@ -293,6 +293,15 @@ export function isSauce (hostname, caps) {
 }
 
 /**
+ * detects if session is run using Selenium Standalone server
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session is run with Selenium Standalone Server
+ */
+export function isSeleniumStandalone (caps) {
+    return Boolean(caps['webdriver.remote.sessionid'])
+}
+
+/**
  * returns information about the environment
  * @param  {Object}  hostname      name of the host to run the session against
  * @param  {Object}  capabilities  caps of session response
@@ -305,7 +314,8 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
+        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch),
+        isSeleniumStandalone: isSeleniumStandalone(capabilities)
     }
 }
 

@@ -9,6 +9,7 @@ import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
+import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -126,6 +127,7 @@ describe('utils', () => {
         const edgeCaps = edgedriverResponse.value.capabilities
         const safariCaps = safaridriverResponse.value.capabilities
         const safariLegacyCaps = safaridriverLegacyResponse.value
+        const standaloneCaps = seleniumstandaloneResponse.value
 
         it('isW3C', () => {
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
@@ -161,6 +163,14 @@ describe('utils', () => {
             requestedCapabilities.w3cCaps.alwaysMatch['sauce:options'] = { extendedDebugging: true }
             expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
             expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+        })
+
+        it('isSeleniumStandalone', () => {
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
+            expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
+            expect(environmentDetector({ capabilities: standaloneCaps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
         })
 
         it('should not detect mobile app for browserName===undefined', function () {

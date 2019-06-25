@@ -1,0 +1,29 @@
+{
+  "value": {
+    "acceptInsecureCerts": false,
+    "browserName": "firefox",
+    "browserVersion": "67.0.4",
+    "moz:accessibilityChecks": false,
+    "moz:buildID": "20190619235627",
+    "moz:geckodriverVersion": "0.24.0",
+    "moz:headless": false,
+    "moz:processID": 84417,
+    "moz:profile": "/var/folders/0q/l4qj1n6s2glggtljc87l6h540000gn/T/rust_mozprofile.z2Scxa1ZKfol",
+    "moz:shutdownTimeout": 60000,
+    "moz:useNonSpecCompliantPointerOrigin": false,
+    "moz:webdriverClick": true,
+    "pageLoadStrategy": "normal",
+    "platformName": "mac",
+    "platformVersion": "17.7.0",
+    "rotatable": false,
+    "setWindowRect": true,
+    "strictFileInteractability": false,
+    "timeouts": {
+      "implicit": 0,
+      "pageLoad": 300000,
+      "script": 30000
+    },
+    "unhandledPromptBehavior": "dismiss and notify",
+    "webdriver.remote.sessionid": "e5303f4e-5f5a-c94a-93c5-a4dbf97c06f4"
+  }
+}
