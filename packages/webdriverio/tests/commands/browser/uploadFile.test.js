@@ -35,7 +35,7 @@ describe('uploadFile', () => {
         const archiverMock = archiver()
         browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
         expect(archiverMock.args).toEqual(['zip'])
-        expect(archiverMock.append).toBeCalledWith(undefined, {name: 'toUpload.jpg'})
+        expect(archiverMock.append).toBeCalledWith(undefined, { name: 'toUpload.jpg' })
     })
 
     it('reject on error', async () => {
