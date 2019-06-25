@@ -37,6 +37,7 @@ module.exports = {
     }],
     quotes: ['error', 'single', { avoidEscape: true }],
     'unicode-bom': ['error', 'never'],
-    'object-curly-spacing': ['error', 'always']
+    'object-curly-spacing': ['error', 'always'],
+    'require-atomic-updates': 0
   }
 }

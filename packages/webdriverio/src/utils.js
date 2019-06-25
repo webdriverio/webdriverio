@@ -175,7 +175,9 @@ export function parseCSS (cssPropertyValue, cssProperty) {
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (value) {
-    return UNICODE_CHARACTERS.hasOwnProperty(value) ? [UNICODE_CHARACTERS[value]] : new GraphemeSplitter().splitGraphemes(value)
+    return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
+        ? [UNICODE_CHARACTERS[value]]
+        : new GraphemeSplitter().splitGraphemes(value)
 }
 
 function fetchElementByJSFunction (selector, scope) {

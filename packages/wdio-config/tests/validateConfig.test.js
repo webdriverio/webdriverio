@@ -44,11 +44,11 @@ describe('validateConfig', () => {
             foobar: { message: 'foobar', stack: 'barfoo' }
         })).toThrowError(/Type check for option "foobar" failed: not an error/)
 
-        expect(validateConfig({
+        expect(Object.prototype.hasOwnProperty.call(validateConfig({
             foobar: { type: errorCheck }
         }, {
             foobar: new Error('foobar')
-        }).hasOwnProperty('foobar')).toBe(true)
+        }), 'foobar')).toBe(true)
     })
 
     it('should match something', () => {
@@ -62,7 +62,7 @@ describe('validateConfig', () => {
             logLevel: 'dontknow'
         })).toThrowError(/doesn't match expected values/)
 
-        expect(validateConfig({
+        expect(Object.prototype.hasOwnProperty.call(validateConfig({
             logLevel: {
                 type: 'string',
                 default: 'trace',
@@ -70,6 +70,6 @@ describe('validateConfig', () => {
             }
         }, {
             logLevel: 'info'
-        }).hasOwnProperty('logLevel')).toBe(true)
+        }), 'logLevel')).toBe(true)
     })
 })
