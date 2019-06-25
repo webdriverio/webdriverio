@@ -129,6 +129,38 @@ describe('WebDriver', () => {
             expect(client.getDeviceTime).toBeTruthy()
         })
 
+        test('it should propagate all environment flags', () => {
+            const client = WebDriver.attachToSession({ ...sessionOptions,
+                isW3C: false,
+                isMobile: false,
+                isIOS: false,
+                isAndroid: false,
+                isChrome: false,
+                isSauce: false
+            })
+            expect(client.isW3C).toBe(false)
+            expect(client.isMobile).toBe(false)
+            expect(client.isIOS).toBe(false)
+            expect(client.isAndroid).toBe(false)
+            expect(client.isChrome).toBe(false)
+            expect(client.isSauce).toBe(false)
+
+            const anotherClient = WebDriver.attachToSession({ ...sessionOptions,
+                isW3C: true,
+                isMobile: true,
+                isIOS: true,
+                isAndroid: true,
+                isChrome: true,
+                isSauce: true
+            })
+            expect(anotherClient.isW3C).toBe(true)
+            expect(anotherClient.isMobile).toBe(true)
+            expect(anotherClient.isIOS).toBe(true)
+            expect(anotherClient.isAndroid).toBe(true)
+            expect(anotherClient.isChrome).toBe(true)
+            expect(anotherClient.isSauce).toBe(true)
+        })
+
         test('should fail attaching to session if sessionId is not given', () => {
             expect(() => WebDriver.attachToSession({})).toThrow(/sessionId is required/)
         })

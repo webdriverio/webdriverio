@@ -378,3 +378,20 @@ export function overwriteElementCommands(propertiesObject) {
     delete propertiesObject['__elementOverrides__']
     propertiesObject['__elementOverrides__'] = { value: {} }
 }
+
+/**
+ * return all supported flags and return them in a format so we can attach them
+ * to the instance protocol
+ * @param  {Object} options   driver instance or option object containing these flags
+ * @return {Object}           prototype object
+ */
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce }) {
+    return {
+        isW3C: { value: isW3C },
+        isMobile: { value: isMobile },
+        isIOS: { value: isIOS },
+        isAndroid: { value: isAndroid },
+        isChrome: { value: isChrome },
+        isSauce: { value: isSauce }
+    }
+}
