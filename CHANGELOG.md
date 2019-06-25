@@ -15,6 +15,41 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.8 (2019-06-25)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-local-runner`, `webdriver`, `webdriverio`
+  * [#4102](https://github.com/webdriverio/webdriverio/pull/4102) wdio-appium-service: fix args array, print startup failure message ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* Other
+  * [#4114](https://github.com/webdriverio/webdriverio/pull/4114) types: fix hook array ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4108](https://github.com/webdriverio/webdriverio/pull/4108) typings: specs and exclude in capabilities is missing in type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+  * [#4111](https://github.com/webdriverio/webdriverio/pull/4111) typings: add Edge specific in type DSL. ([@aha-oretama](https://github.com/aha-oretama))
+  * [#4107](https://github.com/webdriverio/webdriverio/pull/4107) typings: specFileRetries is missing in type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+* `webdriverio`
+  * [#4099](https://github.com/webdriverio/webdriverio/pull/4099) Docs: waitUntil 'waitForTimeout' default value incorrect ([@klamping](https://github.com/klamping))
+
+#### :house: Internal
+* `wdio-browserstack-service`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-devtools-service`, `wdio-sauce-service`, `wdio-testingbot-service`, `webdriver`, `webdriverio`
+  * [#4109](https://github.com/webdriverio/webdriverio/pull/4109) Update eslint in group default to the latest version 🚀 ([@greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
+#### Committers: 4
+- Annemarie ([@AnnemarieD](https://github.com/AnnemarieD))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- aha-oretama ([@aha-oretama](https://github.com/aha-oretama))
+
+
+## v5.10.7 (2019-06-18)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-cli`, `webdriverio`
+  * [#4089](https://github.com/webdriverio/webdriverio/pull/4089) update appium service ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.10.7 (2019-06-18)
 
 #### :bug: Bug Fix
