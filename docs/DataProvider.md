@@ -69,3 +69,7 @@ describe(`${testData.url} page`, () => {
 ```
 ```testData``` is the global object holding all the test data for the given spec and for the given run.  
 **Note:** In order to utilize this feature efficiently try to keep one describe block per spec file so that the same spec can run completely in parallel with different data sets
+
+[Saucelab meetup video](https://www.youtube.com/watch?v=0YQCVJk8K_Q)
+
+
