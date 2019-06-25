@@ -15,6 +15,15 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.9 (2019-06-25)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#4116](https://github.com/webdriverio/webdriverio/pull/4116) Fix bug where environment flags aren't attached to session ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
 ## v5.10.8 (2019-06-25)
 
 #### :bug: Bug Fix
