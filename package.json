@@ -57,7 +57,7 @@
     "copyfiles": "^2.1.0",
     "del": "^4.0.0",
     "dox": "^0.9.0",
-    "eslint": "^5.15.3",
+    "eslint": "^6.0.0",
     "eslint-plugin-import": "^2.16.0",
     "husky": "^2.3.0",
     "inquirer": "^6.2.2",
