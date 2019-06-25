@@ -57,7 +57,7 @@ export default class TestingBotService {
     }
 
     afterSuite (suite) {
-        if (suite.hasOwnProperty('error')) {
+        if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this.failures
         }
     }

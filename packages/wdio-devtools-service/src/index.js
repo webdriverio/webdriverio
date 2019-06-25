@@ -132,7 +132,7 @@ export default class DevToolsService {
      * set flag to run performance audits for page transitions
      */
     _enablePerformanceAudits ({ networkThrottling = DEFAULT_NETWORK_THROTTLING_STATE, cpuThrottling = 4, cacheEnabled = false } = {}) {
-        if (!NETWORK_STATES.hasOwnProperty(networkThrottling)) {
+        if (!Object.prototype.hasOwnProperty.call(NETWORK_STATES, networkThrottling)) {
             throw new Error(`Network throttling profile "${networkThrottling}" is unknown, choose between ${Object.keys(NETWORK_STATES).join(', ')}`)
         }
 

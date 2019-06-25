@@ -42,7 +42,7 @@ export default class BrowserstackService {
     }
 
     afterSuite(suite) {
-        if (suite.hasOwnProperty('error')) {
+        if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             this.failures++
         }
     }
