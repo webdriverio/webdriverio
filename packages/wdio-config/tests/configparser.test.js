@@ -1,5 +1,6 @@
 import path from 'path'
 import ConfigParser from '../src/lib/ConfigParser'
+import { safeRequire } from '@wdio/utils'
 
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.js')
@@ -7,6 +8,7 @@ const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.js')
 const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.js')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.js')
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.js')
+const FIXTURES_DATA_PROVIDER_1 = path.resolve(__dirname, '..', 'src', 'index.js')
 
 describe('ConfigParser', () => {
     it('should throw if getFilePaths is not a string', () => {
@@ -328,14 +330,20 @@ describe('ConfigParser', () => {
     })
 
     describe('getDataProviders', () => {
+        beforeEach(() => {
+            jest.clearAllMocks()
+            safeRequire.mockImplementation(() => {})
+        })
+
         it('should return null when passing null for  data providers', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ dataProviders: null })
 
             const dataMap = configParser.getDataProviders()
-            expect(dataMap).toEqual(configParser._dataProvidersMap)
-
+            expect(dataMap).toEqual(null)
+            expect(configParser._dataProvidersMap).toEqual(null)
+            expect(safeRequire).not.toBeCalled()
         })
 
         it('should return null when passing undefined for data providers', () => {
@@ -344,7 +352,9 @@ describe('ConfigParser', () => {
             configParser.merge({ dataProviders: undefined })
 
             const dataMap = configParser.getDataProviders()
-            expect(dataMap).toEqual(configParser._dataProvidersMap)
+            expect(dataMap).toEqual(null)
+            expect(configParser._dataProvidersMap).toEqual(null)
+            expect(safeRequire).not.toBeCalled()
         })
 
         it('should return null when passing empty array for  data providers', () => {
@@ -353,10 +363,20 @@ describe('ConfigParser', () => {
             configParser.merge({ dataProviders: [] })
 
             const dataMap = configParser.getDataProviders()
-            expect(dataMap).toEqual(configParser._dataProvidersMap)
+            expect(dataMap).toEqual(null)
+            expect(configParser._dataProvidersMap).toEqual(null)
+            expect(safeRequire).not.toBeCalled()
         })
 
         it('should return valid data provider map when passing a single file path for data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: FIXTURES_DATA_PROVIDER_1 })
+
+            const dataMap = configParser.getDataProviders()
+            expect(safeRequire).toBeCalled()
+            expect(dataMap).toEqual(configParser._dataProvidersMap)
+            expect(dataMap).toEqual('')
         })
 
         it('should return valid data provider map when passing an array of files for data providers', () => {

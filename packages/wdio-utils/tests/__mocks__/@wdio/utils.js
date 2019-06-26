@@ -50,3 +50,4 @@ export const isFunctionAsync = isFnAsync
 export const safeRequire = jest.fn().mockReturnValue(() => {})
 export const webdriverMonad = webdriverMonadOrig
 export const getArgumentType = getArgumentTypeOrig
+export const safeRequire = jest.fn().mockReturnValue([])

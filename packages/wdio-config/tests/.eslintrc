@@ -1,5 +1,8 @@
 {
   "env": {
     "jest": true
+  },
+  "globals": {
+    "dataProvider": false
   }
 }
