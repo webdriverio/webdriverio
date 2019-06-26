@@ -2,33 +2,27 @@
   "status": 0,
   "sessionId": "XXXXXXXX00000000XXXXXXXXXXXXXXXX",
   "value": {
-    "applicationCacheEnabled": false,
-    "rotatable": false,
-    "mobileEmulationEnabled": false,
-    "networkConnectionEnabled": false,
-    "chrome": {
-      "chromedriverVersion": "2.38.552522 (437e6fbedfa8762dec75e2c5b3ddb86763dc9dcb)",
-      "userDataDir": "/tmp/.org.chromium.Chromium.QN56NN"
-    },
-    "takesHeapSnapshot": true,
-    "pageLoadStrategy": "normal",
-    "databaseEnabled": false,
-    "handlesAlerts": true,
-    "hasTouchScreen": false,
-    "version": "66.0.3359.117",
-    "platform": "Linux",
-    "browserConnectionEnabled": false,
-    "nativeEvents": true,
-    "acceptSslCerts": false,
     "acceptInsecureCerts": false,
-    "locationContextEnabled": true,
-    "webStorageEnabled": true,
     "browserName": "chrome",
-    "takesScreenshot": true,
-    "javascriptEnabled": true,
-    "cssSelectorsEnabled": true,
+    "browserVersion": "76.0.3809.36",
+    "chrome": {
+      "chromedriverVersion": "75.0.3770.90 (a6dcaf7e3ec6f70a194cc25e8149475c6590e025-refs/branch-heads/3770@{#1003})",
+      "userDataDir": "/var/folders/0q/l4qj1n6s2glggtljc87l6h540000gn/T/.com.google.Chrome.igmuw5"
+    },
+    "goog:chromeOptions": {
+      "debuggerAddress": "localhost:49290"
+    },
+    "networkConnectionEnabled": false,
+    "pageLoadStrategy": "normal",
+    "platformName": "mac os x",
+    "proxy": {},
     "setWindowRect": true,
-    "unexpectedAlertBehaviour": "",
-    "webdriver.remote.sessionid": "XXXXXXXX00000000XXXXXXXXXXXXXXXX"
+    "strictFileInteractability": false,
+    "timeouts": {
+      "implicit": 0,
+      "pageLoad": 300000,
+      "script": 30000
+    },
+    "unhandledPromptBehavior": "dismiss and notify"
   }
 }

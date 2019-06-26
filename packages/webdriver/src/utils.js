@@ -8,6 +8,7 @@ import JsonWProtocol from '../protocol/jsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
 import SauceLabsProtocol from '../protocol/saucelabs.json'
+import SeleniumProtocol from '../protocol/selenium.json'
 
 const log = logger('webdriver')
 
@@ -149,7 +150,12 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
         /**
          * only Sauce Labs specific vendor commands
          */
-        isSauce ? SauceLabsProtocol : {}
+        isSauce ? SauceLabsProtocol : {},
+        /**
+         * only apply special commands when running tests using
+         * Selenium Grid or Selenium Standalone server
+         */
+        isSeleniumStandalone ? SeleniumProtocol : {}
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
