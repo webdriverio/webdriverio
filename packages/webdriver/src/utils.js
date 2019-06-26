@@ -408,6 +408,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },
         isChrome: { value: isChrome },
-        isSauce: { value: isSauce }
+        isSauce: { value: isSauce },
+        isSeleniumStandalone: { value: isSeleniumStandalone }
     }
 }
