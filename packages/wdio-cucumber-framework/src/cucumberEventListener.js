@@ -10,8 +10,6 @@ export default class CucumberEventListener extends EventEmitter {
 
     constructor (eventBroadcaster) {
         super()
-        // attachEventLogger(eventBroadcaster)
-
         eventBroadcaster
             .on('gherkin-document', this.onGherkinDocument.bind(this))
             .on('pickle-accepted', this.onPickleAccepted.bind(this))
@@ -85,15 +83,13 @@ export default class CucumberEventListener extends EventEmitter {
     }
 
     onTestCaseStarted () {
+        const { uri, pickle } = pickleEvent
         const pickleEvent = this.acceptedPickles.shift()
-        const uri = pickleEvent.uri
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const feature = doc.feature
-        const scenario = pickleEvent.pickle
 
-        this.currentPickle = scenario
-
-        this.emit('before-scenario', uri, feature, scenario)
+        this.currentPickle = pickle
+        this.emit('before-scenario', uri, feature, pickle)
     }
 
     // testStepStartedEvent = {

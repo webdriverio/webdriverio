@@ -73,30 +73,3 @@ test('onTestCasePrepared', () => {
     listener.onTestCasePrepared(testCasePreparedEvent)
     expect(listener.gherkinDocEvents[0].document.feature.children[0].steps).toHaveLength(1)
 })
-
-//     onTestCasePrepared (testCasePreparedEvent) {
-//         this.testCasePreparedEvents.push(testCasePreparedEvent)
-//         const sourceLocation = testCasePreparedEvent.sourceLocation
-//         const uri = sourceLocation.uri
-//
-//         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
-//         const scenario = doc.feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
-//
-//         const scenarioHasHooks = scenario.steps.filter((step) => step.type === 'Hook').length > 0
-//         if (scenarioHasHooks) {
-//             return
-//         }
-//         const allSteps = testCasePreparedEvent.steps
-//         allSteps.forEach((step, idx) => {
-//             if (!step.sourceLocation) {
-//                 step.sourceLocation = { line: step.actionLocation.line, column: 0, uri: step.actionLocation.uri }
-//                 const hook = {
-//                     type: 'Hook',
-//                     location: step.sourceLocation,
-//                     keyword: 'Hook',
-//                     text: ''
-//                 }
-//                 scenario.steps.splice(idx, 0, hook)
-//             }
-//         })
-//     }
