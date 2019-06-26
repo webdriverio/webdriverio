@@ -290,7 +290,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     if (jsonwpMode) {
         response = { value, sessionId, status: 0 }
     }
-    if (params.uri.path.startsWith('/grid')) {
+    if (params.uri && params.uri.path && params.uri.path.startsWith('/grid')) {
         response = response.value
     }
 

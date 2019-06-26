@@ -132,7 +132,7 @@ describe('utils', () => {
         it('isW3C', () => {
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
             expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
-            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(false)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
