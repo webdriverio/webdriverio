@@ -3,6 +3,18 @@
  * Uploads a file to the selenium server by using the [`file`](/api/protocol/file.html) command. Note that
  * this command might not be supported as it is an undocumented Selenium command.
  *
+ * <example>
+    :touchAction.js
+    const path = require('path');
+
+    it('should upload a file', function () {
+        const filePath = path.join(__dirname, '/local/path/to/your/file');
+
+        const remoteFilePath = browser.uploadFile(filePath);
+        $('.upload-data-file-input').setValue(remoteFilePath);
+    });
+ * </example>
+ *
  * @alias browser.uploadFile
  * @param {String} localPath local path to file
  * @type utility

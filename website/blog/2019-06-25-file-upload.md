@@ -57,7 +57,7 @@ const path = require('path');
 const filePath = path.join(__dirname, 'path/to/your/file');
 
 const remoteFilePath = browser.uploadFile(filePath);
-$('upload file input selector').setValue(remoteFilePath);
+$('.upload-data-file-input').setValue(remoteFilePath);
 ```
 
 Note that the remote file name is different from your local filename. Therefor you need to set the value based on the remote file name you get from the `uploadFile` command.
