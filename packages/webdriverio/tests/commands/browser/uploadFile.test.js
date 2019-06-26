@@ -15,7 +15,7 @@ describe('uploadFile', () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
-                browserName: 'chrome'
+                browserName: 'firefox'
             }
         })
 
