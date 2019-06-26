@@ -60,4 +60,6 @@ const remoteFilePath = browser.uploadFile(filePath);
 $('upload file input selector').setValue(remoteFilePath);
 ```
 
+Note that the remote file name is different from your local filename. Therefor you need to set the value based on the remote file name you get from the `uploadFile` command.
+
 That was it!!! Happy Uploading 😉🙌🏻 ❤️
