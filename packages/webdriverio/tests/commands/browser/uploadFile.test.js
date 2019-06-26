@@ -23,6 +23,18 @@ describe('uploadFile', () => {
             new Error('The uploadFile command is not available in mockBrowser'))
     })
 
+    it('should throw if path is not a string', async function () {
+        const browser = await remote({
+            baseUrl: 'http://webdriver.io',
+            capabilities: {
+                browserName: 'chrome'
+            }
+        })
+
+        await expect(browser.uploadFile(123)).rejects.toEqual(
+            new Error('number or type of arguments don\'t agree with uploadFile command'))
+    })
+
     it('should archive the file and use file command', async () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
