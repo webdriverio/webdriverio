@@ -50,15 +50,14 @@ const filePath = path.join(__dirname, 'path/to/your/file');
 fileUpload.setValue(filePath);
 ```
 
-If you automate a browser that is running on a remote machine this won't work anymore. For these scenarios the Selenium project created a [`file`](https://webdriver.io/docs/api/chromium.html#file) that is currently only supported when running Chrome or using a Selenium Grid with the Selenium standalone server.
+If you automate a browser that is running on a remote machine this approach won't work anymore because the file that is located locally (or wherever the tests are running) does not exist on the remote machine where the browser is running. For these scenarios the Selenium project created a [`file`](https://webdriver.io/docs/api/chromium.html#file) that is currently only supported when running Chrome or using a Selenium Grid with the Selenium standalone server. The command expects the file payload to be passed in as base64 string. Since this is quite inconvenient to use WebdriverIO has implemented an `upload` command that allows you to pass in just the file name and the framework takes care of parsing it properly. The upload example will now look like:
 
-<!-- ```js
+```js
 const path = require('path');
 const filePath = path.join(__dirname, 'path/to/your/file');
 
 const remoteFilePath = browser.uploadFile(filePath);
 $('upload file input selector').setValue(remoteFilePath);
-
-``` -->
+```
 
 That was it!!! Happy Uploading 😉🙌🏻 ❤️

@@ -3,11 +3,6 @@ import archiver from 'archiver'
 
 import { remote } from '../../../src'
 
-// jest.mock('fs', () => ({
-//     createReadStream: jest.fn(),
-//     readdirSync: jest.fn()
-// }))
-
 describe('uploadFile', () => {
     jest.mock('fs')
 
