@@ -17,12 +17,13 @@ export function initializeDataProviders (dataProviderFilesPaths) {
 
         let specFiles =  ConfigParser.getFilePaths(specFilePath)
         specFiles.forEach((specFile) => {
-            let specFileDataProvider = dataProvidersMap[specFile]
+            const specFileDataProvider = dataProvidersMap[specFile]
             if(typeof specFileDataProvider === 'undefined') {
-                let dataProviderObject = {}
-                dataProviderObject.specFilePath = specFilePath
-                dataProviderObject.dataSet = dataSet
-                dataProviderObject.dataProviderFile = currentDataProviderFile
+                const dataProviderObject = {
+                    'specFilePath': specFilePath,
+                    'dataSet': dataSet,
+                    'dataProviderFile': currentDataProviderFile
+                }
                 dataProvidersMap[specFile] = dataProviderObject
             } else {
                 throw new Error(`With spec file path "${specFilePath}" in the data provider "${currentDataProviderFile}", you are attempting to override the data set already defined for it from data provider "${specFileDataProvider.dataProviderFile}". Please resolve conflict between these dataProvider functions.`)
