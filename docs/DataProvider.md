@@ -28,7 +28,6 @@ let pages = [
 ]
 
 dataProvider(path.resolve(__dirname, 'mochaWithDataProvider.test.js'), pages) 
-
 ```
 
 * Register the data provider file or a whole directory containg all the data providers 
