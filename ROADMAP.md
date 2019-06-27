@@ -8,7 +8,6 @@ This document is designed to be a living record of the current and projected pri
 | Project | Description | ETD | PR / Issue |
 |---------|-------------|-----|--------------------------|
 |Cucumber Framework Support|A lot of people request support for Cucumber as it is their main framework choice. Initial work on this has already been done by the community. The code needs to get proper unit tests but would then be good to go.|Q2|https://github.com/webdriverio/webdriverio/pull/3667|
-|Make CLI tool more powerful|Adding simple add ons to the setup becomes difficult if the person is not familiar with the project or WebDriver in general. Adding some simple commands to the CLI interface that allows to add service and reporters and modifies the config would make the process of adding plugins much easier.|Q2|https://github.com/webdriverio/webdriverio/issues/3915|
 
 ## Upcoming Projects (in rough order of priority)
 
@@ -32,6 +31,6 @@ This document is designed to be a living record of the current and projected pri
 
 ## Completed Roadmap Projects
 
-| Project | Description | Completed | Appium Release | Notes |
-|---------|-------------|-----------|----------------|-------|
-|TBD|TBD|TBD|TBD|TBD|
+| Project | Description | Completed | WebdriverIO Release | Notes |
+|---------|-------------|-----------|---------------------|-------|
+|Make CLI tool more powerful|Adding simple add ons to the setup becomes difficult if the person is not familiar with the project or WebDriver in general. Adding some simple commands to the CLI interface that allows to add service and reporters and modifies the config would make the process of adding plugins much easier.|2019-06-06|[v5.10.0](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v5100-2019-06-06)|[#3915](https://github.com/webdriverio/webdriverio/issues/3915)|
