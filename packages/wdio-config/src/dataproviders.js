@@ -25,7 +25,7 @@ export function initializeDataProviders (dataProviderFilesPaths) {
                 dataProviderObject.dataProviderFile = currentDataProviderFile
                 dataProvidersMap[specFile] = dataProviderObject
             } else {
-                throw new Error(`With spec file path "${specFilePath}" in the data provider "${currentDataProviderFile}", you are attempting to override the data set already defined for the spec "${specFile}" from data provider "${specFileDataProvider.dataProviderFile}" using spec file path "${specFileDataProvider.specFilePath}. Please resolve conflict between these dataProvider functions.`)
+                throw new Error(`With spec file path "${specFilePath}" in the data provider "${currentDataProviderFile}", you are attempting to override the data set already defined for it from data provider "${specFileDataProvider.dataProviderFile}". Please resolve conflict between these dataProvider functions.`)
             }
         })
     }
