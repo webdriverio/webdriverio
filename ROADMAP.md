@@ -9,7 +9,7 @@ This document is designed to be a living record of the current and projected pri
 |---------|-------------|-----|--------------------------|
 |Cucumber Framework Support|A lot of people request support for Cucumber as it is their main framework choice. Initial work on this has already been done by the community. The code needs to get proper unit tests but would then be good to go.|Q2|https://github.com/webdriverio/webdriverio/pull/3667|
 
-## Upcoming Projects (in rough order of priority)
+## Upcoming Projects (in no particular order)
 
 | Project | Description |
 |---------|-------------|
