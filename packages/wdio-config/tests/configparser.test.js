@@ -11,6 +11,7 @@ const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.js')
 const FIXTURES_DATA_PROVIDER_1 = path.resolve(FIXTURES_PATH, 'dataProvider1.js')
 const FIXTURES_DATA_PROVIDER_2 = path.resolve(FIXTURES_PATH, 'dataProvider2.js')
 const FIXTURES_DATA_PROVIDER_3 = path.resolve(FIXTURES_PATH, 'dataProvider3.js')
+const FIXTURES_DATA_PROVIDER_4 = path.resolve(FIXTURES_PATH, 'dataProvider4.js')
 
 describe('ConfigParser', () => {
     it('should throw if getFilePaths is not a string', () => {
@@ -437,6 +438,15 @@ describe('ConfigParser', () => {
 
             const dp = () => { configParser.getDataProviders() }
             expect(dp).toThrowError(`With spec file path "${path.resolve(__dirname, 'configparser.test.js')}" in the data provider "${FIXTURES_DATA_PROVIDER_3}", you are attempting to override the data set already defined for it from data provider "${FIXTURES_DATA_PROVIDER_1}". Please resolve conflict between these dataProvider functions.`)
+        })
+
+        it('should throw error while trying to inject data which is not an array', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: [FIXTURES_DATA_PROVIDER_4] })
+
+            const dp = () => { configParser.getDataProviders() }
+            expect(dp).toThrowError(`The data set passed from the file "${FIXTURES_DATA_PROVIDER_4}" for the spec file path "${path.resolve(__dirname, 'configparser.test.js')}" is not an array.`)
         })
     })
 })
