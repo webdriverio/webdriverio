@@ -18,7 +18,7 @@ export function initializeDataProviders (dataProviderFilesPaths) {
         let specFiles =  ConfigParser.getFilePaths(specFilePath)
         specFiles.forEach((specFile) => {
             const specFileDataProvider = dataProvidersMap[specFile]
-            if(typeof specFileDataProvider === 'undefined') {
+            if (typeof specFileDataProvider === 'undefined') {
                 const dataProviderObject = {
                     'specFilePath': specFilePath,
                     'dataSet': dataSet,

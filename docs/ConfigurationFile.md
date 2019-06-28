@@ -64,7 +64,7 @@ exports.config = {
     // ============
     // DataProvider
     // ============
-    //Register the dataprovider files/directory in order to inject the test data in your spec file.
+    // Register the dataprovider files/directory in order to inject the test data in your spec file.
     // Specify relative file path or directory path containing all the dataprovider files.
     // This configuration lets wdio-runner know where to look for dataprovider files. 
     //

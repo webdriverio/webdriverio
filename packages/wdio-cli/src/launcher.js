@@ -57,7 +57,6 @@ class Launcher {
      * Combinate test data from data provider and retries with specs
      */
     getSpecsWithDataProviderAndRetries(config, capSpecs, capExclude) {
-
         /**
          * avoid retries in watch mode
          */
