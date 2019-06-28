@@ -14,8 +14,8 @@ declare namespace WebdriverIO {
         passed: boolean;
         duration?: number;
         error?: {
-            actual?: string;
-            expected?: string;
+            actual?: any;
+            expected?: any;
             message: string;
             stack?: string;
             type: string;
