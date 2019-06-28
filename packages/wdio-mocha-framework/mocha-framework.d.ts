@@ -13,6 +13,13 @@ declare namespace WebdriverIO {
         currentTest: string;
         passed: boolean;
         duration?: number;
+        error?: {
+            actual?: string,
+            expected?: string,
+            message: string
+            stack?: string,
+            type: string
+        }
     }
 }
 
