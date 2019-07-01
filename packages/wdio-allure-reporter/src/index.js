@@ -376,7 +376,7 @@ class AllureReporter extends WDIOReporter {
      * Add attachment
      * @name addAttachment
      * @param {string} name - attachment file name
-     * @param {string} content - attachment content
+     * @param {string | Buffer} content - attachment content
      * @param {string} [type='text/plain'] - attachment mime type
      */
     static addAttachment = (name, content, type = 'text/plain') => {
