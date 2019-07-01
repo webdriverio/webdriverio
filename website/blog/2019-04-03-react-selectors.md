@@ -13,7 +13,7 @@ Today we introduce two new commands, `browser.react$` and `browser.react$$`, to 
 
 Internally, WebdriverIO uses a library called [resq](https://github.com/baruchvlz/resq) to query React's VirtualDOM in order to retrieve the nodes. This library allows WebdriverIO to find any component in the VirtualDOM by the component's name and also filter this selection by state and/or props.
 
-WebdriverIO's provided API, `browser.react$` and `browser.react$$`, methods have three parameters. The first parameters is the selector to query, this parameter is required. The second and third paramters are optional filters, `props` and `state` respectively. 
+WebdriverIO's provided API, `browser.react$` and `browser.react$$`, methods have three parameters. The first parameter is the selector to query, this parameter is required. The second and third parameters are optional filters, `props` and `state` respectively.
 
 ```js
 const selector = 'MyComponent'
@@ -23,11 +23,11 @@ const stateFilter = 'this is my state'
 browser.react$(selector, propFilter, stateFilter)
 ```
 
-In the examples we will cover basic usages for all three paramters.
+In the examples we will cover basic usages for all three parameters.
 
 ## Examples
 
-In the following examples, we will based our queries against this example React application.
+In the following examples, we will base our queries against this example React application.
 
 ```jsx
 // mycomponent.jsx
@@ -60,7 +60,7 @@ In this app, we have one component that renders some text depending on the prope
 
 #### Selecting and filtering
 
-Now, let's say we want to test that the first instance of `MyComponent` is correctly displayed in the browser? Well, with the `browser.react$` command, we can select this first instance and then query against it.
+Now, let's say we want to test that the first instance of `MyComponent` is correctly displayed in the browser. Well, with the `browser.react$` command, we can select this first instance and then query against it.
 
 ```javascript
 // spec/mycomponent.test.js
@@ -84,7 +84,7 @@ test('it should correctly display "Hello WebdriverIO"', () => {
 ```
 In React, the props will always be an object so for this filter parameter we can only pass an object to be used to filter our results.
 
-You might've noticed that in our component we have a state that adds extra text if the name matches `there`. We can select this component by filtering the components by their current state
+You might've noticed that in our component we have a state that adds extra text if the name matches `there`. We can select this component by filtering the components by their current state.
 
 ```javascript
 // spec/mycomponent.test.js
@@ -95,7 +95,7 @@ test('it should correctly display "Hello WebdriverIO"', () => {
     expect(myComponent.getText()).toBe('Hello there, how are you?') // pass
 })
 ```
-As you can see, for the state filter we pass the string that equivalates to the current state of the component, this last parameter in the function can be any of the following: string, number, boolean, array, or object. This is because all these types are valid state types for React.
+As you can see, for the state filter we pass the string that equals to the current state of the component, this last parameter in the function can be any of the following: string, number, boolean, array, or object. This is because all these types are valid state types for React.
 
 #### What about `browser.react$$`?
 
