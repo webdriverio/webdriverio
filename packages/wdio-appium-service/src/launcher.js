@@ -39,7 +39,7 @@ export class AppiumLauncher {
 
     _startAppium(command, args, waitStartTime, callback) {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        let process = spawn('node', [command, ...args], { stdio: ['ignore', 'pipe', 'pipe'] })
         let error
 
         process.stdout.on('data', (data) => {
