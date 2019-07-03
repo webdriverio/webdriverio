@@ -26,7 +26,7 @@ module.exports = {
     },
 
     // This copyright info is used in /core/Footer.js and blog rss/atom feeds.
-    copyright: 'Copyright © ' + new Date().getFullYear() + ' JS.Foundation',
+    copyright: 'Copyright © ' + new Date().getFullYear() + ' OpenJS Foundation',
 
     highlight: {
         // Highlight.js theme to use for syntax highlighting in code blocks
