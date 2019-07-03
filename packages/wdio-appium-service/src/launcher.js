@@ -19,8 +19,17 @@ export class AppiumLauncher {
         const appiumConfig = config.appium || {}
 
         this.logPath = appiumConfig.logPath || config.outputDir
-        this.command = appiumConfig.command || this._getAppiumCommand()
-        this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
+
+        // Set command
+        if (appiumConfig.command) {
+            this.commmand = appiumConfig.command
+        } else {
+            this.command = 'node'
+            this.appiumArgs = this._getAppiumCommand()
+        }
+
+        // Append args
+        this.appiumArgs.push(...this._cliArgsFromKeyValue(appiumConfig.args || {}))
 
         const asyncStartAppium = promisify(this._startAppium)
         this.process = await asyncStartAppium(this.command, this.appiumArgs, this.waitStartTime)
