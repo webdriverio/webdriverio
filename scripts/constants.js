@@ -4,7 +4,8 @@ const PROTOCOLS = {
     jsonwp: require('../packages/webdriver/protocol/jsonwp.json'),
     mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json'),
     chromium: require('../packages/webdriver/protocol/chromium.json'),
-    saucelabs: require('../packages/webdriver/protocol/saucelabs.json')
+    saucelabs: require('../packages/webdriver/protocol/saucelabs.json'),
+    selenium: require('../packages/webdriver/protocol/selenium.json')
 }
 const PROTOCOL_NAMES = {
     appium: 'Appium',
@@ -12,7 +13,8 @@ const PROTOCOL_NAMES = {
     mjsonwp: 'Mobile JSON Wire Protocol',
     webdriver: 'Webdriver Protocol',
     chromium: 'Chromium',
-    saucelabs: 'Sauce Labs'
+    saucelabs: 'Sauce Labs',
+    selenium: 'Selenium Standalone'
 }
 const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
 const VENDOR_PROTOCOLS = ['chromium']

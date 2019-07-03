@@ -18,11 +18,12 @@ const agents = {
 }
 
 export default class WebDriverRequest extends EventEmitter {
-    constructor (method, endpoint, body) {
+    constructor (method, endpoint, body, isHubCommand) {
         super()
         this.body = body
         this.method = method
         this.endpoint = endpoint
+        this.isHubCommand = isHubCommand
         this.requiresSessionId = this.endpoint.match(/:sessionId/)
         this.defaultOptions = {
             method,
@@ -71,7 +72,9 @@ export default class WebDriverRequest extends EventEmitter {
         requestOptions.uri = url.parse(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            path.join(options.path, this.endpoint.replace(':sessionId', sessionId))
+            (this.isHubCommand
+                ? this.endpoint
+                : path.join(options.path, this.endpoint.replace(':sessionId', sessionId)))
         )
 
         /**
@@ -101,6 +104,22 @@ export default class WebDriverRequest extends EventEmitter {
 
         return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
             const error = err || getErrorFromResponseBody(body)
+
+            /**
+             * hub commands don't follow standard response formats
+             * and can have empty bodies
+             */
+            if (this.isHubCommand) {
+                /**
+                 * if body contains HTML the command was called on a node
+                 * directly without using a hub, therefor throw
+                 */
+                if (typeof body === 'string' && body.startsWith('<!DOCTYPE html>')) {
+                    return reject(new Error('Command can only be called to a Selenium Hub'))
+                }
+
+                body = { value: body || null }
+            }
 
             /**
              * Resolve only if successful response
