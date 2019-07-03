@@ -83,8 +83,7 @@ export default class CucumberEventListener extends EventEmitter {
     }
 
     onTestCaseStarted () {
-        const { uri, pickle } = pickleEvent
-        const pickleEvent = this.acceptedPickles.shift()
+        const { uri, pickle } = this.acceptedPickles.shift()
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const feature = doc.feature
 
