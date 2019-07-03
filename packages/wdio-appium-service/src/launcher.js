@@ -25,7 +25,7 @@ export class AppiumLauncher {
             this.commmand = appiumConfig.command
         } else {
             this.command = 'node'
-            this.appiumArgs = this._getAppiumCommand()
+            this.appiumArgs.push(this._getAppiumCommand())
         }
 
         // Append args
