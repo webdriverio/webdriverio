@@ -22,7 +22,7 @@ export class AppiumLauncher {
 
         // Set command
         if (appiumConfig.command) {
-            this.commmand = appiumConfig.command
+            this.command = appiumConfig.command
         } else {
             this.command = 'node'
             this.appiumArgs.push(this._getAppiumCommand())
