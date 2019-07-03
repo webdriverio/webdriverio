@@ -19,8 +19,18 @@ export class AppiumLauncher {
         const appiumConfig = config.appium || {}
 
         this.logPath = appiumConfig.logPath || config.outputDir
-        this.command = appiumConfig.command || this._getAppiumCommand()
-        this.appiumArgs = this._cliArgsFromKeyValue(appiumConfig.args || {})
+
+        // Set config command
+        if (appiumConfig.command) {
+            this.command = appiumConfig.command
+        } else {
+            // Windows expects node to be explicitely set as command and appium module path as it's first argument
+            this.command = 'node'
+            this.appiumArgs.push(this._getAppiumCommand())
+        }
+
+        // Append remaining arguments
+        this.appiumArgs.push(...this._cliArgsFromKeyValue(appiumConfig.args || {}))
 
         const asyncStartAppium = promisify(this._startAppium)
         this.process = await asyncStartAppium(this.command, this.appiumArgs, this.waitStartTime)
