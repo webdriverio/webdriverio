@@ -15,6 +15,31 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.10.10 (2019-07-03)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#4136](https://github.com/webdriverio/webdriverio/pull/4136) Fix spawn declaration on Windows ([@piotr-cz](https://github.com/piotr-cz))
+
+#### :memo: Documentation
+* Other
+  * [#4131](https://github.com/webdriverio/webdriverio/pull/4131) typings: add touchaction's ms type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+  * [#4130](https://github.com/webdriverio/webdriverio/pull/4130) Fixed text in 2019-04-03-react-selectors.md ([@Marketionist](https://github.com/Marketionist))
+* `wdio-mocha-framework`
+  * [#4127](https://github.com/webdriverio/webdriverio/pull/4127) wdio-mocha-framework: add mocha error in type DSL ([@aha-oretama](https://github.com/aha-oretama))
+
+#### :house: Internal
+* `wdio-allure-reporter`
+  * [#4132](https://github.com/webdriverio/webdriverio/pull/4132) wdio-allure-reporter: allure attachment content can use Buffer type. ([@aha-oretama](https://github.com/aha-oretama))
+* Other
+  * [#4057](https://github.com/webdriverio/webdriverio/pull/4057) Add roadmap document ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
+- Piotr ([@piotr-cz](https://github.com/piotr-cz))
+- aha-oretama ([@aha-oretama](https://github.com/aha-oretama))
+
 ## v5.10.9 (2019-06-25)
 
 #### :bug: Bug Fix
