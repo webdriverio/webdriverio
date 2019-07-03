@@ -65,6 +65,17 @@ describe('webdriver request', () => {
             expect(options.agent).toBe(agent)
         })
 
+        it('ignors path when command is a hub command', () => {
+            const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
+            const options = req._createOptions({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/'
+            }, 'foobar12345')
+            expect(options.uri.href).toBe('https://localhost:4445/grid/api/hub')
+        })
+
         it('should add auth if user and key is given', () => {
             const req = new WebDriverRequest('POST', '/session', { some: 'body' })
             const options = req._createOptions({
@@ -249,6 +260,32 @@ describe('webdriver request', () => {
             expect(req.emit.mock.calls).toHaveLength(4)
             expect(logger().warn.mock.calls).toHaveLength(3)
             expect(logger().error.mock.calls).toHaveLength(0)
+        })
+
+        it('should manage hub commands', async () => {
+            const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
+            request.mockClear()
+            expect(await req.makeRequest({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/'
+            }, 'foobar')).toEqual({ value: { some: 'config' } })
+        })
+
+        it('should fail if hub command is called on node', async () => {
+            const req = new WebDriverRequest('POST', '/grid/api/testsession', {}, true)
+            request.mockClear()
+            const result = await req.makeRequest({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/'
+            }, 'foobar').then(
+                (res) => res,
+                (e) => e
+            )
+            expect(result.message).toBe('Command can only be called to a Selenium Hub')
         })
     })
 })

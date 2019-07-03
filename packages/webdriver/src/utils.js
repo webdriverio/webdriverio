@@ -8,6 +8,7 @@ import JsonWProtocol from '../protocol/jsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
 import SauceLabsProtocol from '../protocol/saucelabs.json'
+import SeleniumProtocol from '../protocol/selenium.json'
 
 const log = logger('webdriver')
 
@@ -127,7 +128,7 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
     const prototype = {}
     const ProtocolCommands = merge(
         /**
@@ -149,7 +150,12 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
         /**
          * only Sauce Labs specific vendor commands
          */
-        isSauce ? SauceLabsProtocol : {}
+        isSauce ? SauceLabsProtocol : {},
+        /**
+         * only apply special commands when running tests using
+         * Selenium Grid or Selenium Standalone server
+         */
+        isSeleniumStandalone ? SeleniumProtocol : {}
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
@@ -293,6 +299,15 @@ export function isSauce (hostname, caps) {
 }
 
 /**
+ * detects if session is run using Selenium Standalone server
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session is run with Selenium Standalone Server
+ */
+export function isSeleniumStandalone (caps) {
+    return Boolean(caps['webdriver.remote.sessionid'])
+}
+
+/**
  * returns information about the environment
  * @param  {Object}  hostname      name of the host to run the session against
  * @param  {Object}  capabilities  caps of session response
@@ -305,7 +320,8 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
+        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch),
+        isSeleniumStandalone: isSeleniumStandalone(capabilities)
     }
 }
 
@@ -392,6 +408,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },
         isChrome: { value: isChrome },
-        isSauce: { value: isSauce }
+        isSauce: { value: isSauce },
+        isSeleniumStandalone: { value: isSeleniumStandalone }
     }
 }
