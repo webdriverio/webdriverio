@@ -1,7 +1,8 @@
 /**
- *
- * Uploads a file to the selenium server by using the [`file`](/api/protocol/file.html) command. Note that
- * this command might not be supported as it is an undocumented Selenium command.
+ * Uploads a file to the Selenium Standalone server or other browser driver
+ * (e.g. Chromedriver) by using the [`file`](/api/protocol/file.html) command.
+ * _Note:_ that this command is only supported if you use a Selenium Hub or
+ * Chromedriver directly.
  *
  * <example>
     :touchAction.js
