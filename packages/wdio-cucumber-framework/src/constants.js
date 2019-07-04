@@ -2,7 +2,7 @@ export const DEFAULT_TIMEOUT = 60000
 
 export const DEFAULT_OPTS = {
     backtrace: false, // <boolean> show full backtrace for errors
-    compiler: [], // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+    requireModule: [], // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
     failAmbiguousDefinitions: false, // <boolean> treat ambiguous definitions as errors
     failFast: false, // <boolean> abort the run on first failure
     ignoreUndefinedDefinitions: false, // <boolean> treat undefined definitions as warnings

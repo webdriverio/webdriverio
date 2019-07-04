@@ -47,12 +47,12 @@ Show full backtrace for errors.
 Type: `Boolean`<br>
 Default: `false`
 
-### compiler
-Require files with the given EXTENSION after requiring MODULE.
+### requireModule
+Require modules prior to requiring any support files.
 
 Type: `String[]`<br>
-Default: `*[]*`<br>
-Example: `['js:babel-core/register']`
+Default: `[]`<br>
+Example: `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]]`
 
 ### failAmbiguousDefinitions
 **Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself**

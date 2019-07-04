@@ -30,10 +30,9 @@ class CucumberAdapter {
         let runtimeError
         let result
 
-        Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
-
         try {
-            this.registerCompilers()
+            this.registerRequiredModules()
+            Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
             this.loadSpecFiles()
             this.wrapSteps()
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
@@ -97,15 +96,20 @@ class CucumberAdapter {
         return result
     }
 
-    registerCompilers () {
-        this.cucumberOpts.compiler.forEach(compiler => {
-            if (compiler instanceof Array) {
-                let parts = compiler[0].split(':')
-                return require(parts[1])(compiler[1])
+    /**
+     * Transpilation https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#transpilation
+     * Usage: `['module']`
+     * we extend it a bit with ability to init and pass configuration to modules.
+     * Pass an array with path to module and its configuration instead:
+     * Usage: `[['module', {}]]`
+     */
+    registerRequiredModules () {
+        this.cucumberOpts.requireModule.map(requiredModule => {
+            if (Array.isArray(requiredModule)) {
+                require(requiredModule[0])(requiredModule[1])
+            } else {
+                require(requiredModule)
             }
-
-            let parts = compiler.split(':')
-            require(parts[1])
         })
     }
 

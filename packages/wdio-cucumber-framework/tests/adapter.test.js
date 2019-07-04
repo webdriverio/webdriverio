@@ -34,13 +34,13 @@ test('should properly set up cucumber', async () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    adapter.registerCompilers = jest.fn()
+    adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
     const result = await adapter.run()
     expect(result).toBe(0)
 
-    expect(adapter.registerCompilers).toBeCalled()
+    expect(adapter.registerRequiredModules).toBeCalled()
     expect(adapter.loadSpecFiles).toBeCalled()
     expect(adapter.wrapSteps).toBeCalled()
     expect(Cucumber.setDefaultTimeout).toBeCalledWith(60000)
@@ -59,7 +59,7 @@ test('should throw when initialization fails', () => {
         { browserName: 'chrome' },
         wdioReporter
     )
-    adapter.registerCompilers = jest.fn()
+    adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
 
@@ -68,29 +68,29 @@ test('should throw when initialization fails', () => {
     expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
-test('registerCompilers', () => {
+test('registerRequiredModules', () => {
     const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
     const adapter = new CucumberAdapter(
         '0-2',
-        { cucumberOpts: { compiler: ['js:' + compilerPath] } },
+        { cucumberOpts: { requireModule: [compilerPath] } },
         ['/foo/bar.feature'],
         { browserName: 'chrome' },
         wdioReporter
     )
-    adapter.registerCompilers()
+    adapter.registerRequiredModules()
     expect(global.MY_VAR).toBe(1)
 })
 
-test('registerCompilers as method', () => {
+test('registerRequiredModules as method', () => {
     const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
     const adapter = new CucumberAdapter(
         '0-2',
-        { cucumberOpts: { compiler: [['js:' + compilerPath, { some: 'params' }]] } },
+        { cucumberOpts: { requireModule: [[compilerPath, { some: 'params' }]] } },
         ['/foo/bar.feature'],
         { browserName: 'chrome' },
         wdioReporter
     )
-    adapter.registerCompilers()
+    adapter.registerRequiredModules()
     expect(global.MY_PARAMS).toEqual({ some: 'params' })
 })
 

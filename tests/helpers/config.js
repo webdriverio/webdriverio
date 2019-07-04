@@ -38,7 +38,7 @@ exports.config = {
 
     cucumberOpts: {
         timeout: 5000,
-        compiler: ['js:@babel/register'],
+        requireModule: ['@babel/register'],
         require: [path.join(__dirname, '..', 'cucumber', 'step-definitions', '*.js')]
     }
 }

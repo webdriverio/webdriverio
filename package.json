@@ -47,6 +47,7 @@
     "@babel/plugin-syntax-export-default-from": "^7.2.0",
     "@babel/preset-env": "^7.4.2",
     "@babel/register": "^7.4.0",
+    "@types/jest": "^24.0.15",
     "aws-sdk": "^2.435.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
