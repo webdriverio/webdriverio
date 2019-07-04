@@ -1,4 +1,4 @@
-import { createStepArgument, compareScenarioLineWithSourceLine } from '../src/utils'
+import { createStepArgument, compareScenarioLineWithSourceLine, getStepFromFeature } from '../src/utils'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -67,5 +67,11 @@ describe('utils', () => {
             },
             { line: 321 }
         )).toBe(true)
+    })
+
+    describe('getStepFromFeature', () => {
+        it('should be ok if targetStep.type is not Step', () => {
+            getStepFromFeature({ children: [{ type: 'Foo', steps: [{ type: 'Bar' }] }] }, null, 0)
+        })
     })
 })
