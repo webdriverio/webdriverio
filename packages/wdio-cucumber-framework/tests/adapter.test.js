@@ -29,7 +29,32 @@ test('comes with a factory', async () => {
 test('should properly set up cucumber', async () => {
     const adapter = new CucumberAdapter(
         '0-2',
-        { cucumberOpts: { compiler: ['js:@babel/register'] } },
+        { cucumberOpts: { requireModule: ['@babel/register'] } },
+        ['/foo/bar.feature'],
+        { browserName: 'chrome' },
+        wdioReporter
+    )
+    adapter.registerRequiredModules = jest.fn()
+    adapter.loadSpecFiles = jest.fn()
+    adapter.wrapSteps = jest.fn()
+    const result = await adapter.run()
+    expect(result).toBe(0)
+
+    expect(adapter.registerRequiredModules).toBeCalled()
+    expect(adapter.loadSpecFiles).toBeCalled()
+    expect(adapter.wrapSteps).toBeCalled()
+    expect(Cucumber.setDefaultTimeout).toBeCalledWith(60000)
+    expect(Cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
+
+    expect(executeHooksWithArgs).toBeCalledTimes(2)
+    expect(Cucumber.PickleFilter).toBeCalled()
+    expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
+})
+
+test('should properly set up cucumber', async () => {
+    const adapter = new CucumberAdapter(
+        '0-2',
+        { cucumberOpts: { ignoreUndefinedDefinitions: true } },
         ['/foo/bar.feature'],
         { browserName: 'chrome' },
         wdioReporter
@@ -54,7 +79,7 @@ test('should properly set up cucumber', async () => {
 test('should throw when initialization fails', () => {
     const adapter = new CucumberAdapter(
         '0-2',
-        { cucumberOpts: { compiler: ['js:@babel/register'] } },
+        { cucumberOpts: { requireModule: ['@babel/register'] } },
         ['/foo/bar.feature'],
         { browserName: 'chrome' },
         wdioReporter
