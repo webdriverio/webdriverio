@@ -7,7 +7,7 @@ const wdioReporter = {
     on: jest.fn()
 }
 
-const gherkinDocEvent = {
+const buildGherkinDocEvent = () => ({
     uri: './any.feature',
     document: {
         type: 'GherkinDocument',
@@ -95,12 +95,29 @@ const gherkinDocEvent = {
                         text: 'step-title-failing'
                     }
                 ]
+            }, {
+                type: 'Scenario',
+                location: { line: 131, column: 0 },
+                keyword: 'Scenario',
+                name: 'scenario',
+                steps: [
+                    {
+                        type: 'Step',
+                        location: { line: 132, column: 1 },
+                        keyword: '',
+                        text: '',
+                    },
+                ]
             }]
         }
     }
-}
+})
+const gherkinDocEvent = buildGherkinDocEvent()
+const gherkinDocEventNoLine = buildGherkinDocEvent()
+delete gherkinDocEventNoLine.document.feature.location.line
 
 const loadGherkin = (eventBroadcaster) => eventBroadcaster.emit('gherkin-document', gherkinDocEvent)
+const loadGherkinNoLine = (eventBroadcaster) => eventBroadcaster.emit('gherkin-document', gherkinDocEventNoLine)
 const acceptPickle = (eventBroadcaster) => eventBroadcaster.emit('pickle-accepted', {
     uri: gherkinDocEvent.uri,
     pickle: {
@@ -169,6 +186,14 @@ describe('cucumber reporter', () => {
             expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
+        it('should not be ok if line is missing', () => {
+            loadGherkinNoLine(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            acceptPickle(eventBroadcaster)
+
+            expect(wdioReporter.emit).not.toHaveBeenCalled()
+        })
+
         it('should send accepted pickle\'s data on `test-case-started` event', () => {
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
@@ -186,221 +211,247 @@ describe('cucumber reporter', () => {
             }))
         })
 
-        it('should send proper data on `test-step-started` event', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-
-            eventBroadcaster.emit('test-step-started', {
-                index: 1,
-                testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
-                }
+        describe('step finished events', () => {
+            beforeEach(() => {
+                loadGherkin(eventBroadcaster)
+                acceptPickle(eventBroadcaster)
+                prepareSuite(eventBroadcaster)
+                startSuite(eventBroadcaster)
+                wdioReporter.emit.mockClear()
             })
 
-            expect(wdioReporter.emit).toHaveBeenCalledWith('test:start', expect.objectContaining({
-                // type: 'test',
-                title: 'step-title-passing',
-                cid: '0-1',
-                parent: 'scenario126',
-                uid: 'step-title-passing127',
-                file: './any.feature',
-                tags: [
-                    { name: '@scenario-tag1' },
-                    { name: '@scenario-tag2' }
-                ],
-                featureName: 'feature',
-                scenarioName: 'scenario'
-            }))
-        })
-
-        it('should send proper data on successful `test-step-finished` event', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-
-            eventBroadcaster.emit('test-step-finished', {
-                index: 1,
-                result: { duration: 10, status: 'passed' },
-                testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
-                }
-            })
-
-            expect(wdioReporter.emit).toHaveBeenCalledWith('test:pass', expect.objectContaining({
-                // type: 'test',
-                title: 'step-title-passing',
-                cid: '0-1',
-                parent: 'scenario126',
-                uid: 'step-title-passing127',
-                file: './any.feature',
-                tags: [
-                    { name: '@scenario-tag1' },
-                    { name: '@scenario-tag2' }
-                ]
-            }))
-        })
-
-        it('should send proper data on failing `test-step-finished` event with exception', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-
-            eventBroadcaster.emit('test-step-finished', {
-                index: 2,
-                result: {
-                    duration: 10,
-                    status: 'failed',
-                    exception: new Error('exception-error')
-                },
-                testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
-                }
-            })
-
-            expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                // type: 'test',
-                title: 'step-title-failing',
-                cid: '0-1',
-                parent: 'scenario126',
-                uid: 'step-title-failing128',
-                file: './any.feature',
-                tags: [
-                    { name: '@scenario-tag1' },
-                    { name: '@scenario-tag2' }
-                ],
-                error: expect.objectContaining({
-                    message: 'exception-error'
+            it('should send proper data on `test-step-started` event', () => {
+                eventBroadcaster.emit('test-step-started', {
+                    index: 1,
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    }
                 })
-            }))
-        })
 
-        it('should send proper data on failing `test-step-finished` event with string error', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-
-            eventBroadcaster.emit('test-step-finished', {
-                index: 2,
-                result: {
-                    duration: 10,
-                    status: 'failed',
-                    exception: 'string-error'
-                },
-                testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
-                }
+                expect(wdioReporter.emit).toHaveBeenCalledWith('test:start', expect.objectContaining({
+                    // type: 'test',
+                    title: 'step-title-passing',
+                    cid: '0-1',
+                    parent: 'scenario126',
+                    uid: 'step-title-passing127',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ],
+                    featureName: 'feature',
+                    scenarioName: 'scenario'
+                }))
             })
 
-            expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                // type: 'test',
-                title: 'step-title-failing',
-                cid: '0-1',
-                parent: 'scenario126',
-                uid: 'step-title-failing128',
-                file: './any.feature',
-                tags: [
-                    { name: '@scenario-tag1' },
-                    { name: '@scenario-tag2' }
-                ],
-                error: expect.objectContaining({
-                    message: 'string-error'
+            it('pretend `test-step-finished` to look like a hook', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 1,
+                    result: { duration: 10, status: 'passed' },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 131 }
+                    }
                 })
-            }))
-        })
 
-        it('should send proper data on ambiguous `test-step-finished` event', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-
-            eventBroadcaster.emit('test-step-finished', {
-                index: 2,
-                result: {
-                    duration: 10,
-                    status: 'ambiguous',
-                    exception: 'cucumber-ambiguous-error-message'
-                },
-                testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
-                }
+                expect(wdioReporter.emit).not.toBeCalled()
             })
 
-            expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                // type: 'test',
-                title: 'step-title-failing',
-                cid: '0-1',
-                parent: 'scenario126',
-                uid: 'step-title-failing128',
-                file: './any.feature',
-                tags: [
-                    { name: '@scenario-tag1' },
-                    { name: '@scenario-tag2' }
-                ],
-                error: expect.objectContaining({
-                    message: 'cucumber-ambiguous-error-message'
+            it('should send proper data on successful `test-step-finished` event', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 1,
+                    result: { duration: 10, status: 'passed' },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    }
                 })
-            }))
-        })
 
-        it('should send proper data on `test-case-finished` event', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-
-            eventBroadcaster.emit('test-case-finished', {
-                result: { duration: 0, status: 'passed' },
-                sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                expect(wdioReporter.emit).toHaveBeenCalledWith('test:pass', expect.objectContaining({
+                    // type: 'test',
+                    title: 'step-title-passing',
+                    cid: '0-1',
+                    parent: 'scenario126',
+                    uid: 'step-title-passing127',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ]
+                }))
             })
 
-            expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
-                // type: 'suite',
-                cid: '0-1',
-                parent: 'feature123',
-                uid: 'scenario126',
-                file: './any.feature',
-                tags: [
-                    { name: '@scenario-tag1' },
-                    { name: '@scenario-tag2' }
-                ]
-            }))
-        })
+            it('should send proper data on skipped `test-step-finished` event', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 1,
+                    result: { duration: 10, status: 'skipped' },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    }
+                })
 
-        it('should send proper data on `test-run-finished` event', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-
-            eventBroadcaster.emit('test-run-finished', {
-                result: { duration: 0, success: true }
+                expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
+                    // type: 'test',
+                    title: 'step-title-passing',
+                    cid: '0-1',
+                    parent: 'scenario126',
+                    uid: 'step-title-passing127',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ]
+                }))
             })
 
-            expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
-                // type: 'suite',
-                title: 'feature',
-                file: './any.feature',
-                uid: 'feature123',
-                cid: '0-1',
-                // parent: null,
-                tags: [
-                    { name: '@feature-tag1' },
-                    { name: '@feature-tag2' }
-                ]
-            }))
+            it('should send proper data on pending `test-step-finished` event', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 1,
+                    result: { duration: 10, status: 'pending' },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    }
+                })
+
+                expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
+                    // type: 'test',
+                    title: 'step-title-passing',
+                    cid: '0-1',
+                    parent: 'scenario126',
+                    uid: 'step-title-passing127',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ]
+                }))
+            })
+
+            it('should send proper data on failing `test-step-finished` event with exception', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 2,
+                    result: {
+                        duration: 10,
+                        status: 'failed',
+                        exception: new Error('exception-error')
+                    },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    }
+                })
+
+                expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
+                    // type: 'test',
+                    title: 'step-title-failing',
+                    cid: '0-1',
+                    parent: 'scenario126',
+                    uid: 'step-title-failing128',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ],
+                    error: expect.objectContaining({
+                        message: 'exception-error'
+                    })
+                }))
+            })
+
+            it('should send proper data on failing `test-step-finished` event with string error', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 2,
+                    result: {
+                        duration: 10,
+                        status: 'failed',
+                        exception: 'string-error'
+                    },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    }
+                })
+
+                expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
+                    // type: 'test',
+                    title: 'step-title-failing',
+                    cid: '0-1',
+                    parent: 'scenario126',
+                    uid: 'step-title-failing128',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ],
+                    error: expect.objectContaining({
+                        message: 'string-error'
+                    })
+                }))
+            })
+
+            it('should send proper data on ambiguous `test-step-finished` event', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 2,
+                    result: {
+                        duration: 10,
+                        status: 'ambiguous',
+                        exception: 'cucumber-ambiguous-error-message'
+                    },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    }
+                })
+
+                expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
+                    // type: 'test',
+                    title: 'step-title-failing',
+                    cid: '0-1',
+                    parent: 'scenario126',
+                    uid: 'step-title-failing128',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ],
+                    error: expect.objectContaining({
+                        message: 'cucumber-ambiguous-error-message'
+                    })
+                }))
+            })
+
+            it('should send proper data on `test-case-finished` event', () => {
+                eventBroadcaster.emit('test-case-finished', {
+                    result: { duration: 0, status: 'passed' },
+                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                })
+
+                expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
+                    // type: 'suite',
+                    cid: '0-1',
+                    parent: 'feature123',
+                    uid: 'scenario126',
+                    file: './any.feature',
+                    tags: [
+                        { name: '@scenario-tag1' },
+                        { name: '@scenario-tag2' }
+                    ]
+                }))
+            })
+
+            it('should send proper data on `test-run-finished` event', () => {
+                eventBroadcaster.emit('test-run-finished', {
+                    result: { duration: 0, success: true }
+                })
+
+                expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
+                    // type: 'suite',
+                    title: 'feature',
+                    file: './any.feature',
+                    uid: 'feature123',
+                    cid: '0-1',
+                    // parent: null,
+                    tags: [
+                        { name: '@feature-tag1' },
+                        { name: '@feature-tag2' }
+                    ]
+                }))
+            })
         })
     })
 
@@ -410,15 +461,15 @@ describe('cucumber reporter', () => {
 
         beforeEach(() => {
             eventBroadcaster = new EventEmitter()
-            reporter = new CucumberReporter(eventBroadcaster, { failAmbiguousDefinitions: true, ignoreUndefinedDefinitions: false }, '0-1', ['/foobar.js'], wdioReporter)
-        })
+            reporter = new CucumberReporter(eventBroadcaster, { failAmbiguousDefinitions: true }, '0-1', ['/foobar.js'], wdioReporter)
 
-        it('should increment failed counter on `failed` status', () => {
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
             prepareSuite(eventBroadcaster)
             startSuite(eventBroadcaster)
+        })
 
+        it('should increment failed counter on `failed` status', () => {
             eventBroadcaster.emit('test-step-finished', {
                 index: 2,
                 result: {
@@ -434,11 +485,6 @@ describe('cucumber reporter', () => {
         })
 
         it('should increment failed counter on `ambiguous` status', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-
             eventBroadcaster.emit('test-step-finished', {
                 index: 2,
                 result: {
@@ -455,11 +501,6 @@ describe('cucumber reporter', () => {
         })
 
         it('should increment failed counter on `undefined` status', () => {
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
-
             eventBroadcaster.emit('test-step-finished', {
                 index: 2,
                 result: {
@@ -472,6 +513,23 @@ describe('cucumber reporter', () => {
             })
 
             expect(reporter.failedCount).toBe(1)
+        })
+
+        it('should not increment failed counter on `undefined` status if ignoreUndefinedDefinitions set to true', () => {
+            reporter.options.ignoreUndefinedDefinitions = true
+
+            eventBroadcaster.emit('test-step-finished', {
+                index: 2,
+                result: {
+                    duration: 10,
+                    status: 'undefined'
+                },
+                testCase: {
+                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                }
+            })
+
+            expect(reporter.failedCount).toBe(0)
         })
     })
 
@@ -550,10 +608,8 @@ describe('cucumber reporter', () => {
         })).toBe('reporter.test.js54')
         expect(reporter.getUniqueIdentifier({
             type: 'ScenarioOutline',
-            name: 'foobar'
-        }, {
-            line: 123
-        })).toBe('foobar123')
+            text: 'no-name'
+        }, {})).toBe('no-name')
         expect(reporter.getUniqueIdentifier({
             type: 'ScenarioOutline',
             name: '<someval> here',
@@ -571,31 +627,45 @@ describe('cucumber reporter', () => {
                     cells: [{}, { value: 'realval' }]
                 }]
             }]
-        }, {
-            line: 123
-        })).toBe('realval here123')
+        }, { line: 123 })).toBe('realval here123')
     })
 
-    it('formatMessage', () => {
-        const eventBroadcaster = new EventEmitter()
-        const reporter = new CucumberReporter(eventBroadcaster, {})
-        expect(reporter.formatMessage({
-            type: 'foobar',
-            payload: { ctx: { currentTest: { title: 'barfoo' } } }
-        })).toMatchSnapshot()
-        expect(reporter.formatMessage({
-            type: 'afterTest',
-            payload: { state: 'passed' }
-        })).toMatchSnapshot()
+    describe('formatMessage', () => {
+        let reporter
 
-        expect(reporter.formatMessage({
-            type: 'foobar',
-            payload: {
-                title: '"before all" hook',
-                error: new Error('boom'),
-                state: 'passed'
-            }
-        }).type).toBe('hook:end')
+        beforeEach(() => {
+            const eventBroadcaster = new EventEmitter()
+            reporter = new CucumberReporter(eventBroadcaster, {})
+        })
+
+        it('should set title for custom type', () => {
+            expect(reporter.formatMessage({
+                type: 'foobar',
+                payload: { ctx: { currentTest: { title: 'barfoo' } } }
+            })).toMatchSnapshot()
+        })
+
+        it('should set type to hook:end', () => {
+            expect(reporter.formatMessage({
+                type: 'foobar',
+                payload: {
+                    title: '"before all" hook',
+                    error: new Error('boom'),
+                    state: 'passed'
+                }
+            }).type).toBe('hook:end')
+        })
+
+        it('should set passed state for test hooks', () => {
+            expect(reporter.formatMessage({
+                type: 'afterTest',
+                payload: { state: 'passed' }
+            })).toMatchSnapshot()
+        })
+
+        it('should not fail if payload was not passed', () => {
+            expect(reporter.formatMessage({ type: 'test' })).toMatchSnapshot()
+        })
     })
 
     afterEach(() => {

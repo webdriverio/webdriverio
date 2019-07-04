@@ -211,7 +211,7 @@ class CucumberReporter {
 
         if (target.type === 'ScenarioOutline') {
             let name = target.name || target.text
-            const line = sourceLocation.line
+            const line = sourceLocation.line || ''
 
             if (Array.isArray(target.examples)) {
                 target.examples[0].tableHeader.cells.forEach((header, idx) => {
