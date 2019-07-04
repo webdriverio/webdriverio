@@ -72,15 +72,14 @@ class Footer extends React.Component {
                     </div>
                 </section>
                 <a
-                    href="https://js.foundation/community/projects"
+                    href="https://openjsf.org/projects/"
                     target="_blank"
                     rel="noreferrer noopener"
                     className="fbOpenSource">
                     <img
-                        src={this.props.config.baseUrl + 'img/jsf-logo.png'}
-                        alt="JS.Foundation"
+                        src={this.props.config.baseUrl + 'img/open-jsf-logo.svg'}
+                        alt="OpenJS Foundation"
                         width="170"
-                        height="45"
                     />
                 </a>
                 <section className="copyright">{this.props.config.copyright}</section>
