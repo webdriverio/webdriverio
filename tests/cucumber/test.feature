@@ -30,4 +30,3 @@ Feature: Example feature
 
     Scenario: failAmbiguousDefinitions
         Given this is ambiguous
-        Then this is ambiguous

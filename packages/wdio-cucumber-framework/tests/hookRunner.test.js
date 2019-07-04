@@ -2,10 +2,6 @@ import { executeHooksWithArgs } from '@wdio/config'
 
 import HookRunner from '../src/hookRunner'
 
-jest.mock('@wdio/config', () => ({
-    executeHooksWithArgs: jest.fn()
-}))
-
 jest.mock('../src/cucumberEventListener', () => (
     class CucumberEventListener {
         constructor () {
