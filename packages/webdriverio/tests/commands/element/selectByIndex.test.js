@@ -73,4 +73,13 @@ describe('selectByIndex test', () => {
             expect(e.toString()).toBe('Error: Can\'t call selectByIndex on element with selector "foobar" because element wasn\'t found')
         }
     })
+
+    it('should throw if index is out of rangew', async () => {
+        expect.hasAssertions()
+        try {
+            await elem.selectByIndex(3)
+        } catch (e) {
+            expect(e.toString()).toBe('Error: Option with index "3" not found. Select element only contains 3 option elements')
+        }
+    })
 })
