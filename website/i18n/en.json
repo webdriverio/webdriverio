@@ -20,6 +20,9 @@
       "concise-reporter": {
         "title": "Concise Reporter"
       },
+      "crossbrowsertesting-service": {
+        "title": "Crossbrowsertesting Service"
+      },
       "devtools-service": {
         "title": "Devtools Service"
       },
