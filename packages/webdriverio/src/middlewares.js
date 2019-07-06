@@ -1,6 +1,6 @@
-
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
+import { CustomRequestError } from 'webdriver/src/utils'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -35,6 +35,12 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
                     this.parent = element.parent
 
                     return await fn(commandName, commandFn).apply(this, args)
+                }
+                if (typeof error === CustomRequestError) {
+                    throw new Error(
+                        `Can't call ${commandName} on element with selector "${this.selector}" because:\n` +
+                        `${error}`
+                    )
                 }
                 throw error
             }
