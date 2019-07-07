@@ -14,19 +14,19 @@ Download the latest version of geckodriver for your environment and unpack it in
 **Linux 64 bit**
 
 ```sh
-$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
+curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
 ```
 
 **OSX**
 
 ```sh
-$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
+curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
 ```
 
 or with [brew](https://brew.sh/)
 
 ```sh
-$ brew install geckodriver
+brew install geckodriver
 ```
 
 **Windows 64 bit**
@@ -65,14 +65,14 @@ Note: Other geckodriver releases are available [here](https://github.com/mozilla
 Start Geckodriver by running:
 
 ```sh
-$ /path/to/binary/geckodriver --port 4444
+/path/to/binary/geckodriver --port 4444
 ```
 
 For example, if you ran the curl command from above, you should have a `geckodriver` binary available in the current folder. You can run the following to start it:
 
 
 ```sh
-$ ./geckodriver --port 4444
+./geckodriver --port 4444
 ```
 
 This will start Geckodriver on `localhost:4444` with the WebDriver endpoint set to `/`.
