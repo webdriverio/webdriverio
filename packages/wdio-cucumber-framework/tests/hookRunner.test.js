@@ -38,26 +38,21 @@ test('handles hooks', () => {
     })
 
     hookRunner.handleBeforeFeature('uri', 'feature')
-    expect(executeHooksWithArgs).toBeCalledWith('beforeFeature', 'feature')
+    expect(executeHooksWithArgs)
+        .toBeCalledWith('beforeFeature', 'uri', 'feature')
     hookRunner.handleBeforeScenario('uri', 'feature', 'scenario')
-    expect(executeHooksWithArgs).toBeCalledWith('beforeScenario', 'scenario')
+    expect(executeHooksWithArgs)
+        .toBeCalledWith('beforeScenario', 'uri', 'feature', 'scenario')
     hookRunner.handleBeforeStep('uri', 'feature', 'scenario', 'step')
-    expect(executeHooksWithArgs).toBeCalledWith('beforeStep', 'step')
-    hookRunner.handleAfterStep(
-        'uri',
-        { name: 'feature123' },
-        { name: 'scenario123' },
-        { name: 'step123' },
-        { status: 'pass' }
-    )
-    expect(executeHooksWithArgs).toBeCalledWith('afterStep', {
-        name: 'step123',
-        feature: 'feature123',
-        scenario: 'scenario123',
-        status: 'pass'
-    }, { status: 'pass' })
+    expect(executeHooksWithArgs)
+        .toBeCalledWith('beforeStep', 'uri', 'feature', 'scenario', 'step')
+    hookRunner.handleAfterStep('uri', 'feature', 'scenario', 'step', 'result')
+    expect(executeHooksWithArgs)
+        .toBeCalledWith('afterStep', 'uri', 'feature', 'scenario', 'step', 'result')
     hookRunner.handleAfterScenario('uri', 'feature', 'scenario')
-    expect(executeHooksWithArgs).toBeCalledWith('afterScenario', 'scenario')
+    expect(executeHooksWithArgs)
+        .toBeCalledWith('afterScenario', 'uri', 'feature', 'scenario')
     hookRunner.handleAfterFeature('uri', 'feature')
-    expect(executeHooksWithArgs).toBeCalledWith('afterFeature', 'feature')
+    expect(executeHooksWithArgs)
+        .toBeCalledWith('afterFeature', 'uri', 'feature')
 })

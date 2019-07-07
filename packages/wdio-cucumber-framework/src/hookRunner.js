@@ -7,35 +7,77 @@ export default class HookRunner {
     constructor (eventBroadcaster, config) {
         this.config = config
         this.eventListener = new CucumberEventListener(eventBroadcaster)
-            .on('before-feature', this.handleBeforeFeature.bind(this))
-            .on('before-scenario', this.handleBeforeScenario.bind(this))
-            .on('before-step', this.handleBeforeStep.bind(this))
-            .on('after-step', this.handleAfterStep.bind(this))
-            .on('after-scenario', this.handleAfterScenario.bind(this))
-            .on('after-feature', this.handleAfterFeature.bind(this))
+            .on('before-feature', ::this.handleBeforeFeature)
+            .on('before-scenario', ::this.handleBeforeScenario)
+            .on('before-step', ::this.handleBeforeStep)
+            .on('after-step', ::this.handleAfterStep)
+            .on('after-scenario', ::this.handleAfterScenario)
+            .on('after-feature', ::this.handleAfterFeature)
     }
 
-    handleBeforeFeature (uri, feature) {
-        return executeHooksWithArgs(this.config.beforeFeature, feature)
+    /**
+     * handle beforeFeature hook
+     * @param  {String}  uri     url of feature
+     * @param  {Object}  feature feature object from Cucumber
+     * @return {Promise}         hook promise
+     */
+    handleBeforeFeature (...args) {
+        return executeHooksWithArgs(this.config.beforeFeature, ...args)
     }
 
-    handleBeforeScenario (uri, feature, scenario) {
-        return executeHooksWithArgs(this.config.beforeScenario, scenario)
+    /**
+     * [handleBeforeScenario description]
+     * @param  {String}  uri      uri of feature file
+     * @param  {Object}  feature  feature object from Cucumber
+     * @param  {[type]}  scenario scenario object from Cucumber
+     * @return {Promise}         hook promise
+     */
+    handleBeforeScenario (...args) {
+        return executeHooksWithArgs(this.config.beforeScenario, ...args)
     }
 
-    handleBeforeStep (uri, feature, scenario, step) {
-        return executeHooksWithArgs(this.config.beforeStep, step)
+    /**
+     * [handleBeforeStep description]
+     * @param  {String}  uri      uri of feature file
+     * @param  {Object}  feature  feature object from Cucumber
+     * @param  {[type]}  scenario scenario object from Cucumber
+     * @param  {[type]}  step     step object from Cucumber
+     * @return {Promise}          hook promise
+     */
+    handleBeforeStep (...args) {
+        return executeHooksWithArgs(this.config.beforeStep, ...args)
     }
 
-    handleAfterStep (uri, feature, scenario, step, result) {
-        return executeHooksWithArgs(this.config.afterStep, { ...step, feature: feature.name, scenario: scenario.name, status: result.status }, result)
+    /**
+     * [handleAfterStep description]
+     * @param  {String}  uri      uri of feature file
+     * @param  {Object}  feature  feature object from Cucumber
+     * @param  {[type]}  scenario scenario object from Cucumber
+     * @param  {[type]}  step     step object from Cucumber
+     * @param  {[type]}  result   result of step
+     * @return {Promise}          hook promise
+     */
+    handleAfterStep (...args) {
+        return executeHooksWithArgs(this.config.afterStep, ...args)
     }
 
-    handleAfterScenario (uri, feature, scenario) {
-        return executeHooksWithArgs(this.config.afterScenario, scenario)
+    /**
+     * @param  {String}  uri      uri of feature file
+     * @param  {Object}  feature  feature object from Cucumber
+     * @param  {[type]}  scenario scenario object from Cucumber
+     * @return {Promise}         hook promise
+     */
+    handleAfterScenario (...args) {
+        return executeHooksWithArgs(this.config.afterScenario, ...args)
     }
 
-    handleAfterFeature (uri, feature) {
-        return executeHooksWithArgs(this.config.afterFeature, feature)
+    /**
+     * [handleAfterFeature description]
+     * @param  {String}  uri     url of feature
+     * @param  {Object}  feature feature object from Cucumber
+     * @return {Promise}         hook promise
+     */
+    handleAfterFeature (...args) {
+        return executeHooksWithArgs(this.config.afterFeature, ...args)
     }
 }

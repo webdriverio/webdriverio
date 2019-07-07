@@ -289,16 +289,16 @@ describe('afterStep', () => {
     it('should increment failures on "failed"', () => {
         service.failures = 0
 
-        service.afterStep({})
+        service.afterStep('/some/uri', {})
         expect(service.failures).toBe(0)
 
-        service.afterStep({ failureException: { what: 'ever' } })
+        service.afterStep('/some/uri', { failureException: { what: 'ever' } })
         expect(service.failures).toBe(1)
 
-        service.afterStep({ getFailureException: () => 'whatever' })
+        service.afterStep('/some/uri', { getFailureException: () => 'whatever' })
         expect(service.failures).toBe(2)
 
-        service.afterStep({ status: 'failed' })
+        service.afterStep('/some/uri', { status: 'failed' })
         expect(service.failures).toBe(3)
     })
 })
