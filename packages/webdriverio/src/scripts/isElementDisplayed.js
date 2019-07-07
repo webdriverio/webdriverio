@@ -70,6 +70,11 @@ export default function isElementDisplayed(element) {
     function cascadedStylePropertyForElement(element, property) {
         if (!element || !property)
             return null
+        // if document-fragment, skip it and use element.host instead. This happens
+        // when the element is inside a shadow root.
+        // window.getComputedStyle errors on document-fragment.
+        if (element instanceof DocumentFragment)
+            element = element.host
 
         let computedStyle = window.getComputedStyle(element)
         let computedStyleProperty = computedStyle.getPropertyValue(property)
@@ -152,12 +157,21 @@ export default function isElementDisplayed(element) {
             return isElementSubtreeHiddenByOverflow(childNode)
         })
     }
+    // walk up the tree testing for a shadow root
+    function isElementInsideShadowRoot(element) {
+        if (!element) {
+            return false
+        }
+        if (element.parentNode && element.parentNode.host) {
+            return true
+        }
+        return isElementInsideShadowRoot(element.parentNode)
+    }
 
     // This is a partial reimplementation of Selenium's "element is displayed" algorithm.
     // When the W3C specification's algorithm stabilizes, we should implement that.
-
-    // If this command is misdirected to the wrong document, treat it as not shown.
-    if (!document.contains(element))
+    // If this command is misdirected to the wrong document (and is NOT inside a shadow root), treat it as not shown.
+    if (!isElementInsideShadowRoot(element) && !document.contains(element))
         return false
 
     // Special cases for specific tag names.
