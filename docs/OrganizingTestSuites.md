@@ -83,13 +83,13 @@ exports.config = {
 Now, if you want to only run a single suite, you can pass the suite name as cli argument like:
 
 ```sh
-$ wdio wdio.conf.js --suite login
+wdio wdio.conf.js --suite login
 ```
 
 or run multiple suites at once:
 
 ```sh
-$ wdio wdio.conf.js --suite login --suite otherFeature
+wdio wdio.conf.js --suite login --suite otherFeature
 ```
 
 ## Run Selected Tests
@@ -97,19 +97,19 @@ $ wdio wdio.conf.js --suite login --suite otherFeature
 In some cases, you may wish to only execute a single test or a subset of your suites. With the `--spec` parameter you can specify which suite (Mocha, Jasmine) or feature (Cucumber) should be run. For example if you only want to run your login test, do:
 
 ```sh
-$ wdio wdio.conf.js --spec ./test/specs/e2e/login.js
+wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
 or run multiple specs at once:
 
 ```sh
-$ wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
+wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
 ```
 
 If the spec passed in is not a path to a spec file, it is used as a filter for the spec file names defined in your configuration file. To run all specs with the word 'dialog' in the spec file names, you could use:
 
 ```sh
-$ wdio wdio.conf.js --spec dialog
+wdio wdio.conf.js --spec dialog
 ```
 
 Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`) you _can't_ use for example `describe.only` at the top of your spec file to say Mocha to only run that suite. This feature will help you though to do that in the same way.
@@ -119,15 +119,15 @@ Note that each test file is running in a single test runner process. Since we do
  When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber). For example if you want to exclude your login
 test from the test run, do:
  ```sh
-$ wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
+wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
 ```
  or exclude multiple spec files:
  ```sh
-$ wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
+wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
 ```
  or exclude a spec file when filtering using a suite:
  ```sh
-$ wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
+wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
 ## Run Suites and Test Specs
@@ -135,7 +135,7 @@ $ wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 This will allow you to run an entire suite along with individual spec's.
 
 ```sh
-$ wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
+wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 ```
 
 ## Run Multiple, Specific Test Specs
@@ -143,7 +143,7 @@ $ wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 It is sometimes necessary&mdash;in the context of continuous integration and otherwise&mdash;to specify multiple sets of specs to be run at runtime. WebdriverIO's `wdio` command line utility will accept piped input in the form of filenames (from `find`, `grep`, or others). These filenames will override the list of glob patterns or filenames specified in the configuration file's `spec` list.
 
 ```sh
-$ grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
+grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 ```
 
 _**Note:** This will_ not _override the `--spec` flag for running a single spec._

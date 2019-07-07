@@ -8,8 +8,8 @@ WebdriverIO comes with its own test runner to help you get started with integrat
 Starting with v5 of WebdriverIO the testrunner will be bundled as a separate NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
 
 ```sh
-$ npm install @wdio/cli
-$ ./node_modules/.bin/wdio --help
+npm install @wdio/cli
+./node_modules/.bin/wdio --help
 
 WebdriverIO CLI runner
 
@@ -60,7 +60,7 @@ Options:
 Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
 
 ```sh
-$ ./node_modules/.bin/wdio config
+./node_modules/.bin/wdio config
 ```
 
 and it launches the helper utility. It will ask you questions depending on the answers you give. This way
@@ -72,28 +72,28 @@ Once you have your configuration file set up you can start your
 integration tests by calling:
 
 ```sh
-$ ./node_modules/.bin/wdio wdio.conf.js
+./node_modules/.bin/wdio wdio.conf.js
 ```
 
 That's it! Now, you can access to the selenium instance via the global variable `browser`.
 
 ## Commands
 
-### $ wdio install
+### wdio install
 The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.
 
 Example:
 
 ```bash
-$ wdio install service sauce # installs @wdio/sauce-service
-$ wdio install reporter dot # installs @wdio/dot-reporter
-$ wdio install framework mocha # installs @wdio/mocha-framework
+wdio install service sauce # installs @wdio/sauce-service
+wdio install reporter dot # installs @wdio/dot-reporter
+wdio install framework mocha # installs @wdio/mocha-framework
 ```
 
 If your project is using `package-lock.json` instead of `yarn.lock`, you can pass a `--npm` flag to make sure the packages are installed via NPM.
 
 ```bash
-$ wdio install service sauce --npm
+wdio install service sauce --npm
 ```
 
 #### List of supported services
