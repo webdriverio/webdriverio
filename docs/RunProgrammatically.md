@@ -10,7 +10,7 @@ Before start you have to setup either [driver binaries](DriverBinaries.md) or se
 Let's start with installing `webdriverio` by calling:
 
 ```sh
-$ npm install webdriverio
+npm install webdriverio
 ```
 
 Create a test file (e.g. `test.js`) with the following content:
@@ -40,7 +40,7 @@ const { remote } = require('webdriverio');
 
 
 ```sh
-$ node test.js
+node test.js
 ```
 
 this should output the following:
