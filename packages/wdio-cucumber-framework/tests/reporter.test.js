@@ -230,9 +230,9 @@ describe('cucumber reporter', () => {
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:start', expect.objectContaining({
                     // type: 'test',
-                    title: 'step-title-passing',
+                    title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'scenario126',
+                    parent: 'feature > scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -267,9 +267,9 @@ describe('cucumber reporter', () => {
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pass', expect.objectContaining({
                     // type: 'test',
-                    title: 'step-title-passing',
+                    title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'scenario126',
+                    parent: 'feature > scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -290,9 +290,9 @@ describe('cucumber reporter', () => {
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
                     // type: 'test',
-                    title: 'step-title-passing',
+                    title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'scenario126',
+                    parent: 'feature > scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -313,9 +313,9 @@ describe('cucumber reporter', () => {
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
                     // type: 'test',
-                    title: 'step-title-passing',
+                    title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'scenario126',
+                    parent: 'feature > scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -340,9 +340,9 @@ describe('cucumber reporter', () => {
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
                     // type: 'test',
-                    title: 'step-title-failing',
+                    title: 'When step-title-failing',
                     cid: '0-1',
-                    parent: 'scenario126',
+                    parent: 'feature > scenario',
                     uid: 'step-title-failing128',
                     file: './any.feature',
                     tags: [
@@ -370,9 +370,9 @@ describe('cucumber reporter', () => {
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
                     // type: 'test',
-                    title: 'step-title-failing',
+                    title: 'When step-title-failing',
                     cid: '0-1',
-                    parent: 'scenario126',
+                    parent: 'feature > scenario',
                     uid: 'step-title-failing128',
                     file: './any.feature',
                     tags: [
@@ -400,9 +400,9 @@ describe('cucumber reporter', () => {
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
                     // type: 'test',
-                    title: 'step-title-failing',
+                    title: 'When step-title-failing',
                     cid: '0-1',
-                    parent: 'scenario126',
+                    parent: 'feature > scenario',
                     uid: 'step-title-failing128',
                     file: './any.feature',
                     tags: [
@@ -665,6 +665,19 @@ describe('cucumber reporter', () => {
 
         it('should not fail if payload was not passed', () => {
             expect(reporter.formatMessage({ type: 'test' })).toMatchSnapshot()
+        })
+    })
+
+    describe('getTestParent', () => {
+        let reporter
+
+        beforeEach(() => {
+            const eventBroadcaster = new EventEmitter()
+            reporter = new CucumberReporter(eventBroadcaster, {})
+        })
+
+        it('no feature and not scenario', () => {
+            expect(reporter.getTestParent({}, {})).toEqual('Undefined Feature > Undefined Scenario')
         })
     })
 

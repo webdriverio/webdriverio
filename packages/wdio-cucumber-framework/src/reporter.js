@@ -53,16 +53,15 @@ class CucumberReporter {
         })
     }
 
-    handleBeforeStep (uri, feature, scenario, step, sourceLocation) {
+    handleBeforeStep (uri, feature, scenario, step, /*sourceLocation*/) {
         this.testStart = new Date()
 
         this.emit('test:start', {
             uid: this.getUniqueIdentifier(step),
-            title: step.text,
+            title: this.getTestStepTitle(step),
             type: 'test',
             file: uri,
-            parent: this.getUniqueIdentifier(scenario, sourceLocation),
-            duration: new Date() - this.testStart,
+            parent: this.getTestParent(feature, scenario),
             tags: scenario.tags,
             featureName: feature.name,
             scenarioName: scenario.name,
@@ -70,7 +69,7 @@ class CucumberReporter {
         })
     }
 
-    handleAfterStep (uri, feature, scenario, step, result, sourceLocation) {
+    handleAfterStep (uri, feature, scenario, step, result, /*sourceLocation*/) {
         let e = 'undefined'
         switch (result.status) {
         case Status.FAILED:
@@ -86,7 +85,7 @@ class CucumberReporter {
             e = 'pending'
         }
         let error = {}
-        let stepTitle = step.text || step.keyword || 'Undefined Step'
+        let stepTitle = this.getTestStepTitle(step)
 
         /**
          * if step name is undefined we are dealing with a hook
@@ -140,12 +139,13 @@ class CucumberReporter {
             }
         }
 
+        const parent = this.getTestParent(feature, scenario)
         const payload = {
             uid: this.getUniqueIdentifier(step),
-            title: stepTitle.trim(),
+            title: stepTitle,
             type: 'test',
             file: uri,
-            parent: this.getUniqueIdentifier(scenario, sourceLocation),
+            parent: parent,
             error: error,
             duration: new Date() - this.testStart,
             tags: scenario.tags,
@@ -236,6 +236,18 @@ class CucumberReporter {
         return `${name}${line}`
     }
 
+    getTestParent(feature, scenario) {
+        return `${feature.name || 'Undefined Feature'} > ${scenario.name || 'Undefined Scenario'}`
+    }
+
+    getTestStepTitle(step) {
+        return ((step.keyword || '') + (step.text || 'Undefined Step')).trim()
+    }
+
+    getTestFullTitle(parent, stepTitle) {
+        return `${parent} > ${stepTitle}`
+    }
+
     formatMessage ({ type, payload = {} }) {
         let message = {
             ...payload,
@@ -263,6 +275,10 @@ class CucumberReporter {
 
         if (type.match(/Test/)) {
             message.passed = (payload.state === 'passed')
+        }
+
+        if (payload.title && payload.parent) {
+            payload.fullTitle = this.getTestFullTitle(payload.parent, payload.title)
         }
 
         return message
