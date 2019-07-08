@@ -42,7 +42,7 @@
     "chalk": "^2.3.2",
     "chokidar": "^3.0.0",
     "cli-spinners": "^2.1.0",
-    "deepmerge": "^3.2.0",
+    "deepmerge": "^4.0.0",
     "ejs": "^2.5.7",
     "fs-extra": "^8.0.1",
     "inquirer": "^6.2.1",
