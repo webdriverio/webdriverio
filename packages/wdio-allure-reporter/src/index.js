@@ -41,7 +41,7 @@ class AllureReporter extends WDIOReporter {
 
     onSuiteStart(suite) {
         const currentSuite = this.allure.getCurrentSuite()
-        const prefix = currentSuite ? currentSuite.name + ' ' : ''
+        const prefix = currentSuite ? currentSuite.name + ': ' : ''
         this.allure.startSuite(prefix + suite.title)
     }
 
