@@ -36,12 +36,17 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
 
                     return await fn(commandName, commandFn).apply(this, args)
                 }
-                if (typeof error === CustomRequestError) {
-                    throw new Error(`
-                    Can't call ${commandName} on element with selector "${this.selector}" because:
-                    ${error}
-                    `)
+
+                if (error instanceof CustomRequestError) {
+                    if (error.message.includes(`"${this.selector}"`)) {
+                        const regex = /call (.*?) command/g
+                        error.message = error.message.replace(regex, `call ${commandName} command`)
+                    } else {
+                        error.message = `Can't call ${commandName} command on element with selector "${this.selector}"
+                ${error.message}`
+                    }
                 }
+
                 throw error
             }
         }).apply(this)
