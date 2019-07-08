@@ -12,24 +12,17 @@ describe('utils', () => {
         })
 
         it('Works with DataTable', () => {
+            const location = { line: 21, column: 11 }
             expect(createStepArgument({
                 argument: {
                     type: 'DataTable',
                     rows: [
-                        { cells: [{ value: 1 }, { value: 2 }] },
-                        { cells: [{ value: 3 }, { value: 4 }] },
-                        { cells: [{ value: 5 }, { value: 6 }] }
+                        { cells: [{ value: 1, location }, { value: 2, location }] },
+                        { cells: [{ value: 3, location }, { value: 4, location }] },
+                        { cells: [{ value: 5, location }, { value: 6, location }] }
                     ]
                 }
-            })).toEqual([{
-                rows: [{
-                    cells: [1, 2]
-                }, {
-                    cells: [3, 4]
-                }, {
-                    cells: [5, 6]
-                }]
-            }])
+            })).toMatchSnapshot()
         })
 
         it('Works with DocString', () => {
@@ -43,30 +36,24 @@ describe('utils', () => {
     })
 
     it('compareScenarioLineWithSourceLine', () => {
-        expect(compareScenarioLineWithSourceLine(
-            {
-                type: 'ScenarioOutline',
-                examples: [{
-                    tableBody: [
-                        { location: { line: 123 } },
-                        { location: { line: 321 } }
-                    ]
-                }]
-            },
-            { line: 111 }
-        )).toBe(false)
-        expect(compareScenarioLineWithSourceLine(
-            {
-                type: 'ScenarioOutline',
-                examples: [{
-                    tableBody: [
-                        { location: { line: 123 } },
-                        { location: { line: 321 } }
-                    ]
-                }]
-            },
-            { line: 321 }
-        )).toBe(true)
+        expect(compareScenarioLineWithSourceLine({
+            type: 'ScenarioOutline',
+            examples: [{
+                tableBody: [
+                    { location: { line: 123 } },
+                    { location: { line: 321 } }
+                ]
+            }]
+        }, { line: 111 })).toBe(false)
+        expect(compareScenarioLineWithSourceLine({
+            type: 'ScenarioOutline',
+            examples: [{
+                tableBody: [
+                    { location: { line: 123 } },
+                    { location: { line: 321 } }
+                ]
+            }]
+        }, { line: 321 })).toBe(true)
     })
 
     describe('getStepFromFeature', () => {

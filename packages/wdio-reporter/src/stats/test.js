@@ -12,6 +12,7 @@ export default class TestStats extends RunnableStats {
         this.title = test.title
         this.fullTitle = test.fullTitle
         this.output = []
+        this.argument = test.argument
 
         /**
          * initial test state is pending
