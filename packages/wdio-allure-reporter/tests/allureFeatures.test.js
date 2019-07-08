@@ -475,6 +475,6 @@ describe('nested suite naming', () => {
         reporter.onSuiteStart({ title: 'bar' })
 
         expect(startSuite).toHaveBeenCalledTimes(1)
-        expect(startSuite).toHaveBeenCalledWith('foo bar')
+        expect(startSuite).toHaveBeenCalledWith('foo: bar')
     })
 })
