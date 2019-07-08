@@ -138,6 +138,33 @@ describe('reporter runtime implementation', () => {
         expect(addAttachment).toHaveBeenCalledWith('foo', Buffer.from('bar'), 'baz')
     })
 
+    it('should not call add attachment if no test is running', () => {
+        const reporter = new AllureReporter({ stdout: true })
+        const addAttachment = jest.fn()
+        reporter.allure = {
+            getCurrentSuite: jest.fn(() => false),
+            getCurrentTest: jest.fn(() => false),
+            addAttachment
+        }
+
+        reporter.addAttachment({ name: 'foo', content: 'bar', type: 'baz' })
+        expect(addAttachment).toHaveBeenCalledTimes(0)
+    })
+
+    it('should call add attachment if loading an attachment', () => {
+        const reporter = new AllureReporter({ stdout: true })
+        const addAttachment = jest.fn()
+        reporter.allure = {
+            getCurrentSuite: jest.fn(() => false),
+            getCurrentTest: jest.fn(() => false),
+            addAttachment
+        }
+
+        reporter.addAttachment({ name: 'foo', content: 'bar', type: 'baz' }, true)
+        expect(addAttachment).toHaveBeenCalledTimes(1)
+        expect(addAttachment).toHaveBeenCalledWith('foo', Buffer.from('bar'), 'baz')
+    })
+
     it('should correct add "application/json" attachment', () => {
         const reporter = new AllureReporter({ stdout: true })
         const dumpJSON = jest.fn()
