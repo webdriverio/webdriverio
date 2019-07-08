@@ -249,9 +249,11 @@ class AllureReporter extends WDIOReporter {
         test.setDescription(description, type)
     }
 
-    addAttachment({ name, content, type = 'text/plain' }) {
-        if (!this.isAnyTestRunning()) {
-            return false
+    addAttachment({ name, content, type = 'text/plain' }, loadExistingAttachmentInAfterHook = false) {
+        if (!loadExistingAttachmentInAfterHook) {
+            if (!this.isAnyTestRunning()) {
+                return false
+            }
         }
 
         if (type === 'application/json') {
