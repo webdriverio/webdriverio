@@ -38,12 +38,11 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
                 }
 
                 if (error instanceof CustomRequestError) {
+                    error.message = `Can't call ${commandName} command on element with selector "${this.selector}"\n${error.message}`
+
                     if (error.message.includes(`"${this.selector}"`)) {
                         const regex = /call (.*?) command/g
                         error.message = error.message.replace(regex, `call ${commandName} command`)
-                    } else {
-                        error.message = `Can't call ${commandName} command on element with selector "${this.selector}"
-                ${error.message}`
                     }
                 }
 
