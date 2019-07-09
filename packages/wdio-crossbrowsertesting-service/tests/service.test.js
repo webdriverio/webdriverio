@@ -6,6 +6,9 @@ jest.mock('request', () => ({
     get: jest.fn()
 }))
 
+const uri = 'some/uri'
+const feature = { some: 'feature' }
+
 describe('wdio-crossbrowsertesting-service', () => {
     const execute = jest.fn()
     global.browser = {
@@ -148,7 +151,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             name: 'Feature name',
             getName: () => 'Feature name'
         }
-        cbtService.beforeFeature(feature)
+        cbtService.beforeFeature(uri, feature)
 
         expect(execute).not.toBeCalled()
     })
@@ -163,7 +166,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             user: 'test',
             key: 'testy'
         }, {})
-        cbtService.beforeFeature(feature)
+        cbtService.beforeFeature(uri, feature)
 
         expect(cbtService.suiteTitle).toEqual('Feature name')
         expect(execute).toBeCalledWith('cbt:test-context=Feature: Feature name')
@@ -175,7 +178,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const feature = {
             failureException: 'Unhandled error!'
         }
-        cbtService.afterStep(feature)
+        cbtService.afterStep(uri, feature)
 
         expect(cbtService.failures).toEqual(1)
     })
@@ -186,7 +189,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const feature = {
             getFailureException: () => 'Unhandled error!'
         }
-        cbtService.afterStep(feature)
+        cbtService.afterStep(uri, feature)
 
         expect(cbtService.failures).toEqual(1)
     })
@@ -197,7 +200,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const feature = {
             status: 'failed'
         }
-        cbtService.afterStep(feature)
+        cbtService.afterStep(uri, feature)
 
         expect(cbtService.failures).toEqual(1)
     })
@@ -212,7 +215,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             user: undefined,
             key: undefined
         }, {})
-        cbtService.beforeScenario(scenario)
+        cbtService.beforeScenario(uri, feature, scenario)
 
         expect(execute).not.toBeCalled()
     })
@@ -227,7 +230,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             user: 'test',
             key: 'testy'
         }, {})
-        cbtService.beforeScenario(scenario)
+        cbtService.beforeScenario(uri, feature, scenario)
 
         expect(execute).toBeCalledWith('cbt:test-context=Scenario: Scenario name')
     })

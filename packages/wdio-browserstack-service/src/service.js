@@ -56,7 +56,7 @@ export default class BrowserstackService {
         }
     }
 
-    afterStep(feature) {
+    afterStep(uri, feature) {
         if (
             /**
              * Cucumber v1

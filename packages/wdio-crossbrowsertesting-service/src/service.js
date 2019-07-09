@@ -76,7 +76,7 @@ export default class CrossBrowserTestingService {
      * Before feature
      * @param {Object} feature Feature
      */
-    beforeFeature (feature) {
+    beforeFeature (uri, feature) {
         if (!this.isServiceEnabled) {
             return
         }
@@ -89,7 +89,7 @@ export default class CrossBrowserTestingService {
      * After step
      * @param {Object} feature Feature
      */
-    afterStep (feature) {
+    afterStep (uri, feature) {
         if (
             /**
              * Cucumber v1
@@ -112,7 +112,7 @@ export default class CrossBrowserTestingService {
      * Before scenario
      * @param {Object} scenario Scenario
      */
-    beforeScenario (scenario) {
+    beforeScenario (uri, feature, scenario) {
         if (!this.isServiceEnabled) {
             return
         }

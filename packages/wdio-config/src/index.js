@@ -2,7 +2,7 @@ import ConfigParser from './lib/ConfigParser'
 import { validateConfig, getSauceEndpoint, detectBackend } from './utils'
 import {
     wrapCommand, runFnInFiberContext, runTestInFiberContext, executeHooksWithArgs,
-    hasWdioSyncSupport
+    hasWdioSyncSupport, executeSync, executeAsync
 } from './shim'
 import { DEFAULT_CONFIGS } from './constants'
 
@@ -16,6 +16,8 @@ export {
      * wdio-sync shim
      */
     wrapCommand,
+    executeSync,
+    executeAsync,
     runFnInFiberContext,
     runTestInFiberContext,
     executeHooksWithArgs,

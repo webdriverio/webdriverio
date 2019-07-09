@@ -1,6 +1,6 @@
 import assert from 'assert'
 
-describe('smoke test', () => {
+describe('Mocha smoke test', () => {
     it('should return sync value', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
     })

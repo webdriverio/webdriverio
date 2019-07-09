@@ -7,11 +7,54 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
 
 (async () => {
     /**
-     * normal wdio testrunner tests
+     * Mocha wdio testrunner tests
      */
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         { specs: [path.resolve(__dirname, 'mocha', 'test.js')] })
+
+    /**
+     * Jasmine wdio testrunner tests
+     */
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'jasmine', 'test.js')],
+            framework: 'jasmine'
+        })
+
+    /**
+     * Cucumber wdio testrunner tests
+     */
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+            framework: 'cucumber',
+            cucumberOpts: {
+                ignoreUndefinedDefinitions: true
+            }
+        }
+    )
+
+    /**
+     * Cucumber fail due to failAmbiguousDefinitions
+     */
+    const hasFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+            framework: 'cucumber',
+            cucumberOpts: {
+                ignoreUndefinedDefinitions: true,
+                failAmbiguousDefinitions: true
+            }
+        }
+    ).then(
+        () => false,
+        () => true
+    )
+    assert.equal(hasFailed, true)
 
     /**
      * wdio test run with custom service
@@ -71,20 +114,17 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
     /**
      * specfile-level retries
      */
-    let retryFailed = false
-    try {
-        await launch(
-            path.resolve(__dirname, 'helpers', 'config.js'),
-            {
-                specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
-                specFileRetries: 1
-            })
-    } catch (e) {
-        retryFailed = true
-    }
-    if (!retryFailed) {
-        throw Error('Expected retries to fail but they passed')
-    }
+    const retryFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
+            specFileRetries: 1
+        }
+    ).then(
+        () => false,
+        () => true
+    )
+    assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
 
     let retryFilename = path.join(__dirname, '.retry_succeeded')
     let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))

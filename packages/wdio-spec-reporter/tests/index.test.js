@@ -252,7 +252,7 @@ describe('SpecReporter', () => {
 
             const result = tmpReporter.getResultDisplay()
 
-            expect(result.length).toBe(12)
+            expect(result.length).toBe(13)
             expect(result[0]).toBe('Foo test')
             expect(result[1]).toBe('   green ✓ foo')
             expect(result[2]).toBe('   green ✓ bar')
@@ -260,11 +260,12 @@ describe('SpecReporter', () => {
             expect(result[4]).toBe('Bar test')
             expect(result[5]).toBe('   green ✓ some test')
             expect(result[6]).toBe('   red ✖ a failed test')
-            expect(result[7]).toBe('')
-            expect(result[8]).toBe('Baz test')
-            expect(result[9]).toBe('   green ✓ foo bar baz')
-            expect(result[10]).toBe('   cyan - a skipped test')
-            expect(result[11]).toBe('')
+            expect(result[7]).toBe('   red ✖ a failed test with no stack')
+            expect(result[8]).toBe('')
+            expect(result[9]).toBe('Baz test')
+            expect(result[10]).toBe('   green ✓ foo bar baz')
+            expect(result[11]).toBe('   cyan - a skipped test')
+            expect(result[12]).toBe('')
         })
 
         it('should validate the result output with no tests', () => {
@@ -322,7 +323,7 @@ describe('SpecReporter', () => {
 
             const result = tmpReporter.getFailureDisplay()
 
-            expect(result.length).toBe(4)
+            expect(result.length).toBe(7)
             expect(result[0]).toBe('')
             expect(result[1]).toBe('1) Bar test a failed test')
             expect(result[2]).toBe('red expected foo to equal bar')

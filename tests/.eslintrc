@@ -1,6 +1,7 @@
 {
   env: {
-    mocha: true
+    mocha: true,
+    jasmine: true
   },
   globals: {
     browser: true,
