@@ -232,7 +232,7 @@ describe('cucumber reporter', () => {
                     // type: 'test',
                     title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'feature > scenario',
+                    parent: 'feature: scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -269,7 +269,7 @@ describe('cucumber reporter', () => {
                     // type: 'test',
                     title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'feature > scenario',
+                    parent: 'feature: scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -292,7 +292,7 @@ describe('cucumber reporter', () => {
                     // type: 'test',
                     title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'feature > scenario',
+                    parent: 'feature: scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -315,7 +315,7 @@ describe('cucumber reporter', () => {
                     // type: 'test',
                     title: 'Given step-title-passing',
                     cid: '0-1',
-                    parent: 'feature > scenario',
+                    parent: 'feature: scenario',
                     uid: 'step-title-passing127',
                     file: './any.feature',
                     tags: [
@@ -342,7 +342,7 @@ describe('cucumber reporter', () => {
                     // type: 'test',
                     title: 'When step-title-failing',
                     cid: '0-1',
-                    parent: 'feature > scenario',
+                    parent: 'feature: scenario',
                     uid: 'step-title-failing128',
                     file: './any.feature',
                     tags: [
@@ -372,7 +372,7 @@ describe('cucumber reporter', () => {
                     // type: 'test',
                     title: 'When step-title-failing',
                     cid: '0-1',
-                    parent: 'feature > scenario',
+                    parent: 'feature: scenario',
                     uid: 'step-title-failing128',
                     file: './any.feature',
                     tags: [
@@ -402,7 +402,7 @@ describe('cucumber reporter', () => {
                     // type: 'test',
                     title: 'When step-title-failing',
                     cid: '0-1',
-                    parent: 'feature > scenario',
+                    parent: 'feature: scenario',
                     uid: 'step-title-failing128',
                     file: './any.feature',
                     tags: [
@@ -584,100 +584,6 @@ describe('cucumber reporter', () => {
                 file: './any.feature',
                 cid: '0-1'
             }))
-        })
-    })
-
-    it('getUriOf', () => {
-        const eventBroadcaster = new EventEmitter()
-        const reporter = new CucumberReporter(eventBroadcaster, {})
-        expect(reporter.getUriOf()).toBe(undefined)
-        expect(reporter.getUriOf({})).toBe(undefined)
-        expect(reporter.getUriOf({ uri: __filename }))
-            .toBe('/packages/wdio-cucumber-framework/tests/reporter.test.js')
-    })
-
-    it('getUniqueIdentifier', () => {
-        const eventBroadcaster = new EventEmitter()
-        const reporter = new CucumberReporter(eventBroadcaster, {})
-        expect(reporter.getUniqueIdentifier({
-            type: 'Hook',
-            location: {
-                uri: __filename,
-                line: 54
-            }
-        })).toBe('reporter.test.js54')
-        expect(reporter.getUniqueIdentifier({
-            type: 'ScenarioOutline',
-            text: 'no-name'
-        }, {})).toBe('no-name')
-        expect(reporter.getUniqueIdentifier({
-            type: 'ScenarioOutline',
-            name: '<someval> here',
-            examples: [{
-                tableHeader: {
-                    cells: [
-                        { value: 'valsome' },
-                        { value: 'someval' }
-                    ]
-                },
-                tableBody: [{
-                    location: { line: 54 }
-                }, {
-                    location: { line: 123 },
-                    cells: [{}, { value: 'realval' }]
-                }]
-            }]
-        }, { line: 123 })).toBe('realval here123')
-    })
-
-    describe('formatMessage', () => {
-        let reporter
-
-        beforeEach(() => {
-            const eventBroadcaster = new EventEmitter()
-            reporter = new CucumberReporter(eventBroadcaster, {})
-        })
-
-        it('should set title for custom type', () => {
-            expect(reporter.formatMessage({
-                type: 'foobar',
-                payload: { ctx: { currentTest: { title: 'barfoo' } } }
-            })).toMatchSnapshot()
-        })
-
-        it('should set type to hook:end', () => {
-            expect(reporter.formatMessage({
-                type: 'foobar',
-                payload: {
-                    title: '"before all" hook',
-                    error: new Error('boom'),
-                    state: 'passed'
-                }
-            }).type).toBe('hook:end')
-        })
-
-        it('should set passed state for test hooks', () => {
-            expect(reporter.formatMessage({
-                type: 'afterTest',
-                payload: { state: 'passed' }
-            })).toMatchSnapshot()
-        })
-
-        it('should not fail if payload was not passed', () => {
-            expect(reporter.formatMessage({ type: 'test' })).toMatchSnapshot()
-        })
-    })
-
-    describe('getTestParent', () => {
-        let reporter
-
-        beforeEach(() => {
-            const eventBroadcaster = new EventEmitter()
-            reporter = new CucumberReporter(eventBroadcaster, {})
-        })
-
-        it('no feature and not scenario', () => {
-            expect(reporter.getTestParent({}, {})).toEqual('Undefined Feature > Undefined Scenario')
         })
     })
 
