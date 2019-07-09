@@ -4,14 +4,16 @@ describe('TestStats', () => {
     let stat
 
     beforeAll(() => {
-        stat = new TestStats({ type: 'test:start',
+        stat = new TestStats({
+            type: 'test:start',
             title: 'should can do something',
             parent: 'My awesome feature',
             fullTitle: 'My awesome feature should can do something',
             pending: false,
             cid: '0-0',
             specs: ['/path/to/test/specs/sync.spec.js'],
-            uid: 'should can do something3'
+            uid: 'should can do something3',
+            argument: 'foobar'
         })
 
         stat.complete = jest.fn()
@@ -20,6 +22,7 @@ describe('TestStats', () => {
     it('should be initialised with correct values', () => {
         expect(stat.type).toBe('test')
         expect(stat.cid).toBe('0-0')
+        expect(stat.argument).toBe('foobar')
         expect(stat.uid).toBe('should can do something3')
         expect(stat.state).toBe('pending')
     })

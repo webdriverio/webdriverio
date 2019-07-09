@@ -1,3 +1,5 @@
+const path = require('path')
+
 exports.config = {
     /**
      * server configurations
@@ -28,5 +30,15 @@ exports.config = {
         ui: 'bdd',
         timeout: 10000,
         compilers: ['js:@babel/register']
+    },
+
+    jasmineNodeOpts: {
+        defaultTimeoutInterval: 1000 * 60 * 3
+    },
+
+    cucumberOpts: {
+        timeout: 5000,
+        requireModule: ['@babel/register'],
+        require: [path.join(__dirname, '..', 'cucumber', 'step-definitions', '*.js')]
     }
 }

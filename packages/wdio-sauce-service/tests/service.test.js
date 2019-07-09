@@ -11,6 +11,9 @@ global.browser = {
     instances: ['chromeA', 'chromeB', 'chromeC'],
 }
 
+const uri = '/some/uri'
+const feature = { some: 'feature' }
+
 test('beforeSuite', () => {
     const service = new SauceService()
     expect(service.suiteTitle).toBeUndefined()
@@ -104,25 +107,25 @@ test('afterTest', () => {
 test('beforeFeature should set context', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
-    service.beforeFeature({ name: 'foobar' })
+    service.beforeFeature(uri, { name: 'foobar' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Feature: foobar')
-    service.beforeFeature({ getName: () => 'barfoo' })
+    service.beforeFeature(uri, { getName: () => 'barfoo' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Feature: barfoo')
 })
 
 test('beforeFeature should set context if RDC test', () => {
     const rdcService = new SauceService()
     rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
-    rdcService.beforeFeature({ name: 'foobar' })
+    rdcService.beforeFeature(uri, { name: 'foobar' })
     expect(global.browser.execute).not.toBeCalled()
-    rdcService.beforeFeature({ getName: () => 'barfoo' })
+    rdcService.beforeFeature(uri, { getName: () => 'barfoo' })
     expect(global.browser.execute).not.toBeCalled()
 })
 
 test('beforeFeature should not set context if no sauce user was applied', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
-    service.beforeFeature({ name: 'foobar' })
+    service.beforeFeature(uri, { name: 'foobar' })
     expect(global.browser.execute).not.toBeCalledWith('sauce:context=Feature: foobar')
 })
 
@@ -132,39 +135,39 @@ test('afterStep', () => {
 
     expect(service.failures).toBe(0)
 
-    service.afterStep({})
+    service.afterStep(uri, {})
     expect(service.failures).toBe(0)
 
-    service.afterStep({ failureException: { what: 'ever' } })
+    service.afterStep(uri, { failureException: { what: 'ever' } })
     expect(service.failures).toBe(1)
 
-    service.afterStep({ getFailureException: () => 'whatever' })
+    service.afterStep(uri, { getFailureException: () => 'whatever' })
     expect(service.failures).toBe(2)
 
-    service.afterStep({ status: 'failed' })
+    service.afterStep(uri, { status: 'failed' })
     expect(service.failures).toBe(3)
 })
 
 test('beforeScenario should set context', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
-    service.beforeScenario({ name: 'foobar' })
+    service.beforeScenario(uri, feature, { name: 'foobar' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
-    service.beforeScenario({ getName: () => 'barfoo' })
+    service.beforeScenario(uri, feature, { getName: () => 'barfoo' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Scenario: barfoo')
 })
 
 test('beforeScenario should not set context if RDC test', () => {
     const rdcService = new SauceService()
     rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
-    rdcService.beforeScenario({ name: 'foobar' })
+    rdcService.beforeScenario(uri, feature, { name: 'foobar' })
     expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('beforeScenario should not set context if no sauce user was applied', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
-    service.beforeScenario({ name: 'foobar' })
+    service.beforeScenario(uri, feature, { name: 'foobar' })
     expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 

@@ -239,10 +239,10 @@ class SpecReporter extends WDIOReporter {
 
                 )
                 for (let error of errors) {
-                    output.push(
-                        this.chalk.red(error.message),
-                        ...error.stack.split(/\n/g).map(value => this.chalk.gray(value))
-                    )
+                    output.push(this.chalk.red(error.message))
+                    if (error.stack) {
+                        output.push(...error.stack.split(/\n/g).map(value => this.chalk.gray(value)))
+                    }
                 }
             }
         }

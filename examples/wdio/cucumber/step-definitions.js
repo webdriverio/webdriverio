@@ -10,21 +10,36 @@
  */
 
 var assert = require('assert')
+const { Given, When, Then } = require('cucumber')
 
-module.exports = () => {
-    this.Given(/^I go on the website "([^"]*)"$/, (url) => {
-        browser.url(url)
-    })
+Given(/^I go on the website "([^"]*)"$/, (url) => {
+    browser.url(url)
+})
 
-    this.Then(/^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/, (selector, width, height) => {
-        var elemSize = browser.getElementSize(selector)
-        assert.equal(elemSize.width, width, 'width of element is ' + elemSize.width + ' but should be ' + width)
-        assert.equal(elemSize.height, height, 'height of element is ' + elemSize.height + ' but should be ' + height)
-    })
+When(/^I add the following grocieries$/, (table) => {
+    const newTodo = $('.new-todo')
+    table.rawTable.shift()
 
-    this.Then(/^should the title of the page be "([^"]*)"$/, (expectedTitle) => {
-        var title = browser.getTitle()
-        assert.equal(title, expectedTitle, ' title is "'+ title + '" but should be "'+ expectedTitle)
-    })
+    for (const [item, amount] of table.rawTable) {
+        newTodo.click()
+        browser.keys(`${item} (${amount}x)`)
+        browser.keys('Enter')
+        browser.pause(100) // for demo purposes
+    }
+})
 
-}
+Then(/^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/, (selector, width, height) => {
+    var elemSize = $(selector).getSize()
+    assert.equal(elemSize.width, width, `width of element is ${elemSize.width} but should be ${width}`)
+    assert.equal(elemSize.height, height, `height of element is ${elemSize.height} but should be ${height}`)
+})
+
+Then(/^should the title of the page be "([^"]*)"$/, (expectedTitle) => {
+    var title = browser.getTitle()
+    assert.equal(title, expectedTitle, `Title is "${title}" but should be "${expectedTitle}"`)
+})
+
+Then(/^I should have a list of (\d+) items$/, (items) => {
+    const listAmount = $$('.todo-list li').length
+    assert.equal(items, listAmount, `Didn't found expected amount of items (${items}) in the list`)
+})

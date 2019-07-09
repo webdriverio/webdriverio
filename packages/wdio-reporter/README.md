@@ -219,6 +219,69 @@ TestStats {
   state: 'pending' } }
 ```
 
+Cucumber tests come with an additional `argument` property containing data tables if used in feature files, e.g.:
+
+```js
+TestStats {
+  type: 'test',
+  start: '2019-07-08T08:44:56.666Z',
+  duration: 0,
+  uid: 'I add the following grocieries16',
+  cid: '0-0',
+  title: 'I add the following grocieries',
+  output: [],
+  argument: [{
+    rows: [{
+      cells: ['Item', 'Amount'],
+      locations: [{
+        line: 17,
+        column: 11
+      }, {
+        line: 17,
+        column: 24
+      }]
+    }, {
+      cells: ['Milk', '2'],
+      locations: [{
+        line: 18,
+        column: 11
+      }, {
+        line: 18,
+        column: 24
+      }]
+    }, {
+      cells: ['Butter', '1'],
+      locations: [{
+        line: 19,
+        column: 11
+      }, {
+        line: 19,
+        column: 24
+      }]
+    }, {
+        cells: ['Noodles', '1'],
+      locations: [{
+        line: 20,
+        column: 11
+      }, {
+        line: 20,
+        column: 24
+      }]
+    }, {
+      cells: ['Schocolate', '3'],
+      locations: [{
+        line: 21,
+        column: 11
+      }, {
+        line: 21,
+        column: 24
+      }]
+    }]
+  }],
+  state: 'pending'
+}
+```
+
 ##### onTestSkip
 
 ```js
