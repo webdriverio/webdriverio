@@ -23,14 +23,6 @@ export function createStepArgument ({ argument }) {
     return undefined
 }
 
-export function getUriOf (type) {
-    if (!type || !type.uri) {
-        return
-    }
-
-    return type.uri.replace(process.cwd(), '')
-}
-
 /**
  * builds test parent string from feature and scneario names
  * @param {object} feature cucumber feature object

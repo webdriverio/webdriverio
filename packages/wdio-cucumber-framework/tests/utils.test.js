@@ -1,4 +1,4 @@
-import { createStepArgument, compareScenarioLineWithSourceLine, getStepFromFeature, getTestParent, formatMessage, getUniqueIdentifier, getUriOf } from '../src/utils'
+import { createStepArgument, compareScenarioLineWithSourceLine, getStepFromFeature, getTestParent, formatMessage, getUniqueIdentifier } from '../src/utils'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -97,13 +97,6 @@ describe('utils', () => {
         it('should not fail if payload was not passed', () => {
             expect(formatMessage({ type: 'test' })).toMatchSnapshot()
         })
-    })
-
-    it('getUriOf', () => {
-        expect(getUriOf()).toBe(undefined)
-        expect(getUriOf({})).toBe(undefined)
-        expect(getUriOf({ uri: __filename }))
-            .toBe('/packages/wdio-cucumber-framework/tests/utils.test.js')
     })
 
     describe('getUniqueIdentifier', () => {
