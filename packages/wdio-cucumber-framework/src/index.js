@@ -102,11 +102,15 @@ class CucumberAdapter {
      * we extend it a bit with ability to init and pass configuration to modules.
      * Pass an array with path to module and its configuration instead:
      * Usage: `[['module', {}]]`
+     * Or pass your own function
+     * Usage: `[() => { require('ts-node').register({ files: true }) }]`
      */
     registerRequiredModules () {
         this.cucumberOpts.requireModule.map(requiredModule => {
             if (Array.isArray(requiredModule)) {
                 require(requiredModule[0])(requiredModule[1])
+            } else if (typeof requiredModule === 'function') {
+                requiredModule()
             } else {
                 require(requiredModule)
             }
