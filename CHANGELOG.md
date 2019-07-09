@@ -15,6 +15,41 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.0 (2019-07-09)
+
+#### :rocket: New Feature
+* `wdio-allure-reporter`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-reporter`, `wdio-sauce-service`, `wdio-spec-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#3667](https://github.com/webdriverio/webdriverio/pull/3667) Cucumber Framework Support ([@abjerstedt](https://github.com/abjerstedt))
+* `wdio-static-server-service`
+  * [#4142](https://github.com/webdriverio/webdriverio/pull/4142) Port wdio-static-server-service ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#3632](https://github.com/webdriverio/webdriverio/pull/3632) Upload blog post ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#4156](https://github.com/webdriverio/webdriverio/pull/4156) wdio-spec-reporter: fix header in multiremote mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#4152](https://github.com/webdriverio/webdriverio/pull/4152) wdio-allure-reporter: add suite separator ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`
+  * [#4150](https://github.com/webdriverio/webdriverio/pull/4150) cli: Add defaults when running programmatically ([@WillBrock](https://github.com/WillBrock))
+* `webdriverio`
+  * [#4128](https://github.com/webdriverio/webdriverio/pull/4128) webdriverio: fix isDisplayed script to work with shadow dom ([@jrobinson01](https://github.com/jrobinson01))
+
+#### :memo: Documentation
+* [#4146](https://github.com/webdriverio/webdriverio/pull/4146) Docs: Normalize terminal commands ([@WillBrock](https://github.com/WillBrock))
+
+#### :house: Internal
+* [#4140](https://github.com/webdriverio/webdriverio/pull/4140) Update affiliation from JSF to OpenJSF ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- John Robinson ([@jrobinson01](https://github.com/jrobinson01))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
 ## v5.10.10 (2019-07-03)
 
 #### :bug: Bug Fix
