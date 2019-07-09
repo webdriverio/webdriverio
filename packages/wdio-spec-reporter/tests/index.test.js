@@ -243,6 +243,15 @@ describe('SpecReporter', () => {
             expect(result[1]).toBe('Running: loremipsum')
             expect(result[2]).toBe('')
         })
+
+        it('should validate header output in multiremote', () => {
+            const result = tmpReporter.getHeaderDisplay({ ...RUNNER, isMultiremote: true })
+
+            expect(result.length).toBe(3)
+            expect(result[0]).toBe('Spec: /foo/bar/baz.js')
+            expect(result[1]).toBe('Running: MultiremoteBrowser')
+            expect(result[2]).toBe('')
+        })
     })
 
     describe('getResultDisplay', () => {

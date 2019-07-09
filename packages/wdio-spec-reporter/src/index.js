@@ -111,7 +111,7 @@ class SpecReporter extends WDIOReporter {
      * @return {Array}         Header data
      */
     getHeaderDisplay(runner) {
-        const combo = this.getEnviromentCombo(runner.capabilities).trim()
+        const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
 
         // Spec file name and enviroment information
         const output = [
