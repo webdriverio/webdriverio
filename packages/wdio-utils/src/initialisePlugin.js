@@ -6,13 +6,15 @@
  */
 function safeRequire (name) {
     try {
+        require.resolve(name)
+    } catch (e) {
+        return null
+    }
+
+    try {
         return require(name)
     } catch (e) {
-        if (!e.message.match(`Cannot find module '${name}'`)) {
-            throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
-        }
-
-        return null
+        throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
 }
 
