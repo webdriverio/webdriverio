@@ -9,6 +9,7 @@ Minimal TypeScript version is 3.5.1
 ```js
 // wdio.conf.js
 before: function() {
+    // not needed for Cucumber
     require('ts-node').register({ files: true });
 },
 ```
@@ -22,6 +23,19 @@ mochaOpts: {
     require: [
         'tsconfig-paths/register'
     ]
+},
+```
+
+And Cucumber:
+
+```js
+// wdio.conf.js
+cucumberOpts: {
+    requireModule: [
+        'tsconfig-paths/register',
+        () => { require('ts-node').register({ files: true }) },
+    ],
+    require: [/* support and step definitions files here */],
 },
 ```
 

@@ -22,18 +22,20 @@ const wdioReporter = {
     on: jest.fn()
 }
 
+const adapterFactory = (cucumberOpts = {}) => new CucumberAdapter(
+    '0-2',
+    { cucumberOpts },
+    ['/foo/bar.feature'],
+    { browserName: 'chrome' },
+    wdioReporter
+)
+
 test('comes with a factory', async () => {
     expect(typeof CucumberAdapterFactory.run).toBe('function')
 })
 
 test('should properly set up cucumber', async () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: { requireModule: ['@babel/register'] } },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ requireModule: ['@babel/register'] })
     adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
@@ -52,13 +54,7 @@ test('should properly set up cucumber', async () => {
 })
 
 test('should properly set up cucumber', async () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: { ignoreUndefinedDefinitions: true } },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ ignoreUndefinedDefinitions: true })
     adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
@@ -77,13 +73,7 @@ test('should properly set up cucumber', async () => {
 })
 
 test('should throw when initialization fails', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: { requireModule: ['@babel/register'] } },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ requireModule: ['@babel/register'] })
     adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
@@ -93,51 +83,38 @@ test('should throw when initialization fails', () => {
     expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
-test('registerRequiredModules', () => {
-    const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: { requireModule: [compilerPath] } },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
-    adapter.registerRequiredModules()
-    expect(global.MY_VAR).toBe(1)
-})
+describe('registerRequiredModules', () => {
+    test('should accept path to module', () => {
+        const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
+        const adapter = adapterFactory({ requireModule: [compilerPath] })
 
-test('registerRequiredModules as method', () => {
-    const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: { requireModule: [[compilerPath, { some: 'params' }]] } },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
-    adapter.registerRequiredModules()
-    expect(global.MY_PARAMS).toEqual({ some: 'params' })
+        adapter.registerRequiredModules()
+        expect(global.MY_VAR).toBe(1)
+    })
+
+    test('should accept path to module with args', () => {
+        const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
+        const adapter = adapterFactory({ requireModule: [[compilerPath, { some: 'params' }]] })
+
+        adapter.registerRequiredModules()
+        expect(global.MY_PARAMS).toEqual({ some: 'params' })
+    })
+
+    test('should accept path function', () => {
+        const adapter = adapterFactory({ requireModule: [() => { global.MY_PARAMS = { some: 'fn' } }] })
+
+        adapter.registerRequiredModules()
+        expect(global.MY_PARAMS).toEqual({ some: 'fn' })
+    })
 })
 
 test('requiredFiles', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: { require: ['/foo/bar.js', '/does/not/exist/*.js'] } },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ require: ['/foo/bar.js', '/does/not/exist/*.js'] })
     expect(adapter.requiredFiles()).toEqual(['/foo/bar.js'])
 })
 
 test('loadSpecFiles', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: { require: ['/foo/bar.js', '/does/not/exist/*.js'] } },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ require: ['/foo/bar.js', '/does/not/exist/*.js'] })
     adapter.requiredFiles = jest.fn().mockReturnValue([
         path.join(__dirname, 'fixtures', 'stepDefinitionStub.js'),
         'packages/wdio-cucumber-framework/tests/fixtures/stepDefinitionStub.js'
@@ -149,13 +126,7 @@ test('loadSpecFiles', () => {
 })
 
 test('wrapSteps', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: {} },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
     adapter.wrapStepSync = jest.fn()
     adapter.wrapStepAsync = jest.fn()
     adapter.wrapSteps()
@@ -172,13 +143,7 @@ test('wrapSteps', () => {
 })
 
 test('wrapStepSync', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: {} },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
 
     const fn = adapter.wrapStepSync('some code', 123)
     expect(typeof fn).toBe('function')
@@ -187,13 +152,7 @@ test('wrapStepSync', () => {
 })
 
 test('wrapStepSync with default', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: {} },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
 
     const fn = adapter.wrapStepSync('some code')
     expect(typeof fn).toBe('function')
@@ -202,13 +161,7 @@ test('wrapStepSync with default', () => {
 })
 
 test('wrapStepAsync', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: {} },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
 
     const fn = adapter.wrapStepAsync('fn', 123)
     expect(typeof fn).toBe('function')
@@ -218,13 +171,7 @@ test('wrapStepAsync', () => {
 })
 
 test('wrapStepAsync with default value', () => {
-    const adapter = new CucumberAdapter(
-        '0-2',
-        { cucumberOpts: {} },
-        ['/foo/bar.feature'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
 
     const fn = adapter.wrapStepAsync('fn')
     expect(typeof fn).toBe('function')
