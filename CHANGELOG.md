@@ -15,6 +15,35 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.1 (2019-07-11)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4166](https://github.com/webdriverio/webdriverio/pull/4166) fix cucumber hook args ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#4162](https://github.com/webdriverio/webdriverio/pull/4162) Add sauce-connect-launcher to logger of wdio-sauce-service ([@enriquegh](https://github.com/enriquegh))
+* `wdio-utils`
+  * [#4158](https://github.com/webdriverio/webdriverio/pull/4158) wdio-utils: Make safeRequire use require.resolve ([@nemisj](https://github.com/nemisj))
+
+#### :memo: Documentation
+* Other
+  * [#4173](https://github.com/webdriverio/webdriverio/pull/4173) Cucumber related minor update to frameworks doc ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4160](https://github.com/webdriverio/webdriverio/pull/4160) Fixed text in 2019-05-18-visual-regression-for-v5.md ([@Marketionist](https://github.com/Marketionist))
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#4169](https://github.com/webdriverio/webdriverio/pull/4169) Update Cucumber Babel setup doc ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#4167](https://github.com/webdriverio/webdriverio/pull/4167) Add selector and elementId to Element ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cucumber-framework`
+  * [#4159](https://github.com/webdriverio/webdriverio/pull/4159) Cucumber: TypeScript Setup doc, pass function to requireModule ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 4
+- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Maks Nemisj ([@nemisj](https://github.com/nemisj))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.11.0 (2019-07-09)
 
 #### :rocket: New Feature
