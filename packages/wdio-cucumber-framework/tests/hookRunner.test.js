@@ -4,7 +4,7 @@ import HookRunner from '../src/hookRunner'
 
 jest.mock('../src/cucumberEventListener', () => (
     class CucumberEventListener {
-        constructor () {
+        constructor() {
             this.on = jest.fn()
             this.on.mockReturnValue(this)
         }
@@ -27,7 +27,7 @@ test('registers all listeners', () => {
         .toBeCalledWith('after-feature', expect.any(Function))
 })
 
-test('handles hooks', () => {
+describe('handles hooks', () => {
     const hookRunner = new HookRunner('foobar', {
         beforeFeature: 'beforeFeature',
         beforeScenario: 'beforeScenario',
@@ -37,22 +37,37 @@ test('handles hooks', () => {
         afterFeature: 'afterFeature'
     })
 
-    hookRunner.handleBeforeFeature('uri', 'feature')
-    expect(executeHooksWithArgs)
-        .toBeCalledWith('beforeFeature', 'uri', 'feature')
-    hookRunner.handleBeforeScenario('uri', 'feature', 'scenario')
-    expect(executeHooksWithArgs)
-        .toBeCalledWith('beforeScenario', 'uri', 'feature', 'scenario')
-    hookRunner.handleBeforeStep('uri', 'feature', 'scenario', 'step')
-    expect(executeHooksWithArgs)
-        .toBeCalledWith('beforeStep', 'uri', 'feature', 'scenario', 'step')
-    hookRunner.handleAfterStep('uri', 'feature', 'scenario', 'step', 'result')
-    expect(executeHooksWithArgs)
-        .toBeCalledWith('afterStep', 'uri', 'feature', 'scenario', 'step', 'result')
-    hookRunner.handleAfterScenario('uri', 'feature', 'scenario')
-    expect(executeHooksWithArgs)
-        .toBeCalledWith('afterScenario', 'uri', 'feature', 'scenario')
-    hookRunner.handleAfterFeature('uri', 'feature')
-    expect(executeHooksWithArgs)
-        .toBeCalledWith('afterFeature', 'uri', 'feature')
+    test('beforeFeature', () => {
+        hookRunner.handleBeforeFeature('uri', 'feature')
+        expect(executeHooksWithArgs).toBeCalledWith('beforeFeature', ['uri', 'feature'])
+    })
+
+    test('beforeScenario', () => {
+        hookRunner.handleBeforeScenario('uri', 'feature', 'scenario')
+        expect(executeHooksWithArgs).toBeCalledWith('beforeScenario', ['uri', 'feature', 'scenario'])
+    })
+
+    test('beforeStep', () => {
+        hookRunner.handleBeforeStep('uri', 'feature', 'scenario', 'step')
+        expect(executeHooksWithArgs).toBeCalledWith('beforeStep', ['uri', 'feature', 'scenario', 'step'])
+    })
+
+    test('afterStep', () => {
+        hookRunner.handleAfterStep('uri', 'feature', 'scenario', 'step', 'result')
+        expect(executeHooksWithArgs).toBeCalledWith('afterStep', ['uri', 'feature', 'scenario', 'step', 'result'])
+    })
+
+    test('afterScenario', () => {
+        hookRunner.handleAfterScenario('uri', 'feature', 'scenario')
+        expect(executeHooksWithArgs).toBeCalledWith('afterScenario', ['uri', 'feature', 'scenario'])
+    })
+
+    test('afterFeature', () => {
+        hookRunner.handleAfterFeature('uri', 'feature')
+        expect(executeHooksWithArgs).toBeCalledWith('afterFeature', ['uri', 'feature'])
+    })
+
+    afterEach(() => {
+        executeHooksWithArgs.mockClear()
+    })
 })
