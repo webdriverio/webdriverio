@@ -60,6 +60,9 @@ async function bar() {
 
     // $
     const el1 = await $('')
+    const strFunction = (str: string) => str
+    strFunction(el1.selector)
+    strFunction(el1.elementId)
     const el2 = await el1.$('')
     const el3 = await el2.$('')
     await el1.getCSSProperty('style')

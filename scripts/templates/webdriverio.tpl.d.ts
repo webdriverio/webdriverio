@@ -165,6 +165,8 @@ declare namespace WebdriverIO {
     type TouchActions = string | TouchAction | TouchAction[];
 
     interface Element {
+        selector: string;
+        elementId: string;
         addCommand(
             name: string,
             func: Function

@@ -4,7 +4,7 @@ type $ = (selector: string | Function) => Promise<WebdriverIOAsync.Element>;
 type $$ = (selector: string | Function) => Promise<WebdriverIOAsync.Element[]>;
 
 // Element commands that should be wrapper with Promise
-type ElementPromise = Omit<WebdriverIO.Element, 'addCommand' | '$' | '$$'>;
+type ElementPromise = Omit<WebdriverIO.Element, 'addCommand' | '$' | '$$' | 'selector' | 'elementId'>;
 
 // Methods which return async element(s) so non-async equivalents cannot just be promise-wrapped
 interface AsyncSelectors {
@@ -19,7 +19,7 @@ type ElementAsync = {
 } & AsyncSelectors;
 
 // Element commands that should not be wrapper with promise
-type ElementStatic = Pick<WebdriverIO.Element, 'addCommand'>
+type ElementStatic = Pick<WebdriverIO.Element, 'addCommand' | 'selector' | 'elementId'>
 
 // Browser commands that should be wrapper with Promise
 type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$'>;
