@@ -31,6 +31,9 @@ browser.overwriteCommand('click', function (origCommand) {
 
 // $
 const el1 = $('')
+const strFunction = (str: string) => str
+strFunction(el1.selector)
+strFunction(el1.elementId)
 const el2 = el1.$('')
 const el3 = el2.$('')
 el1.getCSSProperty('style')
