@@ -47,6 +47,9 @@
       "spec-reporter": {
         "title": "Spec Reporter"
       },
+      "static-server-service": {
+        "title": "Static Server Service"
+      },
       "sumologic-reporter": {
         "title": "Sumologic Reporter"
       },
@@ -154,6 +157,9 @@
       },
       "api/browser/touchAction": {
         "title": "touchAction"
+      },
+      "api/browser/uploadFile": {
+        "title": "uploadFile"
       },
       "api/browser/url": {
         "title": "url"
@@ -286,6 +292,9 @@
       },
       "api/saucelabs": {
         "title": "Sauce Labs"
+      },
+      "api/selenium": {
+        "title": "Selenium Standalone"
       },
       "api/webdriver": {
         "title": "Webdriver Protocol"

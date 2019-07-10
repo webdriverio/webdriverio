@@ -75,7 +75,7 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 30000,
-        compilers: ['js:babel-register']
+        require: ['@babel/register']
     },
     //
     // =====

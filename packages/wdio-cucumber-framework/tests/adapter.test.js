@@ -85,16 +85,16 @@ test('should throw when initialization fails', () => {
 
 describe('registerRequiredModules', () => {
     test('should accept path to module', () => {
-        const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
-        const adapter = adapterFactory({ requireModule: [compilerPath] })
+        const modulePath = path.resolve(__dirname, 'fixtures', 'customModule.js')
+        const adapter = adapterFactory({ requireModule: [modulePath] })
 
         adapter.registerRequiredModules()
         expect(global.MY_VAR).toBe(1)
     })
 
     test('should accept path to module with args', () => {
-        const compilerPath = path.resolve(__dirname, 'fixtures', 'customCompiler.js')
-        const adapter = adapterFactory({ requireModule: [[compilerPath, { some: 'params' }]] })
+        const modulePath = path.resolve(__dirname, 'fixtures', 'customModule.js')
+        const adapter = adapterFactory({ requireModule: [[modulePath, { some: 'params' }]] })
 
         adapter.registerRequiredModules()
         expect(global.MY_PARAMS).toEqual({ some: 'params' })
