@@ -22,7 +22,7 @@ export default class HookRunner {
      * @return {Promise}         hook promise
      */
     handleBeforeFeature (...args) {
-        return executeHooksWithArgs(this.config.beforeFeature, ...args)
+        return executeHooksWithArgs(this.config.beforeFeature, args)
     }
 
     /**
@@ -33,7 +33,7 @@ export default class HookRunner {
      * @return {Promise}         hook promise
      */
     handleBeforeScenario (...args) {
-        return executeHooksWithArgs(this.config.beforeScenario, ...args)
+        return executeHooksWithArgs(this.config.beforeScenario, args)
     }
 
     /**
@@ -45,7 +45,7 @@ export default class HookRunner {
      * @return {Promise}          hook promise
      */
     handleBeforeStep (...args) {
-        return executeHooksWithArgs(this.config.beforeStep, ...args)
+        return executeHooksWithArgs(this.config.beforeStep, args)
     }
 
     /**
@@ -58,7 +58,7 @@ export default class HookRunner {
      * @return {Promise}          hook promise
      */
     handleAfterStep (...args) {
-        return executeHooksWithArgs(this.config.afterStep, ...args)
+        return executeHooksWithArgs(this.config.afterStep, args)
     }
 
     /**
@@ -68,7 +68,7 @@ export default class HookRunner {
      * @return {Promise}         hook promise
      */
     handleAfterScenario (...args) {
-        return executeHooksWithArgs(this.config.afterScenario, ...args)
+        return executeHooksWithArgs(this.config.afterScenario, args)
     }
 
     /**
@@ -78,6 +78,6 @@ export default class HookRunner {
      * @return {Promise}         hook promise
      */
     handleAfterFeature (...args) {
-        return executeHooksWithArgs(this.config.afterFeature, ...args)
+        return executeHooksWithArgs(this.config.afterFeature, args)
     }
 }
