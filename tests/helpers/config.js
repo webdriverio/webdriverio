@@ -29,7 +29,7 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 10000,
-        compilers: ['js:@babel/register']
+        require: ['@babel/register']
     },
 
     jasmineNodeOpts: {
