@@ -48,13 +48,13 @@ describe('handles hooks', () => {
     })
 
     test('beforeStep', () => {
-        hookRunner.handleBeforeStep('uri', 'feature', 'scenario', 'step')
-        expect(executeHooksWithArgs).toBeCalledWith('beforeStep', ['uri', 'feature', 'scenario', 'step'])
+        hookRunner.handleBeforeStep('uri', 'feature', 'scenario', 'step', 'sourceLocation')
+        expect(executeHooksWithArgs).toBeCalledWith('beforeStep', ['uri', 'feature', 'scenario', 'step', 'sourceLocation'])
     })
 
     test('afterStep', () => {
-        hookRunner.handleAfterStep('uri', 'feature', 'scenario', 'step', 'result')
-        expect(executeHooksWithArgs).toBeCalledWith('afterStep', ['uri', 'feature', 'scenario', 'step', 'result'])
+        hookRunner.handleAfterStep('uri', 'feature', 'scenario', 'step', 'result', 'sourceLocation')
+        expect(executeHooksWithArgs).toBeCalledWith('afterStep', ['uri', 'feature', 'scenario', 'step', 'result', 'sourceLocation'])
     })
 
     test('afterScenario', () => {
