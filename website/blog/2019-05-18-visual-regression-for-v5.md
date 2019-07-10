@@ -133,7 +133,7 @@ When you create a fullpage screenshot you might have some elements that stay in 
 These elements normally mess up the screenshot like you can see on the left side of the below image.
 
 But you can now add elements that need to be hidden after the first scroll which will give you a result as you can see in the right side of the below image.
-This can be done by adding this property to you test:
+This can be done by adding this property to your test:
 
 ```js
 browser.checkFullPageScreen('fullPage', { 
