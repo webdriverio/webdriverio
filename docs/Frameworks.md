@@ -3,7 +3,7 @@ id: frameworks
 title: Frameworks
 ---
 
-The wdio runner currently supports [Mocha](http://mochajs.org/) and [Jasmine](http://jasmine.github.io/) and [Cucumber](https://cucumber.io/) (not yet supported in v5). To integrate each framework with WebdriverIO there are adapter packages on NPM that need to be downloaded and installed. Note that these packages need to be installed at the same place WebdriverIO is installed. If you've installed WebdriverIO globally make sure you have the adapter package installed globally as well.
+The wdio runner currently supports [Mocha](http://mochajs.org/) and [Jasmine](http://jasmine.github.io/) and [Cucumber](https://cucumber.io/). To integrate each framework with WebdriverIO there are adapter packages on NPM that need to be downloaded and installed. Note that these packages need to be installed at the same place WebdriverIO is installed. If you've installed WebdriverIO globally make sure you have the adapter package installed globally as well.
 
 Within your spec files or step definition you can access the webdriver instance using the global variable `browser`. You don't need to initiate or end the Selenium session. This is taken care of by the wdio testrunner.
 
@@ -95,14 +95,14 @@ commands the screenshot got taken which gives you still valuable information abo
 
 ## Using Cucumber
 
-To use Cucumber you have to use WebdriverIO v4 until the framework has been migrated to v5. First you need to install the adapter package from NPM:
+First you need to install the adapter package from NPM:
 
 ```sh
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber set the `framework` property to cucumber, either by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md) or by adding `-f cucumber` to the command line.
+If you want to use Cucumber set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md).
 
-Options for Cucumber can be given in the config file with cucumberOpts. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options).
+Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options).
 
 To get up and running quickly with Cucumber have a look on our [cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all step definition you will probably need and allows you to start writing feature files right away.
