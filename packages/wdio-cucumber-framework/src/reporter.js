@@ -126,7 +126,8 @@ class CucumberReporter {
                 }
             } else {
                 error = {
-                    message: err
+                    message: err,
+                    stack: ''
                 }
             }
             this.failedCount++
@@ -134,7 +135,8 @@ class CucumberReporter {
             e = 'fail'
             this.failedCount++
             error = {
-                message: result.exception
+                message: result.exception,
+                stack: ''
             }
         }
 

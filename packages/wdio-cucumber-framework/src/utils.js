@@ -116,7 +116,7 @@ export function formatMessage ({ type, payload = {} }) {
     }
 
     if (payload.title && payload.parent) {
-        payload.fullTitle = getTestFullTitle(payload.parent, payload.title)
+        message.fullTitle = getTestFullTitle(payload.parent, payload.title)
     }
 
     return message
