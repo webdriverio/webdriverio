@@ -55,7 +55,7 @@ class CucumberReporter {
     handleBeforeStep (uri, feature, scenario, step, /*sourceLocation*/) {
         this.testStart = new Date()
         const type = getStepType(step.type)
-        const payload = buildStepPayload(uri, feature, scenario, step, type, getTestStepTitle(step.keyword, step.text))
+        const payload = buildStepPayload(uri, feature, scenario, step, { type })
 
         this.emit(`${type}:start`, payload)
     }
@@ -70,7 +70,12 @@ class CucumberReporter {
     }
 
     afterHook (uri, feature, scenario, step, result) {
-        const payload = buildStepPayload(uri, feature, scenario, step, 'hook', getTestStepTitle(step.keyword, step.text, 'hook'), result.status, result.exception, new Date() - this.testStart)
+        const payload = buildStepPayload(uri, feature, scenario, step, {
+            type: 'hook',
+            state: result.status,
+            error: result.exception,
+            duration: new Date() - this.testStart
+        })
 
         this.emit('hook:end', payload)
     }
@@ -128,7 +133,14 @@ class CucumberReporter {
             }
         }
 
-        const payload = buildStepPayload(uri, feature, scenario, step, 'test', stepTitle, state, error, new Date() - this.testStart, state === 'pass')
+        const payload = buildStepPayload(uri, feature, scenario, step, {
+            type: 'test',
+            title: stepTitle,
+            state,
+            error,
+            duration: new Date() - this.testStart,
+            passed: state === 'pass'
+        })
         this.emit('test:' + state, payload)
     }
 

@@ -1,4 +1,13 @@
-import { createStepArgument, compareScenarioLineWithSourceLine, getStepFromFeature, getTestParent, formatMessage, getUniqueIdentifier, getTestStepTitle } from '../src/utils'
+import {
+    createStepArgument,
+    compareScenarioLineWithSourceLine,
+    getStepFromFeature,
+    getTestParent,
+    formatMessage,
+    getUniqueIdentifier,
+    getTestStepTitle,
+    buildStepPayload
+} from '../src/utils'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -139,6 +148,18 @@ describe('utils', () => {
         })
         it('should not add undefined step for hooks', () => {
             expect(getTestStepTitle('Some Hook ', '', 'hook')).toEqual('Some Hook')
+        })
+    })
+
+    describe('buildStepPayload', () => {
+        it('params not passed', () => {
+            expect(buildStepPayload('uri', {}, {}, { keyword: 'Foo', location: 'bar' })).toEqual({
+                file: 'uri',
+                keyword: 'Foo',
+                parent: 'Undefined Feature: Undefined Scenario',
+                title: 'Foo Undefined Step',
+                uid: 'undefined',
+            })
         })
     })
 })

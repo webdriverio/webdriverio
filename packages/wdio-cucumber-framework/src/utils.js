@@ -115,9 +115,10 @@ export function getStepType(type) {
 /**
  * build payload for test/hook event
  */
-export function buildStepPayload(uri, feature, scenario, step, type, title, state, error, duration, passed) {
+export function buildStepPayload(uri, feature, scenario, step, params = {}) {
     return {
         uid: getUniqueIdentifier(step),
+        title: getTestStepTitle(step.keyword, step.text, params.type),
         parent: getTestParent(feature, scenario),
         argument: createStepArgument(step),
         file: uri,
@@ -125,12 +126,7 @@ export function buildStepPayload(uri, feature, scenario, step, type, title, stat
         keyword: step.keyword,
         featureName: feature.name,
         scenarioName: scenario.name,
-        type,
-        title,
-        state,
-        error,
-        passed,
-        duration
+        ...params
     }
 }
 
