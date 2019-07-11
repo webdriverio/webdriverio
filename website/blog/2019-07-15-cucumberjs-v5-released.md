@@ -20,7 +20,7 @@ To understand what you need to do we have created some steps you might want to f
 But before we explain the steps, you first need to understand the differences between WebdriverIO V4 and WebdriverIO V5
 
 ### W3C support
-WebdriverIO is now fully supporting the W3C protocol, this has a lot of advantages, but for your existing scripts some downsides. 
+WebdriverIO is now fully supporting the W3C protocol, this has a lot of advantages, but for your existing scripts some minor downsides. 
 One of the downsides might be that you are using methods that are based on the JSONWire Protocol, that are not supported by the newest drivers like for example ChromeDriver 74+.
 This might result in errors like for example `browser.positionClick() is not a function`. If you see this error you are using a not supported method for the W3C supported Driver. 
 See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a Webdriver Protocol (W3C) or a JSONWire protocol command.
