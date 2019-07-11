@@ -6,7 +6,7 @@ authorImageURL: https://avatars2.githubusercontent.com/u/11979740?s=460&v=4
 ---
 
 We are pleased to announce that we now have support for CucumberJS in WebdriverIO V5!!!! 
-This has been a great challenge for the projectcommitters so we're all very thankful for the time and effort they put into this.
+This has been a great challenge for the project committers so we're all very thankful for the time and effort they put into this.
 So normally we would say
 
     npm install @wdio/cucumber-framework --save-dev
