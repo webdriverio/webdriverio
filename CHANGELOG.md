@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.2 (2019-07-11)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4174](https://github.com/webdriverio/webdriverio/pull/4174) Cucumber fix error message ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.11.1 (2019-07-11)
 
 #### :bug: Bug Fix
