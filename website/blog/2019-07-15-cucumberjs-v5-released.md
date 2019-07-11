@@ -9,7 +9,9 @@ We are pleased to announce that we now have support for CucumberJS in WebdriverI
 This has been a great challenge for the project committers so we're all very thankful for the time and effort they put into this.
 So normally we would say
 
-    npm install @wdio/cucumber-framework --save-dev
+```sh
+npm install @wdio/cucumber-framework --save-dev
+```
     
 and go with the flow, but this time it is different. When you upgrade to the latest version of the Cucumber framework you also need to upgrade to the **latest version of WebdriverIO**. 
 In this blog post we want to give you some guidelines on how to do that.
@@ -24,6 +26,10 @@ WebdriverIO is now fully supporting the W3C protocol, this has a lot of advantag
 One of the downsides might be that you are using methods that are based on the JSONWire Protocol, that are not supported by the newest drivers like for example ChromeDriver 74+.
 This might result in errors like for example `browser.positionClick() is not a function`. If you see this error you are using a not supported method for the W3C supported Driver. 
 See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a Webdriver Protocol (W3C) or a JSONWire protocol command.
+
+Just a little side note, we tried to keep all `browser` and `element` commands, see the link above, agnostic to the protocol. Nothing changed here for you.
+To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/keys.js#L45-L50).
+
 If you want to use W3C with cloud vendors, like for example Sauce Labs or Browserstack, you need to use a vendor specific prefix in your capabilities.
 Please check the websites of the vendors to see what you need to do
 
@@ -51,8 +57,10 @@ When you do this you can easily disable scenario's in your old project, and run 
 Before installing dependencies, we need to initialize an empty NPM project (this will allow us to the cli to install needed dependencies to our local project).
 To do this, run:
 
-    mkdir webdriverio-test && cd webdriverio-test
-    npm init -y
+```sh
+mkdir webdriverio-test && cd webdriverio-test
+npm init -y
+```
 
 The `-y` will answer 'yes' to all the prompts, giving us a standard NPM project. Feel free to omit the `-y` if you'd like to specify your own project details.
 
@@ -61,12 +69,16 @@ We recommend using the test runner because it comes with a lot of useful feature
 
 Now we need to install the cli. Do that by running:
 
-    npm i --save-dev @wdio/cli
+```sh
+npm i --save-dev @wdio/cli
+```
 
 #### 3. Generate Configuration File
 We'll next want to generate a configuration file that stores all of our WebdriverIO settings. To do that just run the configuration utility:
 
-    ./node_modules/.bin/wdio config
+```sh
+./node_modules/.bin/wdio config
+```
     
 A question interface pops up. It will help to create the config easy and fast and install all needed dependencies.
 Check the file and read the comments, some things changed so reading them might help you understand what changed in the configuration file.
