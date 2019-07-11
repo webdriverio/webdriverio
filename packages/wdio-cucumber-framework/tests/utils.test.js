@@ -1,4 +1,13 @@
-import { createStepArgument, compareScenarioLineWithSourceLine, getStepFromFeature, getTestParent, formatMessage, getUniqueIdentifier } from '../src/utils'
+import {
+    createStepArgument,
+    compareScenarioLineWithSourceLine,
+    getStepFromFeature,
+    getTestParent,
+    formatMessage,
+    getUniqueIdentifier,
+    getTestStepTitle,
+    buildStepPayload
+} from '../src/utils'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -69,24 +78,6 @@ describe('utils', () => {
     })
 
     describe('formatMessage', () => {
-        it('should set title for custom type', () => {
-            expect(formatMessage({
-                type: 'foobar',
-                payload: { ctx: { currentTest: { title: 'barfoo' } } }
-            })).toMatchSnapshot()
-        })
-
-        it('should set type to hook:end', () => {
-            expect(formatMessage({
-                type: 'foobar',
-                payload: {
-                    title: '"before all" hook',
-                    error: new Error('boom'),
-                    state: 'passed'
-                }
-            }).type).toBe('hook:end')
-        })
-
         it('should set passed state for test hooks', () => {
             expect(formatMessage({
                 type: 'afterTest',
@@ -148,6 +139,27 @@ describe('utils', () => {
                     }]
                 }]
             }, { line: 123 })).toBe('realval here123')
+        })
+    })
+
+    describe('getTestStepTitle', () => {
+        it('keword and title are not passed', () => {
+            expect(getTestStepTitle()).toEqual('Undefined Step')
+        })
+        it('should not add undefined step for hooks', () => {
+            expect(getTestStepTitle('Some Hook ', '', 'hook')).toEqual('Some Hook')
+        })
+    })
+
+    describe('buildStepPayload', () => {
+        it('params not passed', () => {
+            expect(buildStepPayload('uri', {}, {}, { keyword: 'Foo', location: 'bar' })).toEqual({
+                file: 'uri',
+                keyword: 'Foo',
+                parent: 'Undefined Feature: Undefined Scenario',
+                title: 'Foo Undefined Step',
+                uid: 'undefined',
+            })
         })
     })
 })

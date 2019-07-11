@@ -65,20 +65,7 @@ Object {
 
 exports[`utils formatMessage should set passed state for test hooks 1`] = `
 Object {
-  "passed": true,
   "state": "passed",
   "type": "afterTest",
-}
-`;
-
-exports[`utils formatMessage should set title for custom type 1`] = `
-Object {
-  "ctx": Object {
-    "currentTest": Object {
-      "title": "barfoo",
-    },
-  },
-  "currentTest": "barfoo",
-  "type": "foobar",
 }
 `;
