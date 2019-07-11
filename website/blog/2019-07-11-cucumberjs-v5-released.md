@@ -19,7 +19,13 @@ In this blog post we want to give you some guidelines on how to do that.
 ## Where to start
 Upgrading to the latest version of the Cucumber framework isn't that simple, because as said, you also need to migrate to version 5 of WebdriverIO.
 To understand what you need to do we have created some steps you might want to follow which will make the migration a lot easier for you. 
-But before we explain the steps, you first need to understand the differences between WebdriverIO V4 and WebdriverIO V5
+But before we explain the steps, you first need to understand the differences between WebdriverIO V4 and WebdriverIO V5.
+
+### NodeJS support
+WebdriverIO now needs NodeJS 8 or higher. Be aware that NodeJS 8 will end it's LTS support at the end of 2019, so upgrading to 10 would be better.
+If you want to know more about the NodeJS LTS support check [this](https://github.com/nodejs/Release). This might help you convince your colleagues / DEVOPS engineers to upgrade you NodeJS instances.
+
+*As a side note, if you want to know what is supported by NodeJS by default you can check [node.green](https://node.green/) and follow all upcoming changes.*
 
 ### W3C support
 WebdriverIO is now fully supporting the W3C protocol, this has a lot of advantages, but for your existing scripts some minor downsides. 
@@ -31,9 +37,13 @@ Just a little side note, we tried to keep all `browser` and `element` commands, 
 To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/keys.js#L45-L50).
 
 If you want to use W3C with cloud vendors, like for example Sauce Labs or Browserstack, you need to use a vendor specific prefix in your capabilities.
-Please check the websites of the vendors to see what you need to do
+Please check the websites of the vendors to see what you need to do.
 
-### Command changes: 
+But, you always need to end with the advantages. So with W3C you will now see that the browsers follow a common web standard for web automation. 
+This helps WebdriverIO to build a reliable framework on top of it. And last but not least, with W3C support from all browser vendors we now also get better support for Appium, check the latest post of [Apple here](https://webkit.org/blog/9395/webdriver-is-coming-to-safari-in-ios-13/).
+So W3C is a major step for us all!! 
+
+### Command changes
 Over the years WebdriverIO added more and more commands for different automation protocols without applying a pattern to it which resulted in having a bunch of duplication and inconsistent naming.
 Even though the list looks exhausting, most of the commands that have changed were used internally. Please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to see all the changes. 
 
