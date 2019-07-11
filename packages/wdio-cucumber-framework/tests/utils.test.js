@@ -69,24 +69,6 @@ describe('utils', () => {
     })
 
     describe('formatMessage', () => {
-        it('should set title for custom type', () => {
-            expect(formatMessage({
-                type: 'foobar',
-                payload: { ctx: { currentTest: { title: 'barfoo' } } }
-            })).toMatchSnapshot()
-        })
-
-        it('should set type to hook:end', () => {
-            expect(formatMessage({
-                type: 'foobar',
-                payload: {
-                    title: '"before all" hook',
-                    error: new Error('boom'),
-                    state: 'passed'
-                }
-            }).type).toBe('hook:end')
-        })
-
         it('should set passed state for test hooks', () => {
             expect(formatMessage({
                 type: 'afterTest',

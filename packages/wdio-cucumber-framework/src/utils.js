@@ -1,5 +1,8 @@
 import * as path from 'path'
 
+/**
+ * NOTE: this function is exported for testing only
+ */
 export function createStepArgument ({ argument }) {
     if (!argument) {
         return undefined
@@ -25,6 +28,7 @@ export function createStepArgument ({ argument }) {
 
 /**
  * builds test parent string from feature and scneario names
+ * NOTE: this function is exported for testing only
  * @param {object} feature cucumber feature object
  * @param {object} scenario cucumber scenario object
  */
@@ -36,8 +40,9 @@ export function getTestParent(feature, scenario) {
  * builds test title from step keyword and text
  * @param {object} step cucumber step object
  */
-export function getTestStepTitle(step) {
-    return ((step.keyword || '') + (step.text || 'Undefined Step')).trim()
+export function getTestStepTitle (keyword = '', text = '', type) {
+    const title = (!text && type !== 'hook') ? 'Undefined Step' : text
+    return `${keyword.trim()} ${title.trim()}`
 }
 
 /**
@@ -92,29 +97,6 @@ export function formatMessage ({ type, payload = {} }) {
         type: type
     }
 
-    if (payload.error) {
-        message.error = payload.error
-
-        /**
-         * hook failures are emitted as "test:fail"
-         */
-        if (payload.title && payload.title.match(/^"(before|after)( all)*" hook/g)) {
-            message.type = 'hook:end'
-        }
-    }
-
-    /**
-     * Add the current test title to the payload for cases where it helps to
-     * identify the test, e.g. when running inside a beforeEach hook
-     */
-    if (payload.ctx && payload.ctx.currentTest) {
-        message.currentTest = payload.ctx.currentTest.title
-    }
-
-    if (type.match(/Test/)) {
-        message.passed = (payload.state === 'passed')
-    }
-
     if (payload.title && payload.parent) {
         message.fullTitle = getTestFullTitle(payload.parent, payload.title)
     }
@@ -122,7 +104,37 @@ export function formatMessage ({ type, payload = {} }) {
     return message
 }
 
-export function compareScenarioLineWithSourceLine (scenario, sourceLocation) {
+/**
+ * Get step type
+ * @param {string} type `Step` or `Hook`
+ */
+export function getStepType(type) {
+    return type === 'Step' ? 'test' : 'hook'
+}
+
+/**
+ * build payload for test/hook event
+ */
+export function buildStepPayload(uri, feature, scenario, step, type, title, state, error, duration, passed) {
+    return {
+        uid: getUniqueIdentifier(step),
+        parent: getTestParent(feature, scenario),
+        argument: createStepArgument(step),
+        file: uri,
+        tags: scenario.tags,
+        keyword: step.keyword,
+        featureName: feature.name,
+        scenarioName: scenario.name,
+        type,
+        title,
+        state,
+        error,
+        passed,
+        duration
+    }
+}
+
+export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
     if (scenario.type.indexOf('ScenarioOutline') > -1) {
         return scenario.examples[0].tableBody
             .some((tableEntry) => tableEntry.location.line === sourceLocation.line)
@@ -131,7 +143,7 @@ export function compareScenarioLineWithSourceLine (scenario, sourceLocation) {
     return scenario.location.line === sourceLocation.line
 }
 
-export function getStepFromFeature (feature, pickle, stepIndex, sourceLocation) {
+export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
     let combinedSteps = []
     feature.children.forEach((child) => {
         if (child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)) {

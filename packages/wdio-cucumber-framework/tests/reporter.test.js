@@ -102,8 +102,14 @@ const buildGherkinDocEvent = () => ({
                 name: 'scenario',
                 steps: [
                     {
+                        type: 'Hook',
+                        location: { line: 132, column: 1, uri: './any.feature' },
+                        keyword: 'Hook',
+                        text: '',
+                    },
+                    {
                         type: 'Step',
-                        location: { line: 132, column: 1 },
+                        location: { line: 133, column: 2 },
                         keyword: '',
                         text: '',
                     },
@@ -173,7 +179,7 @@ describe('cucumber reporter', () => {
                 specs,
                 tags: [...gherkinDocEvent.document.feature.tags],
                 title: gherkinDocEvent.document.feature.name,
-                // type: 'suite',
+                type: 'suite:start',
                 uid: 'feature123',
             }))
         })
@@ -202,7 +208,7 @@ describe('cucumber reporter', () => {
             startSuite(eventBroadcaster)
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
-                // type: 'suite',
+                type: 'suite:start',
                 cid: '0-1',
                 parent: 'feature123',
                 uid: 'scenario126',
@@ -229,7 +235,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:start', expect.objectContaining({
-                    // type: 'test',
+                    type: 'test:start',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -244,7 +250,7 @@ describe('cucumber reporter', () => {
                 }))
             })
 
-            it('pretend `test-step-finished` to look like a hook', () => {
+            it('passed hook', () => {
                 eventBroadcaster.emit('test-step-finished', {
                     index: 1,
                     result: { duration: 10, status: 'passed' },
@@ -253,7 +259,25 @@ describe('cucumber reporter', () => {
                     }
                 })
 
-                expect(wdioReporter.emit).not.toBeCalled()
+                expect(wdioReporter.emit).toHaveBeenCalledWith('hook:end', expect.objectContaining({
+                    type: 'hook:end',
+                    error: undefined,
+                }))
+            })
+
+            it('failed hook', () => {
+                eventBroadcaster.emit('test-step-finished', {
+                    index: 1,
+                    result: { duration: 10, status: 'failed', exception: 'err' },
+                    testCase: {
+                        sourceLocation: { uri: gherkinDocEvent.uri, line: 131 }
+                    }
+                })
+
+                expect(wdioReporter.emit).toHaveBeenCalledWith('hook:end', expect.objectContaining({
+                    type: 'hook:end',
+                    error: 'err',
+                }))
             })
 
             it('should send proper data on successful `test-step-finished` event', () => {
@@ -266,7 +290,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pass', expect.objectContaining({
-                    // type: 'test',
+                    type: 'test:pass',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -289,7 +313,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
-                    // type: 'test',
+                    type: 'test:pending',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -312,7 +336,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
-                    // type: 'test',
+                    type: 'test:pending',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -340,7 +364,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                    // type: 'test',
+                    type: 'test:fail',
                     title: 'When step-title-failing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -371,7 +395,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                    // type: 'test',
+                    type: 'test:fail',
                     title: 'When step-title-failing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -402,7 +426,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                    // type: 'test',
+                    type: 'test:fail',
                     title: 'When step-title-failing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -426,7 +450,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
-                    // type: 'suite',
+                    type: 'suite:end',
                     cid: '0-1',
                     parent: 'feature123',
                     uid: 'scenario126',
@@ -444,7 +468,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
-                    // type: 'suite',
+                    type: 'suite:end',
                     title: 'feature',
                     file: './any.feature',
                     uid: 'feature123',
@@ -552,7 +576,7 @@ describe('cucumber reporter', () => {
             eventBroadcaster.emit('gherkin-document', gherkinDocEvent)
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
-                // type: 'suite',
+                type: 'suite:start',
                 title: '@feature-tag1, @feature-tag2: feature',
                 uid: 'feature123',
                 file: './any.feature',
@@ -583,7 +607,7 @@ describe('cucumber reporter', () => {
             eventBroadcaster.emit('test-case-started', {})
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
-                // type: 'suite',
+                type: 'suite:start',
                 title: '@scenario-tag1, @scenario-tag2: scenario',
                 uid: 'scenario126',
                 file: './any.feature',
