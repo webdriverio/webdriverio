@@ -1,4 +1,4 @@
-import { createStepArgument, compareScenarioLineWithSourceLine, getStepFromFeature, getTestParent, formatMessage, getUniqueIdentifier } from '../src/utils'
+import { createStepArgument, compareScenarioLineWithSourceLine, getStepFromFeature, getTestParent, formatMessage, getUniqueIdentifier, getTestStepTitle } from '../src/utils'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -130,6 +130,15 @@ describe('utils', () => {
                     }]
                 }]
             }, { line: 123 })).toBe('realval here123')
+        })
+    })
+
+    describe('getTestStepTitle', () => {
+        it('keword and title are not passed', () => {
+            expect(getTestStepTitle()).toEqual('Undefined Step')
+        })
+        it('should not add undefined step for hooks', () => {
+            expect(getTestStepTitle('Some Hook ', '', 'hook')).toEqual('Some Hook')
         })
     })
 })

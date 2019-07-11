@@ -42,7 +42,7 @@ export function getTestParent(feature, scenario) {
  */
 export function getTestStepTitle (keyword = '', text = '', type) {
     const title = (!text && type !== 'hook') ? 'Undefined Step' : text
-    return `${keyword.trim()} ${title.trim()}`
+    return `${keyword.trim()} ${title.trim()}`.trim()
 }
 
 /**
