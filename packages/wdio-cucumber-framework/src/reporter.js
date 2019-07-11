@@ -1,7 +1,7 @@
 import { Status } from 'cucumber'
 
 import CucumberEventListener from './cucumberEventListener'
-import { createStepArgument, getTestParent, getTestStepTitle, getUniqueIdentifier, formatMessage } from './utils'
+import { getTestStepTitle, getUniqueIdentifier, formatMessage, getStepType, buildStepPayload } from './utils'
 
 class CucumberReporter {
     gherkinDocEvents = []
@@ -54,52 +54,56 @@ class CucumberReporter {
 
     handleBeforeStep (uri, feature, scenario, step, /*sourceLocation*/) {
         this.testStart = new Date()
+        const type = getStepType(step.type)
+        const payload = buildStepPayload(uri, feature, scenario, step, { type })
 
-        this.emit('test:start', {
-            uid: getUniqueIdentifier(step),
-            title: getTestStepTitle(step),
-            type: 'test',
-            file: uri,
-            parent: getTestParent(feature, scenario),
-            tags: scenario.tags,
-            featureName: feature.name,
-            scenarioName: scenario.name,
-            argument: createStepArgument(step)
-        })
+        this.emit(`${type}:start`, payload)
     }
 
     handleAfterStep (uri, feature, scenario, step, result, /*sourceLocation*/) {
-        let e = 'undefined'
+        const type = getStepType(step.type)
+
+        if (type === 'hook') {
+            return this.afterHook(uri, feature, scenario, step, result)
+        }
+        return this.afterTest(uri, feature, scenario, step, result)
+    }
+
+    afterHook (uri, feature, scenario, step, result) {
+        const payload = buildStepPayload(uri, feature, scenario, step, {
+            type: 'hook',
+            state: result.status,
+            error: result.exception,
+            duration: new Date() - this.testStart
+        })
+
+        this.emit('hook:end', payload)
+    }
+
+    afterTest (uri, feature, scenario, step, result) {
+        let state = 'undefined'
         switch (result.status) {
         case Status.FAILED:
         case Status.UNDEFINED:
-            e = 'fail'
+            state = 'fail'
             break
         case Status.PASSED:
-            e = 'pass'
+            state = 'pass'
             break
         case Status.PENDING:
         case Status.SKIPPED:
         case Status.AMBIGUOUS:
-            e = 'pending'
+            state = 'pending'
         }
-        let error = {}
-        let stepTitle = getTestStepTitle(step)
-
-        /**
-         * if step name is undefined we are dealing with a hook
-         * don't report hooks if no error happened
-         */
-        if (!step.text && result.status !== Status.FAILED) {
-            return
-        }
+        let error = result.exception
+        let stepTitle = getTestStepTitle(step.keyword, step.text)
 
         if (result.status === Status.UNDEFINED) {
             if (this.options.ignoreUndefinedDefinitions) {
                 /**
                  * mark test as pending
                  */
-                e = 'pending'
+                state = 'pending'
                 stepTitle += ' (undefined step)'
             } else {
                 /**
@@ -108,31 +112,20 @@ class CucumberReporter {
                 this.failedCount++
 
                 error = {
-                    message: `Step "${stepTitle}" is not defined. You can ignore this error by setting
-                              cucumberOpts.ignoreUndefinedDefinitions as true.`,
+                    message: `Step "${stepTitle}" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.`,
                     stack: `${step.uri}:${step.line}`
                 }
             }
         } else if (result.status === Status.FAILED) {
-            /**
-             * cucumber failure exception can't get send to parent process
-             * for some reasons
-             */
-            let err = result.exception
-            if (err instanceof Error) {
+            this.failedCount++
+            if (false === result.exception instanceof Error) {
                 error = {
-                    message: err.message,
-                    stack: err.stack
-                }
-            } else {
-                error = {
-                    message: err,
+                    message: result.exception,
                     stack: ''
                 }
             }
-            this.failedCount++
         } else if (result.status === Status.AMBIGUOUS && this.options.failAmbiguousDefinitions) {
-            e = 'fail'
+            state = 'fail'
             this.failedCount++
             error = {
                 message: result.exception,
@@ -140,21 +133,15 @@ class CucumberReporter {
             }
         }
 
-        const parent = getTestParent(feature, scenario)
-        const payload = {
-            uid: getUniqueIdentifier(step),
-            title: stepTitle,
+        const payload = buildStepPayload(uri, feature, scenario, step, {
             type: 'test',
-            file: uri,
-            parent: parent,
-            error: error,
+            title: stepTitle,
+            state,
+            error,
             duration: new Date() - this.testStart,
-            tags: scenario.tags,
-            keyword: step.keyword,
-            argument: createStepArgument(step)
-        }
-
-        this.emit('test:' + e, payload)
+            passed: state === 'pass'
+        })
+        this.emit('test:' + state, payload)
     }
 
     handleAfterScenario (uri, feature, scenario, sourceLocation) {
