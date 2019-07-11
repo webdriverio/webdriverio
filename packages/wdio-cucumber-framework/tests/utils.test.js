@@ -97,6 +97,18 @@ describe('utils', () => {
         it('should not fail if payload was not passed', () => {
             expect(formatMessage({ type: 'test' })).toMatchSnapshot()
         })
+
+        it('should set fullTitle', () => {
+            expect(formatMessage({
+                type: 'foobar',
+                payload: { parent: 'foo', title: 'bar' }
+            })).toEqual({
+                parent: 'foo',
+                title: 'bar',
+                type: 'foobar',
+                fullTitle: 'foo: bar',
+            })
+        })
     })
 
     describe('getUniqueIdentifier', () => {

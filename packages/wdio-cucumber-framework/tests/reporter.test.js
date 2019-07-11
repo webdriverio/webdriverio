@@ -326,12 +326,13 @@ describe('cucumber reporter', () => {
             })
 
             it('should send proper data on failing `test-step-finished` event with exception', () => {
+                const err = new Error('exception-error')
                 eventBroadcaster.emit('test-step-finished', {
                     index: 2,
                     result: {
                         duration: 10,
                         status: 'failed',
-                        exception: new Error('exception-error')
+                        exception: err
                     },
                     testCase: {
                         sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
@@ -350,7 +351,8 @@ describe('cucumber reporter', () => {
                         { name: '@scenario-tag2' }
                     ],
                     error: expect.objectContaining({
-                        message: 'exception-error'
+                        message: err.message,
+                        stack: err.stack
                     })
                 }))
             })
@@ -380,7 +382,8 @@ describe('cucumber reporter', () => {
                         { name: '@scenario-tag2' }
                     ],
                     error: expect.objectContaining({
-                        message: 'string-error'
+                        message: 'string-error',
+                        stack: ''
                     })
                 }))
             })
@@ -410,7 +413,8 @@ describe('cucumber reporter', () => {
                         { name: '@scenario-tag2' }
                     ],
                     error: expect.objectContaining({
-                        message: 'cucumber-ambiguous-error-message'
+                        message: 'cucumber-ambiguous-error-message',
+                        stack: ''
                     })
                 }))
             })
@@ -490,7 +494,8 @@ describe('cucumber reporter', () => {
                 result: {
                     duration: 10,
                     status: 'ambiguous',
-                    exception: 'cucumber-ambiguous-error-message'
+                    exception: 'cucumber-ambiguous-error-message',
+                    stack: ''
                 },
                 testCase: {
                     sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
