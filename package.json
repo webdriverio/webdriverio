@@ -5,7 +5,7 @@
     "bootstrap": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "build": "lerna run build",
     "changelog": "node ./scripts/changelog.js",
-    "ci": "run-s test:eslint test:typings test:coverage setup test:smoke",
+    "ci": "lerna bootstrap && run-s build test:eslint test:typings test:coverage link test:smoke",
     "clean": "run-p clean:*",
     "clean:build": "rimraf ./packages/*/build",
     "clean:pkglock": "rimraf ./packages/*/package-lock.json",
