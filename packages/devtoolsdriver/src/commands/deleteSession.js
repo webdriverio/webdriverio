@@ -1,4 +1,4 @@
-export default async function navigateTo (browser) {
-    await browser.close()
+export default async function navigateTo () {
+    await this.browser.close()
     return null
 }

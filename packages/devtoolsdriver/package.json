@@ -35,7 +35,6 @@
     "chrome-remote-interface": "^0.27.1",
     "jsdom": "^14.0.0",
     "puppeteer": "^1.18.1",
-    "puppeteer-firefox": "^0.5.0",
-    "uuid": "^3.3.2"
+    "puppeteer-firefox": "^0.5.0"
   }
 }

@@ -1,3 +1,4 @@
+import os from 'os'
 import uuidv4 from 'uuid/v4'
 
 import DevToolsDriver from './devtoolsdriver'
@@ -45,6 +46,15 @@ export async function startBrowserWithDevTools (params) {
             height: DEFAULT_HEIGHT
         }
     })
+
+    const [browserName, browserVersion] = (await browser.version()).split('/')
+
+    params.capabilities = {
+        browserName,
+        browserVersion,
+        platformName: os.platform(),
+        platformVersion: os.release()
+    }
 
     /**
      * save original set of capabilities to allow to request the same session again
