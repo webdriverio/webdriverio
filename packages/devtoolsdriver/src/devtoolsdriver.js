@@ -40,7 +40,7 @@ export default class DevToolsDriver {
         return async function (...args) {
             const browser = sessionMap.get(this.sessionId)
 
-            if (!this.browser) {
+            if (!self.browser) {
                 await self.initiateSession(browser)
             }
 
