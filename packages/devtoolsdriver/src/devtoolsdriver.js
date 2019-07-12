@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import uuidv4 from 'uuid/v4'
 
 import logger from '@wdio/logger'
 
@@ -8,10 +9,11 @@ import { validate } from './utils'
 
 const log = logger('remotedriver')
 
-export default class RemoteDriver {
+export default class DevToolsDriver {
     constructor () {
         this.commands = {}
         this.elementStore = new ElementStore()
+        this.windows = new Map()
 
         const dir = path.resolve(__dirname, 'commands')
         const files = fs.readdirSync(dir)
@@ -38,6 +40,10 @@ export default class RemoteDriver {
         return async function (...args) {
             const browser = sessionMap.get(this.sessionId)
 
+            if (!this.browser) {
+                await self.initiateSession(browser)
+            }
+
             /**
              * check if session exist
              */
@@ -46,17 +52,24 @@ export default class RemoteDriver {
             }
 
             const params = validate(command, parameters, variables, ref, args)
-            const result = await self.commands[command].call(self, browser, params)
+            const result = await self.commands[command].call(self, params)
 
             log.info('RESULT', command.toLowerCase().includes('screenshot')
                 && typeof result === 'string' && result.length > 64
                 ? `${result.substr(0, 61)}...` : result)
 
-            if (command === 'newSession') {
-                this.browser = result
-            }
-
             return result
+        }
+    }
+
+    async initiateSession (browser) {
+        this.browser = browser
+
+        const pages = await this.browser.pages()
+        for (const page of pages) {
+            const pageId = uuidv4()
+            this.windows.set(pageId, page)
+            this.currentWindowHandle = pageId
         }
     }
 }

@@ -1,4 +1,4 @@
-export default async function navigateTo (browser) {
-    const page = (await browser.pages())[0]
+export default async function navigateTo () {
+    const page = this.windows.get(this.currentWindowHandle)
     return page.url()
 }
