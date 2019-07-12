@@ -1,12 +1,10 @@
 import fs from 'fs'
 import path from 'path'
-import CDP from 'chrome-remote-interface'
 
 import logger from '@wdio/logger'
 
 import ElementStore from './elementstore'
 import { validate } from './utils'
-import { CONNECTION_TIMEOUT } from './constants'
 
 const log = logger('remotedriver')
 
@@ -23,7 +21,7 @@ export default class RemoteDriver {
         }
     }
 
-    register (commandInfo) {
+    register (commandInfo, sessionMap) {
         const self = this
         const { command, ref, parameters, variables = [] } = commandInfo
 
@@ -38,41 +36,27 @@ export default class RemoteDriver {
          * within here you find the webdriver scope
          */
         return async function (...args) {
-            const connection = await self.ensureConnection(this)
+            const browser = sessionMap.get(this.sessionId)
+
+            /**
+             * check if session exist
+             */
+            if (!browser) {
+                throw new Error(`Session with sessionId ${this.sessionId} not found`)
+            }
 
             const params = validate(command, parameters, variables, ref, args)
-            const result = await self.commands[command].call(self, connection, params)
+            const result = await self.commands[command].call(self, browser, params)
 
             log.info('RESULT', command.toLowerCase().includes('screenshot')
                 && typeof result === 'string' && result.length > 64
                 ? `${result.substr(0, 61)}...` : result)
 
+            if (command === 'newSession') {
+                this.browser = result
+            }
+
             return result
         }
-    }
-
-    ensureConnection (scope) {
-        /**
-         * return if already established
-         * @param  {[type]} this [description]
-         * @return {[type]}      [description]
-         */
-        if (this.connection) {
-            return this.connection
-        }
-
-        const { debuggerAddress } = scope.capabilities['goog:chromeOptions']
-        // const [host, port] = debuggerAddress.split(':')
-        return new Promise((resolve, reject) => {
-            const connectionTimeout = setTimeout(
-                () => reject(new Error(`Couldn't connect to ${debuggerAddress}`)),
-                CONNECTION_TIMEOUT)
-
-            CDP({ host: '54.183.225.161', port: 9222, target: (targets) => targets.findIndex((t) => t.type === 'page') }, (connection) => {
-                clearTimeout(connectionTimeout)
-                this.connection = connection
-                return resolve(connection)
-            })
-        })
     }
 }

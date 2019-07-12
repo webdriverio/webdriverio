@@ -1,11 +1,11 @@
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
-import command from 'remotedriver'
+import { commandWrapper as devtoolsCommandWrapper, startBrowserWithDevTools } from 'devtoolsdriver'
 
 import webdriverMonad from './monad'
-import WebDriverRequest from './request'
+import command from './command'
 import { DEFAULTS } from './constants'
-import { getPrototype, environmentDetector, getEnvironmentVars } from './utils'
+import { startBrowserWithWebDriver, getPrototype, environmentDetector, getEnvironmentVars } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -21,47 +21,14 @@ export default class WebDriver {
             logger.setLevel('webdriver', params.logLevel)
         }
 
-        /**
-         * the user could have passed in either w3c style or jsonwp style caps
-         * and we want to pass both styles to the server, which means we need
-         * to check what style the user sent in so we know how to construct the
-         * object for the other style
-         */
-        const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
-            /**
-             * in case W3C compliant capabilities are provided
-             */
-            ? [params.capabilities, params.capabilities.alwaysMatch]
-            /**
-             * otherwise assume they passed in jsonwp-style caps (flat object)
-             */
-            : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
-
-        const sessionRequest = new WebDriverRequest(
-            'POST',
-            '/session',
-            {
-                capabilities: w3cCaps, // W3C compliant
-                desiredCapabilities: jsonwpCaps // JSONWP compliant
-            }
-        )
-
-        const response = await sessionRequest.makeRequest(params)
-
-        /**
-         * save original set of capabilities to allow to request the same session again
-         * (e.g. for reloadSession command in WebdriverIO)
-         */
-        params.requestedCapabilities = { w3cCaps, jsonwpCaps }
-
-        /**
-         * save actual receveived session details
-         */
-        params.capabilities = response.value.capabilities || response.value
+        const response = await (params.devtools
+            ? startBrowserWithDevTools(params)
+            : startBrowserWithWebDriver(params))
 
         const environment = environmentDetector(params)
         const environmentPrototype = getEnvironmentVars(environment)
-        const protocolCommands = getPrototype(environment)
+        const wrapper = params.devtools ? devtoolsCommandWrapper : command
+        const protocolCommands = getPrototype(environment, wrapper)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)

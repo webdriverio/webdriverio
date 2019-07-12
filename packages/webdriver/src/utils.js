@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import command from './command'
+import WebDriverRequest from './request'
 import merge from 'lodash.merge'
 import WebDriverProtocol from '../protocol/webdriver.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
@@ -11,6 +11,51 @@ import SauceLabsProtocol from '../protocol/saucelabs.json'
 import SeleniumProtocol from '../protocol/selenium.json'
 
 const log = logger('webdriver')
+
+/**
+ * start browser session with WebDriver protocol
+ */
+export async function startBrowserWithWebDriver (params) {
+    /**
+     * the user could have passed in either w3c style or jsonwp style caps
+     * and we want to pass both styles to the server, which means we need
+     * to check what style the user sent in so we know how to construct the
+     * object for the other style
+     */
+    const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
+        /**
+         * in case W3C compliant capabilities are provided
+         */
+        ? [params.capabilities, params.capabilities.alwaysMatch]
+        /**
+         * otherwise assume they passed in jsonwp-style caps (flat object)
+         */
+        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
+    const sessionRequest = new WebDriverRequest(
+        'POST',
+        '/session',
+        {
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
+        }
+    )
+
+    const response = await sessionRequest.makeRequest(params)
+
+    /**
+     * save original set of capabilities to allow to request the same session again
+     * (e.g. for reloadSession command in WebdriverIO)
+     */
+    params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+
+    /**
+     * save actual receveived session details
+     */
+    params.capabilities = response.value.capabilities || response.value
+
+    return response
+}
 
 /**
  * check if WebDriver requests was successful
@@ -128,7 +173,7 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }, commandWrapper = command) {
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }, commandWrapper) {
     const prototype = {}
     const ProtocolCommands = merge(
         /**
