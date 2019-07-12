@@ -26,8 +26,8 @@
     <a href="https://webdriver.io">Homepage</a> |
     <a href="https://webdriver.io/guide.html">Developer Guide</a> |
     <a href="https://webdriver.io/docs/api.html">API Reference</a> |
-    <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a>
-    <a href="https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md">Changelog</a>
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a> |
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md">Changelog</a> |
     <a href="https://github.com/webdriverio/webdriverio/blob/master/ROADMAP.md">Roadmap</a>
 </p>
 
