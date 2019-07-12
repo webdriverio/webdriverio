@@ -15,6 +15,31 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.4 (2019-07-12)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-crossbrowsertesting-service`, `wdio-testingbot-service`
+  * [#4179](https://github.com/webdriverio/webdriverio/pull/4179) Add EsLint check for dependencies ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#4153](https://github.com/webdriverio/webdriverio/pull/4153) Add Changelog and Roadmap links to README.md ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## v5.11.3 (2019-07-11)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4181](https://github.com/webdriverio/webdriverio/pull/4181) wdio-cucumber-framework: fix hook handling ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4176](https://github.com/webdriverio/webdriverio/pull/4176) Chore/cucumber5 blogpost ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.11.2 (2019-07-11)
 
 #### :bug: Bug Fix
