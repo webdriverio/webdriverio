@@ -3,12 +3,6 @@ WebdriverIO Roadmap
 
 This document is designed to be a living record of the current and projected priorities for the WebdriverIO project. It is, of course, always subject to change and exists solely to give the community an idea of where we're going. The roadmap is set by the Technical Steering Committee (TSC) team. If you have feature suggestions for WebdriverIO or any of the `@wdio` packages, please submit a [GitHub issue](https://github.com/webdriverio/webdriverio/issues/new?template=--feature-request.md) and, if of sufficient size and approved by the team, it will be added here. If you have concerns about the roadmap, you can raise a GitHub issue. Note that bugfixes and miscellaneous features are not considered "roadmap projects", and will be addressed in the due course of normal project development. This page exists to outline large-scale future plans for WebdriverIO.
 
-## Current Roadmap Projects
-
-| Project | Description | ETD | PR / Issue |
-|---------|-------------|-----|--------------------------|
-|Cucumber Framework Support|A lot of people request support for Cucumber as it is their main framework choice. Initial work on this has already been done by the community. The code needs to get proper unit tests but would then be good to go.|Q2|https://github.com/webdriverio/webdriverio/pull/3667|
-
 ## Upcoming Projects (in no particular order)
 
 | Project | Description |
@@ -29,3 +23,4 @@ This document is designed to be a living record of the current and projected pri
 | Project | Description | Completed | WebdriverIO Release | Notes |
 |---------|-------------|-----------|---------------------|-------|
 |Make CLI tool more powerful|Adding simple add ons to the setup becomes difficult if the person is not familiar with the project or WebDriver in general. Adding some simple commands to the CLI interface that allows to add service and reporters and modifies the config would make the process of adding plugins much easier.|2019-06-06|[v5.10.0](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v5100-2019-06-06)|[#3915](https://github.com/webdriverio/webdriverio/issues/3915)|
+|Cucumber Framework Support|A lot of people request support for Cucumber as it is their main framework choice. Initial work on this has already been done by the community. The code needs to get proper unit tests but would then be good to go.|2019-07-09|[v5.11.0](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v5110-2019-07-09)|[#3667](https://github.com/webdriverio/webdriverio/pull/3667)|
