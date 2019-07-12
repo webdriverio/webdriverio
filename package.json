@@ -25,7 +25,7 @@
     "test:eslint": "rm -fr packages/node_modules && eslint packages examples scripts tests",
     "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
     "test:coverage": "jest --coverage --detectOpenHandles",
-    "test:smoke": "babel-node ./tests/smoke.runner.js",
+    "test:smoke": "npm run link && babel-node ./tests/smoke.runner.js",
     "ts": "run-p ts:*",
     "ts:sync": "cd tests/typings/sync && tsc",
     "ts:sync-mocha": "cd tests/typings/sync-mocha && tsc",
