@@ -1,7 +1,7 @@
 {
-  "name": "remotedriver",
+  "name": "devtoolsdriver",
   "version": "5.7.5",
-  "description": "A WebDriver extension that runs commands on the remote debug protocol",
+  "description": "A WebDriver extension that runs commands on the DevTools protocol",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver",
   "license": "MIT",
@@ -24,7 +24,7 @@
     "url": "git://github.com/webdriverio/webdriverio.git"
   },
   "keywords": [
-    "remotedriver"
+    "devtoolsdriver"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
@@ -33,6 +33,9 @@
     "@wdio/config": "^5.7.3",
     "@wdio/logger": "^5.7.0",
     "chrome-remote-interface": "^0.27.1",
-    "jsdom": "^14.0.0"
+    "jsdom": "^14.0.0",
+    "puppeteer": "^1.18.1",
+    "puppeteer-firefox": "^0.5.0",
+    "uuid": "^3.3.2"
   }
 }
