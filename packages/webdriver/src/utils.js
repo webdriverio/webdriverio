@@ -212,30 +212,6 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
 }
 
 /**
- * get command call structure
- * (for logging purposes)
- */
-export function commandCallStructure (commandName, args) {
-    const callArgs = args.map((arg) => {
-        if (typeof arg === 'string') {
-            arg = `"${arg}"`
-        } else if (typeof arg === 'function') {
-            arg = '<fn>'
-        } else if (arg === null) {
-            arg = 'null'
-        } else if (typeof arg === 'object') {
-            arg = '<object>'
-        } else if (typeof arg === 'undefined') {
-            arg = typeof arg
-        }
-
-        return arg
-    }).join(', ')
-
-    return `${commandName}(${callArgs})`
-}
-
-/**
  * check if session is based on W3C protocol based on the /session response
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if W3C (browser)

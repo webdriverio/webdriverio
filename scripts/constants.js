@@ -1,11 +1,11 @@
 const PROTOCOLS = {
-    webdriver: require('../packages/webdriver/protocol/webdriver.json'),
-    appium: require('../packages/webdriver/protocol/appium.json'),
-    jsonwp: require('../packages/webdriver/protocol/jsonwp.json'),
-    mjsonwp: require('../packages/webdriver/protocol/mjsonwp.json'),
-    chromium: require('../packages/webdriver/protocol/chromium.json'),
-    saucelabs: require('../packages/webdriver/protocol/saucelabs.json'),
-    selenium: require('../packages/webdriver/protocol/selenium.json')
+    webdriver: require('../packages/wdio-protocols/protocols/webdriver.json'),
+    appium: require('../packages/wdio-protocols/protocols/appium.json'),
+    jsonwp: require('../packages/wdio-protocols/protocols/jsonwp.json'),
+    mjsonwp: require('../packages/wdio-protocols/protocols/mjsonwp.json'),
+    chromium: require('../packages/wdio-protocols/protocols/chromium.json'),
+    saucelabs: require('../packages/wdio-protocols/protocols/saucelabs.json'),
+    selenium: require('../packages/wdio-protocols/protocols/selenium.json')
 }
 const PROTOCOL_NAMES = {
     appium: 'Appium',

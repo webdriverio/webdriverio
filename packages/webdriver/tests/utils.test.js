@@ -1,6 +1,7 @@
 import {
-    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError, overwriteElementCommands
+    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype,
+    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError,
+    overwriteElementCommands
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -113,11 +114,6 @@ describe('utils', () => {
         const saucePrototype = getPrototype({ isW3C: true, isSauce: true })
         expect(saucePrototype instanceof Object).toBe(true)
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
-    })
-
-    it('commandCallStructure', () => {
-        expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
-            .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
     })
 
     describe('environmentDetector', () => {
