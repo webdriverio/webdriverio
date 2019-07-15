@@ -1,5 +1,5 @@
 {
-  "name": "devtoolsdriver",
+  "name": "devtools",
   "version": "5.7.5",
   "description": "A WebDriver extension that runs commands on the DevTools protocol",
   "author": "Christian Bromann <christian@saucelabs.com>",
@@ -30,11 +30,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "^5.7.3",
     "@wdio/logger": "^5.7.0",
-    "chrome-remote-interface": "^0.27.1",
-    "jsdom": "^14.0.0",
-    "puppeteer": "^1.18.1",
+    "chrome-launcher": "^0.11.1",
+    "puppeteer-core": "^1.18.1",
     "puppeteer-firefox": "^0.5.0"
   }
 }

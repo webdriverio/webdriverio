@@ -90,8 +90,8 @@ export const DEFAULTS = {
     /**
      * flag to decide whether to control browser via WebDriver or DevTools
      */
-    devtools: {
-        type: 'boolean',
-        default: false
+    automationProtocol: {
+        type: 'string',
+        default: 'webdriver'
     }
 }
