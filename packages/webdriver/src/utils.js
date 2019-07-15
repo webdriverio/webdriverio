@@ -286,14 +286,10 @@ export function isAndroid (caps) {
  */
 export function isSauce (hostname, caps) {
     return Boolean(
-        hostname &&
-        hostname.includes('saucelabs') &&
+        caps.extendedDebugging ||
         (
-            caps.extendedDebugging ||
-            (
-                caps['sauce:options'] &&
-                caps['sauce:options'].extendedDebugging
-            )
+            caps['sauce:options'] &&
+            caps['sauce:options'].extendedDebugging
         )
     )
 }
