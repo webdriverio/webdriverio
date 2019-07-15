@@ -4,9 +4,9 @@ export default class ElementStore {
         this.elementMap = new Map()
     }
 
-    set (nodeId) {
+    set (elementHandle) {
         const index = `ELEMENT-${++this.index}`
-        this.elementMap.set(index, nodeId)
+        this.elementMap.set(index, elementHandle)
         return index
     }
 

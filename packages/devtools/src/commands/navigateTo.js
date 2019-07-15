@@ -1,5 +1,5 @@
-export default async function navigateTo (params) {
+export default async function navigateTo ({ url }) {
     const page = this.windows.get(this.currentWindowHandle)
-    await page.goto(params.url)
+    await page.goto(url)
     return null
 }

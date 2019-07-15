@@ -30,7 +30,7 @@ This package is work in progress. The following commands are already supported:
 - [ ] maximizeWindow
 - [ ] minimizeWindow
 - [ ] fullscreenWindow
-- [ ] findElement
+- [x] findElement
 - [ ] findElements
 - [ ] findElementFromElement
 - [ ] findElementsFromElement
