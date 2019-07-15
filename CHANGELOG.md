@@ -21,6 +21,10 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 * `webdriver`
   * [#4194](https://github.com/webdriverio/webdriverio/pull/4194) isSauce should not depend on hostname ([@christian-bromann](https://github.com/christian-bromann))
 
+#### :nail_care: Polish
+* `wdio-webdriver-mock-service`, `webdriver`
+  * [#4186](https://github.com/webdriverio/webdriverio/pull/4186) webdriver: support rebinding of context when invoking origFn in element.overwriteCommand ([@akloeber](https://github.com/akloeber))
+
 #### Committers: 2
 - Andreas Klöber ([@akloeber](https://github.com/akloeber))
 - Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
