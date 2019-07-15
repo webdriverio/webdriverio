@@ -2,25 +2,17 @@ import os from 'os'
 import uuidv4 from 'uuid/v4'
 
 import DevToolsDriver from './devtoolsdriver'
-import { DEFAULT_WIDTH, DEFAULT_HEIGHT } from './constants'
+import launch from './launcher'
 
 const driver = new DevToolsDriver()
-const nonExistingPuppeteer = {
-    launch: () => Promise.reject(new Error('browser not supported'))
-}
-
-const puppeteerMap = {
-    'chrome': require('puppeteer'),
-    'firefox': require('puppeteer-firefox')
-}
 
 const sessionMap = new Map()
 
-export function commandWrapper (_, __, commandInfo) {
+function commandWrapper (_, __, commandInfo) {
     return driver.register(commandInfo, sessionMap)
 }
 
-export async function startBrowserWithDevTools (params) {
+export default async function startDevToolsSession (params) {
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
@@ -37,16 +29,12 @@ export async function startBrowserWithDevTools (params) {
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const puppeteer = puppeteerMap[params.capabilities.browserName] || nonExistingPuppeteer
-    const sessionId = uuidv4()
-    const browser = await puppeteer.launch({
-        headless: false,
-        defaultViewport: {
-            width: DEFAULT_WIDTH,
-            height: DEFAULT_HEIGHT
-        }
-    })
+    const browser = await launch(params.capabilities)
 
+    const pages = await browser.pages()
+    await pages[0].close()
+
+    const sessionId = uuidv4()
     const [browserName, browserVersion] = (await browser.version()).split('/')
 
     params.capabilities = {
@@ -63,5 +51,5 @@ export async function startBrowserWithDevTools (params) {
     params.requestedCapabilities = { w3cCaps, jsonwpCaps }
 
     sessionMap.set(sessionId, browser)
-    return { value: {}, sessionId }
+    return { sessionId, commandWrapper }
 }

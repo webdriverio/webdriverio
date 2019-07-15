@@ -1,7 +1,8 @@
+import merge from 'lodash.merge'
 import logger from '@wdio/logger'
 
 import WebDriverRequest from './request'
-import merge from 'lodash.merge'
+import command from './command'
 import WebDriverProtocol from '../protocol/webdriver.json'
 import MJsonWProtocol from '../protocol/mjsonwp.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -13,9 +14,34 @@ import SeleniumProtocol from '../protocol/selenium.json'
 const log = logger('webdriver')
 
 /**
+ * start automation session
+ * @param  {object} params         session parameter
+ * @param  {object} userPrototype  customised user prototype
+ * @return {object}                sessionId and prototype
+ */
+export async function startSession (params, userPrototype) {
+    let startFn = startWebDriverSession
+    if (typeof params.automationProtocol === 'string' && params.automationProtocol !== 'webdriver') {
+        try {
+            startFn = require(params.automationProtocol).default
+        } catch (e) {
+            throw new Error(`Couldn't start session using automation protocol "${params.automationProtocol}", ${e.message}`)
+        }
+    }
+
+    const { sessionId, commandWrapper } = await startFn(params)
+    const environment = environmentDetector(params)
+    const environmentPrototype = getEnvironmentVars(environment)
+    const protocolCommands = getPrototype(environment, commandWrapper)
+    const prototype = merge(protocolCommands, environmentPrototype, userPrototype)
+
+    return { sessionId, prototype }
+}
+
+/**
  * start browser session with WebDriver protocol
  */
-export async function startBrowserWithWebDriver (params) {
+async function startWebDriverSession (params) {
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
@@ -42,6 +68,7 @@ export async function startBrowserWithWebDriver (params) {
     )
 
     const response = await sessionRequest.makeRequest(params)
+    const sessionId = response.value.sessionId || response.sessionId
 
     /**
      * save original set of capabilities to allow to request the same session again
@@ -54,7 +81,7 @@ export async function startBrowserWithWebDriver (params) {
      */
     params.capabilities = response.value.capabilities || response.value
 
-    return response
+    return { sessionId, commandWrapper: command }
 }
 
 /**

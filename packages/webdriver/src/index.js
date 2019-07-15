@@ -1,11 +1,9 @@
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
-import { commandWrapper as devtoolsCommandWrapper, startBrowserWithDevTools } from 'devtoolsdriver'
 
 import webdriverMonad from './monad'
-import command from './command'
 import { DEFAULTS } from './constants'
-import { startBrowserWithWebDriver, getPrototype, environmentDetector, getEnvironmentVars, setupDirectConnect } from './utils'
+import { startSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -21,10 +19,6 @@ export default class WebDriver {
             logger.setLevel('webdriver', params.logLevel)
         }
 
-        const response = await (params.devtools
-            ? startBrowserWithDevTools(params)
-            : startBrowserWithWebDriver(params))
-
         /**
          * if the server responded with direct connect information, update the
          * params to speak directly to the appium host instead of a load
@@ -36,13 +30,9 @@ export default class WebDriver {
             setupDirectConnect(params)
         }
 
-        const environment = environmentDetector(params)
-        const environmentPrototype = getEnvironmentVars(environment)
-        const wrapper = params.devtools ? devtoolsCommandWrapper : command
-        const protocolCommands = getPrototype(environment, wrapper)
-        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
+        const { sessionId, prototype } = await startSession(params, userPrototype)
         const monad = webdriverMonad(params, modifier, prototype)
-        return monad(response.value.sessionId || response.sessionId, commandWrapper)
+        return monad(sessionId, commandWrapper)
     }
 
     /**
