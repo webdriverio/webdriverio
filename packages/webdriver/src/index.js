@@ -3,16 +3,10 @@ import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
 import { DEFAULTS } from './constants'
-import { startSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
-
-import WebDriverProtocol from '../protocol/webdriver.json'
-import JsonWProtocol from '../protocol/jsonwp.json'
-import MJsonWProtocol from '../protocol/mjsonwp.json'
-import AppiumProtocol from '../protocol/appium.json'
-import ChromiumProtocol from '../protocol/chromium.json'
+import { startWebDriverSession, environmentDetector, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 
 export default class WebDriver {
-    static async newSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
+    static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
         const params = validateConfig(DEFAULTS, options)
 
         if (!options.logLevels || !options.logLevels['webdriver']) {
@@ -30,9 +24,14 @@ export default class WebDriver {
             setupDirectConnect(params)
         }
 
-        const { sessionId, prototype } = await startSession(params, userPrototype)
+        const { sessionId, commandWrapper } = await startWebDriverSession(params)
+        const environment = environmentDetector(params)
+        const environmentPrototype = getEnvironmentVars(environment)
+        const protocolCommands = getPrototype(environment, commandWrapper)
+        const prototype = merge(protocolCommands, environmentPrototype, userPrototype)
+
         const monad = webdriverMonad(params, modifier, prototype)
-        return monad(sessionId, commandWrapper)
+        return monad(sessionId, customCommandWrapper)
     }
 
     /**
@@ -63,25 +62,6 @@ export default class WebDriver {
     }
     static get DEFAULTS () {
         return DEFAULTS
-    }
-
-    /**
-     * Protocols
-     */
-    static get WebDriverProtocol () {
-        return WebDriverProtocol
-    }
-    static get JsonWProtocol () {
-        return JsonWProtocol
-    }
-    static get MJsonWProtocol () {
-        return MJsonWProtocol
-    }
-    static get AppiumProtocol () {
-        return AppiumProtocol
-    }
-    static get ChromiumProtocol () {
-        return ChromiumProtocol
     }
 }
 
