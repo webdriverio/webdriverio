@@ -38,7 +38,7 @@ This package is work in progress. The following commands are already supported:
 - [ ] isElementSelected
 - [x] isElementDisplayed
 - [x] getElementAttribute
-- [ ] getElementProperty
+- [x] getElementProperty
 - [ ] getElementCSSValue
 - [ ] getElementText
 - [ ] getElementTagName
