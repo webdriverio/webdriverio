@@ -29,9 +29,6 @@ export default class DevTools {
         }
 
         const browser = await launch(params.capabilities)
-        const pages = await browser.pages()
-        await pages[0].close()
-
         const sessionId = uuidv4()
         const [browserName, browserVersion] = (await browser.version()).split('/')
 
