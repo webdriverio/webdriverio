@@ -6,6 +6,7 @@ import { newSession, deleteSession } from './mocks/newSession'
 
 const ELEMENT_ID = '401c0039-3306-6a46-a98d-f5939870a249'
 const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
+const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 newSession.value.sessionId = SESSION_ID
 
 export default class WebdriverMockService {
@@ -23,6 +24,7 @@ export default class WebdriverMockService {
         this.command.getTitle().times(2).reply(200, { value: 'Mock Page Title' })
         this.command.getUrl().times(2).reply(200, { value: 'https://mymockpage.com' })
         this.command.getElementRect(ELEMENT_ID).times(2).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
+        this.command.getElementRect(ELEMENT_ALT).times(2).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
         this.command.getLogTypes().reply(200, { value: [] })
     }
 
@@ -109,7 +111,9 @@ export default class WebdriverMockService {
         this.nockReset()
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+        const elemAltResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ALT }
         this.command.findElement().times(times).reply(200, { value: elemResponse })
+        this.command.findElement().times(times).reply(200, { value: elemAltResponse })
         this.command.executeScript().times(times).reply(200, { value: '2' })
 
         // overwrite
