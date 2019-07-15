@@ -30,12 +30,34 @@ export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 export const WDIO_DEFAULTS = {
     /**
+     * allows to specify automation protocol
+     */
+    automationProtocol: {
+        default: 'webdriver',
+        type: (param) => {
+            if (typeof param !== 'string') {
+                throw new Error('the "automationProtocol" option needs to from type strings')
+            } else if (!['webdriver', 'devtools'].includes(param.toLowerCase())) {
+                throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
+            }
+
+            try {
+                require.resolve(param)
+            } catch (e) {
+                throw new Error(
+                    'Automation protocol package is not installed!\n' +
+                    `Please install it via \`npm install ${param}\``
+                )
+            }
+        }
+    },
+    /**
      * define specs for test execution
      */
     specs: {
         type: (param) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "specs" options needs to be a list of strings')
+                throw new Error('the "specs" option needs to be a list of strings')
             }
         }
     },
@@ -45,7 +67,7 @@ export const WDIO_DEFAULTS = {
     exclude: {
         type: (param) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "exclude" options needs to be a list of strings')
+                throw new Error('the "exclude" option needs to be a list of strings')
             }
         }
     },

@@ -36,3 +36,32 @@ export const DEFAULT_FLAGS = [
 export const CHROME_NAMES = ['chrome', 'googlechrome', 'google-chrome', 'chromium']
 export const FIREFOX_NAMES = ['firefox', 'ff', 'mozilla', 'mozillafirefox']
 export const EDGE_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoftedge']
+
+export const DEFAULTS = {
+    capabilities: {
+        type: 'object',
+        required: true
+    },
+    /**
+     * Level of logging verbosity
+     */
+    logLevel: {
+        type: 'string',
+        default: 'info',
+        match: /(trace|debug|info|warn|error|silent)/
+    },
+    /**
+     * Timeout for any request to the Selenium server
+     */
+    connectionPollInterval: {
+        type: 'number',
+        default: 500
+    },
+    /**
+     * maxConnectionRetries in chrome-launcher
+     */
+    connectionRetryCount: {
+        type: 'number',
+        default: 50
+    }
+}

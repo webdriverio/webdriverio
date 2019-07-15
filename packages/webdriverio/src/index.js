@@ -1,10 +1,13 @@
 import path from 'path'
 import WebDriver from 'webdriver'
+import logger from '@wdio/logger'
 import { validateConfig, wrapCommand, runFnInFiberContext, detectBackend } from '@wdio/config'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
 import { getPrototype } from './utils'
+
+const log = logger('webdriverio')
 
 /**
  * A method to create a new session with WebdriverIO
@@ -33,7 +36,9 @@ export const remote = async function (params = {}, remoteModifier) {
     }
 
     const prototype = getPrototype('browser')
-    const instance = await WebDriver.newSession(params, modifier, prototype, wrapCommand)
+    log.info(`Initiate new session using the ${config.automationProtocol} protocol`)
+    const ProtocolDriver = require(config.automationProtocol).default
+    const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand

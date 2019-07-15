@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { commandCallStructure } from '@wdio/utils'
+import { WebDriverProtocol } from '@wdio/protocols'
 
 const log = logger('remotedriver')
 
@@ -66,4 +67,16 @@ export const validate = function (command, parameters, variables, ref, args) {
 
     log.info('DEVTOOLS COMMAND', commandCallStructure(command, args))
     return body
+}
+
+export function getPrototype (commandWrapper) {
+    const prototype = {}
+
+    for (const [endpoint, methods] of Object.entries(WebDriverProtocol)) {
+        for (const [method, commandData] of Object.entries(methods)) {
+            prototype[commandData.command] = { value: commandWrapper(method, endpoint, commandData) }
+        }
+    }
+
+    return prototype
 }

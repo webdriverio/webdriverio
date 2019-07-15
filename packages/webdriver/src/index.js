@@ -26,10 +26,10 @@ export default class WebDriver {
             setupDirectConnect(params)
         }
 
-        const { sessionId, commandWrapper } = await startWebDriverSession(params)
+        const sessionId = await startWebDriverSession(params)
         const environment = environmentDetector(params)
         const environmentPrototype = getEnvironmentVars(environment)
-        const protocolCommands = getPrototype(environment, commandWrapper)
+        const protocolCommands = getPrototype(environment)
         const prototype = merge(protocolCommands, environmentPrototype, userPrototype)
 
         const monad = webdriverMonad(params, modifier, prototype)
