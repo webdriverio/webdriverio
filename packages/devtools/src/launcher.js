@@ -8,7 +8,7 @@ import {
     DEFAULT_HEIGHT
 } from './constants'
 
-const log = logger('devtoolsdriver:launcher')
+const log = logger('devtools')
 
 /**
  * launches Chrome and returns a Puppeteer browser instance

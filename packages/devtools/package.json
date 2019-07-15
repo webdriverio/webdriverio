@@ -31,8 +31,10 @@
   },
   "dependencies": {
     "@wdio/logger": "^5.7.0",
+    "@wdio/protocols": "^0.0.0",
     "@wdio/utils": "^5.11.1",
     "chrome-launcher": "^0.11.1",
+    "lodash.merge": "^4.6.2",
     "puppeteer-core": "^1.18.1",
     "puppeteer-firefox": "^0.5.0"
   }
