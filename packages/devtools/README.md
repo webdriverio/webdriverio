@@ -31,7 +31,7 @@ This package is work in progress. The following commands are already supported:
 - [ ] minimizeWindow
 - [ ] fullscreenWindow
 - [x] findElement
-- [ ] findElements
+- [x] findElements
 - [ ] findElementFromElement
 - [ ] findElementsFromElement
 - [ ] getActiveElement
