@@ -65,3 +65,5 @@ export const DEFAULTS = {
         default: 50
     }
 }
+
+export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name']

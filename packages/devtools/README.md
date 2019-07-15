@@ -32,8 +32,8 @@ This package is work in progress. The following commands are already supported:
 - [ ] fullscreenWindow
 - [x] findElement
 - [x] findElements
-- [ ] findElementFromElement
-- [ ] findElementsFromElement
+- [x] findElementFromElement
+- [x] findElementsFromElement
 - [ ] getActiveElement
 - [ ] isElementSelected
 - [ ] isElementDisplayed
