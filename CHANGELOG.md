@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.5 (2019-07-15)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#4194](https://github.com/webdriverio/webdriverio/pull/4194) isSauce should not depend on hostname ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Andreas Klöber ([@akloeber](https://github.com/akloeber))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
 ## v5.11.4 (2019-07-12)
 
 #### :bug: Bug Fix
