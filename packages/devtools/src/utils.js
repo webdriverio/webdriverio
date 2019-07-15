@@ -2,6 +2,8 @@ import logger from '@wdio/logger'
 import { commandCallStructure } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
+import { ELEMENT_KEY } from './constants'
+
 const log = logger('remotedriver')
 
 // todo move to utils
@@ -79,4 +81,27 @@ export function getPrototype (commandWrapper) {
     }
 
     return prototype
+}
+
+export async function findElement (instance, value) {
+    const element = await instance.$(value)
+
+    if (!element) {
+        return new Error(`Element with selector "${value}" not found`)
+    }
+
+    const elementId = this.elementStore.set(element)
+    return { [ELEMENT_KEY]: elementId }
+}
+
+export async function findElements (instance, value) {
+    const elements = await instance.$$(value)
+
+    if (elements.length === 0) {
+        return elements
+    }
+
+    return elements.map((element) => ({
+        [ELEMENT_KEY]: this.elementStore.set(element)
+    }))
 }
