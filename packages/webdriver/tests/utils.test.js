@@ -162,7 +162,7 @@ describe('utils', () => {
 
             requestedCapabilities.w3cCaps.alwaysMatch['sauce:options'] = { extendedDebugging: true }
             expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
-            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
         })
 
         it('isSeleniumStandalone', () => {
