@@ -150,7 +150,7 @@ describe('utils', () => {
         it('isSauce', () => {
             const capabilities = { browserName: 'chrome' }
             let requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-            let hostname = 'ondemand.saucelabs.com'
+            let hostname = 'localhost' // isSauce should also be true if run through Sauce Connect
 
             expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
             expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
@@ -162,7 +162,7 @@ describe('utils', () => {
 
             requestedCapabilities.w3cCaps.alwaysMatch['sauce:options'] = { extendedDebugging: true }
             expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
-            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
         })
 
         it('isSeleniumStandalone', () => {
