@@ -1,47 +1,19 @@
 import merge from 'lodash.merge'
 import logger from '@wdio/logger'
+import {
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    SauceLabsProtocol, SeleniumProtocol
+} from '@wdio/protocols'
 
 import WebDriverRequest from './request'
 import command from './command'
-import WebDriverProtocol from '../protocol/webdriver.json'
-import MJsonWProtocol from '../protocol/mjsonwp.json'
-import JsonWProtocol from '../protocol/jsonwp.json'
-import AppiumProtocol from '../protocol/appium.json'
-import ChromiumProtocol from '../protocol/chromium.json'
-import SauceLabsProtocol from '../protocol/saucelabs.json'
-import SeleniumProtocol from '../protocol/selenium.json'
 
 const log = logger('webdriver')
 
 /**
- * start automation session
- * @param  {object} params         session parameter
- * @param  {object} userPrototype  customised user prototype
- * @return {object}                sessionId and prototype
- */
-export async function startSession (params, userPrototype) {
-    let startFn = startWebDriverSession
-    if (typeof params.automationProtocol === 'string' && params.automationProtocol !== 'webdriver') {
-        try {
-            startFn = require(params.automationProtocol).default
-        } catch (e) {
-            throw new Error(`Couldn't start session using automation protocol "${params.automationProtocol}", ${e.message}`)
-        }
-    }
-
-    const { sessionId, commandWrapper } = await startFn(params)
-    const environment = environmentDetector(params)
-    const environmentPrototype = getEnvironmentVars(environment)
-    const protocolCommands = getPrototype(environment, commandWrapper)
-    const prototype = merge(protocolCommands, environmentPrototype, userPrototype)
-
-    return { sessionId, prototype }
-}
-
-/**
  * start browser session with WebDriver protocol
  */
-async function startWebDriverSession (params) {
+export async function startWebDriverSession (params) {
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need

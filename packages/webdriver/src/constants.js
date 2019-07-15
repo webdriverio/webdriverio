@@ -86,12 +86,5 @@ export const DEFAULTS = {
      */
     headers: {
         type: 'object'
-    },
-    /**
-     * flag to decide whether to control browser via WebDriver or DevTools
-     */
-    automationProtocol: {
-        type: 'string',
-        default: 'webdriver'
     }
 }

@@ -1,0 +1,32 @@
+{
+  "name": "@wdio/protocols",
+  "version": "0.0.0",
+  "description": "Utility package providing information about automation protocols",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-protocols",
+  "license": "MIT",
+  "main": "./index",
+  "engines": {
+    "node": ">= 4.8.5"
+  },
+  "scripts": {
+    "build": "echo \"nothing to build\"",
+    "test": "echo \"run json linting tests\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
