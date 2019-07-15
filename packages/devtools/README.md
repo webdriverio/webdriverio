@@ -40,7 +40,7 @@ This package is work in progress. The following commands are already supported:
 - [x] getElementAttribute
 - [x] getElementProperty
 - [ ] getElementCSSValue
-- [ ] getElementText
+- [x] getElementText
 - [ ] getElementTagName
 - [ ] getElementRect
 - [ ] isElementEnabled
