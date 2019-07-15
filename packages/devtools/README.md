@@ -41,7 +41,7 @@ This package is work in progress. The following commands are already supported:
 - [x] getElementProperty
 - [ ] getElementCSSValue
 - [x] getElementText
-- [ ] getElementTagName
+- [x] getElementTagName
 - [ ] getElementRect
 - [ ] isElementEnabled
 - [ ] elementClick

@@ -1,4 +1,4 @@
-export default function getElementText ({ elementId }) {
+export default async function getElementTagName ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
@@ -6,5 +6,6 @@ export default function getElementText ({ elementId }) {
     }
 
     const page = this.windows.get(this.currentWindowHandle)
-    return page.$eval('html', (html, elem) => elem.textContent, elementHandle)
+    const result = await page.$eval('html', (html, elem) => elem.tagName, elementHandle)
+    return (result || '').toLowerCase()
 }
