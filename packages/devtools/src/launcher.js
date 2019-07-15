@@ -34,6 +34,13 @@ async function launchChrome (capabilities) {
         defaultViewport: null
     })
 
+    /**
+     * when using Chrome Launcher we have to close a tab as Puppeteer
+     * creates automatically a new one
+     */
+    const pages = await browser.pages()
+    await pages[0].close()
+
     return browser
 }
 
