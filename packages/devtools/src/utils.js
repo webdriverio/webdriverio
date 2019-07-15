@@ -1,8 +1,10 @@
 import logger from '@wdio/logger'
+import { commandCallStructure } from '@wdio/utils'
 
 const log = logger('remotedriver')
 
-import { isValidParameter, getArgumentType, commandCallStructure } from 'webdriver/src/utils'
+// todo move to utils
+import { isValidParameter, getArgumentType } from 'webdriver/src/utils'
 
 export const validate = function (command, parameters, variables, ref, args) {
     const commandParams = [...variables.map((v) => Object.assign(v, {

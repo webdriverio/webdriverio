@@ -1,7 +1,9 @@
 import logger from '@wdio/logger'
+import merge from 'lodash.merge'
+
+import { webdriverMonad } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
-import webdriverMonad from './monad'
 import { DEFAULTS } from './constants'
 import { startWebDriverSession, environmentDetector, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 
@@ -68,7 +70,4 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export {
-    webdriverMonad,
-    getPrototype
-}
+export { getPrototype }
