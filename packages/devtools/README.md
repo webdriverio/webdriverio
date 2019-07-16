@@ -47,7 +47,7 @@ This package is work in progress. The following commands are already supported:
 - [x] elementClick
 - [x] elementClear
 - [x] elementSendKeys
-- [ ] getPageSource
+- [x] getPageSource
 - [ ] executeScript
 - [ ] executeAsyncScript
 - [ ] getAllCookies
