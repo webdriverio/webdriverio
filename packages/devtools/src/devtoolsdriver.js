@@ -32,6 +32,7 @@ export default class DevToolsDriver {
 
         const page = this.windows.get(this.currentWindowHandle)
         page.on('dialog', ::this.dialogHandler)
+        page.on('framenavigated', ::this.framenavigatedHandler)
     }
 
     register (commandInfo) {
@@ -62,5 +63,10 @@ export default class DevToolsDriver {
 
     dialogHandler (dialog) {
         this.activeDialog = dialog
+    }
+
+    framenavigatedHandler (frame) {
+        this.currentFrameUrl = frame.url()
+        this.elementStore.clear()
     }
 }
