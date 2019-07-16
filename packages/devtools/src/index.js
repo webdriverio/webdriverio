@@ -20,10 +20,6 @@ function commandWrapper (_, __, commandInfo) {
 export default class DevTools {
     static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
         const params = validateConfig(DEFAULTS, options)
-        const environment = {
-            isDevTools: { value: true },
-            isW3C: { value: true }
-        }
 
         if (!options.logLevels || !options.logLevels['devtools']) {
             logger.setLevel('devtools', params.logLevel)
@@ -50,6 +46,11 @@ export default class DevTools {
         }
 
         sessionMap.set(sessionId, browser)
+        const environment = {
+            isDevTools: { value: true },
+            isW3C: { value: true },
+            puppeteerBrowser: { value: browser }
+        }
         const protocolCommands = getPrototype(commandWrapper)
         const prototype = merge(protocolCommands, environment, userPrototype)
 

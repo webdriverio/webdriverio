@@ -50,7 +50,7 @@ This package is work in progress. The following commands are already supported:
 - [x] getPageSource
 - [ ] executeScript
 - [ ] executeAsyncScript
-- [ ] getAllCookies
+- [x] getAllCookies
 - [ ] addCookie
 - [ ] deleteAllCookies
 - [ ] getNamedCookie
