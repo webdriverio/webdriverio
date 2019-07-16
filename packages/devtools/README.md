@@ -46,7 +46,7 @@ This package is work in progress. The following commands are already supported:
 - [ ] isElementEnabled
 - [x] elementClick
 - [x] elementClear
-- [ ] elementSendKeys
+- [x] elementSendKeys
 - [ ] getPageSource
 - [ ] executeScript
 - [ ] executeAsyncScript
