@@ -86,7 +86,7 @@ declare namespace WebdriverIO {
         failed: number
     }
 
-    interface Hooks {
+    interface HookFunctions {
         onPrepare?(
             config: Config,
             capabilities: WebDriver.DesiredCapabilities
@@ -141,24 +141,32 @@ declare namespace WebdriverIO {
         afterTest?(test: Test): void;
 
         // cucumber specific hooks
-        beforeFeature?(feature: string): void;
-        beforeScenario?(scenario: string): void;
-        beforeStep?(step: string): void;
-        afterFeature?(feature: string): void;
-        afterScenario?(scenario: any): void;
-        afterStep?(stepResult: any): void;
+        beforeFeature?(uri: any, feature: any): void;
+        beforeScenario?(uri: any, feature: any, scenario: any): void;
+        beforeStep?(uri: any, feature: any, scenario: any, step: any): void;
+        afterFeature?(uri: any, feature: any, scenario: any, step: any, result: any): void;
+        afterScenario?(uri: any, feature: any, scenario: any): void;
+        afterStep?(uri: any, feature: any): void;
     }
+    type _HooksArray = {
+        [K in keyof Pick<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
+    };
+    type _Hooks = Omit<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">;
+    interface Hooks extends _HooksArray, _Hooks { }
 
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
     interface TouchAction {
         action: ActionTypes,
         x?: number,
         y?: number,
-        element?: Element
+        element?: Element,
+        ms?: number
     }
     type TouchActions = string | TouchAction | TouchAction[];
 
     interface Element {
+        selector: string;
+        elementId: string;
         addCommand(
             name: string,
             func: Function
@@ -182,7 +190,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
-            ): void;
+        ): void;
         options: RemoteOptions;
         // ... browser commands ...
     }

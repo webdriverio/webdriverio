@@ -46,7 +46,7 @@ See [timeouts](Timeouts.md) for more information on how to do that using other f
 To get it working, you need to pass the `--inspect` flag down to the wdio command running tests like this:
 
 ```sh
-$ wdio wdio.conf.js --inspect
+wdio wdio.conf.js --inspect
 ```
 
 This will start the runner process with this inspect flag enabled. With that you can open the DevTools and can connect to the runner process. Make sure you set a `debugger` statement somewhere in order to start fiddling around with commands in the console.

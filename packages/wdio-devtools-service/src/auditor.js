@@ -86,7 +86,7 @@ export default class Auditor {
         /**
          * return null if Audit fails
          */
-        if (!result.hasOwnProperty('details')) {
+        if (!Object.prototype.hasOwnProperty.call(result, 'details')) {
             return null
         }
 

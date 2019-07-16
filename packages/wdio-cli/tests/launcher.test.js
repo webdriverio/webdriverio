@@ -12,6 +12,12 @@ describe('launcher', () => {
 
     beforeEach(() => launcher = new Launcher('./'))
 
+    describe('defaults', () => {
+        it('should have default for the argv parameter', () => {
+            expect(launcher.argv).toEqual({})
+        })
+    })
+
     describe('capabilities', () => {
         it('should NOT fail when capabilities are passed', async () => {
             launcher.runSpecs = jest.fn().mockReturnValue(1)

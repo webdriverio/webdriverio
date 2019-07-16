@@ -12,7 +12,7 @@ import { runOnPrepareHook, runOnCompleteHook, runServiceHook } from './utils'
 const log = logger('@wdio/cli:Launcher')
 
 class Launcher {
-    constructor (configFile, argv, isWatchMode) {
+    constructor (configFile, argv = {}, isWatchMode = false) {
         this.argv = argv
         this.configFile = configFile
 

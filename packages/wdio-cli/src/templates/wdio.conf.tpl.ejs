@@ -211,7 +211,7 @@ exports.config = {
     cucumberOpts: {
         require: ['<%= answers.stepDefinitions %>'],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
-        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+        requireModule: [],  // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
         dryRun: false,      // <boolean> invoke formatters without executing steps
         failFast: false,    // <boolean> abort the run on first failure
         format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
@@ -306,37 +306,37 @@ exports.config = {
      * Runs before a Cucumber feature
      * @param {Object} feature feature details
      */
-    // beforeFeature: function (feature) {
+    // beforeFeature: function (uri, feature) {
     // },
     /**
      * Runs before a Cucumber scenario
      * @param {Object} scenario scenario details
      */
-    // beforeScenario: function (scenario) {
+    // beforeScenario: function (uri, feature, scenario) {
     // },
     /**
      * Runs before a Cucumber step
      * @param {Object} step step details
      */
-    // beforeStep: function (step) {
+    // beforeStep: function (uri, feature, scenario, step) {
     // },
     /**
      * Runs after a Cucumber step
      * @param {Object} stepResult step result
      */
-    // afterStep: function (stepResult) {
+    // afterStep: function (uri, feature, scenario, step, result) {
     // },
     /**
      * Runs after a Cucumber scenario
      * @param {Object} scenario scenario details
      */
-    // afterScenario: function (scenario) {
+    // afterScenario: function (uri, feature, scenario) {
     // },
     /**
      * Runs after a Cucumber feature
      * @param {Object} feature feature details
      */
-    // afterFeature: function (feature) {
+    // afterFeature: function (uri, feature) {
     // },
     <% } %>
     /**

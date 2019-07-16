@@ -9,6 +9,7 @@ import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
+import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -126,11 +127,12 @@ describe('utils', () => {
         const edgeCaps = edgedriverResponse.value.capabilities
         const safariCaps = safaridriverResponse.value.capabilities
         const safariLegacyCaps = safaridriverLegacyResponse.value
+        const standaloneCaps = seleniumstandaloneResponse.value
 
         it('isW3C', () => {
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
             expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
-            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(false)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
@@ -148,7 +150,7 @@ describe('utils', () => {
         it('isSauce', () => {
             const capabilities = { browserName: 'chrome' }
             let requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-            let hostname = 'ondemand.saucelabs.com'
+            let hostname = 'localhost' // isSauce should also be true if run through Sauce Connect
 
             expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
             expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
@@ -160,7 +162,15 @@ describe('utils', () => {
 
             requestedCapabilities.w3cCaps.alwaysMatch['sauce:options'] = { extendedDebugging: true }
             expect(environmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
-            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+            expect(environmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
+        })
+
+        it('isSeleniumStandalone', () => {
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
+            expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
+            expect(environmentDetector({ capabilities: standaloneCaps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
         })
 
         it('should not detect mobile app for browserName===undefined', function () {
@@ -280,14 +290,33 @@ describe('utils', () => {
     describe('overwriteElementCommands', () => {
         it('should overwrite command', function () {
             const context = {}
+            const origFnMock = jest.fn(() => 1)
             const propertiesObject = {
-                foo: { value() { return 1 } },
+                foo: { value: origFnMock },
                 __elementOverrides__: {
                     value: { foo(origCmd, arg) { return [origCmd(), arg] } }
                 }
             }
             overwriteElementCommands.call(context, propertiesObject)
             expect(propertiesObject.foo.value(5)).toEqual([1, 5])
+            expect(origFnMock.mock.calls.length).toBe(1)
+            expect(origFnMock.mock.instances[0]).toBe(propertiesObject.foo)
+        })
+
+        it('should support rebinding when invoking original fn', function () {
+            const context = {}
+            const origFnMock = jest.fn(() => 1)
+            const origFnContext = {}
+            const propertiesObject = {
+                foo: { value: origFnMock },
+                __elementOverrides__: {
+                    value: { foo(origCmd, arg) { return [origCmd.call(origFnContext), arg] } }
+                }
+            }
+            overwriteElementCommands.call(context, propertiesObject)
+            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
+            expect(origFnMock.mock.calls.length).toBe(1)
+            expect(origFnMock.mock.instances[0]).toBe(origFnContext)
         })
 
         it('should create __elementOverrides__ if not exists', function () {

@@ -8,6 +8,7 @@ import JsonWProtocol from '../protocol/jsonwp.json'
 import AppiumProtocol from '../protocol/appium.json'
 import ChromiumProtocol from '../protocol/chromium.json'
 import SauceLabsProtocol from '../protocol/saucelabs.json'
+import SeleniumProtocol from '../protocol/selenium.json'
 
 const log = logger('webdriver')
 
@@ -127,7 +128,7 @@ export function getArgumentType (arg) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
     const prototype = {}
     const ProtocolCommands = merge(
         /**
@@ -149,7 +150,12 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce }) {
         /**
          * only Sauce Labs specific vendor commands
          */
-        isSauce ? SauceLabsProtocol : {}
+        isSauce ? SauceLabsProtocol : {},
+        /**
+         * only apply special commands when running tests using
+         * Selenium Grid or Selenium Standalone server
+         */
+        isSeleniumStandalone ? SeleniumProtocol : {}
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
@@ -213,7 +219,7 @@ export function isW3C (capabilities) {
          * local safari and BrowserStack don't provide platformVersion therefor
          * check also if setWindowRect is provided
          */
-        (capabilities.platformVersion || capabilities.hasOwnProperty('setWindowRect'))
+        (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect'))
     )
     return Boolean(hasW3CCaps || isAppium)
 }
@@ -280,16 +286,21 @@ export function isAndroid (caps) {
  */
 export function isSauce (hostname, caps) {
     return Boolean(
-        hostname &&
-        hostname.includes('saucelabs') &&
+        caps.extendedDebugging ||
         (
-            caps.extendedDebugging ||
-            (
-                caps['sauce:options'] &&
-                caps['sauce:options'].extendedDebugging
-            )
+            caps['sauce:options'] &&
+            caps['sauce:options'].extendedDebugging
         )
     )
+}
+
+/**
+ * detects if session is run using Selenium Standalone server
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session is run with Selenium Standalone Server
+ */
+export function isSeleniumStandalone (caps) {
+    return Boolean(caps['webdriver.remote.sessionid'])
 }
 
 /**
@@ -305,7 +316,8 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch)
+        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch),
+        isSeleniumStandalone: isSeleniumStandalone(capabilities)
     }
 }
 
@@ -366,7 +378,14 @@ export function overwriteElementCommands(propertiesObject) {
         delete propertiesObject[commandName]
 
         const newCommand = function (...args) {
-            return userDefinedCommand.apply(this, [origCommand.bind(this), ...args])
+            const element = this
+            return userDefinedCommand.apply(element, [
+                function origCommandFunction() {
+                    const context = this || element // respect explicite context binding, use element as default
+                    return origCommand.apply(context, arguments)
+                },
+                ...args
+            ])
         }
 
         propertiesObject[commandName] = {
@@ -377,4 +396,22 @@ export function overwriteElementCommands(propertiesObject) {
 
     delete propertiesObject['__elementOverrides__']
     propertiesObject['__elementOverrides__'] = { value: {} }
+}
+
+/**
+ * return all supported flags and return them in a format so we can attach them
+ * to the instance protocol
+ * @param  {Object} options   driver instance or option object containing these flags
+ * @return {Object}           prototype object
+ */
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce }) {
+    return {
+        isW3C: { value: isW3C },
+        isMobile: { value: isMobile },
+        isIOS: { value: isIOS },
+        isAndroid: { value: isAndroid },
+        isChrome: { value: isChrome },
+        isSauce: { value: isSauce },
+        isSeleniumStandalone: { value: isSeleniumStandalone }
+    }
 }

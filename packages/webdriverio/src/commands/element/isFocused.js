@@ -10,10 +10,10 @@
     it('should detect the focus of an element', () => {
         browser.url('/');
         const loginInput = $('[name="login"]');
-        console.log(loginInput.hasFocus()); // outputs: false
+        console.log(loginInput.isFocused()); // outputs: false
 
         loginInput.click();
-        console.log(loginInput.hasFocus()); // outputs: true
+        console.log(loginInput.isFocused()); // outputs: true
     })
  * </example>
  *

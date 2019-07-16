@@ -5,6 +5,7 @@
     "bootstrap": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "build": "lerna run build",
     "changelog": "node ./scripts/changelog.js",
+    "ci": "lerna bootstrap --no-ci && run-s build test:eslint test:typings test:coverage link test:smoke",
     "clean": "run-p clean:*",
     "clean:build": "rimraf ./packages/*/build",
     "clean:pkglock": "rimraf ./packages/*/package-lock.json",
@@ -47,6 +48,7 @@
     "@babel/plugin-syntax-export-default-from": "^7.2.0",
     "@babel/preset-env": "^7.4.2",
     "@babel/register": "^7.4.0",
+    "@types/jest": "^24.0.15",
     "aws-sdk": "^2.435.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
@@ -55,9 +57,10 @@
     "cheerio": "^1.0.0-rc.2",
     "codecov": "^3.2.0",
     "copyfiles": "^2.1.0",
+    "cucumber": "^5.1.0",
     "del": "^4.0.0",
     "dox": "^0.9.0",
-    "eslint": "^5.15.3",
+    "eslint": "^6.0.0",
     "eslint-plugin-import": "^2.16.0",
     "husky": "^2.3.0",
     "inquirer": "^6.2.2",
@@ -105,7 +108,8 @@
       "packages/webdriverio/src/scripts",
       "packages/wdio-devtools-service/src/scripts",
       "packages/webdriverio/build",
-      "packages/webdriver/build"
+      "packages/webdriver/build",
+      "packages/wdio-cucumber-framework/tests/fixtures"
     ]
   },
   "greenkeeper": {

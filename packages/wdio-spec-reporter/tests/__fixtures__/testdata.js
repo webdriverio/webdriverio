@@ -50,6 +50,14 @@ export const SUITES = [
                     message : 'expected foo to equal bar',
                     stack : 'Failed test stack trace'
                 }
+            },
+            {
+                uid : 'a failed test3',
+                title : 'a failed test with no stack',
+                state : 'failed',
+                error : {
+                    message : 'expected foo to equal bar'
+                }
             }
         ],
     },
@@ -157,6 +165,7 @@ export const REPORT = `---------------------------------------------------------
 [loremipsum #0-0] Bar test
 [loremipsum #0-0]    green ✓ some test
 [loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
 [loremipsum #0-0]
 [loremipsum #0-0] Baz test
 [loremipsum #0-0]    green ✓ foo bar baz
@@ -169,6 +178,9 @@ export const REPORT = `---------------------------------------------------------
 [loremipsum #0-0] 1) Bar test a failed test
 [loremipsum #0-0] red expected foo to equal bar
 [loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
 `
 
 export const SAUCELABS_REPORT = REPORT + `[loremipsum #0-0]

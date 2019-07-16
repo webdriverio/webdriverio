@@ -42,7 +42,7 @@ export default class BrowserstackService {
     }
 
     afterSuite(suite) {
-        if (suite.hasOwnProperty('error')) {
+        if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             this.failures++
         }
     }
@@ -56,7 +56,7 @@ export default class BrowserstackService {
         }
     }
 
-    afterStep(feature) {
+    afterStep(uri, feature) {
         if (
             /**
              * Cucumber v1

@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import runFnInFiberContext from './runFnInFiberContext'
+import runFnInFiberContextWithCallback from './runFnInFiberContextWithCallback'
 import wrapCommand from './wrapCommand'
 
 import { STACKTRACE_FILTER_FN } from './constants'
@@ -229,6 +230,7 @@ export {
     wrapCommand,
     runTestInFiberContext,
     runFnInFiberContext,
+    runFnInFiberContextWithCallback,
     executeSync,
     executeAsync
 }

@@ -6,6 +6,9 @@ jest.mock('request', () => ({
     get: jest.fn()
 }))
 
+const uri = '/some/uri'
+const feature = { some: 'feature' }
+
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
     global.browser = {
@@ -138,7 +141,7 @@ describe('wdio-testingbot-service', () => {
             name: 'Feature name',
             getName: () => 'Feature name'
         }
-        tbService.beforeFeature(feature)
+        tbService.beforeFeature(uri, feature)
 
         expect(execute).not.toBeCalled()
     })
@@ -153,7 +156,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'secret'
         }, {})
-        tbService.beforeFeature(feature)
+        tbService.beforeFeature(uri, feature)
 
         expect(tbService.suiteTitle).toEqual('Feature name')
         expect(execute).toBeCalledWith('tb:test-context=Feature: Feature name')
@@ -165,7 +168,7 @@ describe('wdio-testingbot-service', () => {
         const feature = {
             failureException: 'Unhandled error!'
         }
-        tbService.afterStep(feature)
+        tbService.afterStep('/some/uri', feature)
 
         expect(tbService.failures).toEqual(1)
     })
@@ -176,7 +179,7 @@ describe('wdio-testingbot-service', () => {
         const feature = {
             getFailureException: () => 'Unhandled error!'
         }
-        tbService.afterStep(feature)
+        tbService.afterStep('/some/uri', feature)
 
         expect(tbService.failures).toEqual(1)
     })
@@ -187,7 +190,7 @@ describe('wdio-testingbot-service', () => {
         const feature = {
             status: 'failed'
         }
-        tbService.afterStep(feature)
+        tbService.afterStep('/some/uri', feature)
 
         expect(tbService.failures).toEqual(1)
     })
@@ -202,7 +205,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: undefined
         }, {})
-        tbService.beforeScenario(scenario)
+        tbService.beforeScenario(uri, feature, scenario)
 
         expect(execute).not.toBeCalled()
     })
@@ -217,7 +220,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'secret'
         }, {})
-        tbService.beforeScenario(scenario)
+        tbService.beforeScenario(uri, feature, scenario)
 
         expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })

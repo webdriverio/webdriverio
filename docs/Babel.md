@@ -23,7 +23,7 @@ module.exports = {
 }
 ```
 
-There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need to register Babel in the before hook of your config file
+There are multiple ways to setup Babel using the wdio testrunner. If you are running Jasmine tests, you just need to register Babel in the before hook of your config file
 
 ```js
 before: function() {
@@ -31,12 +31,18 @@ before: function() {
 },
 ```
 
-If you run Mocha tests, you can use Mocha's internal compiler to register Babel, e.g.:
+If you run Mocha or Cucumber tests, you can use internal require to register Babel, e.g.:
 
 ```js
 mochaOpts: {
     ui: 'bdd',
-    compilers: ['js:@babel/register'],
+    require: ['@babel/register', './test/helpers/common.js']
+},
+```
+
+```js
+cucumberOpts: {
+    requireModule: ['@babel/register'],
     require: ['./test/helpers/common.js']
 },
 ```

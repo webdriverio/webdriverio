@@ -20,7 +20,7 @@ You can:
 - and much more, see the [options here](https://github.com/wswebcreation/wdio-image-comparison-service/blob/master/docs/OPTIONS.md)
 
 The module is now based on the power of the new [`webdriver-image-comparison`](https://github.com/wswebcreation/webdriver-image-comparison) module. This is a lightweight module to retrieve the needed data and screenshots for all browsers / devices.
-The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](https://huddleeng.github.io/Resemble.js/)
+The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](https://huddleeng.github.io/Resemble.js/).
 
 
 It can be used for:
@@ -29,7 +29,7 @@ It can be used for:
 - mobile / tablet browsers (Chrome / Safari on emulators / real devices) via Appium
 - Hybrid apps via Appium
 
-For versions check below
+For versions check below:
 
 [![Sauce Test Status](https://eu-central-1.saucelabs.com/browser-matrix/wdio-image-comparison-service.svg)](https://eu-central-1.saucelabs.com/u/wdio-image-comparison-service)
 
@@ -46,7 +46,7 @@ Instructions on how to install `WebdriverIO` can be found [here.](http://webdriv
 > ***wdio-image-comparison-service* supports NodeJS 8 or higher** 
 
 ### Configuration
-`wdio-image-comparison-service` is a service so it can be used as a normal service. You can set it up in your `wdio.conf.js` file with the following
+`wdio-image-comparison-service` is a service so it can be used as a normal service. You can set it up in your `wdio.conf.js` file with the following:
 
 ```js
 const { join } = require('path');
@@ -133,7 +133,7 @@ When you create a fullpage screenshot you might have some elements that stay in 
 These elements normally mess up the screenshot like you can see on the left side of the below image.
 
 But you can now add elements that need to be hidden after the first scroll which will give you a result as you can see in the right side of the below image.
-This can be done by adding this property to you test
+This can be done by adding this property to your test:
 
 ```js
 browser.checkFullPageScreen('fullPage', { 
@@ -141,7 +141,7 @@ browser.checkFullPageScreen('fullPage', {
         $('nav-bar'),
         $('chat-box'),
     ], 
-})
+});
 ```
 
 ![fullpage-example](./assets/image-comparison.jpg)
@@ -152,7 +152,7 @@ The `save(Screen/Element/FullPageScreen)` methods will provide the following inf
 
 ```js
 const saveResult = { 
-	// The device pixel ratio of the instance that has run
+  // The device pixel ratio of the instance that has run
   devicePixelRatio: 1,
   // The formatted filename, this depends on the options `formatImageName`
   fileName: 'examplePage-chrome-latest-1366x768.png',

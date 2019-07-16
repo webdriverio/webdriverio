@@ -53,6 +53,8 @@ export let runFnInFiberContext = (fn) => {
 }
 export let wrapCommand = (_, origFn) => origFn
 export let hasWdioSyncSupport = false
+export let executeSync = (fn, _, args = []) => fn.apply(this, args)
+export let executeAsync = (fn, _, args = []) => fn.apply(this, args)
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -65,6 +67,8 @@ try {
     runTestInFiberContext = wdioSync.runTestInFiberContext
     wrapCommand = wdioSync.wrapCommand
     executeHooksWithArgs = wdioSync.executeHooksWithArgs
+    executeSync = wdioSync.executeSync
+    executeAsync = wdioSync.executeAsync
 } catch {
     // do nothing
 }

@@ -5,8 +5,18 @@ Feature: Example feature
 
   Scenario: Get size of an element
     Given I go on the website "https://github.com/"
-    Then  should the element ".header-logo-invertocat" be 32px wide and 32px high
+    Then  should the element ".header-logged-out a" be 32px wide and 35px high
 
   Scenario: Get title of website
     Given I go on the website "https://github.com/"
-    Then  should the title of the page be "The world's leading software development platform · GitHub"
+    Then  should the title of the page be "The world’s leading software development platform · GitHub"
+
+  Scenario: Data Tables
+    Given I go on the website "http://todomvc.com/examples/react/#/"
+    When  I add the following grocieries
+        | Item       | Amount |
+        | Milk       | 2      |
+        | Butter     | 1      |
+        | Noodles    | 1      |
+        | Schocolate | 3      |
+    Then  I should have a list of 4 items

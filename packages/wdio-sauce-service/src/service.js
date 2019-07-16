@@ -68,7 +68,7 @@ export default class SauceService {
     }
 
     afterSuite (suite) {
-        if (suite.hasOwnProperty('error')) {
+        if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this.failures
         }
     }
@@ -79,7 +79,7 @@ export default class SauceService {
         }
     }
 
-    beforeFeature (feature) {
+    beforeFeature (uri, feature) {
         if (!this.isServiceEnabled || this.isRDC) {
             return
         }
@@ -88,7 +88,7 @@ export default class SauceService {
         global.browser.execute('sauce:context=Feature: ' + this.suiteTitle)
     }
 
-    afterStep (feature) {
+    afterStep (uri, feature) {
         if (
             /**
              * Cucumber v1
@@ -107,7 +107,7 @@ export default class SauceService {
         }
     }
 
-    beforeScenario (scenario) {
+    beforeScenario (uri, feature, scenario) {
         if (!this.isServiceEnabled || this.isRDC) {
             return
         }

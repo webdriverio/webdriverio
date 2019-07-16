@@ -1,6 +1,13 @@
 import { directory } from 'tempy'
+
+/**
+ * this is not a real package and only used to utilize helper
+ * methods without having to ignore them for test coverage
+ */
+// eslint-disable-next-line
+import { clean, getResults } from 'wdio-allure-helper'
+
 import AllureReporter from '../src/'
-import { clean, getResults } from './helper'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
 import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors } from './__fixtures__/testState'

@@ -26,7 +26,9 @@
     <a href="https://webdriver.io">Homepage</a> |
     <a href="https://webdriver.io/guide.html">Developer Guide</a> |
     <a href="https://webdriver.io/docs/api.html">API Reference</a> |
-    <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a>
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a> |
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md">Changelog</a> |
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/ROADMAP.md">Roadmap</a>
 </p>
 
 ***
@@ -34,8 +36,6 @@
 WebdriverIO is a test automation framework that allows you to run tests based on the [Webdriver](https://w3c.github.io/webdriver/webdriver-spec.html) protocol and [Appium](http://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack or TestingBot.
 
 ## Contributing
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/webdriverio/webdriverio.svg)](https://greenkeeper.io/)
 
 Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started with setting up the repo.
 

@@ -1,5 +1,7 @@
 {
   globals: {
-    browser: true
+    browser: true,
+    $: true,
+    $$: true
   }
 }

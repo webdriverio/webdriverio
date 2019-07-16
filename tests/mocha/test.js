@@ -1,6 +1,6 @@
 import assert from 'assert'
 
-describe('smoke test', () => {
+describe('Mocha smoke test', () => {
     it('should return sync value', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
     })
@@ -146,6 +146,21 @@ describe('smoke test', () => {
             assert.equal(
                 JSON.stringify(elem.getSize(2)),
                 JSON.stringify({ width: 2, height: 4 })
+            )
+        })
+
+        it('should allow to invoke native command on different element', () => {
+            browser.customCommandScenario()
+            browser.overwriteCommand('getSize', function (origCommand, ratio = 1) {
+                const elemAlt = $('elemAlt')
+                const { width, height } = origCommand.call(elemAlt)
+                return { width: width * ratio, height: height * ratio }
+            }, true)
+            const elem = $('elem')
+
+            assert.equal(
+                JSON.stringify(elem.getSize(2)),
+                JSON.stringify({ width: 20, height: 40 })
             )
         })
 

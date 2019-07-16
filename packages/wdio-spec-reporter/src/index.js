@@ -111,7 +111,7 @@ class SpecReporter extends WDIOReporter {
      * @return {Array}         Header data
      */
     getHeaderDisplay(runner) {
-        const combo = this.getEnviromentCombo(runner.capabilities).trim()
+        const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
 
         // Spec file name and enviroment information
         const output = [
@@ -239,10 +239,10 @@ class SpecReporter extends WDIOReporter {
 
                 )
                 for (let error of errors) {
-                    output.push(
-                        this.chalk.red(error.message),
-                        ...error.stack.split(/\n/g).map(value => this.chalk.gray(value))
-                    )
+                    output.push(this.chalk.red(error.message))
+                    if (error.stack) {
+                        output.push(...error.stack.split(/\n/g).map(value => this.chalk.gray(value)))
+                    }
                 }
             }
         }

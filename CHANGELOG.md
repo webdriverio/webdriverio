@@ -15,6 +15,188 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.5 (2019-07-15)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#4194](https://github.com/webdriverio/webdriverio/pull/4194) isSauce should not depend on hostname ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-webdriver-mock-service`, `webdriver`
+  * [#4186](https://github.com/webdriverio/webdriverio/pull/4186) webdriver: support rebinding of context when invoking origFn in element.overwriteCommand ([@akloeber](https://github.com/akloeber))
+
+#### Committers: 2
+- Andreas Klöber ([@akloeber](https://github.com/akloeber))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## v5.11.4 (2019-07-12)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-crossbrowsertesting-service`, `wdio-testingbot-service`
+  * [#4179](https://github.com/webdriverio/webdriverio/pull/4179) Add EsLint check for dependencies ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#4153](https://github.com/webdriverio/webdriverio/pull/4153) Add Changelog and Roadmap links to README.md ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## v5.11.3 (2019-07-11)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4181](https://github.com/webdriverio/webdriverio/pull/4181) wdio-cucumber-framework: fix hook handling ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4176](https://github.com/webdriverio/webdriverio/pull/4176) Chore/cucumber5 blogpost ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+## v5.11.2 (2019-07-11)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4174](https://github.com/webdriverio/webdriverio/pull/4174) Cucumber fix error message ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.11.1 (2019-07-11)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4166](https://github.com/webdriverio/webdriverio/pull/4166) fix cucumber hook args ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#4162](https://github.com/webdriverio/webdriverio/pull/4162) Add sauce-connect-launcher to logger of wdio-sauce-service ([@enriquegh](https://github.com/enriquegh))
+* `wdio-utils`
+  * [#4158](https://github.com/webdriverio/webdriverio/pull/4158) wdio-utils: Make safeRequire use require.resolve ([@nemisj](https://github.com/nemisj))
+
+#### :memo: Documentation
+* Other
+  * [#4173](https://github.com/webdriverio/webdriverio/pull/4173) Cucumber related minor update to frameworks doc ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4160](https://github.com/webdriverio/webdriverio/pull/4160) Fixed text in 2019-05-18-visual-regression-for-v5.md ([@Marketionist](https://github.com/Marketionist))
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#4169](https://github.com/webdriverio/webdriverio/pull/4169) Update Cucumber Babel setup doc ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#4167](https://github.com/webdriverio/webdriverio/pull/4167) Add selector and elementId to Element ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cucumber-framework`
+  * [#4159](https://github.com/webdriverio/webdriverio/pull/4159) Cucumber: TypeScript Setup doc, pass function to requireModule ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 4
+- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Maks Nemisj ([@nemisj](https://github.com/nemisj))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.11.0 (2019-07-09)
+
+#### :rocket: New Feature
+* `wdio-allure-reporter`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-reporter`, `wdio-sauce-service`, `wdio-spec-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#3667](https://github.com/webdriverio/webdriverio/pull/3667) Cucumber Framework Support ([@abjerstedt](https://github.com/abjerstedt))
+* `wdio-static-server-service`
+  * [#4142](https://github.com/webdriverio/webdriverio/pull/4142) Port wdio-static-server-service ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#3632](https://github.com/webdriverio/webdriverio/pull/3632) Upload blog post ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#4156](https://github.com/webdriverio/webdriverio/pull/4156) wdio-spec-reporter: fix header in multiremote mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#4152](https://github.com/webdriverio/webdriverio/pull/4152) wdio-allure-reporter: add suite separator ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`
+  * [#4150](https://github.com/webdriverio/webdriverio/pull/4150) cli: Add defaults when running programmatically ([@WillBrock](https://github.com/WillBrock))
+* `webdriverio`
+  * [#4128](https://github.com/webdriverio/webdriverio/pull/4128) webdriverio: fix isDisplayed script to work with shadow dom ([@jrobinson01](https://github.com/jrobinson01))
+
+#### :memo: Documentation
+* [#4146](https://github.com/webdriverio/webdriverio/pull/4146) Docs: Normalize terminal commands ([@WillBrock](https://github.com/WillBrock))
+
+#### :house: Internal
+* [#4140](https://github.com/webdriverio/webdriverio/pull/4140) Update affiliation from JSF to OpenJSF ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Adam Bjerstedt ([@abjerstedt](https://github.com/abjerstedt))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- John Robinson ([@jrobinson01](https://github.com/jrobinson01))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+## v5.10.10 (2019-07-03)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#4136](https://github.com/webdriverio/webdriverio/pull/4136) Fix spawn declaration on Windows ([@piotr-cz](https://github.com/piotr-cz))
+
+#### :memo: Documentation
+* Other
+  * [#4131](https://github.com/webdriverio/webdriverio/pull/4131) typings: add touchaction's ms type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+  * [#4130](https://github.com/webdriverio/webdriverio/pull/4130) Fixed text in 2019-04-03-react-selectors.md ([@Marketionist](https://github.com/Marketionist))
+* `wdio-mocha-framework`
+  * [#4127](https://github.com/webdriverio/webdriverio/pull/4127) wdio-mocha-framework: add mocha error in type DSL ([@aha-oretama](https://github.com/aha-oretama))
+
+#### :house: Internal
+* `wdio-allure-reporter`
+  * [#4132](https://github.com/webdriverio/webdriverio/pull/4132) wdio-allure-reporter: allure attachment content can use Buffer type. ([@aha-oretama](https://github.com/aha-oretama))
+* Other
+  * [#4057](https://github.com/webdriverio/webdriverio/pull/4057) Add roadmap document ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
+- Piotr ([@piotr-cz](https://github.com/piotr-cz))
+- aha-oretama ([@aha-oretama](https://github.com/aha-oretama))
+
+## v5.10.9 (2019-06-25)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#4116](https://github.com/webdriverio/webdriverio/pull/4116) Fix bug where environment flags aren't attached to session ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+## v5.10.8 (2019-06-25)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-local-runner`, `webdriver`, `webdriverio`
+  * [#4102](https://github.com/webdriverio/webdriverio/pull/4102) wdio-appium-service: fix args array, print startup failure message ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* Other
+  * [#4114](https://github.com/webdriverio/webdriverio/pull/4114) types: fix hook array ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4108](https://github.com/webdriverio/webdriverio/pull/4108) typings: specs and exclude in capabilities is missing in type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+  * [#4111](https://github.com/webdriverio/webdriverio/pull/4111) typings: add Edge specific in type DSL. ([@aha-oretama](https://github.com/aha-oretama))
+  * [#4107](https://github.com/webdriverio/webdriverio/pull/4107) typings: specFileRetries is missing in type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+* `webdriverio`
+  * [#4099](https://github.com/webdriverio/webdriverio/pull/4099) Docs: waitUntil 'waitForTimeout' default value incorrect ([@klamping](https://github.com/klamping))
+
+#### :house: Internal
+* `wdio-browserstack-service`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-devtools-service`, `wdio-sauce-service`, `wdio-testingbot-service`, `webdriver`, `webdriverio`
+  * [#4109](https://github.com/webdriverio/webdriverio/pull/4109) Update eslint in group default to the latest version 🚀 ([@greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
+#### Committers: 4
+- Annemarie ([@AnnemarieD](https://github.com/AnnemarieD))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- aha-oretama ([@aha-oretama](https://github.com/aha-oretama))
+
+
+## v5.10.7 (2019-06-18)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-cli`, `webdriverio`
+  * [#4089](https://github.com/webdriverio/webdriverio/pull/4089) update appium service ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.10.7 (2019-06-18)
 
 #### :bug: Bug Fix
