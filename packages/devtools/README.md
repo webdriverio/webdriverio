@@ -58,7 +58,7 @@ This package is work in progress. The following commands are already supported:
 - [ ] performActions
 - [ ] releaseActions
 - [x] dismissAlert
-- [ ] acceptAlert
+- [x] acceptAlert
 - [ ] getAlertText
 - [ ] sendAlertText
 - [ ] takeScreenshot
