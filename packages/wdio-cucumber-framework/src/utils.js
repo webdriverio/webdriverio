@@ -9,14 +9,14 @@ export function createStepArgument ({ argument }) {
     }
 
     if (argument.type === 'DataTable') {
-        return [{
+        return {
             rows: argument.rows.map(row => (
                 {
                     cells: row.cells.map(cell => cell.value),
                     locations: row.cells.map(cell => cell.location)
                 }
             ))
-        }]
+        }
     }
 
     if (argument.type === 'DocString') {

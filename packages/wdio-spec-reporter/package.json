@@ -32,7 +32,8 @@
   "dependencies": {
     "@wdio/reporter": "^5.11.0",
     "chalk": "^2.3.2",
-    "pretty-ms": "^5.0.0"
+    "pretty-ms": "^5.0.0",
+    "table": "^5.4.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"

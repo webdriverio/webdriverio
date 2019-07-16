@@ -5,6 +5,7 @@ import {
     SUITE_UIDS,
     SUITES,
     SUITES_NO_TESTS,
+    SUITES_WITH_DATA_TABLE,
     REPORT,
     SAUCELABS_REPORT,
     SAUCELABS_EU_REPORT,
@@ -260,21 +261,7 @@ describe('SpecReporter', () => {
             tmpReporter.suites = SUITES
 
             const result = tmpReporter.getResultDisplay()
-
-            expect(result.length).toBe(13)
-            expect(result[0]).toBe('Foo test')
-            expect(result[1]).toBe('   green ✓ foo')
-            expect(result[2]).toBe('   green ✓ bar')
-            expect(result[3]).toBe('')
-            expect(result[4]).toBe('Bar test')
-            expect(result[5]).toBe('   green ✓ some test')
-            expect(result[6]).toBe('   red ✖ a failed test')
-            expect(result[7]).toBe('   red ✖ a failed test with no stack')
-            expect(result[8]).toBe('')
-            expect(result[9]).toBe('Baz test')
-            expect(result[10]).toBe('   green ✓ foo bar baz')
-            expect(result[11]).toBe('   cyan - a skipped test')
-            expect(result[12]).toBe('')
+            expect(result).toMatchSnapshot()
         })
 
         it('should validate the result output with no tests', () => {
@@ -282,8 +269,15 @@ describe('SpecReporter', () => {
             tmpReporter.suites = SUITES_NO_TESTS
 
             const result = tmpReporter.getResultDisplay()
-
             expect(result.length).toBe(0)
+        })
+
+        it('should print data tables', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_WITH_DATA_TABLE)
+            tmpReporter.suites = SUITES_WITH_DATA_TABLE
+
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
         })
     })
 
