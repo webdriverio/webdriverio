@@ -59,7 +59,7 @@ This package is work in progress. The following commands are already supported:
 - [ ] releaseActions
 - [x] dismissAlert
 - [x] acceptAlert
-- [ ] getAlertText
+- [x] getAlertText
 - [ ] sendAlertText
 - [ ] takeScreenshot
 - [ ] takeElementScreenshot
