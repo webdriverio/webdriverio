@@ -279,6 +279,27 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
         })
+
+        it('should not print if data table format is not given', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => {
+                const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
+                suites[0].tests[0].argument = 'some different format'
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should not print if data table is empty', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => {
+                const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
+                suites[0].tests[0].argument.rows = []
+                return suites
+            })
+
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
     })
 
     describe('getCountDisplay', () => {

@@ -180,7 +180,7 @@ class SpecReporter extends WDIOReporter {
                 output.push(`${testIndent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
 
                 // print cucumber data table cells
-                if (test.argument) {
+                if (test.argument && test.argument.rows && test.argument.rows.length) {
                     const cells = test.argument.rows.map((row) => row.cells)
                     output.push(...table(cells, DATA_TABLE_CONFIG)
                         .split('\n')
