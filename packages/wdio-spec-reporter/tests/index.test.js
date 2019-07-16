@@ -154,8 +154,7 @@ describe('SpecReporter', () => {
 
             const runner = Object.assign({}, RUNNER, {
                 config: {
-                    hostname: 'localhost',
-                    capabilities: {}
+                    hostname: 'localhost'
                 },
                 sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
             })
