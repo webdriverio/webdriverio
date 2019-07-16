@@ -10,12 +10,7 @@ import launch from './launcher'
 import { DEFAULTS } from './constants'
 import { getPrototype } from './utils'
 
-const driver = new DevToolsDriver()
 const sessionMap = new Map()
-
-function commandWrapper (_, __, commandInfo) {
-    return driver.register(commandInfo, sessionMap)
-}
 
 export default class DevTools {
     static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
@@ -26,6 +21,8 @@ export default class DevTools {
         }
 
         const browser = await launch(params.capabilities)
+        const pages = await browser.pages()
+        const driver = new DevToolsDriver(browser, pages)
         const sessionId = uuidv4()
         const [browserName, browserVersion] = (await browser.version()).split('/')
 
@@ -51,6 +48,7 @@ export default class DevTools {
             isW3C: { value: true },
             puppeteerBrowser: { value: browser }
         }
+        const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
         const prototype = merge(protocolCommands, environment, userPrototype)
 

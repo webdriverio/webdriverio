@@ -10,10 +10,12 @@ import { validate } from './utils'
 const log = logger('remotedriver')
 
 export default class DevToolsDriver {
-    constructor () {
+    constructor (browser, pages) {
         this.commands = {}
         this.elementStore = new ElementStore()
         this.windows = new Map()
+        this.activeDialog = null
+        this.browser = browser
 
         const dir = path.resolve(__dirname, 'commands')
         const files = fs.readdirSync(dir)
@@ -21,9 +23,18 @@ export default class DevToolsDriver {
             const commandName = path.basename(filename, path.extname(filename))
             this.commands[commandName] = require(path.join(dir, commandName)).default
         }
+
+        for (const page of pages) {
+            const pageId = uuidv4()
+            this.windows.set(pageId, page)
+            this.currentWindowHandle = pageId
+        }
+
+        const page = this.windows.get(this.currentWindowHandle)
+        page.on('dialog', ::this.dialogHandler)
     }
 
-    register (commandInfo, sessionMap) {
+    register (commandInfo) {
         const self = this
         const { command, ref, parameters, variables = [] } = commandInfo
 
@@ -38,19 +49,6 @@ export default class DevToolsDriver {
          * within here you find the webdriver scope
          */
         return async function (...args) {
-            const browser = sessionMap.get(this.sessionId)
-
-            if (!self.browser) {
-                await self.initiateSession(browser)
-            }
-
-            /**
-             * check if session exist
-             */
-            if (!browser) {
-                throw new Error(`Session with sessionId ${this.sessionId} not found`)
-            }
-
             const params = validate(command, parameters, variables, ref, args)
             const result = await self.commands[command].call(self, params)
 
@@ -62,14 +60,7 @@ export default class DevToolsDriver {
         }
     }
 
-    async initiateSession (browser) {
-        this.browser = browser
-
-        const pages = await this.browser.pages()
-        for (const page of pages) {
-            const pageId = uuidv4()
-            this.windows.set(pageId, page)
-            this.currentWindowHandle = pageId
-        }
+    dialogHandler (dialog) {
+        this.activeDialog = dialog
     }
 }
