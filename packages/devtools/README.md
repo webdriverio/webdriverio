@@ -60,6 +60,6 @@ This package is work in progress. The following commands are already supported:
 - [x] dismissAlert
 - [x] acceptAlert
 - [x] getAlertText
-- [ ] sendAlertText
+- [x] sendAlertText
 - [ ] takeScreenshot
 - [ ] takeElementScreenshot
