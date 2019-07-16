@@ -43,7 +43,7 @@ This package is work in progress. The following commands are already supported:
 - [x] getElementText
 - [x] getElementTagName
 - [x] getElementRect
-- [ ] isElementEnabled
+- [x] isElementEnabled
 - [x] elementClick
 - [x] elementClear
 - [x] elementSendKeys
