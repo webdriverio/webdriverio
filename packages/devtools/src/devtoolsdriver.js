@@ -6,6 +6,7 @@ import logger from '@wdio/logger'
 
 import ElementStore from './elementstore'
 import { validate } from './utils'
+import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
 
 const log = logger('remotedriver')
 
@@ -14,6 +15,7 @@ export default class DevToolsDriver {
         this.commands = {}
         this.elementStore = new ElementStore()
         this.windows = new Map()
+        this.timeouts = new Map()
         this.activeDialog = null
         this.browser = browser
 
@@ -29,6 +31,11 @@ export default class DevToolsDriver {
             this.windows.set(pageId, page)
             this.currentWindowHandle = pageId
         }
+
+        /**
+         * set default timeouts
+         */
+        this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
 
         const page = this.windows.get(this.currentWindowHandle)
         page.on('dialog', ::this.dialogHandler)
@@ -68,5 +75,14 @@ export default class DevToolsDriver {
     framenavigatedHandler (frame) {
         this.currentFrameUrl = frame.url()
         this.elementStore.clear()
+    }
+
+    setTimeouts (implicit, pageLoad, script) {
+        this.timeouts.set('implicit', implicit || this.timeouts.get('implicit'))
+        this.timeouts.set('pageLoad', pageLoad || this.timeouts.get('pageLoad'))
+        this.timeouts.set('script', script || this.timeouts.get('script'))
+
+        const page = this.windows.get(this.currentWindowHandle)
+        page.setDefaultTimeout(this.timeouts.get('pageLoad'))
     }
 }

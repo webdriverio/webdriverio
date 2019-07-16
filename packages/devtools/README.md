@@ -10,8 +10,8 @@ This package is work in progress. The following commands are already supported:
 - [ ] newSession
 - [x] deleteSession
 - [x] status
-- [ ] getTimeouts
-- [ ] setTimeouts
+- [x] getTimeouts
+- [x] setTimeouts
 - [x] getUrl
 - [x] navigateTo
 - [x] back
