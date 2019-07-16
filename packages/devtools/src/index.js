@@ -21,7 +21,8 @@ export default class DevTools {
     static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
         const params = validateConfig(DEFAULTS, options)
         const environment = {
-            isDevTools: { value: true }
+            isDevTools: { value: true },
+            isW3C: { value: true }
         }
 
         if (!options.logLevels || !options.logLevels['devtools']) {
