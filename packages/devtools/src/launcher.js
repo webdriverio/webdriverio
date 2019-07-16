@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 
 import {
     CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
-    DEFAULT_HEIGHT
+    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION
 } from './constants'
 
 const log = logger('devtools')
@@ -19,6 +19,10 @@ async function launchChrome (capabilities) {
     const chromeOptions = capabilities['goog:chromeOptions'] || {}
     const chromeFlags = [
         ...DEFAULT_FLAGS,
+        ...[
+            `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
+            `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
+        ],
         ...(chromeOptions.args || [])
     ]
 
