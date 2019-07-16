@@ -57,7 +57,7 @@ This package is work in progress. The following commands are already supported:
 - [x] deleteCookie
 - [ ] performActions
 - [ ] releaseActions
-- [ ] dismissAlert
+- [x] dismissAlert
 - [ ] acceptAlert
 - [ ] getAlertText
 - [ ] sendAlertText

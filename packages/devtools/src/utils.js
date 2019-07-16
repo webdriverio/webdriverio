@@ -67,7 +67,7 @@ export const validate = function (command, parameters, variables, ref, args) {
         body[commandParams[i].name] = arg
     }
 
-    log.info('DEVTOOLS COMMAND', commandCallStructure(command, args))
+    log.info('COMMAND', commandCallStructure(command, args))
     return body
 }
 
