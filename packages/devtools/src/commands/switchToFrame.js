@@ -1,11 +1,4 @@
-import uuidv4 from 'uuid/v4'
-
-async function switchFrame (contentFrame) {
-    const handle = uuidv4()
-    this.currentWindowHandle = handle
-    this.windows.set(handle, contentFrame)
-    return null
-}
+import { switchFrame } from '../utils'
 
 export default async function switchToFrame ({ id }) {
     const page = this.windows.get(this.currentWindowHandle)
