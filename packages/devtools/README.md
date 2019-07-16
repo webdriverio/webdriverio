@@ -23,7 +23,7 @@ This package is work in progress. The following commands are already supported:
 - [x] switchToWindow
 - [x] createWindow
 - [x] getWindowHandles
-- [ ] switchToFrame
+- [x] switchToFrame
 - [ ] switchToParentFrame
 - [x] getWindowRect
 - [x] setWindowRect
