@@ -152,7 +152,14 @@ describe('SpecReporter', () => {
                 skipped : 1,
             }
 
-            printReporter.printReport(RUNNER)
+            const runner = Object.assign({}, RUNNER, {
+                config: {
+                    hostname: 'localhost',
+                    capabilities: {}
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            })
+            printReporter.printReport(runner)
 
             expect(printReporter.write).toBeCalledWith(REPORT)
         })
@@ -167,7 +174,52 @@ describe('SpecReporter', () => {
             }
 
             const runner = Object.assign({}, RUNNER, {
-                config: { hostname: 'ondemand.saucelabs.com' },
+                config: {
+                    hostname: 'ondemand.saucelabs.com',
+                    capabilities: {}
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            })
+            printReporter.printReport(runner)
+
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+        })
+
+        it('should print link to SauceLabs job details page if run with Sauce Connect (w3c)', () => {
+            printReporter.suiteUids = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.stateCounts = {
+                passed : 4,
+                failed : 1,
+                skipped : 1,
+            }
+
+            const runner = Object.assign({}, RUNNER, {
+                config: {
+                    capabilities: { 'sauce:options': 'foobar' },
+                    hostname: 'localhost'
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            })
+            printReporter.printReport(runner)
+
+            expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+        })
+
+        it('should print link to SauceLabs job details page if run with Sauce Connect (jsonwp)', () => {
+            printReporter.suiteUids = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.stateCounts = {
+                passed : 4,
+                failed : 1,
+                skipped : 1,
+            }
+
+            const runner = Object.assign({}, RUNNER, {
+                config: {
+                    capabilities: { tunnelIdentifier: 'foobar' },
+                    hostname: 'localhost'
+                },
                 sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
             })
             printReporter.printReport(runner)
@@ -186,6 +238,7 @@ describe('SpecReporter', () => {
 
             printReporter.printReport(Object.assign({}, RUNNER, {
                 config: {
+                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu'
                 },
@@ -197,6 +250,7 @@ describe('SpecReporter', () => {
 
             printReporter.printReport(Object.assign({}, RUNNER, {
                 config: {
+                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu-central-1'
                 },
@@ -206,6 +260,7 @@ describe('SpecReporter', () => {
 
             printReporter.printReport(Object.assign({}, RUNNER, {
                 config: {
+                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     headless: true
                 },
@@ -218,7 +273,14 @@ describe('SpecReporter', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
 
-            printReporter.printReport(RUNNER)
+            const runner = Object.assign({}, RUNNER, {
+                config: {
+                    capabilities: {},
+                    hostname: 'localhost'
+                },
+                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+            })
+            printReporter.printReport(runner)
 
             expect(printReporter.write.mock.calls.length).toBe(1)
             expect(printReporter.write.mock.calls[0][0]).toContain('a failed hook')
