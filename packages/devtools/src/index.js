@@ -10,7 +10,7 @@ import launch from './launcher'
 import { DEFAULTS } from './constants'
 import { getPrototype } from './utils'
 
-const sessionMap = new Map()
+export const sessionMap = new Map()
 
 export default class DevTools {
     static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
