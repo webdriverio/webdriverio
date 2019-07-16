@@ -24,7 +24,7 @@ This package is work in progress. The following commands are already supported:
 - [x] createWindow
 - [x] getWindowHandles
 - [x] switchToFrame
-- [ ] switchToParentFrame
+- [x] switchToParentFrame
 - [x] getWindowRect
 - [x] setWindowRect
 - [ ] maximizeWindow

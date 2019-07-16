@@ -1,3 +1,4 @@
+import uuidv4 from 'uuid/v4'
 import logger from '@wdio/logger'
 import { commandCallStructure } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
@@ -104,4 +105,11 @@ export async function findElements (instance, value) {
     return elements.map((element) => ({
         [ELEMENT_KEY]: this.elementStore.set(element)
     }))
+}
+
+export async function switchFrame (contentFrame) {
+    const handle = uuidv4()
+    this.currentWindowHandle = handle
+    this.windows.set(handle, contentFrame)
+    return null
 }
