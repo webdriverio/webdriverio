@@ -61,5 +61,5 @@ This package is work in progress. The following commands are already supported:
 - [x] acceptAlert
 - [x] getAlertText
 - [x] sendAlertText
-- [ ] takeScreenshot
+- [x] takeScreenshot
 - [ ] takeElementScreenshot
