@@ -54,7 +54,7 @@ This package is work in progress. The following commands are already supported:
 - [x] addCookie
 - [x] deleteAllCookies
 - [x] getNamedCookie
-- [ ] deleteCookie
+- [x] deleteCookie
 - [ ] performActions
 - [ ] releaseActions
 - [ ] dismissAlert
