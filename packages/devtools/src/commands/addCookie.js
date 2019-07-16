@@ -1,4 +1,4 @@
-export default async function getElementAttribute ({ cookie }) {
+export default async function addCookie ({ cookie }) {
     const page = this.windows.get(this.currentWindowHandle)
 
     if (!Object.keys(cookie).includes('name') || !Object.keys(cookie).includes('value')) {
