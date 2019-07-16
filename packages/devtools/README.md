@@ -53,7 +53,7 @@ This package is work in progress. The following commands are already supported:
 - [x] getAllCookies
 - [x] addCookie
 - [x] deleteAllCookies
-- [ ] getNamedCookie
+- [x] getNamedCookie
 - [ ] deleteCookie
 - [ ] performActions
 - [ ] releaseActions
