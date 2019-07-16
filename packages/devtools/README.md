@@ -51,7 +51,7 @@ This package is work in progress. The following commands are already supported:
 - [ ] executeScript
 - [ ] executeAsyncScript
 - [x] getAllCookies
-- [ ] addCookie
+- [x] addCookie
 - [ ] deleteAllCookies
 - [ ] getNamedCookie
 - [ ] deleteCookie
