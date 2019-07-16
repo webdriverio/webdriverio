@@ -45,7 +45,7 @@ This package is work in progress. The following commands are already supported:
 - [x] getElementRect
 - [ ] isElementEnabled
 - [x] elementClick
-- [ ] elementClear
+- [x] elementClear
 - [ ] elementSendKeys
 - [ ] getPageSource
 - [ ] executeScript
