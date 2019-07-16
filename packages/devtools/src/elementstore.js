@@ -13,4 +13,8 @@ export default class ElementStore {
     get (index) {
         return this.elementMap.get(index)
     }
+
+    clear () {
+        this.elementMap.clear()
+    }
 }

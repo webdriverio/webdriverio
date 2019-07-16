@@ -1,15 +1,6 @@
 import uuidv4 from 'uuid/v4'
 
-import findElements from './findElements'
-import { ELEMENT_KEY } from '../constants'
-
-async function switchFrame (elementHandle) {
-    const contentFrame = await elementHandle.contentFrame()
-
-    if (!contentFrame) {
-        throw new Error('no such frame')
-    }
-
+async function switchFrame (contentFrame) {
     const handle = uuidv4()
     this.currentWindowHandle = handle
     this.windows.set(handle, contentFrame)
@@ -24,22 +15,27 @@ export default async function switchToFrame ({ id }) {
      * switch frame by element ID
      */
     if (typeof id === 'string' && elementHandle) {
-        return switchFrame.call(this, elementHandle)
+        const contentFrame = await elementHandle.contentFrame()
+
+        if (!contentFrame) {
+            throw new Error('no such frame')
+        }
+
+        return switchFrame.call(this, contentFrame)
     }
 
     /**
      * switch frame by number
      */
     if (typeof id === 'number') {
-        const iFrames = await findElements.call(this, { using: 'css selector', value: 'iframe' })
-        const frameHandle = iFrames[id]
+        const childFrames = await page.frames()
+        const childFrame = childFrames[id]
 
-        if (!frameHandle) {
+        if (!childFrame) {
             throw new Error('no such frame')
         }
 
-        const elementHandle = this.elementStore.get(frameHandle[ELEMENT_KEY])
-        return switchFrame.call(this, elementHandle)
+        return switchFrame.call(this, childFrame)
     }
 
     /**
