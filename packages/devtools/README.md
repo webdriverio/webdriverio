@@ -25,8 +25,8 @@ This package is work in progress. The following commands are already supported:
 - [x] getWindowHandles
 - [ ] switchToFrame
 - [ ] switchToParentFrame
-- [ ] getWindowRect
-- [ ] setWindowRect
+- [x] getWindowRect
+- [x] setWindowRect
 - [ ] maximizeWindow
 - [ ] minimizeWindow
 - [ ] fullscreenWindow
