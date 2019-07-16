@@ -39,7 +39,7 @@ This package is work in progress. The following commands are already supported:
 - [x] isElementDisplayed
 - [x] getElementAttribute
 - [x] getElementProperty
-- [ ] getElementCSSValue
+- [x] getElementCSSValue
 - [x] getElementText
 - [x] getElementTagName
 - [x] getElementRect
