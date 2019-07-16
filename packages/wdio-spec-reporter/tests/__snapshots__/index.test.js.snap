@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SpecReporter getResultDisplay should not print if data table format is not given 1`] = `
+Array [
+  "Foo test",
+  "   green ✓ foo",
+  "   green ✓ bar",
+  "",
+]
+`;
+
+exports[`SpecReporter getResultDisplay should not print if data table is empty 1`] = `
+Array [
+  "Foo test",
+  "   green ✓ foo",
+  "   green ✓ bar",
+  "",
+]
+`;
+
+exports[`SpecReporter getResultDisplay should print data tables 1`] = `
+Array [
+  "Foo test",
+  "   green ✓ foo",
+  "     │ Vegetable │ Rating │",
+  "     │ Apricot   │ 5      │",
+  "     │ Brocolli  │ 2      │",
+  "     │ Cucumber  │ 10     │",
+  "   green ✓ bar",
+  "",
+]
+`;
+
+exports[`SpecReporter getResultDisplay should validate the result output with tests 1`] = `
+Array [
+  "Foo test",
+  "   green ✓ foo",
+  "   green ✓ bar",
+  "",
+  "Bar test",
+  "   green ✓ some test",
+  "   red ✖ a failed test",
+  "   red ✖ a failed test with no stack",
+  "",
+  "Baz test",
+  "   green ✓ foo bar baz",
+  "   cyan - a skipped test",
+  "",
+]
+`;
