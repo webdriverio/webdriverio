@@ -1,6 +1,13 @@
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
+import { table, getBorderCharacters } from 'table'
+
+export const DATA_TABLE_CONFIG = {
+    singleLine: true,
+    drawHorizontalLine: () => false,
+    border: getBorderCharacters('norc')
+}
 
 class SpecReporter extends WDIOReporter {
     constructor (options) {
@@ -171,6 +178,16 @@ class SpecReporter extends WDIOReporter {
 
                 // Output for a single test
                 output.push(`${testIndent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+
+                // print cucumber data table cells
+                if (test.argument && test.argument.rows && test.argument.rows.length) {
+                    const cells = test.argument.rows.map((row) => row.cells)
+                    output.push(...table(cells, DATA_TABLE_CONFIG)
+                        .split('\n')
+                        .filter(Boolean)
+                        .map((line) => `${testIndent}  ${line}`)
+                    )
+                }
             }
 
             // Put a line break after each suite (only if tests exist in that suite)
