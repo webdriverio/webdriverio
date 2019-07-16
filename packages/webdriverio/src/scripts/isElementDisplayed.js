@@ -147,6 +147,9 @@ export default function isElementDisplayed(element) {
         return Array.from(element.childNodes).every((childNode) => {
             // Returns true if the child node is overflowed or otherwise hidden.
             // Base case: not an element, has zero size, scrolled out, or doesn't overflow container.
+            if (childNode.nodeType === Node.TEXT_NODE) {
+                return false
+            }
             if (!nodeIsElement(childNode))
                 return true
 
