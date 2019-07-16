@@ -105,22 +105,6 @@ const classNameAndText = $('<my-element />');
 console.log(classNameAndText.getText()); // outputs: "WebdriverIO is the best"
 ```
 
-## id
-
-To find an element using an element using their id, query it by using `id=` in front of the query string (e.g. `id=driver`).
-Note: you can use id in css selectors by using `#` before the id name. See [element with certain text](#element-with-certain-text).
-
-```html
-<a id="driver" href="https://webdriver.io">WebdriverIO</a>
-```
-
-You can query this element with id by calling:
-
-```js
-const id = $('id=driver');
-console.log(id.getText()); // outputs: "WebdriverIO"
-```
-
 ## xPath
 
 It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath). The selector has to have a format like `//BODY/DIV[6]/DIV[1]/SPAN[1]`.
@@ -147,6 +131,9 @@ You can use xPath to also traverse up and down the DOM tree, e.g.
 const parent = paragraph.$('..');
 console.log(parent.getTagName()); // outputs: "body"
 ```
+## id
+
+Finding element by id has no specific syntax in WebDriver and one should use either CSS selectors (`#<my element ID>`) or xPath (`//*[@id="<my element ID>"]`). However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
 
 ## JS Function
 
