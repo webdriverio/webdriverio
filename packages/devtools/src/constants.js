@@ -69,4 +69,8 @@ export const DEFAULTS = {
     }
 }
 
+export const DEFAULT_IMPLICIT_TIMEOUT = 0
+export const DEFAULT_PAGELOAD_TIMEOUT = 5 * 60 * 1000 // 5 min
+export const DEFAULT_SCRIPT_TIMEOUT = 30 * 1000 // 30s
+
 export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name']
