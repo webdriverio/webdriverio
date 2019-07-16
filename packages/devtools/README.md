@@ -44,7 +44,7 @@ This package is work in progress. The following commands are already supported:
 - [x] getElementTagName
 - [x] getElementRect
 - [ ] isElementEnabled
-- [ ] elementClick
+- [x] elementClick
 - [ ] elementClear
 - [ ] elementSendKeys
 - [ ] getPageSource
