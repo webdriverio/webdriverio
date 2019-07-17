@@ -102,7 +102,18 @@ class SpecReporter extends WDIOReporter {
      * get link to saucelabs job
      */
     getTestLink ({ config, sessionId }) {
-        if (config.hostname.includes('saucelabs')) {
+        const isSauceJob = (
+            config.hostname.includes('saucelabs') ||
+            // only show if multiremote is not used
+            config.capabilities && (
+                // check w3c caps
+                config.capabilities['sauce:options'] ||
+                // check jsonwp caps
+                config.capabilities.tunnelIdentifier
+            )
+        )
+
+        if (isSauceJob) {
             const dc = config.headless
                 ? '.us-east-1'
                 : ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
