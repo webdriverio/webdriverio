@@ -83,12 +83,13 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 ### Runner
 
 - [@wdio/local-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
-- [@wdio/lambda-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on AWS using Lambda functions
+- [@wdio/lambda-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on Lambda functions (experimental)
 
 ### Framework Adapters
 
 - [@wdio/mocha-framework](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework) - Adapter for [Mocha](https://mochajs.org/) testing framework.
 - [@wdio/jasmine-framework](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework) - Adapter for [Jasmine](https://jasmine.github.io/) testing framework
+- [@wdio/cucumber-framework](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework) - Adapter for [Cucumber](https://cucumber.io/) testing framework
 
 ### Others
 
