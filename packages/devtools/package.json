@@ -1,7 +1,7 @@
 {
   "name": "devtools",
   "version": "5.7.5",
-  "description": "A WebDriver extension that runs commands on the DevTools protocol",
+  "description": "A Chrome DevTools protocol binding that maps WebDriver commands into Chrome DevTools commands using Puppeteer",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver",
   "license": "MIT",
@@ -9,8 +9,6 @@
   "engines": {
     "node": ">= 8.11.0"
   },
-  "types": "./webdriver.d.ts",
-  "typeScriptVersion": "3.2.1",
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",

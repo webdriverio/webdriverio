@@ -5,7 +5,7 @@ const puppeteerPkg = require(`${path.dirname(puppeteerPath)}/package.json`)
 const puppeteerFirefoxPath = require.resolve('puppeteer-firefox')
 const puppeteerFirefoxPkg = require(`${path.dirname(puppeteerFirefoxPath)}/package.json`)
 
-export default async function navigateTo () {
+export default async function status () {
     return {
         value: {
             message: '',

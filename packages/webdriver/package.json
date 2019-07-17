@@ -10,7 +10,7 @@
     "node": ">= 8.11.0"
   },
   "types": "./webdriver.d.ts",
-  "typeScriptVersion": "3.2.1",
+  "typeScriptVersion": "3.5.1",
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
