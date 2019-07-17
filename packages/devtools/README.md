@@ -49,7 +49,7 @@ This package is work in progress. The following commands are already supported:
 - [x] elementSendKeys
 - [x] getPageSource
 - [x] executeScript
-- [ ] executeAsyncScript
+- [x] executeAsyncScript
 - [x] getAllCookies
 - [x] addCookie
 - [x] deleteAllCookies
