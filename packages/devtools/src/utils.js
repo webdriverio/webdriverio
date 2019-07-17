@@ -84,8 +84,16 @@ export function getPrototype (commandWrapper) {
     return prototype
 }
 
-export async function findElement (instance, value) {
-    const element = await instance.$(value)
+export async function findElement (page, value) {
+    /**
+     * implicitly wait for the element if timeout is set
+     */
+    const implicitTimeout = this.timeouts.get('implicit')
+    if (implicitTimeout) {
+        await page.waitForSelector(value, { timeout: implicitTimeout })
+    }
+
+    const element = await page.$(value)
 
     if (!element) {
         return new Error(`Element with selector "${value}" not found`)
@@ -95,8 +103,16 @@ export async function findElement (instance, value) {
     return { [ELEMENT_KEY]: elementId }
 }
 
-export async function findElements (instance, value) {
-    const elements = await instance.$$(value)
+export async function findElements (page, value) {
+    /**
+     * implicitly wait for the element if timeout is set
+     */
+    const implicitTimeout = this.timeouts.get('implicit')
+    if (implicitTimeout) {
+        await page.waitForSelector(value, { timeout: implicitTimeout })
+    }
+
+    const elements = await page.$$(value)
 
     if (elements.length === 0) {
         return elements
