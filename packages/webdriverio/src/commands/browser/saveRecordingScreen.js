@@ -20,7 +20,6 @@
  */
 
 import fs from 'fs'
-import { Buffer } from 'safe-buffer'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
 export default async function saveRecordingScreen (filepath) {
