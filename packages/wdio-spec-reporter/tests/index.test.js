@@ -16,6 +16,14 @@ import {
 
 const reporter = new SpecReporter({})
 
+const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
+const getRunnerConfig = (config) => {
+    return Object.assign({}, RUNNER, {
+        config,
+        sessionId: fakeSessionId
+    })
+}
+
 describe('SpecReporter', () => {
     let tmpReporter = null
 
@@ -144,82 +152,85 @@ describe('SpecReporter', () => {
             printReporter.write = jest.fn()
         })
 
-        it('should print the report to the console', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.stateCounts = {
-                passed : 4,
-                failed : 1,
-                skipped : 1,
-            }
-
-            printReporter.printReport(RUNNER)
-
-            expect(printReporter.write).toBeCalledWith(REPORT)
-        })
-
-        it('should print link to SauceLabs job details page', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.stateCounts = {
-                passed : 4,
-                failed : 1,
-                skipped : 1,
-            }
-
-            const runner = Object.assign({}, RUNNER, {
-                config: { hostname: 'ondemand.saucelabs.com' },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+        describe('with normal setup', () => {
+            beforeEach(() => {
+                printReporter.suiteUids = SUITE_UIDS
+                printReporter.suites = SUITES
+                printReporter.stateCounts = {
+                    passed : 4,
+                    failed : 1,
+                    skipped : 1,
+                }
             })
-            printReporter.printReport(runner)
 
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
-        })
+            it('should print the report to the console', () => {
+                const runner = getRunnerConfig({ hostname: 'localhost' })
+                printReporter.printReport(runner)
+                expect(printReporter.write).toBeCalledWith(REPORT)
+            })
 
-        it('should print link to SauceLabs EU job details page', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.stateCounts = {
-                passed : 4,
-                failed : 1,
-                skipped : 1,
-            }
+            it('should print link to SauceLabs job details page', () => {
+                const runner = getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    capabilities: {}
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+            })
 
-            printReporter.printReport(Object.assign({}, RUNNER, {
-                config: {
+            it('should print link to SauceLabs job details page if run with Sauce Connect (w3c)', () => {
+                const runner = getRunnerConfig({
+                    capabilities: { 'sauce:options': 'foobar' },
+                    hostname: 'localhost'
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+            })
+
+            it('should print link to SauceLabs job details page if run with Sauce Connect (jsonwp)', () => {
+                const runner = getRunnerConfig({
+                    capabilities: { tunnelIdentifier: 'foobar' },
+                    hostname: 'localhost'
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+            })
+
+            it('should print link to SauceLabs EU job details page', () => {
+                printReporter.printReport(getRunnerConfig({
+                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu'
-                },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
-            }))
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+                }))
+                expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
 
-            printReporter.write.mockClear()
+                printReporter.write.mockClear()
 
-            printReporter.printReport(Object.assign({}, RUNNER, {
-                config: {
+                printReporter.printReport(getRunnerConfig({
+                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu-central-1'
-                },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
-            }))
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+                }))
+                expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
 
-            printReporter.printReport(Object.assign({}, RUNNER, {
-                config: {
+                printReporter.printReport(getRunnerConfig({
+                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     headless: true
-                },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
-            }))
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_HEADLESS_REPORT)
+                }))
+                expect(printReporter.write).toBeCalledWith(SAUCELABS_HEADLESS_REPORT)
+            })
         })
 
         it('should print report for suites with no tests but failed hooks', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
 
-            printReporter.printReport(RUNNER)
+            const runner = getRunnerConfig({
+                capabilities: {},
+                hostname: 'localhost'
+            })
+            printReporter.printReport(runner)
 
             expect(printReporter.write.mock.calls.length).toBe(1)
             expect(printReporter.write.mock.calls[0][0]).toContain('a failed hook')
