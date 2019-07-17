@@ -67,7 +67,6 @@
     "lodash.zip": "^4.2.0",
     "resq": "^1.5.0",
     "rgb2hex": "^0.1.0",
-    "safe-buffer": "^5.2.0",
     "serialize-error": "^4.1.0",
     "webdriver": "^5.11.5"
   }
