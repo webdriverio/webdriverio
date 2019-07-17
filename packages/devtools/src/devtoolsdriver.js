@@ -8,7 +8,7 @@ import ElementStore from './elementstore'
 import { validate } from './utils'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
 
-const log = logger('remotedriver')
+const log = logger('devtools')
 
 export default class DevToolsDriver {
     constructor (browser, pages) {
