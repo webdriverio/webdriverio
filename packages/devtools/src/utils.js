@@ -5,7 +5,7 @@ import { WebDriverProtocol } from '@wdio/protocols'
 
 import { ELEMENT_KEY } from './constants'
 
-const log = logger('remotedriver')
+const log = logger('devtools')
 
 // todo move to utils
 import { isValidParameter, getArgumentType } from 'webdriver/src/utils'
