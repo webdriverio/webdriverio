@@ -1,4 +1,4 @@
-export default async function takeScreenshot ({ elementId }) {
+export default async function takeElementScreenshot ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {

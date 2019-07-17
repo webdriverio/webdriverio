@@ -1,3 +1,3 @@
-export default async function getWindowHandle () {
+export default async function getWindowHandles () {
     return Array.from(this.windows.keys())
 }
