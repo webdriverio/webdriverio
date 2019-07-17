@@ -15,6 +15,30 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.6 (2019-07-17)
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#4204](https://github.com/webdriverio/webdriverio/pull/4204) Print link to Sauce Labs job details page when using Sauce Connect ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#4202](https://github.com/webdriverio/webdriverio/pull/4202) Fix overflow text is displayed ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#4211](https://github.com/webdriverio/webdriverio/pull/4211) clean up setTimeout implementation ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`, `wdio-spec-reporter`
+  * [#4201](https://github.com/webdriverio/webdriverio/pull/4201) Print data tables in spec reporter ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#4189](https://github.com/webdriverio/webdriverio/pull/4189) Fix type for webdriverio onPrepare parameter ([@archonandrewhunt](https://github.com/archonandrewhunt))
+* [#4117](https://github.com/webdriverio/webdriverio/pull/4117) Updated selectors documentation for element ID ([@reds71](https://github.com/reds71))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Stéphane Rouges ([@reds71](https://github.com/reds71))
+- [@archonandrewhunt](https://github.com/archonandrewhunt)
+
 ## v5.11.5 (2019-07-15)
 
 #### :bug: Bug Fix
