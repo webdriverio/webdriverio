@@ -46,6 +46,12 @@ export default class DevTools {
         const environment = {
             isDevTools: { value: true },
             isW3C: { value: true },
+            isMobile: { value: false },
+            isIOS: { value: false },
+            isAndroid: { value: false },
+            isChrome: { value: true },
+            isSauce: { value: false },
+            isSeleniumStandalone: { value: false },
             puppeteerBrowser: { value: browser }
         }
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
