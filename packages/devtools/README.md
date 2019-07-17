@@ -7,7 +7,7 @@ This package provides a low level interface to run browser automation scripts ba
 
 This package is work in progress. The following commands are already supported:
 
-- [ ] newSession
+- [x] newSession
 - [x] deleteSession
 - [x] status
 - [x] getTimeouts
@@ -48,7 +48,7 @@ This package is work in progress. The following commands are already supported:
 - [x] elementClear
 - [x] elementSendKeys
 - [x] getPageSource
-- [ ] executeScript
+- [x] executeScript
 - [ ] executeAsyncScript
 - [x] getAllCookies
 - [x] addCookie
