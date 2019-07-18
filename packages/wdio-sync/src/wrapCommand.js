@@ -12,43 +12,10 @@ import { sanitizeErrorMessage } from './utils'
  * @return {Function}   actual wrapped function
  */
 export default function wrapCommand (commandName, fn) {
-    /**
-     * helper method that runs the command with before/afterCommand hook
-     */
-    const runCommand = async function (...args) {
-        // save error for getting full stack in case of failure
-        // should be before any async calls
-        const stackError = new Error()
-
-        await executeHooksWithArgs(
-            this.options.beforeCommand,
-            [commandName, args]
-        )
-
-        let commandResult
-        let commandError
-        try {
-            commandResult = await fn.apply(this, args)
-        } catch (err) {
-            commandError = sanitizeErrorMessage(err, stackError)
-        }
-
-        await executeHooksWithArgs(
-            this.options.afterCommand,
-            [commandName, args, commandResult, commandError]
-        )
-
-        if (commandError) {
-            throw commandError
-        }
-
-        return commandResult
-    }
-
-    return function (...args) {
+    return function wrapCommandFn (...args) {
         const future = new Future()
 
-        const result = runCommand.apply(this, args)
+        const result = runCommandWithHooks.apply(this, [commandName, fn, ...args])
         result.then(::future.return, ::future.throw)
 
         try {
@@ -72,4 +39,57 @@ export default function wrapCommand (commandName, fn) {
             throw e
         }
     }
+}
+
+/**
+ * helper method that runs the command with before/afterCommand hook
+ */
+async function runCommandWithHooks (commandName, fn, ...args) {
+    const shouldRunHook = !shouldSkipHook(fn)
+
+    if (shouldRunHook) {
+        await runBeforeCommand.apply(this, [commandName, ...args])
+    }
+
+    let commandResult
+    let commandError
+    try {
+        commandResult = await runCommand.apply(this, [fn, ...args])
+    } catch (err) {
+        commandError = err
+    }
+
+    if (shouldRunHook) {
+        await runAfterCommand.apply(this, [commandName, commandResult, commandError, ...args])
+    }
+
+    if (commandError) {
+        throw commandError
+    }
+
+    return commandResult
+}
+
+async function runCommand (fn, ...args) {
+    // save error for getting full stack in case of failure
+    // should be before any async calls
+    const stackError = new Error()
+    try {
+        return await fn.apply(this, args)
+    } catch (err) {
+        throw sanitizeErrorMessage(err, stackError)
+    }
+}
+
+function runBeforeCommand (commandName, ...args) {
+    return executeHooksWithArgs(this.options.beforeCommand, [commandName, args])
+}
+
+function runAfterCommand (commandName, commandResult, commandError, ...args) {
+    return executeHooksWithArgs(this.options.afterCommand, [commandName, args, commandResult, commandError])
+}
+
+function shouldSkipHook(fn) {
+    const ignoredFunctions = ['elementErrorHandlerFn', 'wrapCommandFn', 'elementErrorHandlerCallbackFn']
+    return fn.SKIP_COMMAND_HOOK === true || ignoredFunctions.some(fnName => fnName === fn.name)
 }

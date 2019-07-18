@@ -9,8 +9,11 @@ import implicitWait from './utils/implicitWait'
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
-    return function (...args) {
-        return fn(commandName, async () => {
+    function elementErrorHandlerFn (...args) {
+        elementErrorHandlerFn.CALLS_COUNTER++
+
+        const elementErrorHandlerCallbackFn = async () => {
+            commandFn.IS_ERROR_HANDLER = true
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
 
@@ -38,9 +41,23 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
                 }
                 throw error
             }
-        }).apply(this)
+        }
+
+        /**
+         * Avoid calling before/after command hook if function marked accordingly
+         * or function call counter reached (wrapped function calling another wrapped function that causes same hook to be called multiple times)
+         */
+        if (commandFn.SKIP_COMMAND_HOOK || commandFn.IS_ERROR_HANDLER || elementErrorHandlerFn.CALLS_COUNTER > 2) {
+            elementErrorHandlerCallbackFn.SKIP_COMMAND_HOOK = true
+            elementErrorHandlerFn.SKIP_COMMAND_HOOK = true
+        }
+
+        return fn(commandName, elementErrorHandlerCallbackFn).apply(this)
 
     }
+
+    elementErrorHandlerFn.CALLS_COUNTER = 0
+    return elementErrorHandlerFn
 }
 
 /**

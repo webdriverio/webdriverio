@@ -23,6 +23,27 @@ describe('wrapCommand:runCommand', () => {
         expect(result).toEqual('barbar')
     })
 
+    it('should ignore hooks by SKIP_COMMAND_HOOK', async () => {
+        const fn = jest.fn(x => (x + x))
+        function elementErrorHandlerCallbackFn (...args) {
+            return fn(args)
+        }
+        elementErrorHandlerCallbackFn.SKIP_COMMAND_HOOK = true
+        const runCommand = wrapCommand('foo', elementErrorHandlerCallbackFn)
+        const result = await runCommand.call({ options: {} }, 'bar')
+        expect(result).toEqual('barbar')
+    })
+
+    it('should ignore hooks by fn.name', async () => {
+        const fn = jest.fn(x => (x + x))
+        function elementErrorHandlerCallbackFn (...args) {
+            return fn(args)
+        }
+        const runCommand = wrapCommand('foo', elementErrorHandlerCallbackFn)
+        const result = await runCommand.call({ options: {} }, 'bar')
+        expect(result).toEqual('barbar')
+    })
+
     it('should throw error with proper message', async () => {
         const fn = jest.fn(x => { throw new Error(x) })
         const runCommand = wrapCommand('foo', fn)
@@ -39,7 +60,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('AnotherError'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(3)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
             expect(err.stack).toContain('__mocks__')
         }
         expect.assertions(4)
@@ -54,7 +75,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('bar'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(1)
         }
         expect.assertions(3)
     })
@@ -68,7 +89,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error())
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(1)
         }
         expect.assertions(3)
     })
