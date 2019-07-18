@@ -7,10 +7,12 @@ import { events, stepStatuses, testStatuses } from './constants'
 class AllureReporter extends WDIOReporter {
     constructor(options) {
         const outputDir = options.outputDir || 'allure-results'
+        const useCucumberStepReporter = Boolean(options.useCucumberStepReporter)
 
         super({
             ...options,
-            outputDir
+            outputDir,
+            useCucumberStepReporter
         })
         this.config = {}
         this.allure = new Allure()
@@ -40,23 +42,50 @@ class AllureReporter extends WDIOReporter {
     }
 
     onSuiteStart(suite) {
-        const currentSuite = this.allure.getCurrentSuite()
-        const prefix = currentSuite ? currentSuite.name + ': ' : ''
-        this.allure.startSuite(prefix + suite.title)
+        if (this.options.useCucumberStepReporter) {
+            if (suite.type === 'feature') {
+                // handle cucumber features as allure "suite"
+                this.allure.startSuite(suite.title)
+            } else {
+                // handle cucumber scenarii as allure "case" instead of "suite"
+                this.allure.startCase(suite.title)
+                this.setCaseParameters(suite.cid)
+            }
+        } else {
+            const currentSuite = this.allure.getCurrentSuite()
+            const prefix = currentSuite ? currentSuite.name + ': ' : ''
+            this.allure.startSuite(prefix + suite.title)
+        }
     }
 
-    onSuiteEnd() {
-        this.allure.endSuite()
+    onSuiteEnd(suite) {
+        if (this.options.useCucumberStepReporter && suite.type === 'scenario') {
+            const isPassed = !suite.tests.some(test => test.state !== testStatuses.PASSED)
+            if (isPassed) {
+                // Only close passing tests because
+                // non passing tests are closed in onTestFailed event
+                this.allure.endCase(testStatuses.PASSED)
+            }
+        } else {
+            this.allure.endSuite()
+        }
     }
 
     onTestStart(test) {
-        this.allure.startCase(test.title)
+        if (this.options.useCucumberStepReporter) {
+            this.allure.startStep(test.title)
+        } else {
+            this.allure.startCase(test.title)
+            this.setCaseParameters(test.cid)
+        }
+    }
 
+    setCaseParameters(cid) {
         const currentTest = this.allure.getCurrentTest()
 
         if (!this.isMultiremote) {
             const { browserName, deviceName } = this.config.capabilities
-            const targetName = browserName || deviceName || test.cid
+            const targetName = browserName || deviceName || cid
             const version = this.config.capabilities.version || this.config.capabilities.platformVersion || ''
             const paramName = deviceName ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
@@ -68,15 +97,28 @@ class AllureReporter extends WDIOReporter {
         // Allure analytics labels. See https://github.com/allure-framework/allure2/blob/master/Analytics.md
         currentTest.addLabel('language', 'javascript')
         currentTest.addLabel('framework', 'wdio')
-        currentTest.addLabel('thread', test.cid)
+        currentTest.addLabel('thread', cid)
     }
 
     onTestPass() {
-        this.allure.endCase(testStatuses.PASSED)
+        if (this.options.useCucumberStepReporter) {
+            this.allure.endStep(stepStatuses.PASSED)
+        } else {
+            this.allure.endCase(testStatuses.PASSED)
+        }
     }
 
     onTestFail(test) {
-        if (!this.isAnyTestRunning()) {
+        if (this.options.useCucumberStepReporter) {
+            const testStatus = getTestStatus(test, this.config)
+            const stepStatus = Object.values(stepStatuses).indexOf(testStatus >= 0) ?
+                testStatus : stepStatuses.FAILED
+            this.allure.endStep(stepStatus)
+            this.allure.endCase(testStatus, getErrorFromFailedTest(test))
+            return
+        }
+
+        if (!this.isAnyTestRunning()) { // is any CASE running
             this.allure.startCase(test.title)
         } else {
             this.allure.getCurrentTest().name = test.title
@@ -91,7 +133,9 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test) {
-        if (!this.allure.getCurrentTest() || this.allure.getCurrentTest().name !== test.title) {
+        if (this.options.useCucumberStepReporter) {
+            this.allure.endStep(stepStatuses.SKIPPED)
+        } else if (!this.allure.getCurrentTest() || this.allure.getCurrentTest().name !== test.title) {
             this.allure.pendingCase(test.title)
         } else {
             this.allure.endCase(testStatuses.PENDING)
@@ -103,7 +147,7 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (this.options.disableWebdriverStepsReporting || this.isMultiremote) {
+        if (this.options.disableWebdriverStepsReporting || this.options.useCucumberStepReporter || this.isMultiremote) {
             return
         }
 
@@ -119,13 +163,13 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this.options
+        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting, useCucumberStepReporter } = this.options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
                 this.allure.addAttachment('Screenshot', Buffer.from(command.result.value, 'base64'))
             }
         }
-        if (!disableWebdriverStepsReporting) {
+        if (!disableWebdriverStepsReporting && !useCucumberStepReporter) {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
                 this.dumpJSON('Response', command.result.value)
             }
@@ -180,7 +224,7 @@ class AllureReporter extends WDIOReporter {
             this.onTestPass()
 
             // remove hook from suite if it has no steps
-            if (this.allure.getCurrentTest().steps.length === 0) {
+            if (this.allure.getCurrentTest().steps.length === 0 && !this.options.useCucumberStepReporter) {
                 this.allure.getCurrentSuite().testcases.pop()
             }
         }
