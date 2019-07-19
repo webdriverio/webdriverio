@@ -3,6 +3,8 @@ import Future from 'fibers/future'
 import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
 
+const IGNORED_FUNCTIONS = ['elementErrorHandlerFn', 'wrapCommandFn', 'elementErrorHandlerCallbackFn']
+
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
  * @param  {Function}   fn             function to be executed
@@ -90,6 +92,5 @@ function runAfterCommand (commandName, commandResult, commandError, ...args) {
 }
 
 function shouldSkipHook(fn) {
-    const ignoredFunctions = ['elementErrorHandlerFn', 'wrapCommandFn', 'elementErrorHandlerCallbackFn']
-    return fn.SKIP_COMMAND_HOOK === true || ignoredFunctions.some(fnName => fnName === fn.name)
+    return fn.SKIP_COMMAND_HOOK === true || IGNORED_FUNCTIONS.some(fnName => fnName === fn.name)
 }
