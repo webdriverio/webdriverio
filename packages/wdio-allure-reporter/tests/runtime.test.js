@@ -113,12 +113,12 @@ describe('reporter reporter api', () => {
 
     it('should throw exception for incorrect status for addStep', () => {
         const cb = () => { reporter.addStep('foo', { content: 'baz' }, 'canceled')}
-        expect(cb).toThrowError('Step status must be passed or failed or broken. You tried to set "canceled"')
+        expect(cb).toThrowError('Step status must be passed or failed or broken or skipped. You tried to set "canceled"')
     })
 
     it('should throw exception for incorrect status for endStep', () => {
         const cb = () => { reporter.endStep('canceled') }
-        expect(cb).toThrowError('Step status must be passed or failed or broken. You tried to set "canceled"')
+        expect(cb).toThrowError('Step status must be passed or failed or broken or skipped. You tried to set "canceled"')
     })
 
     it('should pass correct data from addArgument', () => {
