@@ -45,17 +45,17 @@ class AllureReporter extends WDIOReporter {
         if (this.options.useCucumberStepReporter) {
             if (suite.type === 'feature') {
                 // handle cucumber features as allure "suite"
-                this.allure.startSuite(suite.title)
-            } else {
-                // handle cucumber scenarii as allure "case" instead of "suite"
-                this.allure.startCase(suite.title)
-                this.setCaseParameters(suite.cid)
+                return this.allure.startSuite(suite.title)
             }
-        } else {
-            const currentSuite = this.allure.getCurrentSuite()
-            const prefix = currentSuite ? currentSuite.name + ': ' : ''
-            this.allure.startSuite(prefix + suite.title)
+
+            // handle cucumber scenarii as allure "case" instead of "suite"
+            this.allure.startCase(suite.title)
+            return this.setCaseParameters(suite.cid)
         }
+
+        const currentSuite = this.allure.getCurrentSuite()
+        const prefix = currentSuite ? currentSuite.name + ': ' : ''
+        this.allure.startSuite(prefix + suite.title)
     }
 
     onSuiteEnd(suite) {
@@ -64,20 +64,21 @@ class AllureReporter extends WDIOReporter {
             if (isPassed) {
                 // Only close passing tests because
                 // non passing tests are closed in onTestFailed event
-                this.allure.endCase(testStatuses.PASSED)
+                return this.allure.endCase(testStatuses.PASSED)
             }
-        } else {
-            this.allure.endSuite()
+            return
         }
+
+        this.allure.endSuite()
     }
 
     onTestStart(test) {
         if (this.options.useCucumberStepReporter) {
-            this.allure.startStep(test.title)
-        } else {
-            this.allure.startCase(test.title)
-            this.setCaseParameters(test.cid)
+            return this.allure.startStep(test.title)
         }
+
+        this.allure.startCase(test.title)
+        this.setCaseParameters(test.cid)
     }
 
     setCaseParameters(cid) {
@@ -102,10 +103,10 @@ class AllureReporter extends WDIOReporter {
 
     onTestPass() {
         if (this.options.useCucumberStepReporter) {
-            this.allure.endStep(stepStatuses.PASSED)
-        } else {
-            this.allure.endCase(testStatuses.PASSED)
+            return this.allure.endStep(stepStatuses.PASSED)
         }
+
+        this.allure.endCase(testStatuses.PASSED)
     }
 
     onTestFail(test) {
