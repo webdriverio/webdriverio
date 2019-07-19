@@ -89,7 +89,7 @@ declare namespace WebdriverIO {
     interface HookFunctions {
         onPrepare?(
             config: Config,
-            capabilities: WebDriver.DesiredCapabilities
+            capabilities: WebDriver.DesiredCapabilities[]
         ): void;
 
         onComplete?(exitCode: number, config: Config, capabilities: WebDriver.DesiredCapabilities, results: Results): void;
