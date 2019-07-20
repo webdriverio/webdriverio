@@ -15,6 +15,13 @@ const IGNORED_FUNCTIONS = ['elementErrorHandlerFn', 'wrapCommandFn', 'elementErr
  */
 export default function wrapCommand (commandName, fn) {
     return function wrapCommandFn (...args) {
+        /**
+         * Avoid running some functions in Future that are not in Fiber.
+         */
+        if (fn.SKIP_COMMAND_HOOK === true || fn.name === 'wrapCommandFn') {
+            return runCommand.apply(this, [fn, ...args])
+        }
+
         const future = new Future()
 
         const result = runCommandWithHooks.apply(this, [commandName, fn, ...args])
