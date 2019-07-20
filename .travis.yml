@@ -9,6 +9,7 @@ script:
 
 after_script:
   - ./node_modules/.bin/codecov
+  - node ./scripts/uploadCodeCov.js
 
 deploy:
   provider: script
