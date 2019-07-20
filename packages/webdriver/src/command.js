@@ -92,7 +92,8 @@ export default function (method, endpointUri, commandInfo) {
     /**
      * skip certain protocol commands as far as these commands are wrapped by WebdriverIO
      */
-    if (endpointUri.includes('element')) {
+    if ((endpointUri.includes('/:elementId/') && command.toLowerCase().includes('element'))
+        || command.startsWith('findElement')) {
         protocolCommand.SKIP_COMMAND_HOOK = true
     }
     return protocolCommand
