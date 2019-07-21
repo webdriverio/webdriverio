@@ -5,6 +5,8 @@ import assert from 'assert'
 import launch from './helpers/launch'
 import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 (async () => {
     /**
      * Mocha wdio testrunner tests
@@ -65,10 +67,11 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
             specs: [path.resolve(__dirname, 'mocha', 'service.js')],
             services: [['smoke-test', { foo: 'bar' }]]
         })
+    await sleep(100)
     const serviceLogs = fs.readFileSync(path.join(__dirname, 'helpers', 'service.log'))
-    assert.equal(serviceLogs, SERVICE_LOGS)
+    assert.equal(serviceLogs.toString(), SERVICE_LOGS)
     const launcherLogs = fs.readFileSync(path.join(__dirname, 'helpers', 'launcher.log'))
-    assert.equal(launcherLogs, LAUNCHER_LOGS)
+    assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 
     /**
      * wdio test run with custom reporter as string
@@ -79,9 +82,10 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
             specs: [path.resolve(__dirname, 'mocha', 'reporter.js')],
             reporters: [['smoke-test', { foo: 'bar' }]]
         })
+    await sleep(100)
     const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = fs.readFileSync(reporterLogsPath)
-    assert.equal(reporterLogs, REPORTER_LOGS)
+    assert.equal(reporterLogs.toString(), REPORTER_LOGS)
     fs.unlinkSync(reporterLogsPath)
 
     /**
