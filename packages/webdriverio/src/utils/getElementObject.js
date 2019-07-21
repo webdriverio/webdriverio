@@ -61,7 +61,7 @@ export const getElement = function findElement (selector, res) {
  */
 export const getElements = function getElements (selector, res) {
     const browser = getBrowserObject(this)
-    const prototype = { ...clone(browser.__propertiesObject__), ...getWDIOPrototype('element'), scope: 'element' }
+    const partialPrototype = { ...getWDIOPrototype('element'), scope: 'element' }
 
     const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
@@ -90,7 +90,7 @@ export const getElements = function getElements (selector, res) {
             client.index = i
             client.emit = ::this.emit
             return client
-        }, prototype)
+        }, { ...clone(browser.__propertiesObject__), ...partialPrototype })
 
         const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 
