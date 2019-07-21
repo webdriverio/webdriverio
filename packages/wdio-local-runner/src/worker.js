@@ -6,9 +6,16 @@ import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
+import RunnerStream from './stdStream'
+import { removeLastListener } from './utils'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
+
+const stdOutStream = new RunnerStream()
+const stdErrStream = new RunnerStream()
+stdOutStream.pipe(process.stdout)
+stdErrStream.pipe(process.stderr)
 
 /**
  * WorkerInstance
@@ -71,9 +78,15 @@ export default class WorkerInstance extends EventEmitter {
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
-            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
+            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(stdOutStream)
+            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(stdErrStream)
             process.stdin.pipe(childProcess.stdin)
+
+            /**
+             * Remove events that are automatically created by Readable stream
+             */
+            removeLastListener(process.stdin, 'data')
+            removeLastListener(process.stdin, 'end')
         }
 
         return childProcess
