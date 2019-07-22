@@ -7,6 +7,33 @@ Over the time our community has developed a bunch of boilerplate projects that c
 
 ## v5 Boilerplate Projects
 
+### [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
+
+A powerful boilerplate to run e2e and visual regression tests with Mocha
+
+- Framework: Mocha (v5.x)
+- Features:
+    - Page Object Pattern
+    - ES6 style class base with Babel support
+    - Chai
+    - Multiple reports (Spec, Dot, Allure, Timeline)
+    - Visual regression tests (Image comparison service)
+    - Code formatter (Eslint, Prettier)
+    - Husky
+
+### [WarleyGabriel/demo-webdriverio-cucumber](https://github.com/WarleyGabriel/demo-webdriverio-cucumber)
+
+A powerful boilerplate project to run e2e tests with Cucumber
+
+- Framework: Cucumber (v5.x)
+- Features:
+    - Page Object Pattern
+    - ES6 style class base with Babel support
+    - Chai
+    - Multiple reports (Spec, Dot, Allure, Timeline)
+    - Code formatter (Eslint, Prettier)
+    - Husky
+
 ### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
 - Framework: Jasmine (v3.x)
