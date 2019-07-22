@@ -1,16 +1,11 @@
-import fs from 'fs'
 import request from 'request'
-import { remote } from '../../../src'
-import * as utils from '../../../src/utils'
-
-const writeFileSync = fs.writeFileSync
 
 describe('saveRecordingScreen', () => {
-    let browser, getAbsoluteFilepathSpy, assertDirectoryExistsSpy
-
-    beforeAll(() => {
-        fs.writeFileSync = jest.fn()
-    })
+    jest.mock('fs')
+    const fs = require('fs').default
+    const { remote } = require('../../../src')
+    const utils = require('../../../src/utils')
+    let browser, getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
 
     beforeEach(async () => {
         browser = await remote({
@@ -24,12 +19,13 @@ describe('saveRecordingScreen', () => {
 
         getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
         assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
+        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
     })
 
     afterEach(() => {
         getAbsoluteFilepathSpy.mockClear()
         assertDirectoryExistsSpy.mockClear()
-        fs.writeFileSync.mockClear()
+        writeFileSyncSpy.mockClear()
     })
 
     it('should capture video', async () => {
@@ -49,8 +45,8 @@ describe('saveRecordingScreen', () => {
         expect(video.toString()).toBe('some screenshot')
 
         // write to file
-        expect(fs.writeFileSync).toHaveBeenCalledTimes(1)
-        expect(fs.writeFileSync).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
+        expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
+        expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
     })
 
     it('should fail if no filename provided', async () => {
@@ -60,9 +56,5 @@ describe('saveRecordingScreen', () => {
         await expect(
             browser.saveRecordingScreen()
         ).rejects.toEqual(expectedError)
-    })
-
-    afterAll(() => {
-        fs.writeFileSync = writeFileSync
     })
 })
