@@ -3,14 +3,10 @@ import fs from 'fs'
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
 
-const writeFile = fs.writeFile
+jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
 
 describe('wdio-runner', () => {
-    beforeAll(() => {
-        fs.writeFile = jest.fn()
-    })
-
     describe('_fetchDriverLogs', () => {
         let runner
         beforeEach(() => {
@@ -467,9 +463,5 @@ describe('wdio-runner', () => {
     afterEach(() => {
         attach.mockClear()
         delete global.browser
-    })
-
-    afterAll(() => {
-        fs.writeFile = writeFile
     })
 })
