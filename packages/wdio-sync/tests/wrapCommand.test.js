@@ -7,8 +7,8 @@ jest.mock('../src/executeHooksWithArgs', () => ({
     default: jest.fn().mockImplementation(() => true)
 }))
 
-const futureReturn = Future.return
 const futureWait = Future.wait
+const futurePrototypeWait = Future.prototype.wait
 
 describe('wrapCommand:runCommand', () => {
 
@@ -23,25 +23,44 @@ describe('wrapCommand:runCommand', () => {
         expect(result).toEqual('barbar')
     })
 
-    it('should ignore hooks by SKIP_COMMAND_HOOK', async () => {
-        const fn = jest.fn(x => (x + x))
-        function elementErrorHandlerCallbackFn (...args) {
-            return fn(args)
-        }
-        elementErrorHandlerCallbackFn.SKIP_COMMAND_HOOK = true
-        const runCommand = wrapCommand('foo', elementErrorHandlerCallbackFn)
-        const result = await runCommand.call({ options: {} }, 'bar')
-        expect(result).toEqual('barbar')
+    it('should set _NOT_FIBER to false if elementId is missing', async () => {
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, _NOT_FIBER: true }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(false)
+    })
+
+    it('should set _NOT_FIBER to true if elementId is exist', async () => {
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, _NOT_FIBER: true, elementId: 'foo' }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(true)
+    })
+
+    it('should set _NOT_FIBER to false if elementId is exist but function is anonymous', async () => {
+        const runCommand = wrapCommand('foo', () => { })
+        const context = { options: {}, _NOT_FIBER: true, elementId: 'foo' }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(false)
+    })
+
+    it('should set _NOT_FIBER to true if parent.elementId is exist', async () => {
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, _NOT_FIBER: true, parent: { elementId: 'foo' } }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(true)
     })
 
     it('should ignore hooks by fn.name', async () => {
-        const fn = jest.fn(x => (x + x))
-        function elementErrorHandlerCallbackFn (...args) {
-            return fn(args)
-        }
-        const runCommand = wrapCommand('foo', elementErrorHandlerCallbackFn)
-        const result = await runCommand.call({ options: {} }, 'bar')
-        expect(result).toEqual('barbar')
+        Future.prototype.wait = () => {}
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, elementId: 'foo' }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(false)
     })
 
     it('should throw error with proper message', async () => {
@@ -97,7 +116,6 @@ describe('wrapCommand:runCommand', () => {
     describe('future', () => {
         beforeEach(() => {
             Future.wait = jest.fn(() => { throw new Error() })
-            Future.return = jest.fn(() => { })
         })
 
         it('should throw regular error', () => {
@@ -110,10 +128,10 @@ describe('wrapCommand:runCommand', () => {
             }
             expect.assertions(1)
         })
+    })
 
-        afterEach(() => {
-            Future.wait = futureWait
-            Future.return = futureReturn
-        })
+    afterEach(() => {
+        Future.wait = futureWait
+        Future.prototype.wait = futurePrototypeWait
     })
 })

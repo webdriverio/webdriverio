@@ -7,7 +7,7 @@ const log = logger('webdriver')
 export default function (method, endpointUri, commandInfo) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    function protocolCommand (...args) {
+    return function protocolCommand (...args) {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -88,13 +88,4 @@ export default function (method, endpointUri, commandInfo) {
             return result.value
         })
     }
-
-    /**
-     * skip certain protocol commands as far as these commands are wrapped by WebdriverIO
-     */
-    if ((endpointUri.includes('/:elementId/') && command.toLowerCase().includes('element'))
-        || command.startsWith('findElement')) {
-        protocolCommand.SKIP_COMMAND_HOOK = true
-    }
-    return protocolCommand
 }

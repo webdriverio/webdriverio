@@ -3,8 +3,6 @@ import Future from 'fibers/future'
 import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
 
-const IGNORED_FUNCTIONS = ['elementErrorHandlerFn', 'wrapCommandFn', 'elementErrorHandlerCallbackFn']
-
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
  * @param  {Function}   fn             function to be executed
@@ -18,9 +16,14 @@ export default function wrapCommand (commandName, fn) {
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */
-        if (fn.SKIP_COMMAND_HOOK === true || fn.name === 'wrapCommandFn') {
+        if (this._NOT_FIBER === true) {
+            this._NOT_FIBER = isNotInFiber(this, fn.name)
             return runCommand.apply(this, [fn, ...args])
         }
+        /**
+         * all named nested functions run in parent Fiber context
+         */
+        this._NOT_FIBER = fn.name !== ''
 
         const future = new Future()
 
@@ -28,7 +31,9 @@ export default function wrapCommand (commandName, fn) {
         result.then(::future.return, ::future.throw)
 
         try {
-            return future.wait()
+            const futureResult = future.wait()
+            this._NOT_FIBER = false
+            return futureResult
         } catch (e) {
             /**
              * in case some 3rd party lib rejects without bundling into an error
@@ -54,11 +59,7 @@ export default function wrapCommand (commandName, fn) {
  * helper method that runs the command with before/afterCommand hook
  */
 async function runCommandWithHooks (commandName, fn, ...args) {
-    const shouldRunHook = !shouldSkipHook(fn)
-
-    if (shouldRunHook) {
-        await runBeforeCommand.apply(this, [commandName, ...args])
-    }
+    await runBeforeCommand.apply(this, [commandName, ...args])
 
     let commandResult
     let commandError
@@ -68,9 +69,7 @@ async function runCommandWithHooks (commandName, fn, ...args) {
         commandError = err
     }
 
-    if (shouldRunHook) {
-        await runAfterCommand.apply(this, [commandName, commandResult, commandError, ...args])
-    }
+    await runAfterCommand.apply(this, [commandName, commandResult, commandError, ...args])
 
     if (commandError) {
         throw commandError
@@ -98,6 +97,12 @@ function runAfterCommand (commandName, commandResult, commandError, ...args) {
     return executeHooksWithArgs(this.options.afterCommand, [commandName, args, commandResult, commandError])
 }
 
-function shouldSkipHook(fn) {
-    return fn.SKIP_COMMAND_HOOK === true || IGNORED_FUNCTIONS.some(fnName => fnName === fn.name)
+/**
+ * isNotInFiber
+ * if element or its parent has element id then we are in parent's Fiber
+ * @param {object} context browser or element
+ * @param {string} fnName function name
+ */
+function isNotInFiber (context, fnName) {
+    return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
 }
