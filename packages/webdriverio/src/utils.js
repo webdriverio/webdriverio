@@ -21,7 +21,7 @@ const scopes = {
     element: elementCommands
 }
 
-const applyScopePrototype = async (prototype, scope) => {
+const applyScopePrototype = (prototype, scope) => {
     Object.entries(scopes[scope]).forEach(([commandName, command]) => {
         prototype[commandName] = { value: command }
     })
