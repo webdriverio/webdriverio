@@ -59,7 +59,10 @@ export default function wrapCommand (commandName, fn) {
  * helper method that runs the command with before/afterCommand hook
  */
 async function runCommandWithHooks (commandName, fn, ...args) {
-    await runBeforeCommand.apply(this, [commandName, ...args])
+    await executeHooksWithArgs(
+        this.options.beforeCommand,
+        [commandName, args]
+    )
 
     let commandResult
     let commandError
@@ -69,7 +72,10 @@ async function runCommandWithHooks (commandName, fn, ...args) {
         commandError = err
     }
 
-    await runAfterCommand.apply(this, [commandName, commandResult, commandError, ...args])
+    await executeHooksWithArgs(
+        this.options.afterCommand,
+        [commandName, args, commandResult, commandError]
+    )
 
     if (commandError) {
         throw commandError
@@ -87,14 +93,6 @@ async function runCommand (fn, ...args) {
     } catch (err) {
         throw sanitizeErrorMessage(err, stackError)
     }
-}
-
-function runBeforeCommand (commandName, ...args) {
-    return executeHooksWithArgs(this.options.beforeCommand, [commandName, args])
-}
-
-function runAfterCommand (commandName, commandResult, commandError, ...args) {
-    return executeHooksWithArgs(this.options.afterCommand, [commandName, args, commandResult, commandError])
 }
 
 /**
