@@ -1,10 +1,10 @@
 import path from 'path'
 import archiver from 'archiver'
+import { remote } from '../../../src'
+
+jest.mock('fs')
 
 describe('uploadFile', () => {
-    const { remote } = require('../../../src')
-    jest.mock('fs')
-
     it('should throw if browser does not support it', async function () {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
