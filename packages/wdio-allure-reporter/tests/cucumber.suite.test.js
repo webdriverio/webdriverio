@@ -24,9 +24,8 @@ afterAll(() => {
 
 describe('reporter option "useCucumberStepReporter" set to true', () => {
 
-    describe('Passing tests with option', () => {
+    describe('Passing tests', () => {
         const outputDir = directory()
-        // const outputDir = process.cwd() + '/allure-results'
         let allureXml
 
         beforeAll(() => {
@@ -88,163 +87,69 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
     })
 
-    // describe('Failed tests', () => {
-    //     let outputDir
-    //     let allureXml
+    describe('Failed tests', () => {
+        let outputDir
+        let allureXml
 
-    //     beforeEach(() => {
-    //         outputDir = directory()
-    //     })
+        beforeEach(() => {
+            outputDir = directory()
+        })
 
-    //     afterEach(() => {
-    //         clean(outputDir)
-    //     })
+        afterEach(() => {
+            clean(outputDir)
+        })
 
-    //     it('should detect failed test case', () => {
-    //         const reporter = new AllureReporter({ stdout: true, outputDir })
+        it('should handle failed test', () => {
+            const reporter = new AllureReporter({ stdout: true, outputDir, useCucumberStepReporter: true })
 
-    //         const runnerEvent = runnerStart()
-    //         delete runnerEvent.config.capabilities.browserName
-    //         delete runnerEvent.config.capabilities.version
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onBeforeCommand(commandStart())
+            reporter.onAfterCommand(commandEnd())
+            reporter.onTestFail(cucumberHelper.testFail())
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd('test'))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd('test'))
+            reporter.onRunnerEnd(runnerEnd())
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            allureXml = results[0]
 
-    //         reporter.onRunnerStart(runnerEvent)
-    //         reporter.onSuiteStart(suiteStart())
-    //         reporter.onTestStart(testStart())
-    //         reporter.onTestFail(testFailed())
-    //         reporter.onSuiteEnd(suiteEnd())
-    //         reporter.onRunnerEnd(runnerEnd())
+            expect(allureXml('ns2\\:test-suite > name').text()).toEqual('MyFeature')
+            expect(allureXml('test-case > name').text()).toEqual('MyScenario')
+            expect(allureXml('test-case').attr('status')).toEqual('failed')
+            expect(allureXml('step').attr('status')).toEqual('failed')
+            expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
+            expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
+        })
 
-    //         const results = getResults(outputDir)
-    //         expect(results).toHaveLength(1)
-    //         allureXml = results[0]
+        it('should handle failed hook', () => {
+            const reporter = new AllureReporter({ stdout: true, outputDir, useCucumberStepReporter: true })
 
-    //         expect(allureXml('test-case > name').text()).toEqual('should can do something')
-    //         expect(allureXml('test-case').attr('status')).toEqual('failed')
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onHookStart(cucumberHelper.hookStart())
+            reporter.onHookEnd(cucumberHelper.hookFail())
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestSkip(cucumberHelper.testSkipped())
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd('hook'))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd('hook'))
+            reporter.onRunnerEnd(runnerEnd())
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            allureXml = results[0]
 
-    //         expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
-    //         expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(testStart().cid)
-    //     })
+            expect(allureXml('ns2\\:test-suite > name').text()).toEqual('MyFeature')
+            expect(allureXml('test-case > name').text()).toEqual('MyScenario')
+            expect(allureXml('test-case').attr('status')).toEqual('failed')
+            expect(allureXml('step').attr('status')).toEqual('failed')
+            expect(allureXml('step').eq(0).attr('status')).toEqual('failed')
+            expect(allureXml('step').eq(1).attr('status')).toEqual('canceled')
+            expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
+            expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
+        })
 
-    //     it('should detect failed test case without start event', () => {
-    //         const reporter = new AllureReporter({ stdout: true, outputDir })
-
-    //         reporter.onRunnerStart(runnerStart())
-    //         reporter.onSuiteStart(suiteStart())
-    //         reporter.onTestFail(testFailed())
-    //         reporter.onSuiteEnd(suiteEnd())
-    //         reporter.onRunnerEnd(runnerEnd())
-
-    //         const results = getResults(outputDir)
-    //         expect(results).toHaveLength(1)
-    //         allureXml = results[0]
-
-    //         expect(allureXml('test-case > name').text()).toEqual('should can do something')
-    //         expect(allureXml('test-case').attr('status')).toEqual('failed')
-    //     })
-
-    //     it('should detect failed test case with multiple errors', () => {
-    //         const reporter = new AllureReporter({ stdout: true, outputDir } )
-
-    //         const runnerEvent = runnerStart()
-    //         runnerEvent.config.framework = 'jasmine'
-    //         delete runnerEvent.config.capabilities.browserName
-    //         delete runnerEvent.config.capabilities.version
-
-    //         reporter.onRunnerStart(runnerEvent)
-    //         reporter.onSuiteStart(suiteStart())
-    //         reporter.onTestStart(testStart())
-    //         reporter.onTestFail(testFailedWithMultipleErrors())
-    //         reporter.onSuiteEnd(suiteEnd())
-    //         reporter.onRunnerEnd(runnerEnd())
-
-    //         const results = getResults(outputDir)
-    //         expect(results).toHaveLength(1)
-
-    //         allureXml = results[0]
-    //         expect(allureXml('test-case > name').text()).toEqual('should can do something')
-    //         expect(allureXml('test-case').attr('status')).toEqual('failed')
-    //         const message = allureXml('message').text()
-    //         const lines = message.split('\n')
-    //         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
-    //         expect(lines[1].trim()).toBe('ReferenceError: All is Dust')
-    //         expect(lines[3].trim()).toBe('InternalError: Abandon Hope')
-    //     })
-    // })
-
-    // describe('Pending tests', () => {
-    //     let outputDir
-
-    //     afterEach(() => {
-    //         clean(outputDir)
-    //     })
-
-    //     it('should detect started pending test case', () => {
-    //         outputDir = directory()
-    //         const reporter = new AllureReporter({ stdout: true, outputDir })
-
-    //         reporter.onRunnerStart(runnerStart())
-    //         reporter.onSuiteStart(suiteStart())
-    //         reporter.onTestStart(testStart())
-    //         reporter.onTestSkip(testPending())
-    //         reporter.onSuiteEnd(suiteEnd())
-    //         reporter.onRunnerEnd(runnerEnd())
-
-    //         const results = getResults(outputDir)
-    //         expect(results).toHaveLength(1)
-    //         const allureXml = results[0]
-
-    //         expect(allureXml('test-case > name').text()).toEqual('should can do something')
-    //         expect(allureXml('test-case').attr('status')).toEqual('pending')
-    //     })
-
-    //     it('should detect not started pending test case', () => {
-    //         outputDir = directory()
-    //         const reporter = new AllureReporter({ stdout: true, outputDir })
-
-    //         reporter.onRunnerStart(runnerStart())
-    //         reporter.onSuiteStart(suiteStart())
-    //         reporter.onTestSkip(testPending())
-    //         reporter.onSuiteEnd(suiteEnd())
-    //         reporter.onRunnerEnd(runnerEnd())
-
-    //         const results = getResults(outputDir)
-    //         expect(results).toHaveLength(1)
-    //         const allureXml = results[0]
-
-    //         expect(allureXml('test-case > name').text()).toEqual('should can do something')
-    //         expect(allureXml('test-case').attr('status')).toEqual('pending')
-    //     })
-
-    //     it('should detect not started pending test case after completed test', () => {
-    //         outputDir = directory()
-    //         const reporter = new AllureReporter({ stdout: true, outputDir })
-    //         let passed = testStart()
-    //         passed = {
-    //             ...passed,
-    //             title: passed.title + '2',
-    //             uid: passed.uid + '2',
-    //             fullTitle: passed.fullTitle + '2'
-    //         }
-
-    //         reporter.onRunnerStart(runnerStart())
-    //         reporter.onSuiteStart(suiteStart())
-    //         reporter.onTestStart(passed)
-    //         reporter.onTestPass({ ...passed, state: 'passed' })
-    //         reporter.onTestSkip(testPending())
-    //         reporter.onSuiteEnd(suiteEnd())
-    //         reporter.onRunnerEnd(runnerEnd())
-
-    //         const results = getResults(outputDir)
-    //         expect(results).toHaveLength(1)
-    //         const allureXml = results[0]
-
-    //         expect(allureXml('test-case > name').length).toEqual(2)
-
-    //         expect(allureXml('test-case > name').last().text()).toEqual('should can do something')
-    //         expect(allureXml('test-case').last().attr('status')).toEqual('pending')
-
-    //         expect(allureXml('test-case > name').first().text()).toEqual(passed.title)
-    //         expect(allureXml('test-case').first().attr('status')).toEqual('passed')
-    //     })
-    // })
+    })
 })

@@ -11,14 +11,23 @@ const suite = (type = 'feature') => ({
     suites: []
 })
 
+const error = {
+    message: 'foo == bar',
+    stack: 'AssertionError [ERR_ASSERTION]: foo == bar',
+    type: 'AssertionError [ERR_ASSERTION]',
+    name: 'AssertionError',
+    expected: 'foo',
+    actual: 'bar'
+}
+
 export function featureStart() {
     return Object.assign(suite('feature'))
 }
 
-export function featureEnd() {
+export function featureEnd(failCause = null) {
     return Object.assign(suite('feature'), {
         _duration: 1516,
-        suites: [scenarioEnd()],
+        suites: [scenarioEnd(failCause)],
         end: '2019-07-22T12:21:37.696Z'
     })
 }
@@ -27,11 +36,11 @@ export function scenarioStart() {
     return Object.assign(suite('scenario'))
 }
 
-export function scenarioEnd() {
+export function scenarioEnd(failCause = null) {
     return Object.assign(suite('scenario'), {
         _duration: 1451,
-        tests: [testPass()],
-        hooks: [hookEnd()],
+        tests: [failCause === 'test' ? testFail() : testPass()],
+        hooks: [failCause === 'hook' ? hookFail() : hookEnd()],
         end: '2019-07-22T12:21:37.695Z'
     })
 }
@@ -49,6 +58,17 @@ const hook = () => ({
 export function hookStart() {
     return Object.assign(hook())
 }
+
+export function hookFail() {
+    return Object.assign(hook(), {
+        _duration: 1,
+        errors: [error],
+        error: error,
+        state: 'failed',
+        end: '2019-07-22T12:21:36.250Z'
+    })
+}
+
 export function hookEnd() {
     return Object.assign(hook(), {
         _duration: 4,
@@ -74,11 +94,23 @@ const test = () => ({
 export function testStart() {
     return Object.assign(test())
 }
+
 export function testFail() {
     return Object.assign(test(), {
-        // todo
+        _duration: 10,
+        errors: [error],
+        error: error,
+        state: 'failed',
+        end: '2019-07-22T12:21:37.684Z'
     })
 }
+
+export function testSkipped() {
+    return Object.assign(test(), {
+        state: 'skipped'
+    })
+}
+
 export function testPass() {
     return Object.assign(test(), {
         _duration: 1433,

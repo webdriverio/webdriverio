@@ -60,7 +60,8 @@ class AllureReporter extends WDIOReporter {
 
     onSuiteEnd(suite) {
         if (this.options.useCucumberStepReporter && suite.type === 'scenario') {
-            const isPassed = !suite.tests.some(test => test.state !== testStatuses.PASSED)
+            const isPassed = !suite.tests.some(test => test.state !== testStatuses.PASSED) &&
+                !suite.hooks.some(hook => hook.state && hook.state !== testStatuses.PASSED)
             if (isPassed) {
                 // Only close passing tests because
                 // non passing tests are closed in onTestFailed event
