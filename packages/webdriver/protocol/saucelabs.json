@@ -112,7 +112,7 @@
     "POST": {
       "command": "throttleCPU",
       "description": "You can throttle the CPU in DevTools to understand how your page performs under that constraint.",
-      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleNetworkCapabilities",
+      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleCPUCapabilities",
       "examples": [
         [
           "// throttle CPU and make it run 4x slower",
