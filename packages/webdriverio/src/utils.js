@@ -18,16 +18,23 @@ const scopes = {
     element: {}
 }
 
-Object.entries(scopes).forEach(([scope, commands]) => {
-    const dir = path.resolve(__dirname, 'commands', scope)
-    const files = fs.readdirSync(dir)
-    for (let filename of files) {
-        const commandName = path.basename(filename, path.extname(filename))
-        commands[commandName] = { value: require(path.join(dir, commandName)).default }
+function loadCommands () {
+    if (scopes._loaded) {
+        return
     }
-})
+    Object.entries(scopes).forEach(([scope, commands]) => {
+        const dir = path.resolve(__dirname, 'commands', scope)
+        const files = fs.readdirSync(dir)
+        for (let filename of files) {
+            const commandName = path.basename(filename, path.extname(filename))
+            commands[commandName] = { value: require(path.join(dir, commandName)).default }
+        }
+    })
+    scopes._loaded = true
+}
 
-const applyScopePrototype = (prototype, scope) => {
+const applyScopePrototype = async (prototype, scope) => {
+    loadCommands()
     Object.entries(scopes[scope]).forEach(([commandName, command]) => {
         prototype[commandName] = command
     })
