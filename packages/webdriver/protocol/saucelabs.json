@@ -81,7 +81,7 @@
       }
     }
   },
-  "/session/:sessionId/sauce/ondemand/throttle": {
+  "/session/:sessionId/sauce/ondemand/throttle/network": {
     "POST": {
       "command": "throttleNetwork",
       "description": "With network conditioning you can test your site on a variety of network connections, including Edge, 3G, and even offline. You can throttle the data throughput, including the maximum download and upload throughput, and use latency manipulation to enforce a minimum delay in connection round-trip time (RTT).",
@@ -104,6 +104,29 @@
         "name": "condition",
         "type": "(string|object)",
         "description": "network condition to set (e.g. 'online', 'offline', 'GPRS', 'Regular 2G', 'Good 2G', 'Regular 3G', 'Good 3G', 'Regular 4G', 'DSL', 'Wifi')",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/sauce/ondemand/throttle/cpu": {
+    "POST": {
+      "command": "throttleCPU",
+      "description": "You can throttle the CPU in DevTools to understand how your page performs under that constraint.",
+      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleCPUCapabilities",
+      "examples": [
+        [
+          "// throttle CPU and make it run 4x slower",
+          "browser.throttleCPU(4)"
+        ],
+        [
+          "// reset CPU throttling",
+          "browser.throttleCPU(0)"
+        ]
+      ],
+      "parameters": [{
+        "name": "rate",
+        "type": "number",
+        "description": "Rate on how much the CPU should get throttled.",
         "required": true
       }]
     }
