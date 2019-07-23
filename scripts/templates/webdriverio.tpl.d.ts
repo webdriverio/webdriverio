@@ -145,7 +145,7 @@ declare namespace WebdriverIO {
         beforeScenario?(uri: any, feature: any, scenario: any): void;
         beforeStep?(uri: any, feature: any, scenario: any, step: any): void;
         afterFeature?(uri: any, feature: any, scenario: any, step: any, result: any): void;
-        afterScenario?(uri: any, feature: any, scenario: any): void;
+        afterScenario?(uri: any, feature: any, scenario: any, result: {status: string, duration: number}): void;
         afterStep?(uri: any, feature: any): void;
     }
     type _HooksArray = {

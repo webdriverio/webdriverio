@@ -319,7 +319,7 @@ exports.config = {
     },
     afterStep: function (uri, feature, scenario, step, result) {
     },
-    afterScenario: function (uri, feature, scenario) {
+    afterScenario: function (uri, feature, scenario, result) {
     },
     afterFeature: function (uri, feature) {
     }
