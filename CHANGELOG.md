@@ -15,6 +15,46 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.7 (2019-07-23)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#4046](https://github.com/webdriverio/webdriverio/pull/4046) Add throttleCPU command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#4221](https://github.com/webdriverio/webdriverio/pull/4221) Fix slow before/after command hook in sync mode ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-local-runner`
+  * [#4223](https://github.com/webdriverio/webdriverio/pull/4223) Fix MaxListenersExceededWarning ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `wdio-cucumber-framework`, `wdio-reporter`
+  * [#4220](https://github.com/webdriverio/webdriverio/pull/4220) Add allure-reporter option useCucumberStepReporter ([@Kignuf](https://github.com/Kignuf))
+
+#### :memo: Documentation
+* Other
+  * [#4233](https://github.com/webdriverio/webdriverio/pull/4233) Add Cucumber and Mocha boilerplate ([@WarleyGabriel](https://github.com/WarleyGabriel))
+  * [#4213](https://github.com/webdriverio/webdriverio/pull/4213) Fixed text in 2019-07-11-cucumberjs-v5-released.md ([@Marketionist](https://github.com/Marketionist))
+* `webdriverio`
+  * [#4224](https://github.com/webdriverio/webdriverio/pull/4224) webdriverio: uploadFile return type void => string ([@drewctate](https://github.com/drewctate))
+
+#### :house: Internal
+* `webdriver`, `webdriverio`
+  * [#4229](https://github.com/webdriverio/webdriverio/pull/4229) Browser/element prototype performance improvements ([@mgrybyk](https://github.com/mgrybyk))
+* Other
+  * [#4226](https://github.com/webdriverio/webdriverio/pull/4226) Fix failing ci ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#4212](https://github.com/webdriverio/webdriverio/pull/4212) Remove safe-buffer dependency ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 7
+- Andrew Tate ([@drewctate](https://github.com/drewctate))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Warley Gabriel ([@WarleyGabriel](https://github.com/WarleyGabriel))
+- [@johnathafelix](https://github.com/johnathafelix)
+
 ## v5.11.6 (2019-07-17)
 
 #### :bug: Bug Fix
