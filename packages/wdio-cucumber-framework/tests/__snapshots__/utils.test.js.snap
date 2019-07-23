@@ -55,15 +55,8 @@ Object {
 }
 `;
 
-exports[`utils formatMessage should not fail if payload was not passed 1`] = `
-Object {
-  "type": "test",
-}
-`;
-
 exports[`utils formatMessage should set passed state for test hooks 1`] = `
 Object {
   "state": "passed",
-  "type": "afterTest",
 }
 `;

@@ -179,7 +179,7 @@ describe('cucumber reporter', () => {
                 specs,
                 tags: [...gherkinDocEvent.document.feature.tags],
                 title: gherkinDocEvent.document.feature.name,
-                type: 'suite:start',
+                type: 'feature',
                 uid: 'feature123',
             }))
         })
@@ -208,7 +208,7 @@ describe('cucumber reporter', () => {
             startSuite(eventBroadcaster)
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
-                type: 'suite:start',
+                type: 'scenario',
                 cid: '0-1',
                 parent: 'feature123',
                 uid: 'scenario126',
@@ -235,7 +235,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:start', expect.objectContaining({
-                    type: 'test:start',
+                    type: 'test',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -260,7 +260,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('hook:end', expect.objectContaining({
-                    type: 'hook:end',
+                    type: 'hook',
                     error: undefined,
                 }))
             })
@@ -275,7 +275,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('hook:end', expect.objectContaining({
-                    type: 'hook:end',
+                    type: 'hook',
                     error: 'err',
                 }))
             })
@@ -290,7 +290,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pass', expect.objectContaining({
-                    type: 'test:pass',
+                    type: 'step',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -313,7 +313,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
-                    type: 'test:pending',
+                    type: 'step',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -336,7 +336,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:pending', expect.objectContaining({
-                    type: 'test:pending',
+                    type: 'step',
                     title: 'Given step-title-passing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -364,7 +364,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                    type: 'test:fail',
+                    type: 'step',
                     title: 'When step-title-failing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -395,7 +395,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                    type: 'test:fail',
+                    type: 'step',
                     title: 'When step-title-failing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -426,7 +426,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('test:fail', expect.objectContaining({
-                    type: 'test:fail',
+                    type: 'step',
                     title: 'When step-title-failing',
                     cid: '0-1',
                     parent: 'feature: scenario',
@@ -450,7 +450,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
-                    type: 'suite:end',
+                    type: 'scenario',
                     cid: '0-1',
                     parent: 'feature123',
                     uid: 'scenario126',
@@ -468,7 +468,7 @@ describe('cucumber reporter', () => {
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
-                    type: 'suite:end',
+                    type: 'feature',
                     title: 'feature',
                     file: './any.feature',
                     uid: 'feature123',
@@ -576,7 +576,7 @@ describe('cucumber reporter', () => {
             eventBroadcaster.emit('gherkin-document', gherkinDocEvent)
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
-                type: 'suite:start',
+                type: 'feature',
                 title: '@feature-tag1, @feature-tag2: feature',
                 uid: 'feature123',
                 file: './any.feature',
@@ -607,7 +607,7 @@ describe('cucumber reporter', () => {
             eventBroadcaster.emit('test-case-started', {})
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
-                type: 'suite:start',
+                type: 'scenario',
                 title: '@scenario-tag1, @scenario-tag2: scenario',
                 uid: 'scenario126',
                 file: './any.feature',
