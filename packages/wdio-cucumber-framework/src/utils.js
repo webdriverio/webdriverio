@@ -91,10 +91,9 @@ export function getUniqueIdentifier (target, sourceLocation) {
  * format message
  * @param {object} message { type: string, payload: object }
  */
-export function formatMessage ({ type, payload = {} }) {
+export function formatMessage ({ payload = {} }) {
     let message = {
         ...payload,
-        type: type
     }
 
     if (payload.title && payload.parent) {

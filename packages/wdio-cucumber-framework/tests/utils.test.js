@@ -80,23 +80,20 @@ describe('utils', () => {
     describe('formatMessage', () => {
         it('should set passed state for test hooks', () => {
             expect(formatMessage({
-                type: 'afterTest',
                 payload: { state: 'passed' }
             })).toMatchSnapshot()
         })
 
         it('should not fail if payload was not passed', () => {
-            expect(formatMessage({ type: 'test' })).toMatchSnapshot()
+            expect(formatMessage({})).toEqual({})
         })
 
         it('should set fullTitle', () => {
             expect(formatMessage({
-                type: 'foobar',
                 payload: { parent: 'foo', title: 'bar' }
             })).toEqual({
                 parent: 'foo',
                 title: 'bar',
-                type: 'foobar',
                 fullTitle: 'foo: bar',
             })
         })
