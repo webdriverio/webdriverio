@@ -142,7 +142,7 @@ exports.config = {
     // },
     //
     // Runs after a Cucumber Scenario
-    // afterScenario: function (uri, feature, scenario) {
+    // afterScenario: function (uri, feature, scenario, result) {
     // },
     //
     // Runs before a Cucumber Step

@@ -174,14 +174,14 @@ export default class CucumberEventListener extends EventEmitter {
     //     sourceLocation: { uri: string, line: 0 }
     // }
     onTestCaseFinished (testCaseFinishedEvent) {
-        const sourceLocation = testCaseFinishedEvent.sourceLocation
+        const { sourceLocation, result } = testCaseFinishedEvent
         const uri = sourceLocation.uri
 
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const feature = doc.feature
         const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
 
-        this.emit('after-scenario', uri, feature, scenario, sourceLocation)
+        this.emit('after-scenario', uri, feature, scenario, result, sourceLocation)
 
         this.currentPickle = null
     }
