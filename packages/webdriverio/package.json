@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen WebDriver test automation framework for Node.js",
-  "version": "5.11.6",
+  "version": "5.11.7",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -61,13 +61,13 @@
     "archiver": "^3.0.0",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.2",
+    "lodash.clonedeep": "^4.5.0",
     "lodash.isobject": "^3.0.2",
     "lodash.isplainobject": "^4.0.6",
-    "lodash.merge": "^4.6.1",
     "lodash.zip": "^4.2.0",
     "resq": "^1.5.0",
     "rgb2hex": "^0.1.0",
     "serialize-error": "^4.1.0",
-    "webdriver": "^5.11.5"
+    "webdriver": "^5.11.7"
   }
 }

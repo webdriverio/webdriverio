@@ -3,10 +3,11 @@ import { testStatuses, stepStatuses, events } from '../src/constants'
 describe('Important constants', () => {
 
     it('should have correct step statuses', () => {
-        expect(Object.values(stepStatuses)).toHaveLength(3)
+        expect(Object.values(stepStatuses)).toHaveLength(4)
         expect(stepStatuses.BROKEN).toEqual('broken')
         expect(stepStatuses.PASSED).toEqual('passed')
         expect(stepStatuses.FAILED).toEqual('failed')
+        expect(stepStatuses.CANCELED).toEqual('canceled')
     })
 
     it('should have correct step statuses', () => {

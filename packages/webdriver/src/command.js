@@ -7,7 +7,7 @@ const log = logger('webdriver')
 export default function (method, endpointUri, commandInfo) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return function (...args) {
+    return function protocolCommand (...args) {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**

@@ -1,6 +1,6 @@
 import { webdriverMonad } from 'webdriver'
 import { wrapCommand, runFnInFiberContext } from '@wdio/config'
-import merge from 'lodash.merge'
+import clone from 'lodash.clonedeep'
 
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../utils'
 import { elementErrorHandler } from '../middlewares'
@@ -14,7 +14,7 @@ import { ELEMENT_KEY } from '../constants'
  */
 export const getElement = function findElement (selector, res) {
     const browser = getBrowserObject(this)
-    const prototype = merge({}, browser.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
+    const prototype = { ...clone(browser.__propertiesObject__), ...getWDIOPrototype('element'), scope: 'element' }
 
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)
@@ -61,7 +61,6 @@ export const getElement = function findElement (selector, res) {
  */
 export const getElements = function getElements (selector, res) {
     const browser = getBrowserObject(this)
-    const prototype = merge({}, browser.__propertiesObject__, getWDIOPrototype('element'), { scope: 'element' })
 
     const elements = res.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
@@ -90,7 +89,7 @@ export const getElements = function getElements (selector, res) {
             client.index = i
             client.emit = ::this.emit
             return client
-        }, prototype)
+        }, { ...clone(browser.__propertiesObject__), ...getWDIOPrototype('element'), scope: 'element' })
 
         const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 

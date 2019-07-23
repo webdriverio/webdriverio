@@ -10,7 +10,7 @@ describe('smoke test multiremote', () => {
     describe('add customCommands', () => {
         it('should respect promises', () => {
             browser.addCommand('customFn', () => {
-                let start = Date.now()
+                let start = Date.now() - 1
                 browser.pause(30)
                 return Promise.all([
                     Promise.resolve(Date.now() - start),
@@ -40,7 +40,7 @@ describe('smoke test multiremote', () => {
         it('allows to create custom commands on elements that respects promises', () => {
             browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.addCommand('myCustomPromiseCommand', function () {
-                let start = Date.now()
+                let start = Date.now() - 1
                 browser.pause(30)
                 return Promise.resolve(Date.now() - start)
             }, true)

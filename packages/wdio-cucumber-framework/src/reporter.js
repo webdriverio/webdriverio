@@ -30,7 +30,7 @@ class CucumberReporter {
         this.emit('suite:start', {
             uid: getUniqueIdentifier(feature),
             title: this.getTitle(feature),
-            type: 'suite',
+            type: 'feature',
             file: uri,
             tags: feature.tags,
             description: feature.description,
@@ -46,7 +46,7 @@ class CucumberReporter {
             uid: getUniqueIdentifier(scenario),
             title: this.getTitle(scenario),
             parent: getUniqueIdentifier(feature),
-            type: 'suite',
+            type: 'scenario',
             file: uri,
             tags: scenario.tags
         })
@@ -134,7 +134,7 @@ class CucumberReporter {
         }
 
         const payload = buildStepPayload(uri, feature, scenario, step, {
-            type: 'test',
+            type: 'step',
             title: stepTitle,
             state,
             error,
@@ -149,7 +149,7 @@ class CucumberReporter {
             uid: getUniqueIdentifier(scenario, sourceLocation),
             title: this.getTitle(scenario),
             parent: getUniqueIdentifier(feature),
-            type: 'suite',
+            type: 'scenario',
             file: uri,
             duration: new Date() - this.scenarioStart,
             tags: scenario.tags
@@ -160,7 +160,7 @@ class CucumberReporter {
         this.emit('suite:end', {
             uid: getUniqueIdentifier(feature),
             title: this.getTitle(feature),
-            type: 'suite',
+            type: 'feature',
             file: uri,
             duration: new Date() - this.featureStart,
             tags: feature.tags
@@ -168,13 +168,13 @@ class CucumberReporter {
     }
 
     emit (event, payload) {
-        let message = formatMessage({ type: event, payload })
+        let message = formatMessage({ payload })
 
         message.cid = this.cid
         message.specs = this.specs
         message.uid = payload.uid
 
-        this.reporter.emit(message.type, message)
+        this.reporter.emit(event, message)
     }
 
     getTitle (featureOrScenario) {
