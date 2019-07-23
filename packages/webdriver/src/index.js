@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-import merge from 'lodash.merge'
 import { validateConfig } from '@wdio/config'
 
 import webdriverMonad from './monad'
@@ -62,7 +61,7 @@ export default class WebDriver {
         const environment = environmentDetector(params)
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
-        const prototype = merge(protocolCommands, environmentPrototype, userPrototype)
+        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(response.value.sessionId || response.sessionId, commandWrapper)
     }
@@ -85,7 +84,7 @@ export default class WebDriver {
 
         const environmentPrototype = getEnvironmentVars(options)
         const protocolCommands = getPrototype(options)
-        const prototype = merge(protocolCommands, environmentPrototype, userPrototype)
+        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }

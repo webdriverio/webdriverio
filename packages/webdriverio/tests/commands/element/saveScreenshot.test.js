@@ -1,10 +1,11 @@
+import fs from 'fs'
 import request from 'request'
 import { remote } from '../../../src'
 import * as utils from '../../../src/utils'
 
+jest.mock('fs')
+
 describe('saveScreenshot', () => {
-    jest.mock('fs')
-    const fs = require('fs').default
     let getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
 
     beforeEach(() => {
