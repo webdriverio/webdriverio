@@ -144,7 +144,7 @@ class CucumberReporter {
         this.emit('test:' + state, payload)
     }
 
-    handleAfterScenario (uri, feature, scenario, sourceLocation) {
+    handleAfterScenario (uri, feature, scenario, result, sourceLocation) {
         this.emit('suite:end', {
             uid: getUniqueIdentifier(scenario, sourceLocation),
             title: this.getTitle(scenario),
