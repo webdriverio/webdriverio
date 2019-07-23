@@ -28,13 +28,11 @@ In order to set up this project and start contributing follow this step by step 
 
     * Bootstraps sub-projects via ```npm run bootstrap```
 
-        Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks it is recommend to use the package bootstrap command;
-        It's way faster to use ```npm run bootstrap-fast``` when working locally. It won't cleanup node_modules for every package.
+        Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks it is recommend to use the package bootstrap command:
 
     * Builds all subpackages via ```npm run build```
 
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. We also have a NPM command for that;
-        It's a bit faster to use ```npm run build-fast``` when working locally, please use with caution, it might miss some required build steps.
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. We also have a NPM command for that:
 
 * Run Tests to ensure that everything is set up correctly
 
