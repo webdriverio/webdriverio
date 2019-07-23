@@ -10,16 +10,21 @@ import { URL } from 'url'
 import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
 import { findStrategy } from './utils/findStrategy'
 
+const browserCommands = require('./commands/browser')
+const elementCommands = require('./commands/element')
+
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
+const scopes = {
+    browser: browserCommands,
+    element: elementCommands
+}
+
 const applyScopePrototype = (prototype, scope) => {
-    const dir = path.resolve(__dirname, 'commands', scope)
-    const files = fs.readdirSync(dir)
-    for (let filename of files) {
-        const commandName = path.basename(filename, path.extname(filename))
-        prototype[commandName] = { value: require(path.join(dir, commandName)).default }
-    }
+    Object.entries(scopes[scope]).forEach(([commandName, command]) => {
+        prototype[commandName] = { value: command }
+    })
 }
 
 /**

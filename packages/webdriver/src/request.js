@@ -2,7 +2,6 @@ import url from 'url'
 import http from 'http'
 import path from 'path'
 import https from 'https'
-import merge from 'lodash.merge'
 import request from 'request'
 import EventEmitter from 'events'
 
@@ -38,7 +37,7 @@ export default class WebDriverRequest extends EventEmitter {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = merge({}, this.defaultOptions, this._createOptions(options, sessionId))
+        const fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
         this.emit('request', fullRequestOptions)
         return this._request(fullRequestOptions, options.connectionRetryCount)
     }
@@ -55,7 +54,7 @@ export default class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             requestOptions.body = this.body
-            requestOptions.headers = merge({}, requestOptions.headers, {
+            requestOptions.headers = Object.assign({}, requestOptions.headers, {
                 'Content-Length': Buffer.byteLength(JSON.stringify(requestOptions.body), 'UTF-8')
             })
         }
