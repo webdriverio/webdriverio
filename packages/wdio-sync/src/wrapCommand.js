@@ -12,47 +12,28 @@ import { sanitizeErrorMessage } from './utils'
  * @return {Function}   actual wrapped function
  */
 export default function wrapCommand (commandName, fn) {
-    /**
-     * helper method that runs the command with before/afterCommand hook
-     */
-    const runCommand = async function (...args) {
-        // save error for getting full stack in case of failure
-        // should be before any async calls
-        const stackError = new Error()
-
-        await executeHooksWithArgs(
-            this.options.beforeCommand,
-            [commandName, args]
-        )
-
-        let commandResult
-        let commandError
-        try {
-            commandResult = await fn.apply(this, args)
-        } catch (err) {
-            commandError = sanitizeErrorMessage(err, stackError)
+    return function wrapCommandFn (...args) {
+        /**
+         * Avoid running some functions in Future that are not in Fiber.
+         */
+        if (this._NOT_FIBER === true) {
+            this._NOT_FIBER = isNotInFiber(this, fn.name)
+            return runCommand.apply(this, [fn, ...args])
         }
+        /**
+         * all named nested functions run in parent Fiber context
+         */
+        this._NOT_FIBER = fn.name !== ''
 
-        await executeHooksWithArgs(
-            this.options.afterCommand,
-            [commandName, args, commandResult, commandError]
-        )
-
-        if (commandError) {
-            throw commandError
-        }
-
-        return commandResult
-    }
-
-    return function (...args) {
         const future = new Future()
 
-        const result = runCommand.apply(this, args)
+        const result = runCommandWithHooks.apply(this, [commandName, fn, ...args])
         result.then(::future.return, ::future.throw)
 
         try {
-            return future.wait()
+            const futureResult = future.wait()
+            this._NOT_FIBER = false
+            return futureResult
         } catch (e) {
             /**
              * in case some 3rd party lib rejects without bundling into an error
@@ -72,4 +53,54 @@ export default function wrapCommand (commandName, fn) {
             throw e
         }
     }
+}
+
+/**
+ * helper method that runs the command with before/afterCommand hook
+ */
+async function runCommandWithHooks (commandName, fn, ...args) {
+    await executeHooksWithArgs(
+        this.options.beforeCommand,
+        [commandName, args]
+    )
+
+    let commandResult
+    let commandError
+    try {
+        commandResult = await runCommand.apply(this, [fn, ...args])
+    } catch (err) {
+        commandError = err
+    }
+
+    await executeHooksWithArgs(
+        this.options.afterCommand,
+        [commandName, args, commandResult, commandError]
+    )
+
+    if (commandError) {
+        throw commandError
+    }
+
+    return commandResult
+}
+
+async function runCommand (fn, ...args) {
+    // save error for getting full stack in case of failure
+    // should be before any async calls
+    const stackError = new Error()
+    try {
+        return await fn.apply(this, args)
+    } catch (err) {
+        throw sanitizeErrorMessage(err, stackError)
+    }
+}
+
+/**
+ * isNotInFiber
+ * if element or its parent has element id then we are in parent's Fiber
+ * @param {object} context browser or element
+ * @param {string} fnName function name
+ */
+function isNotInFiber (context, fnName) {
+    return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
 }

@@ -7,8 +7,8 @@ jest.mock('../src/executeHooksWithArgs', () => ({
     default: jest.fn().mockImplementation(() => true)
 }))
 
-const futureReturn = Future.return
 const futureWait = Future.wait
+const futurePrototypeWait = Future.prototype.wait
 
 describe('wrapCommand:runCommand', () => {
 
@@ -21,6 +21,46 @@ describe('wrapCommand:runCommand', () => {
         const runCommand = wrapCommand('foo', fn)
         const result = await runCommand.call({ options: {} }, 'bar')
         expect(result).toEqual('barbar')
+    })
+
+    it('should set _NOT_FIBER to false if elementId is missing', async () => {
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, _NOT_FIBER: true }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(false)
+    })
+
+    it('should set _NOT_FIBER to true if elementId is exist', async () => {
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, _NOT_FIBER: true, elementId: 'foo' }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(true)
+    })
+
+    it('should set _NOT_FIBER to false if elementId is exist but function is anonymous', async () => {
+        const runCommand = wrapCommand('foo', () => { })
+        const context = { options: {}, _NOT_FIBER: true, elementId: 'foo' }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(false)
+    })
+
+    it('should set _NOT_FIBER to true if parent.elementId is exist', async () => {
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, _NOT_FIBER: true, parent: { elementId: 'foo' } }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(true)
+    })
+
+    it('should ignore hooks by fn.name', async () => {
+        Future.prototype.wait = () => {}
+        const fn = jest.fn()
+        const runCommand = wrapCommand('foo', fn)
+        const context = { options: {}, elementId: 'foo' }
+        await runCommand.call(context, 'bar')
+        expect(context._NOT_FIBER).toBe(false)
     })
 
     it('should throw error with proper message', async () => {
@@ -39,7 +79,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('AnotherError'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(3)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
             expect(err.stack).toContain('__mocks__')
         }
         expect.assertions(4)
@@ -54,7 +94,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('bar'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(1)
         }
         expect.assertions(3)
     })
@@ -68,7 +108,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error())
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(1)
         }
         expect.assertions(3)
     })
@@ -76,7 +116,6 @@ describe('wrapCommand:runCommand', () => {
     describe('future', () => {
         beforeEach(() => {
             Future.wait = jest.fn(() => { throw new Error() })
-            Future.return = jest.fn(() => { })
         })
 
         it('should throw regular error', () => {
@@ -89,10 +128,10 @@ describe('wrapCommand:runCommand', () => {
             }
             expect.assertions(1)
         })
+    })
 
-        afterEach(() => {
-            Future.wait = futureWait
-            Future.return = futureReturn
-        })
+    afterEach(() => {
+        Future.wait = futureWait
+        Future.prototype.wait = futurePrototypeWait
     })
 })
