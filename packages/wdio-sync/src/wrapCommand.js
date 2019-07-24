@@ -12,13 +12,10 @@ import { sanitizeErrorMessage } from './utils'
  * @return {Function}   actual wrapped function
  */
 export default function wrapCommand (commandName, fn) {
-    let stackError
     return function wrapCommandFn (...args) {
         // save error for getting full stack in case of failure
         // should be before any async calls
-        if (!stackError) {
-            stackError = new Error()
-        }
+        const stackError = new Error()
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */
