@@ -92,7 +92,6 @@ async function runCommand (fn, stackError, ...args) {
     try {
         return await fn.apply(this, args)
     } catch (err) {
-        this._NOT_FIBER = false
         throw sanitizeErrorMessage(err, stackError)
     }
 }
