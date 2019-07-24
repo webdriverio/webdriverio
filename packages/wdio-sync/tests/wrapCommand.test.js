@@ -121,12 +121,14 @@ describe('wrapCommand:runCommand', () => {
         it('should throw regular error', () => {
             const fn = jest.fn(() => {})
             const runCommand = wrapCommand('foo', fn)
+            const context = { options: {} }
             try {
-                runCommand.call({ options: {} }, 'bar')
+                runCommand.call(context, 'bar')
             } catch (err) {
                 expect(Future.wait).toThrow()
             }
-            expect.assertions(1)
+            expect(context._NOT_FIBER).toBe(false)
+            expect.assertions(2)
         })
     })
 
