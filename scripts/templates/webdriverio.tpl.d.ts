@@ -1,6 +1,6 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
-import { InstallOpts, StartOpts } from "selenium-standalone";
+/// <reference types="selenium-standalone"/>
 
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
