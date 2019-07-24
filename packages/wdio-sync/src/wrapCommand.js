@@ -12,13 +12,19 @@ import { sanitizeErrorMessage } from './utils'
  * @return {Function}   actual wrapped function
  */
 export default function wrapCommand (commandName, fn) {
+    let stackError
     return function wrapCommandFn (...args) {
+        // save error for getting full stack in case of failure
+        // should be before any async calls
+        if (!stackError) {
+            stackError = new Error()
+        }
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */
         if (this._NOT_FIBER === true) {
             this._NOT_FIBER = isNotInFiber(this, fn.name)
-            return runCommand.apply(this, [fn, ...args])
+            return runCommand.apply(this, [fn, stackError, ...args])
         }
         /**
          * all named nested functions run in parent Fiber context
@@ -27,7 +33,7 @@ export default function wrapCommand (commandName, fn) {
 
         const future = new Future()
 
-        const result = runCommandWithHooks.apply(this, [commandName, fn, ...args])
+        const result = runCommandWithHooks.apply(this, [commandName, fn, stackError, ...args])
         result.then(::future.return, ::future.throw)
 
         try {
@@ -50,6 +56,7 @@ export default function wrapCommand (commandName, fn) {
                 return result
             }
 
+            this._NOT_FIBER = false
             throw e
         }
     }
@@ -58,7 +65,7 @@ export default function wrapCommand (commandName, fn) {
 /**
  * helper method that runs the command with before/afterCommand hook
  */
-async function runCommandWithHooks (commandName, fn, ...args) {
+async function runCommandWithHooks (commandName, fn, stackError, ...args) {
     await executeHooksWithArgs(
         this.options.beforeCommand,
         [commandName, args]
@@ -67,7 +74,7 @@ async function runCommandWithHooks (commandName, fn, ...args) {
     let commandResult
     let commandError
     try {
-        commandResult = await runCommand.apply(this, [fn, ...args])
+        commandResult = await runCommand.apply(this, [fn, stackError, ...args])
     } catch (err) {
         commandError = err
     }
@@ -84,13 +91,11 @@ async function runCommandWithHooks (commandName, fn, ...args) {
     return commandResult
 }
 
-async function runCommand (fn, ...args) {
-    // save error for getting full stack in case of failure
-    // should be before any async calls
-    const stackError = new Error()
+async function runCommand (fn, stackError, ...args) {
     try {
         return await fn.apply(this, args)
     } catch (err) {
+        this._NOT_FIBER = false
         throw sanitizeErrorMessage(err, stackError)
     }
 }

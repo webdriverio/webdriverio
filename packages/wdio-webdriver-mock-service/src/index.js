@@ -44,6 +44,15 @@ export default class WebdriverMockService {
         global.browser.addCommand('customCommandScenario', ::this.customCommandScenario)
         global.browser.addCommand('waitForDisplayedScenario', ::this.waitForDisplayedScenario)
         global.browser.addCommand('cucumberScenario', ::this.cucumberScenario)
+        global.browser.addCommand('clickScenario', ::this.clickScenario)
+    }
+
+    clickScenario() {
+        this.nockReset()
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+
+        this.command.findElement().times(2).reply(200, { value: elemResponse })
+        this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
     }
 
     waitForElementScenario () {
