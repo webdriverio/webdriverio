@@ -15,6 +15,19 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.9 (2019-07-24)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `wdio-webdriver-mock-service`
+  * [#4249](https://github.com/webdriverio/webdriverio/pull/4249) Fix commands error handling in sync mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4247](https://github.com/webdriverio/webdriverio/pull/4247) webdriver: add prefs to ChromeOptions typings ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.11.8 (2019-07-24)
 
 #### :nail_care: Polish
