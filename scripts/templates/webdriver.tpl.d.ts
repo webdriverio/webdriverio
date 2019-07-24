@@ -66,6 +66,7 @@ declare namespace WebDriver {
         perfLoggingPrefs?: {
             [name: string]: any;
         };
+        prefs?: string[];
         windowTypes?: string[];
     }
 
