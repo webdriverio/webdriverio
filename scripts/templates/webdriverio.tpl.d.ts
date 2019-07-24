@@ -1,5 +1,6 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
+import { InstallOpts, StartOpts } from "selenium-standalone";
 
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
@@ -61,10 +62,10 @@ declare namespace WebdriverIO {
         baseUrl?: string,
         bail?: number,
         specFileRetries?: number,
-        seleniumLogs?: string,
-        seleniumArgs?: object,
-        seleniumInstallArgs?: object,
-        skipSeleniumInstall?: boolean,
+        seleniumLogs?: string;
+        seleniumInstallArgs?: InstallOpts;
+        seleniumArgs?: StartOpts;
+        skipSeleniumInstall?: boolean;
         waitforTimeout?: number,
         waitforInterval?: number,
         framework?: string,
