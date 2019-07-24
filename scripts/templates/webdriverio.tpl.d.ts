@@ -61,6 +61,10 @@ declare namespace WebdriverIO {
         baseUrl?: string,
         bail?: number,
         specFileRetries?: number,
+        seleniumLogs?: string,
+        seleniumArgs?: object,
+        seleniumInstallArgs?: object,
+        skipSeleniumInstall?: boolean
         waitforTimeout?: number,
         waitforInterval?: number,
         framework?: string,
