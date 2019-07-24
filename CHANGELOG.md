@@ -15,6 +15,24 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.8 (2019-07-24)
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#4239](https://github.com/webdriverio/webdriverio/pull/4239) Cucumber: add result argument to afterScenario hook ([@Kignuf](https://github.com/Kignuf))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#4243](https://github.com/webdriverio/webdriverio/pull/4243) Feat/add cucumberjs json ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :house: Internal
+* [#4237](https://github.com/webdriverio/webdriverio/pull/4237) speedup build, clean, bootstrap ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.11.7 (2019-07-23)
 
 #### :eyeglasses: Spec Compliancy
