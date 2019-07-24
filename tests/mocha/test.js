@@ -10,6 +10,17 @@ describe('Mocha smoke test', () => {
         assert($('elem').waitForDisplayed(), true)
     })
 
+    it('should work fine after catching an error', () => {
+        browser.clickScenario()
+        try {
+            browser.getAlertText()
+        } catch (err) {
+            // ignored
+        }
+
+        $('elem').click()
+    })
+
     describe('middleware', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()

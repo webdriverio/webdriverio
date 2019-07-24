@@ -79,7 +79,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('AnotherError'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(3)
             expect(err.stack).toContain('__mocks__')
         }
         expect.assertions(4)
@@ -94,7 +94,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('bar'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(1)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
         }
         expect.assertions(3)
     })
@@ -108,7 +108,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error())
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(1)
+            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
         }
         expect.assertions(3)
     })
@@ -121,12 +121,14 @@ describe('wrapCommand:runCommand', () => {
         it('should throw regular error', () => {
             const fn = jest.fn(() => {})
             const runCommand = wrapCommand('foo', fn)
+            const context = { options: {} }
             try {
-                runCommand.call({ options: {} }, 'bar')
+                runCommand.call(context, 'bar')
             } catch (err) {
                 expect(Future.wait).toThrow()
             }
-            expect.assertions(1)
+            expect(context._NOT_FIBER).toBe(false)
+            expect.assertions(2)
         })
     })
 
