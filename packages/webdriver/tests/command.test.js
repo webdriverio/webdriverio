@@ -125,6 +125,22 @@ describe('command wrapper result log', () => {
         value: 'f'.repeat(123),
         log: 'f'.repeat(61) + '...'
     }, {
+        title: 'truncate long string value',
+        command: {
+            ...takeScreenshotCmd,
+            command: 'startRecordingScreen'
+        },
+        value: 'f'.repeat(123),
+        log: 'f'.repeat(61) + '...'
+    }, {
+        title: 'truncate long string value',
+        command: {
+            ...takeScreenshotCmd,
+            command: 'stopRecordingScreen'
+        },
+        value: 'f'.repeat(123),
+        log: 'f'.repeat(61) + '...'
+    }, {
         title: 'do nothing to values with length less then 65',
         command: { ...takeScreenshotCmd },
         value: 'f'.repeat(64),
