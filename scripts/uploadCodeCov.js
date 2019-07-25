@@ -40,6 +40,6 @@ const PR_NUMBER = process.env.TRAVIS_PULL_REQUEST // false if not PR build
 
 })().then(
     () => console.log('Uploaded code coverage report'),
-    (err) => console.error(`Error uploaded code coverage report: ${err.stack}`)
+    (err) => console.error(`Error uploading code coverage report: ${err.stack}`)
 )
 /* eslint-enable no-console */
