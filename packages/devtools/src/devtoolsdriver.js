@@ -5,7 +5,7 @@ import uuidv4 from 'uuid/v4'
 import logger from '@wdio/logger'
 
 import ElementStore from './elementstore'
-import { validate } from './utils'
+import { validate, sanitizeError } from './utils'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
 
 const log = logger('devtools')
@@ -58,7 +58,13 @@ export default class DevToolsDriver {
          */
         return async function (...args) {
             const params = validate(command, parameters, variables, ref, args)
-            const result = await self.commands[command].call(self, params)
+            let result
+
+            try {
+                result = await self.commands[command].call(self, params)
+            } catch (err) {
+                throw sanitizeError(err)
+            }
 
             log.info('RESULT', command.toLowerCase().includes('screenshot')
                 && typeof result === 'string' && result.length > 64
