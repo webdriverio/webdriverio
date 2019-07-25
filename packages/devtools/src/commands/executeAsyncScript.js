@@ -1,4 +1,5 @@
 /* global window */
+import { transformExecuteArgs } from '../utils'
 
 export default function executeAsyncScript ({ script, args }) {
     const page = this.windows.get(this.currentWindowHandle)
@@ -13,5 +14,5 @@ export default function executeAsyncScript ({ script, args }) {
             window.arguments = [...args, resolve]
             return eval(script.slice(7))
         })
-    }, script, scriptTimeout, ...args)
+    }, script, scriptTimeout, ...transformExecuteArgs.call(this, args))
 }
