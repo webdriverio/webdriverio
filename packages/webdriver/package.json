@@ -34,7 +34,6 @@
     "@wdio/logger": "^5.12.1",
     "@wdio/protocols": "^0.0.0",
     "@wdio/utils": "^5.11.1",
-    "deepmerge": "^4.0.0",
     "lodash.merge": "^4.6.1",
     "request": "^2.83.0"
   }
