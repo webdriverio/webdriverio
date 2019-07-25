@@ -38,21 +38,24 @@ export const remote = async function (params = {}, remoteModifier) {
     const prototype = getPrototype('browser')
     log.info(`Initiate new session using the ${config.automationProtocol} protocol`)
     const ProtocolDriver = require(config.automationProtocol).default
-    const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
+    const commandWrapper = params.runner ? wrapCommand : (_, origFn) => origFn
+    const instance = await ProtocolDriver.newSession(params, modifier, prototype, commandWrapper)
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
      * in order to wrap the function within Fibers
      */
-    const origAddCommand = ::instance.addCommand
-    instance.addCommand = (name, fn, attachToElement) => (
-        origAddCommand(name, runFnInFiberContext(fn), attachToElement)
-    )
+    if (params.runner) {
+        const origAddCommand = ::instance.addCommand
+        instance.addCommand = (name, fn, attachToElement) => (
+            origAddCommand(name, runFnInFiberContext(fn), attachToElement)
+        )
 
-    const origOverwriteCommand = ::instance.overwriteCommand
-    instance.overwriteCommand = (name, fn, attachToElement) => (
-        origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
-    )
+        const origOverwriteCommand = ::instance.overwriteCommand
+        instance.overwriteCommand = (name, fn, attachToElement) => (
+            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
+        )
+    }
 
     return instance
 }
