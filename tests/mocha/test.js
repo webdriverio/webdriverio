@@ -21,6 +21,14 @@ describe('Mocha smoke test', () => {
         $('elem').click()
     })
 
+    it('should chain properly', () => {
+        browser.isExistingScenario()
+
+        const el = browser.$('body')
+        el.$('.selector-1').isExisting()
+        el.$('.selector-2').isExisting()
+    })
+
     describe('middleware', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()
