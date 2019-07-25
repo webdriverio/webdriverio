@@ -54,6 +54,19 @@ describe('wrapCommand:runCommand', () => {
         expect(context._NOT_FIBER).toBe(true)
     })
 
+    it('should set _NOT_FIBER to false for element and every parent', async () => {
+        Future.prototype.wait = () => {}
+        const runCommand = wrapCommand('foo', jest.fn())
+
+        const context = {
+            options: {}, elementId: 'foo', parent: { _NOT_FIBER: true }
+        }
+
+        await runCommand.call(context)
+        expect(context._NOT_FIBER).toEqual(false)
+        expect(context.parent._NOT_FIBER).toEqual(false)
+    })
+
     it('should set _NOT_FIBER to false function with empty name', async () => {
         Future.prototype.wait = () => {}
         const runCommand = wrapCommand('foo', () => {})
