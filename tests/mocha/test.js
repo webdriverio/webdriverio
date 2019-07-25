@@ -12,21 +12,24 @@ describe('Mocha smoke test', () => {
 
     it('should work fine after catching an error', () => {
         browser.clickScenario()
+
+        let err
         try {
             browser.getAlertText()
-        } catch (err) {
-            // ignored
+        } catch (e) {
+            err = e
         }
 
         $('elem').click()
+        assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
     })
 
     it('should chain properly', () => {
         browser.isExistingScenario()
 
         const el = browser.$('body')
-        el.$('.selector-1').isExisting()
-        el.$('.selector-2').isExisting()
+        assert.equal(el.$('.selector-1').isExisting(), true)
+        assert.equal(el.$('.selector-2').isExisting(), true)
     })
 
     describe('middleware', () => {
@@ -131,6 +134,7 @@ describe('Mocha smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'Boom!')
+            assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
         })
 
         it('allows to create custom commands on elements that respects promises', () => {
@@ -228,6 +232,7 @@ describe('Mocha smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'deleteAllCookies')
+            assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
         })
     })
 })
