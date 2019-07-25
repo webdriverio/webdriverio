@@ -42,14 +42,14 @@ export default class DevTools {
             jsonwpCaps: params.capabilities
         }
 
-        sessionMap.set(sessionId, browser)
+        sessionMap.set(sessionId, { browser, session: driver })
         const environment = {
             isDevTools: { value: true },
             isW3C: { value: true },
             isMobile: { value: false },
             isIOS: { value: false },
             isAndroid: { value: false },
-            isChrome: { value: true },
+            isChrome: { value: browserName === 'chrome' },
             isSauce: { value: false },
             isSeleniumStandalone: { value: false },
             puppeteerBrowser: { value: browser }
@@ -60,6 +60,26 @@ export default class DevTools {
 
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(sessionId, customCommandWrapper)
+    }
+
+    static async reloadSession (instance) {
+        const { session } = sessionMap.get(instance.sessionId)
+        const { w3cCaps } = instance.options.requestedCapabilities
+        const browser = await launch(w3cCaps)
+        const pages = await browser.pages()
+
+        session.elementStore.clear()
+        session.windows = new Map()
+        session.browser = browser
+
+        for (const page of pages) {
+            const pageId = uuidv4()
+            session.windows.set(pageId, page)
+            session.currentWindowHandle = pageId
+        }
+
+        sessionMap.set(instance.sessionId, { browser, session })
+        return instance.sessionId
     }
 
     /**
