@@ -52,7 +52,7 @@ export default class DevTools {
             isChrome: { value: browserName === 'chrome' },
             isSauce: { value: false },
             isSeleniumStandalone: { value: false },
-            puppeteerBrowser: { value: browser }
+            getPuppeteer: { value: () => browser }
         }
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
