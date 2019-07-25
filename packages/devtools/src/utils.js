@@ -129,3 +129,13 @@ export async function switchFrame (contentFrame) {
     this.windows.set(handle, contentFrame)
     return null
 }
+
+export function sanitizeError (err) {
+    const stack = err.stack.split('\n')
+    const asyncStack = stack.lastIndexOf('  -- ASYNC --')
+    const errorMessage = stack.shift()
+    err.stack = errorMessage + '\n' + stack.slice(asyncStack + 1)
+        .filter((line) => !line.includes('devtools/node_modules/puppeteer-core'))
+        .join('\n')
+    return err
+}
