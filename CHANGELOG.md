@@ -15,6 +15,25 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.10 (2019-07-26)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `wdio-webdriver-mock-service`
+  * [#4256](https://github.com/webdriverio/webdriverio/pull/4256) Fix element chaining in async mode ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4255](https://github.com/webdriverio/webdriverio/pull/4255) Fix debug command in async mode ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#4252](https://github.com/webdriverio/webdriverio/pull/4252) webdriver: truncate screen recording log #4251 ([@mooyoul](https://github.com/mooyoul))
+
+#### :nail_care: Polish
+* `wdio-firefox-profile-service`
+  * [#4250](https://github.com/webdriverio/webdriverio/pull/4250) introduce profileDirectory option in wdio-firefox-profile-service ([@Unichron](https://github.com/Unichron))
+
+#### Committers: 3
+- MooYeol Prescott Lee ([@mooyoul](https://github.com/mooyoul))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@Unichron](https://github.com/Unichron)
+
 ## v5.11.9 (2019-07-24)
 
 #### :bug: Bug Fix
