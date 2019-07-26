@@ -1,4 +1,5 @@
-/* global window */
+import command from '../scripts/getElementCSSValue'
+
 export default async function getElementCSSValue ({ elementId, propertyName }) {
     const elementHandle = this.elementStore.get(elementId)
 
@@ -7,9 +8,5 @@ export default async function getElementCSSValue ({ elementId, propertyName }) {
     }
 
     const page = this.windows.get(this.currentWindowHandle)
-    return page.$eval(
-        'html',
-        (_, elem, propertyName) => window.getComputedStyle(elem)[propertyName],
-        elementHandle, propertyName
-    )
+    return page.$eval('html', command, elementHandle, propertyName)
 }

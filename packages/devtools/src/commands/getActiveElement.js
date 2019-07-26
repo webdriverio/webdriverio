@@ -1,5 +1,5 @@
-/* global document */
 import findElement from './findElement'
+import command, { cleanUp } from '../scripts/getActiveElement'
 
 export default async function getActiveElement () {
     const page = this.windows.get(this.currentWindowHandle)
@@ -9,14 +9,7 @@ export default async function getActiveElement () {
     /**
      * set data property to active element to allow to query for it
      */
-    const hasElem = await page.$eval('html', (_, dataProperty) => {
-        if (!document.activeElement) {
-            return false
-        }
-
-        document.activeElement.setAttribute(dataProperty, true)
-        return true
-    }, dataProperty)
+    const hasElem = await page.$eval('html', command, dataProperty)
 
     if (!hasElem) {
         throw new Error('no element active')
@@ -33,11 +26,7 @@ export default async function getActiveElement () {
     /**
      * clean up data property
      */
-    await page.$eval(
-        selector,
-        (elem, dataProperty) => elem.removeAttribute(dataProperty),
-        dataProperty
-    )
+    await page.$eval(selector, cleanUp, dataProperty)
 
     return activeElement
 }

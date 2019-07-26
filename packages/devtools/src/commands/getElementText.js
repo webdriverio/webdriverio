@@ -1,3 +1,5 @@
+import command from '../scripts/getElementText'
+
 export default function getElementText ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
@@ -6,5 +8,5 @@ export default function getElementText ({ elementId }) {
     }
 
     const page = this.windows.get(this.currentWindowHandle)
-    return page.$eval('html', (html, elem) => elem.textContent, elementHandle)
+    return page.$eval('html', command, elementHandle)
 }

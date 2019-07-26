@@ -1,3 +1,5 @@
+import command from '../scripts/elementClear'
+
 export default async function elementClear ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
@@ -6,8 +8,6 @@ export default async function elementClear ({ elementId }) {
     }
 
     const page = this.windows.get(this.currentWindowHandle)
-    await page.$eval('html', (html, elem) => {
-        elem.value = ''
-    }, elementHandle)
+    await page.$eval('html', command, elementHandle)
     return null
 }

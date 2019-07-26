@@ -1,3 +1,5 @@
+import command from '../scripts/getElementTagName'
+
 export default async function getElementTagName ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
@@ -6,6 +8,6 @@ export default async function getElementTagName ({ elementId }) {
     }
 
     const page = this.windows.get(this.currentWindowHandle)
-    const result = await page.$eval('html', (html, elem) => elem.tagName, elementHandle)
+    const result = await page.$eval('html', command, elementHandle)
     return (result || '').toLowerCase()
 }

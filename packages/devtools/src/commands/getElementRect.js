@@ -1,3 +1,5 @@
+import command from '../scripts/getElementRect'
+
 export default function getElementRect ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
@@ -6,8 +8,5 @@ export default function getElementRect ({ elementId }) {
     }
 
     const page = this.windows.get(this.currentWindowHandle)
-    return page.$eval('html', (html, elem) => {
-        const { x, y, width, height } = elem.getBoundingClientRect()
-        return { x, y, width, height }
-    }, elementHandle)
+    return page.$eval('html', command, elementHandle)
 }
