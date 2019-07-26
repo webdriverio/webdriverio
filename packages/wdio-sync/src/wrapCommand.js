@@ -36,7 +36,7 @@ export default function wrapCommand (commandName, fn) {
 
         try {
             const futureResult = future.wait()
-            this._NOT_FIBER = false
+            inFiber(this)
             return futureResult
         } catch (e) {
             /**
@@ -54,7 +54,7 @@ export default function wrapCommand (commandName, fn) {
                 return result
             }
 
-            this._NOT_FIBER = false
+            inFiber(this)
             throw e
         }
     }
@@ -105,4 +105,17 @@ async function runCommand (fn, stackError, ...args) {
  */
 function isNotInFiber (context, fnName) {
     return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
+}
+
+/**
+ * set `_NOT_FIBER` to `false` for element and its parents
+ * @param {object} context browser or element
+ */
+function inFiber(context) {
+    context._NOT_FIBER = false
+    let parent = context.parent
+    while (parent && parent._NOT_FIBER) {
+        parent._NOT_FIBER = false
+        parent = parent.parent
+    }
 }
