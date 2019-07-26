@@ -21,7 +21,9 @@ class Launcher {
         this.configParser.merge(argv)
 
         const config = this.configParser.getConfig()
-        const capabilities = this.configParser.getCapabilities()
+        const capabilities = this.filterCaps(
+            this.configParser.getCapabilities()
+        )
         const specs = this.configParser.getSpecs()
 
         if (config.outputDir) {
@@ -53,13 +55,51 @@ class Launcher {
         this.runnerFailed = 0
     }
 
+    filterCaps(capsToFilter, { browser, device } = this.argv)  {
+        if(!browser && !device)
+            return capsToFilter
+
+        const [browsersToRun, devicesToRun] = [browser, device]
+            .map(flag => !flag ? [] : flag.split(',').map(b => b.toLowerCase()))
+
+        return ![browsersToRun, devicesToRun].flat().length
+            ? capsToFilter
+            : capsToFilter.filter(capability => {
+                const deviceRelevantKeys = [
+                        'deviceName',
+                        'device',
+                        'appium:deviceName',
+                        'appium:device'
+                    ],
+                    browserRelevantKeys = ['browserName', 'browser'],
+                    extensions = {}
+
+                Object.keys(capability)
+                    .filter(k => k.includes(':'))
+                    .forEach(k => (extensions[k] = capability[k]))
+
+                return [
+                    [browsersToRun, browserRelevantKeys],
+                    [devicesToRun, deviceRelevantKeys]
+                ].some(([platforms, platformRelevantKeys]) =>
+                    platforms.some(platform =>
+                        platformRelevantKeys.some(
+                            relevantKey =>
+                                (capability[relevantKey] || '').toLowerCase().includes(platform) ||
+                                (extensions[relevantKey] || '').toLowerCase().includes(platform)
+                        )
+                    )
+                )
+            })
+    }
+
     /**
      * run sequence
      * @return  {Promise} that only gets resolves with either an exitCode or an error
      */
     async run () {
         let config = this.configParser.getConfig()
-        let caps = this.configParser.getCapabilities()
+        let caps = this.filterCaps(this.configParser.getCapabilities())
         const launcher = initialiseServices(config, caps, 'launcher')
 
         /**

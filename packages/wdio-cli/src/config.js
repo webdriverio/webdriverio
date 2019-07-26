@@ -120,6 +120,14 @@ export const CLI_PARAMS = [{
     description: 'shorten url command calls by setting a base url',
     type: 'string'
 }, {
+    name: 'browser',
+    description: 'non-mobile browsers in which to run the tests, i.e. "firefox,MicrosoftEdge"',
+    type: 'string'
+}, {
+    name: 'device',
+    description: 'devices in which to run the tests, i.e. "Google Pixel 2,iPhone XR"',
+    type: 'string'
+}, {
     name: 'waitforTimeout',
     alias: 'w',
     description: 'timeout for all waitForXXX commands',
