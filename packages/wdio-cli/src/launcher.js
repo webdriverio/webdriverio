@@ -59,21 +59,19 @@ class Launcher {
         if(!browser && !device)
             return capsToFilter
 
-        const [browsersToRun, devicesToRun] = [browser, device]
-            .map(flag => !flag ? [] : flag.split(',').map(b => b.toLowerCase()))
+        const
+            deviceRelevantKeys = ['deviceName', 'device'],
+            browserRelevantKeys = ['browserName', 'browser'],
+            [browsersToRun, devicesToRun] = [browser, device]
+                .map(flag => !flag
+                    ? []
+                    : flag.split(',').map(b => b.toLowerCase())
+                )
 
         return ![browsersToRun, devicesToRun].flat().length
             ? capsToFilter
             : capsToFilter.filter(capability => {
-                const deviceRelevantKeys = [
-                        'deviceName',
-                        'device',
-                        'appium:deviceName',
-                        'appium:device'
-                    ],
-                    browserRelevantKeys = ['browserName', 'browser'],
-                    extensions = {}
-
+                const extensions = {}
                 Object.keys(capability)
                     .filter(k => k.includes(':'))
                     .forEach(k => (extensions[k] = capability[k]))
