@@ -74,3 +74,5 @@ export const DEFAULT_PAGELOAD_TIMEOUT = 5 * 60 * 1000 // 5 min
 export const DEFAULT_SCRIPT_TIMEOUT = 30 * 1000 // 30s
 
 export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name']
+export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-activeElement'
+export const SERIALIZE_FLAG = '__executeElement'
