@@ -4,5 +4,8 @@ export default async function switchToWindow ({ handle }) {
     }
 
     this.currentWindowHandle = handle
+    const page = this.windows.get(this.currentWindowHandle)
+    await page.bringToFront()
+
     return handle
 }
