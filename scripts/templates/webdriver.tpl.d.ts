@@ -369,6 +369,7 @@ declare namespace WebDriver {
     interface ClientOptions {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
+        isChrome: boolean;
         isAndroid: boolean;
         isMobile: boolean;
         isIOS: boolean;
