@@ -1,7 +1,6 @@
 import {
-    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype,
-    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError,
-    overwriteElementCommands
+    isSuccessfulResponse, getPrototype, environmentDetector,
+    getErrorFromResponseBody, isW3C, CustomRequestError, overwriteElementCommands
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -33,46 +32,6 @@ describe('utils', () => {
             200,
             { value: { message: 'Unable to find element with xpath == //foobar' } }
         )).toBe(true)
-    })
-
-    it('isValidParameter', () => {
-        expect(isValidParameter(1, 'number')).toBe(true)
-        expect(isValidParameter(1, 'number[]')).toBe(false)
-        expect(isValidParameter([1], 'number[]')).toBe(true)
-        expect(isValidParameter(null, 'null')).toBe(true)
-        expect(isValidParameter('', 'null')).toBe(false)
-        expect(isValidParameter(undefined, 'null')).toBe(false)
-        expect(isValidParameter({}, 'object')).toBe(true)
-        expect(isValidParameter([], 'object')).toBe(true)
-        expect(isValidParameter(null, 'object')).toBe(false)
-        expect(isValidParameter(1, '(number|string|object)')).toBe(true)
-        expect(isValidParameter('1', '(number|string|object)')).toBe(true)
-        expect(isValidParameter({}, '(number|string|object)')).toBe(true)
-        expect(isValidParameter(false, '(number|string|object)')).toBe(false)
-        expect(isValidParameter([], '(number|string|object)')).toBe(true)
-        expect(isValidParameter(null, '(number|string|object)')).toBe(false)
-        expect(isValidParameter(1, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter('1', '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter({}, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter(false, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter([1], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter(['1'], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([{}], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([[]], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([null], '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter([false], '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter(['1', false], '(number|string|object)[]')).toBe(false)
-    })
-
-    it('getArgumentType', () => {
-        expect(getArgumentType(1)).toBe('number')
-        expect(getArgumentType(1.2)).toBe('number')
-        expect(getArgumentType(null)).toBe('null')
-        expect(getArgumentType('text')).toBe('string')
-        expect(getArgumentType({})).toBe('object')
-        expect(getArgumentType([])).toBe('object')
-        expect(getArgumentType(true)).toBe('boolean')
-        expect(getArgumentType(false)).toBe('boolean')
     })
 
     it('getPrototype', () => {
