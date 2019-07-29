@@ -1,4 +1,7 @@
-import { overwriteElementCommands, commandCallStructure, isFunctionAsync } from '../src/utils'
+import {
+    overwriteElementCommands, commandCallStructure, isValidParameter,
+    getArgumentType, isFunctionAsync
+} from '../src/utils'
 
 describe('utils', () => {
     it('commandCallStructure', () => {
@@ -48,6 +51,46 @@ describe('utils', () => {
             expect(() => overwriteElementCommands.call(null, propertiesObject))
                 .toThrow('overwriteCommand: only functions can be overwritten, command: foo')
         })
+    })
+
+    it('isValidParameter', () => {
+        expect(isValidParameter(1, 'number')).toBe(true)
+        expect(isValidParameter(1, 'number[]')).toBe(false)
+        expect(isValidParameter([1], 'number[]')).toBe(true)
+        expect(isValidParameter(null, 'null')).toBe(true)
+        expect(isValidParameter('', 'null')).toBe(false)
+        expect(isValidParameter(undefined, 'null')).toBe(false)
+        expect(isValidParameter({}, 'object')).toBe(true)
+        expect(isValidParameter([], 'object')).toBe(true)
+        expect(isValidParameter(null, 'object')).toBe(false)
+        expect(isValidParameter(1, '(number|string|object)')).toBe(true)
+        expect(isValidParameter('1', '(number|string|object)')).toBe(true)
+        expect(isValidParameter({}, '(number|string|object)')).toBe(true)
+        expect(isValidParameter(false, '(number|string|object)')).toBe(false)
+        expect(isValidParameter([], '(number|string|object)')).toBe(true)
+        expect(isValidParameter(null, '(number|string|object)')).toBe(false)
+        expect(isValidParameter(1, '(number|string|object)[]')).toBe(false)
+        expect(isValidParameter('1', '(number|string|object)[]')).toBe(false)
+        expect(isValidParameter({}, '(number|string|object)[]')).toBe(false)
+        expect(isValidParameter(false, '(number|string|object)[]')).toBe(false)
+        expect(isValidParameter([1], '(number|string|object)[]')).toBe(true)
+        expect(isValidParameter(['1'], '(number|string|object)[]')).toBe(true)
+        expect(isValidParameter([{}], '(number|string|object)[]')).toBe(true)
+        expect(isValidParameter([[]], '(number|string|object)[]')).toBe(true)
+        expect(isValidParameter([null], '(number|string|object)[]')).toBe(false)
+        expect(isValidParameter([false], '(number|string|object)[]')).toBe(false)
+        expect(isValidParameter(['1', false], '(number|string|object)[]')).toBe(false)
+    })
+
+    it('getArgumentType', () => {
+        expect(getArgumentType(1)).toBe('number')
+        expect(getArgumentType(1.2)).toBe('number')
+        expect(getArgumentType(null)).toBe('null')
+        expect(getArgumentType('text')).toBe('string')
+        expect(getArgumentType({})).toBe('object')
+        expect(getArgumentType([])).toBe('object')
+        expect(getArgumentType(true)).toBe('boolean')
+        expect(getArgumentType(false)).toBe('boolean')
     })
 
     describe('isFunctionAsync', () => {

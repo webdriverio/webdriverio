@@ -1,14 +1,11 @@
 import uuidv4 from 'uuid/v4'
 import logger from '@wdio/logger'
-import { commandCallStructure } from '@wdio/utils'
+import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
 import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG } from './constants'
 
 const log = logger('devtools')
-
-// todo move to utils
-import { isValidParameter, getArgumentType } from 'webdriver/src/utils'
 
 export const validate = function (command, parameters, variables, ref, args) {
     const commandParams = [...variables.map((v) => Object.assign(v, {
@@ -161,7 +158,7 @@ export async function transformExecuteResult (page, result) {
     const isResultArray = Array.isArray(result)
     let tmpResult = isResultArray ? result : [result]
 
-    if (tmpResult.find((r) => r.startsWith(SERIALIZE_FLAG))) {
+    if (tmpResult.find((r) => typeof r === 'string' && r.startsWith(SERIALIZE_FLAG))) {
         tmpResult = await Promise.all(tmpResult.map(async (r) => {
             if (r.startsWith(SERIALIZE_FLAG)) {
                 return findElement.call(this, page, `[${SERIALIZE_PROPERTY}="${r}"]`)
