@@ -79,7 +79,7 @@ declare namespace WebDriver {
         args?: string[],
         profile?: string,
         log?: FirefoxLogObject,
-        prefs: {
+        prefs?: {
             [name: string]: string | number | boolean;
         }
     }
@@ -369,6 +369,7 @@ declare namespace WebDriver {
     interface ClientOptions {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
+        isChrome: boolean;
         isAndroid: boolean;
         isMobile: boolean;
         isIOS: boolean;
