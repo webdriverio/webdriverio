@@ -36,8 +36,8 @@ export const DEFAULT_FLAGS = [
     '--force-fieldtrials=SiteIsolationExtensions/Control'
 ]
 
-export const CHROME_NAMES = ['chrome', 'googlechrome', 'google-chrome', 'chromium']
-export const FIREFOX_NAMES = ['firefox', 'ff', 'mozilla', 'mozillafirefox']
+export const CHROME_NAMES = ['chrome', 'googlechrome', 'headlesschrome', 'google-chrome', 'chromium']
+export const FIREFOX_NAMES = ['firefox', 'ff', 'mozilla', 'mozillafirefox', 'headless firefox', 'headlessfirefox']
 export const EDGE_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoftedge']
 
 export const DEFAULTS = {
