@@ -1,5 +1,4 @@
 import os from 'os'
-import merge from 'lodash.merge'
 import uuidv4 from 'uuid/v4'
 import logger from '@wdio/logger'
 import { webdriverMonad } from '@wdio/utils'
@@ -43,7 +42,7 @@ export default class DevTools {
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
-        const environment = {
+        const environmentPrototype = {
             isDevTools: { value: true },
             isW3C: { value: true },
             isMobile: { value: false },
@@ -56,7 +55,7 @@ export default class DevTools {
         }
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
-        const prototype = merge(protocolCommands, environment, userPrototype)
+        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
 
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(sessionId, customCommandWrapper)
