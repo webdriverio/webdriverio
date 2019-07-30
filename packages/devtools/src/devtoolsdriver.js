@@ -84,9 +84,15 @@ export default class DevToolsDriver {
     }
 
     setTimeouts (implicit, pageLoad, script) {
-        this.timeouts.set('implicit', implicit || this.timeouts.get('implicit'))
-        this.timeouts.set('pageLoad', pageLoad || this.timeouts.get('pageLoad'))
-        this.timeouts.set('script', script || this.timeouts.get('script'))
+        if (typeof implicit === 'number') {
+            this.timeouts.set('implicit', implicit)
+        }
+        if (typeof pageLoad === 'number') {
+            this.timeouts.set('pageLoad', pageLoad)
+        }
+        if (typeof script === 'number') {
+            this.timeouts.set('script', script)
+        }
 
         const page = this.windows.get(this.currentWindowHandle)
         page.setDefaultTimeout(this.timeouts.get('pageLoad'))
