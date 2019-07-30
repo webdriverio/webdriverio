@@ -13,7 +13,7 @@
  * @param  {Object[]}    args         user arguments for custom script
  * @return {Object}                   result of custom script
  */
-export default function executeScript (_, script, dataProperty, dataFlag, ...args) {
+export default (_, script, dataProperty, dataFlag, ...args) => {
     window.arguments = args
     const result = eval(script.slice(7))
     let tmpResult = result instanceof NodeList ? Array.from(result) : result

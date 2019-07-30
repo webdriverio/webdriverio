@@ -47,7 +47,11 @@ async function launchChrome (capabilities) {
      * creates automatically a new one
      */
     const pages = await browser.pages()
-    await pages[0].close()
+    for (const page of pages.slice(0, -1)) {
+        if (page.url() === 'about:blank') {
+            await page.close()
+        }
+    }
 
     return browser
 }
