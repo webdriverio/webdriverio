@@ -1,6 +1,6 @@
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
-import { CustomRequestError } from 'webdriver/src/utils'
+import { CustomRequestError } from 'webdriver/build/utils'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called

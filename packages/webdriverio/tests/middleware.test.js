@@ -141,4 +141,20 @@ describe('middleware', () => {
             expect(waitForExist.default.mock.calls).toHaveLength(1)
         })
     })
+
+    describe('elementErrorHandler', () => {
+        it('should take last error', async () => {
+            const elem = await browser.$('#foo')
+            elem.selector = '#nonexisting'
+            request.setMockResponse([{ error: 'foo', statusCode: 501 }, { error: 'foo', statusCode: 501 }, { error: 'foo', statusCode: 501 }, { error: ['foobar'], statusCode: 501 }])
+            let err
+            try {
+                await elem.getAttribute('foo')
+            } catch (error) {
+                err = error
+            }
+            expect(err.name).toEqual(['foobar'])
+            request.mockClear()
+        })
+    })
 })
