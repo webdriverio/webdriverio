@@ -23,6 +23,10 @@ async function launchChrome (capabilities) {
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
             `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
         ],
+        ...(chromeOptions.headless ? [
+            '--headless',
+            '--disable-gpu'
+        ] : []),
         ...(chromeOptions.args || [])
     ]
 
@@ -51,6 +55,7 @@ async function launchChrome (capabilities) {
 function launchFirefox (capabilities) {
     const firefoxOptions = capabilities['moz:firefoxOptions'] || {}
     return puppeteerFirefox.launch({
+        args: firefoxOptions.args || [],
         headless: Boolean(firefoxOptions.headless),
         defaultViewport: {
             width: firefoxOptions.width || DEFAULT_WIDTH,
