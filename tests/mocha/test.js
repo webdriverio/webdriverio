@@ -34,10 +34,11 @@ describe('Mocha smoke test', () => {
 
     it('should handle promises in waitUntil callback funciton', () => {
         const results = []
-        browser.waitUntil(() => {
+        const result = browser.waitUntil(() => {
             results.push(browser.getUrl())
             return results.length > 1
         })
+        assert.strictEqual(result, true)
         assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
     })
 
