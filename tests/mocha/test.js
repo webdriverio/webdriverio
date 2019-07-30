@@ -32,15 +32,13 @@ describe('Mocha smoke test', () => {
         assert.equal(el.$('.selector-2').isExisting(), true)
     })
 
-    it('should waitUntil', () => {
-        let flag = true
+    it('should handle promises in waitUntil callback funciton', () => {
         const results = []
         browser.waitUntil(() => {
-            flag = !flag
-            results.push(browser.pause(1))
-            return flag
+            results.push(browser.getUrl())
+            return results.length > 1
         })
-        assert.deepEqual(results, [undefined, undefined])
+        assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
     })
 
     describe('middleware', () => {
