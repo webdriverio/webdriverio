@@ -32,6 +32,17 @@ describe('Mocha smoke test', () => {
         assert.equal(el.$('.selector-2').isExisting(), true)
     })
 
+    it('should waitUntil', () => {
+        let flag = true
+        const results = []
+        browser.waitUntil(() => {
+            flag = !flag
+            results.push(browser.pause(1))
+            return flag
+        })
+        assert.deepEqual(results, [undefined, undefined])
+    })
+
     describe('middleware', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()
