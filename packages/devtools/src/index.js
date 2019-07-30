@@ -29,7 +29,8 @@ export default class DevTools {
             browserName,
             browserVersion,
             platformName: os.platform(),
-            platformVersion: os.release()
+            platformVersion: os.release(),
+            'goog:chromeOptions': { debuggerAddress: browser._connection.url().split('/')[2] },
         }
 
         /**
