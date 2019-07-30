@@ -7,12 +7,17 @@ import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
+/**
+ * Mocha wdio testrunner tests
+ */
 const mochaTestrunner = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         { specs: [path.resolve(__dirname, 'mocha', 'test.js')] })
 }
-
+/**
+ * Jasmine wdio testrunner tests
+ */
 const jasmineTestrunner = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
@@ -22,6 +27,9 @@ const jasmineTestrunner = async () => {
         })
 }
 
+/**
+ * Cucumber wdio testrunner tests
+ */
 const cucumberTestrunner = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
@@ -35,6 +43,9 @@ const cucumberTestrunner = async () => {
     )
 }
 
+/**
+ * Cucumber fail due to failAmbiguousDefinitions
+ */
 const cucumberFailAmbiguousDefinitions = async () => {
     const hasFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
@@ -53,6 +64,9 @@ const cucumberFailAmbiguousDefinitions = async () => {
     assert.equal(hasFailed, true)
 }
 
+/**
+ * wdio test run with custom service
+ */
 const customService = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
@@ -67,6 +81,9 @@ const customService = async () => {
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 }
 
+/**
+ * wdio test run with custom reporter as string
+ */
 const customReporterString = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
@@ -81,6 +98,9 @@ const customReporterString = async () => {
     fs.unlinkSync(reporterLogsPath)
 }
 
+/**
+ * wdio test run with custom reporter as object
+ */
 const customReporterObject = async () => {
     await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
@@ -89,6 +109,9 @@ const customReporterObject = async () => {
     fs.unlinkSync(reporterLogsWithReporterAsObjectPath)
 }
 
+/**
+ * multiremote wdio testrunner tests
+ */
 const multiremote = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
@@ -106,6 +129,9 @@ const multiremote = async () => {
     )
 }
 
+/**
+ * specfile-level retries (fail)
+ */
 const retryFail = async () => {
     const retryFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
@@ -120,6 +146,9 @@ const retryFail = async () => {
     assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
 }
 
+/**
+ * specfile-level retries (pass)
+ */
 const retryPass = async () => {
     let retryFilename = path.join(__dirname, '.retry_succeeded')
     let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
