@@ -15,6 +15,23 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.11 (2019-07-30)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4276](https://github.com/webdriverio/webdriverio/pull/4276) Use index when refetching element ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4269](https://github.com/webdriverio/webdriverio/pull/4269) Fix waitUntil first iteration is promise ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4261](https://github.com/webdriverio/webdriverio/pull/4261) typings: add isChrome's type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+* [#4260](https://github.com/webdriverio/webdriverio/pull/4260) Fix FirefoxOptions prefs type to optional ([@tadashi0713](https://github.com/tadashi0713))
+
+#### Committers: 3
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Tadashi Nemoto ([@tadashi0713](https://github.com/tadashi0713))
+- aha-oretama ([@aha-oretama](https://github.com/aha-oretama))
+
 ## v5.11.10 (2019-07-26)
 
 #### :bug: Bug Fix
