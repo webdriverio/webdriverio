@@ -48,12 +48,13 @@ async function launchChrome (capabilities) {
     return browser
 }
 
-function launchFirefox () {
+function launchFirefox (capabilities) {
+    const firefoxOptions = capabilities['moz:firefoxOptions'] || {}
     return puppeteerFirefox.launch({
-        headless: false,
+        headless: Boolean(firefoxOptions.headless),
         defaultViewport: {
-            width: DEFAULT_WIDTH,
-            height: DEFAULT_HEIGHT
+            width: firefoxOptions.width || DEFAULT_WIDTH,
+            height: firefoxOptions.height || DEFAULT_HEIGHT
         }
     })
 }
