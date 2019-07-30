@@ -7,11 +7,9 @@ const puppeteerFirefoxPkg = require(`${path.dirname(puppeteerFirefoxPath)}/packa
 
 export default async function status () {
     return {
-        value: {
-            message: '',
-            ready: true,
-            puppeteerVersion: puppeteerPkg.version,
-            puppeteerFirefoxVersion: puppeteerFirefoxPkg.version
-        }
+        message: '',
+        ready: true,
+        puppeteerVersion: puppeteerPkg.version,
+        puppeteerFirefoxVersion: puppeteerFirefoxPkg.version
     }
 }
