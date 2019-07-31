@@ -35,6 +35,7 @@
     "ts:sync": "cd tests/typings/sync && tsc --incremental",
     "ts:sync-mocha": "cd tests/typings/sync-mocha && tsc --incremental",
     "ts:sync-jasmine": "cd tests/typings/sync-jasmine && tsc --incremental",
+    "ts:sync-cucumber": "cd tests/typings/sync-cucumber && tsc --incremental",
     "ts:webdriverio": "cd tests/typings/webdriverio && tsc --incremental",
     "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && tsc --incremental",
     "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc --incremental",

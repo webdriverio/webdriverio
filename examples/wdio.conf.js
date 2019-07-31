@@ -315,11 +315,11 @@ exports.config = {
     },
     beforeScenario: function (uri, feature, scenario) {
     },
-    beforeStep: function (uri, feature, scenario, step) {
+    beforeStep: function (uri, feature, scenario, step, sourceLocation) {
     },
-    afterStep: function (uri, feature, scenario, step, result) {
+    afterStep: function (uri, feature, scenario, step, result, sourceLocation) {
     },
-    afterScenario: function (uri, feature, scenario, result) {
+    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
     afterFeature: function (uri, feature) {
     }
