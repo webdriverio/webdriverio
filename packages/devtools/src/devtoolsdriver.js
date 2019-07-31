@@ -23,7 +23,7 @@ export default class DevToolsDriver {
         const files = fs.readdirSync(dir)
         for (let filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
-            this.commands[commandName] = require(path.join(dir, commandName)).default
+            this.commands[commandName] = DevToolsDriver.requireCommand(path.join(dir, commandName))
         }
 
         for (const page of pages) {
@@ -40,6 +40,14 @@ export default class DevToolsDriver {
         const page = this.windows.get(this.currentWindowHandle)
         page.on('dialog', ::this.dialogHandler)
         page.on('framenavigated', ::this.framenavigatedHandler)
+    }
+
+    /**
+     * moved into an extra method for testing purposes
+     */
+    /* istanbul ignore next */
+    static requireCommand (filePath) {
+        return require(filePath).default
     }
 
     register (commandInfo) {
