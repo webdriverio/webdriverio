@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
-import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG } from './constants'
+import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from './constants'
 
 const log = logger('devtools')
 
@@ -127,10 +127,20 @@ export async function switchFrame (contentFrame) {
     return null
 }
 
+/**
+ * convert DevTools errors into WebDriver errors so tools upstream
+ * can handle it in similar fashion (e.g. stale element)
+ */
 export function sanitizeError (err) {
+    let errorMessage = err.message
+
+    if (err.message.includes('Node is detached from document')) {
+        err.name = ERROR_MESSAGES.staleElement.name
+        errorMessage = ERROR_MESSAGES.staleElement.message
+    }
+
     const stack = err.stack.split('\n')
     const asyncStack = stack.lastIndexOf('  -- ASYNC --')
-    const errorMessage = stack.shift()
     err.stack = errorMessage + '\n' + stack.slice(asyncStack + 1)
         .filter((line) => !line.includes('devtools/node_modules/puppeteer-core'))
         .join('\n')
