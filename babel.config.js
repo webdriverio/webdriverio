@@ -17,5 +17,6 @@ module.exports = {
             sourceMaps: 'inline',
             plugins: ['source-map-support']
         }
-    }
+    },
+    comments: false
 }
