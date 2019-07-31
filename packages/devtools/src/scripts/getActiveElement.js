@@ -9,11 +9,3 @@ export default function getActiveElement (_, dataProperty) {
     document.activeElement.setAttribute(dataProperty, true)
     return true
 }
-
-/**
- * cleans up temporary attribute that is used to query element
- * with protractor
- */
-export function cleanUp (elem, dataProperty) {
-    return elem.removeAttribute(dataProperty)
-}
