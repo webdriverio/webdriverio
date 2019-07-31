@@ -32,6 +32,16 @@ describe('Mocha smoke test', () => {
         assert.equal(el.$('.selector-2').isExisting(), true)
     })
 
+    it('should handle promises in waitUntil callback funciton', () => {
+        const results = []
+        const result = browser.waitUntil(() => {
+            results.push(browser.getUrl())
+            return results.length > 1
+        })
+        assert.strictEqual(result, true)
+        assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
+    })
+
     describe('middleware', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()

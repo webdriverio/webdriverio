@@ -102,6 +102,23 @@ describe('wrapCommand:runCommand', () => {
         expect(context._hidden_changes_).toEqual([false, false])
     })
 
+    it('should set _NOT_FIBER to false for waitUntil command', async () => {
+        Future.prototype.wait = () => {}
+        const runCommand = wrapCommand('waitUntil', jest.fn())
+
+        const context = {
+            options: {}, elementId: 'foo', _hidden_: null, _hidden_changes_: [],
+            get _NOT_FIBER () { return this._hidden_ },
+            set _NOT_FIBER (val) {
+                this._hidden_changes_.push(val)
+                this._hidden_ = val
+            }
+        }
+
+        await runCommand.call(context)
+        expect(context._hidden_changes_).toEqual([false, false])
+    })
+
     it('should throw error with proper message', async () => {
         const fn = jest.fn(x => { throw new Error(x) })
         const runCommand = wrapCommand('foo', fn)

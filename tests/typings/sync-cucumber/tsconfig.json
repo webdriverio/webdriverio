@@ -3,8 +3,8 @@
     "outDir": "dist",
     "noImplicitAny": true,
     "types": [
-      "webdriverio",
-      "@wdio/mocha-framework"
+      "@wdio/sync",
+      "@wdio/cucumber-framework"
     ]
   }
 }
