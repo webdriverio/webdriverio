@@ -6,7 +6,6 @@ import path from 'path'
 
 import CucumberReporter from './reporter'
 
-import Hookrunner from './hookRunner'
 import { EventEmitter } from 'events'
 
 import {
@@ -14,6 +13,7 @@ import {
     runFnInFiberContext, hasWdioSyncSupport
 } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
+import { getDataFromResult } from './utils'
 
 class CucumberAdapter {
     constructor (cid, config, specs, capabilities, reporter) {
@@ -33,14 +33,13 @@ class CucumberAdapter {
         try {
             this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
+            this.addHooks(this.config)
             this.loadSpecFiles()
             this.wrapSteps()
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
             const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
 
             const eventBroadcaster = new EventEmitter()
-            // eslint-disable-next-line no-new
-            new Hookrunner(eventBroadcaster, this.config)
             const reporterOptions = {
                 capabilities: this.capabilities,
                 ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
@@ -147,6 +146,25 @@ class CucumberAdapter {
             require(filepath)
         })
         mockery.disable()
+    }
+
+    addHooks (config) {
+        Cucumber.Before(function beforeScenario ({ sourceLocation, pickle }) {
+            const { uri, feature } = getDataFromResult(this.result)
+            return executeHooksWithArgs(config.beforeScenario, [uri, feature, pickle, sourceLocation])
+        })
+        Cucumber.After(function afterScenario ({ sourceLocation, pickle, result }) {
+            const { uri, feature } = getDataFromResult(this.result)
+            return executeHooksWithArgs(config.afterScenario, [uri, feature, pickle, result, sourceLocation])
+        })
+        Cucumber.BeforeAll(function beforeFeature () {
+            const { uri, feature, scenarios } = getDataFromResult(this.result)
+            return executeHooksWithArgs(config.beforeFeature, [uri, feature, scenarios])
+        })
+        Cucumber.AfterAll(function afterFeature () {
+            const { uri, feature, scenarios } = getDataFromResult(this.result)
+            return executeHooksWithArgs(config.afterFeature, [uri, feature, scenarios])
+        })
     }
 
     /**

@@ -1,17 +1,12 @@
 // cucumber-framework
 const hook: WebdriverIO.HookFunctions = {
-    beforeFeature: function (uri, feature) {
+    beforeFeature: function (uri, feature, scenarios) {
     },
-    beforeScenario: function (uri, feature, scenario) {
-    },
-    beforeStep: function (uri, feature, scenario, step, sourceLocation) {
-    },
-    afterStep(uri: string, feature, scenario, step, result) {
-        [feature.x, scenario.x, step.x, result.duration]
+    beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
-    afterFeature: function (uri, feature) {
+    afterFeature: function (uri, feature, scenarios) {
     },
 }
 

@@ -160,3 +160,14 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
 
     return targetStep
 }
+
+/**
+ * @param {object[]} result cucumber global result object
+ */
+export function getDataFromResult(result) {
+    return {
+        uri: result[0].uri,
+        feature: result[1],
+        scenarios: result.slice(2)
+    }
+}

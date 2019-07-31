@@ -311,16 +311,12 @@ exports.config = {
     },
     //
     // Cucumber specific hooks
-    beforeFeature: function (uri, feature) {
+    beforeFeature: function (uri, feature, scenarios) {
     },
-    beforeScenario: function (uri, feature, scenario) {
-    },
-    beforeStep: function (uri, feature, scenario, step, sourceLocation) {
-    },
-    afterStep: function (uri, feature, scenario, step, result, sourceLocation) {
+    beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
-    afterFeature: function (uri, feature) {
+    afterFeature: function (uri, feature, scenarios) {
     }
 }

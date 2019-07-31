@@ -22,12 +22,10 @@ interface CucumberHookObject {
 }
 
 interface CucumberHookFunctions {
-    beforeFeature?(uri: string, feature: CucumberHookObject): void;
-    beforeScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject): void;
-    beforeStep?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, step: CucumberHookObject, sourceLocation: SourceLocation): void;
-    afterStep?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, step: CucumberHookObject, result: CucumberHookResult, sourceLocation: SourceLocation): void;
+    beforeFeature?(uri: string, feature: CucumberHookObject, scenarios: CucumberHookObject[]): void;
+    beforeScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, sourceLocation: SourceLocation): void;
     afterScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, result: CucumberHookResult, sourceLocation: SourceLocation): void;
-    afterFeature?(uri: string, feature: CucumberHookObject): void;
+    afterFeature?(uri: string, feature: CucumberHookObject, scenarios: CucumberHookObject[]): void;
 }
 
 interface CucumberOptions {

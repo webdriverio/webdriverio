@@ -236,7 +236,7 @@ Default: `false`
 
 ## Hooks
 
-WebdriverIO allows you to set hooks to interfere into the test lifecycle in order to e.g. take screenshot if a test fails. Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). The following hooks are available: `onPrepare`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
+WebdriverIO allows you to set hooks to interfere into the test lifecycle in order to e.g. take screenshot if a test fails. Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). The following hooks are available: `onPrepare`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `afterScenario`, `afterFeature`.
 
 Type: `Function`<br>
 Default: `null`
