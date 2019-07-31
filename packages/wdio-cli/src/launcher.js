@@ -7,7 +7,7 @@ import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseServices } from '@wdio/utils'
 
 import CLInterface from './interface'
-import { runOnPrepareHook, runOnCompleteHook, runServiceHook } from './utils'
+import { runOnPrepareHook, runOnCompleteHook, runServiceHook, filterCaps } from './utils'
 
 const log = logger('@wdio/cli:Launcher')
 
@@ -21,9 +21,7 @@ class Launcher {
         this.configParser.merge(argv)
 
         const config = this.configParser.getConfig()
-        const capabilities = this.filterCaps(
-            this.configParser.getCapabilities()
-        )
+        const capabilities = filterCaps(this.configParser.getCapabilities(), this.argv)
         const specs = this.configParser.getSpecs()
 
         if (config.outputDir) {
@@ -55,49 +53,13 @@ class Launcher {
         this.runnerFailed = 0
     }
 
-    filterCaps(capsToFilter, { browser, device } = this.argv)  {
-        if(!browser && !device)
-            return capsToFilter
-
-        const
-            deviceRelevantKeys = ['deviceName', 'device'],
-            browserRelevantKeys = ['browserName', 'browser'],
-            [browsersToRun, devicesToRun] = [browser, device]
-                .map(flag => !flag
-                    ? []
-                    : flag.split(',').map(b => b.toLowerCase())
-                )
-
-        return ![browsersToRun, devicesToRun].flat().length
-            ? capsToFilter
-            : capsToFilter.filter(capability => {
-                const extensions = {}
-                Object.keys(capability)
-                    .filter(k => k.includes(':'))
-                    .forEach(k => (extensions[k] = capability[k]))
-
-                return [
-                    [browsersToRun, browserRelevantKeys],
-                    [devicesToRun, deviceRelevantKeys]
-                ].some(([platforms, platformRelevantKeys]) =>
-                    platforms.some(platform =>
-                        platformRelevantKeys.some(
-                            relevantKey =>
-                                (capability[relevantKey] || '').toLowerCase().includes(platform) ||
-                                (extensions[relevantKey] || '').toLowerCase().includes(platform)
-                        )
-                    )
-                )
-            })
-    }
-
     /**
      * run sequence
      * @return  {Promise} that only gets resolves with either an exitCode or an error
      */
     async run () {
         let config = this.configParser.getConfig()
-        let caps = this.filterCaps(this.configParser.getCapabilities())
+        let caps = filterCaps(this.configParser.getCapabilities(), this.argv)
         const launcher = initialiseServices(config, caps, 'launcher')
 
         /**

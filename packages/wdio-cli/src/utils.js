@@ -196,3 +196,32 @@ export function addServiceDeps(names, packages, update) {
         }
     }
 }
+
+export function filterCaps(caps, { browser, device })  {
+    if(!browser && !device)
+        return caps
+
+    const deviceRelevantKeys = ['deviceName', 'device'],
+        browserRelevantKeys = ['browserName', 'browser'],
+        [browsersToRun, devicesToRun] = [browser, device]
+            .map(flag => !flag
+                ? []
+                : flag.split(',').map(b => b.toLowerCase())
+            )
+
+    return ![browsersToRun, devicesToRun].flat().length
+        ? caps
+        : caps.filter(cap => [
+            [browsersToRun, browserRelevantKeys],
+            [devicesToRun, deviceRelevantKeys]
+        ].some(([platforms, platformRelevantKeys]) =>
+            platforms.some(platform =>
+                platformRelevantKeys.some(
+                    relevantKey =>
+                        (cap[relevantKey] || '')
+                            .toLowerCase()
+                            .includes(platform)
+                )
+            )
+        ))
+}
