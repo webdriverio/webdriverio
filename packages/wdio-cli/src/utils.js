@@ -201,6 +201,11 @@ export function filterCaps(caps, { browser, device })  {
     if(!browser && !device)
         return caps
 
+    if(caps.constructor === Object){
+        log.warn('Cannot filter the capabilities in multiremote mode')
+        return caps
+    }
+
     const deviceRelevantKeys = ['deviceName', 'device'],
         browserRelevantKeys = ['browserName', 'browser'],
         [browsersToRun, devicesToRun] = [browser, device]
