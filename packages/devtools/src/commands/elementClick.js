@@ -9,14 +9,12 @@ export default async function elementClick ({ elementId }) {
     /**
      * ensure to fulfill the click promise if the click has triggered an alert
      */
-    await new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const dialogHandler = () => resolve()
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
             page.removeListener('dialog', dialogHandler)
-            resolve()
-        })
+            resolve(null)
+        }).catch(reject)
     })
-
-    return null
 }

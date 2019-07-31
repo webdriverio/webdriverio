@@ -76,3 +76,10 @@ export const DEFAULT_SCRIPT_TIMEOUT = 30 * 1000 // 30s
 export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name']
 export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-activeElement'
 export const SERIALIZE_FLAG = '__executeElement'
+
+export const ERROR_MESSAGES = {
+    staleElement: {
+        name: 'stale element reference',
+        message: 'stale element reference: The element reference is stale; either the element is no longer attached to the DOM, it is not in the current frame context, or the document has been refreshed'
+    }
+}
