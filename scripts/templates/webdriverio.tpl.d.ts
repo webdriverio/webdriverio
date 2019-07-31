@@ -139,14 +139,6 @@ declare namespace WebdriverIO {
 
         afterSuite?(suite: Suite): void;
         afterTest?(test: Test): void;
-
-        // cucumber specific hooks
-        beforeFeature?(uri: any, feature: any): void;
-        beforeScenario?(uri: any, feature: any, scenario: any): void;
-        beforeStep?(uri: any, feature: any, scenario: any, step: any): void;
-        afterFeature?(uri: any, feature: any, scenario: any, step: any, result: any): void;
-        afterScenario?(uri: any, feature: any, scenario: any, result: {status: string, duration: number}): void;
-        afterStep?(uri: any, feature: any): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
