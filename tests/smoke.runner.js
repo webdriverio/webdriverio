@@ -179,19 +179,34 @@ const retryPass = async () => {
 }
 
 (async () => {
+    /**
+     * Usage example: `npm run test:smoke -- customService`
+     */
+    const testFilter = process.argv[2]
+
     const tests = [
-        mochaTestrunner(),
-        jasmineTestrunner(),
-        cucumberTestrunner(),
-        cucumberFailAmbiguousDefinitions(),
-        customService(),
-        customReporterString(),
-        customReporterObject(),
-        multiremote(),
-        retryFail(),
-        retryPass(),
+        mochaTestrunner,
+        jasmineTestrunner,
+        cucumberTestrunner,
+        cucumberFailAmbiguousDefinitions,
+        customService,
+        customReporterString,
+        customReporterObject,
+        multiremote,
+        retryFail,
+        retryPass,
     ]
-    await Promise.all(tests)
+
+    if (process.env.CI || testFilter) {
+        // sequential
+        const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
+        for (let test of testsFiltered) {
+            await test()
+        }
+    } else {
+        // parallel
+        await Promise.all(tests.map(test => test()))
+    }
 
     /**
      * for some reason the process get stuck therefor exit it
