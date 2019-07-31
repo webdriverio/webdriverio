@@ -1,3 +1,5 @@
+import command from '../scripts/getElementAttribute'
+
 export default async function getElementAttribute ({ elementId, name }) {
     const elementHandle = this.elementStore.get(elementId)
 
@@ -5,6 +7,6 @@ export default async function getElementAttribute ({ elementId, name }) {
         throw new Error(`Couldn't find element with id ${elementId} in cache`)
     }
 
-    const jsHandle = await elementHandle.getProperty(name)
-    return jsHandle.jsonValue()
+    const page = this.windows.get(this.currentWindowHandle)
+    return page.$eval('html', command, elementHandle, name)
 }
