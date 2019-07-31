@@ -64,7 +64,7 @@ export default function (method, endpointUri, commandInfo) {
              * inject url variables
              */
             if (i < variables.length) {
-                endpoint = endpoint.replace(`:${commandParams[i].name}`, arg)
+                endpoint = endpoint.replace(`:${commandParams[i].name}`, encodeURIComponent(encodeURIComponent(arg)))
                 continue
             }
 
