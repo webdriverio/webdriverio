@@ -44,25 +44,47 @@ describe('utils', () => {
         })
     })
 
-    it('compareScenarioLineWithSourceLine', () => {
-        expect(compareScenarioLineWithSourceLine({
-            type: 'ScenarioOutline',
-            examples: [{
-                tableBody: [
-                    { location: { line: 123 } },
-                    { location: { line: 321 } }
-                ]
-            }]
-        }, { line: 111 })).toBe(false)
-        expect(compareScenarioLineWithSourceLine({
-            type: 'ScenarioOutline',
-            examples: [{
-                tableBody: [
-                    { location: { line: 123 } },
-                    { location: { line: 321 } }
-                ]
-            }]
-        }, { line: 321 })).toBe(true)
+    describe('compareScenarioLineWithSourceLine', () => {
+        it('should return false if line not found', () => {
+            expect(compareScenarioLineWithSourceLine({
+                type: 'ScenarioOutline',
+                examples: [{
+                    tableBody: [
+                        { location: { line: 123 } },
+                        { location: { line: 321 } }
+                    ]
+                }]
+            }, { line: 111 })).toBe(false)
+        })
+
+        it('should return true if line found', () => {
+            expect(compareScenarioLineWithSourceLine({
+                type: 'ScenarioOutline',
+                examples: [{
+                    tableBody: [
+                        { location: { line: 123 } },
+                        { location: { line: 321 } }
+                    ]
+                }]
+            }, { line: 321 })).toBe(true)
+        })
+
+        it('should return true if line found in one of examples', () => {
+            expect(compareScenarioLineWithSourceLine({
+                type: 'ScenarioOutline',
+                examples: [{
+                    tableBody: [
+                        { location: { line: 123 } },
+                        { location: { line: 234 } }
+                    ]
+                }, {
+                    tableBody: [
+                        { location: { line: 345 } },
+                        { location: { line: 456 } }
+                    ]
+                }]
+            }, { line: 345 })).toBe(true)
+        })
     })
 
     describe('getStepFromFeature', () => {
