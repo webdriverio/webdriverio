@@ -64,13 +64,15 @@ export const DEFAULT_CONFIGS = {
      */
     beforeFeature: [],
     beforeScenario: [],
-    afterFeature: [],
+    beforeStep: [],
+    afterStep: [],
     afterScenario: [],
+    afterFeature: [],
 }
 
 export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
-    'beforeFeature', 'beforeScenario', 'afterFeature',
-    'afterScenario', 'onReload', 'onPrepare', 'onComplete'
+    'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
+    'onReload', 'onPrepare', 'onComplete'
 ]

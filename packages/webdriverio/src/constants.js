@@ -272,8 +272,10 @@ export const WDIO_DEFAULTS = {
      */
     beforeFeature: HOOK_DEFINITION,
     beforeScenario: HOOK_DEFINITION,
-    afterFeature: HOOK_DEFINITION,
+    beforeStep: HOOK_DEFINITION,
+    afterStep: HOOK_DEFINITION,
     afterScenario: HOOK_DEFINITION,
+    afterFeature: HOOK_DEFINITION,
 }
 
 /**

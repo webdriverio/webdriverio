@@ -13,10 +13,10 @@ import {
     runFnInFiberContext, hasWdioSyncSupport
 } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
-import { getDataFromResult } from './utils'
+import { getDataFromResult, setUserHookNames } from './utils'
 
 class CucumberAdapter {
-    constructor (cid, config, specs, capabilities, reporter) {
+    constructor(cid, config, specs, capabilities, reporter) {
         this.cwd = process.cwd()
         this.cid = cid
         this.specs = specs
@@ -35,7 +35,8 @@ class CucumberAdapter {
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
             this.addHooks(this.config)
             this.loadSpecFiles()
-            this.wrapSteps()
+            this.wrapSteps(this.config)
+            setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
             const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
 
@@ -149,20 +150,20 @@ class CucumberAdapter {
     }
 
     addHooks (config) {
-        Cucumber.Before(function beforeScenario ({ sourceLocation, pickle }) {
-            const { uri, feature } = getDataFromResult(this.result)
+        Cucumber.Before(function wdioHookBeforeScenario ({ sourceLocation, pickle }) {
+            const { uri, feature } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.beforeScenario, [uri, feature, pickle, sourceLocation])
         })
-        Cucumber.After(function afterScenario ({ sourceLocation, pickle, result }) {
-            const { uri, feature } = getDataFromResult(this.result)
+        Cucumber.After(function wdioHookAfterScenario ({ sourceLocation, pickle, result }) {
+            const { uri, feature } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.afterScenario, [uri, feature, pickle, result, sourceLocation])
         })
-        Cucumber.BeforeAll(function beforeFeature () {
-            const { uri, feature, scenarios } = getDataFromResult(this.result)
+        Cucumber.BeforeAll(function wdioHookBeforeFeature () {
+            const { uri, feature, scenarios } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.beforeFeature, [uri, feature, scenarios])
         })
-        Cucumber.AfterAll(function afterFeature () {
-            const { uri, feature, scenarios } = getDataFromResult(this.result)
+        Cucumber.AfterAll(function wdioHookAfterFeature () {
+            const { uri, feature, scenarios } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.afterFeature, [uri, feature, scenarios])
         })
     }
@@ -170,42 +171,93 @@ class CucumberAdapter {
     /**
      * wraps step definition code with sync/async runner with a retry option
      */
-    wrapSteps () {
+    wrapSteps (config) {
         const wrapStepSync = this.wrapStepSync
         const wrapStepAsync = this.wrapStepAsync
 
         Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
-            const retryTest = isFinite(options.retry) ? parseInt(options.retry, 10) : 0
+            /**
+             * hooks defined in wdio.conf are already wrapped
+             */
+            if (fn.name.startsWith('wdioHook')) {
+                return fn
+            }
+
+            const isStep = !fn.name.startsWith('userHook')
+
+            const retryTest = isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
             return fn.name === 'async' || !hasWdioSyncSupport
-                ? wrapStepAsync(fn, retryTest)
+                ? wrapStepAsync(fn, retryTest, isStep, config)
                 /* istanbul ignore next */
-                : wrapStepSync(fn, retryTest)
+                : wrapStepSync(fn, retryTest, isStep, config)
         })
     }
 
     /**
      * wrap step definition to enable retry ability
-     * @param  {Function} code       step definition
-     * @param  {Number}   retryTest  amount of allowed repeats is case of a failure
-     * @return {Function}            wrapped step definiton for sync WebdriverIO code
+     * @param   {Function}  code        step definitoon
+     * @param   {Number}    retryTest   amount of allowed repeats is case of a failure
+     * @param   {boolean}   isStep
+     * @param   {object}    config
+     * @return  {Function}              wrapped step definiton for sync WebdriverIO code
      */
-    wrapStepSync (code, retryTest = 0) {
+    wrapStepSync (code, retryTest = 0, isStep, config) {
         return function (...args) {
+            let userStepFn
+            if (isStep) {
+                userStepFn = (...args) => {
+                    const { uri, feature } = getDataFromResult(global.result)
+                    executeHooksWithArgs(config.beforeStep, [uri, feature])
+                    let result
+                    let error
+                    try {
+                        result = code(...args)
+                    } catch (err) {
+                        error = err
+                    }
+                    executeHooksWithArgs(config.afterStep, [uri, feature, error])
+                    if (error) {
+                        throw error
+                    }
+                    return result
+                }
+            }
             return runFnInFiberContext(
-                executeSync.bind(this, code, retryTest, args),
+                executeSync.bind(this, userStepFn || code, retryTest, args),
             ).apply(this)
         }
     }
 
     /**
      * wrap step definition to enable retry ability
-     * @param  {Function} code       step definitoon
-     * @param  {Number}   retryTest  amount of allowed repeats is case of a failure
-     * @return {Function}            wrapped step definiton for async WebdriverIO code
+     * @param   {Function}  code        step definitoon
+     * @param   {Number}    retryTest   amount of allowed repeats is case of a failure
+     * @param   {boolean}   isStep
+     * @param   {object}    config
+     * @return  {Function}              wrapped step definiton for async WebdriverIO code
      */
-    wrapStepAsync (code, retryTest = 0) {
+    wrapStepAsync (code, retryTest = 0, isStep, config) {
         return function (...args) {
-            return executeAsync.call(this, code, retryTest, args)
+            let userStepFn
+            if (isStep) {
+                userStepFn = async (...args) => {
+                    const { uri, feature } = getDataFromResult(global.result)
+                    await executeHooksWithArgs(config.beforeStep, [uri, feature])
+                    let result
+                    let error
+                    try {
+                        result = await code(...args)
+                    } catch (err) {
+                        error = err
+                    }
+                    await executeHooksWithArgs(config.afterStep, [uri, feature, error])
+                    if (error) {
+                        throw error
+                    }
+                    return result
+                }
+            }
+            return executeAsync.call(this, userStepFn || code, retryTest, args)
         }
     }
 }

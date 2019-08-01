@@ -129,17 +129,17 @@ test('wrapSteps', () => {
     const adapter = adapterFactory()
     adapter.wrapStepSync = jest.fn()
     adapter.wrapStepAsync = jest.fn()
-    adapter.wrapSteps()
+    adapter.wrapSteps(adapter.config)
 
     const functionWrapper = Cucumber.setDefinitionFunctionWrapper.mock.calls[0].pop()
     const wrappedFunction = jest.fn()
     functionWrapper(wrappedFunction)
 
     expect(adapter.wrapStepSync).toBeCalledTimes(0)
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 0)
+    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 0, true, adapter.config)
 
     functionWrapper(wrappedFunction, { retry: 123 })
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 123)
+    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 123, true, adapter.config)
 })
 
 test('wrapStepSync', () => {

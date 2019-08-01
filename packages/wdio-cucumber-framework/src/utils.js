@@ -171,3 +171,19 @@ export function getDataFromResult(result) {
         scenarios: result.slice(2)
     }
 }
+
+export function setUserHookNames (options) {
+    const hooks = [
+        'beforeTestRunHookDefinitions',
+        'beforeTestCaseHookDefinitions',
+        'afterTestCaseHookDefinitions',
+        'afterTestRunHookDefinitions',
+    ]
+    hooks.forEach(hookName => options[hookName].forEach(testRunHookDefinition => {
+        const hookFn = testRunHookDefinition.code
+        if (!hookFn.name.startsWith('wdioHook')) {
+            const userHookBeforeTestRun = (...args) => hookFn(args)
+            testRunHookDefinition.code = userHookBeforeTestRun
+        }
+    }))
+}

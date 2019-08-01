@@ -1,6 +1,12 @@
 import { Status as RealStatus } from 'cucumber'
 
 export const supportCodeLibraryBuilder = {
+    options: {
+        beforeTestRunHookDefinitions: [],
+        beforeTestCaseHookDefinitions: [],
+        afterTestCaseHookDefinitions: [],
+        afterTestRunHookDefinitions: [],
+    },
     reset: jest.fn(),
     finalize: jest.fn()
 }

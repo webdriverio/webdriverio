@@ -346,6 +346,10 @@ exports.config = {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
+    beforeStep: function (uri, feature) {
+    },
+    afterStep: function (uri, feature, error) {
+    },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
     afterFeature: function (uri, feature, scenarios) {
