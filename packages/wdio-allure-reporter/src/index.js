@@ -228,6 +228,16 @@ class AllureReporter extends WDIOReporter {
             // remove hook from suite if it has no steps
             if (this.allure.getCurrentTest().steps.length === 0 && !this.options.useCucumberStepReporter) {
                 this.allure.getCurrentSuite().testcases.pop()
+            } else if (this.options.useCucumberStepReporter) {
+                // remove hook when it's registered as a step and if it's passed
+                const step = this.allure.getCurrentTest().steps.pop()
+
+                // if it had any attachments, reattach them to current test
+                if (step.attachments.length >= 1) {
+                    step.attachments.forEach(attachment => {
+                        this.allure.getCurrentTest().addAttachment(attachment)
+                    })
+                }
             }
         }
     }
