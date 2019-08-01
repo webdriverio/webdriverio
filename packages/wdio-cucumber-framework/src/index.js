@@ -13,7 +13,7 @@ import {
     runFnInFiberContext, hasWdioSyncSupport
 } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
-import { getDataFromResult, setUserHookNames } from './utils'
+import { getDataFromResult, setUserHookNames, wrapStepWithHooks } from './utils'
 
 class CucumberAdapter {
     constructor(cid, config, specs, capabilities, reporter) {
@@ -203,28 +203,7 @@ class CucumberAdapter {
      */
     wrapStepSync (code, retryTest = 0, isStep, config) {
         return function (...args) {
-            let userStepFn
-            if (isStep) {
-                userStepFn = (...args) => {
-                    const { uri, feature } = getDataFromResult(global.result)
-                    executeHooksWithArgs(config.beforeStep, [uri, feature])
-                    let result
-                    let error
-                    try {
-                        result = code(...args)
-                    } catch (err) {
-                        error = err
-                    }
-                    executeHooksWithArgs(config.afterStep, [uri, feature, error])
-                    if (error) {
-                        throw error
-                    }
-                    return result
-                }
-            }
-            return runFnInFiberContext(
-                executeSync.bind(this, userStepFn || code, retryTest, args),
-            ).apply(this)
+            return runFnInFiberContext(executeSync.bind(this, isStep ? wrapStepWithHooks(code, config) : code, retryTest, args)).apply(this)
         }
     }
 
@@ -238,26 +217,7 @@ class CucumberAdapter {
      */
     wrapStepAsync (code, retryTest = 0, isStep, config) {
         return function (...args) {
-            let userStepFn
-            if (isStep) {
-                userStepFn = async (...args) => {
-                    const { uri, feature } = getDataFromResult(global.result)
-                    await executeHooksWithArgs(config.beforeStep, [uri, feature])
-                    let result
-                    let error
-                    try {
-                        result = await code(...args)
-                    } catch (err) {
-                        error = err
-                    }
-                    await executeHooksWithArgs(config.afterStep, [uri, feature, error])
-                    if (error) {
-                        throw error
-                    }
-                    return result
-                }
-            }
-            return executeAsync.call(this, userStepFn || code, retryTest, args)
+            return executeAsync.call(this, isStep ? wrapStepWithHooks(code, config) : code, retryTest, args)
         }
     }
 }

@@ -1,4 +1,5 @@
 import * as path from 'path'
+import { executeHooksWithArgs } from '@wdio/config'
 
 /**
  * NOTE: this function is exported for testing only
@@ -186,4 +187,24 @@ export function setUserHookNames (options) {
             testRunHookDefinition.code = userHookBeforeTestRun
         }
     }))
+}
+
+export function wrapStepWithHooks (code, config) {
+    const userStepFn = async (...args) => {
+        const { uri, feature } = getDataFromResult(global.result)
+        await executeHooksWithArgs(config.beforeStep, [uri, feature])
+        let result
+        let error
+        try {
+            result = await code(...args)
+        } catch (err) {
+            error = err
+        }
+        await executeHooksWithArgs(config.afterStep, [uri, feature, error])
+        if (error) {
+            throw error
+        }
+        return result
+    }
+    return userStepFn
 }
