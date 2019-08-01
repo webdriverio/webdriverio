@@ -24,6 +24,13 @@ Given('I click on link {string} async', async (selector) => {
     await elem.click()
 })
 
+let foobarCounter = 1
+Given(/^Foo (.*) and Bar (.*) are passed$/, function (foo, bar) {
+    assert.equal(foo, 'f' + foobarCounter)
+    assert.equal(bar, 'b' + foobarCounter)
+    foobarCounter++
+})
+
 Given(/^a table step$/, function(table) {
     const expected = [
         ['Apricot', '5'],

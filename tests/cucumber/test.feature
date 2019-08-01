@@ -18,6 +18,19 @@ Feature: Example feature
     Scenario: Retry Check
         Then  I should fail once but pass on the second run
 
+    Scenario Outline: Multiple Examples
+        Given Foo <foo> and Bar <bar> are passed
+
+        @first
+        Examples:
+                | foo       | bar      |
+                | f1        | b1       |
+
+        @second
+        Examples:
+                | foo       | bar      |
+                | f2        | b2       |
+
     Scenario: data tables
         Given a table step
             | Vegetable | Rating |

@@ -131,8 +131,9 @@ export function buildStepPayload(uri, feature, scenario, step, params = {}) {
 
 export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
     if (scenario.type.indexOf('ScenarioOutline') > -1) {
-        return scenario.examples[0].tableBody
-            .some((tableEntry) => tableEntry.location.line === sourceLocation.line)
+        return scenario.examples
+            .some(example => example.tableBody
+                .some(tableEntry => tableEntry.location.line === sourceLocation.line))
     }
 
     return scenario.location.line === sourceLocation.line
