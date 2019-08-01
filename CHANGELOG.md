@@ -15,6 +15,22 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.12 (2019-08-01)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4290](https://github.com/webdriverio/webdriverio/pull/4290) Support multiple tables in scenario outline ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#4285](https://github.com/webdriverio/webdriverio/pull/4285) Add types for Cucumber hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#4283](https://github.com/webdriverio/webdriverio/pull/4283) Encode uri params ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* [#4281](https://github.com/webdriverio/webdriverio/pull/4281) Speedup internal tests ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.11.11 (2019-07-30)
 
 #### :bug: Bug Fix
