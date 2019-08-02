@@ -179,6 +179,11 @@ export function getDataFromResult(result) {
     }
 }
 
+/**
+ * wrap every user defined hook with function named `userHookFn`
+ * to identify later on is function a step, user hook or wdio hook.
+ * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
+ */
 export function setUserHookNames (options) {
     const hooks = [
         'beforeTestRunHookDefinitions',
@@ -189,12 +194,19 @@ export function setUserHookNames (options) {
     hooks.forEach(hookName => options[hookName].forEach(testRunHookDefinition => {
         const hookFn = testRunHookDefinition.code
         if (!hookFn.name.startsWith('wdioHook')) {
-            const userHookBeforeTestRun = (...args) => hookFn(args)
-            testRunHookDefinition.code = userHookBeforeTestRun
+            const userHookFn = (...args) => hookFn(args)
+            testRunHookDefinition.code = userHookFn
         }
     }))
 }
 
+/**
+ * returns a function that calls `beforeStep` before step and then calls `afterStep` (even if step has failed)
+ * We need this workaround because `BeforeStep` and `AfterStep` hooks are not implemented in CucumberJS
+ * https://github.com/cucumber/cucumber-js/issues/997
+ * @param {Function} code step function
+ * @param {object} config wdio config
+ */
 export function wrapStepWithHooks (code, config) {
     const userStepFn = async (...args) => {
         const { uri, feature } = getDataFromResult(global.result)

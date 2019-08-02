@@ -226,7 +226,7 @@ describe('addHooks', () => {
         beforeFeature: jest.fn(),
         afterFeature: jest.fn(),
     }
-    adapter.addHooks(adapterConfig)
+    adapter.addWdioHooks(adapterConfig)
     const beforeScenario = Cucumber.Before.mock.calls[0][0]
     const afterScenario = Cucumber.After.mock.calls[0][0]
     const beforeFeature = Cucumber.BeforeAll.mock.calls[0][0]

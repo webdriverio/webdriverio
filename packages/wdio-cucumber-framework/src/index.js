@@ -30,9 +30,18 @@ class CucumberAdapter {
         try {
             this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
-            this.addHooks(this.config)
+
+            /**
+             * wdio hooks should be added before spec files are loaded
+             */
+            this.addWdioHooks(this.config)
             this.loadSpecFiles()
             this.wrapSteps(this.config)
+
+            /**
+             * we need to somehow indentify is function is step or hook
+             * so we wrap every user hook function
+             */
             setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
             const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
@@ -146,7 +155,13 @@ class CucumberAdapter {
         mockery.disable()
     }
 
-    addHooks (config) {
+    /**
+     * set beforeScenario, afterScenario, beforeFeature, afterFeature
+     * we can't added beforeStep and afterStep here because it is not implemented in CucumberJS
+     * https://github.com/cucumber/cucumber-js/issues/997
+     * @param {object} config config
+     */
+    addWdioHooks (config) {
         Cucumber.Before(function wdioHookBeforeScenario ({ sourceLocation, pickle }) {
             const { uri, feature } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.beforeScenario, [uri, feature, pickle, sourceLocation])
@@ -179,6 +194,11 @@ class CucumberAdapter {
                 return fn
             }
 
+            /**
+             * this flag is used to:
+             * - avoid hook retry
+             * - avoid wrap hooks with beforeStep and afterStep
+             */
             const isStep = !fn.name.startsWith('userHook')
 
             const retryTest = isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
@@ -197,6 +217,10 @@ class CucumberAdapter {
     wrapStep (code, retryTest = 0, isStep, config) {
         const executeFn = code.name === 'async' || !hasWdioSyncSupport ? executeAsync : executeSync
         return function (...args) {
+            /**
+             * there are no `BeforeStep` and `AfterStep` hooks in CucumberJS,
+             * so we run wdio `beforeStep` before step function and then run `afterStep` (even if step has failed)
+             */
             return executeFn.call(this, isStep ? wrapStepWithHooks(code, config) : code, retryTest, args)
         }
     }
