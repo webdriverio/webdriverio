@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { executeHooksWithArgs } from '@wdio/config'
+import { executeHooksWithArgs, runFnInFiberContext } from '@wdio/config'
 
 /**
  * NOTE: this function is exported for testing only
@@ -93,15 +93,21 @@ export function getUniqueIdentifier (target, sourceLocation) {
  * @param {object} message { type: string, payload: object }
  */
 export function formatMessage ({ payload = {} }) {
-    let message = {
-        ...payload,
+    let content = { ...payload }
+
+    /**
+     * need to convert Error to plain object, otherwise it is lost on process.send
+     */
+    if (payload.error) {
+        const { name, message, stack } = payload.error
+        content.error = { foo: 'bar', name, message, stack }
     }
 
     if (payload.title && payload.parent) {
-        message.fullTitle = getTestFullTitle(payload.parent, payload.title)
+        content.fullTitle = getTestFullTitle(payload.parent, payload.title)
     }
 
-    return message
+    return content
 }
 
 /**
@@ -192,15 +198,22 @@ export function setUserHookNames (options) {
 export function wrapStepWithHooks (code, config) {
     const userStepFn = async (...args) => {
         const { uri, feature } = getDataFromResult(global.result)
+
+        // beforeStep hook
         await executeHooksWithArgs(config.beforeStep, [uri, feature])
+
+        // step
         let result
         let error
         try {
-            result = await code(...args)
+            result = await runFnInFiberContext(code.bind(this, ...args))()
         } catch (err) {
             error = err
         }
-        await executeHooksWithArgs(config.afterStep, [uri, feature, error])
+
+        // afterStep
+        await executeHooksWithArgs(config.afterStep, [uri, feature, { error, result }])
+
         if (error) {
             throw error
         }

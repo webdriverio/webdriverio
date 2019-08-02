@@ -15,33 +15,31 @@ const log = logger('@wdio/sync')
  * execute test or hook synchronously
  * @param  {Function} fn         spec or hook method
  * @param  {Number}   repeatTest number of retries
+ * @param  {Array}    args       number of retries
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeSync = function (fn, repeatTest = 0, args = []) {
-    /**
-     * if a new hook gets executed we can assume that all commands should have finised
-     * with exception of timeouts where `commandIsRunning` will never be reset but here
-     */
-    return new Promise((resolve, reject) => {
-        try {
-            const res = fn.apply(this, args)
-            resolve(res)
-        } catch (e) {
-            if (repeatTest) {
-                return resolve(executeSync(fn, --repeatTest, args))
-            }
-
-            /**
-             * no need to modify stack if no stack available
-             */
-            if (!e.stack) {
-                return reject(e)
-            }
-
-            e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
-            reject(e)
+const executeSync = async function (fn, repeatTest = 0, args = []) {
+    try {
+        let res = fn.apply(this, args)
+        if (res && res instanceof Promise) {
+            return await res
         }
-    })
+        return res
+    } catch (e) {
+        if (repeatTest) {
+            return await executeSync(fn, --repeatTest, args)
+        }
+
+        /**
+         * no need to modify stack if no stack available
+         */
+        if (!e.stack) {
+            return Promise.reject(e)
+        }
+
+        e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
+        return Promise.reject(e)
+    }
 }
 
 /**

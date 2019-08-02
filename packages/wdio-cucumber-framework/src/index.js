@@ -8,10 +8,7 @@ import CucumberReporter from './reporter'
 
 import { EventEmitter } from 'events'
 
-import {
-    executeHooksWithArgs, executeSync, executeAsync,
-    runFnInFiberContext, hasWdioSyncSupport
-} from '@wdio/config'
+import { executeHooksWithArgs, executeSync, executeAsync, hasWdioSyncSupport } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
 import { getDataFromResult, setUserHookNames, wrapStepWithHooks } from './utils'
 
@@ -172,8 +169,7 @@ class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      */
     wrapSteps (config) {
-        const wrapStepSync = this.wrapStepSync
-        const wrapStepAsync = this.wrapStepAsync
+        const wrapStep = this.wrapStep
 
         Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
             /**
@@ -186,10 +182,7 @@ class CucumberAdapter {
             const isStep = !fn.name.startsWith('userHook')
 
             const retryTest = isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
-            return fn.name === 'async' || !hasWdioSyncSupport
-                ? wrapStepAsync(fn, retryTest, isStep, config)
-                /* istanbul ignore next */
-                : wrapStepSync(fn, retryTest, isStep, config)
+            return wrapStep(fn, retryTest, isStep, config)
         })
     }
 
@@ -201,23 +194,10 @@ class CucumberAdapter {
      * @param   {object}    config
      * @return  {Function}              wrapped step definiton for sync WebdriverIO code
      */
-    wrapStepSync (code, retryTest = 0, isStep, config) {
+    wrapStep (code, retryTest = 0, isStep, config) {
+        const executeFn = code.name === 'async' || !hasWdioSyncSupport ? executeAsync : executeSync
         return function (...args) {
-            return runFnInFiberContext(executeSync.bind(this, isStep ? wrapStepWithHooks(code, config) : code, retryTest, args)).apply(this)
-        }
-    }
-
-    /**
-     * wrap step definition to enable retry ability
-     * @param   {Function}  code        step definitoon
-     * @param   {Number}    retryTest   amount of allowed repeats is case of a failure
-     * @param   {boolean}   isStep
-     * @param   {object}    config
-     * @return  {Function}              wrapped step definiton for async WebdriverIO code
-     */
-    wrapStepAsync (code, retryTest = 0, isStep, config) {
-        return function (...args) {
-            return executeAsync.call(this, isStep ? wrapStepWithHooks(code, config) : code, retryTest, args)
+            return executeFn.call(this, isStep ? wrapStepWithHooks(code, config) : code, retryTest, args)
         }
     }
 }

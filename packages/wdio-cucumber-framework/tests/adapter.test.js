@@ -1,7 +1,8 @@
 import path from 'path'
 import mockery from 'mockery'
 import * as Cucumber from 'cucumber'
-import { executeHooksWithArgs, runFnInFiberContext, executeAsync } from '@wdio/config'
+import * as config from '@wdio/config'
+const { executeHooksWithArgs, runFnInFiberContext, executeAsync, executeSync } = config
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 
@@ -126,44 +127,49 @@ test('loadSpecFiles', () => {
 })
 
 test('wrapSteps', () => {
+    config.hasWdioSyncSupport = false
     const adapter = adapterFactory()
-    adapter.wrapStepSync = jest.fn()
-    adapter.wrapStepAsync = jest.fn()
+    adapter.wrapStep = jest.fn()
     adapter.wrapSteps(adapter.config)
 
     const functionWrapper = Cucumber.setDefinitionFunctionWrapper.mock.calls[0].pop()
     const wrappedFunction = jest.fn()
     functionWrapper(wrappedFunction)
 
-    expect(adapter.wrapStepSync).toBeCalledTimes(0)
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 0, true, adapter.config)
+    expect(executeSync).toBeCalledTimes(0)
+    expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, true, adapter.config)
 
     functionWrapper(wrappedFunction, { retry: 123 })
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 123, true, adapter.config)
+    expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 123, true, adapter.config)
 })
 
 test('wrapStepSync', () => {
+    config.hasWdioSyncSupport = true
     const adapter = adapterFactory()
 
-    const fn = adapter.wrapStepSync('some code', 123)
+    const fn = adapter.wrapStep('some code', 123, true, adapter.config)
     expect(typeof fn).toBe('function')
-    expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runFnInFiberContext).toBeCalledTimes(1)
+
+    fn(1, 2, 3)
+    expect(executeSync).toBeCalledWith(expect.any(Function), 123, [1, 2, 3])
 })
 
 test('wrapStepSync with default', () => {
+    config.hasWdioSyncSupport = true
     const adapter = adapterFactory()
 
-    const fn = adapter.wrapStepSync('some code')
+    const fn = adapter.wrapStep('fn')
     expect(typeof fn).toBe('function')
-    expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runFnInFiberContext).toBeCalledTimes(1)
+
+    fn(1, 2, 3)
+    expect(executeSync).toBeCalledWith('fn', 0, [1, 2, 3])
 })
 
 test('wrapStepAsync', () => {
+    config.hasWdioSyncSupport = false
     const adapter = adapterFactory()
 
-    const fn = adapter.wrapStepAsync('fn', 123)
+    const fn = adapter.wrapStep('fn', 123)
     expect(typeof fn).toBe('function')
 
     fn(1, 2, 3)
@@ -171,9 +177,10 @@ test('wrapStepAsync', () => {
 })
 
 test('wrapStepAsync with default value', () => {
+    config.hasWdioSyncSupport = false
     const adapter = adapterFactory()
 
-    const fn = adapter.wrapStepAsync('fn')
+    const fn = adapter.wrapStep('fn')
     expect(typeof fn).toBe('function')
 
     fn(1, 2, 3)
