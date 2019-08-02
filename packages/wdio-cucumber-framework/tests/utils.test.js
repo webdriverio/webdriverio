@@ -1,3 +1,5 @@
+import { executeHooksWithArgs } from '@wdio/config'
+
 import {
     createStepArgument,
     compareScenarioLineWithSourceLine,
@@ -6,7 +8,10 @@ import {
     formatMessage,
     getUniqueIdentifier,
     getTestStepTitle,
-    buildStepPayload
+    buildStepPayload,
+    getDataFromResult,
+    setUserHookNames,
+    wrapStepWithHooks
 } from '../src/utils'
 
 describe('utils', () => {
@@ -179,6 +184,90 @@ describe('utils', () => {
                 title: 'Foo Undefined Step',
                 uid: 'undefined',
             })
+        })
+    })
+
+    describe('getDataFromResult', () => {
+        it('should return proper object', () => {
+            expect(getDataFromResult([{ uri: 'uri' }, { feature: 'foo' }, { pickle: 'foo' }, { pickle: 'bar' }])).toEqual({
+                uri: 'uri',
+                feature: { feature: 'foo' },
+                scenarios: [{ pickle: 'foo' }, { pickle: 'bar' }]
+            })
+        })
+    })
+
+    describe('setUserHookNames', () => {
+        it('should change function names of user defined hooks', () => {
+            const options = {
+                beforeTestRunHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
+                beforeTestCaseHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
+                afterTestCaseHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
+                afterTestRunHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
+            }
+            setUserHookNames(options)
+            const hookTypes = Object.values(options)
+            expect(hookTypes).toHaveLength(4)
+            hookTypes.forEach(hookType => {
+                expect(hookType).toHaveLength(3)
+
+                const wdioHooks = hookType.filter(hookDefinition => hookDefinition.code.name.startsWith('wdioHook'))
+                const userHooks = hookType.filter(hookDefinition => hookDefinition.code.name.startsWith('userHook'))
+                expect(wdioHooks).toHaveLength(1)
+                expect(userHooks).toHaveLength(2)
+            })
+        })
+    })
+
+    describe('wrapStepWithHooks', () => {
+        it('should wrap step with before/after hooks and return result', async () => {
+            global.wrapStepWithHooksCounter = 0
+            global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
+            executeHooksWithArgs.mockImplementation(() => new Promise(resolve => setTimeout(() => {
+                global.wrapStepWithHooksCounter++
+                resolve()
+            }, 20)))
+            const code = jest.fn().mockImplementation((...args) => {
+                global.wrapStepWithHooksCounter++
+                return [...args, global.wrapStepWithHooksCounter]
+            })
+            const config = {
+                beforeStep: jest.fn(),
+                afterStep: jest.fn()
+            }
+            const wrappedFn = wrapStepWithHooks(code, config)
+            const result = await wrappedFn('foo', 'bar')
+
+            expect(global.wrapStepWithHooksCounter).toEqual(3)
+            expect(executeHooksWithArgs.mock.calls[0]).toEqual([config.beforeStep, ['uri', 'feature']])
+            expect(executeHooksWithArgs.mock.calls[1]).toEqual([config.afterStep, ['uri', 'feature', { result: ['foo', 'bar', 2], error: undefined }]])
+            expect(result).toEqual(['foo', 'bar', 2])
+        })
+
+        it('should wrap step with before/after hooks and throw error', async () => {
+            global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
+            const code = jest.fn().mockImplementation((...args) => { throw new Error(args.join(', '))})
+            const config = {
+                beforeStep: jest.fn(),
+                afterStep: jest.fn()
+            }
+            const wrappedFn = wrapStepWithHooks(code, config)
+            let error
+            try {
+                await wrappedFn('foo', 'bar')
+            } catch (err) {
+                error = err
+            }
+
+            expect(executeHooksWithArgs.mock.calls[0]).toEqual([config.beforeStep, ['uri', 'feature']])
+            expect(executeHooksWithArgs.mock.calls[1]).toEqual([config.afterStep, ['uri', 'feature', { result: undefined, error: expect.objectContaining({ message: 'foo, bar' }) }]])
+            expect(error.message).toBe('foo, bar')
+        })
+        afterEach(() => {
+            delete global.wrapStepWithHooksCounter
+            delete global.result
+            executeHooksWithArgs.mockClear()
+            executeHooksWithArgs.mockReset()
         })
     })
 })

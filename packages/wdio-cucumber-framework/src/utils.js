@@ -98,7 +98,7 @@ export function formatMessage ({ payload = {} }) {
     /**
      * need to convert Error to plain object, otherwise it is lost on process.send
      */
-    if (payload.error) {
+    if (payload.error && payload.error.message) {
         const { name, message, stack } = payload.error
         content.error = { foo: 'bar', name, message, stack }
     }
