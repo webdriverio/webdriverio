@@ -150,7 +150,7 @@ exports.config = {
     // },
     //
     // Runs after a Cucumber Step
-    // afterStep: function (uri, feature, error) {
+    // afterStep: function (uri, feature, { error, result }) {
     // },
     //
     // Gets executed after all tests are done. You still have access to all global variables from
