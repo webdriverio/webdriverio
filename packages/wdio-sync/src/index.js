@@ -21,9 +21,15 @@ const log = logger('@wdio/sync')
 const executeSync = async function (fn, repeatTest = 0, args = []) {
     try {
         let res = fn.apply(this, args)
+
+        /**
+         * sometimes function result is Promise,
+         * we need to await result before proceeding
+         */
         if (res && res instanceof Promise) {
             return await res
         }
+
         return res
     } catch (e) {
         if (repeatTest) {
@@ -48,6 +54,7 @@ const executeSync = async function (fn, repeatTest = 0, args = []) {
  * @param  {Number}   repeatTest number of retries
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
+/* istanbul ignore next */
 const executeAsync = function (fn, repeatTest = 0, args = []) {
     let result, error
 
@@ -105,6 +112,7 @@ const executeAsync = function (fn, repeatTest = 0, args = []) {
  * @param  {Number}   repeatTest  number of retries if hook fails
  * @return {Function}             wrapped framework hook function
  */
+/* istanbul ignore next */
 const runHook = function (hookFn, origFn, before, after, repeatTest = 0) {
     const hookError = (hookName) => (e) => log.error(`Error in ${hookName}: ${e.stack}`)
 
@@ -135,6 +143,7 @@ const runHook = function (hookFn, origFn, before, after, repeatTest = 0) {
  * @param  {Number}   repeatTest  number of retries if test fails
  * @return {Function}             wrapped test function
  */
+/* istanbul ignore next */
 const runSpec = function (specTitle, specFn, origFn, repeatTest = 0) {
     /**
      * user wants handle async command using promises, no need to wrap in fiber context
@@ -153,6 +162,7 @@ const runSpec = function (specTitle, specFn, origFn, repeatTest = 0) {
 /**
  * run hook or spec via executeSync
  */
+/* istanbul ignore next */
 function runSync (fn, repeatTest = 0, args = []) {
     return (resolve, reject) =>
         Fiber(() => executeSync.call(this, fn, repeatTest, args).then(() => resolve(), reject)).run()
@@ -167,6 +177,7 @@ function runSync (fn, repeatTest = 0, args = []) {
  * @param  {Function} after                after hook hook
  * @return {Function}                      wrapped test/hook function
  */
+/* istanbul ignore next */
 const wrapTestFunction = function (fnName, origFn, testInterfaceFnNames, before, after) {
     return function (...specArguments) {
         /**
@@ -203,6 +214,7 @@ const wrapTestFunction = function (fnName, origFn, testInterfaceFnNames, before,
  * @param  {String}   fnName               test interface command to wrap, e.g. `beforeEach`
  * @param  {Object}   scope                the scope to run command from, defaults to global
  */
+/* istanbul ignore next */
 const runTestInFiberContext = function (testInterfaceFnNames, before, after, fnName, scope = global) {
     const origFn = scope[fnName]
     scope[fnName] = wrapTestFunction(fnName, origFn, testInterfaceFnNames, before, after)
