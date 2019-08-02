@@ -11,7 +11,8 @@ import {
     buildStepPayload,
     getDataFromResult,
     setUserHookNames,
-    wrapStepWithHooks
+    wrapStepWithHooks,
+    notifyStepHookError
 } from '../src/utils'
 
 describe('utils', () => {
@@ -200,10 +201,10 @@ describe('utils', () => {
     describe('setUserHookNames', () => {
         it('should change function names of user defined hooks', () => {
             const options = {
-                beforeTestRunHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
-                beforeTestCaseHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
-                afterTestCaseHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
-                afterTestRunHookDefinitions: [{ code: function wdioHookFoo () {} }, { code: function someHookFoo() {} }, { code: () => {} }],
+                beforeTestRunHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
+                beforeTestCaseHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
+                afterTestCaseHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
+                afterTestRunHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
             }
             setUserHookNames(options)
             const hookTypes = Object.values(options)
@@ -246,7 +247,7 @@ describe('utils', () => {
 
         it('should wrap step with before/after hooks and throw error', async () => {
             global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
-            const code = jest.fn().mockImplementation((...args) => { throw new Error(args.join(', '))})
+            const code = jest.fn().mockImplementation((...args) => { throw new Error(args.join(', ')) })
             const config = {
                 beforeStep: jest.fn(),
                 afterStep: jest.fn()
@@ -268,6 +269,25 @@ describe('utils', () => {
             delete global.result
             executeHooksWithArgs.mockClear()
             executeHooksWithArgs.mockReset()
+        })
+    })
+
+    describe('notifyStepHookError', () => {
+        it('should send message if there is Error in results', () => {
+            const pSend = jest.spyOn(process, 'send')
+            notifyStepHookError([undefined, true, new Error('foobar')], '0-1')
+            expect(pSend).toBeCalledTimes(1)
+            expect(pSend).toBeCalledWith({
+                name: 'printFailureMessage',
+                origin: 'reporter',
+                content: {
+                    cid: '0-1',
+                    fullTitle: 'BeforeStep Hook',
+                    state: 'fail',
+                    type: 'hook',
+                    error: expect.objectContaining({ name: 'Error', message: 'foobar' }),
+                },
+            })
         })
     })
 })

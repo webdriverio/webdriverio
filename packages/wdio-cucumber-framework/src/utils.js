@@ -171,7 +171,7 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
 /**
  * @param {object[]} result cucumber global result object
  */
-export function getDataFromResult(result) {
+export function getDataFromResult (result) {
     return {
         uri: result[0].uri,
         feature: result[1],
@@ -204,15 +204,16 @@ export function setUserHookNames (options) {
  * returns a function that calls `beforeStep` before step and then calls `afterStep` (even if step has failed)
  * We need this workaround because `BeforeStep` and `AfterStep` hooks are not implemented in CucumberJS
  * https://github.com/cucumber/cucumber-js/issues/997
- * @param {Function} code step function
- * @param {object} config wdio config
+ * @param {Function}    code    step function
+ * @param {object}      config  wdio config
+ * @param {string}      cid     cid
  */
-export function wrapStepWithHooks (code, config) {
+export function wrapStepWithHooks (code, config, cid) {
     const userStepFn = async (...args) => {
         const { uri, feature } = getDataFromResult(global.result)
 
         // beforeStep hook
-        await executeHooksWithArgs(config.beforeStep, [uri, feature])
+        notifyStepHookError(await executeHooksWithArgs(config.beforeStep, [uri, feature]), cid)
 
         // step
         let result
@@ -224,7 +225,7 @@ export function wrapStepWithHooks (code, config) {
         }
 
         // afterStep
-        await executeHooksWithArgs(config.afterStep, [uri, feature, { error, result }])
+        notifyStepHookError(await executeHooksWithArgs(config.afterStep, [uri, feature, { error, result }]), cid)
 
         if (error) {
             throw error
@@ -232,4 +233,32 @@ export function wrapStepWithHooks (code, config) {
         return result
     }
     return userStepFn
+}
+
+/**
+ * notify `WDIOCLInterface` about failure in hook
+ * we need to do it this way because `beforeStep` and `afterStep` are not real hooks.
+ * Otherwise hooks failure are lost.
+ * @param {Array}   hookResults hook functions results array
+ * @param {string}  cid         cid
+ */
+export function notifyStepHookError (hookResults = [], cid) {
+    hookResults
+        .filter(result => result && result instanceof Error)
+        .some(r => {
+            const content = formatMessage({
+                payload: {
+                    cid: cid,
+                    error: r,
+                    fullTitle: 'BeforeStep Hook',
+                    type: 'hook',
+                    state: 'fail'
+                }
+            })
+            process.send({
+                origin: 'reporter',
+                name: 'printFailureMessage',
+                content
+            })
+        })
 }

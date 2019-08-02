@@ -156,8 +156,8 @@ class CucumberAdapter {
     }
 
     /**
-     * set beforeScenario, afterScenario, beforeFeature, afterFeature
-     * we can't added beforeStep and afterStep here because it is not implemented in CucumberJS
+     * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
+     * we can't added `beforeStep` and `afterStep` here because they are not implemented in CucumberJS
      * https://github.com/cucumber/cucumber-js/issues/997
      * @param {object} config config
      */
@@ -182,9 +182,11 @@ class CucumberAdapter {
 
     /**
      * wraps step definition code with sync/async runner with a retry option
+     * @param {object} config
      */
     wrapSteps (config) {
         const wrapStep = this.wrapStep
+        const cid = this.cid
 
         Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
             /**
@@ -202,7 +204,7 @@ class CucumberAdapter {
             const isStep = !fn.name.startsWith('userHook')
 
             const retryTest = isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
-            return wrapStep(fn, retryTest, isStep, config)
+            return wrapStep(fn, retryTest, isStep, config, cid)
         })
     }
 
@@ -212,16 +214,17 @@ class CucumberAdapter {
      * @param   {Number}    retryTest   amount of allowed repeats is case of a failure
      * @param   {boolean}   isStep
      * @param   {object}    config
+     * @param   {string}    cid         cid
      * @return  {Function}              wrapped step definiton for sync WebdriverIO code
      */
-    wrapStep (code, retryTest = 0, isStep, config) {
+    wrapStep (code, retryTest = 0, isStep, config, cid) {
         const executeFn = code.name === 'async' || !hasWdioSyncSupport ? executeAsync : executeSync
         return function (...args) {
             /**
              * there are no `BeforeStep` and `AfterStep` hooks in CucumberJS,
              * so we run wdio `beforeStep` before step function and then run `afterStep` (even if step has failed)
              */
-            return executeFn.call(this, isStep ? wrapStepWithHooks(code, config) : code, retryTest, args)
+            return executeFn.call(this, isStep ? wrapStepWithHooks(code, config, cid) : code, retryTest, args)
         }
     }
 }

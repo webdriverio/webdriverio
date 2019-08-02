@@ -137,14 +137,14 @@ describe('wrapSteps', () => {
         const wrappedFunction = jest.fn()
 
         functionWrapper(wrappedFunction)
-        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, true, adapter.config)
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, true, adapter.config, '0-2')
     })
 
     test('should use passed arguments', () => {
         const wrappedFunction = jest.fn()
 
         functionWrapper(wrappedFunction, { retry: 123 })
-        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 123, true, adapter.config)
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 123, true, adapter.config, '0-2')
     })
 
     test('should not wrap wdio hooks', () => {
@@ -158,7 +158,7 @@ describe('wrapSteps', () => {
         const userHookFn = () => { }
 
         functionWrapper(userHookFn)
-        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, false, adapter.config)
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, false, adapter.config, '0-2')
     })
 
     afterEach(() => {
