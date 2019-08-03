@@ -51,6 +51,9 @@ async function bar() {
     )
     callResult.toFixed(2)
 
+    // browser element command
+    browser.getElementRect('elementId')
+
     // browser custom command
     await browser.browserCustomCommand(14)
 

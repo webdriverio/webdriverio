@@ -15,7 +15,9 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
         for (const [, description] of Object.entries(methods)) {
             const { command, parameters = [], variables = [], returns } = description
             const vars = variables
-                .filter((v) => v.name != 'sessionId' && v.name != 'elementId')
+                // sessionId is handled by WebdriverIO for all protocol requests
+                .filter((v) => v.name != 'sessionId')
+                // url params are always type of string
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p) => `${p.name}${p.required === false ? '?' : ''}: ${p.type.toLowerCase()}`)
             const varsAndParams = vars.concat(params)
