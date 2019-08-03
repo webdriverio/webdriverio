@@ -40,7 +40,7 @@ describe('dragAndDrop', () => {
 
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
-        request.setMockResponse([{ x: 0, y: 20 }])
+        request.setMockResponse([{ scrollX: 0, scrollY: 20 }])
         await elem.dragAndDrop(subElem)
 
         // move to
