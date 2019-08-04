@@ -14,24 +14,20 @@ describe('executeHooksWithArgs', () => {
         const hook = () => {return 'hoge'}
         const arg = {hoge: 'hoge'}
         const res = await executeHooksWithArgs(hook, arg)
-        expect(res).toHaveLength(1)
+        expect(res).toEqual(['hoge'])
     })
 
     it('with error', async () => {
         const hook = () => {throw new Error('Fuga')}
-        const res = executeHooksWithArgs(hook, [])
+        const res = await executeHooksWithArgs(hook, [])
         expect(res).toEqual([new Error('Fuga')])
     })
 
-    it('with er', async () => {
+    it('return promise', async () => {
         const hook = () => {
-            return new Promise((resolve) => {
-                resolve('Success!')
-            }).then((value) => {
-                return value
-            })
+            return new Promise((resolve) => { resolve('Hello') })
         }
-        const res = executeHooksWithArgs(hook, [])
-        expect(res).toEqual([new Error('Fuga')])
+        const res = await executeHooksWithArgs(hook, [])
+        expect(res).toEqual(new Promise(() => { resolve('Hello') }))
     })
 })
