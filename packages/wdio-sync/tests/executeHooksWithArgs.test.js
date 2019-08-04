@@ -16,4 +16,11 @@ describe('executeHooksWithArgs', () => {
         const runCommand = executeHooksWithArgs(hook, arg)
         expect(await runCommand).toHaveLength(1)
     })
+
+    it('with error', async () => {
+        const hook = () => {return 'hoge'}
+        hook.apply = () => {throw new Error('Fuga')}
+        const runCommand = executeHooksWithArgs(hook, [])
+        expect(await runCommand).toEqual([new Error('Fuga')])
+    })
 })
