@@ -22,6 +22,9 @@ const callResult = <number>browser.call(() =>
 )
 callResult.toFixed(2)
 
+// browser element command
+browser.getElementRect('elementId')
+
 // browser custom command
 browser.browserCustomCommand(5)
 
