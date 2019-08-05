@@ -136,8 +136,13 @@ test('beforeCommand', () => {
     expect(service.traceGatherer.startTracing).toBeCalledWith('some page')
     expect(service._setThrottlingProfile).toBeCalledWith(1, 2, 3)
 
-    service.beforeCommand('click', ['some other page'])
+    service.beforeCommand('url', ['next page'])
     expect(service.traceGatherer.startTracing).toBeCalledTimes(2)
+    expect(service.traceGatherer.startTracing).toBeCalledWith('next page')
+    expect(service._setThrottlingProfile).toBeCalledWith(1, 2, 3)
+
+    service.beforeCommand('click', ['some other page'])
+    expect(service.traceGatherer.startTracing).toBeCalledTimes(3)
     expect(service.traceGatherer.startTracing).toBeCalledWith('click transition')
 })
 
@@ -158,8 +163,11 @@ test('afterCommand', () => {
     service.afterCommand('navigateTo')
     expect(service.traceGatherer.once).toBeCalledTimes(2)
 
-    service.afterCommand('click')
+    service.afterCommand('url')
     expect(service.traceGatherer.once).toBeCalledTimes(4)
+
+    service.afterCommand('click')
+    expect(service.traceGatherer.once).toBeCalledTimes(6)
 })
 
 test('afterCommand: should create a new auditor instance and should update the browser commands', () => {
@@ -168,7 +176,7 @@ test('afterCommand: should create a new auditor instance and should update the b
     service.traceGatherer.isTracing = true
     service.devtoolsGatherer = { getLogs: jest.fn() }
     global.browser = 'some browser'
-    service.afterCommand('navigateTo')
+    service.afterCommand('url')
     service.traceGatherer.emit('tracingComplete', { some: 'events' })
 
     const auditor = new Auditor()
