@@ -12,7 +12,7 @@
  * @type protocol
  */
 
-import { getElementRect } from '../../utils'
+import { getElementRect, getScrollPosition } from '../../utils'
 
 export default async function moveTo (xoffset, yoffset) {
     if (!this.isW3C) {
@@ -23,8 +23,9 @@ export default async function moveTo (xoffset, yoffset) {
      * get rect of element
      */
     const { x, y, width, height } = await getElementRect(this)
-    const newXoffset = parseInt(x + (typeof xoffset === 'number' ? xoffset : (width / 2)), 10)
-    const newYoffset = parseInt(y + (typeof yoffset === 'number' ? yoffset : (height / 2)), 10)
+    const { scrollX, scrollY } = await getScrollPosition(this)
+    const newXoffset = parseInt(x + (typeof xoffset === 'number' ? xoffset : (width / 2)), 10) - scrollX
+    const newYoffset = parseInt(y + (typeof yoffset === 'number' ? yoffset : (height / 2)), 10) - scrollY
 
     /**
      * W3C way of handle the mouse move actions
