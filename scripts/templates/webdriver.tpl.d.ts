@@ -223,6 +223,11 @@ declare namespace WebDriver {
             [name: string]: any;
         };
 
+        // Testingbot w3c specific
+        'tb:options'?: {
+            [name: string]: any;
+        };
+
         // Appium General Capabilities
         automationName?: string;
         platformVersion?: string;
