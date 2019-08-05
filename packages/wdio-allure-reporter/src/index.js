@@ -233,7 +233,7 @@ class AllureReporter extends WDIOReporter {
                 const step = this.allure.getCurrentTest().steps.pop()
 
                 // if it had any attachments, reattach them to current test
-                if (step.attachments.length >= 1) {
+                if (step && step.attachments.length >= 1) {
                     step.attachments.forEach(attachment => {
                         this.allure.getCurrentTest().addAttachment(attachment)
                     })
