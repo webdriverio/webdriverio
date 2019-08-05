@@ -213,6 +213,21 @@ declare namespace WebDriver {
         // wdio-sauce-service specific
         build?: string;
 
+        // Saucelabs w3c specific
+        'sauce:options'?: {
+            [name: string]: any;
+        };
+
+        // Browserstack w3c specific
+        'bstack:options'?: {
+            [name: string]: any;
+        };
+
+        // Testingbot w3c specific
+        'tb:options'?: {
+            [name: string]: any;
+        };
+
         // Appium General Capabilities
         automationName?: string;
         platformVersion?: string;
