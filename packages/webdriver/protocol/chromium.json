@@ -424,7 +424,7 @@
       "returns": {
         "type": "String[]",
         "name": "logTypes",
-        "description": "The list of available log types."
+        "description": "The list of available log types, example: browser, driver."
       }
     }
   },
