@@ -15,6 +15,27 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.13 (2019-08-05)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#4299](https://github.com/webdriverio/webdriverio/pull/4299) Fix chrome getLogs and getLogTypes ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-devtools-service`
+  * [#4295](https://github.com/webdriverio/webdriverio/pull/4295) devtools-service: fix tracing ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4296](https://github.com/webdriverio/webdriverio/pull/4296) devtools-service: onFrameNavigated - do nothing if tracing is not started ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#4302](https://github.com/webdriverio/webdriverio/pull/4302) Make dragAndDrop respect scroll position ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4308](https://github.com/webdriverio/webdriverio/pull/4308) Fix for async mode in wdio-sync ([@SanthoshBonala](https://github.com/SanthoshBonala))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#4300](https://github.com/webdriverio/webdriverio/pull/4300) TypeScript: add elementId as parameter to protocol commands with variable ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@SanthoshBonala](https://github.com/SanthoshBonala)
+
 ## v5.11.12 (2019-08-01)
 
 #### :bug: Bug Fix
