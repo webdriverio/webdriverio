@@ -10,7 +10,7 @@ import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE } from './constants'
 
 const log = logger('@wdio/devtools-service')
 const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up'
-const TRACE_COMMANDS = ['click', 'navigateTo']
+const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 export default class DevToolsService {
     constructor (options = {}) {
@@ -95,7 +95,7 @@ export default class DevToolsService {
          */
         this._setThrottlingProfile(this.networkThrottling, this.cpuThrottling, this.cacheEnabled)
 
-        const url = commandName === 'navigateTo' ? params[0] : 'click transition'
+        const url = ['url', 'navigateTo'].some(cmdName => cmdName === commandName) ? params[0] : 'click transition'
         return this.traceGatherer.startTracing(url)
     }
 
