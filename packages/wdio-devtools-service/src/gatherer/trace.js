@@ -87,6 +87,9 @@ export default class TraceGatherer extends EventEmitter {
      * store frame id of frames that are being traced
      */
     async onFrameNavigated (msgObj) {
+        if (!this.isTracing) {
+            return
+        }
         /**
          * page load failed, cancel tracing
          */

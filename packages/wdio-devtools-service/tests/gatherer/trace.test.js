@@ -91,6 +91,7 @@ test('onFrameNavigated', () => {
     expect(traceGatherer.frameId).toBe(undefined)
     expect(traceGatherer.loaderId).toBe(undefined)
     expect(traceGatherer.pageUrl).toBe(undefined)
+    traceGatherer.traceStart = Date.now()
 
     traceGatherer.onFrameNavigated({ frame })
     expect(traceGatherer.emit).toBeCalledWith('tracingStarted', 123)
@@ -118,7 +119,21 @@ test('onFrameNavigated: should not start if url is not supported', () => {
     expect(traceGatherer.emit).toHaveBeenCalledTimes(0)
 })
 
+test('onFrameNavigated: should not start if tracing is not started', () => {
+    traceGatherer.traceStart = undefined
+    traceGatherer.finishTracing = jest.fn()
+    traceGatherer.failingFrameLoadIds.push(123)
+    traceGatherer.waitForNetworkIdleEvent = { cancel: jest.fn() }
+    traceGatherer.waitForCPUIdleEvent = { cancel: jest.fn() }
+    traceGatherer.onFrameNavigated({ frame })
+    expect(traceGatherer.emit).toHaveBeenCalledTimes(0)
+    expect(traceGatherer.finishTracing).toHaveBeenCalledTimes(0)
+    expect(traceGatherer.waitForNetworkIdleEvent.cancel).toHaveBeenCalledTimes(0)
+    expect(traceGatherer.waitForCPUIdleEvent.cancel).toHaveBeenCalledTimes(0)
+})
+
 test('onFrameNavigated: should cancel trace if page load failed', () => {
+    traceGatherer.traceStart = Date.now()
     traceGatherer.finishTracing = jest.fn()
     traceGatherer.failingFrameLoadIds.push(123)
     traceGatherer.waitForNetworkIdleEvent = { cancel: jest.fn() }
@@ -132,6 +147,7 @@ test('onFrameNavigated: should cancel trace if page load failed', () => {
 
 test('onFrameNavigated: can detect page load', () => {
     traceGatherer.clickTraceTimeout = true
+    traceGatherer.traceStart = Date.now()
 
     expect(traceGatherer.pageLoadDetected).toBe(false)
     traceGatherer.onFrameNavigated({ frame })
