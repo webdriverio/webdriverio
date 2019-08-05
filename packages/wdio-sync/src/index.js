@@ -118,7 +118,7 @@ const runHook = function (hookFn, origFn, before, after, repeatTest = 0) {
             /**
              * user wants handle async command using promises, no need to wrap in fiber context
              */
-            if (hookFn.constructor.name === 'AsyncFunction') {
+            if ((typeof hookFn === 'function' && hookFn.constructor && hookFn.constructor.name === 'AsyncFunction') || (hookFn.name === 'async') ) {
                 return executeAsync.call(this, hookFn, repeatTest, filterSpecArgs(hookArgs))
             }
 
@@ -141,7 +141,7 @@ const runSpec = function (specTitle, specFn, origFn, repeatTest = 0) {
     /**
      * user wants handle async command using promises, no need to wrap in fiber context
      */
-    if (specFn.constructor.name === 'AsyncFunction') {
+    if ((typeof specFn === 'function' && specFn.constructor && specFn.constructor.name === 'AsyncFunction') || (specFn.name === 'async') ) {
         return origFn(specTitle, function async (...specArgs) {
             return executeAsync.call(this, specFn, repeatTest, filterSpecArgs(specArgs))
         })
