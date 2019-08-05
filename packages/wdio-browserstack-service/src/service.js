@@ -35,7 +35,7 @@ export default class BrowserstackService {
             user: this.config.user,
             pass: this.config.key
         }
-        if (global.browser.capabilities.app) {
+        if (this.config.capabilities.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
         return this._printSessionURL()
