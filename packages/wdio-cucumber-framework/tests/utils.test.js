@@ -201,10 +201,10 @@ describe('utils', () => {
     describe('setUserHookNames', () => {
         it('should change function names of user defined hooks', () => {
             const options = {
-                beforeTestRunHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
-                beforeTestCaseHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
-                afterTestCaseHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
-                afterTestRunHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: () => { } }],
+                beforeTestRunHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
+                beforeTestCaseHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
+                afterTestCaseHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
+                afterTestRunHookDefinitions: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
             }
             setUserHookNames(options)
             const hookTypes = Object.values(options)
@@ -213,9 +213,11 @@ describe('utils', () => {
                 expect(hookType).toHaveLength(3)
 
                 const wdioHooks = hookType.filter(hookDefinition => hookDefinition.code.name.startsWith('wdioHook'))
-                const userHooks = hookType.filter(hookDefinition => hookDefinition.code.name.startsWith('userHook'))
+                const userHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookFn')
+                const userAsyncHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookAsyncFn')
                 expect(wdioHooks).toHaveLength(1)
-                expect(userHooks).toHaveLength(2)
+                expect(userHooks).toHaveLength(1)
+                expect(userAsyncHooks).toHaveLength(1)
             })
         })
     })

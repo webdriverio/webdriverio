@@ -8,6 +8,7 @@ import CucumberReporter from './reporter'
 
 import { EventEmitter } from 'events'
 
+import { isFunctionAsync } from '@wdio/utils'
 import { executeHooksWithArgs, executeSync, executeAsync, hasWdioSyncSupport } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
 import { getDataFromResult, setUserHookNames, wrapStepWithHooks } from './utils'
@@ -218,7 +219,7 @@ class CucumberAdapter {
      * @return  {Function}              wrapped step definiton for sync WebdriverIO code
      */
     wrapStep (code, retryTest = 0, isStep, config, cid) {
-        const executeFn = code.name === 'async' || !hasWdioSyncSupport ? executeAsync : executeSync
+        const executeFn = isFunctionAsync(code) || !hasWdioSyncSupport ? executeAsync : executeSync
         return function (...args) {
             /**
              * there are no `BeforeStep` and `AfterStep` hooks in CucumberJS,

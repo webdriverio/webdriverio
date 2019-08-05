@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { executeHooksWithArgs, runFnInFiberContext } from '@wdio/config'
+import { isFunctionAsync } from '@wdio/utils'
 
 /**
  * NOTE: this function is exported for testing only
@@ -194,8 +195,9 @@ export function setUserHookNames (options) {
     hooks.forEach(hookName => options[hookName].forEach(testRunHookDefinition => {
         const hookFn = testRunHookDefinition.code
         if (!hookFn.name.startsWith('wdioHook')) {
+            const userHookAsyncFn = async (...args) => hookFn(args)
             const userHookFn = (...args) => hookFn(args)
-            testRunHookDefinition.code = userHookFn
+            testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
         }
     }))
 }

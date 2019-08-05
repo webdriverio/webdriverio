@@ -1,5 +1,6 @@
 import Fiber from 'fibers'
 import logger from '@wdio/logger'
+import { isFunctionAsync } from '@wdio/utils'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import runFnInFiberContext from './runFnInFiberContext'
@@ -124,7 +125,7 @@ const runHook = function (hookFn, origFn, before, after, repeatTest = 0) {
             /**
              * user wants handle async command using promises, no need to wrap in fiber context
              */
-            if ((hookFn.constructor && hookFn.constructor.name === 'AsyncFunction') || (hookFn.name === 'async') ) {
+            if (isFunctionAsync(hookFn)) {
                 return executeAsync.call(this, hookFn, repeatTest, filterSpecArgs(hookArgs))
             }
 
@@ -148,7 +149,7 @@ const runSpec = function (specTitle, specFn, origFn, repeatTest = 0) {
     /**
      * user wants handle async command using promises, no need to wrap in fiber context
      */
-    if ((specFn.constructor && specFn.constructor.name === 'AsyncFunction') || (specFn.name === 'async') ) {
+    if (isFunctionAsync(specFn)) {
         return origFn(specTitle, function async (...specArgs) {
             return executeAsync.call(this, specFn, repeatTest, filterSpecArgs(specArgs))
         })
