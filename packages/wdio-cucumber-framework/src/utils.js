@@ -1,4 +1,7 @@
 import * as path from 'path'
+import * as Cucumber from 'cucumber'
+import { EventEmitter } from 'events'
+import { DEFAULT_OPTS } from './constants'
 
 /**
  * NOTE: this function is exported for testing only
@@ -159,4 +162,31 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
     }
 
     return targetStep
+}
+
+/**
+ * Filter Specs By TagExpression
+ * @param  {Object}    config   wdio configuration object
+ * @return {Array}            Array of filtered specs
+ */
+export async function filterSpecsByTag (config) {
+    const cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
+    if (!cucumberOpts.tagExpression) {
+        return config.specs
+    }
+    const pickleFilter = new Cucumber.PickleFilter({
+        featurePaths: config.specs,
+        names: cucumberOpts.name,
+        tagExpression: cucumberOpts.tagExpression
+    })
+    const testCases = await Cucumber.getTestCasesFromFilesystem({
+        cwd: process.cwd(),
+        eventBroadcaster: new EventEmitter(),
+        featurePaths: config.specs,
+        order: cucumberOpts.order,
+        pickleFilter
+    })
+
+    const filteredSpecs = new Set(testCases.map(testCase => testCase.uri))
+    return filteredSpecs
 }
