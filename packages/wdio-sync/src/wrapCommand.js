@@ -13,15 +13,12 @@ import { sanitizeErrorMessage } from './utils'
  */
 export default function wrapCommand (commandName, fn) {
     return function wrapCommandFn (...args) {
-        // save error for getting full stack in case of failure
-        // should be before any async calls
-        const stackError = new Error()
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */
         if (this._NOT_FIBER === true) {
             this._NOT_FIBER = isNotInFiber(this, fn.name)
-            return runCommand.apply(this, [fn, stackError, ...args])
+            return fn.apply(this, args)
         }
         /**
          * all named nested functions run in parent Fiber context
@@ -31,7 +28,7 @@ export default function wrapCommand (commandName, fn) {
 
         const future = new Future()
 
-        const result = runCommandWithHooks.apply(this, [commandName, fn, stackError, ...args])
+        const result = runCommandWithHooks.apply(this, [commandName, fn, ...args])
         result.then(::future.return, ::future.throw)
 
         try {
@@ -63,7 +60,11 @@ export default function wrapCommand (commandName, fn) {
 /**
  * helper method that runs the command with before/afterCommand hook
  */
-async function runCommandWithHooks (commandName, fn, stackError, ...args) {
+async function runCommandWithHooks (commandName, fn, ...args) {
+    // save error for getting full stack in case of failure
+    // should be before any async calls
+    const stackError = new Error()
+
     await executeHooksWithArgs(
         this.options.beforeCommand,
         [commandName, args]
@@ -72,9 +73,9 @@ async function runCommandWithHooks (commandName, fn, stackError, ...args) {
     let commandResult
     let commandError
     try {
-        commandResult = await runCommand.apply(this, [fn, stackError, ...args])
+        commandResult = await fn.apply(this, args)
     } catch (err) {
-        commandError = err
+        commandError = sanitizeErrorMessage(err, stackError)
     }
 
     await executeHooksWithArgs(
@@ -87,14 +88,6 @@ async function runCommandWithHooks (commandName, fn, stackError, ...args) {
     }
 
     return commandResult
-}
-
-async function runCommand (fn, stackError, ...args) {
-    try {
-        return await fn.apply(this, args)
-    } catch (err) {
-        throw sanitizeErrorMessage(err, stackError)
-    }
 }
 
 /**
