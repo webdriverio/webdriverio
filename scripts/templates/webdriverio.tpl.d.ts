@@ -49,24 +49,6 @@ declare namespace WebdriverIO {
         };
     }
 
-    interface CucumberOptions {
-        require?: string[],
-        backtrace?: boolean,
-        requireModule?: (string | object)[],
-        dryRun?: boolean,
-        failFast?: boolean,
-        format?: string[],
-        colors?: boolean,
-        snippets?: boolean,
-        source?: boolean,
-        profile?: string[],
-        strict?: boolean,
-        tags?: string[],
-        tagExpression?: string,
-        timeout?: number,
-        ignoreUndefinedDefinitions?: boolean
-    }
-
     interface Options {
         runner?: string,
         specs?: string[],
@@ -84,7 +66,7 @@ declare namespace WebdriverIO {
         framework?: string,
         mochaOpts?: object,
         jasmineNodeOpts?: object,
-        cucumberOpts?: CucumberOptions,
+        cucumberOpts?: CucumberOpts,
         reporters?: (string | object)[],
         services?: (string | object)[],
         execArgv?: string[]
