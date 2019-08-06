@@ -30,7 +30,7 @@ export function createStepArgument ({ argument }) {
 }
 
 /**
- * builds test parent string from feature and scneario names
+ * builds test parent string from feature and scenario names
  * NOTE: this function is exported for testing only
  * @param {object} feature cucumber feature object
  * @param {object} scenario cucumber scenario object
@@ -170,7 +170,7 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
  * @return {Array}            Array of filtered specs
  */
 export async function filterSpecsByTag (config) {
-    const cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
+    const cucumberOpts = { ...DEFAULT_OPTS, ...config.cucumberOpts }
     if (!cucumberOpts.tagExpression) {
         return config.specs
     }
@@ -187,6 +187,6 @@ export async function filterSpecsByTag (config) {
         pickleFilter
     })
 
-    const filteredSpecs = new Set(testCases.map(testCase => testCase.uri))
+    const filteredSpecs = [...new Set(testCases.map(testCase => testCase.uri))]
     return filteredSpecs
 }

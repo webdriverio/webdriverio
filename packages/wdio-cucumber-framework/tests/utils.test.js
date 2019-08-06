@@ -1,3 +1,4 @@
+import * as Cucumber from 'cucumber'
 import {
     createStepArgument,
     compareScenarioLineWithSourceLine,
@@ -6,7 +7,8 @@ import {
     formatMessage,
     getUniqueIdentifier,
     getTestStepTitle,
-    buildStepPayload
+    buildStepPayload,
+    filterSpecsByTag
 } from '../src/utils'
 
 describe('utils', () => {
@@ -162,7 +164,7 @@ describe('utils', () => {
     })
 
     describe('getTestStepTitle', () => {
-        it('keword and title are not passed', () => {
+        it('keyword and title are not passed', () => {
             expect(getTestStepTitle()).toEqual('Undefined Step')
         })
         it('should not add undefined step for hooks', () => {
@@ -179,6 +181,30 @@ describe('utils', () => {
                 title: 'Foo Undefined Step',
                 uid: 'undefined',
             })
+        })
+    })
+
+    describe('filterSpecsByTag', () => {
+        it('should return filter specs if tagExpression is passed', async () => {
+            const config = {
+                specs: ['features/**/*.feature'],
+                cucumberOpts: { tagExpression: '@test' }
+            }
+            Cucumber.getTestCasesFromFilesystem.mockImplementationOnce(() => [
+                { uri: 'foo/bar' },
+                { uri: 'foo/bar' },
+                { uri: 'bar/baz' }
+            ])
+            console.log(config)
+            expect(await filterSpecsByTag(config)).toEqual(['foo/bar', 'bar/baz'])
+        })
+        it('should return original specs if tagExpression is not passed', async () => {
+            const config = {
+                specs: ['features/**/*.feature'],
+                cucumberOpts: {}
+            }
+            console.log(config)
+            expect(await filterSpecsByTag(config)).toBe(config.specs)
         })
     })
 })
