@@ -2,12 +2,16 @@ import { SourceLocation, ScenarioResult } from "cucumber";
 
 declare module "webdriverio" {
     interface HookFunctions extends CucumberHookFunctions {}
-    interface CucumberOpts extends CucumberOptions {}
+    interface Options {
+        cucumberOpts?: CucumberOptions;
+    }
 }
 
 declare module "@wdio/sync" {
     interface HookFunctions extends CucumberHookFunctions {}
-    interface CucumberOpts extends CucumberOptions {}
+    interface Options {
+        cucumberOpts?: CucumberOptions;
+    }
 }
 
 interface CucumberHookResult extends ScenarioResult {
