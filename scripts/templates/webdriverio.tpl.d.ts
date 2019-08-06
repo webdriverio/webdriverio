@@ -66,7 +66,6 @@ declare namespace WebdriverIO {
         framework?: string,
         mochaOpts?: object,
         jasmineNodeOpts?: object,
-        cucumberOpts?: CucumberOpts,
         reporters?: (string | object)[],
         services?: (string | object)[],
         execArgv?: string[]
