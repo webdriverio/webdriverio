@@ -207,4 +207,4 @@ adapterFactory.run = async function (...args) {
 
 export default adapterFactory
 export { CucumberAdapter, adapterFactory }
-export { filterSpecsByTag } from 'util'
+export { filterSpecsByTag } from './utils'

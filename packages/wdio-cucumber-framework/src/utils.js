@@ -2,7 +2,7 @@ import * as path from 'path'
 import * as Cucumber from 'cucumber'
 import { EventEmitter } from 'events'
 import { DEFAULT_OPTS } from './constants'
-
+import { ConfigParser } from '@wdio/config'
 /**
  * NOTE: this function is exported for testing only
  */
@@ -174,16 +174,17 @@ export async function filterSpecsByTag (config) {
     if (!cucumberOpts.tagExpression) {
         return config.specs
     }
+    const featurePaths = ConfigParser.getFilePaths(config.specs, false)
     const pickleFilter = new Cucumber.PickleFilter({
-        featurePaths: config.specs,
         names: cucumberOpts.name,
-        tagExpression: cucumberOpts.tagExpression
+        tagExpression: cucumberOpts.tagExpression,
+        featurePaths
     })
     const testCases = await Cucumber.getTestCasesFromFilesystem({
         cwd: process.cwd(),
         eventBroadcaster: new EventEmitter(),
-        featurePaths: config.specs,
         order: cucumberOpts.order,
+        featurePaths,
         pickleFilter
     })
 
