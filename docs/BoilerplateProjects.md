@@ -7,6 +7,18 @@ Over the time our community has developed a bunch of boilerplate projects that c
 
 ## v5 Boilerplate Projects
 
+### [luuizeduardo/wdio-automation](https://github.com/luuizeduardo/wdio-automation)
+
+A boilerplate to run E2E tests with Mocha and generate test reports gracefully
+
+- Framework: Mocha(v5.x)
+- Features:
+    - Page Object Pattern with Closure Functions
+    - Fake data generator
+    - Multiple Reports (Allure, Report Portal)
+    - Docker compose to run your test suit on Selenium Grid
+    - Dotenv module to hide your personal information
+
 ### [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
 
 A powerful boilerplate to run e2e and visual regression tests with Mocha
@@ -45,7 +57,7 @@ A powerful boilerplate project to run e2e tests with Cucumber
     - Examples of headless browser execution using - Chrome & Firefox and Integration with BrowserStack & SauceLabs
     - Examples of read/write data from MS-Excel for easy test data management from external data sources
     - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set
-    
+
   ### [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
 - Framework: Mocha (v5.x)
@@ -57,7 +69,7 @@ A powerful boilerplate project to run e2e tests with Cucumber
     - Examples of headless browser execution using - Chrome & Firefox and Integration with BrowserStack & SauceLabs
     - Examples of read/write data from MS-Excel for easy test data management from external data sources
     - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set
-    
+
 ### [jpolley/WebdriverIO_v5_TypeScript](https://github.com/jpolley/WebdriverIO_v5_TypeScript)
 
 The boilerplate holds the following things
