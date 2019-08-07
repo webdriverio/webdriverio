@@ -119,7 +119,17 @@ Default: `false`
 
 ### tagExpression
 Only execute the features or scenarios with tags matching the expression. Note that untagged
-features will still spawn a Selenium session (see issue [webdriverio/webdriverio#1247](https://github.com/webdriverio/webdriverio/issues/1247)).
+features will still spawn a Selenium session (see issue [webdriverio/webdriverio#1247](https://github.com/webdriverio/webdriverio/issues/1247)). To workaround this issue, you can add a filter in `onPrepare` hook:
+```js
+// wdio.conf.js
+exports.config = {
+  // ...
+  onPrepare: async function (config, capabilities) {
+    config.specs = await require('@wdio/cucumber-framework').filterSpecsByTag(config)
+  }
+}
+  // ...
+```
 Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
 Type: `String`<br>
