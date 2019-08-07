@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 import fs from 'fs-extra'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
+const launcherCallback = (exitCode, err, isComplete) => ({ exitCode, err, isComplete })
 
 jest.mock('fs-extra')
 global.console.log = jest.fn()
@@ -414,7 +415,7 @@ describe('launcher', () => {
         })
 
         it('exit code 0', async () => {
-            expect(await launcher.run()).toBe(0)
+            expect((await launcher.run(launcherCallback)).exitCode).toBe(0)
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
@@ -429,7 +430,8 @@ describe('launcher', () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]
 
-            expect(await launcher.run()).toBe(1)
+            const result = await launcher.run(launcherCallback)
+            expect(result.exitCode).toBe(1)
         })
     })
 })

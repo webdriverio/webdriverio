@@ -55,49 +55,56 @@ class Launcher {
 
     /**
      * run sequence
-     * @return  {Promise} that only gets resolves with either an exitCode or an error
+     * @param   {Function}  callback    callback
+     * @return  {Promise}               that only gets resolves with either an exitCode or an error
      */
-    async run () {
-        let config = this.configParser.getConfig()
-        let caps = this.configParser.getCapabilities()
-        const launcher = initialiseServices(config, caps, 'launcher')
-
-        /**
-         * run pre test tasks for runner plugins
-         * (e.g. deploy Lambda function to AWS)
-         */
-        await this.runner.initialise()
-
-        /**
-         * run onPrepare hook
-         */
-        log.info('Run onPrepare hook')
-        await runOnPrepareHook(config.onPrepare, config, caps)
-        await runServiceHook(launcher, 'onPrepare', config, caps)
-
+    async run (callback) {
         /**
          * catches ctrl+c event
          */
-        exitHook(::this.exitHandler)
+        exitHook(:: this.exitHandler)
+        let exitCode
+        let onCompleteResults
 
-        let exitCode = await this.runMode(config, caps)
+        try {
+            let config = this.configParser.getConfig()
+            let caps = this.configParser.getCapabilities()
+            const launcher = initialiseServices(config, caps, 'launcher')
 
-        /**
-         * run onComplete hook
-         * even if it fails we still want to see result and end logger stream
-         */
-        log.info('Run onComplete hook')
-        await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
+            /**
+             * run pre test tasks for runner plugins
+             * (e.g. deploy Lambda function to AWS)
+             */
+            await this.runner.initialise()
 
-        const onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
+            /**
+             * run onPrepare hook
+             */
+            log.info('Run onPrepare hook')
+            await runOnPrepareHook(config.onPrepare, config, caps)
+            await runServiceHook(launcher, 'onPrepare', config, caps)
 
-        // if any of the onComplete hooks failed, update the exit code
-        exitCode = onCompleteResults.includes(1) ? 1 : exitCode
+            exitCode = await this.runMode(config, caps)
 
-        await logger.waitForBuffer()
+            /**
+             * run onComplete hook
+             * even if it fails we still want to see result and end logger stream
+             */
+            log.info('Run onComplete hook')
+            await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
 
-        this.interface.finalise()
-        return exitCode
+            onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
+
+            // if any of the onComplete hooks failed, update the exit code
+            exitCode = onCompleteResults.includes(1) ? 1 : exitCode
+
+            await logger.waitForBuffer()
+
+            this.interface.finalise()
+            return callback(exitCode)
+        } catch (err) {
+            return callback(exitCode, err, !!onCompleteResults)
+        }
     }
 
     /**

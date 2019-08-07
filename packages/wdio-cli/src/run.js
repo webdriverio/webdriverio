@@ -64,9 +64,24 @@ export default function run (params) {
     })
 }
 
+/**
+ * launcher callback function
+ * @param {number|undefined}    exitCode    exit code
+ * @param {Error|undefined}     err         Error
+ * @param {boolean|undefined}   isComplete  if all tests and hooks were executed
+ */
+const launchCallback = (exitCode, err, isComplete) => {
+    if (!err) {
+        return { exitCode }
+    }
+    console.error(err)
+    if (!isComplete) {
+        process.emit('shutdown', 1)
+    }
+    return { err, isComplete }
+}
+
 function launch (wdioConf, params) {
     const launcher = new Launcher(wdioConf, params)
-    launcher.run().then(
-        (code) => process.nextTick(() => process.exit(code)),
-        (e) => process.nextTick(() => { throw e }))
+    launcher.run(launchCallback)
 }

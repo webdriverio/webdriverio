@@ -22,6 +22,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.isWatchMode = isWatchMode
         this.inDebugMode = false
         this.specFileRetries = config.specFileRetries || 0
+        this.endedNormally = false
 
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
@@ -191,7 +192,7 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * allow to exit repl mode via Ctrl+C
          */
-        if (this.inDebugMode) {
+        if (this.inDebugMode || this.endedNormally) {
             return false
         }
 
@@ -232,6 +233,7 @@ export default class WDIOCLInterface extends EventEmitter {
             return
         }
 
+        this.endedNormally = true
         this.printReporters()
         this.printSummary()
     }
