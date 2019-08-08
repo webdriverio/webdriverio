@@ -168,7 +168,7 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
  * @param {string[]} specs Array of paths of specs
  * @param {Object} eventBroadcaster event emitter
  * @param {string} cwd current working directoty
- * @return {Object[]} Array of test cases
+ * @return {Promise<Object[]>} Array of test cases
  */
 export async function getTestCases (config, cucumberOpts, specs, eventBroadcaster, cwd) {
     const pickleFilter = new Cucumber.PickleFilter({

@@ -60,6 +60,13 @@ class Launcher {
     async run () {
         let config = this.configParser.getConfig()
         let caps = this.configParser.getCapabilities()
+        // /**
+        //  * run filter on specs
+        //  */
+        if (Array.isArray(config.specs) && config.specs.length && typeof config.specsFilter === 'function') {
+            config.specs = await config.specsFilter(config)
+        }
+
         const launcher = initialiseServices(config, caps, 'launcher')
 
         /**

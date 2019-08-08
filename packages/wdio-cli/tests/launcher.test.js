@@ -305,12 +305,12 @@ describe('launcher', () => {
             expect(launcher.runSpecs()).toBe(false)
             expect(launcher.getNumberOfRunningInstances()).toBe(5)
             expect(launcher.getNumberOfSpecsLeft()).toBe(4)
-            expect(launcher.schedule[0].runningInstances).toBe(2)
-            expect(launcher.schedule[0].availableInstances).toBe(48)
+            expect(launcher.schedule[0].runningInstances).toBe(3)
+            expect(launcher.schedule[0].availableInstances).toBe(47)
             expect(launcher.schedule[1].runningInstances).toBe(2)
             expect(launcher.schedule[1].availableInstances).toBe(58)
-            expect(launcher.schedule[2].runningInstances).toBe(1)
-            expect(launcher.schedule[2].availableInstances).toBe(69)
+            expect(launcher.schedule[2].runningInstances).toBe(0)
+            expect(launcher.schedule[2].availableInstances).toBe(70)
         })
 
         it('should not allow to schedule more runner if no instances are available', () => {
@@ -403,6 +403,8 @@ describe('launcher', () => {
                 // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
                 onPrepare: [jest.fn()],
                 onComplete: [jest.fn()],
+                specs: ['foo/bar'],
+                specsFilter: jest.fn()
             }
             launcher.configParser = {
                 getCapabilities: jest.fn().mockReturnValue(0),
@@ -418,6 +420,7 @@ describe('launcher', () => {
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
+            expect(config.specsFilter).toBeCalledTimes(1)
             expect(launcher.runner.initialise).toBeCalledTimes(1)
             expect(config.onPrepare[0]).toBeCalledTimes(1)
             expect(launcher.runMode).toBeCalledTimes(1)
@@ -430,6 +433,9 @@ describe('launcher', () => {
             config.onComplete = [() => { throw new Error() }]
 
             expect(await launcher.run()).toBe(1)
+        })
+        it('filter specs', async () => {
+
         })
     })
 })

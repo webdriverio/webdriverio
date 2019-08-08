@@ -6,7 +6,7 @@ import { getTestCases } from './utils'
 /**
  * Filter Specs By TagExpression
  * @param {Object} config wdio configuration object
- * @return {string[]} Array of filtered specs
+ * @return {Promise<string[]>} Array of filtered specs
  */
 export async function filterSpecsByTag (config) {
     const cucumberOpts = { ...DEFAULT_OPTS, ...config.cucumberOpts }

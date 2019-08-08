@@ -158,6 +158,7 @@ export function replaceConfig(
 
         return config.replace(text, buildNewConfigArray(text, type, name))
     }
+    return config
 }
 
 export function addServiceDeps(names, packages, update) {

@@ -205,6 +205,17 @@ describe('replaceConfig', () => {
 }`
         )
     })
+    it('return the original config', () => {
+        const fakeConfig = `exports.config = {
+    runner: 'local',
+}`
+        expect(replaceConfig(fakeConfig, 'noexist', 'foo')).toBe(
+            `exports.config = {
+    runner: 'local',
+}`
+        )
+    })
+
 })
 
 describe('addServiceDeps', () => {
