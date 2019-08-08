@@ -5,6 +5,7 @@ import Launcher from './launcher.js'
 import Watcher from './watcher'
 import setup from './setup'
 
+/* istanbul ignore next */
 export default function run (params) {
     let stdinData = ''
 
@@ -70,7 +71,7 @@ export default function run (params) {
  * @param {Error|undefined}     err         Error
  * @param {boolean|undefined}   isComplete  if all tests and hooks were executed
  */
-const launchCallback = (exitCode, err, isComplete) => {
+export const launchCallback = (exitCode, err, isComplete) => {
     if (!err) {
         return { exitCode }
     }
@@ -81,7 +82,7 @@ const launchCallback = (exitCode, err, isComplete) => {
     return { err, isComplete }
 }
 
-function launch (wdioConf, params) {
+export function launch (wdioConf, params) {
     const launcher = new Launcher(wdioConf, params)
     launcher.run(launchCallback)
 }

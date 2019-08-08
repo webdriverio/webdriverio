@@ -1,17 +1,21 @@
 import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
 import fs from 'fs-extra'
+import { launchCallback } from '../src/run'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
-const launcherCallback = (exitCode, err, isComplete) => ({ exitCode, err, isComplete })
 
 jest.mock('fs-extra')
 global.console.log = jest.fn()
 
 describe('launcher', () => {
+    const emitSpy = jest.spyOn(process, 'emit')
     let launcher
 
-    beforeEach(() => launcher = new Launcher('./'))
+    beforeEach(() => {
+        emitSpy.mockClear()
+        launcher = new Launcher('./')
+    })
 
     describe('defaults', () => {
         it('should have default for the argv parameter', () => {
@@ -398,6 +402,7 @@ describe('launcher', () => {
 
     describe('run', () => {
         let config = {}
+        global.console.error = () => {}
 
         beforeEach(() => {
             config = {
@@ -415,7 +420,9 @@ describe('launcher', () => {
         })
 
         it('exit code 0', async () => {
-            expect((await launcher.run(launcherCallback)).exitCode).toBe(0)
+            const result = await launcher.run(launchCallback)
+            expect(result).toEqual({ exitCode: 0 })
+            expect(emitSpy).not.toBeCalled()
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
@@ -430,8 +437,27 @@ describe('launcher', () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]
 
-            const result = await launcher.run(launcherCallback)
-            expect(result.exitCode).toBe(1)
+            const result = await launcher.run(launchCallback)
+            expect(result).toEqual({ exitCode: 1 })
+            expect(emitSpy).not.toBeCalled()
+        })
+
+        it('should return isComplete=false if failed before onComplete', async () => {
+            delete launcher.configParser
+
+            const result = await launcher.run(launchCallback)
+            expect(emitSpy).toBeCalledWith('shutdown', 1)
+            expect(result.isComplete).toBe(false)
+            expect(result.err).toBeInstanceOf(Error)
+        })
+
+        it('should return isComplete=true if failed after onComplete', async () => {
+            delete logger.waitForBuffer
+
+            const result = await launcher.run(launchCallback)
+            expect(emitSpy).not.toBeCalled()
+            expect(result.isComplete).toBe(true)
+            expect(result.err).toBeInstanceOf(Error)
         })
     })
 })
