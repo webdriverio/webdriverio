@@ -1,8 +1,5 @@
 import * as path from 'path'
 import * as Cucumber from 'cucumber'
-import { EventEmitter } from 'events'
-import { DEFAULT_OPTS } from './constants'
-import { ConfigParser } from '@wdio/config'
 /**
  * NOTE: this function is exported for testing only
  */
@@ -165,29 +162,27 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
 }
 
 /**
- * Filter Specs By TagExpression
- * @param  {Object}    config   wdio configuration object
- * @return {Array}            Array of filtered specs
+ * Get an array of Cucumber test cases
+ * @param {Object} config wdio config object
+ * @param {Object} cucumberOpts cucumber option object
+ * @param {string[]} specs Array of paths of specs
+ * @param {Object} eventBroadcaster event emitter
+ * @param {string} cwd current working directoty
+ * @return {Object[]} Array of test cases
  */
-export async function filterSpecsByTag (config) {
-    const cucumberOpts = { ...DEFAULT_OPTS, ...config.cucumberOpts }
-    if (!cucumberOpts.tagExpression) {
-        return config.specs
-    }
-    const featurePaths = ConfigParser.getFilePaths(config.specs, false)
+export async function getTestCases (config, cucumberOpts, specs, eventBroadcaster, cwd) {
     const pickleFilter = new Cucumber.PickleFilter({
+        featurePaths: specs,
         names: cucumberOpts.name,
         tagExpression: cucumberOpts.tagExpression,
-        featurePaths
     })
     const testCases = await Cucumber.getTestCasesFromFilesystem({
-        cwd: process.cwd(),
-        eventBroadcaster: new EventEmitter(),
+        featurePaths: specs,
         order: cucumberOpts.order,
-        featurePaths,
+        cwd,
+        eventBroadcaster,
         pickleFilter
     })
-
-    const filteredSpecs = [...new Set(testCases.map(testCase => testCase.uri))]
-    return filteredSpecs
+    return testCases
 }
+

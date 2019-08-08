@@ -14,9 +14,10 @@ import {
     runFnInFiberContext, hasWdioSyncSupport
 } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
+import { getTestCases } from './utils'
 
 class CucumberAdapter {
-    constructor (cid, config, specs, capabilities, reporter) {
+    constructor(cid, config, specs, capabilities, reporter) {
         this.cwd = process.cwd()
         this.cid = cid
         this.specs = specs
@@ -49,19 +50,7 @@ class CucumberAdapter {
             }
 
             this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
-
-            const pickleFilter = new Cucumber.PickleFilter({
-                featurePaths: this.specs,
-                names: this.cucumberOpts.name,
-                tagExpression: this.cucumberOpts.tagExpression
-            })
-            const testCases = await Cucumber.getTestCasesFromFilesystem({
-                cwd: this.cwd,
-                eventBroadcaster,
-                featurePaths: this.specs,
-                order: this.cucumberOpts.order,
-                pickleFilter
-            })
+            const testCases = getTestCases(this.config, this.specs, eventBroadcaster, this.cwd)
             const runtime = new Cucumber.Runtime({
                 eventBroadcaster,
                 options: this.cucumberOpts,
@@ -207,4 +196,4 @@ adapterFactory.run = async function (...args) {
 
 export default adapterFactory
 export { CucumberAdapter, adapterFactory }
-export { filterSpecsByTag } from './utils'
+export { filterSpecsByTag } from './filters'

@@ -8,9 +8,8 @@ import {
     getUniqueIdentifier,
     getTestStepTitle,
     buildStepPayload,
-    filterSpecsByTag
+    getTestCases
 } from '../src/utils'
-import { ConfigParser } from '@wdio/config'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -185,28 +184,11 @@ describe('utils', () => {
         })
     })
 
-    describe('filterSpecsByTag', () => {
-        it('should return filter specs if tagExpression is passed', async () => {
-            const config = {
-                specs: ['foo/**/*.feature'],
-                cucumberOpts: { tagExpression: '@test' }
-            }
-            ConfigParser.getFilePaths = jest.fn().mockReturnValue([
-                'foo/tag.feature',
-                'foo/no_tag.feature'
-            ])
-            Cucumber.getTestCasesFromFilesystem.mockReturnValue([
-                { uri: 'foo/tag.feature' },
-                { uri: 'foo/tag.feature' },
-            ])
-            expect(await filterSpecsByTag(config)).toEqual(['foo/tag.feature'])
-        })
-        it('should return original specs if tagExpression is not passed', async () => {
-            const config = {
-                specs: ['foo/**/*.feature'],
-                cucumberOpts: {}
-            }
-            expect(await filterSpecsByTag(config)).toBe(config.specs)
+    describe('getTestCases', () => {
+        it('should return test cases', async () => {
+            await getTestCases({}, {}, ['foo/bar'], {}, '')
+            expect(Cucumber.PickleFilter).toBeCalled()
+            expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
         })
     })
 })

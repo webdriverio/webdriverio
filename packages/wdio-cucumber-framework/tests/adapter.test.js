@@ -4,6 +4,9 @@ import * as Cucumber from 'cucumber'
 import { executeHooksWithArgs, runFnInFiberContext, executeAsync } from '@wdio/config'
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
+import { getTestCases } from '../src/utils'
+
+jest.mock('../src/utils')
 
 global.browser = {
     config: {},
@@ -49,8 +52,7 @@ test('should properly set up cucumber', async () => {
     expect(Cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
 
     expect(executeHooksWithArgs).toBeCalledTimes(2)
-    expect(Cucumber.PickleFilter).toBeCalled()
-    expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
+    expect(getTestCases).toBeCalled()
 })
 
 test('should properly set up cucumber', async () => {
@@ -68,8 +70,7 @@ test('should properly set up cucumber', async () => {
     expect(Cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
 
     expect(executeHooksWithArgs).toBeCalledTimes(2)
-    expect(Cucumber.PickleFilter).toBeCalled()
-    expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
+    expect(getTestCases).toBeCalled()
 })
 
 test('should throw when initialization fails', () => {
