@@ -391,6 +391,46 @@ declare namespace WebDriver {
         sessionId: string;
     }
 
+    // object with no match
+    interface ProtocolCommandResponse {
+        [key: string]: any;
+    }
+
+    // webdriver.json
+    interface SessionReturn {
+        sessionId: string,
+        capabilities: {
+            [key: string]: any
+        }
+    }
+
+    interface StatusReturn {
+        ready: boolean,
+        message: string,
+        [key: string]: any
+    }
+
+    interface WindowHandle {
+        handle: string,
+        type: string
+    }
+
+    interface RectReturn {
+        x: number,
+        y: number,
+        width: number,
+        height: number
+    }
+    // appium.json
+
+    interface StringsReturn {
+        [key:string]: string
+    }
+
+    interface SettingsReturn {
+        [key:string]: any
+    }
+
     // generated typings
     // ... insert here ...
 

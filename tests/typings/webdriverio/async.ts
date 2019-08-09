@@ -54,6 +54,12 @@ async function bar() {
     // browser element command
     browser.getElementRect('elementId')
 
+    // protocol command return mapped object value
+    const { x, y, width, height } = await browser.getWindowRect()
+
+    // protocol command return unmapped object
+    const {foo, bar} = await browser.takeHeapSnapshot()
+
     // browser custom command
     await browser.browserCustomCommand(14)
 

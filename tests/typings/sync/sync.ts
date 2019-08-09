@@ -25,6 +25,12 @@ callResult.toFixed(2)
 // browser element command
 browser.getElementRect('elementId')
 
+// protocol command return mapped object value
+const { x, y, width, height } = browser.getWindowRect()
+
+// protocol command return unmapped object
+const {foo, bar} = browser.takeHeapSnapshot()
+
 // browser custom command
 browser.browserCustomCommand(5)
 

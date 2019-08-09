@@ -5,6 +5,7 @@ const path = require('path')
 const { PROTOCOLS } = require('../constants')
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.ts')
+const returnTypes = require('./webdriver-return-types.json')
 
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
@@ -23,6 +24,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             const varsAndParams = vars.concat(params)
             let returnValue = returns ? returns.type.toLowerCase() : 'void'
             returnValue = returnValue === '*' ? 'any' : returnValue
+            returnValue = returnValue === 'object' ? (returnTypes[command] || 'ProtocolCommandResponse') : returnValue
             lines.push(`        ${command}(${varsAndParams.join(', ')}): ${returnValue};`)
         }
     }
