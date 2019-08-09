@@ -50,7 +50,7 @@ class CucumberAdapter {
             }
 
             this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
-            const testCases = getTestCases(this.config, this.specs, eventBroadcaster, this.cwd)
+            const testCases = getTestCases(this.config, this.cucumberOpts, this.specs, eventBroadcaster, this.cwd)
             const runtime = new Cucumber.Runtime({
                 eventBroadcaster,
                 options: this.cucumberOpts,
