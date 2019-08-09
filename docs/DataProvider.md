@@ -27,10 +27,12 @@ let pages = [
     }
 ]
 
-dataProvider(path.resolve(__dirname, 'mochaWithDataProvider.test.js'), pages) 
+dataProvider(path.resolve(__dirname, 'mochaWithDataProvider.test.js'), pages)
+ 
 ```
 
 * Register the data provider file or a whole directory containg all the data providers 
+
 ```
 // wdio.conf.js
 
@@ -41,6 +43,7 @@ module.exports = {
   dataProviders: [path.resolve(__dirname, 'dataProvider.js')],
   // ...
 };
+
 ```
 ```
 //Registering a directory
@@ -50,8 +53,10 @@ module.exports = {
   dataProviders: ['dataProviders/**/*.js'],
   // ...
 };
+
 ```
 * We can consume the above test data in test as follows -
+
 ```
 const assert = require('assert')
 
@@ -64,6 +69,7 @@ describe(`${testData.url} page`, () => {
         assert.equal(title, testData.title)
     })
 })
+
 ```
 
 `testData` is the global object holding all the test data for the given spec and for the given run.  
