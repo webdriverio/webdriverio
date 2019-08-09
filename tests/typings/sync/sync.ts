@@ -29,7 +29,7 @@ browser.getElementRect('elementId')
 const { x, y, width, height } = browser.getWindowRect()
 
 // protocol command return unmapped object
-const {foo, bar} = browser.takeHeapSnapshot()
+const { foo, bar } = browser.takeHeapSnapshot()
 
 // browser custom command
 browser.browserCustomCommand(5)
