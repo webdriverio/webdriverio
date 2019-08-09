@@ -434,8 +434,5 @@ describe('launcher', () => {
 
             expect(await launcher.run()).toBe(1)
         })
-        it('filter specs', async () => {
-
-        })
     })
 })
