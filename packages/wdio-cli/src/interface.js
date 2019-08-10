@@ -22,6 +22,11 @@ export default class WDIOCLInterface extends EventEmitter {
         this.isWatchMode = isWatchMode
         this.inDebugMode = false
         this.specFileRetries = config.specFileRetries || 0
+
+        /**
+         * `Launcher.exitHandler` is always called so we need to identify
+         * if `SIGINT` was actually called
+         */
         this.endedNormally = false
 
         this.on('job:start', ::this.addJob)

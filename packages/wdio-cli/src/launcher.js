@@ -62,13 +62,13 @@ class Launcher {
         /**
          * catches ctrl+c event
          */
-        exitHook(:: this.exitHandler)
+        exitHook(::this.exitHandler)
         let exitCode
         let onCompleteResults
 
         try {
-            let config = this.configParser.getConfig()
-            let caps = this.configParser.getCapabilities()
+            const config = this.configParser.getConfig()
+            const caps = this.configParser.getCapabilities()
             const launcher = initialiseServices(config, caps, 'launcher')
 
             /**

@@ -77,6 +77,10 @@ export const launchCallback = (exitCode, err, isComplete) => {
     }
     console.error(err)
     if (!isComplete) {
+        /**
+         * `shutdown` event defined in `Launcher.run`
+         * handled by `async-exit-hook` package
+         */
         process.emit('shutdown', 1)
     }
     return { err, isComplete }
