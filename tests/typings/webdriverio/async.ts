@@ -61,7 +61,7 @@ async function bar() {
     const { foo, bar } = await browser.takeHeapSnapshot()
 
     // browser command return mapped object value
-    const { x, y, width, height } =  await browser.getWindowSize()
+    const { x: x0, y: y0, width: w, height: h }  =  await browser.getWindowSize()
 
     // browser custom command
     await browser.browserCustomCommand(14)

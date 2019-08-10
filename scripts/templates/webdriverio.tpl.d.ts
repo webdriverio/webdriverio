@@ -16,6 +16,8 @@ declare namespace WebdriverIO {
         height: number
     }
 
+    interface RectReturn extends WebDriver.RectReturn {}
+
     interface Cookie {
         name: string,
         value: string,

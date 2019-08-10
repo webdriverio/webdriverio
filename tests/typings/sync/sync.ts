@@ -32,7 +32,7 @@ const { x, y, width, height } = browser.getWindowRect()
 const { foo, bar } = browser.takeHeapSnapshot()
 
 // browser command return mapped object value
-const { x, y, width, height } =  browser.getWindowSize()
+const { x: x0, y: y0, width: w, height: h } =  browser.getWindowSize()
 
 // browser custom command
 browser.browserCustomCommand(5)
