@@ -425,7 +425,7 @@ declare namespace WebDriver {
         [key:string]: string
     }
 
-    interface SettingsReturn{
+    interface SettingsReturn {
         shouldUseCompactResponses?: boolean,
         elementResponseAttributes?: string,
         ignoreUnimportantViews?: boolean,
@@ -443,7 +443,7 @@ declare namespace WebDriver {
         screenshotQuality?: number,
         mjpegScalingFactor?: number,
         // other settings
-        [key: string]: any   
+        [key: string]: any
     }
 
     // generated typings

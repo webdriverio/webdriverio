@@ -31,6 +31,9 @@ const { x, y, width, height } = browser.getWindowRect()
 // protocol command return unmapped object
 const { foo, bar } = browser.takeHeapSnapshot()
 
+// browser command return mapped object value
+const { x, y, width, height } =  browser.getWindowSize()
+
 // browser custom command
 browser.browserCustomCommand(5)
 

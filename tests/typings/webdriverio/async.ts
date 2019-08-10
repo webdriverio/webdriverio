@@ -60,6 +60,9 @@ async function bar() {
     // protocol command return unmapped object
     const { foo, bar } = await browser.takeHeapSnapshot()
 
+    // browser command return mapped object value
+    const { x, y, width, height } =  await browser.getWindowSize()
+
     // browser custom command
     await browser.browserCustomCommand(14)
 
