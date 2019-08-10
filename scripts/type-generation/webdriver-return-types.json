@@ -12,5 +12,5 @@
     "getNamedCookie": "Cookie",
     "getStrings": "StringsReturn",
     "getSettings": "SettingsReturn",
-    "getWindowSize": "RectReturn"
+    "getWindowSize": "WebDriver.RectReturn"
 }
