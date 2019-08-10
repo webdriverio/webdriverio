@@ -397,16 +397,14 @@ declare namespace WebDriver {
     }
 
     // webdriver.json
-    interface SessionReturn {
-        sessionId: string,
-        capabilities: {
-            [key: string]: any
-        }
+    interface SessionReturn extends DesiredCapabilities {
+        // addtional capabilities return by remote
+        [key: string]: any;
     }
 
     interface StatusReturn {
-        ready: boolean,
-        message: string,
+        ready?: boolean,
+        message?: string,
         [key: string]: any
     }
 
@@ -427,8 +425,25 @@ declare namespace WebDriver {
         [key:string]: string
     }
 
-    interface SettingsReturn {
-        [key:string]: any
+    interface SettingsReturn{
+        shouldUseCompactResponses?: boolean,
+        elementResponseAttributes?: string,
+        ignoreUnimportantViews?: boolean,
+        allowInvisibleElements?: boolean,
+        enableNotificationListener?: boolean,
+        actionAcknowledgmentTimeout?: number,
+        keyInjectionDelay?: number,
+        scrollAcknowledgmentTimeout?: number,
+        waitForIdleTimeout?: number,
+        waitForSelectorTimeout?: number,
+        normalizeTagNames?: boolean,
+        shutdownOnPowerDisconnect?: boolean,
+        mjpegServerScreenshotQuality?: number,
+        mjpegServerFramerate?: number,
+        screenshotQuality?: number,
+        mjpegScalingFactor?: number,
+        // other settings
+        [key: string]: any   
     }
 
     // generated typings
