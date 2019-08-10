@@ -397,15 +397,11 @@ declare namespace WebDriver {
     }
 
     // webdriver.json
-    interface SessionReturn extends DesiredCapabilities {
-        // addtional capabilities return by remote
-        [key: string]: any;
-    }
+    interface SessionReturn extends DesiredCapabilities, ProtocolCommandResponse { }
 
-    interface StatusReturn {
+    interface StatusReturn extends ProtocolCommandResponse {
         ready?: boolean,
         message?: string,
-        [key: string]: any
     }
 
     interface WindowHandle {
@@ -419,13 +415,13 @@ declare namespace WebDriver {
         width: number,
         height: number
     }
-    // appium.json
 
+    // appium.json
     interface StringsReturn {
         [key:string]: string
     }
 
-    interface SettingsReturn {
+    interface SettingsReturn extends ProtocolCommandResponse {
         shouldUseCompactResponses?: boolean,
         elementResponseAttributes?: string,
         ignoreUnimportantViews?: boolean,
@@ -442,8 +438,6 @@ declare namespace WebDriver {
         mjpegServerFramerate?: number,
         screenshotQuality?: number,
         mjpegScalingFactor?: number,
-        // other settings
-        [key: string]: any
     }
 
     // generated typings
