@@ -61,6 +61,26 @@ describe('waitUntil', () => {
         }
     })
 
+    it('Should throw an error message created when the waitUntil times out', async () => {
+        let error
+        let errMsgObj = { msg: 'original msg' }
+        expect.assertions(1)
+        try {
+            await browser.waitUntil(() =>
+                new Promise((resolve) =>
+                    setTimeout(() => {
+                        errMsgObj.msg = 'changed error msg'
+                        resolve(false)
+                    },
+                    100)),
+            500, () => errMsgObj.msg, 200) // create error message
+        } catch(e) {
+            error = e
+        } finally {
+            expect(error.message).toContain('changed error msg')
+        }
+    })
+
     it('Should throw an error when the promise is rejected without error message', async () => {
         expect.assertions(1)
         try {

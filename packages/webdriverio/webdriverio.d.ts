@@ -64,7 +64,7 @@ declare namespace WebdriverIOAsync {
         waitUntil(
             condition: () => Promise<boolean>,
             timeout?: number,
-            timeoutMsg?: string,
+            timeoutMsg?: (() => string) | string,
             interval?: number
         ): Promise<boolean>;
 

@@ -60,6 +60,8 @@ export default function (condition, timeout, timeoutMsg, interval) {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {
                 throw new Error(timeoutMsg)
+            } else if (typeof timeoutMsg === 'function') {
+                throw new Error(timeoutMsg())
             }
             throw new Error(`waitUntil condition timed out after ${timeout}ms`)
         }
