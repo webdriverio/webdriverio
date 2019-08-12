@@ -1,5 +1,3 @@
-import { executeHooksWithArgs } from '@wdio/config'
-
 import {
     createStepArgument,
     compareScenarioLineWithSourceLine,
@@ -11,8 +9,6 @@ import {
     buildStepPayload,
     getDataFromResult,
     setUserHookNames,
-    wrapWithHooks,
-    notifyStepHookError
 } from '../src/utils'
 
 describe('utils', () => {
@@ -218,77 +214,6 @@ describe('utils', () => {
                 expect(wdioHooks).toHaveLength(1)
                 expect(userHooks).toHaveLength(1)
                 expect(userAsyncHooks).toHaveLength(1)
-            })
-        })
-    })
-
-    describe('wrapStepWithHooks', () => {
-        it('should wrap step with before/after hooks and return result', async () => {
-            global.wrapStepWithHooksCounter = 0
-            global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
-            executeHooksWithArgs.mockImplementation(() => new Promise(resolve => setTimeout(() => {
-                global.wrapStepWithHooksCounter++
-                resolve()
-            }, 20)))
-            const code = jest.fn().mockImplementation((...args) => {
-                global.wrapStepWithHooksCounter++
-                return [...args, global.wrapStepWithHooksCounter]
-            })
-            const { beforeStep, afterStep } = {
-                beforeStep: jest.fn(),
-                afterStep: jest.fn()
-            }
-            const wrappedFn = wrapWithHooks(false, code, beforeStep, afterStep)
-            const result = await wrappedFn('foo', 'bar')
-
-            expect(global.wrapStepWithHooksCounter).toEqual(3)
-            expect(executeHooksWithArgs.mock.calls[0]).toEqual([beforeStep, ['uri', 'feature']])
-            expect(executeHooksWithArgs.mock.calls[1]).toEqual([afterStep, ['uri', 'feature', { result: ['foo', 'bar', 2], error: undefined }]])
-            expect(result).toEqual(['foo', 'bar', 2])
-        })
-
-        it('should wrap step with before/after hooks and throw error', async () => {
-            global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
-            const code = jest.fn().mockImplementation((...args) => { throw new Error(args.join(', ')) })
-            const { beforeStep, afterStep } = {
-                beforeStep: jest.fn(),
-                afterStep: jest.fn()
-            }
-            const wrappedFn = wrapWithHooks(true, code, beforeStep, afterStep )
-            let error
-            try {
-                await wrappedFn('foo', 'bar')
-            } catch (err) {
-                error = err
-            }
-
-            expect(executeHooksWithArgs.mock.calls[0]).toEqual([beforeStep, ['uri', 'feature']])
-            expect(executeHooksWithArgs.mock.calls[1]).toEqual([afterStep, ['uri', 'feature', { result: undefined, error: expect.objectContaining({ message: 'foo, bar' }) }]])
-            expect(error.message).toBe('foo, bar')
-        })
-        afterEach(() => {
-            delete global.wrapStepWithHooksCounter
-            delete global.result
-            executeHooksWithArgs.mockClear()
-            executeHooksWithArgs.mockReset()
-        })
-    })
-
-    describe('notifyStepHookError', () => {
-        it('should send message if there is Error in results', () => {
-            const pSend = jest.spyOn(process, 'send')
-            notifyStepHookError('BeforeStep', [undefined, true, new Error('foobar')], '0-1')
-            expect(pSend).toBeCalledTimes(1)
-            expect(pSend).toBeCalledWith({
-                name: 'printFailureMessage',
-                origin: 'reporter',
-                content: {
-                    cid: '0-1',
-                    fullTitle: 'BeforeStep Hook',
-                    state: 'fail',
-                    type: 'hook',
-                    error: expect.objectContaining({ name: 'Error', message: 'foobar' }),
-                },
             })
         })
     })

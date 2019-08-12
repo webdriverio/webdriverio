@@ -7,6 +7,7 @@ import JasmineReporter from './reporter'
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
 }
+const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop () {}
 const DEFAULT_TIMEOUT_INTERVAL = 60000
 
@@ -75,15 +76,23 @@ class JasmineAdapter {
          */
         jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
 
+        const hookArgsFn = (context) => [{ ...(self.lastTest || {}) }, context]
+
         /**
          * wrap commands with wdio-sync
          */
-        INTERFACES['bdd'].forEach((fnName) => runTestInFiberContext(
-            ['it', 'fit', 'xit'],
-            this.config.beforeHook,
-            this.config.afterHook,
-            fnName
-        ))
+        INTERFACES['bdd'].forEach((fnName) => {
+            const isTest = TEST_INTERFACES.includes(fnName)
+            runTestInFiberContext(
+                isTest,
+                isTest ? this.config.beforeTest : this.config.beforeHook,
+                hookArgsFn,
+                isTest ? this.config.afterTest : this.config.afterHook,
+                hookArgsFn,
+                fnName,
+                this.cid
+            )
+        })
 
         /**
          * for a clean stdout we need to avoid that Jasmine initialises the
@@ -109,8 +118,6 @@ class JasmineAdapter {
         await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
         let result = await new Promise((resolve) => {
             this.jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
-            this.jrunner.env.beforeEach(this.wrapHook('beforeTest'))
-            this.jrunner.env.afterEach(this.wrapHook('afterTest'))
             this.jrunner.env.afterAll(this.wrapHook('afterSuite'))
 
             this.jrunner.onComplete(() => resolve(this.reporter.getFailedCount()))

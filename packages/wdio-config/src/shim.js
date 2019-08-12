@@ -1,9 +1,9 @@
 import logger from '@wdio/logger'
+import { testFrameworkFnWrapper, runTestInFiberContext } from '@wdio/utils'
 
 const log = logger('@wdio/config')
-const NOOP = () => {}
 
-export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args) {
+let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args) {
     /**
      * make sure hooks are an array of functions
      */
@@ -25,7 +25,7 @@ export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks
             result = hook.apply(null, args)
         } catch (e) {
             log.error(e.stack)
-            return resolve()
+            return resolve(e)
         }
 
         /**
@@ -35,7 +35,7 @@ export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks
         if (result && typeof result.then === 'function') {
             return result.then(resolve, (e) => {
                 log.error(e.stack)
-                resolve()
+                resolve(e)
             })
         }
 
@@ -45,16 +45,16 @@ export let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks
     return Promise.all(hooks)
 }
 
-export let runTestInFiberContext = NOOP
-export let runFnInFiberContext = (fn) => {
+let runFnInFiberContext = (fn) => {
     return function (...args) {
         return Promise.resolve(fn.apply(this, args))
     }
 }
-export let wrapCommand = (_, origFn) => origFn
-export let hasWdioSyncSupport = false
-export let executeSync = (fn, _, args = []) => fn.apply(this, args)
-export let executeAsync = (fn, _, args = []) => fn.apply(this, args)
+let wrapCommand = (_, origFn) => origFn
+let hasWdioSyncSupport = false
+let executeSync = (fn, _, args = []) => fn.apply(this, args)
+let executeAsync = (fn, _, args = []) => fn.apply(this, args)
+let runSync = null
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -64,11 +64,37 @@ try {
     const wdioSync = require('@wdio/sync')
     hasWdioSyncSupport = true
     runFnInFiberContext = wdioSync.runFnInFiberContext
-    runTestInFiberContext = wdioSync.runTestInFiberContext
     wrapCommand = wdioSync.wrapCommand
     executeHooksWithArgs = wdioSync.executeHooksWithArgs
     executeSync = wdioSync.executeSync
     executeAsync = wdioSync.executeAsync
+    runSync = wdioSync.runSync
 } catch {
     // do nothing
+}
+
+/**
+ * wraps test framework spec/hook function with WebdriverIO before/after hooks
+ *
+ * @param   {string} type           Test/Step or Hook
+ * @param   {object} spec           specFn and specFnArgs
+ * @param   {object} before         beforeFn and beforeFnArgs
+ * @param   {object} after          afterFn and afterFnArgs
+ * @param   {string} cid            cid
+ * @param   {number} repeatTest     number of retries if test fails
+ * @return  {*}                     specFn result
+ */
+let testFnWrapper = function (...args) {
+    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync }, ...args)
+}
+
+export {
+    executeHooksWithArgs,
+    runTestInFiberContext,
+    runFnInFiberContext,
+    wrapCommand,
+    hasWdioSyncSupport,
+    executeSync,
+    executeAsync,
+    testFnWrapper
 }

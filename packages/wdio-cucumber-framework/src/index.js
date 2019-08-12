@@ -8,10 +8,9 @@ import CucumberReporter from './reporter'
 
 import { EventEmitter } from 'events'
 
-import { isFunctionAsync } from '@wdio/utils'
-import { executeHooksWithArgs, executeSync, executeAsync, hasWdioSyncSupport } from '@wdio/config'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
-import { getDataFromResult, setUserHookNames, wrapWithHooks } from './utils'
+import { getDataFromResult, setUserHookNames } from './utils'
 
 class CucumberAdapter {
     constructor(cid, config, specs, capabilities, reporter) {
@@ -217,14 +216,20 @@ class CucumberAdapter {
      * @return  {Function}              wrapped step definiton for sync WebdriverIO code
      */
     wrapStep (code, retryTest = 0, isStep, config, cid) {
-        const executeFn = isFunctionAsync(code) || !hasWdioSyncSupport ? executeAsync : executeSync
         return function (...args) {
             /**
              * wrap user step/hook with wdio before/after hooks
              */
-            const before = isStep ? config.beforeStep : config.beforeHook
-            const after = isStep ? config.afterStep : config.afterHook
-            return executeFn.call(this, wrapWithHooks(isStep ? 'Step' : 'Hook', code, before, after, cid), retryTest, args)
+            const { uri, feature } = getDataFromResult(global.result)
+            const beforeFn = isStep ? config.beforeStep : config.beforeHook
+            const afterFn = isStep ? config.afterStep : config.afterHook
+            return testFnWrapper.call(this,
+                isStep ? 'Step' : 'Hook',
+                { specFn: code, specFnArgs: args },
+                { beforeFn, beforeFnArgs: () => [uri, feature] },
+                { afterFn, afterFnArgs: () => [uri, feature] },
+                cid,
+                retryTest)
         }
     }
 }

@@ -105,7 +105,7 @@ const customReporterObject = async () => {
     await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = fs.readFileSync(reporterLogsWithReporterAsObjectPath)
-    assert.equal(reporterLogsWithReporterAsObject, REPORTER_LOGS)
+    assert.equal(reporterLogsWithReporterAsObject.toString(), REPORTER_LOGS)
     fs.unlinkSync(reporterLogsWithReporterAsObjectPath)
 }
 

@@ -46,8 +46,8 @@ test('should properly set up mocha', async () => {
     expect(executeHooksWithArgs.mock.calls).toHaveLength(2)
     expect(adapter.mocha.runner.on.mock.calls).toHaveLength(Object.keys(EVENTS).length)
     expect(adapter.mocha.runner.suite.beforeAll).toBeCalled()
-    expect(adapter.mocha.runner.suite.beforeEach).toBeCalled()
-    expect(adapter.mocha.runner.suite.afterEach).toBeCalled()
+    expect(adapter.mocha.runner.suite.beforeEach).not.toBeCalled()
+    expect(adapter.mocha.runner.suite.afterEach).not.toBeCalled()
     expect(adapter.mocha.runner.suite.afterAll).toBeCalled()
 
     expect(adapter.mocha.addFile).toBeCalledWith('/foo/bar.test.js')
@@ -97,17 +97,21 @@ test('preRequire', () => {
     const mochaOpts = { foo: 'bar', ui: 'tdd' }
     const adapter = new MochaAdapter(
         '0-2',
-        { mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123' },
+        { mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
     )
     adapter.preRequire('context', 'file', 'mocha')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'suiteSetup')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'setup')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'test')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'suiteTeardown')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'teardown')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
+
+    const hookArgsFn = runTestInFiberContext.mock.calls[0][2]
+    expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
+        .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
 })
 
 test('custom ui', () => {
@@ -120,10 +124,10 @@ test('custom ui', () => {
         wdioReporter
     )
     adapter.preRequire('context', 'file', 'mocha')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'after')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'afterEach')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'beforeEach')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'before')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'afterEach', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'beforeEach', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'before', '0-2')
 })
 
 test('wrapHook if successful', async () => {
