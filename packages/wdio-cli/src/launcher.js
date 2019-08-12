@@ -55,10 +55,9 @@ class Launcher {
 
     /**
      * run sequence
-     * @param   {Function}  callback    callback
      * @return  {Promise}               that only gets resolves with either an exitCode or an error
      */
-    async run (callback) {
+    async run () {
         /**
          * catches ctrl+c event
          */
@@ -101,9 +100,15 @@ class Launcher {
             await logger.waitForBuffer()
 
             this.interface.finalise()
-            return callback(exitCode)
+            return exitCode
         } catch (err) {
-            return callback(exitCode, err, !!onCompleteResults)
+            if (!onCompleteResults) {
+                /**
+                 * `shutdown` event is added by `exitHook`
+                 */
+                process.emit('shutdown', 1)
+            }
+            throw err
         }
     }
 

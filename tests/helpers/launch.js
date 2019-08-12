@@ -2,13 +2,12 @@ import fs from 'fs'
 import path from 'path'
 
 import Launcher from '../../packages/wdio-cli/src/launcher.js'
-import { launchCallback } from '../../packages/wdio-cli/src/run.js'
 
 export default function launch (...args) {
     const launcher = new Launcher(...args)
 
-    return launcher.run(launchCallback).then(({ err, exitCode }) => {
-        const isFailing = err || exitCode !== 0
+    return launcher.run().then((exitCode) => {
+        const isFailing = exitCode !== 0
         if (!isFailing) {
             // eslint-disable-next-line no-console
             console.log('Smoke test successful')

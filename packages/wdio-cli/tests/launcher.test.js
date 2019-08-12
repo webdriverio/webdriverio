@@ -1,7 +1,6 @@
 import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
 import fs from 'fs-extra'
-import { launchCallback } from '../src/run'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
 
@@ -420,8 +419,7 @@ describe('launcher', () => {
         })
 
         it('exit code 0', async () => {
-            const result = await launcher.run(launchCallback)
-            expect(result).toEqual({ exitCode: 0 })
+            expect(await launcher.run()).toEqual(0)
             expect(emitSpy).not.toBeCalled()
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
@@ -437,27 +435,34 @@ describe('launcher', () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]
 
-            const result = await launcher.run(launchCallback)
-            expect(result).toEqual({ exitCode: 1 })
+            expect(await launcher.run()).toEqual(1)
             expect(emitSpy).not.toBeCalled()
         })
 
         it('should return isComplete=false if failed before onComplete', async () => {
             delete launcher.configParser
 
-            const result = await launcher.run(launchCallback)
+            let error
+            try {
+                await launcher.run()
+            } catch (err) {
+                error = err
+            }
             expect(emitSpy).toBeCalledWith('shutdown', 1)
-            expect(result.isComplete).toBe(false)
-            expect(result.err).toBeInstanceOf(Error)
+            expect(error).toBeInstanceOf(Error)
         })
 
         it('should return isComplete=true if failed after onComplete', async () => {
             delete logger.waitForBuffer
 
-            const result = await launcher.run(launchCallback)
+            let error
+            try {
+                await launcher.run()
+            } catch (err) {
+                error = err
+            }
             expect(emitSpy).not.toBeCalled()
-            expect(result.isComplete).toBe(true)
-            expect(result.err).toBeInstanceOf(Error)
+            expect(error).toBeInstanceOf(Error)
         })
     })
 })
