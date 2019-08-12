@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { executeHooksWithArgs, runFnInFiberContext } from '@wdio/config'
 import { isFunctionAsync } from '@wdio/utils'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 
 /**
  * NOTE: this function is exported for testing only
@@ -180,13 +181,7 @@ export const getDataFromResult = ([{ uri }, feature, ...scenarios]) => ({ uri, f
  * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
  */
 export function setUserHookNames (options) {
-    const hooks = [
-        'beforeTestRunHookDefinitions',
-        'beforeTestCaseHookDefinitions',
-        'afterTestCaseHookDefinitions',
-        'afterTestRunHookDefinitions',
-    ]
-    hooks.forEach(hookName => {
+    CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
         options[hookName].forEach(testRunHookDefinition => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
