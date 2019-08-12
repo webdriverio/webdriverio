@@ -99,9 +99,9 @@ export function formatMessage ({ payload = {} }) {
     /**
      * need to convert Error to plain object, otherwise it is lost on process.send
      */
-    if (payload.error && payload.error.message) {
+    if (payload.error && (payload.error.message || payload.error.stack)) {
         const { name, message, stack } = payload.error
-        content.error = { foo: 'bar', name, message, stack }
+        content.error = { name, message, stack }
     }
 
     if (payload.title && payload.parent) {
@@ -192,14 +192,16 @@ export function setUserHookNames (options) {
         'afterTestCaseHookDefinitions',
         'afterTestRunHookDefinitions',
     ]
-    hooks.forEach(hookName => options[hookName].forEach(testRunHookDefinition => {
-        const hookFn = testRunHookDefinition.code
-        if (!hookFn.name.startsWith('wdioHook')) {
-            const userHookAsyncFn = async (...args) => hookFn(args)
-            const userHookFn = (...args) => hookFn(args)
-            testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
-        }
-    }))
+    hooks.forEach(hookName => {
+        options[hookName].forEach(testRunHookDefinition => {
+            const hookFn = testRunHookDefinition.code
+            if (!hookFn.name.startsWith('wdioHook')) {
+                const userHookAsyncFn = async (...args) => hookFn(args)
+                const userHookFn = (...args) => hookFn(args)
+                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
+            }
+        })
+    })
 }
 
 /**
@@ -215,7 +217,7 @@ export function wrapStepWithHooks (code, config, cid) {
         const { uri, feature } = getDataFromResult(global.result)
 
         // beforeStep hook
-        notifyStepHookError(await executeHooksWithArgs(config.beforeStep, [uri, feature]), cid)
+        notifyStepHookError('BeforeStep', await executeHooksWithArgs(config.beforeStep, [uri, feature]), cid)
 
         // step
         let result
@@ -227,7 +229,7 @@ export function wrapStepWithHooks (code, config, cid) {
         }
 
         // afterStep
-        notifyStepHookError(await executeHooksWithArgs(config.afterStep, [uri, feature, { error, result }]), cid)
+        notifyStepHookError('AfterStep', await executeHooksWithArgs(config.afterStep, [uri, feature, { error, result }]), cid)
 
         if (error) {
             throw error
@@ -241,26 +243,27 @@ export function wrapStepWithHooks (code, config, cid) {
  * notify `WDIOCLInterface` about failure in hook
  * we need to do it this way because `beforeStep` and `afterStep` are not real hooks.
  * Otherwise hooks failure are lost.
+ * @param {string}  hookName    name of the hook
  * @param {Array}   hookResults hook functions results array
  * @param {string}  cid         cid
  */
-export function notifyStepHookError (hookResults = [], cid) {
-    hookResults
-        .filter(result => result && result instanceof Error)
-        .some(r => {
-            const content = formatMessage({
-                payload: {
-                    cid: cid,
-                    error: r,
-                    fullTitle: 'BeforeStep Hook',
-                    type: 'hook',
-                    state: 'fail'
-                }
-            })
-            process.send({
-                origin: 'reporter',
-                name: 'printFailureMessage',
-                content
-            })
-        })
+export function notifyStepHookError (hookName, hookResults = [], cid) {
+    const result = hookResults.filter(result => result && result instanceof Error)[0]
+    if (typeof result === 'undefined') {
+        return
+    }
+    const content = formatMessage({
+        payload: {
+            cid: cid,
+            error: result,
+            fullTitle: `${hookName} Hook`,
+            type: 'hook',
+            state: 'fail'
+        }
+    })
+    process.send({
+        origin: 'reporter',
+        name: 'printFailureMessage',
+        content
+    })
 }

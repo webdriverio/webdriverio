@@ -40,7 +40,7 @@ class CucumberAdapter {
             this.wrapSteps(this.config)
 
             /**
-             * we need to somehow indentify is function is step or hook
+             * we need to somehow identify is function is step or hook
              * so we wrap every user hook function
              */
             setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
