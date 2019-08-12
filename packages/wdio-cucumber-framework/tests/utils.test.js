@@ -277,7 +277,7 @@ describe('utils', () => {
     describe('notifyStepHookError', () => {
         it('should send message if there is Error in results', () => {
             const pSend = jest.spyOn(process, 'send')
-            notifyStepHookError([undefined, true, new Error('foobar')], '0-1')
+            notifyStepHookError('BeforeStep', [undefined, true, new Error('foobar')], '0-1')
             expect(pSend).toBeCalledTimes(1)
             expect(pSend).toBeCalledWith({
                 name: 'printFailureMessage',

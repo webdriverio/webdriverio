@@ -172,13 +172,7 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
 /**
  * @param {object[]} result cucumber global result object
  */
-export function getDataFromResult (result) {
-    return {
-        uri: result[0].uri,
-        feature: result[1],
-        scenarios: result.slice(2)
-    }
-}
+export const getDataFromResult = ([{ uri }, feature, ...scenarios]) => ({ uri, feature, scenarios })
 
 /**
  * wrap every user defined hook with function named `userHookFn`
