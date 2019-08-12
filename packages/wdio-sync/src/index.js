@@ -27,7 +27,7 @@ const executeSync = async function (fn, repeatTest = 0, args = []) {
          * sometimes function result is Promise,
          * we need to await result before proceeding
          */
-        if (res && res instanceof Promise) {
+        if (res instanceof Promise) {
             return await res
         }
 

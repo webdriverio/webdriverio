@@ -242,7 +242,7 @@ export function wrapStepWithHooks (code, config, cid) {
  * @param {string}  cid         cid
  */
 export function notifyStepHookError (hookName, hookResults = [], cid) {
-    const result = hookResults.filter(result => result && result instanceof Error)[0]
+    const result = hookResults.find(result => result instanceof Error)
     if (typeof result === 'undefined') {
         return
     }
