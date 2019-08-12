@@ -15,6 +15,35 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.11.14 (2019-08-12)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4342](https://github.com/webdriverio/webdriverio/pull/4342) Fix getting scroll position in IE11 ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-devtools-service`
+  * [#4350](https://github.com/webdriverio/webdriverio/pull/4350) Devtools service: fix timeToFirstByte ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-browserstack-service`
+  * [#4316](https://github.com/webdriverio/webdriverio/pull/4316) browserstack-service: fix 404 error for app test ([@jayrepo](https://github.com/jayrepo))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#4309](https://github.com/webdriverio/webdriverio/pull/4309) @wdio/allure-reporter: Skip reporting of passing hooks with option useCucumberStepReporter ([@Kignuf](https://github.com/Kignuf))
+
+#### :memo: Documentation
+* Other
+  * [#4327](https://github.com/webdriverio/webdriverio/pull/4327) Add JS boilerplate with closure functions ([@luuizeduardo](https://github.com/luuizeduardo))
+  * [#4313](https://github.com/webdriverio/webdriverio/pull/4313) types: Add types for w3c capabilities of cloud services ([@jayrepo](https://github.com/jayrepo))
+* `webdriverio`
+  * [#4334](https://github.com/webdriverio/webdriverio/pull/4334) Fix type generation for browser.uploadFile ([@johnathafelix](https://github.com/johnathafelix))
+
+#### Committers: 6
+- Jay Chen ([@JieC](https://github.com/JieC))
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Luiz Eduardo Martins ([@luuizeduardo](https://github.com/luuizeduardo))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@johnathafelix](https://github.com/johnathafelix)
+
 ## v5.11.13 (2019-08-05)
 
 #### :bug: Bug Fix
