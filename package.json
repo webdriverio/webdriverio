@@ -121,5 +121,6 @@
     "lockfiles": {
       "outOfRangeUpdatesOnly": true
     }
-  }
+  },
+  "dependencies": {}
 }
