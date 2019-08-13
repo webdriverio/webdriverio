@@ -96,8 +96,8 @@ describe('wdio-applitools-service', () => {
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
-            global.browser.takeRegionSnapshot('foobar', 'foobarRegion')
-            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
+            global.browser.takeRegionSnapshot('foobar', 'foobarRegion', 'foobarFrame')
+            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion', 'foobarFrame')
         })
 
         it('should throw if takeRegionSnapshot command is used without title', () => {
@@ -109,7 +109,7 @@ describe('wdio-applitools-service', () => {
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
-            expect(() => global.browser.takeRegionSnapshot(null, 'foobarRegion')).toThrow()
+            expect(() => global.browser.takeRegionSnapshot(null, 'foobarRegion', 'foobarFrame')).toThrow()
             expect(service.eyes.check).not.toBeCalled()
         })
 
@@ -135,7 +135,7 @@ describe('wdio-applitools-service', () => {
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
-            expect(() => global.browser.takeRegionSnapshot('foobar', null)).toThrow()
+            expect(() => global.browser.takeRegionSnapshot('foobar', null, 'foobarFrame')).toThrow()
             expect(service.eyes.check).not.toBeCalled()
         })
     })
