@@ -54,8 +54,7 @@ export default class ApplitoolsService {
         global.browser.addCommand('takeRegionSnapshot', (title, region) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
-            }
-            else if (!region || region === null) {
+            } else if (!region || region === null) {
                 throw new Error('A region for the Applitools snapshot is missing')
             }
 
