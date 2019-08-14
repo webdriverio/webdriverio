@@ -208,10 +208,7 @@ const retryPass = async () => {
         await Promise.all(tests.map(test => test()))
     }
 
-    /**
-     * for some reason the process get stuck therefor exit it
-     */
-    process.exit(0)
+    console.log('\nAll smoke tests passed!\n')
 })().catch((e) => {
     // eslint-disable-next-line no-console
     console.log(e.stack)
