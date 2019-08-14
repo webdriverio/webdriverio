@@ -1,4 +1,4 @@
-import Future from 'fibers/future'
+import { Future } from './fibers'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
