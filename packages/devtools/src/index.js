@@ -55,7 +55,7 @@ export default class DevTools {
             isChrome: { value: browserName === 'chrome' },
             isSauce: { value: false },
             isSeleniumStandalone: { value: false },
-            getPuppeteer: { value: () => browser }
+            getPuppeteer: { value: /* istanbul ignore next */ () => browser }
         }
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
@@ -88,6 +88,7 @@ export default class DevTools {
     /**
      * allows user to attach to existing sessions
      */
+    /* istanbul ignore next */
     static attachToSession () {
         throw new Error('not yet implemented')
     }

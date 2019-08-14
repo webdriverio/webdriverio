@@ -34,14 +34,16 @@ const commandMock = {
     }]
 }
 
+let driver
+
 beforeEach(() => {
     page.on.mockClear()
     page.setDefaultTimeout.mockClear()
     DevToolsDriver.requireCommand.mockClear()
+    driver = new DevToolsDriver('browser', [page])
 })
 
 test('can be initiated', () => {
-    const driver = new DevToolsDriver('browser', [page])
     expect(driver.commands).toEqual({ click: undefined, getAttribute: undefined })
     expect(driver.browser).toBe('browser')
     expect(page.on).toBeCalledWith('dialog', expect.any(Function))
@@ -49,13 +51,11 @@ test('can be initiated', () => {
 })
 
 test('should throw if command is called that is not implemented', () => {
-    const driver = new DevToolsDriver('browser', [page])
     const command = driver.register({ command: 'click' })
     expect(command).toThrow('Not yet implemented')
 })
 
 test('should return proper result', async () => {
-    const driver = new DevToolsDriver('browser', [page])
     driver.commands.elementClick = (...args) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
 
@@ -76,7 +76,6 @@ test('should return proper result', async () => {
 })
 
 test('should throw if command throws', async () => {
-    const driver = new DevToolsDriver('browser', [page])
     driver.commands.elementClick = () => new Promise(
         (resolve, reject) => setTimeout(() => reject(new Error('foobar')), 100))
 
@@ -88,14 +87,12 @@ test('should throw if command throws', async () => {
 })
 
 test('dialogHandler', () => {
-    const driver = new DevToolsDriver('browser', [page])
     expect(driver.activeDialog).toBe(null)
     driver.dialogHandler('foobar')
     expect(driver.activeDialog).toBe('foobar')
 })
 
 test('framenavigatedHandler', () => {
-    const driver = new DevToolsDriver('browser', [page])
     driver.elementStore.clear = jest.fn()
 
     const frameMock = { url: jest.fn().mockReturnValue('foobar') }
@@ -104,23 +101,37 @@ test('framenavigatedHandler', () => {
     expect(driver.elementStore.clear).toBeCalledTimes(1)
 })
 
-test('setTimeouts', () => {
-    const driver = new DevToolsDriver('browser', [page])
+test('setTimeouts with not value', () => {
     driver.timeouts = { set: jest.fn(), get: jest.fn().mockReturnValue(123) }
     driver.windows = { get: jest.fn().mockReturnValue(page) }
     driver.setTimeouts()
     expect(page.setDefaultTimeout).toBeCalledTimes(2)
     expect(driver.timeouts.set).toBeCalledTimes(0)
+})
 
+test('setTimeouts with implicit timeout', () => {
+    driver.setTimeouts()
     driver.setTimeouts(222)
     expect(driver.timeouts.set).toBeCalledTimes(1)
     expect(driver.timeouts.set).toBeCalledWith('implicit', 222)
+})
 
+test('setTimeouts with implicit and pageLoad timeout', () => {
+    driver.setTimeouts()
+    driver.setTimeouts(222)
     driver.setTimeouts(222, 333)
-    expect(driver.timeouts.set).toBeCalledTimes(3)
+    expect(driver.timeouts.set).toBeCalledTimes(2)
+    expect(driver.timeouts.set).toBeCalledWith('implicit', 222)
     expect(driver.timeouts.set).toBeCalledWith('pageLoad', 333)
+})
 
+test('setTimeouts with all timeouts', () => {
+    driver.setTimeouts()
+    driver.setTimeouts(222)
+    driver.setTimeouts(222, 333)
     driver.setTimeouts(222, 333, 444)
-    expect(driver.timeouts.set).toBeCalledTimes(6)
+    expect(driver.timeouts.set).toBeCalledTimes(3)
+    expect(driver.timeouts.set).toBeCalledWith('implicit', 222)
+    expect(driver.timeouts.set).toBeCalledWith('pageLoad', 333)
     expect(driver.timeouts.set).toBeCalledWith('script', 444)
 })

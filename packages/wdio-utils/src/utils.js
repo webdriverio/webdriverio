@@ -106,6 +106,26 @@ export function getArgumentType (arg) {
 }
 
 /**
+ * Allows to safely require a package, it only throws if the package was found
+ * but failed to load due to syntax errors
+ * @param  {string} name  of package
+ * @return {object}       package content
+ */
+export function safeRequire (name) {
+    try {
+        require.resolve(name)
+    } catch (e) {
+        return null
+    }
+
+    try {
+        return require(name)
+    } catch (e) {
+        throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
+    }
+}
+
+/**
  * is function async
  * @param  {Function} fn  function to check
  * @return {Boolean}      true provided function is async
