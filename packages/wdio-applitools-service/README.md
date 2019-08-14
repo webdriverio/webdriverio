@@ -63,7 +63,7 @@ describe('My Google Search', () => {
     
     it('should open the page and take snapshot of the region with reddit icon in upper left', () => {
         browser.url('https://reddit.com')
-        browser.takeRegionSnapshot('Reddit icon; main page', 'css=a._30BbATRhFv3V83DHNDjJAO', null)
+        browser.takeRegionSnapshot('Reddit icon; main page', 'css=a._30BbATRhFv3V83DHNDjJAO')
     })
 })
 ```
