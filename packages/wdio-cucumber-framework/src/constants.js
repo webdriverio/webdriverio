@@ -20,3 +20,10 @@ export const DEFAULT_OPTS = {
 }
 
 export const NOOP = /* istanbul ignore next */ function () {}
+
+export const CUCUMBER_HOOK_DEFINITION_TYPES = [
+    'beforeTestRunHookDefinitions',
+    'beforeTestCaseHookDefinitions',
+    'afterTestCaseHookDefinitions',
+    'afterTestRunHookDefinitions',
+]

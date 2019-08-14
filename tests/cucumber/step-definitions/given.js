@@ -1,6 +1,23 @@
 // eslint-disable-next-line
 import assert from 'assert'
-import { Given } from 'cucumber'
+import { Given, BeforeAll, Before, After, AfterAll } from 'cucumber'
+
+BeforeAll(() => {
+    // defined and modified in hooks
+    assert.equal(browser.Cucumber_Test, 0)
+})
+Before(() => {
+    // defined and modified in hooks
+    assert.equal(browser.Cucumber_Test, 1)
+})
+After(() => {
+    // defined and modified in hooks
+    assert.equal(browser.Cucumber_Test, 1)
+})
+AfterAll(() => {
+    // defined and modified in hooks
+    assert.equal(browser.Cucumber_Test, -1)
+})
 
 Given('I choose the {string} scenario', { retry: { wrapperOptions: { retry: 1 } } }, (scenario) => {
     if (typeof browser[scenario] !== 'function') {
@@ -16,12 +33,17 @@ Given('I go on the website {string}', (url) => {
 
 Given('I click on link {string}', (selector) => {
     const elem = browser.$(selector)
+
+    assert.equal(browser.Cucumber_Test, 3)
+
     elem.click()
 })
 
 Given('I click on link {string} async', async (selector) => {
     const elem = await browser.$(selector)
     await elem.click()
+
+    assert.equal(browser.Cucumber_Test, 3)
 })
 
 let foobarCounter = 1

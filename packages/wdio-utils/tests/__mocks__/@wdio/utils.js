@@ -1,3 +1,5 @@
+import { isFunctionAsync as isFnAsync } from '../../../src/utils'
+
 class DotReporter {
     constructor (options) {
         this.options = options
@@ -37,3 +39,4 @@ const pluginMocks = {
 export const initialisePlugin = jest.fn().mockImplementation(
     (name, type) => pluginMocks[type][name])
 export const initialiseServices = jest.fn().mockReturnValue([])
+export const isFunctionAsync = isFnAsync
