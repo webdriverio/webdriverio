@@ -42,3 +42,10 @@ export const initialiseServices = jest.fn().mockReturnValue([])
 export const isValidParameter = jest.fn().mockReturnValue(true)
 export const commandCallStructure = jest.fn().mockReturnValue('someCommand(param)')
 export const isFunctionAsync = isFnAsync
+export const safeRequire = jest.fn().mockReturnValue(() => {})
+export const webdriverMonad = jest.fn().mockImplementation(
+    (params, modifier, prototype) => (sessionId, customCommandWrapper) => ({
+        params, modifier, prototype, sessionId, customCommandWrapper,
+        options: params
+    })
+)

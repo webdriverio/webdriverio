@@ -3,6 +3,7 @@ import path from 'path'
 import uuidv4 from 'uuid/v4'
 
 import logger from '@wdio/logger'
+import { safeRequire } from '@wdio/utils'
 
 import ElementStore from './elementstore'
 import { validate, sanitizeError } from './utils'
@@ -23,7 +24,7 @@ export default class DevToolsDriver {
         const files = fs.readdirSync(dir)
         for (let filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
-            this.commands[commandName] = DevToolsDriver.requireCommand(path.join(dir, commandName))
+            this.commands[commandName] = safeRequire(path.join(dir, commandName)).default
         }
 
         for (const page of pages) {
