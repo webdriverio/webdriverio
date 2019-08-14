@@ -5,7 +5,7 @@ import Fiber from 'fibers'
  * @param  {Function} fn  function to wrap around
  * @return {Function}     wrapped around function
  */
-
+/* istanbul ignore next */
 export default function runFnInFiberContextWithCallback (fn, done) {
     return function (...args) {
         return Fiber(() => {
