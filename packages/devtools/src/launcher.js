@@ -69,6 +69,7 @@ function launchFirefox (capabilities) {
 }
 
 function launchEdge () {
+    /* istanbul ignore next */
     throw new Error('not yet implemented')
 }
 
@@ -83,6 +84,7 @@ export default function launch (capabilities) {
         return launchFirefox(capabilities)
     }
 
+    /* istanbul ignore next */
     if (EDGE_NAMES.includes(browserName)) {
         return launchEdge(capabilities)
     }
