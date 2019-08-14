@@ -1401,5 +1401,33 @@
         }
       }
     }
+  },
+  "/session/:sessionId/appium/execute_driver": {
+    "POST": {
+      "command": "driverScript",
+      "description": "This command allows you to define a webdriverio script in a string and send it to the Appium server to be executed locally to the server itself, thus reducing latency that might otherwise occur along with each command.",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/session/execute-driver.md",
+      "parameters": [{
+        "name": "script",
+        "type": "string",
+        "description": "The script to execute. It has access to a 'driver' object which represents a webdriverio session attached to the current server.",
+        "required": true
+      }, {
+        "name": "type",
+        "type": "string",
+        "description": "The language/framework used in the script. Currently, only 'webdriverio' is supported and is the default.",
+        "required": false
+      }, {
+        "name": "timeout",
+        "type": "number",
+        "description": "The number of milliseconds the script should be allowed to run before being killed by the Appium server. Defaults to the equivalent of 1 hour.",
+        "required": false
+      }],
+      "returns": {
+        "type": "object",
+        "name": "result",
+        "description": "An object containing two fields: 'result', which is the return value of the script itself, and 'logs', which contains 3 inner fields, 'log', 'warn', and 'error', which hold an array of strings logged by console.log, console.warn, and console.error in the script's execution."
+      }
+    }
   }
 }

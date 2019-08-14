@@ -1,4 +1,7 @@
 import * as path from 'path'
+import { executeHooksWithArgs, runFnInFiberContext } from '@wdio/config'
+import { isFunctionAsync } from '@wdio/utils'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 
 /**
  * NOTE: this function is exported for testing only
@@ -92,15 +95,21 @@ export function getUniqueIdentifier (target, sourceLocation) {
  * @param {object} message { type: string, payload: object }
  */
 export function formatMessage ({ payload = {} }) {
-    let message = {
-        ...payload,
+    let content = { ...payload }
+
+    /**
+     * need to convert Error to plain object, otherwise it is lost on process.send
+     */
+    if (payload.error && (payload.error.message || payload.error.stack)) {
+        const { name, message, stack } = payload.error
+        content.error = { name, message, stack }
     }
 
     if (payload.title && payload.parent) {
-        message.fullTitle = getTestFullTitle(payload.parent, payload.title)
+        content.fullTitle = getTestFullTitle(payload.parent, payload.title)
     }
 
-    return message
+    return content
 }
 
 /**
@@ -159,4 +168,91 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
     }
 
     return targetStep
+}
+
+/**
+ * @param {object[]} result cucumber global result object
+ */
+export const getDataFromResult = ([{ uri }, feature, ...scenarios]) => ({ uri, feature, scenarios })
+
+/**
+ * wrap every user defined hook with function named `userHookFn`
+ * to identify later on is function a step, user hook or wdio hook.
+ * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
+ */
+export function setUserHookNames (options) {
+    CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
+        options[hookName].forEach(testRunHookDefinition => {
+            const hookFn = testRunHookDefinition.code
+            if (!hookFn.name.startsWith('wdioHook')) {
+                const userHookAsyncFn = async (...args) => hookFn(args)
+                const userHookFn = (...args) => hookFn(args)
+                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
+            }
+        })
+    })
+}
+
+/**
+ * returns a function that calls `beforeStep` before step and then calls `afterStep` (even if step has failed)
+ * We need this workaround because `BeforeStep` and `AfterStep` hooks are not implemented in CucumberJS
+ * https://github.com/cucumber/cucumber-js/issues/997
+ * @param {Function}    code    step function
+ * @param {object}      config  wdio config
+ * @param {string}      cid     cid
+ */
+export function wrapStepWithHooks (code, config, cid) {
+    const userStepFn = async (...args) => {
+        const { uri, feature } = getDataFromResult(global.result)
+
+        // beforeStep hook
+        notifyStepHookError('BeforeStep', await executeHooksWithArgs(config.beforeStep, [uri, feature]), cid)
+
+        // step
+        let result
+        let error
+        try {
+            result = await runFnInFiberContext(code.bind(this, ...args))()
+        } catch (err) {
+            error = err
+        }
+
+        // afterStep
+        notifyStepHookError('AfterStep', await executeHooksWithArgs(config.afterStep, [uri, feature, { error, result }]), cid)
+
+        if (error) {
+            throw error
+        }
+        return result
+    }
+    return userStepFn
+}
+
+/**
+ * notify `WDIOCLInterface` about failure in hook
+ * we need to do it this way because `beforeStep` and `afterStep` are not real hooks.
+ * Otherwise hooks failure are lost.
+ * @param {string}  hookName    name of the hook
+ * @param {Array}   hookResults hook functions results array
+ * @param {string}  cid         cid
+ */
+export function notifyStepHookError (hookName, hookResults = [], cid) {
+    const result = hookResults.find(result => result instanceof Error)
+    if (typeof result === 'undefined') {
+        return
+    }
+    const content = formatMessage({
+        payload: {
+            cid: cid,
+            error: result,
+            fullTitle: `${hookName} Hook`,
+            type: 'hook',
+            state: 'fail'
+        }
+    })
+    process.send({
+        origin: 'reporter',
+        name: 'printFailureMessage',
+        content
+    })
 }

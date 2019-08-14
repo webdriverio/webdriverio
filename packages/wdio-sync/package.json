@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sync",
-  "version": "5.11.13",
+  "version": "5.12.1",
   "description": "A WebdriverIO plugin. Helper module to run WebdriverIO commands synchronously",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sync",
@@ -15,7 +15,8 @@
     "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
-    "test:unit": "jest"
+    "test:unit": "jest",
+    "postinstall": "node postinstall.js"
   },
   "types": "./webdriverio.d.ts",
   "typeScriptVersion": "3.2.1",
@@ -34,9 +35,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "^5.11.0",
-    "@wdio/logger": "^5.11.0",
-    "fibers": "^4.0.0"
+    "@wdio/config": "^5.12.1",
+    "@wdio/logger": "^5.12.1",
+    "@wdio/utils": "^5.12.1"
   },
   "publishConfig": {
     "access": "public"

@@ -358,5 +358,5 @@ export function validateUrl (url, origError) {
  * @param {object} scope
  */
 export function getScrollPosition (scope) {
-    return getBrowserObject(scope).execute('return { scrollX: this.scrollX, scrollY: this.scrollY };')
+    return getBrowserObject(scope).execute('return { scrollX: this.pageXOffset, scrollY: this.pageYOffset };')
 }

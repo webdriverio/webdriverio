@@ -20,7 +20,7 @@
  * @param {String} localPath local path to file
  * @type utility
  * @uses protocol/file
- * @returns {String} remote URL
+ * @return {String} remote URL
  */
 import fs from 'fs'
 import path from 'path'

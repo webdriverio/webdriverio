@@ -15,6 +15,70 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.12.1 (2019-08-14)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#4359](https://github.com/webdriverio/webdriverio/pull/4359) add execute driver support ([@jlipps](https://github.com/jlipps))
+
+#### :boom: Breaking Change
+* `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#4360](https://github.com/webdriverio/webdriverio/pull/4360) Proposal: change minimum node version to 8 ([@mgrybyk](https://github.com/mgrybyk))
+  * Post Mortem for this: https://gist.github.com/christian-bromann/1b6245c04b894b5b989accdc90eb250d
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#4288](https://github.com/webdriverio/webdriverio/pull/4288) Cucumber sync hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-local-runner`
+  * [#4332](https://github.com/webdriverio/webdriverio/pull/4332) End process normally ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.12.0 (2019-08-13)
+
+#### :nail_care: Polish
+* `wdio-sync`
+  * [#4325](https://github.com/webdriverio/webdriverio/pull/4325) Fix stacktrace formatting ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#4356](https://github.com/webdriverio/webdriverio/pull/4356) Update minimum node version requirement to Node 10 ([@patthiel](https://github.com/patthiel))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Pat Thiel ([@patthiel](https://github.com/patthiel))
+
+## v5.11.14 (2019-08-12)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4342](https://github.com/webdriverio/webdriverio/pull/4342) Fix getting scroll position in IE11 ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-devtools-service`
+  * [#4350](https://github.com/webdriverio/webdriverio/pull/4350) Devtools service: fix timeToFirstByte ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-browserstack-service`
+  * [#4316](https://github.com/webdriverio/webdriverio/pull/4316) browserstack-service: fix 404 error for app test ([@jayrepo](https://github.com/jayrepo))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#4309](https://github.com/webdriverio/webdriverio/pull/4309) @wdio/allure-reporter: Skip reporting of passing hooks with option useCucumberStepReporter ([@Kignuf](https://github.com/Kignuf))
+
+#### :memo: Documentation
+* Other
+  * [#4327](https://github.com/webdriverio/webdriverio/pull/4327) Add JS boilerplate with closure functions ([@luuizeduardo](https://github.com/luuizeduardo))
+  * [#4313](https://github.com/webdriverio/webdriverio/pull/4313) types: Add types for w3c capabilities of cloud services ([@jayrepo](https://github.com/jayrepo))
+* `webdriverio`
+  * [#4334](https://github.com/webdriverio/webdriverio/pull/4334) Fix type generation for browser.uploadFile ([@johnathafelix](https://github.com/johnathafelix))
+
+#### Committers: 6
+- Jay Chen ([@JieC](https://github.com/JieC))
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Luiz Eduardo Martins ([@luuizeduardo](https://github.com/luuizeduardo))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@johnathafelix](https://github.com/johnathafelix)
+
 ## v5.11.13 (2019-08-05)
 
 #### :bug: Bug Fix
