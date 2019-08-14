@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "libxmljs": "^0.19.5",
-    "rimraf": "^2.6.2"
+    "rimraf": "^3.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"
