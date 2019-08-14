@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`launch Firefox with custom arguments 1`] = `
+Array [
+  Array [
+    Object {
+      "args": Array [
+        "foobar",
+      ],
+      "defaultViewport": Object {
+        "height": 456,
+        "width": 123,
+      },
+      "headless": true,
+    },
+  ],
+]
+`;
+
+exports[`launch Firefox with default values 1`] = `
+Array [
+  Array [
+    Object {
+      "args": Array [],
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "headless": false,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome with chrome arguments 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--disable-translate",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-web-resources",
+        "--disable-client-side-phishing-detection",
+        "--enable-logging",
+        "--log-level=0",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--test-type=webdriver",
+        "--force-fieldtrials=SiteIsolationExtensions/Control",
+        "--window-position=0,0",
+        "--window-size=1200,900",
+        "--headless",
+        "--disable-gpu",
+        "--window-size=222,333",
+      ],
+      "chromePath": "/foo/bar",
+    },
+  ],
+]
+`;
+
+exports[`launch chrome with default values 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--disable-translate",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-web-resources",
+        "--disable-client-side-phishing-detection",
+        "--enable-logging",
+        "--log-level=0",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--test-type=webdriver",
+        "--force-fieldtrials=SiteIsolationExtensions/Control",
+        "--window-position=0,0",
+        "--window-size=1200,900",
+      ],
+      "chromePath": undefined,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome with default values 2`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
