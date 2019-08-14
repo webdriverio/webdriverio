@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 10.13.0"
+    "node": ">= 8.11.0"
   },
   "scripts": {
     "build": "run-s clean compile",
@@ -15,7 +15,8 @@
     "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
-    "test:unit": "jest"
+    "test:unit": "jest",
+    "postinstall": "node postinstall.js"
   },
   "types": "./webdriverio.d.ts",
   "typeScriptVersion": "3.2.1",
@@ -37,7 +38,6 @@
     "@wdio/config": "^5.12.0",
     "@wdio/logger": "^5.12.0",
     "@wdio/utils": "^5.12.0",
-    "fibers": "^4.0.0"
   },
   "publishConfig": {
     "access": "public"

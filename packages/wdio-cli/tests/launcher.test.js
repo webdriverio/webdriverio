@@ -8,9 +8,13 @@ jest.mock('fs-extra')
 global.console.log = jest.fn()
 
 describe('launcher', () => {
+    const emitSpy = jest.spyOn(process, 'emit')
     let launcher
 
-    beforeEach(() => launcher = new Launcher('./'))
+    beforeEach(() => {
+        emitSpy.mockClear()
+        launcher = new Launcher('./')
+    })
 
     describe('defaults', () => {
         it('should have default for the argv parameter', () => {
@@ -397,6 +401,7 @@ describe('launcher', () => {
 
     describe('run', () => {
         let config = {}
+        global.console.error = () => {}
 
         beforeEach(() => {
             config = {
@@ -414,7 +419,8 @@ describe('launcher', () => {
         })
 
         it('exit code 0', async () => {
-            expect(await launcher.run()).toBe(0)
+            expect(await launcher.run()).toEqual(0)
+            expect(emitSpy).not.toBeCalled()
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
@@ -429,7 +435,34 @@ describe('launcher', () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]
 
-            expect(await launcher.run()).toBe(1)
+            expect(await launcher.run()).toEqual(1)
+            expect(emitSpy).not.toBeCalled()
+        })
+
+        it('should return isComplete=false if failed before onComplete', async () => {
+            delete launcher.configParser
+
+            let error
+            try {
+                await launcher.run()
+            } catch (err) {
+                error = err
+            }
+            expect(emitSpy).toBeCalledWith('shutdown', 1)
+            expect(error).toBeInstanceOf(Error)
+        })
+
+        it('should return isComplete=true if failed after onComplete', async () => {
+            delete logger.waitForBuffer
+
+            let error
+            try {
+                await launcher.run()
+            } catch (err) {
+                error = err
+            }
+            expect(emitSpy).not.toBeCalled()
+            expect(error).toBeInstanceOf(Error)
         })
     })
 })
