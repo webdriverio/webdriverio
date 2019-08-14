@@ -86,6 +86,58 @@ describe('wdio-applitools-service', () => {
             expect(() => global.browser.takeSnapshot()).toThrow()
             expect(service.eyes.check).not.toBeCalled()
         })
+
+        it('should register takeRegionSnapshot command', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            global.browser.takeRegionSnapshot('foobar', 'foobarRegion')
+            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
+        })
+
+        it('should throw if takeRegionSnapshot command is used without title', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            expect(() => global.browser.takeRegionSnapshot(null, 'foobarRegion')).toThrow()
+            expect(service.eyes.check).not.toBeCalled()
+        })
+
+        it('should throw if takeRegionSnapshot command is used without region', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            expect(() => global.browser.takeRegionSnapshot('foobar')).toThrow()
+            expect(service.eyes.check).not.toBeCalled()
+        })
+
+        it('should throw if takeRegionSnapshot command is used with null region', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            expect(() => global.browser.takeRegionSnapshot('foobar', null)).toThrow()
+            expect(service.eyes.check).not.toBeCalled()
+        })
     })
 
     describe('beforeTest hook', () => {

@@ -1,5 +1,6 @@
 const Target = {
-    window: jest.fn().mockReturnValue('some window')
+    window: jest.fn().mockReturnValue('some window'),
+    region: jest.fn().mockReturnValue('foobarRegion')
 }
 
 class Eyes {
