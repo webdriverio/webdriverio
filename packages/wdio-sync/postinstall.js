@@ -1,3 +1,13 @@
+/**
+ * We need to identify which version of fibers to install depending on NodeJS version.
+ * Minimum suppored version of WebdriverIO is 8, we need to make sure project works also with v10 and above.
+ *
+ * NodeJS 8     - fibers@3
+ * NodeJS 10+   - fibers@4
+ *
+ * see https://www.npmjs.com/package/fibers#supported-platforms
+ */
+
 /* eslint-disable semi */
 const childProcess = require('child_process');
 
