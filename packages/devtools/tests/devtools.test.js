@@ -38,24 +38,3 @@ test('reloadSession', async () => {
     const newClient = await DevTools.reloadSession(client)
     expect(origSessionId).toBe(newClient)
 })
-
-//
-// static async reloadSession (instance) {
-//     const { session } = sessionMap.get(instance.sessionId)
-//     const { w3cCaps } = instance.options.requestedCapabilities
-//     const browser = await launch(w3cCaps)
-//     const pages = await browser.pages()
-//
-//     session.elementStore.clear()
-//     session.windows = new Map()
-//     session.browser = browser
-//
-//     for (const page of pages) {
-//         const pageId = uuidv4()
-//         session.windows.set(pageId, page)
-//         session.currentWindowHandle = pageId
-//     }
-//
-//     sessionMap.set(instance.sessionId, { browser, session })
-//     return instance.sessionId
-// }
