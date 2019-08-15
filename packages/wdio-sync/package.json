@@ -40,7 +40,7 @@
     "fibers": "^3.1.0"
   },
   "optionalDependencies": {
-    "fibersv4": "laverdet/node-fibers#5c24f96"
+    "fibersv4": "^4.0.1"
   },
   "publishConfig": {
     "access": "public"
