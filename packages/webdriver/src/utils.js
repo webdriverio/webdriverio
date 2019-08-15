@@ -26,8 +26,7 @@ export function isSuccessfulResponse (statusCode, body) {
             /**
             * A workaround for WinAppDriver. For some messages, WinAppDriver doesn't return value when status is 0.
             */
-        }
-        else {
+        } else {
             log.debug('request failed due to missing body')
             return false
         }
