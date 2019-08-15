@@ -7,10 +7,10 @@ let Future
 /**
  * Helper method to retrieve a version of `fibers` for your Node version.
  */
-if (Number(process.version.split('.')[0].match(/^v(\d+)/)[1]) < 10) {
+if (Number(process.version.split('.')[0].match(/^v(\d+)/)[1]) > 8) {
     try {
-        Fiber = require('fibersv4')
-        Future = require('fibersv4/future')
+        Fiber = require('fibers_node_v8')
+        Future = require('fibers_node_v8/future')
     } catch (err) {
         /**
          * This handles folks that installed with `--no-optional`.
