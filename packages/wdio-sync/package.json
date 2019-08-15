@@ -39,8 +39,8 @@
     "@wdio/utils": "^5.12.1"
   },
   "optionalDependencies": {
-    "fibers": "^3.1.0",
-    "fibersv4": "^4.0.1"
+    "fibers_node_v8": "^3.1.2",
+    "fibers": "^4.0.1"
   },
   "publishConfig": {
     "access": "public"
