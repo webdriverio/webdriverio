@@ -20,16 +20,18 @@ try {
     log.warn('Couldn\'t load fibers package for Node v10 and above')
 }
 
-try {
-    /**
-     * fallback to fibers compiled for Node v8
-     */
-    // eslint-disable-next-line import/no-unresolved
-    Fiber = require('fibers_node_v8')
-    // eslint-disable-next-line import/no-unresolved
-    Future = require('fibers_node_v8/future')
-} catch (e) {
-    log.warn('Couldn\'t load fibers package for Node v8')
+if (!Fiber || !Future) {
+    try {
+        /**
+         * fallback to fibers compiled for Node v8
+         */
+        // eslint-disable-next-line import/no-unresolved
+        Fiber = require('fibers_node_v8')
+        // eslint-disable-next-line import/no-unresolved
+        Future = require('fibers_node_v8/future')
+    } catch (e) {
+        log.warn('Couldn\'t load fibers package for Node v8')
+    }
 }
 
 /**
