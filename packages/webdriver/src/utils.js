@@ -22,7 +22,7 @@ export function isSuccessfulResponse (statusCode, body) {
      * response contains a body
      */
     if (!body || typeof body.value === 'undefined') {
-        if (body.status && body.status === 0) {
+        if (body && body.status === 0) {
             /**
             * A workaround for WinAppDriver. For some messages, WinAppDriver doesn't return value when status is 0.
             */
