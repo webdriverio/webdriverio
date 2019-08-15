@@ -1,5 +1,6 @@
-import _Fiber from 'fibers'
-import _Future from 'fibers/future'
+import logger from '@wdio/logger'
+
+const log = logger('@wdio/sync')
 
 let Fiber
 let Future
@@ -7,24 +8,39 @@ let Future
 /**
  * Helper method to retrieve a version of `fibers` for your Node version.
  */
-if (Number(process.version.split('.')[0].match(/^v(\d+)/)[1]) > 8) {
-    try {
-        Fiber = require('fibers_node_v8')
-        Future = require('fibers_node_v8/future')
-    } catch (err) {
-        /**
-         * This handles folks that installed with `--no-optional`.
-         */
-        Fiber = _Fiber
-        Future = _Future
-    }
-} else {
+try {
     /**
-     * Even though `fibersv4` may be present for Node 8 users,
-     * it is not likely to work, so don't attempt to use it.
+     * try original fibers package first
      */
-    Fiber = _Fiber
-    Future = _Future
+    // eslint-disable-next-line import/no-unresolved
+    Fiber = require('fibers')
+    // eslint-disable-next-line import/no-unresolved
+    Future = require('fibers/future')
+} catch (e) {
+    log.warn('Couldn\'t load fibers package for Node v10 and above')
+}
+
+try {
+    /**
+     * fallback to fibers compiled for Node v8
+     */
+    // eslint-disable-next-line import/no-unresolved
+    Fiber = require('fibers_node_v8')
+    // eslint-disable-next-line import/no-unresolved
+    Future = require('fibers_node_v8/future')
+} catch (e) {
+    log.warn('Couldn\'t load fibers package for Node v8')
+}
+
+/**
+ * throw if no fibers could be loaded
+ */
+if (!Fiber || !Future) {
+    throw new Error(
+        'No proper `fibers` package could be loaded. It might be not ' +
+        'supported with your current Node version. Please ensure to use ' +
+        'only WebdriverIOs recommended Node versions.'
+    )
 }
 
 export default Fiber
