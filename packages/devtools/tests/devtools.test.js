@@ -20,6 +20,12 @@ test('newSession', async () => {
         }
     })
 
+    /**
+     * don't include platform specific information in snapshot
+     */
+    delete client.options.capabilities.platformName
+    delete client.options.capabilities.platformVersion
+
     expect(client.options.capabilities).toMatchSnapshot()
     expect(client.options.requestedCapabilities).toMatchSnapshot()
     expect(client.isDevTools).toBe(true)
