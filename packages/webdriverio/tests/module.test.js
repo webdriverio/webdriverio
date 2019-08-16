@@ -19,21 +19,26 @@ jest.mock('webdriver', () => {
         return result
     })
 
-    return {
+    const module = {
         newSession: newSessionMock,
         attachToSession: jest.fn().mockReturnValue(client)
+    }
+
+    return {
+        ...module,
+        default: module
     }
 })
 
 jest.mock('@wdio/config', () => {
     const validateConfigMock = {
-        validateConfig: jest.fn(),
+        validateConfig: jest.fn().mockReturnValue({ automationProtocol: 'webdriver' }),
         detectBackend: jest.fn()
     }
     return validateConfigMock
 })
 
-const WebDriver = require('webdriver')
+const WebDriver = require('webdriver').default
 
 describe('WebdriverIO module interface', () => {
     it('should provide remote and multiremote access', () => {

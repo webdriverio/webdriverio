@@ -110,6 +110,7 @@
     "testEnvironment": "node",
     "coveragePathIgnorePatterns": [
       "node_modules/",
+      "packages/devtools/src/scripts",
       "packages/webdriverio/src/scripts",
       "packages/wdio-devtools-service/src/scripts",
       "packages/webdriverio/build",

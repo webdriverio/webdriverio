@@ -67,11 +67,11 @@ test('should return proper result', async () => {
     const errorMsg2 = await command('123').catch((e) => e.message)
     await expect(errorMsg2).toContain('Wrong parameters applied')
 
-    const errorMsg3 = await command('123', 'some text',  'some value')
+    const errorMsg3 = await command('123', 'some text',  ['some value'])
     await expect(errorMsg3).toEqual({
         elementId: '123',
         text: 'some text',
-        value: 'some value'
+        value: ['some value']
     })
 })
 
@@ -81,7 +81,7 @@ test('should throw if command throws', async () => {
 
     const command = driver.register(commandMock)
 
-    const errorMsg3 = await command('123', 'some text',  'some value')
+    const errorMsg3 = await command('123', 'some text',  ['some value'])
         .catch((e) => e.message)
     await expect(errorMsg3).toEqual('foobar')
 })
@@ -112,17 +112,14 @@ test('setTimeouts with not value', () => {
 test('setTimeouts with implicit timeout', () => {
     driver.setTimeouts()
     driver.setTimeouts(222)
-    expect(driver.timeouts.set).toBeCalledTimes(1)
-    expect(driver.timeouts.set).toBeCalledWith('implicit', 222)
+    expect(driver.timeouts).toMatchSnapshot()
 })
 
 test('setTimeouts with implicit and pageLoad timeout', () => {
     driver.setTimeouts()
     driver.setTimeouts(222)
     driver.setTimeouts(222, 333)
-    expect(driver.timeouts.set).toBeCalledTimes(2)
-    expect(driver.timeouts.set).toBeCalledWith('implicit', 222)
-    expect(driver.timeouts.set).toBeCalledWith('pageLoad', 333)
+    expect(driver.timeouts).toMatchSnapshot()
 })
 
 test('setTimeouts with all timeouts', () => {
@@ -130,8 +127,5 @@ test('setTimeouts with all timeouts', () => {
     driver.setTimeouts(222)
     driver.setTimeouts(222, 333)
     driver.setTimeouts(222, 333, 444)
-    expect(driver.timeouts.set).toBeCalledTimes(3)
-    expect(driver.timeouts.set).toBeCalledWith('implicit', 222)
-    expect(driver.timeouts.set).toBeCalledWith('pageLoad', 333)
-    expect(driver.timeouts.set).toBeCalledWith('script', 444)
+    expect(driver.timeouts).toMatchSnapshot()
 })
