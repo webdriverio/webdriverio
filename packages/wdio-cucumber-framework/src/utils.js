@@ -185,8 +185,8 @@ export function setUserHookNames (options) {
         options[hookName].forEach(testRunHookDefinition => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async (...args) => hookFn(args)
-                const userHookFn = (...args) => hookFn(args)
+                const userHookAsyncFn = async function (...args) { return hookFn.apply(this, args) }
+                const userHookFn = function (...args) { return hookFn.apply(this, args) }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
             }
         })
