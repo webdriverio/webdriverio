@@ -58,6 +58,7 @@
     "@wdio/config": "^5.12.1",
     "@wdio/logger": "^5.12.1",
     "@wdio/repl": "^5.12.1",
+    "@wdio/utils": "^5.12.1",
     "archiver": "^3.0.0",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.2",
