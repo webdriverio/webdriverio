@@ -218,7 +218,7 @@ export function wrapWithHooks (type, code, before, after, cid) {
         }
 
         // after
-        notifyStepHookError(`Before${type}`, await executeHooksWithArgs(after, [uri, feature, { error, result }]), cid)
+        notifyStepHookError(`After${type}`, await executeHooksWithArgs(after, [uri, feature, { error, result }]), cid)
 
         if (error) {
             throw error
