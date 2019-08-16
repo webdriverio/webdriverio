@@ -20,10 +20,10 @@ test('newSession', async () => {
         }
     })
 
-    expect(client.params.capabilities).toMatchSnapshot()
-    expect(client.params.requestedCapabilities).toMatchSnapshot()
-    expect(client.prototype.isDevTools.value).toBe(true)
-    expect(client.prototype.isW3C.value).toBe(true)
+    expect(client.options.capabilities).toMatchSnapshot()
+    expect(client.options.requestedCapabilities).toMatchSnapshot()
+    expect(client.isDevTools).toBe(true)
+    expect(client.isW3C).toBe(true)
     expect(launch).toBeCalledTimes(1)
 })
 

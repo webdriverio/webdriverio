@@ -3,5 +3,8 @@
  * with protractor
  */
 export default function cleanUp (elem, dataProperty) {
-    return elem.removeAttribute(dataProperty)
+    const elems = Array.isArray(elem) ? elem : [elem]
+    for (const el of elems) {
+        el.removeAttribute(dataProperty)
+    }
 }

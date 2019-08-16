@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
+import cleanUp from './scripts/cleanUpSerializationSelector'
 import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from './constants'
 
 const log = logger('devtools')
@@ -120,7 +121,7 @@ export async function findElements (page, value) {
     }))
 }
 
-export async function switchFrame (contentFrame) {
+export function switchFrame (contentFrame) {
     const handle = uuidv4()
     this.currentWindowHandle = handle
     this.windows.set(handle, contentFrame)
@@ -170,18 +171,14 @@ export async function transformExecuteResult (page, result) {
 
     if (tmpResult.find((r) => typeof r === 'string' && r.startsWith(SERIALIZE_FLAG))) {
         tmpResult = await Promise.all(tmpResult.map(async (r) => {
-            if (r.startsWith(SERIALIZE_FLAG)) {
+            if (typeof r === 'string' && r.startsWith(SERIALIZE_FLAG)) {
                 return findElement.call(this, page, `[${SERIALIZE_PROPERTY}="${r}"]`)
             }
 
             return result
         }))
 
-        await page.$$eval(`[${SERIALIZE_PROPERTY}]`, (executeElements, SERIALIZE_PROPERTY) => {
-            for (const elem of executeElements) {
-                elem.removeAttribute(SERIALIZE_PROPERTY)
-            }
-        }, SERIALIZE_PROPERTY)
+        await page.$$eval(`[${SERIALIZE_PROPERTY}]`, cleanUp, SERIALIZE_PROPERTY)
     }
 
     return isResultArray ? tmpResult : tmpResult[0]

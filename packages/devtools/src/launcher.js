@@ -68,8 +68,8 @@ function launchFirefox (capabilities) {
     })
 }
 
+/* istanbul ignore next */
 function launchEdge () {
-    /* istanbul ignore next */
     throw new Error('not yet implemented')
 }
 
