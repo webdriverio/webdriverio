@@ -26,8 +26,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "nock": "^10.0.4",
-    "webdriver": "^5.12.1"
+    "@wdio/protocols": "^0.0.0",
+    "nock": "^10.0.4"
   },
   "publishConfig": {
     "access": "public"
