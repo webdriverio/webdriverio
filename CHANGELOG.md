@@ -15,6 +15,20 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.12.2 (2019-08-16)
+
+#### :rocket: New Feature
+* `wdio-applitools-service`
+  * [#4358](https://github.com/webdriverio/webdriverio/pull/4358) Updated to add command to take region snapshot ([@crutledgejr](https://github.com/crutledgejr))
+
+#### :bug: Bug Fix
+* `wdio-crossbrowsertesting-service`
+  * [#4363](https://github.com/webdriverio/webdriverio/pull/4363) wdio-crossbrowsertesting-service: Pass along `cbtTunnelOpts` to `cbtTunnels.start()` ([@davidcochrum](https://github.com/davidcochrum))
+
+#### Committers: 2
+- Colston Rutledge, Jr. ([@crutledgejr](https://github.com/crutledgejr))
+- David Cochrum ([@davidcochrum](https://github.com/davidcochrum))
+
 ## v5.12.1 (2019-08-14)
 
 #### :eyeglasses: Spec Compliancy
