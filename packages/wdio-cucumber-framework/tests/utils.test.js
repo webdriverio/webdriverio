@@ -11,7 +11,7 @@ import {
     buildStepPayload,
     getDataFromResult,
     setUserHookNames,
-    wrapStepWithHooks,
+    wrapWithHooks,
     notifyStepHookError
 } from '../src/utils'
 
@@ -234,27 +234,27 @@ describe('utils', () => {
                 global.wrapStepWithHooksCounter++
                 return [...args, global.wrapStepWithHooksCounter]
             })
-            const config = {
+            const { beforeStep, afterStep } = {
                 beforeStep: jest.fn(),
                 afterStep: jest.fn()
             }
-            const wrappedFn = wrapStepWithHooks(code, config)
+            const wrappedFn = wrapWithHooks(false, code, beforeStep, afterStep)
             const result = await wrappedFn('foo', 'bar')
 
             expect(global.wrapStepWithHooksCounter).toEqual(3)
-            expect(executeHooksWithArgs.mock.calls[0]).toEqual([config.beforeStep, ['uri', 'feature']])
-            expect(executeHooksWithArgs.mock.calls[1]).toEqual([config.afterStep, ['uri', 'feature', { result: ['foo', 'bar', 2], error: undefined }]])
+            expect(executeHooksWithArgs.mock.calls[0]).toEqual([beforeStep, ['uri', 'feature']])
+            expect(executeHooksWithArgs.mock.calls[1]).toEqual([afterStep, ['uri', 'feature', { result: ['foo', 'bar', 2], error: undefined }]])
             expect(result).toEqual(['foo', 'bar', 2])
         })
 
         it('should wrap step with before/after hooks and throw error', async () => {
             global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
             const code = jest.fn().mockImplementation((...args) => { throw new Error(args.join(', ')) })
-            const config = {
+            const { beforeStep, afterStep } = {
                 beforeStep: jest.fn(),
                 afterStep: jest.fn()
             }
-            const wrappedFn = wrapStepWithHooks(code, config)
+            const wrappedFn = wrapWithHooks(true, code, beforeStep, afterStep )
             let error
             try {
                 await wrappedFn('foo', 'bar')
@@ -262,8 +262,8 @@ describe('utils', () => {
                 error = err
             }
 
-            expect(executeHooksWithArgs.mock.calls[0]).toEqual([config.beforeStep, ['uri', 'feature']])
-            expect(executeHooksWithArgs.mock.calls[1]).toEqual([config.afterStep, ['uri', 'feature', { result: undefined, error: expect.objectContaining({ message: 'foo, bar' }) }]])
+            expect(executeHooksWithArgs.mock.calls[0]).toEqual([beforeStep, ['uri', 'feature']])
+            expect(executeHooksWithArgs.mock.calls[1]).toEqual([afterStep, ['uri', 'feature', { result: undefined, error: expect.objectContaining({ message: 'foo, bar' }) }]])
             expect(error.message).toBe('foo, bar')
         })
         afterEach(() => {

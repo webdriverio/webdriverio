@@ -11,7 +11,7 @@ import { EventEmitter } from 'events'
 import { isFunctionAsync } from '@wdio/utils'
 import { executeHooksWithArgs, executeSync, executeAsync, hasWdioSyncSupport } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
-import { getDataFromResult, setUserHookNames, wrapStepWithHooks } from './utils'
+import { getDataFromResult, setUserHookNames, wrapWithHooks } from './utils'
 
 class CucumberAdapter {
     constructor(cid, config, specs, capabilities, reporter) {
@@ -158,8 +158,6 @@ class CucumberAdapter {
 
     /**
      * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
-     * we can't added `beforeStep` and `afterStep` here because they are not implemented in CucumberJS
-     * https://github.com/cucumber/cucumber-js/issues/997
      * @param {object} config config
      */
     addWdioHooks (config) {
@@ -222,10 +220,11 @@ class CucumberAdapter {
         const executeFn = isFunctionAsync(code) || !hasWdioSyncSupport ? executeAsync : executeSync
         return function (...args) {
             /**
-             * there are no `BeforeStep` and `AfterStep` hooks in CucumberJS,
-             * so we run wdio `beforeStep` before step function and then run `afterStep` (even if step has failed)
+             * wrap user step/hook with wdio before/after hooks
              */
-            return executeFn.call(this, isStep ? wrapStepWithHooks(code, config, cid) : code, retryTest, args)
+            const before = isStep ? config.beforeStep : config.beforeHook
+            const after = isStep ? config.afterStep : config.afterHook
+            return executeFn.call(this, wrapWithHooks(isStep ? 'Step' : 'Hook', code, before, after, cid), retryTest, args)
         }
     }
 }
