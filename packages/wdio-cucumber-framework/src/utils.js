@@ -185,8 +185,8 @@ export function setUserHookNames (options) {
         options[hookName].forEach(testRunHookDefinition => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async (...args) => hookFn(args)
-                const userHookFn = (...args) => hookFn(args)
+                const userHookAsyncFn = async function (...args) { return hookFn.apply(this, args) }
+                const userHookFn = function (...args) { return hookFn.apply(this, args) }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
             }
         })
@@ -194,19 +194,19 @@ export function setUserHookNames (options) {
 }
 
 /**
- * returns a function that calls `beforeStep` before step and then calls `afterStep` (even if step has failed)
- * We need this workaround because `BeforeStep` and `AfterStep` hooks are not implemented in CucumberJS
- * https://github.com/cucumber/cucumber-js/issues/997
+ * returns a function that calls first before hook, then user step/hook and finally after hook (even if step has failed)
+ * @param {string}      type    Step or Hook
  * @param {Function}    code    step function
- * @param {object}      config  wdio config
+ * @param {Function}    before  before hook function
+ * @param {Function}    after   after hook function
  * @param {string}      cid     cid
  */
-export function wrapStepWithHooks (code, config, cid) {
-    const userStepFn = async (...args) => {
+export function wrapWithHooks (type, code, before, after, cid) {
+    const userFn = async function (...args) {
         const { uri, feature } = getDataFromResult(global.result)
 
-        // beforeStep hook
-        notifyStepHookError('BeforeStep', await executeHooksWithArgs(config.beforeStep, [uri, feature]), cid)
+        // before hook
+        notifyStepHookError(`Before${type}`, await executeHooksWithArgs(before, [uri, feature]), cid)
 
         // step
         let result
@@ -217,15 +217,15 @@ export function wrapStepWithHooks (code, config, cid) {
             error = err
         }
 
-        // afterStep
-        notifyStepHookError('AfterStep', await executeHooksWithArgs(config.afterStep, [uri, feature, { error, result }]), cid)
+        // after
+        notifyStepHookError(`After${type}`, await executeHooksWithArgs(after, [uri, feature, { error, result }]), cid)
 
         if (error) {
             throw error
         }
         return result
     }
-    return userStepFn
+    return userFn
 }
 
 /**

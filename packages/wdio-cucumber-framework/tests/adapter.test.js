@@ -182,11 +182,11 @@ describe('wrapStep', () => {
         config.hasWdioSyncSupport = true
         const adapter = adapterFactory()
 
-        const fn = adapter.wrapStep('fn')
+        const fn = adapter.wrapStep('fn', undefined, undefined, {})
         expect(typeof fn).toBe('function')
 
         fn(1, 2, 3)
-        expect(executeSync).toBeCalledWith('fn', 0, [1, 2, 3])
+        expect(executeSync).toBeCalledWith(expect.any(Function), 0, [1, 2, 3])
     })
 
     test('should use async if function name is sync', () => {
@@ -194,22 +194,22 @@ describe('wrapStep', () => {
         const adapter = adapterFactory()
 
         const code = function async () { }
-        const fn = adapter.wrapStep(code, 123)
+        const fn = adapter.wrapStep(code, 123, undefined, {})
         expect(typeof fn).toBe('function')
 
         fn(1, 2, 3)
-        expect(executeAsync).toBeCalledWith(code, 123, [1, 2, 3])
+        expect(executeAsync).toBeCalledWith(expect.any(Function), 123, [1, 2, 3])
     })
 
     test('should use async hasWdioSyncSupport is false and set proper default arguments', () => {
         config.hasWdioSyncSupport = false
         const adapter = adapterFactory()
 
-        const fn = adapter.wrapStep('fn')
+        const fn = adapter.wrapStep('fn', undefined, undefined, {})
         expect(typeof fn).toBe('function')
 
         fn(1, 2, 3)
-        expect(executeAsync).toBeCalledWith('fn', 0, [1, 2, 3])
+        expect(executeAsync).toBeCalledWith(expect.any(Function), 0, [1, 2, 3])
     })
 })
 
