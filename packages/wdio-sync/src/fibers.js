@@ -17,7 +17,7 @@ try {
     // eslint-disable-next-line import/no-unresolved
     Future = require('fibers/future')
 } catch (e) {
-    log.warn('Couldn\'t load fibers package for Node v10 and above')
+    log.debug('Couldn\'t load fibers package for Node v10 and above')
 }
 
 if (!Fiber || !Future) {
@@ -30,7 +30,7 @@ if (!Fiber || !Future) {
         // eslint-disable-next-line import/no-unresolved
         Future = require('fibers_node_v8/future')
     } catch (e) {
-        log.warn('Couldn\'t load fibers package for Node v8')
+        log.debug('Couldn\'t load fibers package for Node v8')
     }
 }
 
