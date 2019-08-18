@@ -15,6 +15,18 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.12.3 (2019-08-18)
+
+#### :bug: Bug Fix
+* `wdio-applitools-service`, `wdio-devtools-service`, `wdio-junit-reporter`, `wdio-sync`
+  * [#4365](https://github.com/webdriverio/webdriverio/pull/4365) use `optionalDependencies` instead of `postinstall` for `fibers ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#4367](https://github.com/webdriverio/webdriverio/pull/4367) Fix user hooks in sync mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.12.2 (2019-08-16)
 
 #### :rocket: New Feature
