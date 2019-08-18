@@ -1,4 +1,4 @@
-import Fiber from 'fibers'
+import Fiber from './fibers'
 
 /**
  * global function to wrap callbacks into Fiber context

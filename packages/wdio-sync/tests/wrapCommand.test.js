@@ -1,4 +1,4 @@
-import Future from 'fibers/future'
+import { Future } from '../src/fibers'
 import wrapCommand from '../src/wrapCommand'
 import { anotherError } from './__mocks__/errors'
 
@@ -11,7 +11,6 @@ const futureWait = Future.wait
 const futurePrototypeWait = Future.prototype.wait
 
 describe('wrapCommand:runCommand', () => {
-
     beforeEach(() => {
         jest.resetAllMocks()
     })

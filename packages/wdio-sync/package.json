@@ -15,8 +15,7 @@
     "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
-    "test:unit": "jest",
-    "postinstall": "node postinstall.js"
+    "test:unit": "jest"
   },
   "types": "./webdriverio.d.ts",
   "typeScriptVersion": "3.2.1",
@@ -38,6 +37,10 @@
     "@wdio/config": "^5.12.1",
     "@wdio/logger": "^5.12.1",
     "@wdio/utils": "^5.12.1"
+  },
+  "optionalDependencies": {
+    "fibers_node_v8": "^3.1.2",
+    "fibers": "^4.0.1"
   },
   "publishConfig": {
     "access": "public"
