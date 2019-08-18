@@ -1,1 +1,2 @@
-export default jest.fn()
+const Future = jest.requireActual('fibers/future')
+module.exports = Future

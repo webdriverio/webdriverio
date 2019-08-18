@@ -11,7 +11,6 @@ const futureWait = Future.wait
 const futurePrototypeWait = Future.prototype.wait
 
 describe('wrapCommand:runCommand', () => {
-
     beforeEach(() => {
         jest.resetAllMocks()
     })

@@ -13,9 +13,9 @@ try {
      * try original fibers package first
      */
     // eslint-disable-next-line import/no-unresolved
-    Fiber = require('fibers').default
+    Fiber = require('fibers')
     // eslint-disable-next-line import/no-unresolved
-    Future = require('fibers/future').default
+    Future = require('fibers/future')
 } catch (e) {
     log.warn('Couldn\'t load fibers package for Node v10 and above')
 }
@@ -26,9 +26,9 @@ if (!Fiber || !Future) {
          * fallback to fibers compiled for Node v8
          */
         // eslint-disable-next-line import/no-unresolved
-        Fiber = require('fibers_node_v8').default
+        Fiber = require('fibers_node_v8')
         // eslint-disable-next-line import/no-unresolved
-        Future = require('fibers_node_v8/future').default
+        Future = require('fibers_node_v8/future')
     } catch (e) {
         log.warn('Couldn\'t load fibers package for Node v8')
     }
