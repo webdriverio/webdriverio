@@ -38,7 +38,6 @@
     "validator": "^11.0.0"
   },
   "devDependencies": {
-    "libxmljs": "^0.19.5",
     "rimraf": "^3.0.0"
   },
   "peerDependencies": {

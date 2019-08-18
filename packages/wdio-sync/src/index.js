@@ -1,4 +1,4 @@
-import Fiber from 'fibers'
+import Fiber from './fibers'
 import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
 
