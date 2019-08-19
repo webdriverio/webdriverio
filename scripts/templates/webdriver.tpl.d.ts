@@ -381,6 +381,10 @@ declare namespace WebDriver {
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
     ): Promise<Client>;
 
+    function reloadSession(
+        instance: Client
+    ): Promise<Client>;
+
     interface ClientOptions {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
