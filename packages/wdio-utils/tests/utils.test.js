@@ -12,14 +12,33 @@ describe('utils', () => {
     describe('overwriteElementCommands', () => {
         it('should overwrite command', function () {
             const context = {}
+            const origFnMock = jest.fn(() => 1)
             const propertiesObject = {
-                foo: { value() { return 1 } },
+                foo: { value: origFnMock },
                 __elementOverrides__: {
                     value: { foo(origCmd, arg) { return [origCmd(), arg] } }
                 }
             }
             overwriteElementCommands.call(context, propertiesObject)
             expect(propertiesObject.foo.value(5)).toEqual([1, 5])
+            expect(origFnMock.mock.calls.length).toBe(1)
+            expect(origFnMock.mock.instances[0]).toBe(propertiesObject.foo)
+        })
+
+        it('should support rebinding when invoking original fn', function () {
+            const context = {}
+            const origFnMock = jest.fn(() => 1)
+            const origFnContext = {}
+            const propertiesObject = {
+                foo: { value: origFnMock },
+                __elementOverrides__: {
+                    value: { foo(origCmd, arg) { return [origCmd.call(origFnContext), arg] } }
+                }
+            }
+            overwriteElementCommands.call(context, propertiesObject)
+            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
+            expect(origFnMock.mock.calls.length).toBe(1)
+            expect(origFnMock.mock.instances[0]).toBe(origFnContext)
         })
 
         it('should create __elementOverrides__ if not exists', function () {
