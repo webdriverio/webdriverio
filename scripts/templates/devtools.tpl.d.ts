@@ -7,10 +7,21 @@ declare namespace DevTools {
         getPuppeteer: (...args: any[]) => any;
     }
 
+    function newSession(
+        options?: WebDriver.Options,
+        modifier?: (...args: any[]) => any,
+        proto?: object,
+        commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
+    ): Promise<Client>;
+
+    function reloadSession(
+        instance: Client
+    ): Promise<Client>;
+
     // generated typings
     // ... insert here ...
 }
 
 declare module "devtools" {
-    export = DevTools;
+    export default DevTools;
 }
