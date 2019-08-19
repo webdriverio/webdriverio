@@ -329,50 +329,6 @@ export class CustomRequestError extends Error {
 }
 
 /**
- * overwrite native element commands with user defined
- * @param {object} propertiesObject propertiesObject
- */
-export function overwriteElementCommands(propertiesObject) {
-    const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
-
-    for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
-        if (typeof userDefinedCommand !== 'function') {
-            throw new Error('overwriteCommand: commands be overwritten only with functions, command: ' + commandName)
-        }
-
-        if (!propertiesObject[commandName]) {
-            throw new Error('overwriteCommand: no command to be overwritten: ' + commandName)
-        }
-
-        if (typeof propertiesObject[commandName].value !== 'function') {
-            throw new Error('overwriteCommand: only functions can be overwritten, command: ' + commandName)
-        }
-
-        const origCommand = propertiesObject[commandName].value
-        delete propertiesObject[commandName]
-
-        const newCommand = function (...args) {
-            const element = this
-            return userDefinedCommand.apply(element, [
-                function origCommandFunction() {
-                    const context = this || element // respect explicite context binding, use element as default
-                    return origCommand.apply(context, arguments)
-                },
-                ...args
-            ])
-        }
-
-        propertiesObject[commandName] = {
-            value: newCommand,
-            configurable: true
-        }
-    }
-
-    delete propertiesObject['__elementOverrides__']
-    propertiesObject['__elementOverrides__'] = { value: {} }
-}
-
-/**
  * return all supported flags and return them in a format so we can attach them
  * to the instance protocol
  * @param  {Object} options   driver instance or option object containing these flags

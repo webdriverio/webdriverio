@@ -9,7 +9,7 @@ import {
 import { SESSION_ID } from './constants'
 
 const protocols = [
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    JsonWProtocol, WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 

@@ -22,7 +22,14 @@ export function overwriteElementCommands(propertiesObject) {
         delete propertiesObject[commandName]
 
         const newCommand = function (...args) {
-            return userDefinedCommand.apply(this, [origCommand.bind(this), ...args])
+            const element = this
+            return userDefinedCommand.apply(element, [
+                function origCommandFunction() {
+                    const context = this || element // respect explicite context binding, use element as default
+                    return origCommand.apply(context, arguments)
+                },
+                ...args
+            ])
         }
 
         propertiesObject[commandName] = {

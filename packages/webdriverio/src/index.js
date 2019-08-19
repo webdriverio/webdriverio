@@ -43,7 +43,8 @@ export const remote = async function (params = {}, remoteModifier) {
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
-     * in order to wrap the function within Fibers
+     * in order to wrap the function within Fibers (only if webdriverio
+     * is used with @wdio/cli)
      */
     if (params.runner) {
         const origAddCommand = ::instance.addCommand

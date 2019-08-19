@@ -1,6 +1,6 @@
 import {
     isSuccessfulResponse, getPrototype, environmentDetector, setupDirectConnect,
-    getErrorFromResponseBody, isW3C, CustomRequestError, overwriteElementCommands
+    getErrorFromResponseBody, isW3C, CustomRequestError
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -241,6 +241,7 @@ describe('utils', () => {
         expect(error.name).toBe('Error')
         expect(error.message).toBe('unknown error')
     })
+<<<<<<< HEAD
 
     describe('overwriteElementCommands', () => {
         it('should overwrite command', function () {
@@ -360,4 +361,6 @@ describe('utils', () => {
             expect(params.path).toBe('')
         })
     })
+=======
+>>>>>>> fixed rebase issue
 })
