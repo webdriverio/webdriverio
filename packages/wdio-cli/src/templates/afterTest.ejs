@@ -5,7 +5,7 @@
 if (reporters.length && reporters.includes('allure')) {%>
     afterTest: function(test) {
         if (test.error !== undefined) {
-          browser.takeScreenshot();
+            browser.takeScreenshot();
         }
     },
 <% } else { %>
