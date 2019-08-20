@@ -7,6 +7,9 @@ jest.mock('../src/launcher', () => jest.fn().mockImplementation(function(conf, r
     }
 }))
 
+const processExit = process.exit
+const consoleError = global.console.error
+
 describe('launch', () => {
     process.exit = jest.fn()
     global.console.error = jest.fn()
@@ -49,5 +52,10 @@ describe('launch', () => {
         Launcher.mockClear()
         global.console.error.mockClear()
         process.exit.mockClear()
+    })
+
+    afterAll(() => {
+        process.exit = processExit
+        global.console.error = consoleError
     })
 })
