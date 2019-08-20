@@ -269,13 +269,7 @@ describe('cli interface', () => {
             expect(wdioClInterface.sigintTrigger()[0]).toContain('Ended WebDriver sessions gracefully')
         })
 
-        it('should do nothing if ended normally', () => {
-            wdioClInterface.endedNormally = true
-            expect(wdioClInterface.sigintTrigger()).toBe(false)
-        })
-
         it('should do nothing in debug mode', () => {
-            wdioClInterface.endedNormally = false
             wdioClInterface.inDebugMode = true
             expect(wdioClInterface.sigintTrigger()).toBe(false)
         })

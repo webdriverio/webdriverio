@@ -63,7 +63,7 @@ class Launcher {
          */
         exitHook(::this.exitHandler)
         let exitCode
-        let onCompleteResults
+        let error
 
         try {
             const config = this.configParser.getConfig()
@@ -92,7 +92,7 @@ class Launcher {
             log.info('Run onComplete hook')
             await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
 
-            onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
+            const onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
 
             // if any of the onComplete hooks failed, update the exit code
             exitCode = onCompleteResults.includes(1) ? 1 : exitCode
@@ -100,16 +100,19 @@ class Launcher {
             await logger.waitForBuffer()
 
             this.interface.finalise()
-            return exitCode
         } catch (err) {
-            if (!onCompleteResults) {
-                /**
-                 * `shutdown` event is added by `exitHook`
-                 */
-                process.emit('shutdown', 1)
+            error = err
+        } finally {
+            if (!this.hasTriggeredExitRoutine) {
+                this.hasTriggeredExitRoutine = true
+                await this.runner.shutdown()
             }
-            throw err
         }
+
+        if (error) {
+            throw error
+        }
+        return exitCode
     }
 
     /**
@@ -387,6 +390,7 @@ class Launcher {
     }
 
     /**
+     * We need exitHandler to catch SIGINT / SIGTERM events.
      * Make sure all started selenium sessions get closed properly and prevent
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
@@ -394,6 +398,10 @@ class Launcher {
     exitHandler (callback) {
         if (!callback) {
             return
+        }
+
+        if (this.hasTriggeredExitRoutine) {
+            return callback()
         }
 
         this.hasTriggeredExitRoutine = true

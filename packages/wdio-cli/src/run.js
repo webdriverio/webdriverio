@@ -68,4 +68,9 @@ export default function run (params) {
 export function launch (wdioConf, params) {
     const launcher = new Launcher(wdioConf, params)
     return launcher.run()
+        .then(process.exit)
+        .catch(err => {
+            console.error(err)
+            process.exit(1)
+        })
 }
