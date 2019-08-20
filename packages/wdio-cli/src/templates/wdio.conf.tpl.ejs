@@ -174,14 +174,7 @@ exports.config = {
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
     //
-    // Test reporter for stdout.
-    // The only one supported by default is 'dot'
-    // see also: https://webdriver.io/docs/dot-reporter.html
-    <% if(answers.reporters.length) {
-    %>reporters: [<%- answers.reporters.map(reporter => `'${reporter}'`) %>],
-    <% } else {
-    %>// reporters: ['dot'],<%
-    }
+    <%- include('reporters', { reporters: answers.reporters }) %> <%
     if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
@@ -288,13 +281,8 @@ exports.config = {
      * afterEach in Mocha)
      */
     // afterHook: function () {
-    // },
-    /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
-     */
-    // afterTest: function (test) {
-    // },
+    // }, 
+    <%- include('afterTest', { reporters: answers.reporters }) %>
     /**
      * Hook that gets executed after the suite has ended
      * @param {Object} suite suite details
