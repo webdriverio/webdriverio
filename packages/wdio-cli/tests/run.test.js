@@ -3,48 +3,36 @@ import Launcher from '../src/launcher'
 
 jest.mock('../src/launcher', () => jest.fn().mockImplementation(function(conf, result) {
     return {
-        run: jest.fn().mockImplementation(() => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result))
+        run: () => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result)
     }
 }))
 
-const processExit = process.exit
-const consoleError = global.console.error
-
 describe('launch', () => {
-    process.exit = jest.fn()
-    global.console.error = jest.fn()
+    jest.spyOn(process, 'exit').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => {})
 
     it('should exit with code 0', async () => {
-        launch('configFile', 0)
+        await launch('configFile', 0)
         expect(Launcher).toBeCalledWith('configFile', 0)
         expect(Launcher.mock.instances).toHaveLength(1)
 
-        await Launcher.mock.results[0].value.run.mock.results[0].value
         expect(process.exit).toBeCalledWith(0)
     })
 
     it('should exit with code 1', async () => {
-        launch('configFile', 1)
+        await launch('configFile', 1)
         expect(Launcher).toBeCalledWith('configFile', 1)
         expect(Launcher.mock.instances).toHaveLength(1)
 
-        await Launcher.mock.results[0].value.run.mock.results[0].value
         expect(process.exit).toBeCalledWith(1)
     })
 
     it('should catch errors', async () => {
-        launch('configFile', 'foobar')
+        await launch('configFile', 'foobar')
         expect(Launcher).toBeCalledWith('configFile', 'foobar')
         expect(Launcher.mock.instances).toHaveLength(1)
 
-        let error
-        try {
-            await Launcher.mock.results[0].value.run.mock.results[0].value
-        } catch (err) {
-            error = err
-        }
-        expect(error).toBe('foobar')
-        expect(global.console.error).toBeCalled
+        expect(global.console.error).toBeCalledWith('foobar')
         expect(process.exit).toBeCalledWith(1)
     })
 
@@ -55,7 +43,7 @@ describe('launch', () => {
     })
 
     afterAll(() => {
-        process.exit = processExit
-        global.console.error = consoleError
+        process.exit.mockRestore()
+        console.error.mockRestore()
     })
 })
