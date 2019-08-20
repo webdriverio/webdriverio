@@ -163,7 +163,7 @@ describe('launcher', () => {
             launcher.interface = { sigintTrigger: jest.fn() }
             launcher.runner = { shutdown: jest.fn().mockReturnValue(Promise.resolve()) }
 
-            launcher.exitHandler()
+            expect(launcher.exitHandler(() => 'foo')).toBe('foo')
 
             expect(launcher.hasTriggeredExitRoutine).toBe(true)
             expect(launcher.interface.sigintTrigger).toBeCalledTimes(0)
