@@ -1,5 +1,5 @@
 import path from 'path'
-import { detectBackend } from '@wdio/config'
+import { detectBackend, runFnInFiberContext } from '@wdio/config'
 
 import { remote, multiremote, attach } from '../src'
 
@@ -33,7 +33,8 @@ jest.mock('webdriver', () => {
 jest.mock('@wdio/config', () => {
     const validateConfigMock = {
         validateConfig: jest.fn().mockReturnValue({ automationProtocol: 'webdriver' }),
-        detectBackend: jest.fn()
+        detectBackend: jest.fn(),
+        runFnInFiberContext: jest.fn()
     }
     return validateConfigMock
 })
@@ -70,6 +71,26 @@ describe('WebdriverIO module interface', () => {
             let testDirPath = './logs'
             await remote({ outputDir: testDirPath, capabilities: { browserName: 'firefox' } })
             expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
+        })
+
+        it('should not wrap custom commands into fiber context if used as standalone', async () => {
+            const browser = await remote({ capabilities: {} })
+            const customCommand = jest.fn()
+            browser.addCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(0)
+
+            browser.overwriteCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(0)
+        })
+
+        it('should wrap custom commands into fiber context', async () => {
+            const browser = await remote({ capabilities: {}, runner: 'local' })
+            const customCommand = jest.fn()
+            browser.addCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(1)
+
+            browser.overwriteCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(2)
         })
     })
 
