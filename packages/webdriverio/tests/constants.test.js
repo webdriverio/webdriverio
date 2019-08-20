@@ -57,6 +57,7 @@ describe('constants', () => {
         it('should properly detect automation protocol', () => {
             expect(() => WDIO_DEFAULTS.automationProtocol.type()).toThrow()
             expect(() => WDIO_DEFAULTS.automationProtocol.type(123)).toThrow()
+            expect(() => WDIO_DEFAULTS.automationProtocol.type('foobar')).toThrow()
             WDIO_DEFAULTS.automationProtocol.type('webdriver')
             WDIO_DEFAULTS.automationProtocol.type('devtools')
         })
