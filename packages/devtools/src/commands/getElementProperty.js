@@ -1,5 +1,10 @@
-import getElementAttribute from './getElementAttribute'
+export default async function getElementProperty ({ elementId, name }) {
+    const elementHandle = this.elementStore.get(elementId)
 
-export default async function getElementProperty (...args) {
-    return getElementAttribute.apply(this, args)
+    if (!elementHandle) {
+        throw new Error(`Couldn't find element with id ${elementId} in cache`)
+    }
+
+    const jsHandle = await elementHandle.getProperty(name)
+    return jsHandle.jsonValue()
 }
