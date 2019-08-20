@@ -44,6 +44,7 @@ export const WDIO_DEFAULTS = {
             try {
                 require.resolve(param)
             } catch (e) {
+                /* istanbul ignore next */
                 throw new Error(
                     'Automation protocol package is not installed!\n' +
                     `Please install it via \`npm install ${param}\``
