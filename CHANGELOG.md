@@ -15,6 +15,25 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.12.4 (2019-08-21)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`
+  * [#4386](https://github.com/webdriverio/webdriverio/pull/4386) Fix process exit code ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#4382](https://github.com/webdriverio/webdriverio/pull/4382) wdio-cli: configure allure reporter with wdio cli ([@marcelblijleven](https://github.com/marcelblijleven))
+
+#### :house: Internal
+* `webdriverio`
+  * [#4389](https://github.com/webdriverio/webdriverio/pull/4389) webdriverio: bump resq version to 1.6 ([@baruchvlz](https://github.com/baruchvlz))
+
+#### Committers: 3
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Marcel Blijleven ([@marcelblijleven](https://github.com/marcelblijleven))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.12.3 (2019-08-18)
 
 #### :bug: Bug Fix
