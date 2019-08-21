@@ -1,13 +1,19 @@
 import { switchFrame } from '../utils'
+import { ELEMENT_KEY } from '../constants'
 
 export default async function switchToFrame ({ id }) {
     const page = this.windows.get(this.currentWindowHandle)
-    const elementHandle = this.elementStore.get(id)
 
     /**
      * switch frame by element ID
      */
-    if (typeof id === 'string' && elementHandle) {
+    if (typeof id[ELEMENT_KEY] === 'string') {
+        const elementHandle = this.elementStore.get(id[ELEMENT_KEY])
+
+        if (!elementHandle) {
+            throw new Error(`Couldn't find element with id ${id[ELEMENT_KEY]} in cache`)
+        }
+
         const contentFrame = await elementHandle.contentFrame()
 
         if (!contentFrame) {
