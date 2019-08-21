@@ -158,6 +158,18 @@ describe('launcher', () => {
             expect(launcher.runner.shutdown).toBeCalledTimes(0)
         })
 
+        it('should do nothing if shutdown was called before', () => {
+            launcher.hasTriggeredExitRoutine = true
+            launcher.interface = { sigintTrigger: jest.fn() }
+            launcher.runner = { shutdown: jest.fn().mockReturnValue(Promise.resolve()) }
+
+            expect(launcher.exitHandler(() => 'foo')).toBe('foo')
+
+            expect(launcher.hasTriggeredExitRoutine).toBe(true)
+            expect(launcher.interface.sigintTrigger).toBeCalledTimes(0)
+            expect(launcher.runner.shutdown).toBeCalledTimes(0)
+        })
+
         it('should shutdown', () => {
             launcher.hasTriggeredExitRoutine = false
             launcher.interface = { sigintTrigger: jest.fn() }
@@ -413,14 +425,14 @@ describe('launcher', () => {
                 getCapabilities: jest.fn().mockReturnValue(0),
                 getConfig: jest.fn().mockReturnValue(config)
             }
-            launcher.runner = { initialise: jest.fn() }
+            launcher.runner = { initialise: jest.fn(), shutdown: jest.fn() }
             launcher.runMode = jest.fn().mockImplementation((config, caps) => caps)
             launcher.interface = { finalise: jest.fn() }
         })
 
         it('exit code 0', async () => {
             expect(await launcher.run()).toEqual(0)
-            expect(emitSpy).not.toBeCalled()
+            expect(launcher.runner.shutdown).toBeCalled()
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
@@ -431,28 +443,21 @@ describe('launcher', () => {
             expect(launcher.interface.finalise).toBeCalledTimes(1)
         })
 
+        it('should not shutdown runner if was called before', async () => {
+            launcher.hasTriggeredExitRoutine = true
+            expect(await launcher.run()).toEqual(0)
+            expect(launcher.runner.shutdown).not.toBeCalled()
+        })
+
         it('onComplete error', async () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]
 
             expect(await launcher.run()).toEqual(1)
-            expect(emitSpy).not.toBeCalled()
+            expect(launcher.runner.shutdown).toBeCalled()
         })
 
-        it('should return isComplete=false if failed before onComplete', async () => {
-            delete launcher.configParser
-
-            let error
-            try {
-                await launcher.run()
-            } catch (err) {
-                error = err
-            }
-            expect(emitSpy).toBeCalledWith('shutdown', 1)
-            expect(error).toBeInstanceOf(Error)
-        })
-
-        it('should return isComplete=true if failed after onComplete', async () => {
+        it('should shutdown runner on error', async () => {
             delete logger.waitForBuffer
 
             let error
@@ -461,7 +466,7 @@ describe('launcher', () => {
             } catch (err) {
                 error = err
             }
-            expect(emitSpy).not.toBeCalled()
+            expect(launcher.runner.shutdown).toBeCalled()
             expect(error).toBeInstanceOf(Error)
         })
     })

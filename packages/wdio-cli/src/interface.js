@@ -23,12 +23,6 @@ export default class WDIOCLInterface extends EventEmitter {
         this.inDebugMode = false
         this.specFileRetries = config.specFileRetries || 0
 
-        /**
-         * `Launcher.exitHandler` is always called so we need to identify
-         * if `SIGINT` was actually called
-         */
-        this.endedNormally = false
-
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
 
@@ -197,7 +191,7 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * allow to exit repl mode via Ctrl+C
          */
-        if (this.inDebugMode || this.endedNormally) {
+        if (this.inDebugMode) {
             return false
         }
 
@@ -238,7 +232,6 @@ export default class WDIOCLInterface extends EventEmitter {
             return
         }
 
-        this.endedNormally = true
         this.printReporters()
         this.printSummary()
     }
