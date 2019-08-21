@@ -32,6 +32,7 @@
     "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
     "test:coverage": "jest --coverage",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
+    "test:e2e": "jest --config e2e/jest.config.js",
     "ts": "run-p ts:*",
     "ts:sync": "cd tests/typings/sync && tsc --incremental",
     "ts:devtools": "cd tests/typings/devtools && tsc --incremental",
