@@ -221,9 +221,8 @@ describe('cookies', () => {
 
     it('deleteCookie', async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
-        const cookies = await browser.getAllCookies()
-        const ourCookie = cookies.find((cookie) => cookie.name ==='foobar' && cookie.value === '42')
-        expect(ourCookie).not.toBe(undefined)
+        const cookie = await browser.getNamedCookie('foobar')
+        expect(cookie.value).toBe('42')
 
         await browser.deleteCookie('foobar')
         await browser.navigateTo('http://guinea-pig.webdriver.io')
@@ -267,24 +266,6 @@ describe('window handling', () => {
     })
 })
 
-describe('frames', () => {
-    beforeAll(async () => {
-        await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
-    })
-
-    it('switchToFrame', async () => {
-        expect(await browser.getTitle()).toBe('two')
-        const iframe = await browser.findElement('css selector', 'iframe')
-        await browser.switchToFrame(iframe)
-        expect(await browser.getTitle()).toBe('Light Bikes from Eric Corriel on Vimeo')
-    })
-
-    it('parentFrame', async () => {
-        await browser.switchToParentFrame()
-        expect(await browser.getTitle()).toBe('two')
-    })
-})
-
 describe('executeScript', () => {
     beforeAll(async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
@@ -309,6 +290,31 @@ describe('executeScript', () => {
             'return new Promise((resolve) => setTimeout(() => resolve(document.title + \' \' + arguments[0] + arguments[1]), 500))',
             ['Test3', '!'])
         ).toBe('WebdriverJS Testpage Test3!')
+    })
+
+    it('refresh', async () => {
+        await browser.executeScript('window.foobar = 42', [])
+        expect(await browser.executeScript('return window.foobar', [])).toBe(42)
+        await browser.refresh()
+        expect(await browser.executeScript('return window.foobar', [])).toBe(undefined)
+    })
+})
+
+describe('frames', () => {
+    beforeAll(async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
+    })
+
+    it('switchToFrame', async () => {
+        expect(await browser.getTitle()).toBe('two')
+        const iframe = await browser.findElement('css selector', 'iframe')
+        await browser.switchToFrame(iframe)
+        expect(await browser.getTitle()).toBe('Light Bikes from Eric Corriel on Vimeo')
+    })
+
+    it('parentFrame', async () => {
+        await browser.switchToParentFrame()
+        expect(await browser.getTitle()).toBe('two')
     })
 })
 
