@@ -74,12 +74,12 @@ describe('elements', () => {
         expect(await browser.getElementProperty(link[ELEMENT_KEY], 'tagName')).toBe('A')
         expect(await browser.getElementTagName(link[ELEMENT_KEY])).toBe('a')
         expect(await browser.getElementCSSValue(link[ELEMENT_KEY], 'color')).toBe('rgb(0, 136, 204)')
-        expect(await browser.getElementRect(link[ELEMENT_KEY])).toEqual({
-            height: 16,
-            width: 23.0625,
-            x: 15,
-            y: 142,
-        })
+
+        const rect = await browser.getElementRect(link[ELEMENT_KEY])
+        expect(rect.height).toBe(16)
+        expect(rect.width > 21 && rect.width < 24) // changes depending where it is run
+        expect(rect.x).toBe(15)
+        expect(rect.y).toBe(142)
 
         const selectedCheckbox = await browser.findElement('css selector', '.checkbox_selected')
         expect(await browser.isElementSelected(selectedCheckbox[ELEMENT_KEY])).toBe(true)
