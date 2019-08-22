@@ -12,12 +12,12 @@ This package is work in progress. The following commands are already supported:
 - [x] status
 - [x] getTimeouts
 - [x] setTimeouts
-- [x] getUrl
-- [x] navigateTo
-- [x] back
-- [x] forward
+- [x] [getUrl](https://www.w3.org/TR/webdriver/#get-current-url)
+- [x] [navigateTo](https://www.w3.org/TR/webdriver/#navigate-to)
+- [x] [back](https://www.w3.org/TR/webdriver/#back)
+- [x] [forward](https://www.w3.org/TR/webdriver/#forward)
 - [x] refresh
-- [x] getTitle
+- [x] [getTitle](https://www.w3.org/TR/webdriver/#get-title)
 - [x] getWindowHandle
 - [x] closeWindow
 - [x] switchToWindow
@@ -63,3 +63,11 @@ This package is work in progress. The following commands are already supported:
 - [x] sendAlertText
 - [x] takeScreenshot
 - [x] takeElementScreenshot
+
+Selector Strategies:
+
+- [x] [CSS Selector](https://www.w3.org/TR/webdriver/#css-selectors)
+- [ ] [Link Text](https://www.w3.org/TR/webdriver/#partial-link-text)
+- [ ] [Partial Link Text](https://www.w3.org/TR/webdriver/#partial-link-text)
+- [x] [Tag Name](https://www.w3.org/TR/webdriver/#tag-name)
+- [x] [XPath](https://www.w3.org/TR/webdriver/#xpath)

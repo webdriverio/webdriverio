@@ -3,6 +3,7 @@ import executeScript from './executeScript'
 import { ELEMENT_KEY } from '../constants'
 
 const SELECT_SCRIPT = 'return (function select (elem) { elem.selected = true }).apply(null, arguments)'
+const PAGELOAD_WAIT_TIMEOUT = 150
 
 export default async function elementClick ({ elementId }) {
     const page = this.windows.get(this.currentWindowHandle)
@@ -29,11 +30,27 @@ export default async function elementClick ({ elementId }) {
      * ensure to fulfill the click promise if the click has triggered an alert
      */
     return new Promise((resolve, reject) => {
+        let waitForPageLoadTimeout
+
+        /**
+         * check if page load has happened due to click
+         */
+        page.once('framenavigated', () => {
+            clearTimeout(waitForPageLoadTimeout)
+            page.once('load', () => resolve(null))
+        })
+
         const dialogHandler = () => resolve()
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
             page.removeListener('dialog', dialogHandler)
-            resolve(null)
+
+            /**
+             * wait for at least 150ms to see if a page load was triggered
+             */
+            waitForPageLoadTimeout = setTimeout(() => {
+                resolve(null)
+            }, PAGELOAD_WAIT_TIMEOUT)
         }).catch(reject)
     })
 }
