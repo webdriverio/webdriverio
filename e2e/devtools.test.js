@@ -165,6 +165,16 @@ describe('elements', () => {
         await browser.elementClear(textarea[ELEMENT_KEY])
         expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value')).toBe('')
     })
+
+    it('link text', async () => {
+        const link = await browser.findElement('link text', 'two')
+        expect(await browser.getElementText(link[ELEMENT_KEY])).toBe('two')
+    })
+
+    it('partial link text', async () => {
+        const link = await browser.findElement('partial link text', 'new tab')
+        expect(await browser.getElementText(link[ELEMENT_KEY])).toBe('open new tab')
+    })
 })
 
 describe('alerts', () => {

@@ -12,6 +12,14 @@ export default async function findElements ({ using, value }) {
 
     let needsCleanUp = false
 
+    if (using === 'link text') {
+        using = 'xpath'
+        value = `.//a[normalize-space() = "${value}"]`
+    } else if (using === 'partial link text') {
+        using = 'xpath'
+        value = `.//a[contains(., "${value}")]`
+    }
+
     /**
      * technically Puppeteer can not find elements with xPath, this is a
      * workaround where we exeucte some JS in the browser that supports xPaths

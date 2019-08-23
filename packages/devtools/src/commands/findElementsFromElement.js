@@ -18,6 +18,14 @@ export default async function findElementFromElements ({ elementId, using, value
     let needsCleanUp = false
     let result
 
+    if (using === 'link text') {
+        using = 'xpath'
+        value = `.//a[normalize-space() = "${value}"]`
+    } else if (using === 'partial link text') {
+        using = 'xpath'
+        value = `.//a[contains(., "${value}")]`
+    }
+
     if (using === 'xpath') {
         const foundElement = await elementHandle.$eval('*', findElementsByXPath, value, elementHandle, SERIALIZE_PROPERTY)
 

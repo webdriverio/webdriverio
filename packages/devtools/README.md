@@ -130,7 +130,7 @@ This package is work in progress. The following commands are already supported:
 Selector Strategies:
 
 - [x] [CSS Selector](https://w3c.github.io/webdriver/#css-selectors)
-- [ ] [Link Text](https://w3c.github.io/webdriver/#partial-link-text)
-- [ ] [Partial Link Text](https://w3c.github.io/webdriver/#partial-link-text)
+- [x] [Link Text](https://w3c.github.io/webdriver/#partial-link-text)
+- [x] [Partial Link Text](https://w3c.github.io/webdriver/#partial-link-text)
 - [x] [Tag Name](https://w3c.github.io/webdriver/#tag-name)
 - [x] [XPath](https://w3c.github.io/webdriver/#xpath)
