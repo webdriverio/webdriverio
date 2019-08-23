@@ -170,15 +170,15 @@ exports.config = {
         // del estado de la aplicación o website dependiendo del resultado de la misma. Por ejemplo, es muy práctico tomar una captura de pantalla cada vez que
         // falla una comprobación.
         expectationResultHandler: function(passed, assertion) {
-            // do something
+            // hacer algo
         },
         //
-        // Make use of Jasmine-specific grep functionality
+        // Usa la funcionalidad específica de Jasmine para grep
         grep: null,
         invertGrep: null
     },
     //
-    // If you are using Cucumber you need to specify where your step definitions are located.
+    // Si estas usando Cucumber necesitas especificar donde estan ubicados tus definiciones de pasos.
     // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
