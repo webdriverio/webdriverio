@@ -15,12 +15,12 @@ beforeAll(async () => {
     })
 })
 
-// it('should navigate to a page and get page info', async () => {
-//     await browser.navigateTo('http://guinea-pig.webdriver.io')
-//     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
-//     expect(await browser.getUrl()).toContain('http://guinea-pig.webdriver.io')
-//     expect(await browser.getPageSource()).toContain('WebdriverJS Testpage')
-// })
+it('should navigate to a page and get page info', async () => {
+    await browser.navigateTo('http://guinea-pig.webdriver.io')
+    expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
+    expect(await browser.getUrl()).toContain('http://guinea-pig.webdriver.io')
+    expect(await browser.getPageSource()).toContain('WebdriverJS Testpage')
+})
 
 describe('timeouts', () => {
     beforeAll(async () => {
@@ -310,6 +310,32 @@ describe('window handling', () => {
     })
 })
 
+describe('frames', () => {
+    beforeAll(async () => {
+        await browser.navigateTo('https://the-internet.herokuapp.com/iframe')
+    })
+
+    it('switchToFrame', async () => {
+        const getDocumentText = () => browser.executeScript(
+            'return document.documentElement.outerText',
+            []
+        )
+
+        expect(await getDocumentText())
+            .toContain('An iFrame containing the TinyMCE WYSIWYG Editor')
+        const iframe = await browser.findElement('css selector', 'iframe')
+        await browser.switchToFrame(iframe)
+
+        expect(await getDocumentText())
+            .toContain('Your content goes here.')
+    })
+
+    it('parentFrame', async () => {
+        await browser.switchToParentFrame()
+        expect(await browser.getTitle()).toBe('The Internet')
+    })
+})
+
 describe('executeScript', () => {
     beforeAll(async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
@@ -341,24 +367,6 @@ describe('executeScript', () => {
         expect(await browser.executeScript('return window.foobar', [])).toBe(42)
         await browser.refresh()
         expect(await browser.executeScript('return window.foobar', [])).toBe(undefined)
-    })
-})
-
-describe('frames', () => {
-    beforeAll(async () => {
-        await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
-    })
-
-    it('switchToFrame', async () => {
-        expect(await browser.getTitle()).toBe('two')
-        const iframe = await browser.findElement('css selector', 'iframe')
-        await browser.switchToFrame(iframe)
-        expect(await browser.getTitle()).toBe('Light Bikes from Eric Corriel on Vimeo')
-    })
-
-    it('parentFrame', async () => {
-        await browser.switchToParentFrame()
-        expect(await browser.getTitle()).toBe('two')
     })
 })
 

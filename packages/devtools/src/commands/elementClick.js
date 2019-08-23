@@ -6,7 +6,7 @@ const SELECT_SCRIPT = 'return (function select (elem) { elem.selected = true }).
 const PAGELOAD_WAIT_TIMEOUT = 150
 
 export default async function elementClick ({ elementId }) {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {

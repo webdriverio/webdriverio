@@ -1,4 +1,4 @@
 export default function getPageSource () {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     return page.content()
 }

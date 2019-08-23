@@ -3,7 +3,7 @@ import { transformExecuteArgs, transformExecuteResult } from '../utils'
 import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'
 
 export default async function executeScript ({ script, args }) {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     const scriptTimeout = this.timeouts.get('script')
 
     const executePromise = page.$eval(

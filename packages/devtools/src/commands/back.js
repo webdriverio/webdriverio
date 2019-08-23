@@ -1,5 +1,5 @@
 export default async function back () {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     await page.goBack()
     return null
 }

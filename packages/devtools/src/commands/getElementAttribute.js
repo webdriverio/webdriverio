@@ -7,6 +7,6 @@ export default async function getElementAttribute ({ elementId, name }) {
         throw new Error(`Couldn't find element with id ${elementId} in cache`)
     }
 
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     return page.$eval('html', command, elementHandle, name)
 }

@@ -8,7 +8,7 @@ export default async function findElement ({ using, value }) {
         throw new Error(`selector strategy "${using}" is not yet supported`)
     }
 
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     let needsCleanUp = false
 
     if (using === 'xpath') {

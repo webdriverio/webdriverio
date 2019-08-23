@@ -8,7 +8,7 @@ export default async function findElementFromElements ({ elementId, using, value
         throw new Error(`selector strategy "${using}" is not yet supported`)
     }
 
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
