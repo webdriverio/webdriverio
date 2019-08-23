@@ -134,6 +134,6 @@ test('getPageHandle', () => {
     driver.windows = { get: jest.fn().mockReturnValue('foobar') }
     expect(driver.getPageHandle()).toBe('foobar')
 
-    this.currentFrame = 'barfoo'
+    driver.currentFrame = 'barfoo'
     expect(driver.getPageHandle()).toBe('barfoo')
 })
