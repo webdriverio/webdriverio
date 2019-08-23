@@ -67,7 +67,7 @@
     "eslint": "^6.0.0",
     "eslint-plugin-import": "^2.16.0",
     "husky": "^2.3.0",
-    "inquirer": "^6.2.2",
+    "inquirer": "^7.0.0",
     "jest": "^24.5.0",
     "lerna": "^3.13.1",
     "lerna-changelog": "^0.8.2",
