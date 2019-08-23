@@ -15,11 +15,55 @@ beforeAll(async () => {
     })
 })
 
-it('should navigate to a page and get page info', async () => {
-    await browser.navigateTo('http://guinea-pig.webdriver.io')
-    expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
-    expect(await browser.getUrl()).toContain('http://guinea-pig.webdriver.io')
-    expect(await browser.getPageSource()).toContain('WebdriverJS Testpage')
+// it('should navigate to a page and get page info', async () => {
+//     await browser.navigateTo('http://guinea-pig.webdriver.io')
+//     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
+//     expect(await browser.getUrl()).toContain('http://guinea-pig.webdriver.io')
+//     expect(await browser.getPageSource()).toContain('WebdriverJS Testpage')
+// })
+
+describe('timeouts', () => {
+    beforeAll(async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io')
+    })
+
+    it('getTimeouts', async () => {
+        expect(await browser.getTimeouts()).toEqual({
+            implicit: 0,
+            pageLoad: 300000,
+            script: 30000
+        })
+    })
+
+    it('setTimeouts', async () => {
+        await browser.setTimeouts(1, 2, 3)
+        expect(await browser.getTimeouts()).toEqual({
+            implicit: 1,
+            pageLoad: 2,
+            script: 3
+        })
+    })
+
+    it('test script timeout', async () => {
+        expect.assertions(2)
+
+        const asyncCommand = () => browser.executeAsyncScript(
+            'return setTimeout(() => arguments[2](document.title + \' \' + arguments[0] + arguments[1]), 100)',
+            ['Test', '!'])
+
+        try {
+            await asyncCommand()
+        } catch (e) {
+            expect(e.message).toBe('Evaluation failed: script timeout')
+        }
+
+        await browser.setTimeouts(0, 1000, 300)
+        expect(await asyncCommand()).toBe('WebdriverJS Testpage Test!')
+    })
+
+    afterAll(async () => {
+        await browser.setTimeouts(0, 300000, 300000)
+    })
 })
 
 describe('elements', () => {
