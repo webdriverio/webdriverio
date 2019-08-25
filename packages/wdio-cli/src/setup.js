@@ -6,24 +6,36 @@ import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
 import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
-import { getNpmPackageName, getPackageName, addServiceDeps } from './utils'
+import { addServiceDeps, convertPackageHashToObject } from './utils'
 
 /* istanbul ignore next */
 export default async function setup (exit = true) {
     try {
         console.log(CONFIG_HELPER_INTRO)
         const answers = await inquirer.prompt(QUESTIONNAIRE)
+
+        const packageAnswers = ['reporters', 'runner', 'services', 'framework']
+
+        Object.keys(answers).forEach((key) => {
+            if (packageAnswers.includes(key)) {
+                if (Array.isArray(answers[key])) {
+                    answers[key] = answers[key].map(answer => convertPackageHashToObject(answer))
+                } else {
+                    answers[key] = convertPackageHashToObject(answers[key])
+                }
+            }
+        })
+
         const packagesToInstall = [
-            getNpmPackageName(answers.runner),
-            getNpmPackageName(answers.framework),
-            ...answers.reporters.map(getNpmPackageName),
-            ...answers.services.map(getNpmPackageName)
+            answers.runner.package,
+            answers.framework.package,
+            ...answers.reporters.map(reporter => reporter.package),
+            ...answers.services.map(service => service.package)
         ]
 
         if (answers.executionMode === 'sync') {
             packagesToInstall.push('@wdio/sync')
         }
-
         // add packages that are required by services
         addServiceDeps(answers.services, packagesToInstall)
 
@@ -36,12 +48,15 @@ export default async function setup (exit = true) {
 
         const parsedAnswers = {
             ...answers,
-            runner: getPackageName(answers.runner),
-            framework: getPackageName(answers.framework),
-            reporters: answers.reporters.map(getPackageName),
-            services: answers.services.map(getPackageName),
+            runner: answers.runner.short,
+            framework: answers.framework.short,
+            reporters: answers.reporters.map(({ short }) => short),
+            services: answers.services.map(({ short }) => short),
             packagesToInstall
         }
+
+        console.log('\n answers', answers)
+        console.log('\n parsedAnswers', parsedAnswers)
 
         renderConfigurationFile(parsedAnswers)
 

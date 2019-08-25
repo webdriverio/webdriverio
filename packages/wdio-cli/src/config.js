@@ -1,41 +1,4 @@
-export const SUPPORTED_FRAMEWORKS = [
-    ' mocha - https://www.npmjs.com/package/@wdio/mocha-framework',
-    ' jasmine - https://www.npmjs.com/package/@wdio/jasmine-framework',
-    ' cucumber - https://www.npmjs.com/package/@wdio/cucumber-framework'
-]
-
-export const SUPPORTED_REPORTER = [
-    ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
-    ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
-    ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
-    ' allure - https://www.npmjs.com/package/@wdio/allure-reporter',
-    ' sumologic - https://www.npmjs.com/package/@wdio/sumologic-reporter',
-    ' concise - https://www.npmjs.com/package/@wdio/concise-reporter',
-    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-reporter',
-    ' video - https://www.npmjs.com/package/wdio-video-reporter',
-    ' html - https://www.npmjs.com/package/@rpii/wdio-html-reporter',
-    ' json - https://www.npmjs.com/package/wdio-json-reporter',
-    ' cucumberjs-json - https://www.npmjs.com/package/wdio-cucumberjs-json-reporter',
-    ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
-    ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter',
-]
-
-export const SUPPORTED_SERVICES = [
-    ' sauce - https://www.npmjs.com/package/@wdio/sauce-service',
-    ' testingbot - https://www.npmjs.com/package/@wdio/testingbot-service',
-    ' selenium-standalone - https://www.npmjs.com/package/@wdio/selenium-standalone-service',
-    ' chromedriver - https://www.npmjs.com/package/wdio-chromedriver-service',
-    ' devtools - https://www.npmjs.com/package/@wdio/devtools-service',
-    ' applitools - https://www.npmjs.com/package/@wdio/applitools-service',
-    ' browserstack - https://www.npmjs.com/package/@wdio/browserstack-service',
-    ' crossbrowsertesting - https://www.npmjs.com/package/wdio-crossbrowsertesting-service',
-    ' appium - https://www.npmjs.com/package/@wdio/appium-service',
-    ' intercept - https://www.npmjs.com/package/wdio-intercept-service',
-    ' zafira-listener - https://www.npmjs.com/package/wdio-zafira-listener-service',
-    ' reportportal - https://www.npmjs.com/package/wdio-reportportal-service',
-    ' docker - https://www.npmjs.com/package/wdio-docker-service',
-    ' firefox-profile - https://www.npmjs.com/package/@wdio/firefox-profile-service'
-]
+import { supportedPackages } from './supportedPackages'
 
 export const EXCLUSIVE_SERVICES = {
     'wdio-chromedriver-service': {
@@ -162,7 +125,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
     message: 'Where should your tests be launched?',
-    choices: SUPPORTED_RUNNERS,
+    choices: supportedPackages.runner,
 }, {
     type: 'list',
     name: 'backend',
@@ -245,7 +208,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'framework',
     message: 'Which framework do you want to use?',
-    choices: SUPPORTED_FRAMEWORKS,
+    choices: supportedPackages.framework,
 }, {
     type: 'list',
     name: 'executionMode',
@@ -276,14 +239,14 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'reporters',
     message: 'Which reporter do you want to use?',
-    choices: SUPPORTED_REPORTER,
-    default: SUPPORTED_REPORTER.filter(reporter => reporter.includes('spec-reporter'))
+    choices: supportedPackages.reporter,
+    default: [supportedPackages.reporter.find(({ name }) => name === 'spec').value]
 }, {
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
-    choices: SUPPORTED_SERVICES,
-    default: SUPPORTED_SERVICES.filter(service => service.includes('wdio-chromedriver-service')),
+    choices: supportedPackages.service,
+    default: [supportedPackages.service.find(({ name }) => name === 'chromedriver').value],
     validate: (answers) => {
         let result = true
 

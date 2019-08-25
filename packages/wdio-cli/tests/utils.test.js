@@ -3,13 +3,12 @@ import * as childProcess from 'child_process'
 import {
     runOnPrepareHook,
     runOnCompleteHook,
-    getNpmPackageName,
     runServiceHook,
     getRunnerName,
-    parseInstallNameAndPackage,
     findInConfig,
     replaceConfig,
-    addServiceDeps
+    addServiceDeps,
+    convertPackageHashToObject
 } from '../src/utils'
 
 jest.mock('child_process', function () {
@@ -19,23 +18,8 @@ jest.mock('child_process', function () {
     }
     return m
 })
-global.console.log = jest.fn()
 
-test('getNpmPackageName', () => {
-    const reporters = [
-        ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
-        ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
-        ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
-        ' random - https://www.npmjs.com/package/wdio-random-reporter'
-    ]
-    expect(getNpmPackageName(reporters)).toEqual([
-        '@wdio/dot-reporter',
-        '@wdio/spec-reporter',
-        '@wdio/junit-reporter',
-        'wdio-random-reporter'
-    ])
-    expect(getNpmPackageName(' mocha - https://www.npmjs.com/package/wdio-mocha-framework')).toEqual('wdio-mocha-framework')
-})
+global.console.log = jest.fn()
 
 test('runServiceHook', () => {
     const hookSuccess = jest.fn()
@@ -131,19 +115,6 @@ test('getRunnerName', () => {
     expect(getRunnerName({ foo: {} })).toBe('undefined')
     expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe('undefined')
     expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
-})
-
-test('parseInstallNameAndPackage', () => {
-    const reporters = [
-        ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
-        ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
-        ' random - https://www.npmjs.com/package/wdio-random-reporter'
-    ]
-    expect(parseInstallNameAndPackage(reporters)).toEqual({
-        dot: '@wdio/dot-reporter',
-        spec: '@wdio/spec-reporter',
-        random: 'wdio-random-reporter'
-    })
 })
 
 describe('findInConfig', () => {
@@ -246,5 +217,21 @@ describe('addServiceDeps', () => {
 
     afterEach(() => {
         global.console.log.mockClear()
+    })
+})
+
+describe('convertPackageHashToObject', () => {
+    it('works with default `$--$` hash', () => {
+        expect(convertPackageHashToObject('test/package-name$--$package-name')).toMatchObject({
+            package: 'test/package-name',
+            short: 'package-name'
+        })
+    })
+
+    it('works with custom hash', () => {
+        expect(convertPackageHashToObject('test/package-name##-##package-name', '##-##')).toMatchObject({
+            package: 'test/package-name',
+            short: 'package-name'
+        })
     })
 })

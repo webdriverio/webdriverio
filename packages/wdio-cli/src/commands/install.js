@@ -3,22 +3,20 @@ import fs from 'fs'
 import path from 'path'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
-/**
-    wdio install <type> <packageName>
- */
+
 import setup from '../setup'
-import { SUPPORTED_SERVICES, SUPPORTED_REPORTER, SUPPORTED_FRAMEWORKS } from '../config'
 import {
-    parseInstallNameAndPackage,
     replaceConfig,
     findInConfig,
-    addServiceDeps
+    addServiceDeps,
+    convertPackageHashToObject
 } from '../utils'
+import { supportedPackages } from './../supportedPackages'
 
 const supportedInstallations = {
-    service: parseInstallNameAndPackage(SUPPORTED_SERVICES),
-    reporter: parseInstallNameAndPackage(SUPPORTED_REPORTER),
-    framework: parseInstallNameAndPackage(SUPPORTED_FRAMEWORKS)
+    service: supportedPackages.service.map(({ value }) => convertPackageHashToObject(value)),
+    reporter: supportedPackages.reporter.map(({ value }) => convertPackageHashToObject(value)),
+    framework: supportedPackages.framework.map(({ value }) => convertPackageHashToObject(value))
 }
 
 export const command = 'install <type> <name>'
@@ -49,7 +47,7 @@ export async function handler(argv) {
     }
 
     // verify if the name of the `type` is valid
-    if (!Object.keys(supportedInstallations[type]).includes(name)) {
+    if (!supportedInstallations[type].find(pkg => pkg.short === name)) {
         console.log(`${name} is not a supported ${type}.`)
         process.exit(0)
         return
@@ -81,7 +79,9 @@ You can create one by running 'wdio config'`)
             process.exit(1)
         }
     }
+
     const configFile = fs.readFileSync(localConfPath, { encoding: 'UTF-8' })
+
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
@@ -90,18 +90,20 @@ You can create one by running 'wdio config'`)
         return
     }
 
-    const pkgNames = [supportedInstallations[type][name]]
-    addServiceDeps(pkgNames, pkgNames, true)
-    console.log(`Installing ${pkgNames}${npm ? ' using npm.' : '.'}`)
-    const install = yarnInstall({ deps: pkgNames, dev: true, respectNpm5: npm })
+    const selectedPackage = supportedInstallations[type].find(({ short }) => short === name)
+    const pkgsToInstall = [selectedPackage.package]
+
+    addServiceDeps([selectedPackage], pkgsToInstall, true)
+
+    console.log(`Installing "${selectedPackage.package}"${npm ? ' using npm.' : '.'}`)
+    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: npm })
 
     if (install.status !== 0) {
         console.error('Error installing packages', install.stderr)
         process.exit(1)
     }
 
-    console.log(`Package ${pkgNames} installed successfully.`)
-    console.log('Updating wdio.conf.js file.')
+    console.log(`Package "${selectedPackage.package}" installed successfully.`)
 
     const newConfig = replaceConfig(configFile, type, name)
 
