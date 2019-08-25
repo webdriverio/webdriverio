@@ -181,7 +181,7 @@ describe('replaceConfig', () => {
 describe('addServiceDeps', () => {
     it('should add appium', () => {
         const packages = []
-        addServiceDeps(['@wdio/appium-service'], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual(['appium'])
         expect(global.console.log).not.toBeCalled()
     })
@@ -189,28 +189,28 @@ describe('addServiceDeps', () => {
     it('should not add appium if globally installed', () => {
         childProcess.default.execSyncRes = '1.13.0'
         const packages = []
-        addServiceDeps(['@wdio/appium-service'], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual([])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add appium and print message if update and appium globally installed', () => {
         const packages = []
-        addServiceDeps(['@wdio/appium-service'], packages, true)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages, true)
         expect(packages).toEqual([])
         expect(global.console.log).toBeCalled()
     })
 
     it('should add chromedriver', () => {
         const packages = []
-        addServiceDeps(['wdio-chromedriver-service'], packages)
+        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add chromedriver and print message if update', () => {
         const packages = []
-        addServiceDeps(['wdio-chromedriver-service'], packages, true)
+        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages, true)
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).toBeCalled()
     })
