@@ -73,51 +73,49 @@ export default class CrossBrowserTestingService {
     }
 
     /**
+     * For CucumberJS
+     */
+
+    /**
      * Before feature
-     * @param {Object} feature Feature
+     * @param {string} uri
+     * @param {Object} feature
      */
     beforeFeature (uri, feature) {
         if (!this.isServiceEnabled) {
             return
         }
 
-        this.suiteTitle = feature.name || feature.getName()
+        this.suiteTitle = feature.document.feature.name
         global.browser.execute('cbt:test-context=Feature: ' + this.suiteTitle)
     }
 
     /**
-     * After step
-     * @param {Object} feature Feature
-     */
-    afterStep (uri, feature) {
-        if (
-            /**
-             * Cucumber v1
-             */
-            feature.failureException ||
-            /**
-             * Cucumber v2
-             */
-            (typeof feature.getFailureException === 'function' && feature.getFailureException()) ||
-            /**
-             * Cucumber v3, v4
-             */
-            (feature.status === 'failed')
-        ) {
-            ++this.failures
-        }
-    }
-
-    /**
      * Before scenario
-     * @param {Object} scenario Scenario
+     * @param {string} uri
+     * @param {Object} feature
+     * @param {Object} scenario
      */
     beforeScenario (uri, feature, scenario) {
         if (!this.isServiceEnabled) {
             return
         }
-        const scenarioName = scenario.name || scenario.getName()
+
+        const scenarioName = scenario.name
         global.browser.execute('cbt:test-context=Scenario: ' + scenarioName)
+    }
+
+    /**
+     * After step
+     * @param {string} uri
+     * @param {Object} feature
+     * @param {Object} pickle
+     * @param {Object} result
+     */
+    afterScenario(uri, feature, pickle, result) {
+        if (result.status === 'failed') {
+            ++this.failures
+        }
     }
 
     /**
