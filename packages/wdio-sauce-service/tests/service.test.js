@@ -12,7 +12,26 @@ global.browser = {
 }
 
 const uri = '/some/uri'
-const feature = { some: 'feature' }
+const featureObject = {
+    type: 'gherkin-document',
+    uri: '__tests__/features/passed.feature',
+    document:
+        {
+            type: 'GherkinDocument',
+            feature:
+                {
+                    type: 'Feature',
+                    tags: ['tag'],
+                    location: ['Object'],
+                    language: 'en',
+                    keyword: 'Feature',
+                    name: 'Create a feature',
+                    description: '    the description',
+                    children: [''],
+                },
+            comments: []
+        }
+}
 
 test('beforeSuite', () => {
     const service = new SauceService()
@@ -104,26 +123,6 @@ test('afterTest', () => {
     expect(service.failures).toBe(1)
 })
 
-const featureObject = {
-    type: 'gherkin-document',
-    uri: '__tests__/features/passed.feature',
-    document:
-        {
-            type: 'GherkinDocument',
-            feature:
-                {
-                    type: 'Feature',
-                    tags: ['tag'],
-                    location: ['Object'],
-                    language: 'en',
-                    keyword: 'Feature',
-                    name: 'Create a feature',
-                    description: '    the description',
-                    children: [''],
-                },
-            comments: []
-        }
-}
 test('beforeFeature should set context', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
@@ -167,21 +166,21 @@ test('afterScenario', () => {
 test('beforeScenario should set context', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
-    service.beforeScenario(uri, feature, { name: 'foobar' })
+    service.beforeScenario(uri, featureObject, { name: 'foobar' })
     expect(global.browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('beforeScenario should not set context if RDC test', () => {
     const rdcService = new SauceService()
     rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
-    rdcService.beforeScenario(uri, feature, { name: 'foobar' })
+    rdcService.beforeScenario(uri, featureObject, { name: 'foobar' })
     expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('beforeScenario should not set context if no sauce user was applied', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
-    service.beforeScenario(uri, feature, { name: 'foobar' })
+    service.beforeScenario(uri, featureObject, { name: 'foobar' })
     expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
