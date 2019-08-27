@@ -4,8 +4,8 @@
  * here
  */
 module.exports = class CustomService {
-    constructor (options) {
-        console.log('custom service options:', options)
+    constructor (config) {
+        console.log('custom service options:', config.someOption)
     }
     onPrepare () {
         console.log('execute onPrepare(config, capabilities)')
