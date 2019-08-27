@@ -34,5 +34,11 @@
     "title": "Timeline",
     "githubUrl": "https://github.com/QualityOps/wdio-timeline-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-timeline-reporter"
+  },
+  {
+    "packageName": "wdio-cucumberjs-json-reporter",
+    "title": "CucumberJS JSON",
+    "githubUrl": "https://github.com/wswebcreation/wdio-cucumberjs-json-reporter",
+    "npmUrl": "https://nodei.co/npm/wdio-cucumberjs-json-reporter"
   }
 ]

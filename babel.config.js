@@ -8,7 +8,6 @@ module.exports = {
     ],
     plugins: [
         '@babel/plugin-proposal-function-bind',
-        '@babel/plugin-proposal-export-default-from',
         '@babel/plugin-proposal-class-properties',
         '@babel/plugin-proposal-optional-catch-binding'
     ],
@@ -17,5 +16,6 @@ module.exports = {
             sourceMaps: 'inline',
             plugins: ['source-map-support']
         }
-    }
+    },
+    comments: false
 }

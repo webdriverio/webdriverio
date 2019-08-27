@@ -15,6 +15,219 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.12.4 (2019-08-21)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`
+  * [#4386](https://github.com/webdriverio/webdriverio/pull/4386) Fix process exit code ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#4382](https://github.com/webdriverio/webdriverio/pull/4382) wdio-cli: configure allure reporter with wdio cli ([@marcelblijleven](https://github.com/marcelblijleven))
+
+#### :house: Internal
+* `webdriverio`
+  * [#4389](https://github.com/webdriverio/webdriverio/pull/4389) webdriverio: bump resq version to 1.6 ([@baruchvlz](https://github.com/baruchvlz))
+
+#### Committers: 3
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Marcel Blijleven ([@marcelblijleven](https://github.com/marcelblijleven))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.12.3 (2019-08-18)
+
+#### :bug: Bug Fix
+* `wdio-applitools-service`, `wdio-devtools-service`, `wdio-junit-reporter`, `wdio-sync`
+  * [#4365](https://github.com/webdriverio/webdriverio/pull/4365) use `optionalDependencies` instead of `postinstall` for `fibers ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#4367](https://github.com/webdriverio/webdriverio/pull/4367) Fix user hooks in sync mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.12.2 (2019-08-16)
+
+#### :rocket: New Feature
+* `wdio-applitools-service`
+  * [#4358](https://github.com/webdriverio/webdriverio/pull/4358) Updated to add command to take region snapshot ([@crutledgejr](https://github.com/crutledgejr))
+
+#### :bug: Bug Fix
+* `wdio-crossbrowsertesting-service`
+  * [#4363](https://github.com/webdriverio/webdriverio/pull/4363) wdio-crossbrowsertesting-service: Pass along `cbtTunnelOpts` to `cbtTunnels.start()` ([@davidcochrum](https://github.com/davidcochrum))
+
+#### Committers: 2
+- Colston Rutledge, Jr. ([@crutledgejr](https://github.com/crutledgejr))
+- David Cochrum ([@davidcochrum](https://github.com/davidcochrum))
+
+## v5.12.1 (2019-08-14)
+
+#### :eyeglasses: Spec Compliancy
+* `webdriver`
+  * [#4359](https://github.com/webdriverio/webdriverio/pull/4359) add execute driver support ([@jlipps](https://github.com/jlipps))
+
+#### :boom: Breaking Change
+* `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#4360](https://github.com/webdriverio/webdriverio/pull/4360) Proposal: change minimum node version to 8 ([@mgrybyk](https://github.com/mgrybyk))
+  * Post Mortem for this: https://gist.github.com/christian-bromann/1b6245c04b894b5b989accdc90eb250d
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#4288](https://github.com/webdriverio/webdriverio/pull/4288) Cucumber sync hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-local-runner`
+  * [#4332](https://github.com/webdriverio/webdriverio/pull/4332) End process normally ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.12.0 (2019-08-13)
+
+#### :nail_care: Polish
+* `wdio-sync`
+  * [#4325](https://github.com/webdriverio/webdriverio/pull/4325) Fix stacktrace formatting ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#4356](https://github.com/webdriverio/webdriverio/pull/4356) Update minimum node version requirement to Node 10 ([@patthiel](https://github.com/patthiel))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Pat Thiel ([@patthiel](https://github.com/patthiel))
+
+## v5.11.14 (2019-08-12)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4342](https://github.com/webdriverio/webdriverio/pull/4342) Fix getting scroll position in IE11 ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-devtools-service`
+  * [#4350](https://github.com/webdriverio/webdriverio/pull/4350) Devtools service: fix timeToFirstByte ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-browserstack-service`
+  * [#4316](https://github.com/webdriverio/webdriverio/pull/4316) browserstack-service: fix 404 error for app test ([@jayrepo](https://github.com/jayrepo))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#4309](https://github.com/webdriverio/webdriverio/pull/4309) @wdio/allure-reporter: Skip reporting of passing hooks with option useCucumberStepReporter ([@Kignuf](https://github.com/Kignuf))
+
+#### :memo: Documentation
+* Other
+  * [#4327](https://github.com/webdriverio/webdriverio/pull/4327) Add JS boilerplate with closure functions ([@luuizeduardo](https://github.com/luuizeduardo))
+  * [#4313](https://github.com/webdriverio/webdriverio/pull/4313) types: Add types for w3c capabilities of cloud services ([@jayrepo](https://github.com/jayrepo))
+* `webdriverio`
+  * [#4334](https://github.com/webdriverio/webdriverio/pull/4334) Fix type generation for browser.uploadFile ([@johnathafelix](https://github.com/johnathafelix))
+
+#### Committers: 6
+- Jay Chen ([@JieC](https://github.com/JieC))
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Luiz Eduardo Martins ([@luuizeduardo](https://github.com/luuizeduardo))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@johnathafelix](https://github.com/johnathafelix)
+
+## v5.11.13 (2019-08-05)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#4299](https://github.com/webdriverio/webdriverio/pull/4299) Fix chrome getLogs and getLogTypes ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-devtools-service`
+  * [#4295](https://github.com/webdriverio/webdriverio/pull/4295) devtools-service: fix tracing ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4296](https://github.com/webdriverio/webdriverio/pull/4296) devtools-service: onFrameNavigated - do nothing if tracing is not started ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#4302](https://github.com/webdriverio/webdriverio/pull/4302) Make dragAndDrop respect scroll position ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4308](https://github.com/webdriverio/webdriverio/pull/4308) Fix for async mode in wdio-sync ([@SanthoshBonala](https://github.com/SanthoshBonala))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#4300](https://github.com/webdriverio/webdriverio/pull/4300) TypeScript: add elementId as parameter to protocol commands with variable ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@SanthoshBonala](https://github.com/SanthoshBonala)
+
+## v5.11.12 (2019-08-01)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4290](https://github.com/webdriverio/webdriverio/pull/4290) Support multiple tables in scenario outline ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#4285](https://github.com/webdriverio/webdriverio/pull/4285) Add types for Cucumber hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#4283](https://github.com/webdriverio/webdriverio/pull/4283) Encode uri params ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* [#4281](https://github.com/webdriverio/webdriverio/pull/4281) Speedup internal tests ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.11.11 (2019-07-30)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4276](https://github.com/webdriverio/webdriverio/pull/4276) Use index when refetching element ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4269](https://github.com/webdriverio/webdriverio/pull/4269) Fix waitUntil first iteration is promise ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4261](https://github.com/webdriverio/webdriverio/pull/4261) typings: add isChrome's type dsl. ([@aha-oretama](https://github.com/aha-oretama))
+* [#4260](https://github.com/webdriverio/webdriverio/pull/4260) Fix FirefoxOptions prefs type to optional ([@tadashi0713](https://github.com/tadashi0713))
+
+#### Committers: 3
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Tadashi Nemoto ([@tadashi0713](https://github.com/tadashi0713))
+- aha-oretama ([@aha-oretama](https://github.com/aha-oretama))
+
+## v5.11.10 (2019-07-26)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `wdio-webdriver-mock-service`
+  * [#4256](https://github.com/webdriverio/webdriverio/pull/4256) Fix element chaining in async mode ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4255](https://github.com/webdriverio/webdriverio/pull/4255) Fix debug command in async mode ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriver`
+  * [#4252](https://github.com/webdriverio/webdriverio/pull/4252) webdriver: truncate screen recording log #4251 ([@mooyoul](https://github.com/mooyoul))
+
+#### :nail_care: Polish
+* `wdio-firefox-profile-service`
+  * [#4250](https://github.com/webdriverio/webdriverio/pull/4250) introduce profileDirectory option in wdio-firefox-profile-service ([@Unichron](https://github.com/Unichron))
+
+#### Committers: 3
+- MooYeol Prescott Lee ([@mooyoul](https://github.com/mooyoul))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@Unichron](https://github.com/Unichron)
+
+## v5.11.9 (2019-07-24)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `wdio-webdriver-mock-service`
+  * [#4249](https://github.com/webdriverio/webdriverio/pull/4249) Fix commands error handling in sync mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4247](https://github.com/webdriverio/webdriverio/pull/4247) webdriver: add prefs to ChromeOptions typings ([@klamping](https://github.com/klamping))
+
+#### Committers: 2
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+## v5.11.8 (2019-07-24)
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#4239](https://github.com/webdriverio/webdriverio/pull/4239) Cucumber: add result argument to afterScenario hook ([@Kignuf](https://github.com/Kignuf))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#4243](https://github.com/webdriverio/webdriverio/pull/4243) Feat/add cucumberjs json ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :house: Internal
+* [#4237](https://github.com/webdriverio/webdriverio/pull/4237) speedup build, clean, bootstrap ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.11.7 (2019-07-23)
 
 #### :eyeglasses: Spec Compliancy

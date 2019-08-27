@@ -15,6 +15,7 @@ export const SUPPORTED_REPORTER = [
     ' video - https://www.npmjs.com/package/wdio-video-reporter',
     ' html - https://www.npmjs.com/package/@rpii/wdio-html-reporter',
     ' json - https://www.npmjs.com/package/wdio-json-reporter',
+    ' cucumberjs-json - https://www.npmjs.com/package/wdio-cucumberjs-json-reporter',
     ' mochawesome - https://www.npmjs.com/package/wdio-mochawesome-reporter',
     ' timeline - https://www.npmjs.com/package/wdio-timeline-reporter',
 ]
@@ -156,6 +157,7 @@ export const CLI_PARAMS = [{
     description: 'Cucumber options'
 }]
 
+/* istanbul ignore next */
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',

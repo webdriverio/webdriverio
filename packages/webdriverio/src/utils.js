@@ -352,3 +352,11 @@ export function validateUrl (url, origError) {
         return validateUrl(`http://${url}`, e)
     }
 }
+
+/**
+ * get window's scrollX and scrollY
+ * @param {object} scope
+ */
+export function getScrollPosition (scope) {
+    return getBrowserObject(scope).execute('return { scrollX: this.pageXOffset, scrollY: this.pageYOffset };')
+}

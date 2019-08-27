@@ -64,7 +64,7 @@ export default function (method, endpointUri, commandInfo) {
              * inject url variables
              */
             if (i < variables.length) {
-                endpoint = endpoint.replace(`:${commandParams[i].name}`, arg)
+                endpoint = endpoint.replace(`:${commandParams[i].name}`, encodeURIComponent(encodeURIComponent(arg)))
                 continue
             }
 
@@ -79,7 +79,7 @@ export default function (method, endpointUri, commandInfo) {
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
             if (result.value != null) {
-                log.info('RESULT', command.toLowerCase().includes('screenshot')
+                log.info('RESULT', /screenshot|recording/i.test(command)
                     && typeof result.value === 'string' && result.value.length > 64
                     ? `${result.value.substr(0, 61)}...` : result.value)
             }

@@ -414,5 +414,36 @@
         "description": "The base64-encoded PNG image data comprising the screenshot of the visible region of an element’s bounding rectangle after it has been scrolled into view."
       }
     }
+  },
+  "/session/:sessionId/se/log/types": {
+    "GET": {
+      "command": "getLogTypes",
+      "description": "Get available log types.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlogtypes",
+      "parameters": [],
+      "returns": {
+        "type": "String[]",
+        "name": "logTypes",
+        "description": "The list of available log types, example: browser, driver."
+      }
+    }
+  },
+  "/session/:sessionId/se/log": {
+    "POST": {
+      "command": "getLogs",
+      "description": "Get the log for a given log type. Log buffer is reset after each request.",
+      "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlog",
+      "parameters": [{
+        "name": "type",
+        "type": "string",
+        "description": "the log type",
+        "required": true
+      }],
+      "returns": {
+        "type": "Object[]",
+        "name": "logs",
+        "description": "The list of log entries."
+      }
+    }
   }
 }

@@ -3,7 +3,7 @@ const copyfiles = require('copyfiles')
 const path = require('path')
 
 // TypeScript project root for testing particular typings
-const outDirs = ['sync', 'sync-mocha', 'sync-jasmine', 'webdriverio', 'webdriverio-mocha', 'webdriverio-jasmine']
+const outDirs = ['sync', 'sync-mocha', 'sync-jasmine', 'webdriverio', 'webdriverio-mocha', 'webdriverio-jasmine', 'sync-cucumber']
 
 const packages = {
     'webdriver': 'packages/webdriver',
@@ -13,6 +13,9 @@ const packages = {
 
     '@types/mocha': 'packages/wdio-mocha-framework/node_modules/@types/mocha',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
+
+    '@types/cucumber': 'packages/wdio-cucumber-framework/node_modules/@types/cucumber',
+    '@wdio/cucumber-framework': 'packages/wdio-cucumber-framework',
 
     '@types/jasmine': 'packages/wdio-jasmine-framework/node_modules/@types/jasmine',
     '@types/jasmine/ts3.1': 'packages/wdio-jasmine-framework/node_modules/@types/jasmine/ts3.1',

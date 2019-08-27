@@ -85,6 +85,16 @@ describe('command wrapper', () => {
         expect(customParam).toBe(123)
         requestMock.mockClear()
     })
+
+    it('should encode uri parameters', () => {
+        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const requestMock = require('../src/request')
+        commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        const [, endpoint] = requestMock.mock.calls[0]
+        expect(endpoint).toBe('/session/:sessionId/element/%252Fpath/element')
+        requestMock.mockClear()
+    })
 })
 
 describe('command wrapper result log', () => {
@@ -121,6 +131,22 @@ describe('command wrapper result log', () => {
         command: {
             ...takeScreenshotCmd,
             command: 'takeElementScreenshot'
+        },
+        value: 'f'.repeat(123),
+        log: 'f'.repeat(61) + '...'
+    }, {
+        title: 'truncate long string value',
+        command: {
+            ...takeScreenshotCmd,
+            command: 'startRecordingScreen'
+        },
+        value: 'f'.repeat(123),
+        log: 'f'.repeat(61) + '...'
+    }, {
+        title: 'truncate long string value',
+        command: {
+            ...takeScreenshotCmd,
+            command: 'stopRecordingScreen'
         },
         value: 'f'.repeat(123),
         log: 'f'.repeat(61) + '...'

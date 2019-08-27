@@ -10,6 +10,38 @@ describe('Mocha smoke test', () => {
         assert($('elem').waitForDisplayed(), true)
     })
 
+    it('should work fine after catching an error', () => {
+        browser.clickScenario()
+
+        let err
+        try {
+            browser.getAlertText()
+        } catch (e) {
+            err = e
+        }
+
+        $('elem').click()
+        assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
+    })
+
+    it('should chain properly', () => {
+        browser.isExistingScenario()
+
+        const el = browser.$('body')
+        assert.equal(el.$('.selector-1').isExisting(), true)
+        assert.equal(el.$('.selector-2').isExisting(), true)
+    })
+
+    it('should handle promises in waitUntil callback funciton', () => {
+        const results = []
+        const result = browser.waitUntil(() => {
+            results.push(browser.getUrl())
+            return results.length > 1
+        })
+        assert.strictEqual(result, true)
+        assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
+    })
+
     describe('middleware', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()
@@ -112,6 +144,7 @@ describe('Mocha smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'Boom!')
+            assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
         })
 
         it('allows to create custom commands on elements that respects promises', () => {
@@ -209,6 +242,7 @@ describe('Mocha smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'deleteAllCookies')
+            assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
         })
     })
 })

@@ -99,7 +99,7 @@ export default class Auditor {
         const metrics = result.details.items[0] || {}
         return {
             estimatedInputLatency: metrics.estimatedInputLatency,
-            timeToFirstByte: Math.round(timeToFirstByte.rawValue, 10),
+            timeToFirstByte: Math.round(timeToFirstByte.numericValue, 10),
             domContentLoaded: metrics.observedDomContentLoaded,
             firstVisualChange: metrics.observedFirstVisualChange,
             firstPaint: metrics.observedFirstPaint,
