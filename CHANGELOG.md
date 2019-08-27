@@ -15,6 +15,18 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.12.5 (2019-08-27)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#4393](https://github.com/webdriverio/webdriverio/pull/4393) webdriverio: throw proper errors from selectByAttribute/VisibleText when option is not found ([@romovs](https://github.com/romovs))
+* `wdio-browserstack-service`, `wdio-crossbrowsertesting-service`, `wdio-sauce-service`, `wdio-testingbot-service`
+  * [#4407](https://github.com/webdriverio/webdriverio/pull/4407) Sauce: Fix update cucumber feature name and job status in Sauce Labs ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Roman Ovseitsev ([@romovs](https://github.com/romovs))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
 ## v5.12.4 (2019-08-21)
 
 #### :bug: Bug Fix
