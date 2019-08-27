@@ -287,21 +287,24 @@ describe('afterTest', () => {
     })
 })
 
-describe('afterStep', () => {
+describe('afterScenario', () => {
     it('should increment failures on "failed"', () => {
+        const uri = '/some/uri'
         service.failures = 0
 
-        service.afterStep('/some/uri', {})
         expect(service.failures).toBe(0)
 
-        service.afterStep('/some/uri', { failureException: { what: 'ever' } })
+        service.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(service.failures).toBe(0)
+
+        service.afterScenario(uri, {}, {}, { status: 'failed' })
         expect(service.failures).toBe(1)
 
-        service.afterStep('/some/uri', { getFailureException: () => 'whatever' })
-        expect(service.failures).toBe(2)
+        service.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(service.failures).toBe(1)
 
-        service.afterStep('/some/uri', { status: 'failed' })
-        expect(service.failures).toBe(3)
+        service.afterScenario(uri, {}, {}, { status: 'failed' })
+        expect(service.failures).toBe(2)
     })
 })
 
