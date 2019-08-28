@@ -1,24 +1,11 @@
-describe('PT demo', () => {
-  before(() => {
-    browser.enablePerformanceAudits()
-  })
+const assert = require('assert')
 
-  it('page a', () => {
-    browser.url('https://www.youtube.com')
-    console.log(browser.getMetrics())
-  })
+describe('webdriver.io page', () => {
+    it('should be a pending test')
 
-  it('page b', () => {
-    browser.url('https://www.facebook.com/')
-    console.log(browser.getMetrics())
-  })
-
-  it('page c', () => {
-    browser.url('https://twitter.com')
-    console.log(browser.getMetrics())
-  })
-
-  after(() => {
-    browser.disablePerformanceAudits()
-  })
+    it('should have the right title', () => {
+        browser.url('https://webdriver.io')
+        const title = browser.getTitle()
+        assert.equal(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js')
+    })
 })

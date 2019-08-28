@@ -28,7 +28,6 @@ exports.config = {
     outputDir: __dirname,
 
     reporters: ['spec', 'dot', 'junit'],
-    services: ['devtools'],
 
     mochaOpts: {
         ui: 'bdd',
