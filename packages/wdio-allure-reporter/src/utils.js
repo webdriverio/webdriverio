@@ -17,9 +17,12 @@ export const getTestStatus = (test, config) => {
         return test.error.name === 'AssertionError' ? testStatuses.FAILED : testStatuses.BROKEN
     }
 
-    const stackTrace = test.error.stack.trim()
-    return stackTrace.startsWith('AssertionError') ? testStatuses.FAILED : testStatuses.BROKEN
+    if (test.error.stack) {
+        const stackTrace = test.error.stack.trim()
+        return stackTrace.startsWith('AssertionError') ? testStatuses.FAILED : testStatuses.BROKEN
+    }
 
+    return testStatuses.BROKEN
 }
 
 /**
