@@ -37,6 +37,12 @@ describe('utils', () => {
             expect(getTestStatus(test, config)).toEqual(testStatuses.BROKEN)
         })
 
+        it('broken for error without stacktrace', () => {
+            const config = { framework: 'mocha' }
+            const test = { error: {} }
+            expect(getTestStatus(test, config)).toEqual(testStatuses.BROKEN)
+        })
+
         it('failed status for not AssertionError stacktrace', () => {
             const config = { framework: 'mocha' }
             const test = { error: { stack: 'MyError stack trace' } }
