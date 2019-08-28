@@ -139,7 +139,7 @@ test('onFrameNavigated: should cancel trace if page load failed', () => {
     traceGatherer.waitForNetworkIdleEvent = { cancel: jest.fn() }
     traceGatherer.waitForCPUIdleEvent = { cancel: jest.fn() }
     traceGatherer.onFrameNavigated({ frame })
-    expect(traceGatherer.emit).toHaveBeenCalledTimes(0)
+    expect(traceGatherer.emit).toHaveBeenCalledWith('tracingError', expect.any(Error))
     expect(traceGatherer.finishTracing).toHaveBeenCalledTimes(1)
     expect(traceGatherer.waitForNetworkIdleEvent.cancel).toHaveBeenCalledTimes(1)
     expect(traceGatherer.waitForCPUIdleEvent.cancel).toHaveBeenCalledTimes(1)
@@ -189,7 +189,7 @@ test('completeTracing: in failure case', async () => {
     pageMock.tracing.stop.mockReturnValue(Promise.reject(new Error('boom')))
     await traceGatherer.completeTracing()
     expect(traceGatherer.finishTracing).toHaveBeenCalledTimes(1)
-    expect(traceGatherer.emit).toHaveBeenCalledTimes(0)
+    expect(traceGatherer.emit).toBeCalledWith('tracingError', expect.any(Error))
 })
 
 test('onLoadEventFired', async () => {

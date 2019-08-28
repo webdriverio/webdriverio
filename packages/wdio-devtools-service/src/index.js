@@ -82,7 +82,7 @@ export default class DevToolsService {
          * allow user to work with Puppeteer directly
          */
         global.browser.addCommand('getPuppeteer',
-            () => this.devtoolsDriver)
+            /* istanbul ignore next */ () => this.devtoolsDriver)
     }
 
     async beforeCommand (commandName, params) {
@@ -110,6 +110,13 @@ export default class DevToolsService {
         this.traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this.devtoolsGatherer.getLogs())
             auditor.updateCommands(global.browser)
+        })
+
+        this.traceGatherer.once('tracingError', (err) => {
+            const auditor = new Auditor()
+            auditor.updateCommands(global.browser, /* istanbul ignore next */ () => {
+                throw new Error(`Couldn't capture performance due to: ${err.message}`)
+            })
         })
 
         return new Promise((resolve) => {
