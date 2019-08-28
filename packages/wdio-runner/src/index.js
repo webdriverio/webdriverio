@@ -218,6 +218,12 @@ export default class Runner extends EventEmitter {
             return
         }
 
+        /**
+         * suppress @wdio/sync warnings of not running commands inside of
+         * a Fibers contetx
+         */
+        global._HAS_FIBER_CONTEXT = true
+
         let logTypes
         try {
             logTypes = await global.browser.getLogTypes()
