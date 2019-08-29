@@ -1,7 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest } from './utils'
+import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks } from './utils'
 import { events, stepStatuses, testStatuses } from './constants'
 
 class AllureReporter extends WDIOReporter {
@@ -199,13 +199,18 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
+        // don't add hook as test to suite for mocha All hooks
+        if (isMochaAllHooks(hook.title)) {
+            return
+        }
+
         // add hook as test to suite
         this.onTestStart(hook)
     }
 
     onHookEnd(hook) {
         // ignore global hooks
-        if (!hook.parent || !this.allure.getCurrentSuite() || !this.allure.getCurrentTest()) {
+        if (!hook.parent || !this.allure.getCurrentSuite() || (!isMochaAllHooks(hook.title) && !this.allure.getCurrentTest())) {
             return false
         }
 
@@ -221,8 +226,11 @@ class AllureReporter extends WDIOReporter {
 
         // set hook (test) status
         if (hook.error) {
+            if (isMochaAllHooks(hook.title)) {
+                this.onTestStart(hook)
+            }
             this.onTestFail(hook)
-        } else {
+        } else if (!isMochaAllHooks(hook.title)) {
             this.onTestPass()
 
             // remove hook from suite if it has no steps

@@ -410,9 +410,8 @@ describe('hooks handling', () => {
         reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
 
-        expect(endCase).toHaveBeenCalledTimes(1)
-        expect(endCase.mock.results[0].value).toBe('passed')
-        expect(testcases).toHaveLength(0)
+        expect(endCase).toHaveBeenCalledTimes(0)
+        expect(testcases).toHaveLength(1)
     })
 
     it('should keep passed hooks if there are some steps', () => {
@@ -461,6 +460,23 @@ describe('hooks handling', () => {
         expect(endCase).toHaveBeenCalledTimes(0)
         expect(endStep).toHaveBeenCalledTimes(1)
         expect(endStep.mock.results[0].value).toBe('failed')
+    })
+
+    it('should ignore mocha all hooks if hook passes', () => {
+        reporter.allure = allureInstance()
+        reporter.onHookStart({ title: '"after all" hook', parent: 'foo' })
+
+        expect(startCase).toHaveBeenCalledTimes(0)
+        expect(endCase).toHaveBeenCalledTimes(0)
+    })
+
+    it('should treat mocha all hooks as tests if hook throws', () => {
+        reporter.allure = allureInstance()
+        reporter.onHookEnd({ title: '"before all" hook', parent: 'foo', error: { message: '', stack: '' } })
+
+        expect(startCase).toHaveBeenCalledTimes(1)
+        expect(endCase).toHaveBeenCalledTimes(1)
+        expect(endCase.mock.results[0].value).toBe('broken')
     })
 })
 
