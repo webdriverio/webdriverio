@@ -5,6 +5,8 @@ const log = logger('@wdio/sync')
 let Fiber
 let Future
 
+global._HAS_FIBER_CONTEXT = false
+
 /**
  * Helper method to retrieve a version of `fibers` for your Node version.
  */

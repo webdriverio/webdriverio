@@ -1,7 +1,10 @@
 import { Future } from './fibers'
+import logger from '@wdio/logger'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
+
+const log = logger('@wdio/sync')
 
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
@@ -13,6 +16,13 @@ import { sanitizeErrorMessage } from './utils'
  */
 export default function wrapCommand (commandName, fn) {
     return function wrapCommandFn (...args) {
+        if(!global._HAS_FIBER_CONTEXT) {
+            log.warn(
+                `Can't return command result of ${commandName} synchronously because command ` +
+                'was executed outside of an it block, hook or step definition!'
+            )
+        }
+
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */

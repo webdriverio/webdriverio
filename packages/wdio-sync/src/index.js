@@ -21,7 +21,9 @@ const log = logger('@wdio/sync')
  */
 const executeSync = async function (fn, repeatTest = 0, args = []) {
     try {
+        global._HAS_FIBER_CONTEXT = true
         let res = fn.apply(this, args)
+        global._HAS_FIBER_CONTEXT = false
 
         /**
          * sometimes function result is Promise,
