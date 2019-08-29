@@ -7,7 +7,7 @@ describe('Important constants', () => {
         expect(stepStatuses.BROKEN).toEqual('broken')
         expect(stepStatuses.PASSED).toEqual('passed')
         expect(stepStatuses.FAILED).toEqual('failed')
-        expect(stepStatuses.CANCELED).toEqual('canceled')
+        expect(stepStatuses.PENDING).toEqual('pending')
     })
 
     it('should have correct step statuses', () => {
