@@ -2,7 +2,6 @@ const PASSED = 'passed'
 const FAILED = 'failed'
 const BROKEN = 'broken'
 const PENDING = 'pending'
-const CANCELED = 'canceled'
 
 const testStatuses = {
     PASSED,
@@ -15,7 +14,7 @@ const stepStatuses = {
     PASSED,
     FAILED,
     BROKEN,
-    CANCELED
+    PENDING
 }
 
 const events = {

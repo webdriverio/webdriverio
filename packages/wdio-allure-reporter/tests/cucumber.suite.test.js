@@ -153,7 +153,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('test-case').attr('status')).toEqual('failed')
             expect(allureXml('step > name').eq(0).text()).toEqual('Hook')
             expect(allureXml('step').eq(0).attr('status')).toEqual('failed')
-            expect(allureXml('step').eq(1).attr('status')).toEqual('canceled')
+            expect(allureXml('step').eq(1).attr('status')).toEqual('pending')
             expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
             expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
         })
