@@ -1,6 +1,6 @@
 import process from 'process'
 import CompoundError from '../src/compoundError'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest } from '../src/utils'
+import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks } from '../src/utils'
 import { testStatuses } from '../src/constants'
 
 describe('utils', () => {
@@ -67,6 +67,11 @@ describe('utils', () => {
             expect(isMochaEachHooks('"after all" hook')).toEqual(false)
             expect(isMochaEachHooks('"before each" hook')).toEqual(true)
             expect(isMochaEachHooks('"after each" hook')).toEqual(true)
+
+            expect(isMochaAllHooks('"before all" hook')).toEqual(true)
+            expect(isMochaAllHooks('"after all" hook')).toEqual(true)
+            expect(isMochaAllHooks('"before each" hook')).toEqual(false)
+            expect(isMochaAllHooks('"after each" hook')).toEqual(false)
         })
     })
 
