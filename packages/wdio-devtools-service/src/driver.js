@@ -18,6 +18,10 @@ export default class DevToolsDriver {
          */
     }
 
+    get devices () {
+        return puppeteer.devices
+    }
+
     static async attach (url) {
         log.info(`Connect to ${url}`)
         const browser = await puppeteer.connect({
