@@ -9,7 +9,9 @@ import Fiber from './fibers'
 export default function runFnInFiberContextWithCallback (fn, done) {
     return function (...args) {
         return Fiber(() => {
+            global._HAS_FIBER_CONTEXT = true
             const result = fn.apply(this, args)
+            global._HAS_FIBER_CONTEXT = false
 
             if (typeof done === 'function') {
                 done(result)
