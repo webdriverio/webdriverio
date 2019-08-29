@@ -415,3 +415,25 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isSeleniumStandalone: { value: isSeleniumStandalone }
     }
 }
+
+/**
+ * Decorate the params object with host updates based on the presence of
+ * directConnect capabilities in the new session response. Note that this
+ * mutates the object.
+ * @param  {Object} params    post-new-session params used to build driver
+ */
+export function setupDirectConnect(params) {
+    log.info(JSON.stringify(params))
+    const { directConnectProtocol, directConnectHost, directConnectPort,
+        directConnectPath } = params.capabilities
+    if (directConnectProtocol && directConnectHost && directConnectPort &&
+        directConnectPath) {
+        log.info('Found direct connect information in new session response. ' +
+                 `Will connect to server at ${directConnectProtocol}://` +
+                 `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
+        params.protocol = directConnectProtocol
+        params.hostname = directConnectHost
+        params.port = directConnectPort
+        params.path = directConnectPath
+    }
+}

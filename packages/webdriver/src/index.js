@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, environmentDetector, getEnvironmentVars } from './utils'
+import { getPrototype, environmentDetector, getEnvironmentVars, setupDirectConnect } from './utils'
 
 import WebDriverProtocol from '../protocol/webdriver.json'
 import JsonWProtocol from '../protocol/jsonwp.json'
@@ -57,6 +57,17 @@ export default class WebDriver {
          * save actual receveived session details
          */
         params.capabilities = response.value.capabilities || response.value
+
+        /**
+         * if the server responded with direct connect information, update the
+         * params to speak directly to the appium host instead of a load
+         * balancer (see https://github.com/appium/python-client#direct-connect-urls
+         * for example). But only do this if the user has enabled this
+         * behavior in the first place.
+         */
+        if (params.enableDirectConnect) {
+            setupDirectConnect(params)
+        }
 
         const environment = environmentDetector(params)
         const environmentPrototype = getEnvironmentVars(environment)
