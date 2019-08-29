@@ -67,10 +67,10 @@ export default class Auditor {
      * an Auditor instance is created for every trace so provide an updateCommands
      * function to receive the latest performance metrics with the browser instance
      */
-    updateCommands (browser) {
+    updateCommands (browser, customFn) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
-        commands.forEach(fnName => browser.addCommand(fnName, ::this[fnName]))
+        commands.forEach(fnName => browser.addCommand(fnName, customFn || ::this[fnName]))
     }
 
     async getMainThreadWorkBreakdown () {
