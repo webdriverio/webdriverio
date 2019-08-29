@@ -175,13 +175,13 @@ test('afterCommand', () => {
     expect(service.traceGatherer.once).toBeCalledTimes(0)
 
     service.afterCommand('navigateTo')
-    expect(service.traceGatherer.once).toBeCalledTimes(2)
+    expect(service.traceGatherer.once).toBeCalledTimes(3)
 
     service.afterCommand('url')
-    expect(service.traceGatherer.once).toBeCalledTimes(4)
+    expect(service.traceGatherer.once).toBeCalledTimes(6)
 
     service.afterCommand('click')
-    expect(service.traceGatherer.once).toBeCalledTimes(6)
+    expect(service.traceGatherer.once).toBeCalledTimes(9)
 })
 
 test('afterCommand: should create a new auditor instance and should update the browser commands', () => {
@@ -195,6 +195,20 @@ test('afterCommand: should create a new auditor instance and should update the b
 
     const auditor = new Auditor()
     expect(auditor.updateCommands).toBeCalledWith('some browser')
+    delete global.browser
+})
+
+test('afterCommand: should update browser commands even if failed', () => {
+    const service = new DevToolsService()
+    service.traceGatherer = new EventEmitter()
+    service.traceGatherer.isTracing = true
+    service.devtoolsGatherer = { getLogs: jest.fn() }
+    global.browser = 'some browser'
+    service.afterCommand('url')
+    service.traceGatherer.emit('tracingError', new Error('boom'))
+
+    const auditor = new Auditor()
+    expect(auditor.updateCommands).toBeCalledWith('some browser', expect.any(Function))
     delete global.browser
 })
 
