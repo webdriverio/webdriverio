@@ -136,7 +136,7 @@ class AllureReporter extends WDIOReporter {
 
     onTestSkip(test) {
         if (this.options.useCucumberStepReporter) {
-            this.allure.endStep(stepStatuses.PENDING)
+            this.allure.endStep(stepStatuses.CANCELED)
         } else if (!this.allure.getCurrentTest() || this.allure.getCurrentTest().name !== test.title) {
             this.allure.pendingCase(test.title)
         } else {
