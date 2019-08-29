@@ -1,4 +1,5 @@
 import EventEmitter from 'events'
+import puppeteer from 'puppeteer-core'
 
 import DevToolsService from '../src'
 import Auditor from '../src/auditor'
@@ -99,6 +100,19 @@ test('initialised with the debuggerAddress as option', async () => {
     expect(service.client.Network.enable).toBeCalledTimes(1)
     expect(service.client.Console.enable).toBeCalledTimes(1)
     expect(service.client.Page.enable).toBeCalledTimes(1)
+
+    expect(global.browser.addCommand).toBeCalledWith(
+        'enablePerformanceAudits', expect.any(Function))
+    expect(global.browser.addCommand).toBeCalledWith(
+        'disablePerformanceAudits', expect.any(Function))
+    expect(global.browser.addCommand).toBeCalledWith(
+        'emulateDevice', expect.any(Function))
+    expect(global.browser.addCommand).toBeCalledWith(
+        'getPuppeteer', expect.any(Function))
+
+    // returns puppeteer instance
+    const getPuppeteerFn = global.browser.addCommand.mock.calls.pop().pop()
+    expect(getPuppeteerFn().constructor.name).toBe('DevToolsDriver')
 })
 
 test('initialization fails', async () => {
@@ -258,6 +272,25 @@ test('_setThrottlingProfile', async () => {
         offline: false,
         uploadThroughput: 86400
     })
+})
+
+test('_emulateDevice', async () => {
+    const service = new DevToolsService()
+    service.devtoolsDriver = await puppeteer.connect()
+    service.devtoolsDriver.devices = puppeteer.devices
+    await service._emulateDevice('Nexus 6P')
+
+    const page = service.devtoolsDriver.getActivePage()
+    expect(page.emulate.mock.calls).toMatchSnapshot()
+
+    page.emulate.mockClear()
+    await service._emulateDevice({ foo: 'bar' })
+    expect(page.emulate.mock.calls).toEqual([[{ foo: 'bar' }]])
+
+    const isSuccessful = await service._emulateDevice('not existing').then(
+        () => true,
+        () => false)
+    expect(isSuccessful).toBe(false)
 })
 
 afterEach(() => {

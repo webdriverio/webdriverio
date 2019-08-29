@@ -77,6 +77,7 @@ export default class DevToolsService {
 
         global.browser.addCommand('enablePerformanceAudits', ::this._enablePerformanceAudits)
         global.browser.addCommand('disablePerformanceAudits', ::this._disablePerformanceAudits)
+        global.browser.addCommand('emulateDevice', ::this._emulateDevice)
 
         /**
          * allow user to work with Puppeteer directly
@@ -151,6 +152,28 @@ export default class DevToolsService {
      */
     _disablePerformanceAudits () {
         this.shouldRunPerformanceAudits = false
+    }
+
+    /**
+     * set device emulation
+     */
+    async _emulateDevice (device, inLandscape) {
+        const page = await this.devtoolsDriver.getActivePage()
+
+        if (typeof device === 'string') {
+            const deviceName = device + (inLandscape ? ' landscape' : '')
+            const deviceCapabilities = this.devtoolsDriver.devices[deviceName]
+            if (!deviceCapabilities) {
+                const deviceNames = this.devtoolsDriver.devices
+                    .map((device) => device.name)
+                    .filter((device) => !device.endsWith('landscape'))
+                throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
+            }
+
+            return page.emulate(deviceCapabilities)
+        }
+
+        return page.emulate(device)
     }
 
     /**
