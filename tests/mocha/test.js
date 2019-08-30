@@ -5,6 +5,14 @@ describe('Mocha smoke test', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
     })
 
+    let hasRun = false
+    it('should retry', () => {
+        if(!hasRun) {
+            hasRun = true
+            throw new Error('booom!')
+        }
+    }, 1)
+
     it('should be able to wait for an element', () => {
         browser.waitForDisplayedScenario()
         assert($('elem').waitForDisplayed(), true)
