@@ -35,15 +35,17 @@ export default async function elementClick ({ elementId }) {
         /**
          * check if page load has happened due to click
          */
-        page.once('framenavigated', () => {
+        const frameNavigatedHandler = () => {
             clearTimeout(waitForPageLoadTimeout)
             page.once('load', () => resolve(null))
-        })
+        }
+        page.once('framenavigated', frameNavigatedHandler)
 
         const dialogHandler = () => resolve()
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
             page.removeListener('dialog', dialogHandler)
+            page.removeListener('framenavigated', frameNavigatedHandler)
 
             /**
              * wait for at least 150ms to see if a page load was triggered

@@ -14,10 +14,10 @@ export default async function findElements ({ using, value }) {
 
     if (using === 'link text') {
         using = 'xpath'
-        value = `.//a[normalize-space() = "${value}"]`
+        value = `//a[normalize-space() = "${value}"]`
     } else if (using === 'partial link text') {
         using = 'xpath'
-        value = `.//a[contains(., "${value}")]`
+        value = `//a[contains(., "${value}")]`
     }
 
     /**
