@@ -100,6 +100,12 @@ describe('elements', () => {
         expect(spans).toHaveLength(2)
     })
 
+    it('find nested elements with xPath', async () => {
+        const nested = await browser.findElement('css selector', '.nested')
+        const spans = await browser.findElementsFromElement(nested[ELEMENT_KEY], 'xpath', './/div')
+        expect(spans).toHaveLength(1)
+    })
+
     it('can click and go back and forward', async () => {
         const link = await browser.findElement('css selector', '#secondPageLink')
         await browser.elementClick(link[ELEMENT_KEY])
