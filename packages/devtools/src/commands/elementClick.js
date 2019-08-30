@@ -36,20 +36,35 @@ export default async function elementClick ({ elementId }) {
          * check if page load has happened due to click
          */
         const frameNavigatedHandler = () => {
+            /**
+             * if so clear the `waitForPageLoadTimeout` to prevent command
+             * to finish and wait until the page has loaded
+             */
             clearTimeout(waitForPageLoadTimeout)
             page.once('load', () => resolve(null))
         }
         page.once('framenavigated', frameNavigatedHandler)
 
+        /**
+         * listen on possible modal dialogs that might pop up due to the
+         * click action, just continue in this case
+         */
         const dialogHandler = () => resolve()
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
+            /**
+             * no modals popped up, so clean up the listener
+             */
             page.removeListener('dialog', dialogHandler)
 
             /**
-             * wait for at least 150ms to see if a page load was triggered
+             * wait for at least 150ms to see if a page load was triggered,
+             * if so the we handle the command in the `frameNavigatedHandler`
              */
             waitForPageLoadTimeout = setTimeout(() => {
+                /**
+                 * no page load was triggered, continue
+                 */
                 resolve(null)
             }, PAGELOAD_WAIT_TIMEOUT)
         }).catch(reject)
