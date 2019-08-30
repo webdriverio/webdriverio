@@ -60,13 +60,25 @@ class AllureReporter extends WDIOReporter {
 
     onSuiteEnd(suite) {
         if (this.options.useCucumberStepReporter && suite.type === 'scenario') {
-            const isPassed = !suite.tests.some(test => test.state !== testStatuses.PASSED) &&
-                !suite.hooks.some(hook => hook.state && hook.state !== testStatuses.PASSED)
+            // passing hooks are missing the 'state' property
+            suite.hooks = suite.hooks.map(hook => {
+                hook.state = hook.state ? hook.state : stepStatuses.PASSED
+                return hook
+            })
+            const suiteChildren = [...suite.tests, ...suite.hooks]
+            const isPassed = !suiteChildren.some(item => item.state !== testStatuses.PASSED)
             if (isPassed) {
-                // Only close passing tests because
-                // non passing tests are closed in onTestFailed event
                 return this.allure.endCase(testStatuses.PASSED)
             }
+
+            // A scenario is it skipped if is not passed and every steps/hooks are passed or skipped
+            const isSkipped = suiteChildren.every(item => [stepStatuses.PASSED, stepStatuses.SKIPPED].indexOf(item.state) >= 0)
+            if (isSkipped) {
+                return this.allure.endCase(testStatuses.PENDING)
+            }
+
+            // Only close passing and skipped tests because
+            // failing tests are closed in onTestFailed event
             return
         }
 
@@ -136,7 +148,7 @@ class AllureReporter extends WDIOReporter {
 
     onTestSkip(test) {
         if (this.options.useCucumberStepReporter) {
-            this.allure.endStep(stepStatuses.PENDING)
+            this.allure.endStep(stepStatuses.CANCELED)
         } else if (!this.allure.getCurrentTest() || this.allure.getCurrentTest().name !== test.title) {
             this.allure.pendingCase(test.title)
         } else {
