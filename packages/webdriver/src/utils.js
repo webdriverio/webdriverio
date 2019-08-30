@@ -426,7 +426,7 @@ export function setupDirectConnect(params) {
     const { directConnectProtocol, directConnectHost, directConnectPort,
         directConnectPath } = params.capabilities
     if (directConnectProtocol && directConnectHost && directConnectPort &&
-        directConnectPath) {
+        (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
                  `Will connect to server at ${directConnectProtocol}://` +
                  `${directConnectHost}:${directConnectPort}/${directConnectPath}`)

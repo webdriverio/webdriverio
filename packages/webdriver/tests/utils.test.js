@@ -385,5 +385,25 @@ describe('utils', () => {
             expect(params.port).toBe(4321)
             expect(params.path).toBe('/wd/hub')
         })
+
+        it('should update connection params even if path is empty string', function () {
+            const params = {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: '/wd/hub',
+                capabilities: {
+                    directConnectProtocol: 'https',
+                    directConnectHost: 'bar',
+                    directConnectPort: 4321,
+                    directConnectPath: ''
+                }
+            }
+            setupDirectConnect(params)
+            expect(params.protocol).toBe('https')
+            expect(params.hostname).toBe('bar')
+            expect(params.port).toBe(4321)
+            expect(params.path).toBe('')
+        })
     })
 })
