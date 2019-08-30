@@ -423,7 +423,6 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * @param  {Object} params    post-new-session params used to build driver
  */
 export function setupDirectConnect(params) {
-    log.info(JSON.stringify(params))
     const { directConnectProtocol, directConnectHost, directConnectPort,
         directConnectPath } = params.capabilities
     if (directConnectProtocol && directConnectHost && directConnectPort &&
