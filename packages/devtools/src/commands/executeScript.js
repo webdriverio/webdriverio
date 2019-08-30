@@ -18,15 +18,13 @@ export default async function executeScript ({ script, args }) {
     const timeoutPromise = new Promise((_, reject) => {
         setTimeout(
             () => {
-                const additionalTimeoutInfo = (
-                    Boolean(this.activeDialog) &&
-                    'a browser dialog has opened as result of a executeScript call'
-                )
+                const timeoutError = `script timeout${
+                    this.activeDialog
+                        ? ' reason: a browser dialog has opened as result of a executeScript call'
+                        : ''
+                }`
 
-                return reject(new Error('script timeout' + (additionalTimeoutInfo
-                    ? `, reason: ${additionalTimeoutInfo}`
-                    : ''
-                )))
+                return reject(new Error(timeoutError))
             },
             scriptTimeout
         )
