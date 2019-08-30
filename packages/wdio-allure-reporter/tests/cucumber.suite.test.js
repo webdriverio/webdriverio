@@ -44,8 +44,9 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onHookStart(cucumberHelper.hookStart())
             reporter.addAttachment(attachmentHelper.xmlAttachment())
             reporter.onHookEnd(cucumberHelper.hookEnd())
-            reporter.onSuiteEnd(cucumberHelper.scenarioEnd())
-            reporter.onSuiteEnd(cucumberHelper.featureEnd())
+            const suiteResults = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
             reporter.onRunnerEnd(runnerEnd())
 
             const results = getResults(outputDir)
@@ -94,6 +95,49 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
     })
 
+    describe('Skipped test', () => {
+        const outputDir = directory()
+        let allureXml
+
+        beforeAll(() => {
+            const reporter = new AllureReporter({ stdout: true, outputDir, useCucumberStepReporter: true })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestSkip(cucumberHelper.testSkipped())
+            const suiteResults = { tests: [cucumberHelper.testSkipped()] }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            allureXml = results[0]
+        })
+
+        afterAll(() => {
+            clean(outputDir)
+        })
+
+        it('should report one suite', () => {
+            expect(allureXml('ns2\\:test-suite > name').text()).toEqual('MyFeature')
+            expect(allureXml('ns2\\:test-suite > title').text()).toEqual('MyFeature')
+        })
+
+        it('should report scenario as pending', () => {
+            expect(allureXml('test-case').attr('status')).toEqual('pending')
+        })
+
+        it('should report one canceled step', () => {
+            expect(allureXml('step > name').eq(0).text()).toEqual('I do something')
+            expect(allureXml('step > title').eq(0).text()).toEqual('I do something')
+            expect(allureXml('step').eq(0).attr('status')).toEqual('canceled')
+            expect(allureXml('step').length).toEqual(1)
+        })
+    })
+
     describe('Failed tests', () => {
         let outputDir
         let allureXml
@@ -116,8 +160,9 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onBeforeCommand(commandStart())
             reporter.onAfterCommand(commandEnd())
             reporter.onTestFail(cucumberHelper.testFail())
-            reporter.onSuiteEnd(cucumberHelper.scenarioEnd('test'))
-            reporter.onSuiteEnd(cucumberHelper.featureEnd('test'))
+            const suiteResults = { tests: ['failed'] }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
             reporter.onRunnerEnd(runnerEnd())
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
@@ -141,8 +186,9 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onHookEnd(cucumberHelper.hookFail())
             reporter.onTestStart(cucumberHelper.testStart())
             reporter.onTestSkip(cucumberHelper.testSkipped())
-            reporter.onSuiteEnd(cucumberHelper.scenarioEnd('hook'))
-            reporter.onSuiteEnd(cucumberHelper.featureEnd('hook'))
+            const suiteResults = { tests: [cucumberHelper.testSkipped()], hooks: [cucumberHelper.hookFail()] }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
             reporter.onRunnerEnd(runnerEnd())
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
