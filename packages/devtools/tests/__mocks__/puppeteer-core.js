@@ -40,14 +40,14 @@ class PageMock {
         this.on = jest.fn()
         this.close = jest.fn()
         this.url = jest.fn().mockReturnValue('about:blank')
+        this.emulate = jest.fn()
     }
 }
 const page = new PageMock()
 
-class PageMock2 {
+class PageMock2 extends PageMock {
     constructor () {
-        this.on = jest.fn()
-        this.close = jest.fn()
+        super()
         this.url = jest.fn().mockReturnValue('http://json.org')
     }
 }
