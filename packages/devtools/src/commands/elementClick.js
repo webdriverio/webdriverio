@@ -45,7 +45,6 @@ export default async function elementClick ({ elementId }) {
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
             page.removeListener('dialog', dialogHandler)
-            page.removeListener('framenavigated', frameNavigatedHandler)
 
             /**
              * wait for at least 150ms to see if a page load was triggered
