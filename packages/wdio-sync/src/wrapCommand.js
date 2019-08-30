@@ -16,7 +16,10 @@ const log = logger('@wdio/sync')
  */
 export default function wrapCommand (commandName, fn) {
     return function wrapCommandFn (...args) {
-        if(!global._HAS_FIBER_CONTEXT) {
+        /**
+         * print error if a user is using a fiberized command outside of the Fibers context
+         */
+        if(!global._HAS_FIBER_CONTEXT && global.WDIO_WORKER) {
             log.warn(
                 `Can't return command result of ${commandName} synchronously because command ` +
                 'was executed outside of an it block, hook or step definition!'
