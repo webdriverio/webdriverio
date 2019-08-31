@@ -86,5 +86,12 @@ export const DEFAULTS = {
      */
     headers: {
         type: 'object'
+    },
+    /**
+     * Whether to allow direct connect caps to adjust endpoint details
+     */
+    enableDirectConnect: {
+        type: 'boolean',
+        default: false
     }
 }
