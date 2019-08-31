@@ -10,7 +10,7 @@ This package provides a low level interface to run browser automation scripts ba
 To install this package from NPM run:
 
 ```sh
-$ npm i devtools
+$ npm i devtools webdriverio
 ```
 
 ## Example
@@ -68,7 +68,11 @@ let browser;
 
 ## Support
 
-This package is work in progress. The following commands are already supported:
+This package is work in progress. We are working on extending the support to include all possible commands, selector strategies and browser.
+
+### Commands
+
+The following commands are already supported:
 
 - [x] [newSession](https://w3c.github.io/webdriver/#new-session)
 - [x] [deleteSession](https://w3c.github.io/webdriver/#delete-session)
@@ -127,10 +131,17 @@ This package is work in progress. The following commands are already supported:
 - [x] [takeScreenshot](https://w3c.github.io/webdriver/#take-screenshot)
 - [x] [takeElementScreenshot](https://w3c.github.io/webdriver/#take-element-screenshot)
 
-Selector Strategies:
+### Selector Strategies
 
 - [x] [CSS Selector](https://w3c.github.io/webdriver/#css-selectors)
 - [x] [Link Text](https://w3c.github.io/webdriver/#partial-link-text)
 - [x] [Partial Link Text](https://w3c.github.io/webdriver/#partial-link-text)
 - [x] [Tag Name](https://w3c.github.io/webdriver/#tag-name)
 - [x] [XPath](https://w3c.github.io/webdriver/#xpath)
+
+### Browser
+
+- [x] Chrome
+- [x] Firefox (nightly only)
+- [ ] Edge
+- [ ] Safari
