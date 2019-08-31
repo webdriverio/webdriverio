@@ -131,3 +131,7 @@ describe('elements', () => {
         expect(await browser.getElementText(link[ELEMENT_KEY])).toBe('open new tab')
     })
 })
+
+afterAll(async () => {
+    await browser.deleteSession()
+})

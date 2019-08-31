@@ -15,21 +15,20 @@ export default async function executeScript ({ script, args }) {
         ...transformExecuteArgs.call(this, args)
     )
 
+    let executeTimeout
     const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(
-            () => {
-                const timeoutError = `script timeout${
-                    this.activeDialog
-                        ? ' reason: a browser dialog has opened as result of a executeScript call'
-                        : ''
-                }`
+        executeTimeout = setTimeout(() => {
+            const timeoutError = `script timeout${
+                this.activeDialog
+                    ? ' reason: a browser dialog has opened as result of a executeScript call'
+                    : ''
+            }`
 
-                return reject(new Error(timeoutError))
-            },
-            scriptTimeout
-        )
+            return reject(new Error(timeoutError))
+        }, scriptTimeout)
     })
 
     const result = await Promise.race([executePromise, timeoutPromise])
+    clearTimeout(executeTimeout)
     return transformExecuteResult.call(this, page, result)
 }
