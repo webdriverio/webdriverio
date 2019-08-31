@@ -18,7 +18,7 @@
     "test:unit": "jest"
   },
   "types": "./webdriverio.d.ts",
-  "typeScriptVersion": "3.2.1",
+  "typeScriptVersion": "3.5.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"

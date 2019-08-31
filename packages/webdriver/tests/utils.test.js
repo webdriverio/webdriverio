@@ -1,7 +1,6 @@
 import {
-    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError, overwriteElementCommands,
-    setupDirectConnect
+    isSuccessfulResponse, getPrototype, environmentDetector, setupDirectConnect,
+    getErrorFromResponseBody, isW3C, CustomRequestError
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -33,46 +32,6 @@ describe('utils', () => {
             200,
             { value: { message: 'Unable to find element with xpath == //foobar' } }
         )).toBe(true)
-    })
-
-    it('isValidParameter', () => {
-        expect(isValidParameter(1, 'number')).toBe(true)
-        expect(isValidParameter(1, 'number[]')).toBe(false)
-        expect(isValidParameter([1], 'number[]')).toBe(true)
-        expect(isValidParameter(null, 'null')).toBe(true)
-        expect(isValidParameter('', 'null')).toBe(false)
-        expect(isValidParameter(undefined, 'null')).toBe(false)
-        expect(isValidParameter({}, 'object')).toBe(true)
-        expect(isValidParameter([], 'object')).toBe(true)
-        expect(isValidParameter(null, 'object')).toBe(false)
-        expect(isValidParameter(1, '(number|string|object)')).toBe(true)
-        expect(isValidParameter('1', '(number|string|object)')).toBe(true)
-        expect(isValidParameter({}, '(number|string|object)')).toBe(true)
-        expect(isValidParameter(false, '(number|string|object)')).toBe(false)
-        expect(isValidParameter([], '(number|string|object)')).toBe(true)
-        expect(isValidParameter(null, '(number|string|object)')).toBe(false)
-        expect(isValidParameter(1, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter('1', '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter({}, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter(false, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter([1], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter(['1'], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([{}], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([[]], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([null], '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter([false], '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter(['1', false], '(number|string|object)[]')).toBe(false)
-    })
-
-    it('getArgumentType', () => {
-        expect(getArgumentType(1)).toBe('number')
-        expect(getArgumentType(1.2)).toBe('number')
-        expect(getArgumentType(null)).toBe('null')
-        expect(getArgumentType('text')).toBe('string')
-        expect(getArgumentType({})).toBe('object')
-        expect(getArgumentType([])).toBe('object')
-        expect(getArgumentType(true)).toBe('boolean')
-        expect(getArgumentType(false)).toBe('boolean')
     })
 
     it('getPrototype', () => {
@@ -114,11 +73,6 @@ describe('utils', () => {
         const saucePrototype = getPrototype({ isW3C: true, isSauce: true })
         expect(saucePrototype instanceof Object).toBe(true)
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
-    })
-
-    it('commandCallStructure', () => {
-        expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
-            .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
     })
 
     describe('environmentDetector', () => {
@@ -286,69 +240,6 @@ describe('utils', () => {
         error = new CustomRequestError({ value: { } } )
         expect(error.name).toBe('Error')
         expect(error.message).toBe('unknown error')
-    })
-
-    describe('overwriteElementCommands', () => {
-        it('should overwrite command', function () {
-            const context = {}
-            const origFnMock = jest.fn(() => 1)
-            const propertiesObject = {
-                foo: { value: origFnMock },
-                __elementOverrides__: {
-                    value: { foo(origCmd, arg) { return [origCmd(), arg] } }
-                }
-            }
-            overwriteElementCommands.call(context, propertiesObject)
-            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
-            expect(origFnMock.mock.calls.length).toBe(1)
-            expect(origFnMock.mock.instances[0]).toBe(propertiesObject.foo)
-        })
-
-        it('should support rebinding when invoking original fn', function () {
-            const context = {}
-            const origFnMock = jest.fn(() => 1)
-            const origFnContext = {}
-            const propertiesObject = {
-                foo: { value: origFnMock },
-                __elementOverrides__: {
-                    value: { foo(origCmd, arg) { return [origCmd.call(origFnContext), arg] } }
-                }
-            }
-            overwriteElementCommands.call(context, propertiesObject)
-            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
-            expect(origFnMock.mock.calls.length).toBe(1)
-            expect(origFnMock.mock.instances[0]).toBe(origFnContext)
-        })
-
-        it('should create __elementOverrides__ if not exists', function () {
-            const propertiesObject = {}
-            overwriteElementCommands.call(null, propertiesObject)
-            expect(propertiesObject.__elementOverrides__).toBeTruthy()
-        })
-
-        it('should throw if user command is not a function', function () {
-            const propertiesObject = { __elementOverrides__: { value: {
-                foo: 'bar'
-            } } }
-            expect(() => overwriteElementCommands.call(null, propertiesObject))
-                .toThrow('overwriteCommand: commands be overwritten only with functions, command: foo')
-        })
-
-        it('should throw if there is no command to be propertiesObject', function () {
-            const propertiesObject = { __elementOverrides__: { value: {
-                foo: jest.fn()
-            } } }
-            expect(() => overwriteElementCommands.call(null, propertiesObject))
-                .toThrow('overwriteCommand: no command to be overwritten: foo')
-        })
-
-        it('should throw on attempt to overwrite not a function', function () {
-            const propertiesObject = { foo: 'bar', __elementOverrides__: { value: {
-                foo: jest.fn()
-            } } }
-            expect(() => overwriteElementCommands.call(null, propertiesObject))
-                .toThrow('overwriteCommand: only functions can be overwritten, command: foo')
-        })
     })
 
     describe('setupDirectConnect', () => {

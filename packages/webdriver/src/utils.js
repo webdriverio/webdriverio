@@ -1,16 +1,60 @@
-import logger from '@wdio/logger'
-
-import command from './command'
 import merge from 'lodash.merge'
-import WebDriverProtocol from '../protocol/webdriver.json'
-import MJsonWProtocol from '../protocol/mjsonwp.json'
-import JsonWProtocol from '../protocol/jsonwp.json'
-import AppiumProtocol from '../protocol/appium.json'
-import ChromiumProtocol from '../protocol/chromium.json'
-import SauceLabsProtocol from '../protocol/saucelabs.json'
-import SeleniumProtocol from '../protocol/selenium.json'
+import logger from '@wdio/logger'
+import {
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    SauceLabsProtocol, SeleniumProtocol
+} from '@wdio/protocols'
+
+import WebDriverRequest from './request'
+import command from './command'
 
 const log = logger('webdriver')
+
+/**
+ * start browser session with WebDriver protocol
+ */
+export async function startWebDriverSession (params) {
+    /**
+     * the user could have passed in either w3c style or jsonwp style caps
+     * and we want to pass both styles to the server, which means we need
+     * to check what style the user sent in so we know how to construct the
+     * object for the other style
+     */
+    const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
+        /**
+         * in case W3C compliant capabilities are provided
+         */
+        ? [params.capabilities, params.capabilities.alwaysMatch]
+        /**
+         * otherwise assume they passed in jsonwp-style caps (flat object)
+         */
+        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
+    const sessionRequest = new WebDriverRequest(
+        'POST',
+        '/session',
+        {
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
+        }
+    )
+
+    const response = await sessionRequest.makeRequest(params)
+    const sessionId = response.value.sessionId || response.sessionId
+
+    /**
+     * save original set of capabilities to allow to request the same session again
+     * (e.g. for reloadSession command in WebdriverIO)
+     */
+    params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+
+    /**
+     * save actual receveived session details
+     */
+    params.capabilities = response.value.capabilities || response.value
+
+    return sessionId
+}
 
 /**
  * check if WebDriver requests was successful
@@ -80,52 +124,6 @@ export function isSuccessfulResponse (statusCode, body) {
 }
 
 /**
- * checks if command argument is valid according to specificiation
- *
- * @param  {*}       arg           command argument
- * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
- * @return {Boolean}               true if argument is valid
- */
-export function isValidParameter (arg, expectedType) {
-    let shouldBeArray = false
-
-    if (expectedType.slice(-2) === '[]') {
-        expectedType = expectedType.slice(0, -2)
-        shouldBeArray = true
-    }
-
-    /**
-     * check type of each individual array element
-     */
-    if (shouldBeArray) {
-        if (!Array.isArray(arg)) {
-            return false
-        }
-    } else {
-        /**
-         * transform to array to have a unified check
-         */
-        arg = [arg]
-    }
-
-    for (const argEntity of arg) {
-        const argEntityType = getArgumentType(argEntity)
-        if (!argEntityType.match(expectedType)) {
-            return false
-        }
-    }
-
-    return true
-}
-
-/**
- * get type of command argument
- */
-export function getArgumentType (arg) {
-    return arg === null ? 'null' : typeof arg
-}
-
-/**
  * creates the base prototype for the webdriver monad
  */
 export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
@@ -165,30 +163,6 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
     }
 
     return prototype
-}
-
-/**
- * get command call structure
- * (for logging purposes)
- */
-export function commandCallStructure (commandName, args) {
-    const callArgs = args.map((arg) => {
-        if (typeof arg === 'string') {
-            arg = `"${arg}"`
-        } else if (typeof arg === 'function') {
-            arg = '<fn>'
-        } else if (arg === null) {
-            arg = 'null'
-        } else if (typeof arg === 'object') {
-            arg = '<object>'
-        } else if (typeof arg === 'undefined') {
-            arg = typeof arg
-        }
-
-        return arg
-    }).join(', ')
-
-    return `${commandName}(${callArgs})`
 }
 
 /**
@@ -352,50 +326,6 @@ export class CustomRequestError extends Error {
             this.name = 'stale element reference'
         }
     }
-}
-
-/**
- * overwrite native element commands with user defined
- * @param {object} propertiesObject propertiesObject
- */
-export function overwriteElementCommands(propertiesObject) {
-    const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
-
-    for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
-        if (typeof userDefinedCommand !== 'function') {
-            throw new Error('overwriteCommand: commands be overwritten only with functions, command: ' + commandName)
-        }
-
-        if (!propertiesObject[commandName]) {
-            throw new Error('overwriteCommand: no command to be overwritten: ' + commandName)
-        }
-
-        if (typeof propertiesObject[commandName].value !== 'function') {
-            throw new Error('overwriteCommand: only functions can be overwritten, command: ' + commandName)
-        }
-
-        const origCommand = propertiesObject[commandName].value
-        delete propertiesObject[commandName]
-
-        const newCommand = function (...args) {
-            const element = this
-            return userDefinedCommand.apply(element, [
-                function origCommandFunction() {
-                    const context = this || element // respect explicite context binding, use element as default
-                    return origCommand.apply(context, arguments)
-                },
-                ...args
-            ])
-        }
-
-        propertiesObject[commandName] = {
-            value: newCommand,
-            configurable: true
-        }
-    }
-
-    delete propertiesObject['__elementOverrides__']
-    propertiesObject['__elementOverrides__'] = { value: {} }
 }
 
 /**

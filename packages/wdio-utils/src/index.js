@@ -1,9 +1,18 @@
 import initialisePlugin from './initialisePlugin'
 import initialiseServices from './initialiseServices'
-import { isFunctionAsync } from './utils'
+import webdriverMonad from './monad'
+import {
+    commandCallStructure, isValidParameter, getArgumentType, safeRequire,
+    isFunctionAsync
+} from './utils'
 
 export {
     initialisePlugin,
     initialiseServices,
-    isFunctionAsync
+    isFunctionAsync,
+    webdriverMonad,
+    commandCallStructure,
+    isValidParameter,
+    getArgumentType,
+    safeRequire
 }
