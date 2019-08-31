@@ -11,7 +11,7 @@ export default async function createWindow ({ type }) {
     let newPage
 
     if (type === 'window') {
-        const page = this.windows.get(this.currentWindowHandle)
+        const page = this.getPageHandle()
         await page.evaluate(command, NEW_PAGE_URL, WINDOW_FEATURES)
         const newWindowTarget = await this.browser.waitForTarget(
             (target) => target.url() === NEW_PAGE_URL)

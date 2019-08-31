@@ -6,7 +6,7 @@ export default async function elementSendKeys ({ elementId, text }) {
     }
 
     await elementHandle.focus()
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     await page.keyboard.type(text)
 
     return null

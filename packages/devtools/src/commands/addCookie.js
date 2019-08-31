@@ -6,6 +6,10 @@ export default async function addCookie ({ cookie }) {
         throw new Error('Provided cookie object is missing either "name" or "value" property')
     }
 
+    if (typeof cookie.value !== 'string') {
+        cookie.value = cookie.value.toString()
+    }
+
     await page.setCookie(cookie)
     return null
 }

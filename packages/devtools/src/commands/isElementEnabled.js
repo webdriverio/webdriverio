@@ -1,5 +1,6 @@
 import getElementAttribute from './getElementAttribute'
 
 export default async function isElementEnabled ({ elementId }) {
-    return !(await getElementAttribute.call(this, { elementId, name: 'disabled' }))
+    const result = await getElementAttribute.call(this, { elementId, name: 'disabled' })
+    return result === null
 }

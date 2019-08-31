@@ -1,4 +1,4 @@
 export default async function getUrl () {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     return page.url()
 }

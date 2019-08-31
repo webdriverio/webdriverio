@@ -1,8 +1,7 @@
-import { switchFrame } from '../utils'
 import { ELEMENT_KEY } from '../constants'
 
 export default async function switchToFrame ({ id }) {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
 
     /**
      * switch frame by element ID
@@ -20,7 +19,8 @@ export default async function switchToFrame ({ id }) {
             throw new Error('no such frame')
         }
 
-        return switchFrame.call(this, contentFrame)
+        this.currentFrame = contentFrame
+        return null
     }
 
     /**
@@ -34,7 +34,8 @@ export default async function switchToFrame ({ id }) {
             throw new Error('no such frame')
         }
 
-        return switchFrame.call(this, childFrame)
+        this.currentFrame = childFrame
+        return null
     }
 
     /**
@@ -45,6 +46,7 @@ export default async function switchToFrame ({ id }) {
         while (parentFrame) {
             parentFrame = await page.parentFrame()
         }
+        this.currentFrame = parentFrame
         return null
     }
 

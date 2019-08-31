@@ -4,5 +4,6 @@ export default async function acceptAlert () {
     }
 
     await this.activeDialog.accept()
+    delete this.activeDialog
     return null
 }

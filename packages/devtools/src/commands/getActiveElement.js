@@ -4,7 +4,7 @@ import cleanUp from '../scripts/cleanUpSerializationSelector'
 import { SERIALIZE_PROPERTY } from '../constants'
 
 export default async function getActiveElement () {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     const selector = `[${SERIALIZE_PROPERTY}]`
 
     /**

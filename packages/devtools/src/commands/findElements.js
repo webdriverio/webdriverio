@@ -8,9 +8,17 @@ export default async function findElements ({ using, value }) {
         throw new Error(`selector strategy "${using}" is not yet supported`)
     }
 
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
 
     let needsCleanUp = false
+
+    if (using === 'link text') {
+        using = 'xpath'
+        value = `//a[normalize-space() = "${value}"]`
+    } else if (using === 'partial link text') {
+        using = 'xpath'
+        value = `//a[contains(., "${value}")]`
+    }
 
     /**
      * technically Puppeteer can not find elements with xPath, this is a

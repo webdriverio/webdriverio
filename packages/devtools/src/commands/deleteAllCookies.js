@@ -1,5 +1,5 @@
 export default async function deleteAllCookies () {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     const cookies = await page.cookies()
 
     for (const cookie of cookies) {
