@@ -1,6 +1,7 @@
 import {
     isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError, overwriteElementCommands
+    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError, overwriteElementCommands,
+    setupDirectConnect
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -347,6 +348,62 @@ describe('utils', () => {
             } } }
             expect(() => overwriteElementCommands.call(null, propertiesObject))
                 .toThrow('overwriteCommand: only functions can be overwritten, command: foo')
+        })
+    })
+
+    describe('setupDirectConnect', () => {
+        it('should do nothing if params contain no direct connect caps', function () {
+            const params = { hostname: 'bar', capabilities: { platformName: 'baz' } }
+            const paramsCopy = JSON.parse(JSON.stringify(params))
+            setupDirectConnect(params)
+            expect(params).toEqual(paramsCopy)
+        })
+
+        it('should do nothing if params contain incomplete direct connect caps', function () {
+            const params = { hostname: 'bar', capabilities: { directConnectHost: 'baz' } }
+            const paramsCopy = JSON.parse(JSON.stringify(params))
+            setupDirectConnect(params)
+            expect(params).toEqual(paramsCopy)
+        })
+
+        it('should update connection params if caps contain all direct connect fields', function () {
+            const params = {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: '',
+                capabilities: {
+                    directConnectProtocol: 'https',
+                    directConnectHost: 'bar',
+                    directConnectPort: 4321,
+                    directConnectPath: '/wd/hub'
+                }
+            }
+            setupDirectConnect(params)
+            expect(params.protocol).toBe('https')
+            expect(params.hostname).toBe('bar')
+            expect(params.port).toBe(4321)
+            expect(params.path).toBe('/wd/hub')
+        })
+
+        it('should update connection params even if path is empty string', function () {
+            const params = {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: '/wd/hub',
+                capabilities: {
+                    directConnectProtocol: 'https',
+                    directConnectHost: 'bar',
+                    directConnectPort: 4321,
+                    directConnectPath: ''
+                }
+            }
+            setupDirectConnect(params)
+            expect(params.protocol).toBe('https')
+            expect(params.hostname).toBe('bar')
+            expect(params.port).toBe(4321)
+            expect(params.path).toBe('')
         })
     })
 })
