@@ -1,7 +1,5 @@
-import { switchFrame } from '../utils'
-
 export default async function switchToParentFrame () {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
 
     /**
      * check if we can access child frames, if now we are already in the
@@ -11,14 +9,6 @@ export default async function switchToParentFrame () {
         return null
     }
 
-    const parentFrame = await page.parentFrame()
-
-    for (const [handle, frame] of this.windows) {
-        if (frame === parentFrame) {
-            this.currentWindowHandle = handle
-            return null
-        }
-    }
-
-    return switchFrame.call(this, parentFrame)
+    this.currentFrame = await page.parentFrame()
+    return null
 }

@@ -106,4 +106,12 @@ export default class DevToolsDriver {
         const page = this.windows.get(this.currentWindowHandle)
         page.setDefaultTimeout(this.timeouts.get('pageLoad'))
     }
+
+    getPageHandle () {
+        if (this.currentFrame) {
+            return this.currentFrame
+        }
+
+        return this.windows.get(this.currentWindowHandle)
+    }
 }

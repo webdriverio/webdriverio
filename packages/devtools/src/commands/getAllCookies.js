@@ -1,4 +1,4 @@
 export default async function getAllCookies () {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     return page.cookies()
 }

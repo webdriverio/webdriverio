@@ -3,9 +3,10 @@ import executeScript from './executeScript'
 import { ELEMENT_KEY } from '../constants'
 
 const SELECT_SCRIPT = 'return (function select (elem) { elem.selected = true }).apply(null, arguments)'
+const PAGELOAD_WAIT_TIMEOUT = 150
 
 export default async function elementClick ({ elementId }) {
-    const page = this.windows.get(this.currentWindowHandle)
+    const page = this.getPageHandle()
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
@@ -29,11 +30,46 @@ export default async function elementClick ({ elementId }) {
      * ensure to fulfill the click promise if the click has triggered an alert
      */
     return new Promise((resolve, reject) => {
-        const dialogHandler = () => resolve()
+        let waitForPageLoadTimeout
+
+        /**
+         * check if page load has happened due to click
+         */
+        const frameNavigatedHandler = () => {
+            /**
+             * if so clear the `waitForPageLoadTimeout` to prevent command
+             * to finish and wait until the page has loaded
+             */
+            clearTimeout(waitForPageLoadTimeout)
+            page.once('load', () => resolve(null))
+        }
+        page.once('framenavigated', frameNavigatedHandler)
+
+        /**
+         * listen on possible modal dialogs that might pop up due to the
+         * click action, just continue in this case
+         */
+        const dialogHandler = () => {
+            clearTimeout(waitForPageLoadTimeout)
+            resolve()
+        }
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
+            /**
+             * no modals popped up, so clean up the listener
+             */
             page.removeListener('dialog', dialogHandler)
-            resolve(null)
+
+            /**
+             * wait for at least 150ms to see if a page load was triggered,
+             * if so the we handle the command in the `frameNavigatedHandler`
+             */
+            waitForPageLoadTimeout = setTimeout(() => {
+                /**
+                 * no page load was triggered, continue
+                 */
+                resolve(null)
+            }, PAGELOAD_WAIT_TIMEOUT)
         }).catch(reject)
     })
 }

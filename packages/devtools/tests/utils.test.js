@@ -1,5 +1,5 @@
 import {
-    validate, getPrototype, findElement, findElements, switchFrame,
+    validate, getPrototype, findElement, findElements,
     sanitizeError, transformExecuteArgs, transformExecuteResult
 } from '../src/utils'
 
@@ -143,13 +143,6 @@ describe('findElement utils', () => {
             expect(pageMock.waitForSelector).toBeCalledTimes(1)
         })
     })
-})
-
-test('switchFrame', () => {
-    const scope = { windows: new Map() }
-    switchFrame.call(scope, 'foobar')
-    expect(typeof scope.currentWindowHandle).toBe('string')
-    expect(scope.windows.get(scope.currentWindowHandle)).toBe('foobar')
 })
 
 describe('sanitizeError', () => {

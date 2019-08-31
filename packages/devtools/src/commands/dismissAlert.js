@@ -4,5 +4,6 @@ export default async function dismissAlert () {
     }
 
     await this.activeDialog.dismiss()
+    delete this.activeDialog
     return null
 }
