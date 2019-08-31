@@ -65,6 +65,7 @@ tests/typings/**/dist
 **/build
 /*.js
 allure-reporter.d.ts
+devtools.d.ts
 webdriver.d.ts
 webdriverio-core.d.ts
 !babel.config.js

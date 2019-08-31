@@ -38,10 +38,20 @@ const cdpSession = new CDPSessionMock()
 class PageMock {
     constructor () {
         this.on = jest.fn()
+        this.close = jest.fn()
+        this.url = jest.fn().mockReturnValue('about:blank')
         this.emulate = jest.fn()
     }
 }
 const page = new PageMock()
+
+class PageMock2 extends PageMock {
+    constructor () {
+        super()
+        this.url = jest.fn().mockReturnValue('http://json.org')
+    }
+}
+const page2 = new PageMock2()
 
 class TargetMock {
     constructor () {
@@ -55,6 +65,7 @@ class PuppeteerMock {
     constructor () {
         this.waitForTarget = jest.fn().mockImplementation(() => target)
         this.getActivePage = jest.fn().mockImplementation(() => page)
+        this.pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))
     }
 }
 

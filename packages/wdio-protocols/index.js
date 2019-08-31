@@ -1,0 +1,7 @@
+exports.WebDriverProtocol = require('./protocols/webdriver.json')
+exports.MJsonWProtocol = require('./protocols/mjsonwp.json')
+exports.JsonWProtocol = require('./protocols/jsonwp.json')
+exports.AppiumProtocol = require('./protocols/appium.json')
+exports.ChromiumProtocol = require('./protocols/chromium.json')
+exports.SauceLabsProtocol = require('./protocols/saucelabs.json')
+exports.SeleniumProtocol = require('./protocols/selenium.json')
