@@ -93,18 +93,16 @@ export const multiremote = async function (params = {}) {
 
     /**
      * in order to get custom command overwritten or added to multiremote instance
-     * we need to pass in the prototype of the multibrowser (only when running with wdio testrunner)
+     * we need to pass in the prototype of the multibrowser
      */
-    if (params[browserNames[0]].runner) {
-        const origAddCommand = ::driver.addCommand
-        driver.addCommand = (name, fn, attachToElement) => {
-            origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
-        }
+    const origAddCommand = ::driver.addCommand
+    driver.addCommand = (name, fn, attachToElement) => {
+        origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+    }
 
-        const origOverwriteCommand = ::driver.overwriteCommand
-        driver.overwriteCommand = (name, fn, attachToElement) => {
-            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
-        }
+    const origOverwriteCommand = ::driver.overwriteCommand
+    driver.overwriteCommand = (name, fn, attachToElement) => {
+        origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
     }
 
     return driver
