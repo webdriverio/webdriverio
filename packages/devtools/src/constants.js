@@ -75,7 +75,6 @@ export const DEFAULT_SCRIPT_TIMEOUT = 30 * 1000 // 30s
 
 export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath', 'link text', 'partial link text']
 export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-fetchedElement'
-export const SERIALIZE_SELECTOR = `[${SERIALIZE_PROPERTY}]`
 export const SERIALIZE_FLAG = '__executeElement'
 
 export const ERROR_MESSAGES = {
