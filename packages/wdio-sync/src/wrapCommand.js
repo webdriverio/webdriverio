@@ -49,6 +49,8 @@ export default function wrapCommand (commandName, fn) {
             inFiber(this)
             return futureResult
         } catch (e) {
+            inFiber(this)
+
             /**
              * in case some 3rd party lib rejects without bundling into an error
              */
@@ -64,7 +66,6 @@ export default function wrapCommand (commandName, fn) {
                 return result
             }
 
-            inFiber(this)
             throw e
         }
     }

@@ -74,14 +74,8 @@ export const multiremote = async function (params = {}) {
      * create all instance sessions
      */
     await Promise.all(
-        browserNames.map((browserName) => {
-            const config = validateConfig(WDIO_DEFAULTS, params[browserName])
-            const modifier = (client, options) => {
-                Object.assign(options, config)
-                return client
-            }
-            const prototype = getPrototype('browser')
-            const instance = WebDriver.newSession(params[browserName], modifier, prototype, wrapCommand)
+        browserNames.map(async (browserName) => {
+            const instance = await remote(params[browserName])
             return multibrowser.addInstance(browserName, instance)
         })
     )
@@ -99,16 +93,18 @@ export const multiremote = async function (params = {}) {
 
     /**
      * in order to get custom command overwritten or added to multiremote instance
-     * we need to pass in the prototype of the multibrowser
+     * we need to pass in the prototype of the multibrowser (only when running with wdio testrunner)
      */
-    const origAddCommand = ::driver.addCommand
-    driver.addCommand = (name, fn, attachToElement) => {
-        origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
-    }
+    if (params[browserNames[0]].runner) {
+        const origAddCommand = ::driver.addCommand
+        driver.addCommand = (name, fn, attachToElement) => {
+            origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        }
 
-    const origOverwriteCommand = ::driver.overwriteCommand
-    driver.overwriteCommand = (name, fn, attachToElement) => {
-        origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        const origOverwriteCommand = ::driver.overwriteCommand
+        driver.overwriteCommand = (name, fn, attachToElement) => {
+            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        }
     }
 
     return driver
