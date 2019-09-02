@@ -11,6 +11,17 @@ Array [
 ]
 `;
 
+exports[`findElement utils findElements should find elements with xpath 1`] = `
+Array [
+  Object {
+    "element-6066-11e4-a52e-4f735466cecf": "foobar",
+  },
+  Object {
+    "element-6066-11e4-a52e-4f735466cecf": "foobar",
+  },
+]
+`;
+
 exports[`getPrototype 1`] = `
 Object {
   "acceptAlert": Object {

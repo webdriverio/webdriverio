@@ -32,8 +32,10 @@ const command = {
 
 let pageMock = {
     waitForSelector: jest.fn(),
+    waitForXPath: jest.fn(),
     $$eval: jest.fn(),
     $$: jest.fn(),
+    $x: jest.fn(),
     $: jest.fn()
 }
 
@@ -72,20 +74,42 @@ test('getPrototype', () => {
 describe('findElement utils', () => {
     afterEach(() => {
         pageMock.waitForSelector.mockClear()
+        pageMock.waitForXPath.mockClear()
+        pageMock.$$eval.mockClear()
         pageMock.$.mockClear()
+        pageMock.$x.mockClear()
         pageMock.$$.mockClear()
     })
 
     describe('findElement', () => {
-        it('tries to find element', async () => {
+        it('tries to find element using css selector', async () => {
             const scope = {
                 timeouts: { get: jest.fn() },
                 elementStore: { set: jest.fn().mockReturnValue('foobar') }
             }
             pageMock.$.mockReturnValue(Promise.resolve(42))
-            expect(await findElement.call(scope, pageMock, 'barfoo'))
+
+            expect(await findElement.call(scope, pageMock, 'css selector', 'barfoo'))
                 .toEqual({ 'element-6066-11e4-a52e-4f735466cecf': 'foobar' })
+
             expect(pageMock.waitForSelector).toBeCalledTimes(0)
+            expect(pageMock.$).toBeCalledWith('barfoo')
+            expect(pageMock.$x).toBeCalledTimes(0)
+        })
+
+        it('tries to find element using xpath', async () => {
+            const scope = {
+                timeouts: { get: jest.fn() },
+                elementStore: { set: jest.fn().mockReturnValue('foobar') }
+            }
+            pageMock.$x.mockReturnValue(Promise.resolve([42]))
+
+            expect(await findElement.call(scope, pageMock, 'xpath', '//img'))
+                .toEqual({ 'element-6066-11e4-a52e-4f735466cecf': 'foobar' })
+
+            expect(pageMock.waitForSelector).toBeCalledTimes(0)
+            expect(pageMock.$).toBeCalledTimes(0)
+            expect(pageMock.$x).toBeCalledWith('//img')
         })
 
         it('should fail if not found', async () => {
@@ -95,7 +119,7 @@ describe('findElement utils', () => {
             }
             pageMock.$.mockReturnValue(Promise.resolve(null))
 
-            const errorMessage = await findElement.call(scope, pageMock, 'barfoo')
+            const errorMessage = await findElement.call(scope, pageMock, 'css selector', 'barfoo')
             expect(errorMessage.message)
                 .toContain('Element with selector "barfoo" not found')
         })
@@ -106,8 +130,20 @@ describe('findElement utils', () => {
                 elementStore: { set: jest.fn() }
             }
             pageMock.$.mockReturnValue(Promise.resolve('foobar'))
-            await findElement.call(scope, pageMock, 'barfoo')
+            await findElement.call(scope, pageMock, 'css selector', 'barfoo')
             expect(pageMock.waitForSelector).toBeCalledTimes(1)
+            expect(pageMock.waitForXPath).toBeCalledTimes(0)
+        })
+
+        it('sets implicit waits with xpath', async () => {
+            const scope = {
+                timeouts: { get: jest.fn().mockReturnValue(1234) },
+                elementStore: { set: jest.fn() }
+            }
+            pageMock.$.mockReturnValue(Promise.resolve('foobar'))
+            await findElement.call(scope, pageMock, 'xpath', 'barfoo')
+            expect(pageMock.waitForSelector).toBeCalledTimes(0)
+            expect(pageMock.waitForXPath).toBeCalledTimes(1)
         })
     })
 
@@ -118,8 +154,22 @@ describe('findElement utils', () => {
                 elementStore: { set: jest.fn().mockReturnValue('foobar') }
             }
             pageMock.$$.mockReturnValue(Promise.resolve([42, 11]))
-            expect(await findElements.call(scope, pageMock, 'barfoo')).toMatchSnapshot()
+            expect(await findElements.call(scope, pageMock, 'css selector', 'barfoo')).toMatchSnapshot()
             expect(pageMock.waitForSelector).toBeCalledTimes(0)
+            expect(pageMock.$$).toBeCalledWith('barfoo')
+            expect(pageMock.$x).toBeCalledTimes(0)
+        })
+
+        it('should find elements with xpath', async () => {
+            const scope = {
+                timeouts: { get: jest.fn() },
+                elementStore: { set: jest.fn().mockReturnValue('foobar') }
+            }
+            pageMock.$x.mockReturnValue(Promise.resolve([42, 11]))
+            expect(await findElements.call(scope, pageMock, 'xpath', 'barfoo')).toMatchSnapshot()
+            expect(pageMock.waitForSelector).toBeCalledTimes(0)
+            expect(pageMock.$$).toBeCalledTimes(0)
+            expect(pageMock.$x).toBeCalledWith('barfoo')
         })
 
         it('should return immiadiatelly if no elements were found', async () => {
@@ -128,7 +178,7 @@ describe('findElement utils', () => {
                 elementStore: { set: jest.fn() }
             }
             pageMock.$$.mockReturnValue(Promise.resolve([]))
-            expect(await findElements.call(scope, pageMock, 'barfoo')).toEqual([])
+            expect(await findElements.call(scope, pageMock, 'css selector', 'barfoo')).toEqual([])
             expect(pageMock.waitForSelector).toBeCalledTimes(0)
             expect(scope.elementStore.set).toBeCalledTimes(0)
         })
@@ -139,8 +189,19 @@ describe('findElement utils', () => {
                 elementStore: { set: jest.fn() }
             }
             pageMock.$$.mockReturnValue(Promise.resolve(['foobar']))
-            await findElements.call(scope, pageMock, 'barfoo')
+            await findElements.call(scope, pageMock, 'css selector', 'barfoo')
             expect(pageMock.waitForSelector).toBeCalledTimes(1)
+        })
+
+        it('sets implicit waits with xpath', async () => {
+            const scope = {
+                timeouts: { get: jest.fn().mockReturnValue(1234) },
+                elementStore: { set: jest.fn() }
+            }
+            pageMock.$x.mockReturnValue(Promise.resolve(['foobar']))
+            await findElements.call(scope, pageMock, 'xpath', 'barfoo')
+            expect(pageMock.waitForSelector).toBeCalledTimes(0)
+            expect(pageMock.waitForXPath).toBeCalledTimes(1)
         })
     })
 })
