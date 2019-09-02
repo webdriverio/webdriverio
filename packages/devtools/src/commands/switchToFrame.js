@@ -1,4 +1,5 @@
 import { ELEMENT_KEY } from '../constants'
+import { getStaleElementError } from '../utils'
 
 export default async function switchToFrame ({ id }) {
     const page = this.getPageHandle()
@@ -10,7 +11,7 @@ export default async function switchToFrame ({ id }) {
         const elementHandle = this.elementStore.get(id[ELEMENT_KEY])
 
         if (!elementHandle) {
-            throw new Error(`Couldn't find element with id ${id[ELEMENT_KEY]} in cache`)
+            throw getStaleElementError(elementHandle)
         }
 
         const contentFrame = await elementHandle.contentFrame()

@@ -191,3 +191,13 @@ export async function transformExecuteResult (page, result) {
 
     return isResultArray ? tmpResult : tmpResult[0]
 }
+
+export async function getStaleElementError (elementId) {
+    const error = new Error(
+        `stale element reference: The element with reference ${elementId} is stale; either the ` +
+        'element is no longer attached to the DOM, it is not in the current frame context, or the ' +
+        'document has been refreshed'
+    )
+    error.name = 'stale element reference'
+    return error
+}

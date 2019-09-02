@@ -1,10 +1,11 @@
 import command from '../scripts/getElementText'
+import { getStaleElementError } from '../utils'
 
 export default function getElementText ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
-        throw new Error(`Couldn't find element with id ${elementId} in cache`)
+        throw getStaleElementError(elementId)
     }
 
     const page = this.getPageHandle()

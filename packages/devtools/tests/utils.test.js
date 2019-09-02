@@ -1,5 +1,5 @@
 import {
-    validate, getPrototype, findElement, findElements,
+    validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult
 } from '../src/utils'
 
@@ -276,4 +276,10 @@ describe('transformExecuteResult', () => {
         pageMock.$$.mockClear()
         pageMock.$$eval.mockClear()
     })
+})
+
+test('getStaleElementError', () => {
+    const err = getStaleElementError('foobar')
+    expect(err instanceof Error).toBe(true)
+    expect(err.name).toContain('stale element reference')
 })

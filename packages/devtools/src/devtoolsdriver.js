@@ -72,6 +72,10 @@ export default class DevToolsDriver {
             try {
                 result = await self.commands[command].call(self, params)
             } catch (err) {
+                if (err instanceof Promise) {
+                    throw sanitizeError(await err)
+                }
+
                 throw sanitizeError(err)
             }
 
