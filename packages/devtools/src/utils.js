@@ -81,16 +81,29 @@ export function getPrototype (commandWrapper) {
     return prototype
 }
 
-export async function findElement (page, value) {
+export async function findElement (context, using, value) {
     /**
      * implicitly wait for the element if timeout is set
      */
     const implicitTimeout = this.timeouts.get('implicit')
-    if (implicitTimeout) {
-        await page.waitForSelector(value, { timeout: implicitTimeout })
+    const waitForFn = using === 'xpath' ? context.waitForXPath : context.waitForSelector
+    if (implicitTimeout && waitForFn) {
+        await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
 
-    const element = await page.$(value)
+    let element
+    try {
+        element = using === 'xpath'
+            ? (await context.$x(value))[0]
+            : await context.$(value)
+    } catch (err) {
+        /**
+         * throw if method failed for other reasons
+         */
+        if (!err.message.includes('failed to find element')) {
+            throw err
+        }
+    }
 
     if (!element) {
         return new Error(`Element with selector "${value}" not found`)
@@ -100,16 +113,19 @@ export async function findElement (page, value) {
     return { [ELEMENT_KEY]: elementId }
 }
 
-export async function findElements (page, value) {
+export async function findElements (context, using, value) {
     /**
      * implicitly wait for the element if timeout is set
      */
     const implicitTimeout = this.timeouts.get('implicit')
-    if (implicitTimeout) {
-        await page.waitForSelector(value, { timeout: implicitTimeout })
+    const waitForFn = using === 'xpath' ? context.waitForXPath : context.waitForSelector
+    if (implicitTimeout && waitForFn) {
+        await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
 
-    const elements = await page.$$(value)
+    const elements = using === 'xpath'
+        ? await context.$x(value)
+        : await context.$$(value)
 
     if (elements.length === 0) {
         return elements
