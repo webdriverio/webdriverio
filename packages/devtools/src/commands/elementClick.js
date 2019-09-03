@@ -1,6 +1,7 @@
 import getElementTagName from './getElementTagName'
 import executeScript from './executeScript'
 import { ELEMENT_KEY } from '../constants'
+import { getStaleElementError } from '../utils'
 
 const SELECT_SCRIPT = 'return (function select (elem) { elem.selected = true }).apply(null, arguments)'
 const PAGELOAD_WAIT_TIMEOUT = 150
@@ -10,7 +11,7 @@ export default async function elementClick ({ elementId }) {
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
-        throw new Error(`Couldn't find element with id ${elementId} in cache`)
+        throw getStaleElementError(elementId)
     }
 
     /**

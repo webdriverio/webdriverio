@@ -1,10 +1,11 @@
 import command from '../scripts/getElementAttribute'
+import { getStaleElementError } from '../utils'
 
 export default async function getElementAttribute ({ elementId, name }) {
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
-        throw new Error(`Couldn't find element with id ${elementId} in cache`)
+        throw getStaleElementError(elementId)
     }
 
     const page = this.getPageHandle()
