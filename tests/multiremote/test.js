@@ -32,7 +32,7 @@ describe('smoke test multiremote', () => {
                 return `Title: ${title}`
             })
             assert.strictEqual(global.browserA.foobar(), 'Title: Mock Page Title')
-            assert.equal(typeof global.browserB.foobbar, 'undefined')
+            assert.equal(typeof global.browserB.foobar, 'undefined')
         })
 
         it('should throw if promise rejects', () => {
