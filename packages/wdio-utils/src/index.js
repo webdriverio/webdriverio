@@ -2,8 +2,7 @@ import initialisePlugin from './initialisePlugin'
 import initialiseServices from './initialiseServices'
 import webdriverMonad from './monad'
 import {
-    commandCallStructure, isValidParameter, getArgumentType, safeRequire,
-    isFunctionAsync
+    commandCallStructure, isValidParameter, getArgumentType, isFunctionAsync
 } from './utils'
 import safeRequire from './safeRequire'
 
