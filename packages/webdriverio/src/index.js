@@ -74,14 +74,8 @@ export const multiremote = async function (params = {}) {
      * create all instance sessions
      */
     await Promise.all(
-        browserNames.map((browserName) => {
-            const config = validateConfig(WDIO_DEFAULTS, params[browserName])
-            const modifier = (client, options) => {
-                Object.assign(options, config)
-                return client
-            }
-            const prototype = getPrototype('browser')
-            const instance = WebDriver.newSession(params[browserName], modifier, prototype, wrapCommand)
+        browserNames.map(async (browserName) => {
+            const instance = await remote(params[browserName])
             return multibrowser.addInstance(browserName, instance)
         })
     )
