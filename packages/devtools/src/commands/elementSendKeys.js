@@ -1,8 +1,10 @@
+import { getStaleElementError } from '../utils'
+
 export default async function elementSendKeys ({ elementId, text }) {
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
-        throw new Error(`Couldn't find element with id ${elementId} in cache`)
+        throw getStaleElementError(elementId)
     }
 
     await elementHandle.focus()

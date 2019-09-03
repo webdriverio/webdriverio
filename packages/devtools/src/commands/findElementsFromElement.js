@@ -1,5 +1,5 @@
 import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
-import { findElements } from '../utils'
+import { findElements, getStaleElementError } from '../utils'
 
 export default async function findElementFromElements ({ elementId, using, value }) {
     if (!SUPPORTED_SELECTOR_STRATEGIES.includes(using)) {
@@ -9,7 +9,7 @@ export default async function findElementFromElements ({ elementId, using, value
     const elementHandle = this.elementStore.get(elementId)
 
     if (!elementHandle) {
-        throw new Error(`Couldn't find element with id ${elementId} in cache`)
+        throw getStaleElementError(elementId)
     }
 
     if (using === 'link text') {
