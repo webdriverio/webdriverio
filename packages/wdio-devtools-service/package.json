@@ -29,9 +29,11 @@
     "@tracerbench/trace-event": "^4.5.2",
     "@types/puppeteer-core": "^2.0.0",
     "@wdio/logger": "6.10.10",
+    "axios": "^0.21.1",
     "core-js": "~3.8.2",
     "devtools-protocol": "^0.0.841965",
     "lighthouse": "^7.0.0",
+    "nyc": "^15.1.0",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
     "stable": "^0.1.8"

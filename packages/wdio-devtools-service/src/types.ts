@@ -1,6 +1,13 @@
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
 import type { NETWORK_STATES, PWA_AUDITS } from './constants'
 
+export interface DevtoolsConfig {
+    /**
+     * Directory where JS coverage reports are stored
+     */
+    coverageLogDir?: string;
+}
+
 export type FormFactor = 'mobile' | 'desktop' | 'none'
 
 export interface EnablePerformanceAuditsOptions {

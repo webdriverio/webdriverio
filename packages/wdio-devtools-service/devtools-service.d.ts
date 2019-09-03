@@ -64,9 +64,9 @@ type DeviceProfiles = 'Blackberry PlayBook' | 'BlackBerry Z30' | 'Galaxy Note 3'
 
 interface DevtoolsConfig {
   /**
-   * Define endpoint for Chrome DevTools protocol manually (e.g. localhost:24563).
+   * Directory where JS coverage reports are stored
    */
-  debuggerAddress?: string;
+  coverageLogDir?: string;
 }
 
 interface PerformanceAuditOptions {
