@@ -124,6 +124,18 @@ describe('findElement utils', () => {
                 .toContain('Element with selector "barfoo" not found')
         })
 
+        it('should not fail with the same error if Puppeeteer can not find the element', async () => {
+            const scope = {
+                timeouts: { get: jest.fn() },
+                elementStore: { set: jest.fn() }
+            }
+            pageMock.$.mockReturnValue(Promise.reject(new Error('failed to find element')))
+
+            const errorMessage = await findElement.call(scope, pageMock, 'css selector', 'barfoo')
+            expect(errorMessage.message)
+                .toContain('Element with selector "barfoo" not found')
+        })
+
         it('sets implicit waits', async () => {
             const scope = {
                 timeouts: { get: jest.fn().mockReturnValue(1234) },
