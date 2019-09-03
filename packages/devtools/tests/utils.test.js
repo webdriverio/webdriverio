@@ -246,6 +246,18 @@ test('transformExecuteArgs', () => {
     ])).toEqual(['foo', 'barfoo', true, 42])
 })
 
+test('transformExecuteArgs throws stale element if element is not in store', () => {
+    const scope = { elementStore: new Map() }
+    scope.elementStore.set('foobar', 'barfoo')
+
+    expect(() => transformExecuteArgs.call(scope, [
+        'foo',
+        { 'element-6066-11e4-a52e-4f735466cecf': 'not-existing' },
+        true,
+        42
+    ])).toThrow()
+})
+
 describe('transformExecuteResult', () => {
     test('multiple results', async () => {
         const scope = {

@@ -163,6 +163,11 @@ export function transformExecuteArgs (args) {
     return args.map((arg) => {
         if (arg[ELEMENT_KEY]) {
             const elementHandle = this.elementStore.get(arg[ELEMENT_KEY])
+
+            if (!elementHandle) {
+                throw getStaleElementError(arg[ELEMENT_KEY])
+            }
+
             arg = elementHandle
         }
 
