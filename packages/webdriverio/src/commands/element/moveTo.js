@@ -14,7 +14,7 @@
 
 import { getElementRect, getScrollPosition } from '../../utils'
 
-export default async function moveTo (xoffset, yoffset) {
+export default async function moveTo (xoffset, yoffset, { releaseActions = true } = {}) {
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xoffset, yoffset)
     }
@@ -35,5 +35,5 @@ export default async function moveTo (xoffset, yoffset) {
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
         actions: [{ type: 'pointerMove', duration: 0, x: newXoffset, y: newYoffset }]
-    }])
+    }]).then(() => { releaseActions && this.releaseActions() })
 }
