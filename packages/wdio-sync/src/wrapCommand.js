@@ -118,6 +118,17 @@ function isNotInFiber (context, fnName) {
  * @param {object} context browser or element
  */
 function inFiber(context) {
+    if (context.constructor.name === 'MultiRemoteDriver') {
+        return context.instances.forEach(instance => {
+            context[instance]._NOT_FIBER = false
+            let parent = context[instance].parent
+            while (parent && parent._NOT_FIBER) {
+                parent._NOT_FIBER = false
+                parent = parent.parent
+            }
+        })
+    }
+
     context._NOT_FIBER = false
     let parent = context.parent
     while (parent && parent._NOT_FIBER) {
