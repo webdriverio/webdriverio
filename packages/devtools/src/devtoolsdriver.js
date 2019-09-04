@@ -65,13 +65,32 @@ export default class DevToolsDriver {
         /**
          * within here you find the webdriver scope
          */
-        return async function (...args) {
+        const wrappedCommand = async function (...args) {
             const params = validate(command, parameters, variables, ref, args)
             let result
 
             try {
                 result = await self.commands[command].call(self, params)
             } catch (err) {
+                /**
+                 * handle page transitions gracefully
+                 */
+                if (err.message.includes('most likely because of a navigation')) {
+                    log.debug('Command failed due to unfinished page transition, retrying...')
+                    const page = self.getPageHandle()
+                    await new Promise((resolve, reject) => {
+                        const pageloadTimeout = setTimeout(
+                            () => reject(new Error('page load timeout')),
+                            self.timeouts.get('pageLoad'))
+
+                        page.once('load', () => {
+                            clearTimeout(pageloadTimeout)
+                            resolve()
+                        })
+                    })
+                    return wrappedCommand.apply(this, args)
+                }
+
                 throw sanitizeError(err)
             }
 
@@ -81,6 +100,8 @@ export default class DevToolsDriver {
 
             return result
         }
+
+        return wrappedCommand
     }
 
     dialogHandler (dialog) {
