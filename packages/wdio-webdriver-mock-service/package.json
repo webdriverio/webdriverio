@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@wdio/protocols": "^0.0.0",
-    "nock": "^10.0.4"
+    "nock": "^11.1.0"
   },
   "publishConfig": {
     "access": "public"
