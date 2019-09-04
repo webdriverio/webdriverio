@@ -45,7 +45,7 @@ export default function isDisplayedInViewport () {
      * if devtools package is used we can use Puppeteers ability to
      * check visibility within the viewport
      */
-    if (this.isDevTools) {
+    if (this.isDevTools && this.elementId) {
         return this.isElementDisplayed(this.elementId)
     }
 
