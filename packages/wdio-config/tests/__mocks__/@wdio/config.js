@@ -18,6 +18,7 @@ class ConfigParserMock {
             browserName: 'firefox'
         }])
         this.getSpecs = jest.fn().mockReturnValue(['./tests/test1.js'])
+        this.getDataProviders = jest.fn().mockReturnValue(null)
     }
 }
 

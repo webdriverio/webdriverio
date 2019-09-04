@@ -1,5 +1,6 @@
 import path from 'path'
 import ConfigParser from '../src/lib/ConfigParser'
+import { safeRequire } from '@wdio/utils'
 
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.js')
@@ -7,6 +8,10 @@ const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.js')
 const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.js')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.js')
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.js')
+const FIXTURES_DATA_PROVIDER_1 = path.resolve(FIXTURES_PATH, 'dataProvider1.js')
+const FIXTURES_DATA_PROVIDER_2 = path.resolve(FIXTURES_PATH, 'dataProvider2.js')
+const FIXTURES_DATA_PROVIDER_3 = path.resolve(FIXTURES_PATH, 'dataProvider3.js')
+const FIXTURES_DATA_PROVIDER_4 = path.resolve(FIXTURES_PATH, 'dataProvider4.js')
 
 describe('ConfigParser', () => {
     it('should throw if getFilePaths is not a string', () => {
@@ -324,6 +329,124 @@ describe('ConfigParser', () => {
             expect(config.port).toBe(443)
             expect(config.user).toBe('foobar')
             expect(config.key).toBe('50fa142c-3121-4gb0-9p07-8q326vvbq7b0')
+        })
+    })
+
+    describe('getDataProviders', () => {
+        beforeEach(() => {
+            jest.clearAllMocks()
+            safeRequire.mockImplementation((dpFile) => {
+                const data = require(dpFile).data
+                data.forEach((value, key) => {
+                    dataProvider(key, value)
+                })
+            })
+        })
+
+        it('should return null when passing null for  data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: null })
+
+            const dataMap = configParser.getDataProviders()
+            expect(dataMap).toEqual(null)
+            expect(configParser._dataProvidersMap).toEqual(null)
+            expect(safeRequire).not.toBeCalled()
+        })
+
+        it('should return null when passing undefined for data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: undefined })
+
+            const dataMap = configParser.getDataProviders()
+            expect(dataMap).toEqual(null)
+            expect(configParser._dataProvidersMap).toEqual(null)
+            expect(safeRequire).not.toBeCalled()
+        })
+
+        it('should return null when passing empty array for  data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: [] })
+
+            const dataMap = configParser.getDataProviders()
+            expect(dataMap).toEqual(null)
+            expect(configParser._dataProvidersMap).toEqual(null)
+            expect(safeRequire).not.toBeCalled()
+        })
+
+        it('should return valid data provider map when passing a single file path for data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: FIXTURES_DATA_PROVIDER_1 })
+
+            const dataMap = configParser.getDataProviders()
+            expect(safeRequire).toBeCalledWith(FIXTURES_DATA_PROVIDER_1)
+            expect(dataMap).toEqual(configParser._dataProvidersMap)
+            expect(Object.keys(dataMap).length).toEqual(2)
+
+            const configDataMap = dataMap[path.resolve(__dirname, 'configparser.test.js')]
+            expect(configDataMap.dataProviderFile).toEqual(FIXTURES_DATA_PROVIDER_1)
+            expect(configDataMap.dataSet).toHaveLength(1)
+            expect(configDataMap.dataSet[0]).toEqual('data1')
+
+            const backedDataMap = dataMap[path.resolve(__dirname, 'detectBackend.test.js')]
+            expect(backedDataMap.dataProviderFile).toEqual(FIXTURES_DATA_PROVIDER_1)
+            expect(backedDataMap.dataSet).toHaveLength(2)
+            expect(backedDataMap.dataSet[0].url).toEqual('url1')
+            expect(backedDataMap.dataSet[0].title).toEqual('title1')
+            expect(backedDataMap.dataSet[1].url).toEqual('url2')
+            expect(backedDataMap.dataSet[1].title).toEqual('title2')
+        })
+
+        it('should return valid data provider map when passing an array of files for data providers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: [FIXTURES_DATA_PROVIDER_1, FIXTURES_DATA_PROVIDER_2] })
+
+            const dataMap = configParser.getDataProviders()
+            expect(safeRequire).toBeCalledWith(FIXTURES_DATA_PROVIDER_1)
+            expect(dataMap).toEqual(configParser._dataProvidersMap)
+            expect(Object.keys(dataMap).length).toEqual(3)
+
+            const configDataMap = dataMap[path.resolve(__dirname, 'configparser.test.js')]
+            expect(configDataMap.dataProviderFile).toEqual(FIXTURES_DATA_PROVIDER_1)
+            expect(configDataMap.dataSet).toHaveLength(1)
+            expect(configDataMap.dataSet[0]).toEqual('data1')
+
+            const backedDataMap = dataMap[path.resolve(__dirname, 'detectBackend.test.js')]
+            expect(backedDataMap.dataProviderFile).toEqual(FIXTURES_DATA_PROVIDER_1)
+            expect(backedDataMap.dataSet).toHaveLength(2)
+            expect(backedDataMap.dataSet[0].url).toEqual('url1')
+            expect(backedDataMap.dataSet[0].title).toEqual('title1')
+            expect(backedDataMap.dataSet[1].url).toEqual('url2')
+            expect(backedDataMap.dataSet[1].title).toEqual('title2')
+
+            const validateDataMap = dataMap[path.resolve(__dirname, 'validateConfig.test.js')]
+            expect(validateDataMap.dataProviderFile).toEqual(FIXTURES_DATA_PROVIDER_2)
+            expect(validateDataMap.dataSet).toHaveLength(3)
+            expect(validateDataMap.dataSet[0]).toEqual('val1')
+            expect(validateDataMap.dataSet[1]).toEqual('val2')
+            expect(validateDataMap.dataSet[2]).toEqual('val3')
+        })
+
+        it('should throw error while trying to inject data for same test/spec file more than one time', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: [FIXTURES_DATA_PROVIDER_1, FIXTURES_DATA_PROVIDER_3] })
+
+            const dp = () => { configParser.getDataProviders() }
+            expect(dp).toThrowError(`With spec file path "${path.resolve(__dirname, 'configparser.test.js')}" in the data provider "${FIXTURES_DATA_PROVIDER_3}", you are attempting to override the data set already defined for it from data provider "${FIXTURES_DATA_PROVIDER_1}". Please resolve conflict between these dataProvider functions.`)
+        })
+
+        it('should throw error while trying to inject data which is not an array', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ dataProviders: [FIXTURES_DATA_PROVIDER_4] })
+
+            const dp = () => { configParser.getDataProviders() }
+            expect(dp).toThrowError(`The data set passed from the file "${FIXTURES_DATA_PROVIDER_4}" for the spec file path "${path.resolve(__dirname, 'configparser.test.js')}" is not an array.`)
         })
     })
 })

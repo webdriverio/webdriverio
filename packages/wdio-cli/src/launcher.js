@@ -32,10 +32,10 @@ class Launcher {
         logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
         const totalWorkerCnt = Array.isArray(capabilities)
-            ? capabilities
-                .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
-                .reduce((a, b) => a + b, 0)
-            : 1
+            ? (capabilities.map((c) => {
+                const specs = this.getSpecsWithDataProviderAndRetries(config, c.specs, c.exclude)
+                return specs.length
+            }, this).reduce((a, b) => a + b, 0)): 1
 
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFile, config)
@@ -51,6 +51,27 @@ class Launcher {
         this.rid = []
         this.runnerStarted = 0
         this.runnerFailed = 0
+    }
+
+    /**
+     * Combinate test data from data provider and retries with specs
+     */
+    getSpecsWithDataProviderAndRetries(config, capSpecs, capExclude) {
+        /**
+         * avoid retries in watch mode
+         */
+        const specFileRetries = config.watch ? 0 : config.specFileRetries
+        let specs = []
+        const dataProvidersMap = this.configParser.getDataProviders() || {}
+
+        this.configParser.getSpecs(capSpecs, capExclude).forEach((specFile) => {
+            let specDataSet = dataProvidersMap[specFile] || ['']
+            specDataSet.forEach((data) => {
+                specs.push({ files: [specFile], testData: data, retries: specFileRetries })
+            })
+        })
+
+        return specs
     }
 
     /**
@@ -130,11 +151,6 @@ class Launcher {
         }
 
         /**
-         * avoid retries in watch mode
-         */
-        const specFileRetries = config.watch ? 0 : config.specFileRetries
-
-        /**
          * schedule test runs
          */
         let cid = 0
@@ -145,7 +161,7 @@ class Launcher {
             this.schedule.push({
                 cid: cid++,
                 caps,
-                specs: this.configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                specs: this.getSpecsWithDataProviderAndRetries(config, caps.specs, caps.exclude),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -157,7 +173,7 @@ class Launcher {
                 this.schedule.push({
                     cid: cid++,
                     caps: capabilities,
-                    specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    specs: this.getSpecsWithDataProviderAndRetries(config, capabilities.specs, capabilities.exclude),
                     availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0,
                     seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
@@ -248,7 +264,8 @@ class Launcher {
                 schedulableCaps[0].cid,
                 schedulableCaps[0].seleniumServer,
                 specs.rid,
-                specs.retries
+                specs.retries,
+                specs.testData
             )
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
@@ -279,8 +296,9 @@ class Launcher {
      * @param  {Number} cid  Capabilities ID
      * @param  {String} rid  Runner ID override
      * @param  {Number} retries  Number of retries remaining
+     * @param  {Object} testData  Test data for the instance
      */
-    startInstance (specs, caps, cid, server, rid, retries) {
+    startInstance (specs, caps, cid, server, rid, retries, testData) {
         let config = this.configParser.getConfig()
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
@@ -329,6 +347,7 @@ class Launcher {
             command: 'run',
             configFile: this.configFile,
             argv: this.argv,
+            testData,
             caps,
             specs,
             server,
@@ -361,12 +380,13 @@ class Launcher {
      * @param  {Number} exitCode  exit code of child process
      * @param  {Array} specs      Specs that were run
      * @param  {Number} retries   Number or retries remaining
+     * @param  {Object} testData  Test data for the instance
      */
-    endHandler ({ cid, exitCode, specs, retries }) {
+    endHandler ({ cid, exitCode, specs, retries, testData }) {
         const passed = exitCode === 0
 
         if (!passed && retries > 0) {
-            this.schedule[parseInt(cid)].specs.push({ files: specs, retries: retries - 1, rid: cid })
+            this.schedule[parseInt(cid)].specs.push({ files: specs, testData: testData, retries: retries - 1, rid: cid })
         } else {
             this.exitCode = this.exitCode || exitCode
             this.runnerFailed += !passed ? 1 : 0

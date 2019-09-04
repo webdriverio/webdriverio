@@ -1,4 +1,4 @@
-import { safeRequire } from './utils'
+import safeRequire from './safeRequire'
 
 /**
  * initialise WebdriverIO compliant plugins like reporter or services in the following way:
