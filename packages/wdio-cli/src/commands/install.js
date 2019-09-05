@@ -1,17 +1,17 @@
 /* eslint-disable no-console */
 import fs from 'fs'
 import path from 'path'
-import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
-import setup from '../setup'
 import {
     replaceConfig,
     findInConfig,
     addServiceDeps,
     convertPackageHashToObject
 } from '../utils'
-import { supportedPackages } from './../supportedPackages'
+
+import { supportedPackages } from '../utils/supportedPackages'
+import missingConfigurationPrompt from '../utils/missingConfigurationPrompt'
 
 const supportedInstallations = {
     service: supportedPackages.service.map(({ value }) => convertPackageHashToObject(value)),
@@ -22,13 +22,12 @@ const supportedInstallations = {
 export const command = 'install <type> <name>'
 export const desc = 'Add a `reporter`, `service`, or `framework` to your WebdriverIO project'
 
-export default function builder(yargs) {
-    return yargs
-        .option('npm', {
-            desc: 'Install packages using npm',
-            type: 'boolean',
-            default: false
-        })
+export const builder = {
+    npm: {
+        desc: 'Install packages using npm',
+        type: 'boolean',
+        default: false
+    }
 }
 
 export async function handler(argv) {
@@ -56,28 +55,9 @@ export async function handler(argv) {
     const localConfPath = path.join(process.cwd(), 'wdio.conf.js')
 
     if (!fs.existsSync(localConfPath)) {
-        try {
-            const { config } = await inquirer.prompt([
-                {
-                    type: 'confirm',
-                    name: 'config',
-                    message: `Error: Could not install ${name} ${type} due to missing configuration. Would you like to create one?`,
-                    default: false
-                }
-            ])
-
-            if (!config) {
-                console.log(`
+        await missingConfigurationPrompt('install', `
 Cannot install packages without a WebdriverIO configuration.
 You can create one by running 'wdio config'`)
-                process.exit(0)
-            }
-
-            await setup(false)
-        } catch (error) {
-            console.error('Error installing', error)
-            process.exit(1)
-        }
     }
 
     const configFile = fs.readFileSync(localConfPath, { encoding: 'UTF-8' })

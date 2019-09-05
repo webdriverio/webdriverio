@@ -1,5 +1,9 @@
+import fs from 'fs'
+import ejs from 'ejs'
+import path from 'path'
 import logger from '@wdio/logger'
 import { execSync } from 'child_process'
+import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
 
 const log = logger('@wdio/cli:utils')
 
@@ -175,4 +179,16 @@ export function convertPackageHashToObject(string, hash = '$--$') {
         package: splitHash[0],
         short: splitHash[1]
     }
+}
+
+export function renderConfigurationFile (answers) {
+    const tplPath = path.join(__dirname, '..', 'templates/wdio.conf.tpl.ejs')
+    ejs.renderFile(tplPath, { answers }, function(err, renderedTpl) {
+        if (err) {
+            throw new Error(err)
+        }
+
+        fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
+        console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
+    })
 }

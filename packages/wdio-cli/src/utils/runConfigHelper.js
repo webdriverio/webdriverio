@@ -1,19 +1,16 @@
 /* eslint-disable no-console */
-import fs from 'fs'
-import ejs from 'ejs'
-import path from 'path'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
-import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
-import { addServiceDeps, convertPackageHashToObject } from './utils'
+import { CONFIG_HELPER_INTRO, QUESTIONNAIRE } from './constants'
+import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } from './index'
 
 /* istanbul ignore next */
-export default async function setup (exit = true) {
+export default async function runConfigHelper ({ npm, exit } = { exit: true, npm: false }) {
     try {
         console.log(CONFIG_HELPER_INTRO)
-        const answers = await inquirer.prompt(QUESTIONNAIRE)
 
+        const answers = await inquirer.prompt(QUESTIONNAIRE)
         const packageAnswers = ['reporters', 'runner', 'services', 'framework']
 
         Object.keys(answers).forEach((key) => {
@@ -40,10 +37,13 @@ export default async function setup (exit = true) {
         addServiceDeps(answers.services, packagesToInstall)
 
         console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
-        const result = yarnInstall({ deps: packagesToInstall, dev: true })
+
+        const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: npm })
+
         if (result.status !== 0) {
             throw new Error(result.stderr)
         }
+
         console.log('\nPackages installed successfully, creating configuration file...')
 
         const parsedAnswers = {
@@ -51,12 +51,8 @@ export default async function setup (exit = true) {
             runner: answers.runner.short,
             framework: answers.framework.short,
             reporters: answers.reporters.map(({ short }) => short),
-            services: answers.services.map(({ short }) => short),
-            packagesToInstall
+            services: answers.services.map(({ short }) => short)
         }
-
-        console.log('\n answers', answers)
-        console.log('\n parsedAnswers', parsedAnswers)
 
         renderConfigurationFile(parsedAnswers)
 
@@ -66,17 +62,4 @@ export default async function setup (exit = true) {
     } catch (error) {
         throw new Error(error)
     }
-}
-
-/* istanbul ignore next */
-function renderConfigurationFile (answers) {
-    const tplPath = path.join(__dirname, '/templates/wdio.conf.tpl.ejs')
-    ejs.renderFile(tplPath, { answers }, function(err, renderedTpl) {
-        if (err) {
-            throw new Error(err)
-        }
-
-        fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
-        console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
-    })
 }
