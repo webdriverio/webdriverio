@@ -41,14 +41,6 @@ import { getBrowserObject } from '../../utils'
 import isDisplayedInViewportScript from '../../scripts/isDisplayedInViewport'
 
 export default function isDisplayedInViewport () {
-    /**
-     * if devtools package is used we can use Puppeteers ability to
-     * check visibility within the viewport
-     */
-    if (this.isDevTools && this.elementId) {
-        return this.isElementDisplayed(this.elementId)
-    }
-
     return getBrowserObject(this).execute(isDisplayedInViewportScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
