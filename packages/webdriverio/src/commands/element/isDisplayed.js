@@ -54,7 +54,9 @@ export default async function isDisplayed() {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!this.elementId) {
-        this.elementId = (await this.parent.$(this.selector)).elementId
+        const method = this.isReactElement ? 'react$' : '$'
+
+        this.elementId = (await this.parent[method](this.selector)).elementId
     }
 
     /*
