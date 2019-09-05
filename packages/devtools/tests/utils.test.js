@@ -124,7 +124,7 @@ describe('findElement utils', () => {
                 .toContain('Element with selector "barfoo" not found')
         })
 
-        it('should not fail with the same error if Puppeeteer can not find the element', async () => {
+        it('should not fail with the same error if Puppeteer can not find the element', async () => {
             const scope = {
                 timeouts: { get: jest.fn() },
                 elementStore: { set: jest.fn() }
