@@ -269,6 +269,22 @@ describe('executeScript', () => {
     })
 })
 
+it('can handle navigation and command execution', async () => {
+    await browser.navigateTo('http://guinea-pig.webdriver.io')
+    expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
+
+    const link = await browser.findElements('link text', 'two')
+    await browser.elementClick(link[ELEMENT_KEY])
+    expect(await browser.getTitle()).toBe('two')
+
+    await browser.back()
+    expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
+
+    const githubLink = await browser.findElements('link text', 'GitHub Repo')
+    await browser.elementClick(githubLink[ELEMENT_KEY])
+    expect(await browser.getUrl()).toContain('github.com')
+})
+
 afterAll(async () => {
     await browser.deleteSession()
 })
