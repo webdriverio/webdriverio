@@ -148,10 +148,16 @@ Type: `Number`<br>
 Default: `0` (don't bail; run all tests)
 
 ### `specFileRetries`
-The number of retry attempts for an entire specfile when it fails as a whole.
+The number of times to retry an entire specfile when it fails as a whole.
 
 Type: `Number`<br>
 Default: `0`
+
+### `specFileRetriesDeferred`
+Whether or not retried specfiles should be retried immediately or deferred to the end of the queue.
+
+Type: `Boolean`<br>
+Default: `true`
 
 ### `waitforTimeout`
 Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
