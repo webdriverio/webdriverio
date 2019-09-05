@@ -96,7 +96,7 @@ describe('elements', () => {
         const notVisible = await browser.findElement('css selector', '.notVisible')
         expect(await browser.isElementDisplayed(notVisible[ELEMENT_KEY])).toBe(false)
         const notInViewport = await browser.findElement('css selector', '.notInViewport')
-        expect(await browser.isElementDisplayed(notInViewport[ELEMENT_KEY])).toBe(false)
+        expect(await browser.isElementDisplayed(notInViewport[ELEMENT_KEY])).toBe(true)
         const body = await browser.findElement('css selector', 'body')
         expect(await browser.isElementDisplayed(body[ELEMENT_KEY])).toBe(true)
     })
