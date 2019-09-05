@@ -11,6 +11,7 @@ DevToolsDriver.requireCommand = jest.fn()
 
 const page = {
     on: jest.fn(),
+    once: jest.fn(),
     setDefaultTimeout: jest.fn()
 }
 
@@ -38,6 +39,7 @@ let driver
 
 beforeEach(() => {
     page.on.mockClear()
+    page.once.mockClear()
     page.setDefaultTimeout.mockClear()
     DevToolsDriver.requireCommand.mockClear()
     driver = new DevToolsDriver('browser', [page])
@@ -84,6 +86,60 @@ test('should throw if command throws', async () => {
     const errorMsg3 = await command('123', 'some text',  ['some value'])
         .catch((e) => e.message)
     await expect(errorMsg3).toEqual('foobar')
+})
+
+test('should rerun command if it was executed within navigation', async () => {
+    expect.assertions(3)
+    let wasCommandCalled = false
+    driver.commands.elementClick = jest.fn().mockImplementation(
+        () => new Promise(
+            (resolve, reject) => setTimeout(
+                () => {
+                    if (!wasCommandCalled) {
+                        wasCommandCalled = true
+                        reject(new Error('foobar most likely because of a navigation'))
+                    }
+
+                    resolve(null)
+                },
+                100
+            )
+        )
+    )
+    const command = driver.register(commandMock)
+
+    setTimeout(() => {
+        expect(page.once).toBeCalledWith('load', expect.any(Function))
+        page.once.mock.calls.pop().pop()()
+    }, 150)
+
+    const result = await command('123', 'some text',  ['some value'])
+    expect(driver.commands.elementClick).toBeCalledTimes(2)
+    expect(result).toBe(null)
+})
+
+test('throws error if navigation takes too long', async () => {
+    driver.timeouts.set('pageLoad', 150)
+    let wasCommandCalled = false
+    driver.commands.elementClick = jest.fn().mockImplementation(
+        () => new Promise(
+            (resolve, reject) => setTimeout(
+                () => {
+                    if (!wasCommandCalled) {
+                        wasCommandCalled = true
+                        reject(new Error('foobar most likely because of a navigation'))
+                    }
+
+                    resolve(null)
+                },
+                100
+            )
+        )
+    )
+    const command = driver.register(commandMock)
+    const result = await command('123', 'some text',  ['some value'])
+        .catch((err) => err.message)
+    expect(result).toBe('page load timeout')
 })
 
 test('dialogHandler', () => {
