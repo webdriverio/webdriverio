@@ -52,7 +52,7 @@ test('can be initiated', () => {
 
 test('should throw if command is called that is not implemented', () => {
     const command = driver.register({ command: 'click' })
-    expect(command).toThrow('Not yet implemented')
+    expect(command).toThrow('Command "click" is not yet implemented')
 })
 
 test('should return proper result', async () => {
