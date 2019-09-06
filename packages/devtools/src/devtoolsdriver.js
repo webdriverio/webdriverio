@@ -59,7 +59,7 @@ export default class DevToolsDriver {
          * check if command is implemented
          */
         if (typeof this.commands[command] !== 'function') {
-            return () => { throw new Error('Not yet implemented') }
+            return () => { throw new Error(`Command "${command}" is not yet implemented`) }
         }
 
         /**
