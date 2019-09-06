@@ -34,7 +34,7 @@ describe('react$', () => {
         expect(request.mock.calls.pop()[0].body.args).toEqual(['myComp', {}, {}])
     })
 
-    it('should set error object if no element could be found', async () => {
+    it('should call getElement with React flag true', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -42,8 +42,8 @@ describe('react$', () => {
             }
         })
 
-        const elem = await browser.react$('myNonExistingComp')
-        expect(elem.error).toEqual(new Error('foobar'))
+        const elem = await browser.react$('SomeCmp')
+        expect(elem.isReactElement).toBe(true)
     })
 
     afterEach(() => {
