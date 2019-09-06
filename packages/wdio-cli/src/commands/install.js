@@ -7,11 +7,11 @@ import {
     replaceConfig,
     findInConfig,
     addServiceDeps,
-    convertPackageHashToObject
+    convertPackageHashToObject,
+    missingConfigurationPrompt
 } from '../utils'
 
-import { supportedPackages } from '../utils/supportedPackages'
-import missingConfigurationPrompt from '../utils/missingConfigurationPrompt'
+import { supportedPackages } from '../utils/constants'
 
 const supportedInstallations = {
     service: supportedPackages.service.map(({ value }) => convertPackageHashToObject(value)),

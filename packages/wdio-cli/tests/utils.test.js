@@ -8,8 +8,12 @@ import {
     findInConfig,
     replaceConfig,
     addServiceDeps,
-    convertPackageHashToObject
+    convertPackageHashToObject,
+    missingConfigurationPrompt
 } from '../src/utils'
+
+import inquirer from 'inquirer'
+import runConfigHelper from '../src/utils/runConfigHelper'
 
 jest.mock('child_process', function () {
     const m = {
@@ -19,7 +23,11 @@ jest.mock('child_process', function () {
     return m
 })
 
-global.console.log = jest.fn()
+jest.mock('../src/utils/runConfigHelper')
+
+beforeEach(() => {
+    global.console.log = jest.fn()
+})
 
 test('runServiceHook', () => {
     const hookSuccess = jest.fn()
@@ -234,4 +242,44 @@ describe('convertPackageHashToObject', () => {
             short: 'package-name'
         })
     })
+})
+
+describe('missingConfigurationPromp', () => {
+    it('should prompt user', async () => {
+        jest.spyOn(inquirer, 'prompt').mockImplementation(() => ({ config: true }))
+
+        await missingConfigurationPrompt()
+
+        expect(inquirer.prompt).toHaveBeenCalled()
+    })
+
+    it('should exit process if user chooses not to create config file', async () => {
+        jest.spyOn(inquirer, 'prompt').mockImplementation(() => ({ config: false }))
+        jest.spyOn(console, 'log')
+        jest.spyOn(process, 'exit').mockImplementation(() => {})
+
+        await missingConfigurationPrompt('test', 'Test fail message')
+
+        expect(console.log).toHaveBeenCalledWith('Test fail message')
+        expect(process.exit).toHaveBeenCalledWith(0)
+    })
+
+    it('should call function to initalize configuration helper', async () => {
+        jest.spyOn(inquirer, 'prompt').mockImplementation(() => ({ config: false }))
+
+        await missingConfigurationPrompt('test')
+
+        expect(runConfigHelper).toHaveBeenCalled()
+        expect(runConfigHelper).toHaveBeenCalledWith({ exit: false })
+    })
+
+    afterAll(() => {
+        runConfigHelper.mockClear()
+        inquirer.prompt.mockClear()
+        process.exit.mockClear()
+    })
+})
+
+afterEach(() => {
+    global.console.log.mockClear()
 })

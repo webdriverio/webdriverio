@@ -4,6 +4,9 @@ import path from 'path'
 import logger from '@wdio/logger'
 import { execSync } from 'child_process'
 import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
+import inquirer from 'inquirer'
+
+import runConfigHelper from './runConfigHelper'
 
 const log = logger('@wdio/cli:utils')
 
@@ -191,4 +194,26 @@ export function renderConfigurationFile (answers) {
         fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
         console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
     })
+}
+
+export async function missingConfigurationPrompt(command, message) {
+    try {
+        const { config } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'config',
+                message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
+                default: false
+            }
+        ])
+
+        if (!config) {
+            console.log(message)
+            process.exit(0)
+        }
+
+        await runConfigHelper({ exit: false })
+    } catch (error) {
+        throw new Error(error)
+    }
 }

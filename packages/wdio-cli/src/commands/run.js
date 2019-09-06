@@ -3,7 +3,7 @@ import path from 'path'
 
 import Launcher from './../launcher'
 import Watcher from './../watcher'
-import missingConfigurationPrompt from '../utils/missingConfigurationPrompt'
+import { missingConfigurationPrompt } from '../utils'
 
 export const command = 'run <configPath>'
 export const desc = ''
