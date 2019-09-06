@@ -4,7 +4,7 @@ import { ELEMENT_KEY } from '../constants'
 import { getStaleElementError } from '../utils'
 
 const SELECT_SCRIPT = 'return (function select (elem) { elem.selected = true }).apply(null, arguments)'
-const PAGELOAD_WAIT_TIMEOUT = 150
+const PAGELOAD_WAIT_TIMEOUT = 1000
 
 export default async function elementClick ({ elementId }) {
     const page = this.getPageHandle()
