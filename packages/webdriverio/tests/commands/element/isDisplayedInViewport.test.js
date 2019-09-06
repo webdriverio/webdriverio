@@ -28,15 +28,6 @@ describe('isDisplayedInViewport test', () => {
         })
     })
 
-    it('should call isElementDisplayed if element is in devtools', async () => {
-        elem.isDevTools = true
-
-        await elem.isDisplayedInViewport()
-
-        expect(request).toBeCalledTimes(1)
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
-    })
-
     afterEach(() => {
         request.mockClear()
     })
