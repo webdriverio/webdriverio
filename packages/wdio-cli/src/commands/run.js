@@ -6,8 +6,9 @@ import Watcher from './../watcher'
 import { missingConfigurationPrompt } from '../utils'
 
 export const command = 'run <configPath>'
-export const desc = ''
+export const desc = 'Run your WDIO configuration file to initialize your tests.'
 
+/* instanbul ignore next */
 export const builder = {
     watch: {
         desc: 'Run WebdriverIO in watch mode',
@@ -120,6 +121,7 @@ export async function handler(argv) {
      * stdin.isTTY is false when command is from nodes spawn since it's treated as a pipe
      */
     if (process.stdin.isTTY || !process.stdout.isTTY) {
+        console.log('--> asdf <--')
         return launch(wdioConf, params)
     }
 
