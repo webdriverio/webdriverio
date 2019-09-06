@@ -49,6 +49,14 @@ describe('isDisplayed test', () => {
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
+    it('should refect React element if non existing', async () => {
+        elem = await browser.react$('FooCmp')
+
+        delete elem.elementId
+
+        expect(await elem.isDisplayed()).toBe(true)
+    })
+
     it('should return false if element is not existing anymore', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
