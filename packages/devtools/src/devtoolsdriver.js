@@ -66,6 +66,18 @@ export default class DevToolsDriver {
          * within here you find the webdriver scope
          */
         const wrappedCommand = async function (...args) {
+            /**
+             * ensure there is no page transition happening and an execution context
+             * is available
+             */
+            const page = self.getPageHandle()
+            const executionContext = await page.mainFrame().executionContext()
+            try {
+                await executionContext.evaluate('1')
+            } catch (err) {
+                return wrappedCommand.apply(this, args)
+            }
+
             const params = validate(command, parameters, variables, ref, args)
             let result
 
@@ -73,7 +85,11 @@ export default class DevToolsDriver {
                 result = await self.commands[command].call(self, params)
             } catch (err) {
                 /**
-                 * handle page transitions gracefully
+                 * if though we check for an execution context before executing a command we
+                 * can technically still run into the situation (especially if the command
+                 * contains multiple interaction with the page and is long) where the execution
+                 * context gets destroyed. For these cases handle page transitions gracefully
+                 * by repeating the command.
                  */
                 if (err.message.includes('most likely because of a navigation')) {
                     log.debug('Command failed due to unfinished page transition, retrying...')
