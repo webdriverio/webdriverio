@@ -223,7 +223,7 @@ export async function getPages (browser, retryInterval = 100) {
         log.info('no browser pages found, retrying...')
 
         /**
-         * wait for 200ms to try again
+         * wait for some milliseconds to try again
          */
         await new Promise((resolve) => setTimeout(resolve, retryInterval))
         return getPages(browser)
