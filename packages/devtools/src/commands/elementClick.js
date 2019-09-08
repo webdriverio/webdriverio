@@ -34,7 +34,7 @@ export default async function elementClick ({ elementId }) {
          * listen on possible modal dialogs that might pop up due to the
          * click action, just continue in this case
          */
-        const dialogHandler = () => resolve()
+        const dialogHandler = () => resolve(null)
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
             /**
