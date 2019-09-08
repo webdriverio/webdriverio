@@ -206,3 +206,28 @@ export function getStaleElementError (elementId) {
     error.name = 'stale element reference'
     return error
 }
+
+/**
+ * Helper function to get a list of Puppeteer pages from a Chrome browser.
+ * In case many headless browser are run in parallel there are situations
+ * where there are no pages because the machine is busy booting the headless
+ * browser.
+ *
+ * @param  {Puppeteer.Browser} browser  browser instance
+ * @return {Puppeteer.Page[]}           list of browser pages
+ */
+export async function getPages (browser, retryInterval = 100) {
+    const pages = await browser.pages()
+
+    if (pages.length === 0) {
+        log.info('no browser pages found, retrying...')
+
+        /**
+         * wait for some milliseconds to try again
+         */
+        await new Promise((resolve) => setTimeout(resolve, retryInterval))
+        return getPages(browser)
+    }
+
+    return pages
+}
