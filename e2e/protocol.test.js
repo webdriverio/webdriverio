@@ -267,6 +267,12 @@ describe('executeScript', () => {
         await browser.refresh()
         expect(await browser.executeScript('return window.foobar', [])).toBe(undefined)
     })
+
+    it('serializes elements', async () => {
+        const script = 'return (function () { return this.document.querySelector("body") }).apply(null, arguments)'
+        const elem = await browser.executeScript(script, [])
+        expect(typeof elem[ELEMENT_KEY]).toBe('string')
+    })
 })
 
 afterAll(async () => {
