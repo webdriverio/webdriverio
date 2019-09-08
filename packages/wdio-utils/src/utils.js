@@ -48,7 +48,9 @@ export function overwriteElementCommands(propertiesObject) {
  */
 export function commandCallStructure (commandName, args) {
     const callArgs = args.map((arg) => {
-        if (typeof arg === 'string') {
+        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
+            arg = '<fn>'
+        } else if (typeof arg === 'string') {
             arg = `"${arg}"`
         } else if (typeof arg === 'function') {
             arg = '<fn>'
