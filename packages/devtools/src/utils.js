@@ -185,7 +185,7 @@ export async function transformExecuteResult (page, result) {
     if (tmpResult.find((r) => typeof r === 'string' && r.startsWith(SERIALIZE_FLAG))) {
         tmpResult = await Promise.all(tmpResult.map(async (r) => {
             if (typeof r === 'string' && r.startsWith(SERIALIZE_FLAG)) {
-                return findElement.call(this, page, `[${SERIALIZE_PROPERTY}="${r}"]`)
+                return findElement.call(this, page, 'css selector', `[${SERIALIZE_PROPERTY}="${r}"]`)
             }
 
             return result
