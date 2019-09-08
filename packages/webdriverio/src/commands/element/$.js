@@ -58,7 +58,7 @@ export default async function $ (selector) {
      * e.g. when element was fetched with `getActiveElement`
      */
     if (selector && typeof selector[ELEMENT_KEY] === 'string') {
-        return getElement.call(this, selector, res)
+        return getElement.call(this, null, selector)
     }
 
     const res = await findElement.call(this, selector)
