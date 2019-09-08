@@ -2,7 +2,9 @@
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
  * to fetch a single element on the page. It returns an object that with an extended prototype to call
  * action commands without passing in a selector. However if you still pass in a selector it will look
- * for that element first and call the action on that element.
+ * for that element first and call the action on that element. You can also pass in an object as selector
+ * where the object contains a property `element-6066-11e4-a52e-4f735466cecf` with the value of a reference
+ * to an element. The command will then transform the reference to an extended WebdriverIO element.
  *
  * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
  *
@@ -32,18 +34,32 @@
         });
         console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
+
+    it('should allow to convert protocol result of an element into a WebdriverIO element', () => {
+        const activeElement = browser.getActiveElement();
+        console.log($(activeElement).getTagName()); // outputs active element
+    });
  * </example>
  *
  * @alias $
- * @param {String|Function} selector  selector or JS Function to fetch a certain element
+ * @param {String|Function|Object} selector  selector or JS Function to fetch a certain element
  * @return {Element}
  * @type utility
  *
  */
 import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
+import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
+    /**
+     * convert protocol result into WebdriverIO element
+     * e.g. when element was fetched with `getActiveElement`
+     */
+    if (selector && typeof selector[ELEMENT_KEY] === 'string') {
+        return getElement.call(this, null, selector)
+    }
+
     const res = await findElement.call(this, selector)
     return getElement.call(this, selector, res)
 }
