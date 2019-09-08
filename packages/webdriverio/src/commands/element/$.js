@@ -38,7 +38,7 @@
 
     it('should allow to convert protocol result of an element into a WebdriverIO element', () => {
         const activeElement = browser.getActiveElement();
-        console.log($(activeElement).getTagName); // outputs active element
+        console.log($(activeElement).getTagName()); // outputs active element
     });
  * </example>
  *
