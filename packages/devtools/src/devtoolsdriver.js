@@ -65,13 +65,37 @@ export default class DevToolsDriver {
         /**
          * within here you find the webdriver scope
          */
-        return async function (...args) {
+        const wrappedCommand = async function (...args) {
+            await self.checkPendingNavigations()
             const params = validate(command, parameters, variables, ref, args)
             let result
 
             try {
                 result = await self.commands[command].call(self, params)
             } catch (err) {
+                /**
+                 * if though we check for an execution context before executing a command we
+                 * can technically still run into the situation (especially if the command
+                 * contains multiple interaction with the page and is long) where the execution
+                 * context gets destroyed. For these cases handle page transitions gracefully
+                 * by repeating the command.
+                 */
+                if (err.message.includes('most likely because of a navigation')) {
+                    log.debug('Command failed due to unfinished page transition, retrying...')
+                    const page = self.getPageHandle()
+                    await new Promise((resolve, reject) => {
+                        const pageloadTimeout = setTimeout(
+                            () => reject(new Error('page load timeout')),
+                            self.timeouts.get('pageLoad'))
+
+                        page.once('load', () => {
+                            clearTimeout(pageloadTimeout)
+                            resolve()
+                        })
+                    })
+                    return wrappedCommand.apply(this, args)
+                }
+
                 throw sanitizeError(err)
             }
 
@@ -81,6 +105,8 @@ export default class DevToolsDriver {
 
             return result
         }
+
+        return wrappedCommand
     }
 
     dialogHandler (dialog) {
@@ -113,5 +139,57 @@ export default class DevToolsDriver {
         }
 
         return this.windows.get(this.currentWindowHandle)
+    }
+
+    async checkPendingNavigations (pendingNavigationStart) {
+        /**
+         * ignore pending navigation check if dialog is open
+         */
+        if (this.activeDialog) {
+            return
+        }
+
+        pendingNavigationStart = pendingNavigationStart || Date.now()
+        const pageloadTimeout = this.timeouts.get('pageLoad')
+
+        /**
+         * ensure there is no page transition happening and an execution context
+         * is available
+         */
+        let page = this.getPageHandle()
+
+        /**
+         * if current page is a frame we have to get the page from the browser
+         * that has this frame listed
+         */
+        if (!page.mainFrame) {
+            const pages = await this.browser.pages()
+            page = pages.find((browserPage) => (
+                browserPage.frames().find((frame) => page === frame)
+            ))
+        }
+
+        const pageloadTimeoutReached = Date.now() - pendingNavigationStart > pageloadTimeout
+        const executionContext = await page.mainFrame().executionContext()
+        try {
+            await executionContext.evaluate('1')
+
+            /**
+             * if we have an execution context, also check for the ready state
+             */
+            const readyState = await executionContext.evaluate('document.readyState')
+            if (readyState !== 'complete' && !pageloadTimeoutReached) {
+                return this.checkPendingNavigations(pendingNavigationStart)
+            }
+        } catch (err) {
+            /**
+             * throw original error if a context could not be established
+             */
+            if (pageloadTimeoutReached) {
+                throw err
+            }
+
+            return this.checkPendingNavigations(pendingNavigationStart)
+        }
     }
 }

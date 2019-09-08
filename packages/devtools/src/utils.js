@@ -159,7 +159,7 @@ export function sanitizeError (err) {
 /**
  * transform elements in argument list to Puppeteer element handles
  */
-export function transformExecuteArgs (args) {
+export function transformExecuteArgs (args = []) {
     return args.map((arg) => {
         if (arg[ELEMENT_KEY]) {
             const elementHandle = this.elementStore.get(arg[ELEMENT_KEY])
