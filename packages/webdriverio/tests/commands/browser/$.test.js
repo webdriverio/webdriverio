@@ -33,6 +33,18 @@ describe('element', () => {
         expect(elem.ELEMENT).toBe('some-elem-123')
     })
 
+    it('should allow to transform protocol reference into a WebdriverIO element', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$({ [ELEMENT_KEY]: 'foobar' })
+        expect(elem.elementId).toBe('foobar')
+    })
+
     it('keeps prototype from browser object', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
