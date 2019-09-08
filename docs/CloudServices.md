@@ -8,7 +8,7 @@ Using ondemand services like Sauce Labs, Browserstack, TestingBot, or CrossBrows
 ```js
 // wdio.conf.js
 
-var config = {...}
+let config = {...}
 if (process.env.CI) {
     config.user = process.env.SAUCE_USERNAME;
     config.key = process.env.SAUCE_ACCESS_KEY;

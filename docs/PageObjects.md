@@ -103,7 +103,7 @@ describe('login form', () => {
 });
 ```
 
-From the structural side it makes sense to separate spec files and page objects and put them into different directories. Additionally you can give each page object the ending: `.page.js`. This way it is easy to figure out that you actually require a page object if you execute `var LoginPage = require('../pageobjects/form.page');`.
+From the structural side it makes sense to separate spec files and page objects and put them into different directories. Additionally you can give each page object the ending: `.page.js`. This way it is easy to figure out that you actually require a page object if you execute `const LoginPage = require('../pageobjects/form.page');`.
 
 This is the basic principle of how to write page objects with WebdriverIO. Note that you can build up way more complex page object structures than this. For example have specific page objects for modals or split up a huge page object into different sections objects that inherit from the main page object. The pattern gives you really a lot of opportunities to encapsulate page information from your actual tests, which is important to keep your test suite structured and clear in times where the project and number of tests grows.
 

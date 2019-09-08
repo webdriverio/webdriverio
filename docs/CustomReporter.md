@@ -27,7 +27,7 @@ The only thing to do now in order to use this reporter is to assign it to the re
 your wdio.conf.js file should look like this:
 
 ```js
-var CustomReporter = require('./reporter/my.custom.reporter');
+const CustomReporter = require('./reporter/my.custom.reporter');
 
 exports.config = {
     // ...

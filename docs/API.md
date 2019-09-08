@@ -13,7 +13,7 @@ Each command documentation usually comes with an example that demonstrates the u
 
 ```js
 it('can handle commands synchronously', () => {
-    var value = $('#input').getValue();
+    let value = $('#input').getValue();
     console.log(value); // outputs: some value
 });
 ```
@@ -32,7 +32,7 @@ Of course you can use Node.JS latest [async/await](https://github.com/yortus/asy
 
 ```js
 it('can handle commands using async/await', async function () {
-    var value = await $('#input').getValue();
+    let value = await $('#input').getValue();
     console.log(value); // outputs: some value
 });
 ```

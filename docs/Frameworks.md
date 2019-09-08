@@ -19,7 +19,7 @@ If you like to use Mocha you should additionally install an assertion library to
 
 ```js
 before: function() {
-    var chai = require('chai');
+    const chai = require('chai');
     global.expect = chai.expect;
     chai.Should();
 }
