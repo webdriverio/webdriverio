@@ -1,6 +1,6 @@
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
-    sanitizeError, transformExecuteArgs, transformExecuteResult
+    sanitizeError, transformExecuteArgs, transformExecuteResult, getPages
 } from '../src/utils'
 
 const command = {
@@ -288,6 +288,17 @@ describe('transformExecuteResult', () => {
         pageMock.$$.mockClear()
         pageMock.$$eval.mockClear()
     })
+})
+
+test('getPages', async () => {
+    const browser = {
+        pages: jest.fn()
+            .mockReturnValueOnce([])
+            .mockReturnValueOnce([])
+            .mockReturnValueOnce([{}])
+    }
+    await getPages(browser, 10)
+    expect(browser.pages).toBeCalledTimes(3)
 })
 
 test('getStaleElementError', () => {
