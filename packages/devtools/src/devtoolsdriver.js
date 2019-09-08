@@ -156,7 +156,19 @@ export default class DevToolsDriver {
          * ensure there is no page transition happening and an execution context
          * is available
          */
-        const page = this.getPageHandle()
+        let page = this.getPageHandle()
+
+        /**
+         * if current page is a frame we have to get the page from the browser
+         * that has this frame listed
+         */
+        if (!page.mainFrame) {
+            const pages = await this.browser.pages()
+            page = pages.find((browserPage) => (
+                browserPage.frames().find((frame) => page === frame)
+            ))
+        }
+
         const pageloadTimeoutReached = Date.now() - pendingNavigationStart > pageloadTimeout
         const executionContext = await page.mainFrame().executionContext()
         try {

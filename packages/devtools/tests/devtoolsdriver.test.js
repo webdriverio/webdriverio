@@ -27,7 +27,17 @@ const page = {
     on: jest.fn(),
     once: jest.fn(),
     setDefaultTimeout: jest.fn(),
-    mainFrame: jest.fn().mockImplementation(() => frame)
+    mainFrame: jest.fn(),
+    frames: jest.fn().mockReturnValue([frame])
+}
+
+const browser = {
+    pages: jest.fn().mockImplementation(async () => {
+        page.mainFrame = jest.fn().mockImplementation(() => frame)
+        ++evaluateCommandCalls
+        setNormalPageLoadBehavior()
+        return [page]
+    })
 }
 
 const commandMock = {
@@ -56,16 +66,17 @@ beforeEach(() => {
     page.on.mockClear()
     page.once.mockClear()
     page.setDefaultTimeout.mockClear()
+    page.mainFrame.mockImplementation(() => frame)
     executionContext.evaluate.mockClear()
     setNormalPageLoadBehavior()
     DevToolsDriver.requireCommand.mockClear()
-    driver = new DevToolsDriver('browser', [page])
+    driver = new DevToolsDriver(browser, [page])
     driver.timeouts.set('pageLoad', 100)
 })
 
 test('can be initiated', () => {
     expect(driver.commands).toEqual({ click: undefined, getAttribute: undefined })
-    expect(driver.browser).toBe('browser')
+    expect(driver.browser).toEqual(browser)
     expect(page.on).toBeCalledWith('dialog', expect.any(Function))
     expect(page.on).toBeCalledWith('framenavigated', expect.any(Function))
 })
@@ -178,6 +189,17 @@ test('should wait for page load to be complete before executing the command', as
     const command = driver.register(commandMock)
     await command('123', 'some text',  ['some value'])
     expect(executionContext.evaluate.mock.calls).toHaveLength(8)
+})
+
+test('should use page from target if we are currently in a frame', async () => {
+    driver.getPageHandle = jest.fn().mockReturnValue(frame)
+    executionContext.evaluate = jest.fn().mockReturnValueOnce('complete')
+
+    driver.commands.elementClick = () => Promise.resolve(null)
+
+    const command = driver.register(commandMock)
+    await command('123', 'some text',  ['some value'])
+    expect(browser.pages).toBeCalledTimes(1)
 })
 
 test('should rerun command if no execution context could be found', async () => {
