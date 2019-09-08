@@ -9,10 +9,25 @@ jest.mock('fs', () => ({
 
 DevToolsDriver.requireCommand = jest.fn()
 
+let evaluateCommandCalls = 0
+const executionContext = {
+    evaluate: jest.fn()
+}
+
+const setNormalPageLoadBehavior = () => executionContext.evaluate.mockImplementation(() => Promise.resolve(++evaluateCommandCalls % 2 === 1
+    ? '1'
+    : 'complete'
+))
+
+const frame = {
+    executionContext: jest.fn().mockImplementation(() => Promise.resolve(executionContext))
+}
+
 const page = {
     on: jest.fn(),
     once: jest.fn(),
-    setDefaultTimeout: jest.fn()
+    setDefaultTimeout: jest.fn(),
+    mainFrame: jest.fn().mockImplementation(() => frame)
 }
 
 const commandMock = {
@@ -41,8 +56,11 @@ beforeEach(() => {
     page.on.mockClear()
     page.once.mockClear()
     page.setDefaultTimeout.mockClear()
+    executionContext.evaluate.mockClear()
+    setNormalPageLoadBehavior()
     DevToolsDriver.requireCommand.mockClear()
     driver = new DevToolsDriver('browser', [page])
+    driver.timeouts.set('pageLoad', 100)
 })
 
 test('can be initiated', () => {
@@ -140,6 +158,64 @@ test('throws error if navigation takes too long', async () => {
     const result = await command('123', 'some text',  ['some value'])
         .catch((err) => err.message)
     expect(result).toBe('page load timeout')
+})
+
+test('should wait for page load to be complete before executing the command', async () => {
+    executionContext.evaluate.mockReset()
+    executionContext.evaluate = jest.fn()
+        .mockReturnValueOnce('1')
+        .mockReturnValueOnce('loading')
+        .mockReturnValueOnce('1')
+        .mockReturnValueOnce('loading')
+        .mockReturnValueOnce('1')
+        .mockReturnValueOnce('interactive')
+        .mockReturnValueOnce('1')
+        .mockReturnValueOnce('complete')
+
+    driver.commands.elementClick = (...args) => new Promise(
+        (resolve) => setTimeout(() => resolve(...args), 100))
+
+    const command = driver.register(commandMock)
+    await command('123', 'some text',  ['some value'])
+    expect(executionContext.evaluate.mock.calls).toHaveLength(8)
+})
+
+test('should rerun command if no execution context could be found', async () => {
+    executionContext.evaluate.mockReset()
+    executionContext.evaluate = jest.fn()
+        .mockReturnValueOnce(Promise.reject(new Error('ups')))
+        .mockReturnValueOnce(Promise.reject(new Error('ups')))
+        .mockReturnValueOnce(Promise.resolve('1'))
+        .mockReturnValueOnce(Promise.resolve('complete'))
+
+    driver.commands.elementClick = (...args) => new Promise(
+        (resolve) => setTimeout(() => resolve(...args), 100))
+
+    const command = driver.register(commandMock)
+    await command('123', 'some text',  ['some value'])
+    expect(executionContext.evaluate.mock.calls).toHaveLength(4)
+})
+
+test('should throw if execution context can not be established', async () => {
+    expect.assertions(1)
+
+    executionContext.evaluate.mockReset()
+    executionContext.evaluate = jest.fn()
+        .mockImplementation(() => new Promise(
+            (resolve, reject) => setTimeout(
+                () => reject(new Error('ups')), 100)))
+
+    driver.timeouts.set('pageLoad', 200)
+    driver.commands.elementClick = (...args) => new Promise(
+        (resolve) => setTimeout(() => resolve(...args), 100))
+
+    const command = driver.register(commandMock)
+
+    try {
+        await command('123', 'some text',  ['some value'])
+    } catch (err) {
+        expect(err.message).toBe('ups')
+    }
 })
 
 test('dialogHandler', () => {

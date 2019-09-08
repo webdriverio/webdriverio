@@ -19,7 +19,7 @@ Map {
 exports[`setTimeouts with implicit timeout 1`] = `
 Map {
   "implicit" => 222,
-  "pageLoad" => 300000,
+  "pageLoad" => 100,
   "script" => 30000,
 }
 `;
