@@ -3,6 +3,7 @@ import puppeteer from 'puppeteer-core'
 import puppeteerFirefox from 'puppeteer-firefox'
 import logger from '@wdio/logger'
 
+import { getPages } from './utils'
 import {
     CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
     DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION
@@ -46,7 +47,7 @@ async function launchChrome (capabilities) {
      * when using Chrome Launcher we have to close a tab as Puppeteer
      * creates automatically a new one
      */
-    const pages = await browser.pages()
+    const pages = await getPages(browser)
     for (const page of pages.slice(0, -1)) {
         if (page.url() === 'about:blank') {
             await page.close()
