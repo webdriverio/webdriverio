@@ -118,6 +118,44 @@ describe('wrapCommand:runCommand', () => {
         expect(context._hidden_changes_).toEqual([false, false])
     })
 
+    it('should set _NOT_FIBER to multiremote instance', async () => {
+        Future.prototype.wait = () => {}
+        const runCommand = wrapCommand('waitUntil', jest.fn())
+
+        const context = {
+            _hidden_changes_: [],
+            constructor: { name: 'MultiRemoteDriver' },
+            instances: ['browserA', 'browserB'],
+            browserA: {
+                _hidden_: true,
+                get _NOT_FIBER () { return context.browserA._hidden_ },
+                set _NOT_FIBER (val) {
+                    context._hidden_changes_.push(`browserA ${val}`)
+                    context._hidden_ = val
+                },
+                parent: {
+                    _hidden_: true,
+                    get _NOT_FIBER () { return context.browserA.parent._hidden_ },
+                    set _NOT_FIBER (val) {
+                        context._hidden_changes_.push(`parent ${val}`)
+                        context._hidden_ = val
+                    }
+                }
+            },
+            browserB: {
+                _hidden_: true,
+                get _NOT_FIBER () { return context.browserB._hidden_ },
+                set _NOT_FIBER (val) {
+                    context._hidden_changes_.push(`browserB ${val}`)
+                    context._hidden_ = val
+                }
+            }
+        }
+
+        await runCommand.call(context)
+        expect(context._hidden_changes_).toEqual(['browserA false', 'parent false', 'browserB false'])
+    })
+
     it('should throw error with proper message', async () => {
         const fn = jest.fn(x => { throw new Error(x) })
         const runCommand = wrapCommand('foo', fn)
