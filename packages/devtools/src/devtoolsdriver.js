@@ -39,12 +39,6 @@ export default class DevToolsDriver {
         this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
 
         const page = this.getPageHandle()
-
-        if (!page) {
-            console.log(this.windows)
-            return
-        }
-
         page.on('dialog', ::this.dialogHandler)
         page.on('framenavigated', ::this.framenavigatedHandler)
     }
@@ -110,11 +104,6 @@ export default class DevToolsDriver {
         }
 
         const page = this.getPageHandle()
-
-        if (!page) {
-            console.log(this.windows)
-            return
-        }
         page.setDefaultTimeout(this.timeouts.get('pageLoad'))
     }
 
