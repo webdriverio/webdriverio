@@ -1,18 +1,17 @@
 import fs from 'fs'
 import Launcher from './../../src/launcher'
 import Watcher from './../../src/watcher'
-import {
-    handler,
-    // launch
-} from './../../src/commands/run'
+import * as runCmd from './../../src/commands/run'
 import * as utils from './../../src/utils'
 
-jest.mock('./../../src/launcher', () => class {
+jest.mock('./../../src/launcher', () => class LauncherMock {
     run() {
-        return Promise.resolve('launcher-test')
+        return {
+            then: jest.fn().mockReturnValue({ catch: jest.fn().mockReturnValue('launcher-mock') }),
+        }
     }
 })
-jest.mock('./../../src/watcher', () => class {
+jest.mock('./../../src/watcher', () => class WatcherMock {
     watch() {
         return 'watching-test'
     }
@@ -20,42 +19,38 @@ jest.mock('./../../src/watcher', () => class {
 
 describe('Command: run', () => {
     beforeAll(() => {
-        jest.spyOn(fs, 'existsSync').mockImplementation(() => false)
+        jest.spyOn(fs, 'existsSync').mockImplementation(() => true)
         jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => {})
-    })
-
-    beforeEach(() => {
-        jest.spyOn(process, 'exit').mockImplementation(() => {})
         jest.spyOn(console, 'error')
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
-        await handler({ configPath: 'foo/bar' })
+        jest.spyOn(fs, 'existsSync').mockImplementation(() => false)
+        await runCmd.handler({ configPath: 'foo/bar' })
 
         expect(utils.missingConfigurationPrompt).toHaveBeenCalled()
         expect(utils.missingConfigurationPrompt)
             .toHaveBeenCalledWith('run', 'No WebdriverIO configuration found in "foo/bar"')
+
+        fs.existsSync.mockClear()
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {
-        const watcher = await handler({ configPath: 'foo/bar', watch: true })
+        const watcher = await runCmd.handler({ configPath: 'foo/bar', watch: true })
 
         expect(watcher).toBe('watching-test')
     })
 
-    // it.only('should pass the correct config path and params to the launch function', async () => {
-    //     process.stdin.isTTY = true
-    //     const launch = jest.fn()
+    it('should call launch if stdin isTTY = true', async () => {
+        process.stdin.isTTY = true
 
-    //     const promise = await handler({ configPath: 'foo/bar', framework: 'test', spec: 'test-spec' })
-    //     expect(launch).toHaveBeenCalled()
-    // })
+        const result = await runCmd.handler({ configPath: 'foo/bar' })
 
-    afterEach(() => {
-        process.exit.mockClear()
+        expect(result).toBe('launcher-mock')
     })
 
     afterAll(() => {
+        console.error.mockClear()
         fs.existsSync.mockClear()
         utils.missingConfigurationPrompt.mockClear()
         Launcher.mockClear()

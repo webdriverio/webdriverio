@@ -121,7 +121,6 @@ export async function handler(argv) {
      * stdin.isTTY is false when command is from nodes spawn since it's treated as a pipe
      */
     if (process.stdin.isTTY || !process.stdout.isTTY) {
-        console.log('--> asdf <--')
         return launch(wdioConf, params)
     }
 
