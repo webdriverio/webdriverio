@@ -5,7 +5,7 @@ const path = require('path')
 // TypeScript project root for testing particular typings
 const outDirs = [
     'sync', 'sync-mocha', 'sync-jasmine', 'webdriverio', 'webdriverio-mocha',
-    'webdriverio-jasmine', 'sync-cucumber', 'devtools'
+    'webdriverio-jasmine', 'sync-cucumber', 'devtools', 'sync-devtools'
 ]
 
 const packages = {
