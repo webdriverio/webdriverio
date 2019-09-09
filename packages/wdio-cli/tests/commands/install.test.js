@@ -1,0 +1,84 @@
+import fs from 'fs'
+import * as installCmd from './../../src/commands/install'
+import * as utils from './../../src/utils'
+
+jest.mock('yarn-install', () => jest.fn().mockReturnValue({ status: 0 }))
+
+let existsSyncMock, findInConfigMock
+
+describe('Command: install', () => {
+    beforeEach(() => {
+        jest.spyOn(console, 'log')
+        jest.spyOn(process, 'exit').mockImplementation(() => {})
+        jest.spyOn(fs, 'readFileSync')
+        jest.spyOn(fs, 'writeFileSync')
+        jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => Promise.resolve())
+        jest.spyOn(utils, 'addServiceDeps')
+        jest.spyOn(utils, 'replaceConfig')
+
+        existsSyncMock = jest.spyOn(fs, 'existsSync')
+        findInConfigMock = jest.spyOn(utils, 'findInConfig')
+    })
+
+    it('should log out when an unknown installation type is passed', async () => {
+        await installCmd.handler({ type: 'foobar' })
+
+        expect(console.log).toHaveBeenCalled()
+        expect(console.log).toHaveBeenCalledWith('Type foobar is not supported.')
+    })
+
+    it('should log out when unknown package name is used', async () => {
+        await installCmd.handler({ type: 'service', name: 'foobar' })
+
+        expect(console.log).toHaveBeenCalled()
+        expect(console.log).toHaveBeenCalledWith('foobar is not a supported service.')
+    })
+
+    it('should prompt missing configuration', async () => {
+        jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
+        existsSyncMock.mockReturnValue(false)
+
+        await installCmd.handler({ type: 'service', name: 'chromedriver' })
+
+        expect(utils.missingConfigurationPrompt).toHaveBeenCalledWith('install', `
+Cannot install packages without a WebdriverIO configuration.
+You can create one by running 'wdio config'`)
+    })
+
+    it('should verify if configuration already has desired installation', async () => {
+        findInConfigMock.mockReturnValue(['chromedriver'])
+        existsSyncMock.mockReturnValue(true)
+
+        await installCmd.handler({ type: 'service', name: 'chromedriver' })
+
+        expect(console.log).toHaveBeenCalledWith('The service chromedriver is already part of your configuration.')
+    })
+
+    it('should correctly install packages', async () => {
+        findInConfigMock.mockReturnValue([''])
+        existsSyncMock.mockReturnValue(true)
+
+        await installCmd.handler({ type: 'service', name: 'chromedriver' })
+
+        expect(console.log).toHaveBeenCalledWith('Installing "wdio-chromedriver-service".')
+        expect(console.log).toHaveBeenCalledWith('Package "wdio-chromedriver-service" installed successfully.')
+        expect(utils.replaceConfig).toHaveBeenCalled()
+        expect(fs.writeFileSync).toHaveBeenCalled()
+        expect(console.log).toHaveBeenCalledWith('Your wdio.conf.js file has been updated.')
+        expect(process.exit).toHaveBeenCalledWith(0)
+
+    })
+
+    afterEach(() => {
+        console.log.mockClear()
+        process.exit.mockClear()
+        fs.readFileSync.mockClear()
+        fs.existsSync.mockClear()
+        fs.writeFileSync.mockClear()
+
+        utils.findInConfig.mockClear()
+        utils.addServiceDeps.mockClear()
+        utils.replaceConfig.mockClear()
+        utils.missingConfigurationPrompt.mockClear()
+    })
+})

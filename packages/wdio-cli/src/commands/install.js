@@ -55,9 +55,14 @@ export async function handler(argv) {
     const localConfPath = path.join(process.cwd(), 'wdio.conf.js')
 
     if (!fs.existsSync(localConfPath)) {
-        await missingConfigurationPrompt('install', `
+        try {
+            await missingConfigurationPrompt('install', `
 Cannot install packages without a WebdriverIO configuration.
 You can create one by running 'wdio config'`)
+        } catch {
+            process.exit(1)
+            return
+        }
     }
 
     const configFile = fs.readFileSync(localConfPath, { encoding: 'UTF-8' })
@@ -65,7 +70,7 @@ You can create one by running 'wdio config'`)
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
-        console.log(`The ${type} ${name} is already part of your configuration`)
+        console.log(`The ${type} ${name} is already part of your configuration.`)
         process.exit(0)
         return
     }
@@ -81,6 +86,7 @@ You can create one by running 'wdio config'`)
     if (install.status !== 0) {
         console.error('Error installing packages', install.stderr)
         process.exit(1)
+        return
     }
 
     console.log(`Package "${selectedPackage.package}" installed successfully.`)
@@ -89,7 +95,7 @@ You can create one by running 'wdio config'`)
 
     fs.writeFileSync(localConfPath, newConfig, { encoding: 'utf-8' })
 
-    console.log('Your wdio.conf.js file has been updated')
+    console.log('Your wdio.conf.js file has been updated.')
     process.exit(0)
 }
 /* eslint-enable no-console */
