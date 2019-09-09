@@ -1,4 +1,4 @@
-import runConfigHelper from '../utils/runConfigHelper'
+import { runConfigHelper } from '../utils'
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'

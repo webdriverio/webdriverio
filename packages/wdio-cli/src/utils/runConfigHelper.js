@@ -6,7 +6,7 @@ import { CONFIG_HELPER_INTRO, QUESTIONNAIRE } from './constants'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } from './index'
 
 /* istanbul ignore next */
-export default async function runConfigHelper ({ npm, exit } = { exit: true, npm: false }) {
+export async function runConfigHelper ({ npm, exit } = { exit: true, npm: false }) {
     try {
         console.log(CONFIG_HELPER_INTRO)
 

@@ -6,7 +6,7 @@ import { execSync } from 'child_process'
 import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
 import inquirer from 'inquirer'
 
-import runConfigHelper from './runConfigHelper'
+import { runConfigHelper } from './runConfigHelper'
 
 const log = logger('@wdio/cli:utils')
 
@@ -217,3 +217,5 @@ export async function missingConfigurationPrompt(command, message) {
         throw new Error(error)
     }
 }
+
+export { runConfigHelper }

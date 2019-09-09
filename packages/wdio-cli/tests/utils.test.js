@@ -13,7 +13,7 @@ import {
 } from '../src/utils'
 
 import inquirer from 'inquirer'
-import runConfigHelper from '../src/utils/runConfigHelper'
+import { runConfigHelper } from '../src/utils/runConfigHelper'
 
 jest.mock('child_process', function () {
     const m = {
