@@ -29,7 +29,7 @@ export const supportedPackages = {
     framework: [
         { name: 'mocha', value: '@wdio/mocha-framework$--$mocha' },
         { name: 'jasmine', value: '@wdio/jasmine-framework$--$jasmine' },
-        { name: 'cucumber', value: '@wdio/cucumber-framework$--$cucumeber' }
+        { name: 'cucumber', value: '@wdio/cucumber-framework$--$cucumber' }
     ],
     reporter: [
         { name: 'spec', value: '@wdio/spec-reporter$--$spec' },
