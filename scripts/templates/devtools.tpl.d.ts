@@ -1,12 +1,14 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
-declare namespace DevTools {
-    interface ClientOptions extends WebDriver.ClientOptions {
+declare namespace WebDriver {
+    interface ClientOptions {
         isDevTools: boolean;
         getPuppeteer: (...args: any[]) => any;
     }
+}
 
+declare namespace DevTools {
     function newSession(
         options?: WebDriver.Options,
         modifier?: (...args: any[]) => any,
