@@ -8,7 +8,7 @@ export default async function getElementTagName ({ elementId }) {
         throw getStaleElementError(elementId)
     }
 
-    const page = this.getPageHandle()
+    const page = this.getPageHandle(true)
     const result = await page.$eval('html', command, elementHandle)
     return (result || '').toLowerCase()
 }

@@ -3,7 +3,7 @@ import { transformExecuteArgs, transformExecuteResult } from '../utils'
 import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'
 
 export default async function executeScript ({ script, args }) {
-    const page = this.getPageHandle()
+    const page = this.getPageHandle(true)
     const scriptTimeout = this.timeouts.get('script')
 
     const executePromise = page.$eval(

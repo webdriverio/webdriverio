@@ -244,6 +244,10 @@ describe('frames', () => {
 
         expect(await getDocumentText())
             .toContain('Your content goes here.')
+
+        const body = await browser.findElement('css selector', 'body')
+        expect(await browser.getElementAttribute(body[ELEMENT_KEY], 'id')).toBe('tinymce')
+        await browser.elementClick(body[ELEMENT_KEY])
     })
 
     it('parentFrame', async () => {

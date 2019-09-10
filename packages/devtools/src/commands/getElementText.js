@@ -8,6 +8,6 @@ export default function getElementText ({ elementId }) {
         throw getStaleElementError(elementId)
     }
 
-    const page = this.getPageHandle()
+    const page = this.getPageHandle(true)
     return page.$eval('html', command, elementHandle)
 }

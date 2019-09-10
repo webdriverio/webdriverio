@@ -14,6 +14,6 @@ export default function findElement ({ using, value }) {
         value = `//a[contains(., "${value}")]`
     }
 
-    const page = this.getPageHandle()
+    const page = this.getPageHandle(true)
     return findElementUtil.call(this, page, using, value)
 }
