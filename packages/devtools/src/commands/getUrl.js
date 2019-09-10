@@ -1,4 +1,4 @@
 export default async function getUrl () {
-    const page = this.getPageHandle({ isInFrame: true })
+    const page = this.getPageHandle(true)
     return page.url()
 }

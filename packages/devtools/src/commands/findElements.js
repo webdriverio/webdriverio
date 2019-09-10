@@ -14,6 +14,6 @@ export default async function findElements ({ using, value }) {
         value = `//a[contains(., "${value}")]`
     }
 
-    const page = this.getPageHandle({ isInFrame: true })
+    const page = this.getPageHandle(true)
     return findElementsUtil.call(this, page, using, value)
 }

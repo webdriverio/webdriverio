@@ -1,4 +1,4 @@
 export default function getPageSource () {
-    const page = this.getPageHandle({ isInFrame: true })
+    const page = this.getPageHandle(true)
     return page.content()
 }
