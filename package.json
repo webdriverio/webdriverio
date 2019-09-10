@@ -29,7 +29,7 @@
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "./scripts/updateDocs.js",
     "test": "run-s test:*",
-    "test:eslint": "./node_modules/.bin/eslint --cache packages examples scripts tests",
+    "test:eslint": "eslint --cache packages examples scripts tests",
     "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
     "test:coverage": "jest --coverage",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
