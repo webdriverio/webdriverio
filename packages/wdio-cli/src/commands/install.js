@@ -11,12 +11,12 @@ import {
     missingConfigurationPrompt
 } from '../utils'
 
-import { supportedPackages } from '../utils/constants'
+import { SUPPORTED_PACKAGES } from '../utils/constants'
 
 const supportedInstallations = {
-    service: supportedPackages.service.map(({ value }) => convertPackageHashToObject(value)),
-    reporter: supportedPackages.reporter.map(({ value }) => convertPackageHashToObject(value)),
-    framework: supportedPackages.framework.map(({ value }) => convertPackageHashToObject(value))
+    service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
+    reporter: SUPPORTED_PACKAGES.reporter.map(({ value }) => convertPackageHashToObject(value)),
+    framework: SUPPORTED_PACKAGES.framework.map(({ value }) => convertPackageHashToObject(value))
 }
 
 export const command = 'install <type> <name>'

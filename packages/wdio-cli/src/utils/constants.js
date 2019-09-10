@@ -22,7 +22,7 @@ $ wdio run wdio.conf.js
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
  */
-export const supportedPackages = {
+export const SUPPORTED_PACKAGES = {
     runner: [
         { name: 'local', value: '@wdio/local-runner$--$local' }
     ],
@@ -72,7 +72,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
     message: 'Where should your tests be launched?',
-    choices: supportedPackages.runner,
+    choices: SUPPORTED_PACKAGES.runner,
 }, {
     type: 'list',
     name: 'backend',
@@ -155,7 +155,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'framework',
     message: 'Which framework do you want to use?',
-    choices: supportedPackages.framework,
+    choices: SUPPORTED_PACKAGES.framework,
 }, {
     type: 'list',
     name: 'executionMode',
@@ -186,14 +186,14 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'reporters',
     message: 'Which reporter do you want to use?',
-    choices: supportedPackages.reporter,
-    default: [supportedPackages.reporter.find(({ name }) => name === 'spec').value]
+    choices: SUPPORTED_PACKAGES.reporter,
+    default: [SUPPORTED_PACKAGES.reporter.find(({ name }) => name === 'spec').value]
 }, {
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
-    choices: supportedPackages.service,
-    default: [supportedPackages.service.find(({ name }) => name === 'chromedriver').value],
+    choices: SUPPORTED_PACKAGES.service,
+    default: [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'chromedriver').value],
     validate: (answers) => {
         let result = true
 
