@@ -4,7 +4,7 @@ import cleanUp from '../scripts/cleanUpSerializationSelector'
 import { SERIALIZE_PROPERTY } from '../constants'
 
 export default async function getActiveElement () {
-    const page = this.getPageHandle()
+    const page = this.getPageHandle(true)
     const selector = `[${SERIALIZE_PROPERTY}]`
 
     /**

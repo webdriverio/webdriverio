@@ -3,6 +3,7 @@ export default async function switchToWindow ({ handle }) {
         throw new Error(`window with handle ${handle} not found`)
     }
 
+    delete this.currentFrame
     this.currentWindowHandle = handle
     const page = this.getPageHandle()
     await page.bringToFront()

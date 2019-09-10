@@ -289,5 +289,7 @@ test('getPageHandle', () => {
     expect(driver.getPageHandle()).toBe('foobar')
 
     driver.currentFrame = 'barfoo'
-    expect(driver.getPageHandle()).toBe('barfoo')
+    expect(driver.getPageHandle()).toBe('foobar')
+
+    expect(driver.getPageHandle(true)).toBe('barfoo')
 })

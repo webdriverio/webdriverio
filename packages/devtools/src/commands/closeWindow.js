@@ -1,6 +1,8 @@
 import uuidv4 from 'uuid/v4'
 
 export default async function closeWindow () {
+    delete this.currentFrame
+
     const page = this.getPageHandle()
     await page.close()
     this.windows.delete(this.currentWindowHandle)

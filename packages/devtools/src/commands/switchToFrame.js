@@ -2,7 +2,7 @@ import { ELEMENT_KEY } from '../constants'
 import { getStaleElementError } from '../utils'
 
 export default async function switchToFrame ({ id }) {
-    const page = this.getPageHandle()
+    const page = this.getPageHandle(true)
 
     /**
      * switch frame by element ID
@@ -28,7 +28,11 @@ export default async function switchToFrame ({ id }) {
      * switch frame by number
      */
     if (typeof id === 'number') {
-        const childFrames = await page.frames()
+        /**
+         * `page` has `frames` method while `frame` has `childFrames` method
+         */
+        let getFrames = page.frames || page.childFrames
+        const childFrames = await getFrames()
         const childFrame = childFrames[id]
 
         if (!childFrame) {
