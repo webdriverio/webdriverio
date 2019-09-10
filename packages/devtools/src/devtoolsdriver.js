@@ -133,8 +133,8 @@ export default class DevToolsDriver {
         page.setDefaultTimeout(this.timeouts.get('pageLoad'))
     }
 
-    getPageHandle () {
-        if (this.currentFrame) {
+    getPageHandle ({ frame = false } = {}) {
+        if (frame && this.currentFrame) {
             return this.currentFrame
         }
 
