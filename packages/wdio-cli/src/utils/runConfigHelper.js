@@ -7,59 +7,55 @@ import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } f
 
 /* istanbul ignore next */
 export async function runConfigHelper ({ npm, exit } = { exit: true, npm: false }) {
-    try {
-        console.log(CONFIG_HELPER_INTRO)
+    console.log(CONFIG_HELPER_INTRO)
 
-        const answers = await inquirer.prompt(QUESTIONNAIRE)
-        const packageAnswers = ['reporters', 'runner', 'services', 'framework']
+    const answers = await inquirer.prompt(QUESTIONNAIRE)
+    const packageAnswers = ['reporters', 'runner', 'services', 'framework']
 
-        Object.keys(answers).forEach((key) => {
-            if (packageAnswers.includes(key)) {
-                if (Array.isArray(answers[key])) {
-                    answers[key] = answers[key].map(answer => convertPackageHashToObject(answer))
-                } else {
-                    answers[key] = convertPackageHashToObject(answers[key])
-                }
+    Object.keys(answers).forEach((key) => {
+        if (packageAnswers.includes(key)) {
+            if (Array.isArray(answers[key])) {
+                answers[key] = answers[key].map(answer => convertPackageHashToObject(answer))
+            } else {
+                answers[key] = convertPackageHashToObject(answers[key])
             }
-        })
-
-        const packagesToInstall = [
-            answers.runner.package,
-            answers.framework.package,
-            ...answers.reporters.map(reporter => reporter.package),
-            ...answers.services.map(service => service.package)
-        ]
-
-        if (answers.executionMode === 'sync') {
-            packagesToInstall.push('@wdio/sync')
         }
-        // add packages that are required by services
-        addServiceDeps(answers.services, packagesToInstall)
+    })
 
-        console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
+    const packagesToInstall = [
+        answers.runner.package,
+        answers.framework.package,
+        ...answers.reporters.map(reporter => reporter.package),
+        ...answers.services.map(service => service.package)
+    ]
 
-        const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: npm })
+    if (answers.executionMode === 'sync') {
+        packagesToInstall.push('@wdio/sync')
+    }
+    // add packages that are required by services
+    addServiceDeps(answers.services, packagesToInstall)
 
-        if (result.status !== 0) {
-            throw new Error(result.stderr)
-        }
+    console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
 
-        console.log('\nPackages installed successfully, creating configuration file...')
+    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: npm })
 
-        const parsedAnswers = {
-            ...answers,
-            runner: answers.runner.short,
-            framework: answers.framework.short,
-            reporters: answers.reporters.map(({ short }) => short),
-            services: answers.services.map(({ short }) => short)
-        }
+    if (result.status !== 0) {
+        throw new Error(result.stderr)
+    }
 
-        renderConfigurationFile(parsedAnswers)
+    console.log('\nPackages installed successfully, creating configuration file...')
 
-        if (exit) {
-            process.exit(0)
-        }
-    } catch (error) {
-        throw new Error(error)
+    const parsedAnswers = {
+        ...answers,
+        runner: answers.runner.short,
+        framework: answers.framework.short,
+        reporters: answers.reporters.map(({ short }) => short),
+        services: answers.services.map(({ short }) => short)
+    }
+
+    renderConfigurationFile(parsedAnswers)
+
+    if (exit) {
+        process.exit(0)
     }
 }
