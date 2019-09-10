@@ -1,11 +1,11 @@
 import fs from 'fs'
 import process from 'process'
 import path from 'path'
-import cp from 'child_process'
 
 import yargs from 'yargs'
 
 import Launcher from './launcher'
+import { handler } from './commands/run'
 
 export const run = async () => {
     const argv = yargs
@@ -26,7 +26,7 @@ export const run = async () => {
         console.warn('Running `wdio path/to/wdio.conf.js` is deprecated and will be removed in the next major release. Please use `wdio run path/to/wdio.conf.js`.')
         // run configuration
         try {
-            cp.execSync(`${params['$0']} run ${wdioConfPath}`)
+            await handler({ configPath: wdioConfPath, ...params })
         } catch {
             // silence exec error logging
             process.exit(1)

@@ -5,10 +5,8 @@ import Launcher from './../launcher'
 import Watcher from './../watcher'
 import { missingConfigurationPrompt } from '../utils'
 
-/* instanbul ignore next */
 export const command = 'run <configPath>'
 
-/* instanbul ignore next */
 export const desc = 'Run your WDIO configuration file to initialize your tests.'
 
 export const builder = {
