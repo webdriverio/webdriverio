@@ -18,10 +18,14 @@ jest.mock('./../../src/watcher', () => class WatcherMock {
 })
 
 describe('Command: run', () => {
+    const setEncodingMock = jest.fn()
+    const onMock = jest.fn((s, c) => c())
+
     beforeAll(() => {
         jest.spyOn(fs, 'existsSync').mockImplementation(() => true)
         jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => {})
         jest.spyOn(console, 'error')
+        jest.spyOn(process, 'openStdin').mockImplementation(() => ({ setEncoding: setEncodingMock, on: onMock }))
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
@@ -47,6 +51,20 @@ describe('Command: run', () => {
         const result = await runCmd.handler({ configPath: 'foo/bar' })
 
         expect(result).toBe('launcher-mock')
+    })
+
+    it('should start process if stdin isTTY = false', async () => {
+        process.stdin.isTTY = false
+        process.stdout.isTTY = true
+
+        await runCmd.handler({ configPath: 'foo/bar' })
+
+        expect(process.openStdin).toHaveBeenCalled()
+        expect(setEncodingMock).toHaveBeenCalled()
+        expect(onMock).toHaveBeenCalledTimes(2)
+
+        process.stdin.isTTY = true
+        process.stdout.isTTY = false
     })
 
     afterAll(() => {

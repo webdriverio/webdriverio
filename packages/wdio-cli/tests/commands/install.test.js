@@ -1,8 +1,9 @@
 import fs from 'fs'
 import * as installCmd from './../../src/commands/install'
 import * as utils from './../../src/utils'
+import yarnInstall from 'yarn-install'
 
-jest.mock('yarn-install', () => jest.fn().mockReturnValue({ status: 0 }))
+jest.mock('yarn-install')
 
 let existsSyncMock, findInConfigMock
 
@@ -57,6 +58,7 @@ You can create one by running 'wdio config'`)
     it('should correctly install packages', async () => {
         findInConfigMock.mockReturnValue([''])
         existsSyncMock.mockReturnValue(true)
+        yarnInstall.mockImplementation(() => ({ status: 0 }))
 
         await installCmd.handler({ type: 'service', name: 'chromedriver' })
 
@@ -66,7 +68,18 @@ You can create one by running 'wdio config'`)
         expect(fs.writeFileSync).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith('Your wdio.conf.js file has been updated.')
         expect(process.exit).toHaveBeenCalledWith(0)
+    })
 
+    it('should exit if there is an error while installing', async () => {
+        findInConfigMock.mockReturnValue([''])
+        existsSyncMock.mockReturnValue(true)
+        yarnInstall.mockImplementation(() => ({ status: 1, stderr: 'test error' }))
+        jest.spyOn(console, 'error')
+
+        await installCmd.handler({ type: 'service', name: 'chromedriver' })
+
+        expect(console.error).toHaveBeenCalledWith('Error installing packages', 'test error')
+        expect(process.exit).toHaveBeenCalledWith(1)
     })
 
     afterEach(() => {

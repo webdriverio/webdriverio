@@ -16,4 +16,13 @@ describe('Command: config', () => {
         expect(runConfigHelper).toHaveBeenCalled()
         expect(runConfigHelper).toHaveBeenCalledWith({ npm: true })
     })
+
+    it('should log error to console', async () => {
+        jest.spyOn(console, 'log')
+        runConfigHelper.mockImplementation(() => Promise.reject({ message: 'test error' }))
+
+        await configCmd.handler({})
+
+        expect(console.log).toHaveBeenCalledWith('Error during setup: ', 'test error')
+    })
 })

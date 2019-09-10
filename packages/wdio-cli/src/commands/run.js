@@ -5,10 +5,12 @@ import Launcher from './../launcher'
 import Watcher from './../watcher'
 import { missingConfigurationPrompt } from '../utils'
 
+/* instanbul ignore next */
 export const command = 'run <configPath>'
-export const desc = 'Run your WDIO configuration file to initialize your tests.'
 
 /* instanbul ignore next */
+export const desc = 'Run your WDIO configuration file to initialize your tests.'
+
 export const builder = {
     watch: {
         desc: 'Run WebdriverIO in watch mode',
@@ -85,6 +87,22 @@ export const builder = {
     }
 }
 
+export function createProcess(wdioConfPath, params) {
+    let stdinData = ''
+    const stdin = process.openStdin()
+
+    stdin.setEncoding('utf8')
+    stdin.on('data', (data) => {
+        stdinData += data
+    })
+    stdin.on('end', () => {
+        if (stdinData.length > 0) {
+            params.specs = stdinData.trim().split(/\r?\n/)
+        }
+        launch(wdioConfPath, params)
+    })
+}
+
 export function launch(wdioConfPath, params) {
     const launcher = new Launcher(wdioConfPath, params)
     return launcher.run()
@@ -128,17 +146,5 @@ export async function handler(argv) {
      * get a list of spec files to run from stdin, overriding any other
      * configuration suite or specs.
      */
-    let stdinData = ''
-    const stdin = process.openStdin()
-
-    stdin.setEncoding('utf8')
-    stdin.on('data', (data) => {
-        stdinData += data
-    })
-    stdin.on('end', () => {
-        if (stdinData.length > 0) {
-            params.specs = stdinData.trim().split(/\r?\n/)
-        }
-        launch(wdioConf, params)
-    })
+    createProcess(wdioConf, params)
 }

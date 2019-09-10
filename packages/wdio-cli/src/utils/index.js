@@ -3,6 +3,8 @@ import ejs from 'ejs'
 import path from 'path'
 import logger from '@wdio/logger'
 import { execSync } from 'child_process'
+import { promisify } from 'util'
+
 import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
 import inquirer from 'inquirer'
 
@@ -184,16 +186,18 @@ export function convertPackageHashToObject(string, hash = '$--$') {
     }
 }
 
-export function renderConfigurationFile (answers) {
+export async function renderConfigurationFile (answers) {
+    const renderFile = promisify(ejs.renderFile)
     const tplPath = path.join(__dirname, '..', 'templates/wdio.conf.tpl.ejs')
-    ejs.renderFile(tplPath, { answers }, function(err, renderedTpl) {
-        if (err) {
-            throw new Error(err)
-        }
+
+    try {
+        const renderedTpl = await renderFile(tplPath, { answers })
 
         fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
         console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
-    })
+    } catch (error) {
+        throw new Error(error)
+    }
 }
 
 export async function missingConfigurationPrompt(command, message) {
@@ -210,6 +214,7 @@ export async function missingConfigurationPrompt(command, message) {
         if (!config) {
             console.log(message)
             process.exit(0)
+            return
         }
 
         await runConfigHelper({ exit: false })

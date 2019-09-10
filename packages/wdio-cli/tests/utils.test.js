@@ -1,5 +1,5 @@
 import * as childProcess from 'child_process'
-
+import ejs from 'ejs'
 import {
     runOnPrepareHook,
     runOnCompleteHook,
@@ -9,11 +9,13 @@ import {
     replaceConfig,
     addServiceDeps,
     convertPackageHashToObject,
-    missingConfigurationPrompt
+    missingConfigurationPrompt,
+    renderConfigurationFile
 } from '../src/utils'
 
 import inquirer from 'inquirer'
 import { runConfigHelper } from '../src/utils/runConfigHelper'
+import { CONFIG_HELPER_SUCCESS_MESSAGE } from '../src/utils/constants'
 
 jest.mock('child_process', function () {
     const m = {
@@ -143,6 +145,29 @@ describe('findInConfig', () => {
     })
 })
 
+describe('renderConfigurationFile', () => {
+    it('should write file', async () => {
+        jest.spyOn(ejs, 'renderFile').mockImplementation((a, b, c) => c(null, true))
+
+        await renderConfigurationFile({ foo: 'bar' })
+
+        expect.hasAssertions()
+
+        expect(ejs.renderFile).toHaveBeenCalled()
+        expect(console.log).toHaveBeenCalledWith(CONFIG_HELPER_SUCCESS_MESSAGE)
+    })
+
+    it('should throw error', async () => {
+        jest.spyOn(ejs, 'renderFile').mockImplementation((a, b, c) => c('test error', null))
+
+        try {
+            await renderConfigurationFile({ foo: 'bar' })
+        } catch (error) {
+            expect(error).toBeTruthy()
+        }
+    })
+})
+
 describe('replaceConfig', () => {
     it('correctly changes framework', () => {
         const fakeConfig = `exports.config = {
@@ -265,12 +290,20 @@ describe('missingConfigurationPromp', () => {
     })
 
     it('should call function to initalize configuration helper', async () => {
-        jest.spyOn(inquirer, 'prompt').mockImplementation(() => ({ config: false }))
-
         await missingConfigurationPrompt('test')
 
         expect(runConfigHelper).toHaveBeenCalled()
         expect(runConfigHelper).toHaveBeenCalledWith({ exit: false })
+    })
+
+    it('should throw if error occurs', async () => {
+        runConfigHelper.mockImplementation(Promise.reject)
+
+        try {
+            await missingConfigurationPrompt('test')
+        } catch (error) {
+            expect(error).toBeTruthy()
+        }
     })
 
     afterAll(() => {
