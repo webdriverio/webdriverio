@@ -2,7 +2,7 @@ import { ELEMENT_KEY } from '../constants'
 import { getStaleElementError } from '../utils'
 
 export default async function switchToFrame ({ id }) {
-    const page = this.getPageHandle({ frame: true })
+    const page = this.getPageHandle({ isInFrame: true })
 
     /**
      * switch frame by element ID

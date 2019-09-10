@@ -1,5 +1,5 @@
 export default async function switchToParentFrame () {
-    const page = this.getPageHandle({ frame: true })
+    const page = this.getPageHandle({ isInFrame: true })
 
     /**
      * check if we can access child frames, if now we are already in the

@@ -8,7 +8,7 @@ export default async function elementClear ({ elementId }) {
         throw getStaleElementError(elementId)
     }
 
-    const page = this.getPageHandle({ frame: true })
+    const page = this.getPageHandle({ isInFrame: true })
     await page.$eval('html', command, elementHandle)
     return null
 }

@@ -8,6 +8,6 @@ export default async function getElementCSSValue ({ elementId, propertyName }) {
         throw getStaleElementError(elementId)
     }
 
-    const page = this.getPageHandle({ frame: true })
+    const page = this.getPageHandle({ isInFrame: true })
     return page.$eval('html', command, elementHandle, propertyName)
 }
