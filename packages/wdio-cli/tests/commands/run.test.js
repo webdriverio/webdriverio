@@ -1,13 +1,13 @@
-import fs from 'fs'
-import Launcher from './../../src/launcher'
-import Watcher from './../../src/watcher'
+import fs from 'fs-extra'
 import * as runCmd from './../../src/commands/run'
 import * as utils from './../../src/utils'
 
 jest.mock('./../../src/launcher', () => class LauncherMock {
     run() {
         return {
-            then: jest.fn().mockReturnValue({ catch: jest.fn().mockReturnValue('launcher-mock') }),
+            then: jest.fn().mockReturnValue({
+                catch: jest.fn().mockReturnValue('launcher-mock')
+            })
         }
     }
 })
@@ -17,19 +17,22 @@ jest.mock('./../../src/watcher', () => class WatcherMock {
     }
 })
 
+jest.mock('fs-extra')
+
 describe('Command: run', () => {
     const setEncodingMock = jest.fn()
     const onMock = jest.fn((s, c) => c())
 
-    beforeAll(() => {
-        jest.spyOn(fs, 'existsSync').mockImplementation(() => true)
+    beforeEach(() => {
+        fs.existsSync.mockImplementation(() => true)
         jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => {})
         jest.spyOn(console, 'error')
-        jest.spyOn(process, 'openStdin').mockImplementation(() => ({ setEncoding: setEncodingMock, on: onMock }))
+        jest.spyOn(process, 'openStdin').mockImplementation(
+            () => ({ setEncoding: setEncodingMock, on: onMock }))
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
-        jest.spyOn(fs, 'existsSync').mockImplementation(() => false)
+        fs.existsSync.mockImplementation(() => false)
         await runCmd.handler({ configPath: 'foo/bar' })
 
         expect(utils.missingConfigurationPrompt).toHaveBeenCalled()
@@ -67,11 +70,10 @@ describe('Command: run', () => {
         process.stdout.isTTY = false
     })
 
-    afterAll(() => {
-        console.error.mockClear()
+    afterEach(() => {
+        process.openStdin.mockReset()
+        console.error.mockReset()
         fs.existsSync.mockClear()
         utils.missingConfigurationPrompt.mockClear()
-        Launcher.mockClear()
-        Watcher.mockClear()
     })
 })

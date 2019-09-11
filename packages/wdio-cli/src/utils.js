@@ -7,8 +7,7 @@ import { promisify } from 'util'
 
 import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
 import inquirer from 'inquirer'
-
-import { runConfigHelper } from './runConfigHelper'
+import { runConfig } from './commands/config'
 
 const log = logger('@wdio/cli:utils')
 
@@ -130,8 +129,8 @@ export function replaceConfig(config, type, name) {
     if (type === 'framework') {
         return buildNewConfigString(config, type, name)
     }
-    const text = match.pop()
 
+    const text = match.pop()
     return config.replace(text, buildNewConfigArray(text, type, name))
 }
 
@@ -176,7 +175,6 @@ export function addServiceDeps(names, packages, update) {
  */
 export function convertPackageHashToObject(string, hash = '$--$') {
     const splitHash = string.split(hash)
-
     return {
         package: splitHash[0],
         short: splitHash[1]
@@ -208,16 +206,17 @@ export async function missingConfigurationPrompt(command, message) {
             }
         ])
 
-        if (!config) {
+        /**
+         * don't exit if running unit tests
+         */
+        if (!config && !process.env.JEST_WORKER_ID) {
             console.log(message)
             process.exit(0)
             return
         }
 
-        await runConfigHelper({ exit: false })
+        await runConfig(true, false)
     } catch (error) {
         throw new Error(error)
     }
 }
-
-export { runConfigHelper }

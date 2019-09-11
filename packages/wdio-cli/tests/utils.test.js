@@ -1,4 +1,4 @@
-import * as childProcess from 'child_process'
+import childProcess from 'child_process'
 import ejs from 'ejs'
 import {
     runOnPrepareHook,
@@ -14,8 +14,8 @@ import {
 } from '../src/utils'
 
 import inquirer from 'inquirer'
-import { runConfigHelper } from '../src/utils/runConfigHelper'
-import { CONFIG_HELPER_SUCCESS_MESSAGE } from '../src/utils/constants'
+import { runConfig } from '../src/commands/config'
+import { CONFIG_HELPER_SUCCESS_MESSAGE } from '../src/constants'
 
 jest.mock('child_process', function () {
     const m = {
@@ -25,7 +25,9 @@ jest.mock('child_process', function () {
     return m
 })
 
-jest.mock('../src/utils/runConfigHelper')
+jest.mock('../src/commands/config.js', () => ({
+    runConfig: jest.fn()
+}))
 
 beforeEach(() => {
     global.console.log = jest.fn()
@@ -220,7 +222,7 @@ describe('addServiceDeps', () => {
     })
 
     it('should not add appium if globally installed', () => {
-        childProcess.default.execSyncRes = '1.13.0'
+        childProcess.execSyncRes = '1.13.0'
         const packages = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual([])
@@ -271,33 +273,18 @@ describe('convertPackageHashToObject', () => {
 
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
-        jest.spyOn(inquirer, 'prompt').mockImplementation(() => ({ config: true }))
-
+        inquirer.prompt.mockImplementation(() => ({ config: true }))
         await missingConfigurationPrompt()
-
         expect(inquirer.prompt).toHaveBeenCalled()
-    })
-
-    it('should exit process if user chooses not to create config file', async () => {
-        jest.spyOn(inquirer, 'prompt').mockImplementation(() => ({ config: false }))
-        jest.spyOn(console, 'log')
-        jest.spyOn(process, 'exit').mockImplementation(() => {})
-
-        await missingConfigurationPrompt('test', 'Test fail message')
-
-        expect(console.log).toHaveBeenCalledWith('Test fail message')
-        expect(process.exit).toHaveBeenCalledWith(0)
     })
 
     it('should call function to initalize configuration helper', async () => {
         await missingConfigurationPrompt('test')
-
-        expect(runConfigHelper).toHaveBeenCalled()
-        expect(runConfigHelper).toHaveBeenCalledWith({ exit: false })
+        expect(runConfig).toHaveBeenCalledWith(true, false)
     })
 
     it('should throw if error occurs', async () => {
-        runConfigHelper.mockImplementation(Promise.reject)
+        runConfig.mockImplementation(Promise.reject)
 
         try {
             await missingConfigurationPrompt('test')
@@ -306,13 +293,12 @@ describe('missingConfigurationPromp', () => {
         }
     })
 
-    afterAll(() => {
-        runConfigHelper.mockClear()
+    afterEach(() => {
+        runConfig.mockClear()
         inquirer.prompt.mockClear()
-        process.exit.mockClear()
     })
 })
 
 afterEach(() => {
-    global.console.log.mockClear()
+    global.console.log.mockReset()
 })

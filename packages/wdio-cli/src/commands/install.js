@@ -11,7 +11,7 @@ import {
     missingConfigurationPrompt
 } from '../utils'
 
-import { SUPPORTED_PACKAGES } from '../utils/constants'
+import { SUPPORTED_PACKAGES } from '../constants'
 
 const supportedInstallations = {
     service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
