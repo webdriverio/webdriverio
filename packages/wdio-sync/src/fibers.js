@@ -9,7 +9,7 @@ global._HAS_FIBER_CONTEXT = false
 
 const origErrorFn = ::console.error
 const errors = []
-console.error = (...args) => errors.push(args)
+console.error = /* istanbul ignore next */ (...args) => errors.push(args)
 
 /**
  * Helper method to retrieve a version of `fibers` for your Node version.
