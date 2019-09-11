@@ -185,38 +185,30 @@ export async function renderConfigurationFile (answers) {
     const renderFile = promisify(ejs.renderFile)
     const tplPath = path.join(__dirname, '..', 'templates/wdio.conf.tpl.ejs')
 
-    try {
-        const renderedTpl = await renderFile(tplPath, { answers })
+    const renderedTpl = await renderFile(tplPath, { answers })
 
-        fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
-        console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
-    } catch (error) {
-        throw new Error(error)
-    }
+    fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
+    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
 }
 
 export async function missingConfigurationPrompt(command, message) {
-    try {
-        const { config } = await inquirer.prompt([
-            {
-                type: 'confirm',
-                name: 'config',
-                message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
-                default: false
-            }
-        ])
-
-        /**
-         * don't exit if running unit tests
-         */
-        if (!config && !process.env.JEST_WORKER_ID) {
-            console.log(message)
-            process.exit(0)
-            return
+    const { config } = await inquirer.prompt([
+        {
+            type: 'confirm',
+            name: 'config',
+            message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
+            default: false
         }
+    ])
 
-        await runConfig(true, false)
-    } catch (error) {
-        throw new Error(error)
+    /**
+     * don't exit if running unit tests
+     */
+    if (!config && !process.env.JEST_WORKER_ID) {
+        console.log(message)
+        process.exit(0)
+        return
     }
+
+    return await runConfig(true, false)
 }

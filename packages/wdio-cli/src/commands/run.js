@@ -85,7 +85,7 @@ export const builder = {
     }
 }
 
-export function createProcess(wdioConfPath, params) {
+export function launchWithStdin(wdioConfPath, params) {
     let stdinData = ''
     const stdin = process.openStdin()
 
@@ -144,5 +144,5 @@ export async function handler(argv) {
      * get a list of spec files to run from stdin, overriding any other
      * configuration suite or specs.
      */
-    createProcess(wdioConf, params)
+    launchWithStdin(wdioConf, params)
 }
