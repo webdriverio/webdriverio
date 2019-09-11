@@ -4,20 +4,18 @@ import * as utils from './../../src/utils'
 import yarnInstall from 'yarn-install'
 
 jest.mock('yarn-install')
+jest.mock('fs')
 
-let existsSyncMock, findInConfigMock
+let findInConfigMock
 
 describe('Command: install', () => {
     beforeEach(() => {
         jest.spyOn(console, 'log')
         jest.spyOn(process, 'exit').mockImplementation(() => {})
-        jest.spyOn(fs, 'readFileSync')
-        jest.spyOn(fs, 'writeFileSync')
         jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => Promise.resolve())
         jest.spyOn(utils, 'addServiceDeps')
         jest.spyOn(utils, 'replaceConfig')
 
-        existsSyncMock = jest.spyOn(fs, 'existsSync')
         findInConfigMock = jest.spyOn(utils, 'findInConfig')
     })
 
@@ -37,7 +35,7 @@ describe('Command: install', () => {
 
     it('should prompt missing configuration', async () => {
         jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
-        existsSyncMock.mockReturnValue(false)
+        fs.existsSync.mockReturnValue(false)
 
         await installCmd.handler({ type: 'service', name: 'chromedriver' })
 
@@ -48,7 +46,7 @@ You can create one by running 'wdio config'`)
 
     it('should verify if configuration already has desired installation', async () => {
         findInConfigMock.mockReturnValue(['chromedriver'])
-        existsSyncMock.mockReturnValue(true)
+        fs.existsSync.mockReturnValue(true)
 
         await installCmd.handler({ type: 'service', name: 'chromedriver' })
 
@@ -57,7 +55,8 @@ You can create one by running 'wdio config'`)
 
     it('should correctly install packages', async () => {
         findInConfigMock.mockReturnValue([''])
-        existsSyncMock.mockReturnValue(true)
+        fs.existsSync.mockReturnValue(true)
+        fs.readFileSync.mockReturnValue('module.config = {}')
         yarnInstall.mockImplementation(() => ({ status: 0 }))
 
         await installCmd.handler({ type: 'service', name: 'chromedriver' })
@@ -72,7 +71,7 @@ You can create one by running 'wdio config'`)
 
     it('should exit if there is an error while installing', async () => {
         findInConfigMock.mockReturnValue([''])
-        existsSyncMock.mockReturnValue(true)
+        fs.existsSync.mockReturnValue(true)
         yarnInstall.mockImplementation(() => ({ status: 1, stderr: 'test error' }))
         jest.spyOn(console, 'error')
 

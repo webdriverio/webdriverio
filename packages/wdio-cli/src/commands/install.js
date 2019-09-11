@@ -38,14 +38,18 @@ export async function handler(argv) {
      */
     const { type, name, npm } = argv
 
-    // verify for supported types via `supportedInstallations` keys
+    /**
+     * verify for supported types via `supportedInstallations` keys
+     */
     if (!Object.keys(supportedInstallations).includes(type)) {
         console.log(`Type ${type} is not supported.`)
         process.exit(0)
         return
     }
 
-    // verify if the name of the `type` is valid
+    /**
+     * verify if the name of the `type` is valid
+     */
     if (!supportedInstallations[type].find(pkg => pkg.short === name)) {
         console.log(`${name} is not a supported ${type}.`)
         process.exit(0)
@@ -53,7 +57,6 @@ export async function handler(argv) {
     }
 
     const localConfPath = path.join(process.cwd(), 'wdio.conf.js')
-
     if (!fs.existsSync(localConfPath)) {
         try {
             await missingConfigurationPrompt('install', `
@@ -66,7 +69,6 @@ You can create one by running 'wdio config'`)
     }
 
     const configFile = fs.readFileSync(localConfPath, { encoding: 'UTF-8' })
-
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
@@ -90,12 +92,10 @@ You can create one by running 'wdio config'`)
     }
 
     console.log(`Package "${selectedPackage.package}" installed successfully.`)
-
     const newConfig = replaceConfig(configFile, type, name)
-
     fs.writeFileSync(localConfPath, newConfig, { encoding: 'utf-8' })
-
     console.log('Your wdio.conf.js file has been updated.')
+
     process.exit(0)
 }
 /* eslint-enable no-console */

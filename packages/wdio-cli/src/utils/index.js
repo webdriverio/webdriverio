@@ -118,24 +118,21 @@ export function findInConfig(config, type) {
     }
 
     const regex = new RegExp(regexStr, 'gmi')
-
     return config.match(regex)
 }
 
-export function replaceConfig(
-    config,
-    type,
-    name
-) {
+export function replaceConfig(config, type, name) {
     const match = findInConfig(config, type)
-    if (match && match.length) {
-        if (type === 'framework') {
-            return buildNewConfigString(config, type, name)
-        }
-        const text = match.pop()
-
-        return config.replace(text, buildNewConfigArray(text, type, name))
+    if (!match || match.length === 0) {
+        return
     }
+
+    if (type === 'framework') {
+        return buildNewConfigString(config, type, name)
+    }
+    const text = match.pop()
+
+    return config.replace(text, buildNewConfigArray(text, type, name))
 }
 
 export function addServiceDeps(names, packages, update) {
