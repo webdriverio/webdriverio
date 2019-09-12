@@ -41,7 +41,7 @@ npm i --save-dev @wdio/cli
 We'll next want to generate a configuration file that stores all of our WebdriverIO settings. To do that just run the configuration utility:
 
 ```sh
-./node_modules/.bin/wdio config
+./node_modules/@wdio/cli/bin/wdio.js config
 ```
 
 A question interface pops up. It will help to create the config easy and fast. If you are not sure what to answer follow this answers:
@@ -122,7 +122,7 @@ Once added, save, then return to your terminal.
 The last step is to execute the test runner. To do so just run:
 
 ```sh
-./node_modules/.bin/wdio wdio.conf.js
+./node_modules/@wdio/cli/bin/wdio.js wdio.conf.js
 ```
 
 Hurray! The test should pass and you can start writing integration tests with WebdriverIO.
