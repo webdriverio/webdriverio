@@ -70,7 +70,7 @@ webdriver.d.ts
 webdriverio-core.d.ts
 !babel.config.js
 !.eslintrc.js
-package-lock.json
+packages/**/package-lock.json
 .DS_Store
 
 website/.sass-cache/
