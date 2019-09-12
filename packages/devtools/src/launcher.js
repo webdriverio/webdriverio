@@ -26,7 +26,7 @@ async function launchChrome (capabilities) {
         ],
         ...(chromeOptions.headless ? [
             '--headless',
-            '--disable-gpu'
+            '--no-sandbox'
         ] : []),
         ...(chromeOptions.args || [])
     ]
