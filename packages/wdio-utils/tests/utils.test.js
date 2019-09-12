@@ -5,8 +5,22 @@ import {
 
 describe('utils', () => {
     it('commandCallStructure', () => {
-        expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
-            .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
+        const stringFunction = 'return (function () => { })()'
+        const anotherStringFunction = '!function(t,e){}'
+        expect(commandCallStructure(
+            'foobar',
+            [
+                'param',
+                1,
+                true,
+                { a: 123 },
+                () => true,
+                stringFunction,
+                anotherStringFunction,
+                null,
+                undefined
+            ]
+        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, null, undefined)')
     })
 
     describe('overwriteElementCommands', () => {
