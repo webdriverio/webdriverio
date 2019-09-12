@@ -6,13 +6,13 @@ export const DEFAULT_Y_POSITION = 0
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 export const DEFAULT_FLAGS = [
-    // Disable built-in Google Translate service
-    '--disable-translate',
     // Disable all chrome extensions entirely
     '--disable-extensions',
     // Disable various background network services, including extension updating,
     //   safe browsing service, upgrade detector, translate, UMA
     '--disable-background-networking',
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
     // Disable syncing to a Google account
     '--disable-sync',
     // Disable reporting to UMA, but allows for collection
@@ -26,14 +26,20 @@ export const DEFAULT_FLAGS = [
     // chromedriver flags
     '--disable-hang-monitor',
     '--disable-prompt-on-repost',
-    '--disable-web-resources',
     '--disable-client-side-phishing-detection',
-    '--enable-logging',
-    '--log-level=0',
     '--password-store=basic',
     '--use-mock-keychain',
-    '--test-type=webdriver',
-    '--force-fieldtrials=SiteIsolationExtensions/Control'
+    '--disable-component-extensions-with-background-pages',
+    '--disable-breakpad',
+    '--disable-dev-shm-usage',
+    '--disable-ipc-flooding-protection',
+    '--disable-renderer-backgrounding',
+    '--enable-features=NetworkService,NetworkServiceInProcess',
+    /**
+     * `site-per-process` affects `page.frames()`, see #4471
+     * `TranslateUI` disables built-in Google Translate service
+     */
+    '--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees'
 ]
 
 export const CHROME_NAMES = ['chrome', 'googlechrome', 'headlesschrome', 'google-chrome', 'chromium']

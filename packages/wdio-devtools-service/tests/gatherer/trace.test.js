@@ -242,6 +242,6 @@ test('waitForMaxTimeout', async () => {
     const done = await traceGatherer.waitForMaxTimeout(200)
     done()
 
-    expect(Date.now() - start).toBeGreaterThan(199)
+    expect(Date.now() - start).toBeGreaterThan(198)
     expect(traceGatherer.completeTracing).toHaveBeenCalledTimes(1)
 })
