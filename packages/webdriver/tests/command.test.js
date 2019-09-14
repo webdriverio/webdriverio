@@ -92,6 +92,16 @@ describe('command wrapper', () => {
         commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
         const [, endpoint] = requestMock.mock.calls[0]
+        expect(endpoint).toBe('/session/:sessionId/element/%2Fpath/element')
+        requestMock.mockClear()
+    })
+
+    it('should double encode uri parameters if using selenium', () => {
+        const commandFn = commandWrapper(command.method, command.endpoint, command, true)
+        const requestMock = require('../src/request')
+        commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        const [, endpoint] = requestMock.mock.calls[0]
         expect(endpoint).toBe('/session/:sessionId/element/%252Fpath/element')
         requestMock.mockClear()
     })
