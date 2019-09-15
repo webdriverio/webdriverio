@@ -13,9 +13,9 @@ Each command documentation usually comes with an example that demonstrates the u
 
 ```js
 it('can handle commands synchronously', () => {
-    var value = $('#input').getValue();
-    console.log(value); // outputs: some value
-});
+    let value = $('#input').getValue()
+    console.log(value) // outputs: some value
+})
 ```
 
 you need return the command promise so it gets resolved properly as well as access the value when the promise got resolve:
@@ -23,18 +23,18 @@ you need return the command promise so it gets resolved properly as well as acce
 ```js
 it('handles commands as promises', () => {
     return $('#input').getValue().then((value) => {
-        console.log(value); // outputs: some value
-    });
-});
+        console.log(value) // outputs: some value
+    })
+})
 ```
 
 Of course you can use Node.JS latest [async/await](https://github.com/yortus/asyncawait) functionality to bring synchronous syntax into your testflow like:
 
 ```js
 it('can handle commands using async/await', async function () {
-    var value = await $('#input').getValue();
-    console.log(value); // outputs: some value
-});
+    let value = await $('#input').getValue()
+    console.log(value) // outputs: some value
+})
 ```
 
 However it is recommended to use the testrunner to scale up your test suite as it comes with a lot of useful add ons like the [Sauce Service](_sauce-service.md) that helps you to avoid writing a lot of boilerplate code by yourself.

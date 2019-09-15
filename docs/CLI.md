@@ -140,24 +140,24 @@ jasmine
 Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the `@wdio/cli` package as module the following way:
 
 ```js
-import Launcher from '@wdio/cli';
+import Launcher from '@wdio/cli'
 ```
 
 ES5
 ```js
-const Launcher = require('@wdio/cli').default;
+const Launcher = require('@wdio/cli').default
 
 ```
 After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and parameters that will overwrite the value in the config.
 
 ```js
-const wdio = new Launcher('/path/to/my/wdio.conf.js', opts);
+const wdio = new Launcher('/path/to/my/wdio.conf.js', opts)
 wdio.run().then((code) => {
-    process.exit(code);
+    process.exit(code)
 }, (error) => {
-    console.error('Launcher failed to start the test', error.stacktrace);
-    process.exit(1);
-});
+    console.error('Launcher failed to start the test', error.stacktrace)
+    process.exit(1)
+})
 ```
 
 The run command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that gets resolved if the test ran successful or failed or gets rejected if the launcher was not able to start run the tests.

@@ -8,15 +8,15 @@ Using ondemand services like Sauce Labs, Browserstack, TestingBot, or CrossBrows
 ```js
 // wdio.conf.js
 
-var config = {...}
+let config = {...}
 if (process.env.CI) {
-    config.user = process.env.SAUCE_USERNAME;
-    config.key = process.env.SAUCE_ACCESS_KEY;
+    config.user = process.env.SAUCE_USERNAME
+    config.key = process.env.SAUCE_ACCESS_KEY
 }
 exports.config = config
 ```
 
-## [Sauce Labs](https://saucelabs.com/)
+## [Sauce Labs](https://saucelabs.com)
 
 It is easy to set up your tests to run remotely in Sauce Labs.
 
@@ -98,7 +98,7 @@ Example `capabilities`:
 browserName: 'chrome',
 project: 'myApp',
 version: '44.0',
-build: 'myApp #' + process.env.TRAVIS_BUILD_NUMBER + '.' + process.env.TRAVIS_JOB_NUMBER,
+build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBER}`,
 'browserstack.local': 'true',
 'browserstack.debug': 'true'
 ```

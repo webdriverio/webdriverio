@@ -89,29 +89,29 @@ touch ./test/specs/basic.js
 Open that file up and add the following code to it:
 
 ```js
-const assert = require('assert');
+const assert = require('assert')
 
 describe('webdriver.io page', () => {
     it('should have the right title', () => {
-        browser.url('https://webdriver.io');
-        const title = browser.getTitle();
-        assert.strictEqual(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js');
-    });
-});
+        browser.url('https://webdriver.io')
+        const title = browser.getTitle()
+        assert.strictEqual(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js')
+    })
+})
 ```
 
 NOTE: if you decided to use _async_ instead of _sync_ mode don't forget to add async/await like this:
 
 ```js
-const assert = require('assert');
+const assert = require('assert')
 
 describe('webdriver.io page', () => {
     it('should have the right title', async () => {
-        await browser.url('https://webdriver.io');
-        const title = await browser.getTitle();
-        assert.strictEqual(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js');
-    });
-});
+        await browser.url('https://webdriver.io')
+        const title = await browser.getTitle()
+        assert.strictEqual(title, 'WebdriverIO · Next-gen WebDriver test framework for Node.js')
+    })
+})
 ```
 
 
