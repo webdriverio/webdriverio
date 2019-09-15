@@ -354,7 +354,7 @@ exports.config = {
     },
     afterFeature: function (uri, feature, scenarios) {
     }
-};
+}
 ```
 
 You can also find that file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).

@@ -10,8 +10,8 @@ Besides all commands from the [api](API.md) the browser object provides some mor
 ## Get Desired Capabilities
 
 ```js
-console.log(browser.sessionId); // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
-console.log(browser.capabilities);
+console.log(browser.sessionId) // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
+console.log(browser.capabilities)
 /**
  * outputs:
    { acceptInsecureCerts: false,
@@ -60,7 +60,7 @@ exports.config = {
 to then access it in your tests:
 
 ```js
-console.log(browser.config);
+console.log(browser.config)
 /**
  * outputs:
  * {
@@ -80,7 +80,7 @@ console.log(browser.config);
         // ...
  */
 
-console.log(browser.config.fakeUser); // outputs: "maxmustermann"
+console.log(browser.config.fakeUser) // outputs: "maxmustermann"
 ```
 
 ## Mobile Flags
@@ -99,7 +99,7 @@ exports.config = {
         // ...
     }
     // ...
-};
+}
 ```
 
 In your test you can access these flags like:
@@ -107,25 +107,25 @@ In your test you can access these flags like:
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
 // you can choose which global variable you want to use
-console.log(driver.isMobile); // outputs: true
-console.log(driver.isIOS); // outputs: true
-console.log(driver.isAndroid); // outputs: false
+console.log(driver.isMobile) // outputs: true
+console.log(driver.isIOS) // outputs: true
+console.log(driver.isAndroid) // outputs: false
 ```
 
 This can be useful if you want to define selectors in your page objects based on the device type, e.g.
 
 ```js
 // mypageobject.page.js
-import Page from './page';
+import Page from './page'
 
 class LoginPage extends Page {
     // ...
     get username () {
-        const selectorAndroid = 'new UiSelector().text("Cancel").className("android.widget.Button")';
-        const selectorIOS = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]';
-        const selectorType = driver.isAndroid ? 'android' : 'ios';
-        const selector = driver.isAndroid ? selectorAndroid : selectorIOS;
-        return $(`${selectorType}=${selector}`);
+        const selectorAndroid = 'new UiSelector().text("Cancel").className("android.widget.Button")'
+        const selectorIOS = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
+        const selectorType = driver.isAndroid ? 'android' : 'ios'
+        const selector = driver.isAndroid ? selectorAndroid : selectorIOS
+        return $(`${selectorType}=${selector}`)
     }
     // ...
 }

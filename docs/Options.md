@@ -255,7 +255,7 @@ Example:
 exports.config = {
     // ...
     afterTest: (test) => {
-        console.log(`Finished test "${test.parent} - ${test.title}"`);
+        console.log(`Finished test "${test.parent} - ${test.title}"`)
     }
     // ...
 ```

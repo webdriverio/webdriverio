@@ -19,9 +19,9 @@ If you like to use Mocha you should additionally install an assertion library to
 
 ```js
 before: function() {
-    var chai = require('chai');
-    global.expect = chai.expect;
-    chai.Should();
+    const chai = require('chai')
+    global.expect = chai.expect
+    chai.Should()
 }
 ```
 
@@ -30,10 +30,10 @@ Once that is done you can write beautiful assertions like:
 ```js
 describe('my awesome website', () => {
     it('should do some chai assertions', () => {
-        browser.url('https://webdriver.io');
-        browser.getTitle().should.be.equal('WebdriverIO · Next-gen WebDriver test framework for Node.js');
-    });
-});
+        browser.url('https://webdriver.io')
+        browser.getTitle().should.be.equal('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+    })
+})
 ```
 
 WebdriverIO supports Mochas `BDD` (default), `TDD` and `QUnit` [interface](https://mochajs.org/#interfaces). If you like to write your specs in TDD language set the ui property in your `mochaOpts` config to `tdd`, now your test files should get written like:
@@ -41,10 +41,10 @@ WebdriverIO supports Mochas `BDD` (default), `TDD` and `QUnit` [interface](https
 ```js
 suite('my awesome website', () => {
     test('should do some chai assertions', () => {
-        browser.url('https://webdriver.io');
-        browser.getTitle().should.be.equal('WebdriverIO · Next-gen WebDriver test framework for Node.js');
-    });
-});
+        browser.url('https://webdriver.io')
+        browser.getTitle().should.be.equal('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+    })
+})
 ```
 
 If you want to define specific Mocha settings you can do that by adding `mochaOpts` to your configuration file. A list of all options can be found on the [project website](http://mochajs.org/).
@@ -53,7 +53,7 @@ __Note:__ that since all commands are running synchronously there is no need to 
 
 ```js
 it('should test something', () => {
-    done(); // throws "done is not a function"
+    done() // throws "done is not a function"
 })
 ```
 
@@ -81,10 +81,10 @@ jasmineNodeOpts: {
          * only take screenshot if assertion failed
          */
         if(passed) {
-            return;
+            return
         }
 
-        browser.saveScreenshot('assertionError_' + assertion.error.message + '.png');
+        browser.saveScreenshot(`assertionError_${assertion.error.message}.png`)
     }
 },
 ```

@@ -10,7 +10,7 @@ WebdriverIO allows you to run multiple WebDriver/Appium sessions in a single tes
 Here is an example demonstrating a how to create a multiremote WebdriverIO instance in __standalone mode__:
 
 ```js
-import { multiremote } from 'webdriverio';
+import { multiremote } from 'webdriverio'
 
 (async () => {
     const browser = await multiremote({
@@ -24,17 +24,17 @@ import { multiremote } from 'webdriverio';
                 browserName: 'firefox'
             }
         }
-    });
+    })
 
     // open url with both browser at the same time
-    await browser.url('http://json.org');
+    await browser.url('http://json.org')
 
     // click on an element at the same time
-    const elem = await browser.$('#someElem');
-    await elem.click();
+    const elem = await browser.$('#someElem')
+    await elem.click()
 
     // only click with one browser (Firefox)
-    await elem.myFirefoxBrowser.click();
+    await elem.myFirefoxBrowser.click()
 })()
 ```
 
@@ -58,26 +58,26 @@ export.config = {
         }
     }
     // ...
-};
+}
 ```
 
 This would create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io/). Any kind of OS/browser combination is possible here (e.g. cross platform like mobile device and desktop browser). All commands you call with the `browser` variable gets executed in parallel with each instance. This helps to streamline your integration test and speedup the execution a bit. For example open up an url:
 
 ```js
-browser.url('http://chat.socket.io/');
+browser.url('http://chat.socket.io/')
 ```
 
 Each command result will be an object with the browser names as key and the actual command result as value, e.g.
 
 ```js
 // wdio testrunner example
-browser.url('https://www.whatismybrowser.com/');
+browser.url('https://www.whatismybrowser.com/')
 
-const elem = $('.string-major');
-const result = elem.getText();
+const elem = $('.string-major')
+const result = elem.getText()
 
-console.log(result.resultChrome); // returns: 'Chrome 40 on Mac OS X (Yosemite)'
-console.log(result.resultFirefox); // returns: 'Firefox 35 on Mac OS X (Yosemite)'
+console.log(result.resultChrome) // returns: 'Chrome 40 on Mac OS X (Yosemite)'
+console.log(result.resultFirefox) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
 ```
 
 You will notice that each command gets executed one by one. That means that the command finishes once all browser have executed it. This is helpful because it keeps the browser actions synced and it makes it easier to understand what currently happens.
@@ -85,12 +85,12 @@ You will notice that each command gets executed one by one. That means that the 
 Sometimes it is necessary to do different things with each browser in order to test something. For instance if we want to test a chat application, there has to be one browser who inputs a text message while the other browser waits to receive that message and do an assertion on it. When using the WDIO testrunner it registers the browser names with their instances to the global scope, e.g.
 
 ```js
-myChromeBrowser.$('#message').setValue('Hi, I am Chrome');
-myChromeBrowser.$('#send').click();
+myChromeBrowser.$('#message').setValue('Hi, I am Chrome')
+myChromeBrowser.$('#send').click()
 
 const firefoxMessages = myFirefoxBrowser.$$('.messages')
 // wait until messages arrive
-firefoxMessages.waitForExist();
+firefoxMessages.waitForExist()
 // check if one of the messages contain the Chrome message
 assert.true(
     firefoxMessages.map((m) => m.getText()).includes('Hi, I am Chrome')

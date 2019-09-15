@@ -8,8 +8,8 @@ The Json Wire Protocol provides several selector strategies to query an element.
 ## CSS Query Selector
 
 ```js
-const elem = $('h2.subheading a');
-elem.click();
+const elem = $('h2.subheading a')
+elem.click()
 ```
 
 ## Link Text
@@ -24,9 +24,9 @@ For example:
 You can query this element by calling:
 
 ```js
-const link = $('=WebdriverIO');
-console.log(link.getText()); // outputs: "WebdriverIO"
-console.log(link.getAttribute('href')); // outputs: "https://webdriver.io"
+const link = $('=WebdriverIO')
+console.log(link.getText()) // outputs: "WebdriverIO"
+console.log(link.getAttribute('href')) // outputs: "https://webdriver.io"
 ```
 
 ## Partial Link Text
@@ -41,8 +41,8 @@ in front of the query string (e.g. `*=driver`)
 You can query this element by calling:
 
 ```js
-const link = $('*=driver');
-console.log(link.getText()); // outputs: "WebdriverIO"
+const link = $('*=driver')
+console.log(link.getText()) // outputs: "WebdriverIO"
 ```
 
 ## Element with certain text
@@ -56,16 +56,16 @@ The same technique can be applied to elements as well, e.g. query a level 1 head
 You can query this element by calling:
 
 ```js
-const header = $('h1=Welcome to my Page');
-console.log(header.getText()); // outputs: "Welcome to my Page"
-console.log(header.getTagName()); // outputs: "h1"
+const header = $('h1=Welcome to my Page')
+console.log(header.getText()) // outputs: "Welcome to my Page"
+console.log(header.getTagName()) // outputs: "h1"
 ```
 
 or using query partial text
 
 ```js
-const header = $('h1*=Welcome');
-console.log(header.getText()); // outputs: "Welcome to my Page"
+const header = $('h1*=Welcome')
+console.log(header.getText()) // outputs: "Welcome to my Page"
 ```
 
 The same works for ids and class names:
@@ -77,17 +77,17 @@ The same works for ids and class names:
 You can query this element by calling:
 
 ```js
-const classNameAndText = $('.someElem=WebdriverIO is the best');
-console.log(classNameAndText.getText()); // outputs: "WebdriverIO is the best"
+const classNameAndText = $('.someElem=WebdriverIO is the best')
+console.log(classNameAndText.getText()) // outputs: "WebdriverIO is the best"
 
-const idAndText = $('#elem=WebdriverIO is the best');
-console.log(idAndText.getText()); // outputs: "WebdriverIO is the best"
+const idAndText = $('#elem=WebdriverIO is the best')
+console.log(idAndText.getText()) // outputs: "WebdriverIO is the best"
 
-const classNameAndPartialText = $('.someElem*=WebdriverIO');
-console.log(classNameAndPartialText.getText()); // outputs: "WebdriverIO is the best"
+const classNameAndPartialText = $('.someElem*=WebdriverIO')
+console.log(classNameAndPartialText.getText()) // outputs: "WebdriverIO is the best"
 
-const idAndPartialText = $('#elem*=WebdriverIO');
-console.log(idAndPartialText.getText()); // outputs: "WebdriverIO is the best"
+const idAndPartialText = $('#elem*=WebdriverIO')
+console.log(idAndPartialText.getText()) // outputs: "WebdriverIO is the best"
 ```
 
 ## Tag Name
@@ -101,8 +101,8 @@ To query an element with a specific tag name use `<tag>` or `<tag />`
 You can query this element by calling:
 
 ```js
-const classNameAndText = $('<my-element />');
-console.log(classNameAndText.getText()); // outputs: "WebdriverIO is the best"
+const classNameAndText = $('<my-element />')
+console.log(classNameAndText.getText()) // outputs: "WebdriverIO is the best"
 ```
 
 ## xPath
@@ -121,15 +121,15 @@ It is also possible to query elements via a specific [xPath](https://developer.m
 You can query the second paragraph by calling:
 
 ```js
-const paragraph = $('//BODY/P[2]');
-console.log(paragraph.getText()); // outputs: "barfoo"
+const paragraph = $('//BODY/P[2]')
+console.log(paragraph.getText()) // outputs: "barfoo"
 ```
 
 You can use xPath to also traverse up and down the DOM tree, e.g.
 
 ```js
-const parent = paragraph.$('..');
-console.log(parent.getTagName()); // outputs: "body"
+const parent = paragraph.$('..')
+console.log(parent.getTagName()) // outputs: "body"
 ```
 ## id
 
@@ -166,9 +166,9 @@ Now for native mobile testing, there is no switching between contexts as you hav
 Android’s UI Automator framework provides a number of ways to find elements. You can use the [UI Automator API](https://developer.android.com/tools/testing-support-library/index.html#uia-apis), in particular the [UiSelector class](https://developer.android.com/reference/android/support/test/uiautomator/UiSelector.html) to locate elements. In Appium you send the Java code, as a string, to the server, which executes it in the application’s environment, returning the element or elements.
 
 ```js
-const selector = 'new UiSelector().text("Cancel").className("android.widget.Button")';
-const Button = $(`android=${selector}`);
-Button.click();
+const selector = 'new UiSelector().text("Cancel").className("android.widget.Button")'
+const Button = $(`android=${selector}`)
+Button.click()
 ```
 
 ### Android DataMatcher (Espresso only)
@@ -179,8 +179,8 @@ Android's DataMatcher strategy provides a way to find elements by [Data Matcher]
 const menuItem = $({
   "name": "hasEntry",
   "args": ["title", "ViewTitle"]
-});
-menuItem.click();
+})
+menuItem.click()
 ```
 
 ### iOS UIAutomation
@@ -188,9 +188,9 @@ menuItem.click();
 When automating an iOS application, Apple’s [UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) can be used to find elements. This JavaScript [API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771) has methods to access to the view and everything on it.
 
 ```js
-const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]';
-const Button = $(`ios=${selector}`);
-Button.click();
+const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
+const Button = $(`ios=${selector}`)
+Button.click()
 ```
 
 You can also use predicate searching within iOS UI Automation in Appium, to control element finding even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios/ios-predicate.md) for details.
@@ -200,17 +200,17 @@ You can also use predicate searching within iOS UI Automation in Appium, to cont
 With iOS 10 and above (using the XCUITest driver), you can use [predicate strings](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules):
 
 ```js
-const selector = 'type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'';
-const Switch = $(`-ios predicate string:${selector}`);
-Switch.click();
+const selector = `type == 'XCUIElementTypeSwitch' && name CONTAINS 'Allow'`
+const Switch = $(`-ios predicate string:${selector}`)
+Switch.click()
 ```
 
 And [class chains](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
 
 ```js
-const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton';
-const Button = $(`-ios class chain:${selector}`);
-Button.click();
+const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton'
+const Button = $(`-ios class chain:${selector}`)
+Button.click()
 ```
 
 ### Accessibility ID
@@ -223,8 +223,8 @@ The `accessibility id` locator strategy is designed to read a unique identifier 
 For both platforms getting an element, or multiple elements, by their `accessibility id` is usually the best method. It is also the preferred way, in replacement of the deprecated `name` strategy.
 
 ```js
-const elem = $('~my_accessibility_identifier');
-elem.click();
+const elem = $('~my_accessibility_identifier')
+elem.click()
 ```
 
 ### Class Name
@@ -237,11 +237,11 @@ The `class name` strategy is a `string` representing a UI element on the current
 
 ```js
 // iOS example
-$('UIATextField').click();
+$('UIATextField').click()
 // Android example
-$('android.widget.DatePicker').click();
+$('android.widget.DatePicker').click()
 // Youi.tv example
-$('CYIPushButtonView').click();
+$('CYIPushButtonView').click()
 ```
 
 ## Chain Selectors
@@ -274,7 +274,7 @@ And you want to add product B to the cart, it would be difficult to do that just
 With selector chaining it gets way easier as you can narrow down the desired element step by step:
 
 ```js
-$('.row .entry:nth-child(2)').$('button*=Add').click();
+$('.row .entry:nth-child(2)').$('button*=Add').click()
 ```
 
 ## React Selectors
