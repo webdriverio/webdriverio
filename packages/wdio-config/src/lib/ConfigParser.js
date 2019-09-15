@@ -149,11 +149,13 @@ export default class ConfigParser {
     /**
      * get excluded files from config pattern
      */
-    getSpecs (capSpecs, capExclude) {
+    getSpecs (capSpecs, capExclude, capExcludeSuite) {
         let specs = ConfigParser.getFilePaths(this._config.specs)
         let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
+        if (capExcludeSuite && capExcludeSuite.length)
+            suites.filter(suite => !capExcludeSuite.includes(suite.suiteName))
 
         /**
          * check if user has specified a specific suites to run

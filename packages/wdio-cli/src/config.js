@@ -147,6 +147,10 @@ export const CLI_PARAMS = [{
     description: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
     type: 'array'
 }, {
+    name: 'excludeSuite',
+    description: 'exclude a suite of specs from the test run',
+    type: 'array'
+}, {
     name: 'mochaOpts',
     description: 'Mocha options'
 }, {
