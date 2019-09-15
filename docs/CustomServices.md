@@ -23,7 +23,7 @@ The only thing to do now in order to use this service is to assign it to the ser
 your `wdio.conf.js` file should look like this:
 
 ```js
-import CustomService from './service/my.custom.service';
+import CustomService from './service/my.custom.service'
 
 exports.config = {
     // ...
@@ -31,7 +31,7 @@ exports.config = {
         someOption: true
     }]],
     // ...
-};
+}
 ```
 
 ### NPM
@@ -51,7 +51,7 @@ exports.config = {
     // ...
     services: ['custom'],
     // ...
-};
+}
 ```
 
 We really appreciate every new plugin that gets developed and may help other people to run better tests. If you have created such a plugin make sure to create a pull request to our [configuration utility](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/config.js#L20-L34) so your package will be suggested if someone runs the wdio configurator.

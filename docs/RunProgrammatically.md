@@ -16,7 +16,7 @@ npm install webdriverio
 Create a test file (e.g. `test.js`) with the following content:
 
 ```js
-const { remote } = require('webdriverio');
+const { remote } = require('webdriverio')
 
 (async () => {
     const browser = await remote({
@@ -25,15 +25,15 @@ const { remote } = require('webdriverio');
         capabilities: {
             browserName: 'firefox'
         }
-    });
+    })
 
-    await browser.url('https://webdriver.io');
+    await browser.url('https://webdriver.io')
 
-    const title = await browser.getTitle();
-    console.log('Title was: ' + title);
+    const title = await browser.getTitle()
+    console.log('Title was: ' + title)
 
-    await browser.deleteSession();
-})().catch((e) => console.error(e));
+    await browser.deleteSession()
+})().catch((e) => console.error(e))
 ```
 
 ### Run your test file
