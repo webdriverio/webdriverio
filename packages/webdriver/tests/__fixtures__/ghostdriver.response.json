@@ -1,0 +1,26 @@
+{
+  "status": 0,
+  "sessionId": "XXXXXXXX00000000XXXXXXXXXXXXXXXX",
+  "value": {
+    "browserName":"phantomjs",
+    "version":"2.1.1",
+    "driverName":"ghostdriver",
+    "driverVersion":"1.2.0",
+    "platform":"mac-unknown-64bit",
+    "javascriptEnabled": true,
+    "takesScreenshot": true,
+    "handlesAlerts": false,
+    "databaseEnabled": false,
+    "locationContextEnabled": false,
+    "applicationCacheEnabled": false,
+    "browserConnectionEnabled": false,
+    "cssSelectorsEnabled": true,
+    "webStorageEnabled": false,
+    "rotatable": false,
+    "acceptSslCerts": false,
+    "nativeEvents": true,
+    "proxy": {
+      "proxyType":"direct"
+    }
+  }
+}

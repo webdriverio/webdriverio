@@ -5,7 +5,7 @@ import WebDriverRequest from './request'
 
 const log = logger('webdriver')
 
-export default function (method, endpointUri, commandInfo) {
+export default function (method, endpointUri, commandInfo, doubleEncodeVariables = false) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
     return function protocolCommand (...args) {
@@ -65,7 +65,8 @@ export default function (method, endpointUri, commandInfo) {
              * inject url variables
              */
             if (i < variables.length) {
-                endpoint = endpoint.replace(`:${commandParams[i].name}`, encodeURIComponent(encodeURIComponent(arg)))
+                const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg)) : encodeURIComponent(arg)
+                endpoint = endpoint.replace(`:${commandParams[i].name}`, encodedArg)
                 continue
             }
 

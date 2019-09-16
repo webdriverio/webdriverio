@@ -158,7 +158,7 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData) }
+            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
         }
     }
 

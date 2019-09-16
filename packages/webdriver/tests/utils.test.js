@@ -6,6 +6,7 @@ import {
 import appiumResponse from './__fixtures__/appium.response.json'
 import chromedriverResponse from './__fixtures__/chromedriver.response.json'
 import geckodriverResponse from './__fixtures__/geckodriver.response.json'
+import ghostdriverResponse from './__fixtures__/ghostdriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
@@ -80,6 +81,7 @@ describe('utils', () => {
         const appiumCaps = appiumResponse.value.capabilities
         const geckoCaps = geckodriverResponse.value.capabilities
         const edgeCaps = edgedriverResponse.value.capabilities
+        const phantomCaps = ghostdriverResponse.value
         const safariCaps = safaridriverResponse.value.capabilities
         const safariLegacyCaps = safaridriverLegacyResponse.value
         const standaloneCaps = seleniumstandaloneResponse.value
@@ -92,6 +94,7 @@ describe('utils', () => {
             expect(environmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
+            expect(environmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
             expect(isW3C()).toBe(false)
         })
 
@@ -100,6 +103,7 @@ describe('utils', () => {
             expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
             expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
+            expect(environmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
         })
 
         it('isSauce', () => {
