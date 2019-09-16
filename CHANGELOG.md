@@ -15,6 +15,91 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.13.0 (2019-09-16)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#4266](https://github.com/webdriverio/webdriverio/pull/4266) Convert protocol elements to WebdriverIO elements ([@mgrybyk](https://github.com/mgrybyk))
+* `devtools`, `wdio-cli`, `wdio-config`, `wdio-protocols`, `wdio-runner`, `wdio-sync`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#4210](https://github.com/webdriverio/webdriverio/pull/4210) Allow to choose between WebDriver and Chrome DevTools Protocol as automation backend ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#4424](https://github.com/webdriverio/webdriverio/pull/4424) support direct connect functionality for load balanced session redirection ([@jlipps](https://github.com/jlipps))
+* `wdio-devtools-service`
+  * [#4419](https://github.com/webdriverio/webdriverio/pull/4419) [@wdio/devtools-service] Add command for mobile emulation ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#4476](https://github.com/webdriverio/webdriverio/pull/4476) Fix interaction with iframe with devtools protocol ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4472](https://github.com/webdriverio/webdriverio/pull/4472) devtools: fix getWindowHandles ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4469](https://github.com/webdriverio/webdriverio/pull/4469) Element search by function is not working ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4444](https://github.com/webdriverio/webdriverio/pull/4444) Execution fails when running tests in parallel ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4431](https://github.com/webdriverio/webdriverio/pull/4431) Element refetch is not working with devtools protocol ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4434](https://github.com/webdriverio/webdriverio/pull/4434) Unable to get element parent by xpath ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4432](https://github.com/webdriverio/webdriverio/pull/4432) Don't close all tabs when deleting session ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#4477](https://github.com/webdriverio/webdriverio/pull/4477) Fix isDisplayed in devtools ([@mgrybyk](https://github.com/mgrybyk))
+* `devtools`, `webdriverio`
+  * [#4459](https://github.com/webdriverio/webdriverio/pull/4459) Bugfixes for DevTools package ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sync`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#4438](https://github.com/webdriverio/webdriverio/pull/4438) Fix custom command and command overwrites in multiremote ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#4428](https://github.com/webdriverio/webdriverio/pull/4428) wdio-allure-reporter - Fix unknown status in allure report ([@Kignuf](https://github.com/Kignuf))
+  * [#4420](https://github.com/webdriverio/webdriverio/pull/4420) @wdio/allure-reporter: Fix undefined/unknown step status ([@Kignuf](https://github.com/Kignuf))
+  * [#4406](https://github.com/webdriverio/webdriverio/pull/4406) allure-reporter: fixed bug with mocha all hooks being treated as tests ([@Gennadiii](https://github.com/Gennadiii))
+* `wdio-devtools-service`
+  * [#4416](https://github.com/webdriverio/webdriverio/pull/4416) Let auditors command fail if tracing failed ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#4468](https://github.com/webdriverio/webdriverio/pull/4468) Shorten string function in logs ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#4474](https://github.com/webdriverio/webdriverio/pull/4474) Add scRelay flag to not use SC as a Selenium Relay by default ([@enriquegh](https://github.com/enriquegh))
+* `webdriverio`
+  * [#4454](https://github.com/webdriverio/webdriverio/pull/4454) Adjust commands to use React selectors if element has isReactElement flag ([@baruchvlz](https://github.com/baruchvlz))
+* `devtools`
+  * [#4462](https://github.com/webdriverio/webdriverio/pull/4462) Print not implemented command ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-allure-reporter`
+  * [#4418](https://github.com/webdriverio/webdriverio/pull/4418) @wdio/allure-reporter: Handle test failures where 'error.name' and 'error.stack' are undefined ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### :memo: Documentation
+* Other
+  * [#4473](https://github.com/webdriverio/webdriverio/pull/4473) Fix devtools types ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4437](https://github.com/webdriverio/webdriverio/pull/4437) Update OrganizingTestSuites.md ([@Zearin](https://github.com/Zearin))
+  * [#4412](https://github.com/webdriverio/webdriverio/pull/4412) Add example for custom service ([@christian-bromann](https://github.com/christian-bromann))
+  * [#4499](https://github.com/webdriverio/webdriverio/pull/4499) Docs/encourage modern js ([@Zearin](https://github.com/Zearin))
+* `devtools`
+  * [#4458](https://github.com/webdriverio/webdriverio/pull/4458) Devtools: fix typos in docs ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-static-server-service`
+  * [#4436](https://github.com/webdriverio/webdriverio/pull/4436) Update README.md ([@Zearin](https://github.com/Zearin))
+* `webdriverio`
+  * [#4413](https://github.com/webdriverio/webdriverio/pull/4413) Add link to the browser `waitUntil` command ([@klamping](https://github.com/klamping))
+
+#### :house: Internal
+* `wdio-sync`
+  * [#4460](https://github.com/webdriverio/webdriverio/pull/4460) Add unit tests for wrapCommand ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4429](https://github.com/webdriverio/webdriverio/pull/4429) Only print warning if user is running wdio testrunner ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#4415](https://github.com/webdriverio/webdriverio/pull/4415) Add smoke tests for retries ([@christian-bromann](https://github.com/christian-bromann))
+  * [#4414](https://github.com/webdriverio/webdriverio/pull/4414) Add 'documentation change' to PR template ([@klamping](https://github.com/klamping))
+  * [#4492](https://github.com/webdriverio/webdriverio/pull/4492) Update packages and add package-lock.json ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4491](https://github.com/webdriverio/webdriverio/pull/4491) Update travis ci dist to xenial and set @babel/core version to 7.5.5 ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-runner`, `wdio-sync`
+  * [#4234](https://github.com/webdriverio/webdriverio/pull/4234) @wdio/sync: throw if command is executed outside of a fiber context ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `wdio-devtools-service`
+  * [#4493](https://github.com/webdriverio/webdriverio/pull/4493) Update chrome flags for devtools ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 10
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Gennadii ([@Gennadiii](https://github.com/Gennadiii))
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Zearin ([@Zearin](https://github.com/Zearin))
+
 ## v5.12.5 (2019-08-27)
 
 #### :nail_care: Polish
