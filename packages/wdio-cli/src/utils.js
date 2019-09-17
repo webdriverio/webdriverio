@@ -205,9 +205,10 @@ export async function missingConfigurationPrompt(command, message) {
      * don't exit if running unit tests
      */
     if (!config && !process.env.JEST_WORKER_ID) {
+        /* istanbul ignore next */
         console.log(message)
-        process.exit(0)
-        return
+        /* istanbul ignore next */
+        return process.exit(0)
     }
 
     return await runConfig(true, false)

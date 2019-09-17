@@ -1,5 +1,7 @@
-import childProcess from 'child_process'
+import fs from 'fs'
 import ejs from 'ejs'
+import childProcess from 'child_process'
+
 import {
     runOnPrepareHook,
     runOnCompleteHook,
@@ -28,6 +30,8 @@ jest.mock('child_process', function () {
 jest.mock('../src/commands/config.js', () => ({
     runConfig: jest.fn()
 }))
+
+jest.mock('fs')
 
 beforeEach(() => {
     global.console.log = jest.fn()
@@ -153,9 +157,8 @@ describe('renderConfigurationFile', () => {
 
         await renderConfigurationFile({ foo: 'bar' })
 
-        expect.hasAssertions()
-
         expect(ejs.renderFile).toHaveBeenCalled()
+        expect(fs.writeFileSync).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith(CONFIG_HELPER_SUCCESS_MESSAGE)
     })
 
