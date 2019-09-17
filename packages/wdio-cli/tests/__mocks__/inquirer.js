@@ -3,6 +3,6 @@ export default {
         runner: '@wdio/local-runner--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: ['@wdio/spec-reporter$--$spec'],
-        services: []
+        services: ['@wdio/sauce-service--$sauce']
     }))
 }
