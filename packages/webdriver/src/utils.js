@@ -185,7 +185,7 @@ export function isW3C (capabilities) {
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
      * - it is an Appium session (since Appium is full W3C compliant)
      */
-    const isAppium = capabilities.automationName || capabilities.deviceName || (capabilities['device.name'])
+    const isAppium = capabilities.automationName || capabilities.deviceName || (capabilities['appiumVersion'])
     const hasW3CCaps = (
         capabilities.platformName &&
         capabilities.browserVersion &&
@@ -222,11 +222,6 @@ export function isMobile (caps) {
         (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
         (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
         (typeof caps.deviceName !== 'undefined') ||
-        // experitest returns actual device capabilities in the form "device.name" | "device.model" etc.
-        (typeof caps['device'] !== 'undefined' && (
-            (typeof caps['device.name'] !== 'undefined') ||
-            (typeof caps['device.type'] !== 'undefined') ||
-            (typeof caps['device.orientation'] !== 'undefined'))) ||
         // Check browserName for specific values
         (caps.browserName === '' ||
             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
