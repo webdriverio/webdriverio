@@ -4,6 +4,7 @@ import {
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
+import experitestResponse from './__fixtures__/experitest.response.json'
 import chromedriverResponse from './__fixtures__/chromedriver.response.json'
 import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 import ghostdriverResponse from './__fixtures__/ghostdriver.response.json'
@@ -79,6 +80,7 @@ describe('utils', () => {
     describe('environmentDetector', () => {
         const chromeCaps = chromedriverResponse.value
         const appiumCaps = appiumResponse.value.capabilities
+        const experitestAppiumCaps = experitestResponse.appium.capabilities
         const geckoCaps = geckodriverResponse.value.capabilities
         const edgeCaps = edgedriverResponse.value.capabilities
         const phantomCaps = ghostdriverResponse.value
@@ -86,9 +88,15 @@ describe('utils', () => {
         const safariLegacyCaps = safaridriverLegacyResponse.value
         const standaloneCaps = seleniumstandaloneResponse.value
 
+        it('isMobile', () => {
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            expect(environmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isMobile).toBe(true)
+        })
+
         it('isW3C', () => {
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
             expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
+            expect(environmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
