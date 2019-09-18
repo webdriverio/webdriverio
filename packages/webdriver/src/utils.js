@@ -185,7 +185,7 @@ export function isW3C (capabilities) {
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
      * - it is an Appium session (since Appium is full W3C compliant)
      */
-    const isAppium = capabilities.automationName || capabilities.deviceName
+    const isAppium = capabilities.automationName || capabilities.deviceName || (capabilities.appiumVersion)
     const hasW3CCaps = (
         capabilities.platformName &&
         capabilities.browserVersion &&
@@ -218,13 +218,13 @@ export function isChrome (caps) {
  */
 export function isMobile (caps) {
     return Boolean(
-        (typeof caps['appium-version'] !== 'undefined') ||
+        (typeof caps['appium-version'] !== 'undefined') || (typeof caps.appiumVersion !== 'undefined') ||
         (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
         (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
         (typeof caps.deviceName !== 'undefined') ||
         // Check browserName for specific values
         (caps.browserName === '' ||
-             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
+            (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
     )
 }
 
@@ -358,8 +358,8 @@ export function setupDirectConnect(params) {
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
-                 `Will connect to server at ${directConnectProtocol}://` +
-                 `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
+            `Will connect to server at ${directConnectProtocol}://` +
+            `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
         params.protocol = directConnectProtocol
         params.hostname = directConnectHost
         params.port = directConnectPort
