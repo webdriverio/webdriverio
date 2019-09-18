@@ -109,7 +109,8 @@ describe('webdriver request', () => {
         it('should add the Content-Length header when a request object has a body', () => {
             const req = new WebDriverRequest('POST', '/session', { foo: 'bar' })
             const options = req._createOptions({ path: '/' })
-            expect(Object.keys(options.headers)).toContain('Content-Length')
+            expect(Object.keys(options.headers))
+                .toEqual(['Connection', 'Accept', 'User-Agent', 'Content-Length'])
             expect(options.headers['Content-Length']).toBe(13)
         })
 
