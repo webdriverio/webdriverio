@@ -10,6 +10,12 @@ import command from './command'
 
 const log = logger('webdriver')
 
+const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
+const MOBILE_CAPABILITIES = [
+    'appium-version', 'appiumVersion', 'device-type', 'deviceType',
+    'device-orientation', 'deviceOrientation', 'deviceName'
+]
+
 /**
  * start browser session with WebDriver protocol
  */
@@ -217,14 +223,24 @@ export function isChrome (caps) {
  * @return {Boolean}       true if platform is mobile device
  */
 export function isMobile (caps) {
+    const browserName = (caps.browserName || '').toLowerCase()
+
+    /**
+     * we have mobile caps if
+     */
     return Boolean(
-        (typeof caps['appium-version'] !== 'undefined') || (typeof caps.appiumVersion !== 'undefined') ||
-        (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
-        (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
-        (typeof caps.deviceName !== 'undefined') ||
-        // Check browserName for specific values
-        (caps.browserName === '' ||
-            (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
+        /**
+         * capabilities contain mobile only specific capabilities
+         */
+        Object.keys(caps).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
+        /**
+         * browserName is empty (and eventually app is defined)
+         */
+        caps.browserName === '' ||
+        /**
+         * browserName is a mobile browser
+         */
+        MOBILE_BROWSER_NAMES.includes(browserName)
     )
 }
 
