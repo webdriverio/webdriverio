@@ -218,7 +218,7 @@ export function isChrome (caps) {
  */
 export function isMobile (caps) {
     return Boolean(
-        (typeof caps['appium-version'] !== 'undefined') || (typeof caps['appiumVersion'] !== 'undefined') ||
+        (typeof caps['appium-version'] !== 'undefined') || (typeof caps.appiumVersion !== 'undefined') ||
         (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
         (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
         (typeof caps.deviceName !== 'undefined') ||
