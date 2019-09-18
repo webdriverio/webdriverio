@@ -57,7 +57,7 @@ export default class WebDriverRequest extends EventEmitter {
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
-            const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'UTF-8')
+            const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
             requestOptions.body = this.body
             requestOptions.headers = {
                 ...requestOptions.headers,
