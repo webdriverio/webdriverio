@@ -91,6 +91,8 @@ describe('utils', () => {
         it('isMobile', () => {
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
             expect(environmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isMobile).toBe(true)
+            expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobile).toBe(true)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isMobile).toBe(false)
         })
 
         it('isW3C', () => {
