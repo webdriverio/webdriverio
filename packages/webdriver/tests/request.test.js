@@ -11,7 +11,6 @@ describe('webdriver request', () => {
         const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
         expect(req.method).toBe('POST')
         expect(req.endpoint).toBe('/foo/bar')
-        expect(Object.keys(req.defaultOptions.headers)).toContain('User-Agent')
     })
 
     it('should be able to make request', () => {
@@ -46,8 +45,10 @@ describe('webdriver request', () => {
             }, 'foobar12345')
 
             expect(options.agent.protocol).toBe('https:')
-            expect(options.uri.href).toBe('https://localhost:4445/wd/hub/session/foobar12345/element')
-            expect(options.headers.foo).toBe('bar')
+            expect(options.uri.href)
+                .toBe('https://localhost:4445/wd/hub/session/foobar12345/element')
+            expect(Object.keys(options.headers))
+                .toEqual(['Connection', 'Accept', 'User-Agent', 'foo'])
         })
 
         it('passes a custom agent', () => {

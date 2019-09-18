@@ -10,6 +10,12 @@ import logger from '@wdio/logger'
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
 
+const DEFAULT_HEADERS = {
+    'Connection': 'keep-alive',
+    'Accept': 'application/json',
+    'User-Agent': 'webdriver/' + pkg.version
+}
+
 const log = logger('webdriver')
 const agents = {
     http: new http.Agent({ keepAlive: true }),
@@ -27,12 +33,7 @@ export default class WebDriverRequest extends EventEmitter {
         this.defaultOptions = {
             method,
             followAllRedirects: true,
-            json: true,
-            headers: {
-                'Connection': 'keep-alive',
-                'Accept': 'application/json',
-                'User-Agent': 'webdriver/' + pkg.version
-            }
+            json: true
         }
     }
 
@@ -45,7 +46,10 @@ export default class WebDriverRequest extends EventEmitter {
     _createOptions (options, sessionId) {
         const requestOptions = {
             agent: options.agent || agents[options.protocol],
-            headers: typeof options.headers === 'object' ? options.headers : {},
+            headers: {
+                ...DEFAULT_HEADERS,
+                ...(typeof options.headers === 'object' ? options.headers : {})
+            },
             qs: typeof options.queryParams === 'object' ? options.queryParams : {}
         }
 
@@ -53,10 +57,12 @@ export default class WebDriverRequest extends EventEmitter {
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
+            const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'UTF-8')
             requestOptions.body = this.body
-            requestOptions.headers = Object.assign({}, requestOptions.headers, {
-                'Content-Length': Buffer.byteLength(JSON.stringify(requestOptions.body), 'UTF-8')
-            })
+            requestOptions.headers = {
+                ...requestOptions.headers,
+                ...({ 'Content-Length': contentLength })
+            }
         }
 
         /**
