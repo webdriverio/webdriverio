@@ -1,6 +1,10 @@
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
+<<<<<<< HEAD
 import { hasWdioSyncSupport } from '@wdio/utils'
+=======
+import fs from 'fs'
+>>>>>>> wdio-cli: Appium REPL configurations (#4286)
 
 import { cmdArgs } from './run'
 import { CLI_EPILOGUE } from '../constants'
@@ -12,6 +16,7 @@ const IGNORED_ARGS = [
 
 export const command = 'repl <browserName>'
 export const desc = 'Run WebDriver session in command line'
+const DEFAULT_CONFIG_PATH = 'appium.conf.js'
 
 export const builder = (yargs) => {
     return yargs

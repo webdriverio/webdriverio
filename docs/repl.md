@@ -17,7 +17,17 @@ This would open a Chrome browser that you can control with the REPL interface. M
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
+<<<<<<< HEAD
 You can apply any available options for your REPL session. (See `wdio --help` for options.)
+=======
+```sh
+wdio repl appium --config './path/appium.conf.js'
+```
+
+This would open appium session with desiredCapabilities from provided configuration file. Make sure Appium running on port `4444` in order to initiate the session.
+
+You can apply any options (see `wdio --help`) available for your REPL session.
+>>>>>>> wdio-cli: Appium REPL configurations (#4286)
 
 ![WebdriverIO REPL](https://webdriver.io/img/repl.gif)
 
