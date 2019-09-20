@@ -222,7 +222,7 @@ test('afterCommand: should continue with command after tracingFinished was emitt
     setTimeout(() => service.traceGatherer.emit('tracingFinished'), 100)
     await service.afterCommand('navigateTo')
 
-    expect(Date.now() - start).toBeGreaterThan(99)
+    expect(Date.now() - start).toBeGreaterThan(98)
     expect(service._setThrottlingProfile).toBeCalledWith('online', 0, true)
 })
 
