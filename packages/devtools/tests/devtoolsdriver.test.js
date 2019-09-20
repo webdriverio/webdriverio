@@ -98,7 +98,7 @@ test('should return proper result', async () => {
     const errorMsg2 = await command('123').catch((e) => e.message)
     await expect(errorMsg2).toContain('Wrong parameters applied')
 
-    const errorMsg3 = await command('123', 'some text',  ['some value'])
+    const errorMsg3 = await command('123', 'some text', ['some value'])
     await expect(errorMsg3).toEqual({
         elementId: '123',
         text: 'some text',
@@ -112,7 +112,7 @@ test('should throw if command throws', async () => {
 
     const command = driver.register(commandMock)
 
-    const errorMsg3 = await command('123', 'some text',  ['some value'])
+    const errorMsg3 = await command('123', 'some text', ['some value'])
         .catch((e) => e.message)
     await expect(errorMsg3).toEqual('foobar')
 })
@@ -142,9 +142,20 @@ test('should rerun command if it was executed within navigation', async () => {
         page.once.mock.calls.pop().pop()()
     }, 150)
 
-    const result = await command('123', 'some text',  ['some value'])
+    const result = await command('123', 'some text', ['some value'])
     expect(driver.commands.elementClick).toBeCalledTimes(2)
     expect(result).toBe(null)
+})
+
+test('should not throw if there are no pages', async () => {
+    driver.windows.clear()
+    driver.commands.deleteSession = jest.fn().mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100))
+    )
+    const command = driver.register({ command: 'deleteSession', variables: [], parameters: [] })
+
+    await command()
+    expect(driver.commands.deleteSession).toBeCalledTimes(1)
 })
 
 test('throws error if navigation takes too long', async () => {
@@ -166,7 +177,7 @@ test('throws error if navigation takes too long', async () => {
         )
     )
     const command = driver.register(commandMock)
-    const result = await command('123', 'some text',  ['some value'])
+    const result = await command('123', 'some text', ['some value'])
         .catch((err) => err.message)
     expect(result).toBe('page load timeout')
 })
@@ -187,7 +198,7 @@ test('should wait for page load to be complete before executing the command', as
         (resolve) => setTimeout(() => resolve(...args), 100))
 
     const command = driver.register(commandMock)
-    await command('123', 'some text',  ['some value'])
+    await command('123', 'some text', ['some value'])
     expect(executionContext.evaluate.mock.calls).toHaveLength(8)
 })
 
@@ -198,7 +209,7 @@ test('should use page from target if we are currently in a frame', async () => {
     driver.commands.elementClick = () => Promise.resolve(null)
 
     const command = driver.register(commandMock)
-    await command('123', 'some text',  ['some value'])
+    await command('123', 'some text', ['some value'])
     expect(browser.pages).toBeCalledTimes(1)
 })
 
@@ -214,7 +225,7 @@ test('should rerun command if no execution context could be found', async () => 
         (resolve) => setTimeout(() => resolve(...args), 100))
 
     const command = driver.register(commandMock)
-    await command('123', 'some text',  ['some value'])
+    await command('123', 'some text', ['some value'])
     expect(executionContext.evaluate.mock.calls).toHaveLength(4)
 })
 
@@ -234,7 +245,7 @@ test('should throw if execution context can not be established', async () => {
     const command = driver.register(commandMock)
 
     try {
-        await command('123', 'some text',  ['some value'])
+        await command('123', 'some text', ['some value'])
     } catch (err) {
         expect(err.message).toBe('ups')
     }
