@@ -143,20 +143,21 @@ export default class DevToolsDriver {
 
     async checkPendingNavigations (pendingNavigationStart) {
         /**
-         * ignore pending navigation check if dialog is open
+         * ensure there is no page transition happening and an execution context
+         * is available
          */
-        if (this.activeDialog) {
+        let page = this.getPageHandle()
+
+        /**
+         * ignore pending navigation check if dialog is open
+         * or there are no pages
+         */
+        if (this.activeDialog || !page) {
             return
         }
 
         pendingNavigationStart = pendingNavigationStart || Date.now()
         const pageloadTimeout = this.timeouts.get('pageLoad')
-
-        /**
-         * ensure there is no page transition happening and an execution context
-         * is available
-         */
-        let page = this.getPageHandle()
 
         /**
          * if current page is a frame we have to get the page from the browser
