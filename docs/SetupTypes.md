@@ -10,7 +10,7 @@ WebdriverIO can be used for various purposes. It implements the Webdriver protoc
 Probably the simplest form to run WebdriverIO is in standalone mode. This has nothing to do with the Selenium server file which is usually called `selenium-server-standalone`. It basically just means that you require the `webdriverio` package in your project and use the API behind it to run your automation. Here is a simple example:
 
 ```js
-const { remote } = require('webdriverio')
+const { remote } = require('webdriverio');
 
 (async () => {
     const browser = await remote({
