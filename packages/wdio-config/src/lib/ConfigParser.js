@@ -229,8 +229,9 @@ export default class ConfigParser {
             if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
                 filesToFilter.add(path.resolve(process.cwd(), filteredFile))
             } else {
+                let matchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
                 fileList.forEach(file => {
-                    if (file.match(filteredFile)) {
+                    if (matchedFiles.indexOf(file) != -1) {
                         filesToFilter.add(file)
                     }
                 })
