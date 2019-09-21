@@ -186,6 +186,29 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(3)
         })
 
+        it('should allow an excludeSuite argument', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ excludeSuite: ['unit'] })
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(2)
+        })
+
+        it('should allow specifying multiple excludeSuite', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ excludeSuite: ['unit', 'mobile'] })
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+        })
+
+        it('should throw an error when invalid excludeSuite is supplied', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ excludeSuite: ['invalid suite'] })
+            expect(() => configParser.getSpecs()).toThrow()
+        })
+
         it('should set hooks to empty arrays as default', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)

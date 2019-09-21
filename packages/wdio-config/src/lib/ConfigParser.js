@@ -87,6 +87,8 @@ export default class ConfigParser {
             this._config.specs = object.specs
         } else if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude
+        } else if (object.excludeSuite && object.excludeSuite.length > 0) {
+            this._config.excludeSuite = object.excludeSuite
         }
 
         /**
@@ -149,13 +151,21 @@ export default class ConfigParser {
     /**
      * get excluded files from config pattern
      */
-    getSpecs (capSpecs, capExclude, capExcludeSuite) {
+    getSpecs (capSpecs, capExclude) {
         let specs = ConfigParser.getFilePaths(this._config.specs)
         let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude)
+        let excludeSuite =  Array.isArray(this._config.excludeSuite) ? this._config.excludeSuite : []
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
-        if (capExcludeSuite && capExcludeSuite.length)
-            suites.filter(suite => !capExcludeSuite.includes(suite.suiteName))
+        if (excludeSuite.length) {
+            excludeSuite.forEach(suiteName => {
+                if (!this._config.suites[suiteName])
+                    throw new Error(`The excludeSuite ${suiteName} you specified doesn't in your config file`)
+
+                delete this._config.suites[suiteName]
+            })
+            suites = Object.keys(this._config.suites)
+        }
 
         /**
          * check if user has specified a specific suites to run

@@ -33,7 +33,7 @@ class Launcher {
 
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
-                .map((c) => this.configParser.getSpecs(c.specs, c.exclude, c.excludeSuite).length)
+                .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
                 .reduce((a, b) => a + b, 0)
             : 1
 
