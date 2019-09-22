@@ -182,9 +182,9 @@ describe('ConfigParser', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
-            configParser.merge({ exclude: ['*index.js'] })
+            configParser.merge({ exclude: [path.resolve(__dirname) + '/*'] })
             const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(0)
+            expect(specs).toHaveLength(2)
         })
 
         it('should overwrite exclude if piped into cli command', () => {

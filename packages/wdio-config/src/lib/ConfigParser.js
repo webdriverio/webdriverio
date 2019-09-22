@@ -226,12 +226,20 @@ export default class ConfigParser {
         const filesToFilter = new Set()
         const fileList = ConfigParser.getFilePaths(config)
         cliArgFileList.forEach(filteredFile => {
+            let matchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
+            let globMatchedFiles = []
+            matchedFiles.forEach(file => {
+                if (matchedFiles.indexOf(file) != -1) {
+                    globMatchedFiles.push(file)
+                }
+            })
             if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
                 filesToFilter.add(path.resolve(process.cwd(), filteredFile))
+            } else if (globMatchedFiles.length) {
+                globMatchedFiles.forEach(file => {filesToFilter.add(file)})
             } else {
-                let matchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
                 fileList.forEach(file => {
-                    if (matchedFiles.indexOf(file) != -1) {
+                    if (file.match(filteredFile)) {
                         filesToFilter.add(file)
                     }
                 })
