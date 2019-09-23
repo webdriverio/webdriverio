@@ -30,8 +30,7 @@ const adapterFactory = (cucumberOpts = {}) => new CucumberAdapter(
         beforeStep: 'beforeStep',
         afterStep: 'afterStep',
         beforeHook: 'beforeHook',
-        afterHook: 'afterHook',
-
+        afterHook: 'afterHook'
     },
     ['/foo/bar.feature'],
     { browserName: 'chrome' },

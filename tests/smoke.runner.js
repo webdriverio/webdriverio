@@ -110,6 +110,15 @@ const customReporterObject = async () => {
 }
 
 /**
+ * wdio test run with before/after Test/Hook
+ */
+const wdioHooks = async () => {
+    await launch(
+        path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
+        { specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')] })
+}
+
+/**
  * multiremote wdio testrunner tests
  */
 const multiremote = async () => {
@@ -195,6 +204,7 @@ const retryPass = async () => {
         multiremote,
         retryFail,
         retryPass,
+        wdioHooks,
     ]
 
     if (process.env.CI || testFilter) {
