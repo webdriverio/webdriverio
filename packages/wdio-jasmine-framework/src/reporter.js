@@ -99,6 +99,7 @@ export default class JasmineReporter {
             uid: this.getUniqueIdentifier(payload),
             event: event,
             title: payload.description,
+            fullTitle: payload.fullName,
             pending: payload.status === 'pending',
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
