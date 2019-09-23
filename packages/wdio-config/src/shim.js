@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-import { testFrameworkFnWrapper, runTestInFiberContext } from '@wdio/utils'
 
 const log = logger('@wdio/config')
 
@@ -73,28 +72,12 @@ try {
     // do nothing
 }
 
-/**
- * wraps test framework spec/hook function with WebdriverIO before/after hooks
- *
- * @param   {string} type           Test/Step or Hook
- * @param   {object} spec           specFn and specFnArgs
- * @param   {object} before         beforeFn and beforeFnArgs
- * @param   {object} after          afterFn and afterFnArgs
- * @param   {string} cid            cid
- * @param   {number} repeatTest     number of retries if test fails
- * @return  {*}                     specFn result
- */
-let testFnWrapper = function (...args) {
-    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync }, ...args)
-}
-
 export {
     executeHooksWithArgs,
-    runTestInFiberContext,
     runFnInFiberContext,
     wrapCommand,
     hasWdioSyncSupport,
     executeSync,
     executeAsync,
-    testFnWrapper
+    runSync
 }

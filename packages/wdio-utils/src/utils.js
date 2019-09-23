@@ -142,11 +142,3 @@ export function safeRequire (name) {
 export function isFunctionAsync (fn) {
     return (fn.constructor && fn.constructor.name === 'AsyncFunction') || fn.name === 'async'
 }
-
-/**
- * filter out arguments passed to specFn & hookFn, don't allow callbacks
- * as there is no need for user to call e.g. `done()`
- */
-export function filterSpecArgs (args) {
-    return args.filter((arg) => typeof arg !== 'function')
-}

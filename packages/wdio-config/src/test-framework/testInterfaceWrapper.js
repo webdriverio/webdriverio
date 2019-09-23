@@ -6,8 +6,8 @@
  * NOTE: not used by cucumber test framework. `testFnWrapper` is called directly there
  */
 
-import { testFnWrapper } from '@wdio/config'
 import { filterSpecArgs } from '../utils'
+import { testFnWrapper } from './testFnWrapper'
 
 /**
  * runs a hook within fibers context (if function name is not async)

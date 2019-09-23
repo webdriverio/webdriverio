@@ -1,6 +1,6 @@
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter,
-    getArgumentType, isFunctionAsync, filterSpecArgs
+    getArgumentType, isFunctionAsync
 } from '../src/utils'
 
 describe('utils', () => {
@@ -142,20 +142,5 @@ describe('utils', () => {
         it('should return false if some special object is passed instead of function', () => {
             expect(isFunctionAsync({})).toBe(false)
         })
-    })
-})
-
-describe('utils:filterSpecArgs', () => {
-    it('no args', () => {
-        expect(filterSpecArgs([])).toHaveLength(0)
-    })
-    it('only functions', () => {
-        expect(filterSpecArgs([() => {}, () => {}])).toHaveLength(0)
-    })
-    it('not functions', () => {
-        expect(filterSpecArgs([1, 'foo', {}, []])).toEqual([1, 'foo', {}, []])
-    })
-    it('mixed', () => {
-        expect(filterSpecArgs([false, () => {}])).toEqual([false])
     })
 })

@@ -1,5 +1,21 @@
-import { isFunctionAsync } from '../utils'
+import { isFunctionAsync } from '@wdio/utils'
 import { logHookError } from './errorHandler'
+import { executeHooksWithArgs, executeAsync, runSync } from '../shim'
+
+/**
+ * wraps test framework spec/hook function with WebdriverIO before/after hooks
+ *
+ * @param   {string} type           Test/Step or Hook
+ * @param   {object} spec           specFn and specFnArgs
+ * @param   {object} before         beforeFn and beforeFnArgs
+ * @param   {object} after          afterFn and afterFnArgs
+ * @param   {string} cid            cid
+ * @param   {number} repeatTest     number of retries if test fails
+ * @return  {*}                     specFn result
+ */
+export const testFnWrapper = function (...args) {
+    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync }, ...args)
+}
 
 /**
  * wraps test framework spec/hook function with WebdriverIO before/after hooks

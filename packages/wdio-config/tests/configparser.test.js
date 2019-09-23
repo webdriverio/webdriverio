@@ -183,7 +183,7 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ exclude: [INDEX_PATH] })
             const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(3)
+            expect(specs).toHaveLength(4)
         })
 
         it('should set hooks to empty arrays as default', () => {

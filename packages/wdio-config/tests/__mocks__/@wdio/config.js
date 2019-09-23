@@ -1,4 +1,3 @@
-import { testFrameworkFnWrapper } from '@wdio/utils'
 import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../../src/constants'
 import { getSauceEndpoint as getSauceEndpointMock } from '../../../src/utils'
 
@@ -49,7 +48,4 @@ export const runFnInFiberContext = jest.fn().mockImplementation((fn) => {
     }
 })
 export let hasWdioSyncSupport = false
-export const testFnWrapper = jest.fn().mockImplementation(function (...args) {
-    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync: hasWdioSyncSupport ? jest.fn() : null }, ...args)
-})
-export const setWdioSyncSupport = (val) => { hasWdioSyncSupport = val }
+export const testFnWrapper = jest.fn()
