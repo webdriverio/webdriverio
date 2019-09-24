@@ -1,10 +1,7 @@
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
-<<<<<<< HEAD
 import { hasWdioSyncSupport } from '@wdio/utils'
-=======
-import fs from 'fs'
->>>>>>> wdio-cli: Appium REPL configurations (#4286)
+import { getCapabilities } from '../utils'
 
 import { cmdArgs } from './run'
 import { CLI_EPILOGUE } from '../constants'
@@ -14,9 +11,8 @@ const IGNORED_ARGS = [
     'mochaOpts', 'jasmineNodeOpts', 'cucumberOpts'
 ]
 
-export const command = 'repl <browserName>'
+export const command = 'repl <option> [capabilities]'
 export const desc = 'Run WebDriver session in command line'
-const DEFAULT_CONFIG_PATH = 'appium.conf.js'
 
 export const builder = (yargs) => {
     return yargs
@@ -28,8 +24,7 @@ export const builder = (yargs) => {
 }
 
 export const handler = async (argv) => {
-    const { browserName } = argv
-    const caps = { capabilities: { browserName } }
+    const caps = getCapabilities(argv)
 
     /**
      * runner option required to wrap commands within Fibers context
