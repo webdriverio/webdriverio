@@ -44,15 +44,15 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args)
     return Promise.all(hooks)
 }
 
-let runFnInFiberContext = (fn) => {
+let runFnInFiberContext = function (fn) {
     return function (...args) {
         return Promise.resolve(fn.apply(this, args))
     }
 }
 let wrapCommand = (_, origFn) => origFn
 let hasWdioSyncSupport = false
-let executeSync = (fn, _, args = []) => fn.apply(this, args)
-let executeAsync = (fn, _, args = []) => fn.apply(this, args)
+let executeSync = function (fn, _, args = []) { return fn.apply(this, args) }
+let executeAsync = function (fn, _, args = []) { return fn.apply(this, args) }
 let runSync = null
 
 /**
