@@ -1,7 +1,5 @@
 import { executeHooksWithArgs, runFnInFiberContext, wrapCommand, hasWdioSyncSupport, executeSync, executeAsync, runSync } from '../src/shim'
 
-jest.mock('@wdio/sync', () => { throw new Error('Unable to load @wdio/sync package.') })
-
 describe('executeHooksWithArgs', () => {
     it('multiple hooks, multiple args', async () => {
         const hookHoge = () => { return 'hoge' }
