@@ -1,7 +1,7 @@
 import assert from 'assert'
 
 before(async () => {
-    await browser.call(() => browser.pause(10))
+    await browser.pause(10)
 })
 
 describe('my feature 1', () => {
@@ -28,7 +28,7 @@ describe('my feature 2', () => {
 
     describe('my story 2.2', () => {
         it('should do stuff 2.2.1', async () => {
-            await browser.call(() => browser.pause(2))
+            await browser.pause(2)
         })
 
         it.skip('should skip 2.2.2', () => {

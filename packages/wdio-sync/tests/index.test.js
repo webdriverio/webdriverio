@@ -1,8 +1,16 @@
 import { executeSync } from '../src'
 
+beforeAll(() => {
+    if (!global.browser) {
+        global.browser = {}
+    }
+})
+
 describe('executeSync', () => {
     it('should pass with default values and regular fn', async () => {
+        global.browser._NOT_FIBER = true
         expect(await executeSync(() => 1)).toEqual(1)
+        expect(global.browser._NOT_FIBER).toBe(undefined)
     })
 
     it('should pass with args and async fn', async () => {
@@ -10,6 +18,7 @@ describe('executeSync', () => {
     })
 
     it('should filter stack on failure', async () => {
+        global.browser._NOT_FIBER = true
         let error
         try {
             await executeSync(() => { throw new Error('foobar') })
@@ -17,6 +26,7 @@ describe('executeSync', () => {
             error = err
         }
         expect(error.stack).not.toContain('at new Promise (<anonymous>)')
+        expect(global.browser._NOT_FIBER).toBe(undefined)
     })
 
     it('should not filter stack on failure if it is missing', async () => {

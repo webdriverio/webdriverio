@@ -1,6 +1,12 @@
 import executeHooksWithArgs from '../src/executeHooksWithArgs'
 
 describe('executeHooksWithArgs', () => {
+    beforeAll(() => {
+        if (!global.browser) {
+            global.browser = {}
+        }
+    })
+
     it('multiple hooks, multiple args', async () => {
         const hookHoge = () => { return 'hoge' }
         const hookFuga = () => { return 'fuga' }
@@ -35,11 +41,18 @@ describe('executeHooksWithArgs', () => {
     })
 
     it('async functions', async () => {
+        global.browser._NOT_FIBER = true
         const hookHoge = () => {
             return new Promise(reject => setTimeout(reject, 5, new Error('Hoge')))
         }
         const hookFuga = async () => new Promise(resolve => setTimeout(resolve, 10, 'fuga'))
         const res = await executeHooksWithArgs([hookHoge, hookFuga], [])
         expect(res).toEqual([new Error('Hoge'), 'fuga'])
+        expect(global.browser._NOT_FIBER).toBe(undefined)
+    })
+
+    it('should do nothing if there were no hooks passed', async () => {
+        const res = await executeHooksWithArgs()
+        expect(res).toHaveLength(0)
     })
 })

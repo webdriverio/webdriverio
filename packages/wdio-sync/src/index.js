@@ -15,6 +15,8 @@ import { STACKTRACE_FILTER_FN } from './constants'
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 const executeSync = async function (fn, repeatTest = 0, args = []) {
+    delete global.browser._NOT_FIBER
+
     try {
         global._HAS_FIBER_CONTEXT = true
         let res = fn.apply(this, args)

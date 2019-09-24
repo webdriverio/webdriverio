@@ -1,5 +1,6 @@
 import Fiber from './fibers'
 import logger from '@wdio/logger'
+import { isFunctionAsync } from '@wdio/utils'
 
 const log = logger('@wdio/sync')
 
@@ -12,7 +13,6 @@ const log = logger('@wdio/sync')
  * @param  {Object[]} args  list of parameter for hook functions
  * @return {Promise}  promise that gets resolved once all hooks finished running
  */
-/* istanbul ignore next */
 export default function executeHooksWithArgs (hooks = [], args) {
     /**
      * make sure hooks are an array of functions
@@ -32,6 +32,8 @@ export default function executeHooksWithArgs (hooks = [], args) {
         let result
 
         const execHook = () => {
+            delete global.browser._NOT_FIBER
+
             try {
                 result = hook.apply(null, args)
             } catch (e) {
@@ -51,7 +53,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
         /**
          * after command hooks require additional Fiber environment
          */
-        return Fiber(execHook).run()
+        return isFunctionAsync(hook) ? execHook() : Fiber(execHook).run()
     }))
 
     return Promise.all(hooks)
