@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { execSync } from 'child_process'
+import { ANDROID_CONFIG, IOS_CONFIG } from './capabilities'
 
 const log = logger('@wdio/cli:utils')
 
@@ -195,4 +196,39 @@ export function addServiceDeps(names, packages, update) {
                 '\n=======\n')
         }
     }
+}
+
+export function getCapabilities(arg) {
+    const capabilities = getPlatformCaps(arg.option)
+    let finalCapabilities = capabilities
+    if (capabilities.platformName === IOS_CONFIG.platformName) {
+        finalCapabilities = Object.assign( {},
+            capabilities,
+            {
+                deviceName: arg.device || IOS_CONFIG.deviceName,
+                platformVersion: arg.ver || null,
+                udid: arg.udid || null
+            }
+        )
+    }
+    return finalCapabilities
+}
+
+function getPlatformCaps(option) {
+    let platformConfig = {}
+    switch (option) {
+    case /.*\.(apk|app|ipa)$/.test(option) && option:
+        platformConfig = Object.assign({ app: option }, option.endsWith('apk') ? ANDROID_CONFIG : IOS_CONFIG)
+        break
+    case 'android':
+        platformConfig = Object.assign({ browserName: 'Chrome' }, ANDROID_CONFIG)
+        break
+    case 'ios':
+        platformConfig = Object.assign({ browserName: 'Safari' }, IOS_CONFIG)
+        break
+    default:
+        platformConfig = { browserName: option }
+        break
+    }
+    return platformConfig
 }

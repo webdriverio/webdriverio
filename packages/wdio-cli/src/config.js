@@ -55,7 +55,7 @@ WebdriverIO CLI runner
 
 Usage: wdio [options] [configFile]
 Usage: wdio config
-Usage: wdio repl <browserName> [appiumConfigFile]
+Usage: wdio repl <option> [capabilities]
 Usage: wdio install <type> <name>
 
 config file defaults to wdio.conf.js
@@ -63,8 +63,14 @@ The [options] object will override values from the config file.
 An optional list of spec files can be piped to wdio that will override configured specs.
 Same applies to the exclude option. It can take a list of specs to exclude for a given run
 and it also overrides the exclude key from the config file.
-The <browserName> parameter can also be "appium", than appiumConfigFile will be used.
-Appium Config file defaults to appium.conf.js`
+
+REPL
+<option> parameter stands for type of session that will be launched.
+Available options: 'chrome', 'ios', 'android' for web, or 'app_name.apk'/'app_name.app' for native.
+[capabilities] stands for additional capabilities that can be provided to driver.
+
+Examples:
+wdio repl ios --ver='11.3' --device='iPhone 7' --udid='123432'`
 
 export const CONFIG_HELPER_INTRO = `
 =========================

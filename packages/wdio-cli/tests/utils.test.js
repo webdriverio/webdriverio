@@ -9,8 +9,10 @@ import {
     parseInstallNameAndPackage,
     findInConfig,
     replaceConfig,
-    addServiceDeps
+    addServiceDeps,
+    getCapabilities
 } from '../src/utils'
+import { ANDROID_CONFIG, IOS_CONFIG } from '../src/capabilities'
 
 jest.mock('child_process', function () {
     const m = {
@@ -246,5 +248,34 @@ describe('addServiceDeps', () => {
 
     afterEach(() => {
         global.console.log.mockClear()
+    })
+})
+
+describe('getCapabilities', () => {
+    it('should return driver with capabilities for android', () => {
+        expect(getCapabilities({ option: 'foo.apk' })).toEqual({ ...ANDROID_CONFIG, app: 'foo.apk' })
+        expect(getCapabilities({ option: 'android' })).toEqual({
+            ...ANDROID_CONFIG,
+            browserName: 'Chrome'
+        })
+    })
+
+    it('should return driver with capabilities for ios', () => {
+        expect(getCapabilities({ option: 'foo.app', device: 'fooName', udid: 'num', ver: 'fooNum' })).toEqual({
+            ...IOS_CONFIG,
+            app: 'foo.app',
+            udid: 'num',
+            deviceName: 'fooName',
+            platformVersion: 'fooNum'
+        })
+        expect(getCapabilities({ option: 'ios' })).toEqual({
+            ...IOS_CONFIG,
+            browserName: 'Safari',
+            platformVersion: null,
+            udid: null })
+    })
+
+    it('should return driver with capabilities for desktop', () => {
+        expect(getCapabilities({ option: 'chrome' })).toEqual({ browserName: 'chrome' })
     })
 })

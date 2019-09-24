@@ -16,10 +16,23 @@ wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
 ```sh
-wdio repl appium --config './path/appium.conf.js'
+wdio repl android
+OR
+wdio repl ios
 ```
 
-This would open appium session with desiredCapabilities from provided configuration file. Make sure Appium running on port `4444` in order to initiate the session.
+This would open Chrome/Safari session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
+
+```sh
+wdio repl './path/to/your_app.apk'
+```
+
+This would open App session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
+
+Capabilities for iOS device can be passed with arguments:
+--ver     - platformVersion
+--device  - deviceName
+--udid    - udid (for real devices)
 
 You can apply any options (see `wdio --help`) available for your REPL session.
 
