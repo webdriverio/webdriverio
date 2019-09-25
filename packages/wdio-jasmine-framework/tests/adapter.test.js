@@ -26,31 +26,33 @@ const hookPayload = (type, suite, error) => ({
 
 const adapterFactory = (config = {}) => new JasmineAdapter(
     '0-2',
-    { beforeHook: [], afterHook: [], beforeTest: 'beforeTest', afterTest: 'afterTest', ...config },
+    { beforeHook: [], afterHook: [], beforeTest: 'beforeTest', afterTest: 'afterTest', featureFlags: {}, ...config },
     ['/foo/bar.test.js'],
     { browserName: 'chrome' },
     wdioReporter
 )
 
 test('comes with a factory', async () => {
-    expect(typeof JasmineAdapterFactory.run).toBe('function')
-    const result = await JasmineAdapterFactory.run(
+    expect(typeof JasmineAdapterFactory.init).toBe('function')
+    const instance = await JasmineAdapterFactory.init(
         '0-2',
-        { beforeHook: [], afterHook: [] },
+        { beforeHook: [], afterHook: [], featureFlags: {} },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
     )
+    const result = await instance.run()
     expect(result).toBe(0)
 })
 
 test('should properly set up jasmine', async () => {
     const adapter = adapterFactory()
+    await adapter.init()
     const result = await adapter.run()
     expect(result).toBe(0)
     expect(adapter.jrunner.addSpecFiles.mock.calls[0][0]).toEqual(['/foo/bar.test.js'])
     expect(adapter.jrunner.jasmine.addReporter.mock.calls).toHaveLength(1)
-    expect(executeHooksWithArgs.mock.calls).toHaveLength(2)
+    expect(executeHooksWithArgs.mock.calls).toHaveLength(1)
 
     expect(adapter.jrunner.env.beforeAll.mock.calls).toHaveLength(1)
     expect(adapter.jrunner.env.beforeEach.mock.calls).toHaveLength(0)
@@ -66,6 +68,7 @@ test('should properly set up jasmine', async () => {
 
 test('should propery wrap interfaces', async () => {
     const adapter = adapterFactory()
+    await adapter.init()
     await adapter.run()
 
     expect(runTestInFiberContext.mock.calls).toHaveLength(INTERFACES.bdd.length)
@@ -82,6 +85,7 @@ test('should propery wrap interfaces', async () => {
 
 test('hookArgsFn: should return proper value', async () => {
     const adapter = adapterFactory()
+    await adapter.init()
     await adapter.run()
 
     const hookArgsFn = runTestInFiberContext.mock.calls[0][2]
@@ -93,6 +97,7 @@ test('hookArgsFn: should return proper value', async () => {
 
 test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async () => {
     const adapter = adapterFactory()
+    await adapter.init()
     await adapter.run()
 
     const allHooks = INTERFACES.bdd.filter(fnName => fnName.includes('All'))
@@ -129,8 +134,9 @@ test('should properly configure the jasmine environment', async () => {
             stopSpecOnExpectationFailure,
             random,
             failFast,
-        },
+        }
     })
+    await adapter.init()
     await adapter.run()
     expect(adapter.jrunner.jasmine.getEnv().configure).toBeCalledWith({
         specFilter: expect.any(Function),
@@ -148,6 +154,7 @@ test('set custom ', async () => {
         afterHook: []
     }
     const adapter = adapterFactory(config)
+    await adapter.init()
     await adapter.run()
     adapter.jrunner.jasmine.Spec.prototype.addExpectationResult('foobar')
     expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith('foobar', undefined)
@@ -155,6 +162,7 @@ test('set custom ', async () => {
 
 test('get data from beforeAll hook', async () => {
     const adapter = adapterFactory()
+    await adapter.init()
     await adapter.run()
     expect(adapter.lastSpec).toBeUndefined()
 
@@ -167,6 +175,7 @@ test('get data from beforeAll hook', async () => {
 
 test('get data from execute hook', async () => {
     const adapter = adapterFactory()
+    await adapter.init()
     await adapter.run()
     expect(adapter.lastTest).toBeUndefined()
 
@@ -375,6 +384,17 @@ test('prepareMessage', () => {
     expect(msgSpec.type).toBe('beforeTest')
     expect(msgSpec.payload.file).toBe('/some/path.test.js')
     expect(msgSpec.payload.bar).toBe('foo')
+})
+
+describe('hasTests', () => {
+    test('hasTests', () => {
+        const adapter = adapterFactory()
+        expect(adapter.hasTests()).toBe(true)
+    })
+    test('hasTests with feature enabled', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        expect(adapter.hasTests()).toBe(true)
+    })
 })
 
 afterEach(() => {

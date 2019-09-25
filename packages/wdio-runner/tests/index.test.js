@@ -283,7 +283,8 @@ describe('wdio-runner', () => {
             const config = {
                 reporters: [],
                 beforeSession: [beforeSession],
-                framework: 'testWithFailures'
+                framework: 'testWithFailures',
+                featureFlags: {}
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()
@@ -308,7 +309,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoFailures',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                featureFlags: {}
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()
@@ -323,7 +325,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoFailures',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                featureFlags: {}
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()
@@ -340,7 +343,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testThrows',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                featureFlags: {}
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()
@@ -359,7 +363,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testThrows',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                featureFlags: {}
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()

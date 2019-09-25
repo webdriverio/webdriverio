@@ -63,6 +63,16 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.failed).toBe(1)
     })
 
+    it('should mark jobs as skipped', () => {
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: false })
+        expect(wdioClInterface.result.finished).toBe(0)
+        wdioClInterface.emit('job:end', { cid: '0-0' })
+        expect(wdioClInterface.result.finished).toBe(1)
+        expect(wdioClInterface.result.passed).toBe(0)
+        expect(wdioClInterface.result.failed).toBe(0)
+        expect(wdioClInterface.result.retries).toBe(0)
+    })
+
     it('should allow to store reporter messages', () => {
         wdioClInterface.onMessage({
             origin: 'reporter',
@@ -283,6 +293,13 @@ describe('cli interface', () => {
                 wdioClInterface[scenario.method](scenario.cid, scenario.job, scenario.retries)
                 expect(wdioClInterface.onJobComplete).toBeCalledWith(scenario.cid, scenario.job, scenario.retries, scenario.message)
             })
+        })
+
+        it('onSpecSkip', () => {
+            wdioClInterface.onJobComplete = jest.fn()
+            wdioClInterface.jobs.set('cid', job)
+            wdioClInterface.onSpecSkip(cid, job)
+            expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 0, 'SKIPPED', expect.any(Function))
         })
     })
 

@@ -34,9 +34,10 @@ class JasmineAdapter {
             specs: this.specs,
             cleanStack: this.jasmineNodeOpts.cleanStack
         })
+        this._hasTests = true
     }
 
-    async run () {
+    async init () {
         const self = this
 
         this.jrunner = new Jasmine()
@@ -139,8 +140,47 @@ class JasmineAdapter {
             executeMock.apply(this, args)
         }
 
-        await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
-        let result = await new Promise((resolve) => {
+        this.loadFiles()
+
+        return this
+    }
+
+    loadFiles () {
+        if (this.config.featureFlags.specFiltering !== true) {
+            return
+        }
+        try {
+            if (Array.isArray(this.jasmineNodeOpts.requires)) {
+                this.jrunner.addRequires(this.jasmineNodeOpts.requires)
+            }
+            if (Array.isArray(this.jasmineNodeOpts.helpers)) {
+                this.jrunner.addHelperFiles(this.jasmineNodeOpts.helpers)
+            }
+            this.jrunner.loadRequires()
+            this.jrunner.loadHelpers()
+            this.jrunner.loadSpecs()
+            this._hasTests = this.jrunner.env.topSuite().children.length > 0
+        } catch (err) {
+            log.warn(
+                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
+                '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
+                'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
+                `Spec file(s): ${this.specs.join(',')}\n`,
+                'Error: ', err
+            )
+        }
+    }
+
+    hasTests () {
+        /**
+         * filter specs only if feature enabled explicitly to avoid breaking changes.
+         * If the feature is enabled user should avoid interacting with `browser` object before session is started
+         */
+        return this.config.featureFlags.specFiltering !== true || this._hasTests
+    }
+
+    async run () {
+        const result = await new Promise((resolve) => {
             this.jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
             this.jrunner.env.afterAll(this.wrapHook('afterSuite'))
 
@@ -263,10 +303,10 @@ class JasmineAdapter {
 }
 
 const adapterFactory = {}
-adapterFactory.run = async function (...args) {
+adapterFactory.init = async function (...args) {
     const adapter = new JasmineAdapter(...args)
-    const result = await adapter.run()
-    return result
+    const instance = await adapter.init()
+    return instance
 }
 
 export default adapterFactory

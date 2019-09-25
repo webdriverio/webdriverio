@@ -23,10 +23,11 @@ const wdioReporter = {
     on: jest.fn()
 }
 
-const adapterFactory = (cucumberOpts = {}) => new CucumberAdapter(
+const adapterFactory = (cucumberOpts = {}, featureFlags = {}) => new CucumberAdapter(
     '0-2',
     {
         cucumberOpts,
+        featureFlags,
         beforeStep: 'beforeStep',
         afterStep: 'afterStep',
         beforeHook: 'beforeHook',
@@ -38,7 +39,7 @@ const adapterFactory = (cucumberOpts = {}) => new CucumberAdapter(
 )
 
 test('comes with a factory', async () => {
-    expect(typeof CucumberAdapterFactory.run).toBe('function')
+    expect(typeof CucumberAdapterFactory.init).toBe('function')
 })
 
 test('should properly set up cucumber', async () => {
@@ -46,6 +47,7 @@ test('should properly set up cucumber', async () => {
     adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
+    await adapter.init()
     const result = await adapter.run()
     expect(result).toBe(0)
 
@@ -65,6 +67,7 @@ test('should properly set up cucumber', async () => {
     adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
+    await adapter.init()
     const result = await adapter.run()
     expect(result).toBe(0)
 
@@ -86,8 +89,8 @@ test('should throw when initialization fails', () => {
     adapter.wrapSteps = jest.fn()
 
     const runtimeError = new Error('boom')
-    Cucumber.Runtime.mockImplementation(() => { throw runtimeError })
-    expect(adapter.run()).rejects.toEqual(runtimeError)
+    Cucumber.Runtime.mockImplementationOnce(() => { throw runtimeError })
+    expect(adapter.init()).rejects.toEqual(runtimeError)
 })
 
 describe('registerRequiredModules', () => {
@@ -130,6 +133,30 @@ test('loadSpecFiles', () => {
     expect(mockery.enable).toBeCalledTimes(1)
     expect(mockery.registerMock).toBeCalledTimes(1)
     expect(mockery.disable).toBeCalledTimes(1)
+})
+
+describe.only('hasTests', () => {
+    test('should return false if there are no tests', async () => {
+        const adapter = adapterFactory()
+        adapter.loadSpecFiles = jest.fn()
+        await adapter.init()
+        expect(adapter.hasTests()).toBe(false)
+    })
+
+    test('should return true if the feature is disabled', async () => {
+        const adapter = adapterFactory(undefined, { specFiltering: false })
+        adapter.loadSpecFiles = jest.fn()
+        await adapter.init()
+        expect(adapter.hasTests()).toBe(true)
+    })
+
+    test('should return true if there are tests', async () => {
+        Cucumber.getTestCasesFromFilesystem.mockImplementationOnce(() => ['/foo/bar.js'])
+        const adapter = adapterFactory()
+        adapter.loadSpecFiles = jest.fn()
+        await adapter.init()
+        expect(adapter.hasTests()).toBe(true)
+    })
 })
 
 describe('wrapSteps', () => {
