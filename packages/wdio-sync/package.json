@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sync",
-  "version": "5.13.0",
+  "version": "5.13.2",
   "description": "A WebdriverIO plugin. Helper module to run WebdriverIO commands synchronously",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sync",
@@ -34,9 +34,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "^5.13.0-alpha.0",
-    "@wdio/logger": "^5.12.1",
-    "@wdio/utils": "^5.13.0"
+    "@wdio/config": "5.13.2",
+    "@wdio/logger": "5.13.2",
+    "@wdio/utils": "5.13.2"
   },
   "optionalDependencies": {
     "fibers": "^4.0.1",

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/webdriver-mock-service",
-  "version": "5.13.0-alpha.0",
+  "version": "5.13.2",
   "description": "A WebdriverIO service to stub all endpoints for internal testing purposes.",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service",
@@ -26,7 +26,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/protocols": "^5.13.0-alpha.0",
+    "@wdio/protocols": "5.13.2",
     "nock": "^11.1.0"
   },
   "publishConfig": {
