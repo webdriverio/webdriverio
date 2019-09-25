@@ -1,6 +1,6 @@
 {
   "name": "@wdio/appium-service",
-  "version": "5.12.1",
+  "version": "5.13.2",
   "description": "A WebdriverIO service to start & stop Appium Server",
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-appium-service",
@@ -34,7 +34,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "^5.12.1",
+    "@wdio/logger": "5.13.2",
     "fs-extra": "^8.0.1",
     "param-case": "^2.1.1"
   },
