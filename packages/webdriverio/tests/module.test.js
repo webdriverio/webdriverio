@@ -1,4 +1,5 @@
 import path from 'path'
+import logger from '@wdio/logger'
 import { detectBackend, runFnInFiberContext } from '@wdio/config'
 
 import { remote, multiremote, attach } from '../src'
@@ -44,13 +45,15 @@ const WebDriver = require('webdriver').default
 describe('WebdriverIO module interface', () => {
     it('should provide remote and multiremote access', () => {
         expect(typeof remote).toBe('function')
+        expect(typeof attach).toBe('function')
         expect(typeof multiremote).toBe('function')
     })
 
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
-            const browser = await remote({ capabilities: {} })
+            const browser = await remote({ capabilities: {}, logLevel: 'trace' })
             expect(browser.sessionId).toBe('foobar-123')
+            expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
         })
 
         it('allows to propagate a modifier', async () => {
