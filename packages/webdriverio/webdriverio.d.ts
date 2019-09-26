@@ -84,12 +84,12 @@ declare namespace WebdriverIOAsync {
     }
 
     interface Element extends ElementAsync, ElementStatic {
-        dragAndDrop(target: Element,duration?: number): Promise<void>;
+        dragAndDrop(target: Element, duration?: number): Promise<void>;
         touchAction(action: TouchActions): Promise<void>;
-     }
+    }
     interface Config { }
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser {}
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser { }
 }
 
 declare var browser: WebdriverIOAsync.BrowserObject;
