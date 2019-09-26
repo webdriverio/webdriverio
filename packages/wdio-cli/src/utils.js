@@ -183,7 +183,7 @@ export function convertPackageHashToObject(string, hash = '$--$') {
 
 export async function renderConfigurationFile (answers) {
     const renderFile = promisify(ejs.renderFile)
-    const tplPath = path.join(__dirname, '..', 'templates/wdio.conf.tpl.ejs')
+    const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
 
     const renderedTpl = await renderFile(tplPath, { answers })
 
