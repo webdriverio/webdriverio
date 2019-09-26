@@ -1,5 +1,6 @@
-import Fiber from 'fibers'
+import Fiber from './fibers'
 import logger from '@wdio/logger'
+import { isFunctionAsync } from '@wdio/utils'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import runFnInFiberContext from './runFnInFiberContext'
@@ -15,33 +16,39 @@ const log = logger('@wdio/sync')
  * execute test or hook synchronously
  * @param  {Function} fn         spec or hook method
  * @param  {Number}   repeatTest number of retries
+ * @param  {Array}    args       number of retries
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeSync = function (fn, repeatTest = 0, args = []) {
-    /**
-     * if a new hook gets executed we can assume that all commands should have finised
-     * with exception of timeouts where `commandIsRunning` will never be reset but here
-     */
-    return new Promise((resolve, reject) => {
-        try {
-            const res = fn.apply(this, args)
-            resolve(res)
-        } catch (e) {
-            if (repeatTest) {
-                return resolve(executeSync(fn, --repeatTest, args))
-            }
+const executeSync = async function (fn, repeatTest = 0, args = []) {
+    try {
+        global._HAS_FIBER_CONTEXT = true
+        let res = fn.apply(this, args)
+        global._HAS_FIBER_CONTEXT = false
 
-            /**
-             * no need to modify stack if no stack available
-             */
-            if (!e.stack) {
-                return reject(e)
-            }
-
-            e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
-            reject(e)
+        /**
+         * sometimes function result is Promise,
+         * we need to await result before proceeding
+         */
+        if (res instanceof Promise) {
+            return await res
         }
-    })
+
+        return res
+    } catch (e) {
+        if (repeatTest) {
+            return await executeSync(fn, --repeatTest, args)
+        }
+
+        /**
+         * no need to modify stack if no stack available
+         */
+        if (!e.stack) {
+            return Promise.reject(e)
+        }
+
+        e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
+        return Promise.reject(e)
+    }
 }
 
 /**
@@ -50,6 +57,7 @@ const executeSync = function (fn, repeatTest = 0, args = []) {
  * @param  {Number}   repeatTest number of retries
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
+/* istanbul ignore next */
 const executeAsync = function (fn, repeatTest = 0, args = []) {
     let result, error
 
@@ -107,6 +115,7 @@ const executeAsync = function (fn, repeatTest = 0, args = []) {
  * @param  {Number}   repeatTest  number of retries if hook fails
  * @return {Function}             wrapped framework hook function
  */
+/* istanbul ignore next */
 const runHook = function (hookFn, origFn, before, after, repeatTest = 0) {
     const hookError = (hookName) => (e) => log.error(`Error in ${hookName}: ${e.stack}`)
 
@@ -118,7 +127,7 @@ const runHook = function (hookFn, origFn, before, after, repeatTest = 0) {
             /**
              * user wants handle async command using promises, no need to wrap in fiber context
              */
-            if (hookFn.name === 'async') {
+            if (isFunctionAsync(hookFn)) {
                 return executeAsync.call(this, hookFn, repeatTest, filterSpecArgs(hookArgs))
             }
 
@@ -137,11 +146,12 @@ const runHook = function (hookFn, origFn, before, after, repeatTest = 0) {
  * @param  {Number}   repeatTest  number of retries if test fails
  * @return {Function}             wrapped test function
  */
+/* istanbul ignore next */
 const runSpec = function (specTitle, specFn, origFn, repeatTest = 0) {
     /**
      * user wants handle async command using promises, no need to wrap in fiber context
      */
-    if (specFn.name === 'async') {
+    if (isFunctionAsync(specFn)) {
         return origFn(specTitle, function async (...specArgs) {
             return executeAsync.call(this, specFn, repeatTest, filterSpecArgs(specArgs))
         })
@@ -155,6 +165,7 @@ const runSpec = function (specTitle, specFn, origFn, repeatTest = 0) {
 /**
  * run hook or spec via executeSync
  */
+/* istanbul ignore next */
 function runSync (fn, repeatTest = 0, args = []) {
     return (resolve, reject) =>
         Fiber(() => executeSync.call(this, fn, repeatTest, args).then(() => resolve(), reject)).run()
@@ -169,6 +180,7 @@ function runSync (fn, repeatTest = 0, args = []) {
  * @param  {Function} after                after hook hook
  * @return {Function}                      wrapped test/hook function
  */
+/* istanbul ignore next */
 const wrapTestFunction = function (fnName, origFn, testInterfaceFnNames, before, after) {
     return function (...specArguments) {
         /**
@@ -205,6 +217,7 @@ const wrapTestFunction = function (fnName, origFn, testInterfaceFnNames, before,
  * @param  {String}   fnName               test interface command to wrap, e.g. `beforeEach`
  * @param  {Object}   scope                the scope to run command from, defaults to global
  */
+/* istanbul ignore next */
 const runTestInFiberContext = function (testInterfaceFnNames, before, after, fnName, scope = global) {
     const origFn = scope[fnName]
     scope[fnName] = wrapTestFunction(fnName, origFn, testInterfaceFnNames, before, after)

@@ -59,6 +59,9 @@
       "wdio-chromedriver-service": {
         "title": "ChromeDriver Service"
       },
+      "wdio-cucumberjs-json-reporter": {
+        "title": "CucumberJS JSON Reporter"
+      },
       "wdio-docker-service": {
         "title": "Docker Service"
       },
@@ -301,6 +304,9 @@
       },
       "autocompletion": {
         "title": "Autocompletion"
+      },
+      "automationProtocols": {
+        "title": "Automation Protocols"
       },
       "babel": {
         "title": "Babel Setup"

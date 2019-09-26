@@ -1,10 +1,11 @@
 import logger from '@wdio/logger'
+import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
+
 import WebDriverRequest from './request'
-import { isValidParameter, getArgumentType, commandCallStructure } from './utils'
 
 const log = logger('webdriver')
 
-export default function (method, endpointUri, commandInfo) {
+export default function (method, endpointUri, commandInfo, doubleEncodeVariables = false) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
     return function protocolCommand (...args) {
@@ -64,7 +65,8 @@ export default function (method, endpointUri, commandInfo) {
              * inject url variables
              */
             if (i < variables.length) {
-                endpoint = endpoint.replace(`:${commandParams[i].name}`, arg)
+                const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg)) : encodeURIComponent(arg)
+                endpoint = endpoint.replace(`:${commandParams[i].name}`, encodedArg)
                 continue
             }
 

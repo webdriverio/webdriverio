@@ -1,7 +1,8 @@
 import path from 'path'
 import mockery from 'mockery'
 import * as Cucumber from 'cucumber'
-import { executeHooksWithArgs, runFnInFiberContext, executeAsync } from '@wdio/config'
+import * as config from '@wdio/config'
+const { executeHooksWithArgs, runFnInFiberContext, executeAsync, executeSync } = config
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 
@@ -125,62 +126,132 @@ test('loadSpecFiles', () => {
     expect(mockery.disable).toBeCalledTimes(1)
 })
 
-test('wrapSteps', () => {
+describe('wrapSteps', () => {
     const adapter = adapterFactory()
-    adapter.wrapStepSync = jest.fn()
-    adapter.wrapStepAsync = jest.fn()
-    adapter.wrapSteps()
+    adapter.wrapStep = jest.fn()
+    adapter.wrapSteps(adapter.config)
 
     const functionWrapper = Cucumber.setDefinitionFunctionWrapper.mock.calls[0].pop()
-    const wrappedFunction = jest.fn()
-    functionWrapper(wrappedFunction)
 
-    expect(adapter.wrapStepSync).toBeCalledTimes(0)
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 0)
+    test('should use proper default values', () => {
+        const wrappedFunction = jest.fn()
 
-    functionWrapper(wrappedFunction, { retry: 123 })
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 123)
+        functionWrapper(wrappedFunction)
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, true, adapter.config, '0-2')
+    })
+
+    test('should use passed arguments', () => {
+        const wrappedFunction = jest.fn()
+
+        functionWrapper(wrappedFunction, { retry: 123 })
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 123, true, adapter.config, '0-2')
+    })
+
+    test('should not wrap wdio hooks', () => {
+        const wdioHookFn = () => { }
+
+        expect(functionWrapper(wdioHookFn)).toBe(wdioHookFn)
+        expect(adapter.wrapStep).toBeCalledTimes(0)
+    })
+
+    test('should not detect user hooks as steps', () => {
+        const userHookFn = () => { }
+
+        functionWrapper(userHookFn)
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, false, adapter.config, '0-2')
+    })
+
+    afterEach(() => {
+        adapter.wrapStep.mockClear()
+    })
 })
 
-test('wrapStepSync', () => {
-    const adapter = adapterFactory()
+describe('wrapStep', () => {
+    test('should use sync if hasWdioSyncSupport is true', () => {
+        config.hasWdioSyncSupport = true
+        const adapter = adapterFactory()
 
-    const fn = adapter.wrapStepSync('some code', 123)
-    expect(typeof fn).toBe('function')
-    expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runFnInFiberContext).toBeCalledTimes(1)
+        const fn = adapter.wrapStep('some code', 123, true, adapter.config)
+        expect(typeof fn).toBe('function')
+
+        fn(1, 2, 3)
+        expect(executeSync).toBeCalledWith(expect.any(Function), 123, [1, 2, 3])
+    })
+
+    test('should set proper default arguments', () => {
+        config.hasWdioSyncSupport = true
+        const adapter = adapterFactory()
+
+        const fn = adapter.wrapStep('fn', undefined, undefined, {})
+        expect(typeof fn).toBe('function')
+
+        fn(1, 2, 3)
+        expect(executeSync).toBeCalledWith(expect.any(Function), 0, [1, 2, 3])
+    })
+
+    test('should use async if function name is sync', () => {
+        config.hasWdioSyncSupport = true
+        const adapter = adapterFactory()
+
+        const code = function async () { }
+        const fn = adapter.wrapStep(code, 123, undefined, {})
+        expect(typeof fn).toBe('function')
+
+        fn(1, 2, 3)
+        expect(executeAsync).toBeCalledWith(expect.any(Function), 123, [1, 2, 3])
+    })
+
+    test('should use async hasWdioSyncSupport is false and set proper default arguments', () => {
+        config.hasWdioSyncSupport = false
+        const adapter = adapterFactory()
+
+        const fn = adapter.wrapStep('fn', undefined, undefined, {})
+        expect(typeof fn).toBe('function')
+
+        fn(1, 2, 3)
+        expect(executeAsync).toBeCalledWith(expect.any(Function), 0, [1, 2, 3])
+    })
 })
 
-test('wrapStepSync with default', () => {
+describe('addHooks', () => {
+    global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
+    Cucumber.Before.mockImplementationOnce(fn => fn)
+    Cucumber.After.mockImplementationOnce(fn => fn)
+    Cucumber.BeforeAll.mockImplementationOnce(fn => fn)
+    Cucumber.AfterAll.mockImplementationOnce(fn => fn)
     const adapter = adapterFactory()
+    const adapterConfig = {
+        beforeScenario: jest.fn(),
+        afterScenario: jest.fn(),
+        beforeFeature: jest.fn(),
+        afterFeature: jest.fn(),
+    }
+    adapter.addWdioHooks(adapterConfig)
+    const beforeScenario = Cucumber.Before.mock.calls[0][0]
+    const afterScenario = Cucumber.After.mock.calls[0][0]
+    const beforeFeature = Cucumber.BeforeAll.mock.calls[0][0]
+    const afterFeature = Cucumber.AfterAll.mock.calls[0][0]
 
-    const fn = adapter.wrapStepSync('some code')
-    expect(typeof fn).toBe('function')
-    expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runFnInFiberContext).toBeCalledTimes(1)
-})
-
-test('wrapStepAsync', () => {
-    const adapter = adapterFactory()
-
-    const fn = adapter.wrapStepAsync('fn', 123)
-    expect(typeof fn).toBe('function')
-
-    fn(1, 2, 3)
-    expect(executeAsync).toBeCalledWith('fn', 123, [1, 2, 3])
-})
-
-test('wrapStepAsync with default value', () => {
-    const adapter = adapterFactory()
-
-    const fn = adapter.wrapStepAsync('fn')
-    expect(typeof fn).toBe('function')
-
-    fn(1, 2, 3)
-    expect(executeAsync).toBeCalledWith('fn', 0, [1, 2, 3])
+    test('beforeScenario', () => {
+        beforeScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation' })
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation'])
+    })
+    test('afterScenario', () => {
+        afterScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation', result: 'result' })
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterScenario, ['uri', 'feature', 'pickle', 'result', 'sourceLocation'])
+    })
+    test('beforeFeature', () => {
+        beforeFeature()
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeFeature, ['uri', 'feature', ['scenario1', 'scenario2']])
+    })
+    test('afterFeature', () => {
+        afterFeature()
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterFeature, ['uri', 'feature', ['scenario1', 'scenario2']])
+    })
 })
 
 afterEach(() => {
+    Cucumber.setDefinitionFunctionWrapper.mockClear()
     Cucumber.supportCodeLibraryBuilder.reset.mockReset()
     Cucumber.setDefaultTimeout.mockReset()
     executeHooksWithArgs.mockClear()

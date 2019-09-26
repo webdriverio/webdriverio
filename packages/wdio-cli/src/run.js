@@ -5,6 +5,7 @@ import Launcher from './launcher.js'
 import Watcher from './watcher'
 import setup from './setup'
 
+/* istanbul ignore next */
 export default function run (params) {
     let stdinData = ''
 
@@ -64,9 +65,12 @@ export default function run (params) {
     })
 }
 
-function launch (wdioConf, params) {
+export function launch (wdioConf, params) {
     const launcher = new Launcher(wdioConf, params)
-    launcher.run().then(
-        (code) => process.nextTick(() => process.exit(code)),
-        (e) => process.nextTick(() => { throw e }))
+    return launcher.run()
+        .then(process.exit)
+        .catch(err => {
+            console.error(err)
+            process.exit(1)
+        })
 }

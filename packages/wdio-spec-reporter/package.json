@@ -1,6 +1,6 @@
 {
   "name": "@wdio/spec-reporter",
-  "version": "5.11.7",
+  "version": "5.13.2",
   "description": "A WebdriverIO plugin to report in spec style",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-spec-reporter",
@@ -30,7 +30,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/reporter": "^5.11.7",
+    "@wdio/reporter": "5.13.2",
     "chalk": "^2.3.2",
     "pretty-ms": "^5.0.0",
     "table": "^5.4.2"

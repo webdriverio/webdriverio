@@ -139,7 +139,6 @@ describe('_printSessionURL Appium', () => {
             os: 'iOS',
             os_version: '12.1',
             browserName: '',
-            app: 'test_app'
         }
     })
 
@@ -167,7 +166,7 @@ describe('_printSessionURL Appium', () => {
 
 describe('before', () => {
     it('should set auth to default values if not provided', () => {
-        let service = new BrowserstackService({})
+        let service = new BrowserstackService({ capabilities: {} })
 
         service.beforeSession({})
         service.before()
@@ -179,7 +178,7 @@ describe('before', () => {
             pass: 'NotSetKey'
         })
 
-        service = new BrowserstackService({})
+        service = new BrowserstackService({ capabilities: {} })
         service.beforeSession({ user: 'blah' })
         service.before()
 
@@ -190,7 +189,7 @@ describe('before', () => {
             user: 'blah',
             pass: 'NotSetKey'
         })
-        service = new BrowserstackService({})
+        service = new BrowserstackService({ capabilities: {} })
         service.beforeSession({ key: 'blah' })
         service.before()
 
@@ -205,7 +204,8 @@ describe('before', () => {
     it('should initialize correctly', () => {
         const service = new BrowserstackService({
             user: 'foo',
-            key: 'bar'
+            key: 'bar',
+            capabilities: {}
         })
         service.before()
 
@@ -224,11 +224,13 @@ describe('before', () => {
             os: 'iOS',
             os_version: '12.1',
             browserName: '',
-            app: 'test_app'
         }
         const service = new BrowserstackService({
             user: 'foo',
-            key: 'bar'
+            key: 'bar',
+            capabilities: {
+                app: 'test-app'
+            }
         })
         service.before()
 
@@ -243,7 +245,7 @@ describe('before', () => {
 
     it('should log the url', () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
-        const service = new BrowserstackService({})
+        const service = new BrowserstackService({ capabilities: {} })
 
         service.before()
         expect(logInfoSpy).toHaveBeenCalled()
@@ -285,21 +287,24 @@ describe('afterTest', () => {
     })
 })
 
-describe('afterStep', () => {
+describe('afterScenario', () => {
     it('should increment failures on "failed"', () => {
+        const uri = '/some/uri'
         service.failures = 0
 
-        service.afterStep('/some/uri', {})
         expect(service.failures).toBe(0)
 
-        service.afterStep('/some/uri', { failureException: { what: 'ever' } })
+        service.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(service.failures).toBe(0)
+
+        service.afterScenario(uri, {}, {}, { status: 'failed' })
         expect(service.failures).toBe(1)
 
-        service.afterStep('/some/uri', { getFailureException: () => 'whatever' })
-        expect(service.failures).toBe(2)
+        service.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(service.failures).toBe(1)
 
-        service.afterStep('/some/uri', { status: 'failed' })
-        expect(service.failures).toBe(3)
+        service.afterScenario(uri, {}, {}, { status: 'failed' })
+        expect(service.failures).toBe(2)
     })
 })
 

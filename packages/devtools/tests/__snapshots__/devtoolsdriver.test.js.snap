@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`setTimeouts with all timeouts 1`] = `
+Map {
+  "implicit" => 222,
+  "pageLoad" => 333,
+  "script" => 444,
+}
+`;
+
+exports[`setTimeouts with implicit and pageLoad timeout 1`] = `
+Map {
+  "implicit" => 222,
+  "pageLoad" => 333,
+  "script" => 30000,
+}
+`;
+
+exports[`setTimeouts with implicit timeout 1`] = `
+Map {
+  "implicit" => 222,
+  "pageLoad" => 100,
+  "script" => 30000,
+}
+`;

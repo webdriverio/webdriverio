@@ -5,6 +5,14 @@ describe('Mocha smoke test', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
     })
 
+    let hasRun = false
+    it('should retry', () => {
+        if(!hasRun) {
+            hasRun = true
+            throw new Error('booom!')
+        }
+    }, 1)
+
     it('should be able to wait for an element', () => {
         browser.waitForDisplayedScenario()
         assert($('elem').waitForDisplayed(), true)
@@ -30,6 +38,16 @@ describe('Mocha smoke test', () => {
         const el = browser.$('body')
         assert.equal(el.$('.selector-1').isExisting(), true)
         assert.equal(el.$('.selector-2').isExisting(), true)
+    })
+
+    it('should handle promises in waitUntil callback funciton', () => {
+        const results = []
+        const result = browser.waitUntil(() => {
+            results.push(browser.getUrl())
+            return results.length > 1
+        })
+        assert.strictEqual(result, true)
+        assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
     })
 
     describe('middleware', () => {

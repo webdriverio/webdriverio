@@ -27,7 +27,7 @@ There are multiple ways to setup Babel using the wdio testrunner. If you are run
 
 ```js
 before: function() {
-    require('@babel/register');
+    require('@babel/register')
 },
 ```
 

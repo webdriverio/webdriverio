@@ -1,3 +1,5 @@
 /packages/**/build
 /packages/**/node_modules
+/packages/node_modules
 /packages/**/coverage
+/tests/typings/**/dist

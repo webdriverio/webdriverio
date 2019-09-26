@@ -41,5 +41,7 @@
  */
 
 export default function isExisting () {
-    return this.parent.$$(this.selector).then((res) => res.length > 0)
+    const method = this.isReactElement ? 'react$$' : '$$'
+
+    return this.parent[method](this.selector).then((res) => res.length > 0)
 }

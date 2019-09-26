@@ -8,6 +8,7 @@ import yarnInstall from 'yarn-install'
 import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } from './config'
 import { getNpmPackageName, getPackageName, addServiceDeps } from './utils'
 
+/* istanbul ignore next */
 export default async function setup (exit = true) {
     try {
         console.log(CONFIG_HELPER_INTRO)
@@ -52,9 +53,15 @@ export default async function setup (exit = true) {
     }
 }
 
+/* istanbul ignore next */
 function renderConfigurationFile (answers) {
-    const tpl = fs.readFileSync(path.join(__dirname, '/templates/wdio.conf.tpl.ejs'), 'utf8')
-    const renderedTpl = ejs.render(tpl, { answers })
-    fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
-    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
+    const tplPath = path.join(__dirname, '/templates/wdio.conf.tpl.ejs')
+    ejs.renderFile(tplPath, { answers }, function(err, renderedTpl) {
+        if (err) {
+            throw new Error(err)
+        }
+
+        fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
+        console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
+    })
 }

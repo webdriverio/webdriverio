@@ -1,19 +1,14 @@
 import logger from '@wdio/logger'
+
+import { webdriverMonad } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
-import webdriverMonad from './monad'
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { getPrototype, environmentDetector, getEnvironmentVars } from './utils'
-
-import WebDriverProtocol from '../protocol/webdriver.json'
-import JsonWProtocol from '../protocol/jsonwp.json'
-import MJsonWProtocol from '../protocol/mjsonwp.json'
-import AppiumProtocol from '../protocol/appium.json'
-import ChromiumProtocol from '../protocol/chromium.json'
+import { startWebDriverSession, environmentDetector, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 
 export default class WebDriver {
-    static async newSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
+    static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
         const params = validateConfig(DEFAULTS, options)
 
         if (!options.logLevels || !options.logLevels['webdriver']) {
@@ -21,49 +16,24 @@ export default class WebDriver {
         }
 
         /**
-         * the user could have passed in either w3c style or jsonwp style caps
-         * and we want to pass both styles to the server, which means we need
-         * to check what style the user sent in so we know how to construct the
-         * object for the other style
+         * if the server responded with direct connect information, update the
+         * params to speak directly to the appium host instead of a load
+         * balancer (see https://github.com/appium/python-client#direct-connect-urls
+         * for example). But only do this if the user has enabled this
+         * behavior in the first place.
          */
-        const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
-            /**
-             * in case W3C compliant capabilities are provided
-             */
-            ? [params.capabilities, params.capabilities.alwaysMatch]
-            /**
-             * otherwise assume they passed in jsonwp-style caps (flat object)
-             */
-            : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+        if (params.enableDirectConnect) {
+            setupDirectConnect(params)
+        }
 
-        const sessionRequest = new WebDriverRequest(
-            'POST',
-            '/session',
-            {
-                capabilities: w3cCaps, // W3C compliant
-                desiredCapabilities: jsonwpCaps // JSONWP compliant
-            }
-        )
-
-        const response = await sessionRequest.makeRequest(params)
-
-        /**
-         * save original set of capabilities to allow to request the same session again
-         * (e.g. for reloadSession command in WebdriverIO)
-         */
-        params.requestedCapabilities = { w3cCaps, jsonwpCaps }
-
-        /**
-         * save actual receveived session details
-         */
-        params.capabilities = response.value.capabilities || response.value
-
+        const sessionId = await startWebDriverSession(params)
         const environment = environmentDetector(params)
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
+
         const monad = webdriverMonad(params, modifier, prototype)
-        return monad(response.value.sessionId || response.sessionId, commandWrapper)
+        return monad(sessionId, customCommandWrapper)
     }
 
     /**
@@ -89,37 +59,33 @@ export default class WebDriver {
         return monad(options.sessionId, commandWrapper)
     }
 
+    static async reloadSession (instance) {
+        const { w3cCaps, jsonwpCaps } = instance.options.requestedCapabilities
+        const sessionRequest = new WebDriverRequest(
+            'POST',
+            '/session',
+            {
+                capabilities: w3cCaps, // W3C compliant
+                desiredCapabilities: jsonwpCaps // JSONWP compliant
+            }
+        )
+
+        const response = await sessionRequest.makeRequest(instance.options)
+        const newSessionId = response.sessionId || (response.value && response.value.sessionId)
+        instance.sessionId = newSessionId
+
+        return newSessionId
+    }
+
     static get WebDriver () {
         return WebDriver
     }
     static get DEFAULTS () {
         return DEFAULTS
     }
-
-    /**
-     * Protocols
-     */
-    static get WebDriverProtocol () {
-        return WebDriverProtocol
-    }
-    static get JsonWProtocol () {
-        return JsonWProtocol
-    }
-    static get MJsonWProtocol () {
-        return MJsonWProtocol
-    }
-    static get AppiumProtocol () {
-        return AppiumProtocol
-    }
-    static get ChromiumProtocol () {
-        return ChromiumProtocol
-    }
 }
 
 /**
  * Helper methods consumed by webdriverio package
  */
-export {
-    webdriverMonad,
-    getPrototype
-}
+export { getPrototype }

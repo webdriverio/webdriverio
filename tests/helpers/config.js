@@ -40,5 +40,30 @@ exports.config = {
         timeout: 5000,
         requireModule: ['@babel/register'],
         require: [path.join(__dirname, '..', 'cucumber', 'step-definitions', '*.js')]
-    }
+    },
+
+    async beforeFeature () {
+        await browser.pause(30)
+        browser.Cucumber_Test = 0
+    },
+    beforeScenario: () => {
+        browser.pause(30)
+        browser.Cucumber_Test = 1
+    },
+    beforeStep: async function () {
+        await browser.pause(20)
+        browser.Cucumber_Test += 2
+    },
+    afterStep: function () {
+        browser.pause(25)
+        browser.Cucumber_Test = 1
+    },
+    afterScenario: () => {
+        browser.pause(30)
+        browser.Cucumber_Test = -1
+    },
+    afterFeature: () => {
+        delete browser.Cucumber_Test
+        browser.pause(30)
+    },
 }

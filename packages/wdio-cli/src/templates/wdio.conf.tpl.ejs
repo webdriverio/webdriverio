@@ -174,14 +174,7 @@ exports.config = {
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
     //
-    // Test reporter for stdout.
-    // The only one supported by default is 'dot'
-    // see also: https://webdriver.io/docs/dot-reporter.html
-    <% if(answers.reporters.length) {
-    %>reporters: [<%- answers.reporters.map(reporter => `'${reporter}'`) %>],
-    <% } else {
-    %>// reporters: ['dot'],<%
-    }
+    <%- include('reporters', { reporters: answers.reporters }) %> <%
     if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
@@ -220,7 +213,7 @@ exports.config = {
         source: true,       // <boolean> hide source uris
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+        tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 60000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
@@ -288,13 +281,8 @@ exports.config = {
      * afterEach in Mocha)
      */
     // afterHook: function () {
-    // },
-    /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
-     */
-    // afterTest: function (test) {
-    // },
+    // }, 
+    <%- include('afterTest', { reporters: answers.reporters }) %>
     /**
      * Hook that gets executed after the suite has ended
      * @param {Object} suite suite details
@@ -304,39 +292,33 @@ exports.config = {
     if(answers.framework === 'cucumber') { %>
     /**
      * Runs before a Cucumber feature
-     * @param {Object} feature feature details
      */
-    // beforeFeature: function (uri, feature) {
+    // beforeFeature: function (uri, feature, scenarios) {
     // },
     /**
      * Runs before a Cucumber scenario
-     * @param {Object} scenario scenario details
      */
-    // beforeScenario: function (uri, feature, scenario) {
+    // beforeScenario: function (uri, feature, scenario, sourceLocation) {
     // },
     /**
      * Runs before a Cucumber step
-     * @param {Object} step step details
      */
-    // beforeStep: function (uri, feature, scenario, step) {
+    // beforeStep: function (uri, feature) {
     // },
     /**
      * Runs after a Cucumber step
-     * @param {Object} stepResult step result
      */
-    // afterStep: function (uri, feature, scenario, step, result) {
+    // afterStep: function (uri, feature, { error, result }) {
     // },
     /**
      * Runs after a Cucumber scenario
-     * @param {Object} scenario scenario details
      */
-    // afterScenario: function (uri, feature, scenario, result) {
+    // afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     // },
     /**
      * Runs after a Cucumber feature
-     * @param {Object} feature feature details
      */
-    // afterFeature: function (uri, feature) {
+    // afterFeature: function (uri, feature, scenarios) {
     // },
     <% } %>
     /**

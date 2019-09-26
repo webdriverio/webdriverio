@@ -10,7 +10,7 @@
  *
  */
 
-import { getElementRect } from '../../utils'
+import { getElementRect, getScrollPosition } from '../../utils'
 
 const ACTION_BUTTON = 0
 
@@ -29,12 +29,13 @@ export default async function dragAndDrop (target, duration = 100) {
     /**
      * get coordinates to drag and drop
      */
+    const { scrollX, scrollY } = await getScrollPosition(this)
     const sourceRect = await getElementRect(this)
     const targetRect = await getElementRect(target)
-    const sourceX = parseInt(sourceRect.x + (sourceRect.width / 2), 10)
-    const sourceY = parseInt(sourceRect.y + (sourceRect.height / 2), 10)
-    const targetX = parseInt(targetRect.x + (targetRect.width / 2), 10) - sourceX
-    const targetY = parseInt(targetRect.y + (targetRect.height / 2), 10) - sourceY
+    const sourceX = parseInt(sourceRect.x - scrollX + (sourceRect.width / 2), 10)
+    const sourceY = parseInt(sourceRect.y - scrollY + (sourceRect.height / 2), 10)
+    const targetX = parseInt(targetRect.x - scrollX + (targetRect.width / 2), 10) - sourceX
+    const targetY = parseInt(targetRect.y - scrollY + (targetRect.height / 2), 10) - sourceY
 
     /**
      * W3C way of handle the drag and drop action

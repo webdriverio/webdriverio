@@ -1,5 +1,6 @@
 import path from 'path'
-import { detectBackend } from '@wdio/config'
+import logger from '@wdio/logger'
+import { detectBackend, runFnInFiberContext } from '@wdio/config'
 
 import { remote, multiremote, attach } from '../src'
 
@@ -19,32 +20,40 @@ jest.mock('webdriver', () => {
         return result
     })
 
-    return {
+    const module = {
         newSession: newSessionMock,
         attachToSession: jest.fn().mockReturnValue(client)
+    }
+
+    return {
+        ...module,
+        default: module
     }
 })
 
 jest.mock('@wdio/config', () => {
     const validateConfigMock = {
-        validateConfig: jest.fn(),
-        detectBackend: jest.fn()
+        validateConfig: jest.fn().mockReturnValue({ automationProtocol: 'webdriver' }),
+        detectBackend: jest.fn(),
+        runFnInFiberContext: jest.fn()
     }
     return validateConfigMock
 })
 
-const WebDriver = require('webdriver')
+const WebDriver = require('webdriver').default
 
 describe('WebdriverIO module interface', () => {
     it('should provide remote and multiremote access', () => {
         expect(typeof remote).toBe('function')
+        expect(typeof attach).toBe('function')
         expect(typeof multiremote).toBe('function')
     })
 
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
-            const browser = await remote({ capabilities: {} })
+            const browser = await remote({ capabilities: {}, logLevel: 'trace' })
             expect(browser.sessionId).toBe('foobar-123')
+            expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
         })
 
         it('allows to propagate a modifier', async () => {
@@ -65,6 +74,26 @@ describe('WebdriverIO module interface', () => {
             let testDirPath = './logs'
             await remote({ outputDir: testDirPath, capabilities: { browserName: 'firefox' } })
             expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
+        })
+
+        it('should not wrap custom commands into fiber context if used as standalone', async () => {
+            const browser = await remote({ capabilities: {} })
+            const customCommand = jest.fn()
+            browser.addCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(0)
+
+            browser.overwriteCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(0)
+        })
+
+        it('should wrap custom commands into fiber context', async () => {
+            const browser = await remote({ capabilities: {}, runner: 'local' })
+            const customCommand = jest.fn()
+            browser.addCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(1)
+
+            browser.overwriteCommand('someCommand', customCommand)
+            expect(runFnInFiberContext).toBeCalledTimes(2)
         })
     })
 

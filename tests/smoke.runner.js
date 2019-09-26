@@ -5,29 +5,32 @@ import assert from 'assert'
 import launch from './helpers/launch'
 import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-(async () => {
-    /**
-     * Mocha wdio testrunner tests
-     */
+/**
+ * Mocha wdio testrunner tests
+ */
+const mochaTestrunner = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         { specs: [path.resolve(__dirname, 'mocha', 'test.js')] })
-
-    /**
-     * Jasmine wdio testrunner tests
-     */
+}
+/**
+ * Jasmine wdio testrunner tests
+ */
+const jasmineTestrunner = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'jasmine', 'test.js')],
             framework: 'jasmine'
         })
+}
 
-    /**
-     * Cucumber wdio testrunner tests
-     */
+/**
+ * Cucumber wdio testrunner tests
+ */
+const cucumberTestrunner = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
@@ -38,10 +41,12 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
             }
         }
     )
+}
 
-    /**
-     * Cucumber fail due to failAmbiguousDefinitions
-     */
+/**
+ * Cucumber fail due to failAmbiguousDefinitions
+ */
+const cucumberFailAmbiguousDefinitions = async () => {
     const hasFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
@@ -57,10 +62,12 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         () => true
     )
     assert.equal(hasFailed, true)
+}
 
-    /**
-     * wdio test run with custom service
-     */
+/**
+ * wdio test run with custom service
+ */
+const customService = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
@@ -72,10 +79,12 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
     const launcherLogs = fs.readFileSync(path.join(__dirname, 'helpers', 'launcher.log'))
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
+}
 
-    /**
-     * wdio test run with custom reporter as string
-     */
+/**
+ * wdio test run with custom reporter as string
+ */
+const customReporterString = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
@@ -87,19 +96,23 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     const reporterLogs = fs.readFileSync(reporterLogsPath)
     assert.equal(reporterLogs.toString(), REPORTER_LOGS)
     fs.unlinkSync(reporterLogsPath)
+}
 
-    /**
-     * wdio test run with custom reporter as object
-     */
+/**
+ * wdio test run with custom reporter as object
+ */
+const customReporterObject = async () => {
     await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = fs.readFileSync(reporterLogsWithReporterAsObjectPath)
     assert.equal(reporterLogsWithReporterAsObject, REPORTER_LOGS)
     fs.unlinkSync(reporterLogsWithReporterAsObjectPath)
+}
 
-    /**
-     * multiremote wdio testrunner tests
-     */
+/**
+ * multiremote wdio testrunner tests
+ */
+const multiremote = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
@@ -114,10 +127,12 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
             }
         }
     )
+}
 
-    /**
-     * specfile-level retries
-     */
+/**
+ * specfile-level retries (fail)
+ */
+const retryFail = async () => {
     const retryFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
@@ -129,7 +144,12 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         () => true
     )
     assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
+}
 
+/**
+ * specfile-level retries (pass)
+ */
+const retryPass = async () => {
     let retryFilename = path.join(__dirname, '.retry_succeeded')
     let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
     let rmfiles = [retryFilename, ...logfiles]
@@ -156,11 +176,39 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     if (fs.existsSync(logfiles[1])) {
         throw Error(`Expected ${logfiles[1]} to not exist but it does`)
     }
+}
 
+(async () => {
     /**
-     * for some reason the process get stuck therefor exit it
+     * Usage example: `npm run test:smoke -- customService`
      */
-    process.exit(0)
+    const testFilter = process.argv[2]
+
+    const tests = [
+        mochaTestrunner,
+        jasmineTestrunner,
+        cucumberTestrunner,
+        cucumberFailAmbiguousDefinitions,
+        customService,
+        customReporterString,
+        customReporterObject,
+        multiremote,
+        retryFail,
+        retryPass,
+    ]
+
+    if (process.env.CI || testFilter) {
+        // sequential
+        const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
+        for (let test of testsFiltered) {
+            await test()
+        }
+    } else {
+        // parallel
+        await Promise.all(tests.map(test => test()))
+    }
+
+    console.log('\nAll smoke tests passed!\n')
 })().catch((e) => {
     // eslint-disable-next-line no-console
     console.log(e.stack)

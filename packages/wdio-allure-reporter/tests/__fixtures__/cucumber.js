@@ -24,10 +24,10 @@ export function featureStart() {
     return Object.assign(suite('feature'))
 }
 
-export function featureEnd(failCause = null) {
+export function featureEnd(results = { tests: [], hooks: [] }) {
     return Object.assign(suite('feature'), {
         _duration: 1516,
-        suites: [scenarioEnd(failCause)],
+        suites: [scenarioEnd(results)],
         end: '2019-07-22T12:21:37.696Z'
     })
 }
@@ -36,12 +36,12 @@ export function scenarioStart() {
     return Object.assign(suite('scenario'))
 }
 
-export function scenarioEnd(failCause = null) {
+export function scenarioEnd({ tests = [], hooks = [] }) {
     return Object.assign(suite('scenario'), {
         _duration: 1451,
-        tests: [failCause === 'test' ? testFail() : testPass()],
-        hooks: [failCause === 'hook' ? hookFail() : hookEnd()],
-        end: '2019-07-22T12:21:37.695Z'
+        end: '2019-07-22T12:21:37.695Z',
+        tests,
+        hooks
     })
 }
 

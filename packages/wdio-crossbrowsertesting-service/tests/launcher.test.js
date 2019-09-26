@@ -1,6 +1,15 @@
 import CrossBrowserTestingLauncher from '../src/launcher'
 import cbtTunnels from 'cbt_tunnels'
 
+/**
+ * remove `beforeAll` and `tests/__mocks__/pac-resolver.js` file once issue is fixed
+ */
+beforeAll(() => {
+    if (!global.PAC_RESOLVER_MOCK) {
+        throw new Error('https://github.com/crossbrowsertesting/cbt-tunnel-nodejs/issues/25 has been fixed!')
+    }
+})
+
 describe('wdio-crossbrowsertesting-service', () => {
     const cbtLauncher = new CrossBrowserTestingLauncher({})
     const error = new Error('Error!')
@@ -37,8 +46,8 @@ describe('wdio-crossbrowsertesting-service', () => {
             user: 'test',
             key: 'testy'
         }
-        expect(cbtLauncher.onPrepare(config)).resolves.toBe('connected')
-            .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
+        await expect(cbtLauncher.onPrepare(config)).resolves.toBe('connected')
+        expect(cbtTunnels.start).toHaveBeenCalledWith({ username: 'test', authkey: 'testy', options: 'some options' }, expect.any(Function))
         expect(cbtLauncher.cbtTunnelOpts).toEqual({ username: 'test', authkey: 'testy', options: 'some options' })
 
     })
@@ -70,7 +79,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())
     })
 
-    it('onComplete: cbtTunnel.stop succesful', async () => {
+    it('onComplete: cbtTunnel.stop successful', async () => {
         cbtLauncher.tunnel = true
         expect(cbtLauncher.onComplete()).resolves.toBe('stopped')
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())

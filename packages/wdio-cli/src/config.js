@@ -157,6 +157,7 @@ export const CLI_PARAMS = [{
     description: 'Cucumber options'
 }]
 
+/* istanbul ignore next */
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',

@@ -18,7 +18,7 @@ module.exports = {
         }]
     ],
     // ...
-};
+}
 ```
 
 It is up to you which framework you want to choose. The reports will be similar. This tutorial is going to use Jasmine. After you have written couple of tests you can begin to setup a new Jenkins job. Give it a name and a description:

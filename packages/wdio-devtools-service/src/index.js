@@ -10,7 +10,7 @@ import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE } from './constants'
 
 const log = logger('@wdio/devtools-service')
 const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up'
-const TRACE_COMMANDS = ['click', 'navigateTo']
+const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 export default class DevToolsService {
     constructor (options = {}) {
@@ -77,12 +77,13 @@ export default class DevToolsService {
 
         global.browser.addCommand('enablePerformanceAudits', ::this._enablePerformanceAudits)
         global.browser.addCommand('disablePerformanceAudits', ::this._disablePerformanceAudits)
+        global.browser.addCommand('emulateDevice', ::this._emulateDevice)
 
         /**
          * allow user to work with Puppeteer directly
          */
         global.browser.addCommand('getPuppeteer',
-            () => this.devtoolsDriver)
+            /* istanbul ignore next */ () => this.devtoolsDriver)
     }
 
     async beforeCommand (commandName, params) {
@@ -95,7 +96,7 @@ export default class DevToolsService {
          */
         this._setThrottlingProfile(this.networkThrottling, this.cpuThrottling, this.cacheEnabled)
 
-        const url = commandName === 'navigateTo' ? params[0] : 'click transition'
+        const url = ['url', 'navigateTo'].some(cmdName => cmdName === commandName) ? params[0] : 'click transition'
         return this.traceGatherer.startTracing(url)
     }
 
@@ -110,6 +111,13 @@ export default class DevToolsService {
         this.traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this.devtoolsGatherer.getLogs())
             auditor.updateCommands(global.browser)
+        })
+
+        this.traceGatherer.once('tracingError', (err) => {
+            const auditor = new Auditor()
+            auditor.updateCommands(global.browser, /* istanbul ignore next */ () => {
+                throw new Error(`Couldn't capture performance due to: ${err.message}`)
+            })
         })
 
         return new Promise((resolve) => {
@@ -151,6 +159,28 @@ export default class DevToolsService {
      */
     _disablePerformanceAudits () {
         this.shouldRunPerformanceAudits = false
+    }
+
+    /**
+     * set device emulation
+     */
+    async _emulateDevice (device, inLandscape) {
+        const page = await this.devtoolsDriver.getActivePage()
+
+        if (typeof device === 'string') {
+            const deviceName = device + (inLandscape ? ' landscape' : '')
+            const deviceCapabilities = this.devtoolsDriver.devices[deviceName]
+            if (!deviceCapabilities) {
+                const deviceNames = this.devtoolsDriver.devices
+                    .map((device) => device.name)
+                    .filter((device) => !device.endsWith('landscape'))
+                throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
+            }
+
+            return page.emulate(deviceCapabilities)
+        }
+
+        return page.emulate(device)
     }
 
     /**

@@ -7,7 +7,6 @@ import logger from '@wdio/logger'
 import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
-import { removeLastListener } from './utils'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -69,7 +68,7 @@ export default class WorkerInstance extends EventEmitter {
             cwd: process.cwd(),
             env: runnerEnv,
             execArgv,
-            silent: true
+            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
         })
 
         childProcess.on('message', ::this._handleMessage)
@@ -80,13 +79,6 @@ export default class WorkerInstance extends EventEmitter {
         if (!process.env.JEST_WORKER_ID) {
             childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(stdOutStream)
             childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(stdErrStream)
-            process.stdin.pipe(childProcess.stdin)
-
-            /**
-             * Remove events that are automatically created by Readable stream
-             */
-            removeLastListener(process.stdin, 'data')
-            removeLastListener(process.stdin, 'end')
         }
 
         return childProcess

@@ -38,6 +38,23 @@ test('onPrepare w/o identifier', () => {
     expect(SauceConnectLauncher).toBeCalled()
 })
 
+test('onPrepare w/ SauceConnect w/o scRelay', () => {
+    const caps = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        sauceConnect: true
+    }
+    const service = new SauceServiceLauncher()
+    expect(service.sauceConnectProcess).toBeUndefined()
+    service.onPrepare(config, caps)
+
+    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(config.port).toBe(undefined)
+    expect(config.protocol).toBe(undefined)
+    expect(config.hostname).toBe(undefined)
+})
+
 test('onPrepare multiremote', () => {
     const caps = {
         browserA: {
@@ -51,6 +68,7 @@ test('onPrepare multiremote', () => {
         user: 'foobaruser',
         key: '12345',
         sauceConnect: true,
+        scRelay: true,
         sauceConnectOpts: {
             port: 4446,
             tunnelIdentifier: 'my-tunnel'
@@ -117,6 +135,7 @@ test('onPrepare multiremote with tunnel identifier and with w3c caps ', () => {
         user: 'foobaruser',
         key: '12345',
         sauceConnect: true,
+        scRelay: true,
         sauceConnectOpts: {
             port: 4446,
             tunnelIdentifier: 'my-tunnel'
@@ -163,6 +182,7 @@ test('onPrepare with tunnel identifier and without w3c caps ', () => {
         user: 'foobaruser',
         key: '12345',
         sauceConnect: true,
+        scRelay: true,
         sauceConnectOpts: {
             port: 4446,
             tunnelIdentifier: 'my-tunnel'
@@ -264,6 +284,7 @@ test('onPrepare with tunnel identifier and with w3c caps ', () => {
         user: 'foobaruser',
         key: '12345',
         sauceConnect: true,
+        scRelay: true,
         sauceConnectOpts: {
             port: 4446,
             tunnelIdentifier: 'my-tunnel'

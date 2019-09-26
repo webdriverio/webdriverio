@@ -1,7 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest } from './utils'
+import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks } from './utils'
 import { events, stepStatuses, testStatuses } from './constants'
 
 class AllureReporter extends WDIOReporter {
@@ -60,13 +60,25 @@ class AllureReporter extends WDIOReporter {
 
     onSuiteEnd(suite) {
         if (this.options.useCucumberStepReporter && suite.type === 'scenario') {
-            const isPassed = !suite.tests.some(test => test.state !== testStatuses.PASSED) &&
-                !suite.hooks.some(hook => hook.state && hook.state !== testStatuses.PASSED)
+            // passing hooks are missing the 'state' property
+            suite.hooks = suite.hooks.map(hook => {
+                hook.state = hook.state ? hook.state : stepStatuses.PASSED
+                return hook
+            })
+            const suiteChildren = [...suite.tests, ...suite.hooks]
+            const isPassed = !suiteChildren.some(item => item.state !== testStatuses.PASSED)
             if (isPassed) {
-                // Only close passing tests because
-                // non passing tests are closed in onTestFailed event
                 return this.allure.endCase(testStatuses.PASSED)
             }
+
+            // A scenario is it skipped if is not passed and every steps/hooks are passed or skipped
+            const isSkipped = suiteChildren.every(item => [stepStatuses.PASSED, stepStatuses.SKIPPED].indexOf(item.state) >= 0)
+            if (isSkipped) {
+                return this.allure.endCase(testStatuses.PENDING)
+            }
+
+            // Only close passing and skipped tests because
+            // failing tests are closed in onTestFailed event
             return
         }
 
@@ -199,13 +211,18 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
+        // don't add hook as test to suite for mocha All hooks
+        if (isMochaAllHooks(hook.title)) {
+            return
+        }
+
         // add hook as test to suite
         this.onTestStart(hook)
     }
 
     onHookEnd(hook) {
         // ignore global hooks
-        if (!hook.parent || !this.allure.getCurrentSuite() || !this.allure.getCurrentTest()) {
+        if (!hook.parent || !this.allure.getCurrentSuite() || (!isMochaAllHooks(hook.title) && !this.allure.getCurrentTest())) {
             return false
         }
 
@@ -221,13 +238,26 @@ class AllureReporter extends WDIOReporter {
 
         // set hook (test) status
         if (hook.error) {
+            if (isMochaAllHooks(hook.title)) {
+                this.onTestStart(hook)
+            }
             this.onTestFail(hook)
-        } else {
+        } else if (!isMochaAllHooks(hook.title)) {
             this.onTestPass()
 
             // remove hook from suite if it has no steps
             if (this.allure.getCurrentTest().steps.length === 0 && !this.options.useCucumberStepReporter) {
                 this.allure.getCurrentSuite().testcases.pop()
+            } else if (this.options.useCucumberStepReporter) {
+                // remove hook when it's registered as a step and if it's passed
+                const step = this.allure.getCurrentTest().steps.pop()
+
+                // if it had any attachments, reattach them to current test
+                if (step && step.attachments.length >= 1) {
+                    step.attachments.forEach(attachment => {
+                        this.allure.getCurrentTest().addAttachment(attachment)
+                    })
+                }
             }
         }
     }

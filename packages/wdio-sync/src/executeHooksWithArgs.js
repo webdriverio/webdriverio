@@ -1,4 +1,4 @@
-import Fiber from 'fibers'
+import Fiber from './fibers'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/sync')
@@ -12,6 +12,7 @@ const log = logger('@wdio/sync')
  * @param  {Object[]} args  list of parameter for hook functions
  * @return {Promise}  promise that gets resolved once all hooks finished running
  */
+/* istanbul ignore next */
 export default function executeHooksWithArgs (hooks = [], args) {
     /**
      * make sure hooks are an array of functions

@@ -179,6 +179,7 @@ Type: `Object`<br>
 Default: `{ timeout: 10000 }`
 
 ### reporters
+
 List of reporters to use. A reporter can be either a string or an array where the first element is a string with the reporter name and the second element an object with reporter options.
 
 Type: `String[]|Object[]`<br>
@@ -195,6 +196,13 @@ reporters: [
     }]
 ]
 ```
+
+### automationProtocol
+
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) is supported as these are the main browser automation technologies available. If you want to automate the browser using `devtools` make sure you have the NPM package installed (e.g. `$ npm install --save-dev devtools`).
+
+Type: `String`
+Default: `webdriver`
 
 ### execArgv
 Node arguments to specify when launching child processes.
@@ -247,7 +255,7 @@ Example:
 exports.config = {
     // ...
     afterTest: (test) => {
-        console.log(`Finished test "${test.parent} - ${test.title}"`);
+        console.log(`Finished test "${test.parent} - ${test.title}"`)
     }
     // ...
 ```
