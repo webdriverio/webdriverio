@@ -22,7 +22,7 @@ test('should create config file', async () => {
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
         dev: true,
-        respectNpm5: undefined
+        respectNpm5: true
     })
 })
 
@@ -38,7 +38,7 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: [undefined, undefined, '@wdio/sync'],
         dev: true,
-        respectNpm5: undefined
+        respectNpm5: true
     })
 })
 
@@ -48,7 +48,7 @@ test('it should install with yarn when flag is passed', async () => {
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
         dev: true,
-        respectNpm5: true
+        respectNpm5: false
     })
 })
 
