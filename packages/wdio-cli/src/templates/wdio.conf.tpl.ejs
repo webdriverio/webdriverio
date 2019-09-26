@@ -34,6 +34,8 @@ exports.config = {
     // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
     // path: '/',<% }
 
+    // Protocol: http | https
+    // protocol: 'http',
     if(answers.env_user && answers.env_key) { %>
     //
     // =================
@@ -281,7 +283,7 @@ exports.config = {
      * afterEach in Mocha)
      */
     // afterHook: function () {
-    // }, 
+    // },
     <%- include('afterTest', { reporters: answers.reporters }) %>
     /**
      * Hook that gets executed after the suite has ended
