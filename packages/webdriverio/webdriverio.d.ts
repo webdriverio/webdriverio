@@ -12,6 +12,8 @@ type ElementPromise = Omit<WebdriverIO.Element,
     | 'elementId'
     | 'element-6066-11e4-a52e-4f735466cecf'
     | 'ELEMENT'
+    | 'dragAndDrop'
+    | 'touchAction'
 >;
 
 // Methods which return async element(s) so non-async equivalents cannot just be promise-wrapped
@@ -36,7 +38,7 @@ type ElementStatic = Pick<WebdriverIO.Element,
 >;
 
 // Browser commands that should be wrapper with Promise
-type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$'>;
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$' | 'touchAction'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
@@ -59,7 +61,7 @@ declare namespace WebdriverIOAsync {
     function multiremote(
         options: WebdriverIO.MultiRemoteOptions
     ): BrowserObject;
-
+    type TouchActions = string | WebdriverIO.TouchAction<Element> | WebdriverIO.TouchAction<Element>[];
     interface Browser extends BrowserAsync, BrowserStatic {
         waitUntil(
             condition: () => Promise<boolean>,
@@ -78,9 +80,13 @@ declare namespace WebdriverIOAsync {
         // https://github.com/Microsoft/TypeScript/issues/1360
         // executeAsync: <T>(script: string | ((...arguments: any[], callback: (result: T) => void) => void), ...arguments: any[]) => Promise<T>;
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
+        touchAction(action: TouchActions): Promise<void>;
     }
 
-    interface Element extends ElementAsync, ElementStatic { }
+    interface Element extends ElementAsync, ElementStatic {
+        dragAndDrop(target: Element,duration?: number): Promise<void>;
+        touchAction(action: TouchActions): Promise<void>;
+     }
     interface Config { }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser {}

@@ -147,14 +147,14 @@ declare namespace WebdriverIO {
     interface Hooks extends _HooksArray, _Hooks { }
 
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
-    interface TouchAction {
+    interface TouchAction<T> {
         action: ActionTypes,
         x?: number,
         y?: number,
-        element?: Element,
+        element?: T,
         ms?: number
     }
-    type TouchActions = string | TouchAction | TouchAction[];
+    type TouchActions = string | TouchAction<Element> | TouchAction<Element>[];
 
     interface Element {
         "element-6066-11e4-a52e-4f735466cecf"?: string;
