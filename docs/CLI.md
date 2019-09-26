@@ -43,7 +43,11 @@ integration tests by calling:
 
 ```sh
 ./node_modules/.bin/wdio run wdio.conf.js
+
+# you can also initalize your configuration without the `run` command
+./node_modules/.bin/wdio wdio.conf.js
 ```
+
 
 That's it! Now, you can access to the selenium instance via the global variable `browser`.
 
@@ -66,6 +70,8 @@ Options:
 ```
 
 ### wdio run
+
+> This is the default command to run your configuration.
 
 The `run` command initializes your WebdriverIO configuration file and runs your tests.
 

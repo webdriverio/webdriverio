@@ -23,11 +23,6 @@ export const run = async () => {
     const wdioConf = fs.existsSync(wdioConfPath)
 
     if (wdioConf) {
-        console.warn(
-            '⚠️ ⚠️ ⚠️\n' +
-            'Running `wdio path/to/wdio.conf.js` is deprecated and will be removed in the next major release.\n' +
-            'Please use `wdio run path/to/wdio.conf.js`.'
-        )
         return handler({ configPath: wdioConfPath, ...params })
     }
 }
