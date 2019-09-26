@@ -19,6 +19,7 @@ interface AsyncSelectors {
     $: $;
     $$: $$;
     selector: string;
+    elementId: string;
 }
 
 // Element commands wrapper with Promise
