@@ -18,6 +18,7 @@ type ElementPromise = Omit<WebdriverIO.Element,
 interface AsyncSelectors {
     $: $;
     $$: $$;
+    selector: string
 }
 
 // Element commands wrapper with Promise
