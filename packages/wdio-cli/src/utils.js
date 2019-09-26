@@ -191,7 +191,7 @@ export async function renderConfigurationFile (answers) {
     console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
 }
 
-export async function missingConfigurationPrompt(command, message) {
+export async function missingConfigurationPrompt(command, message, useYarn = false) {
     const { config } = await inquirer.prompt([
         {
             type: 'confirm',
@@ -211,5 +211,5 @@ export async function missingConfigurationPrompt(command, message) {
         return process.exit(0)
     }
 
-    return await runConfig(true, false)
+    return await runConfig(useYarn, true)
 }

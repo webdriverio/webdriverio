@@ -8,13 +8,13 @@ export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
 
 export const builder = {
-    npm: {
+    yarn: {
         type: 'boolean',
-        desc: 'Install packages via NPM'
+        desc: 'Install packages via yarn package manager.'
     }
 }
 
-export const runConfig = async function (respectNpm5 = true, exit = true) {
+export const runConfig = async function (useYarn, exit) {
     console.log(CONFIG_HELPER_INTRO)
 
     const answers = await inquirer.prompt(QUESTIONNAIRE)
@@ -47,7 +47,7 @@ export const runConfig = async function (respectNpm5 = true, exit = true) {
     addServiceDeps(answers.services, packagesToInstall)
 
     console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
-    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5 })
+    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: useYarn })
 
     if (result.status !== 0) {
         throw new Error(result.stderr)
@@ -75,7 +75,7 @@ export const runConfig = async function (respectNpm5 = true, exit = true) {
 
 export async function handler(argv) {
     try {
-        await runConfig(argv.npm)
+        await runConfig(argv.yarn)
     } catch (error) {
         throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
     }

@@ -283,7 +283,12 @@ describe('missingConfigurationPromp', () => {
 
     it('should call function to initalize configuration helper', async () => {
         await missingConfigurationPrompt('test')
-        expect(runConfig).toHaveBeenCalledWith(true, false)
+        expect(runConfig).toHaveBeenCalledWith(false, true)
+    })
+
+    it('should pass "yarn" flag to runConfig', async () => {
+        await missingConfigurationPrompt('test', 'test message', true)
+        expect(runConfig).toHaveBeenCalledWith(true, true)
     })
 
     it('should throw if error occurs', async () => {

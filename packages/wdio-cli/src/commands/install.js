@@ -23,8 +23,8 @@ export const command = 'install <type> <name>'
 export const desc = 'Add a `reporter`, `service`, or `framework` to your WebdriverIO project'
 
 export const builder = {
-    npm: {
-        desc: 'Install packages using npm',
+    yarn: {
+        desc: 'Install packages using yarn',
         type: 'boolean',
         default: false
     }
@@ -34,9 +34,9 @@ export async function handler(argv) {
     /**
      * type = service | reporter | framework
      * name = names for the supported service or reporter
-     * npm = optional flag to install package using npm instead of default yarn
+     * yarn = optional flag to install package using yarn instead of default yarn
      */
-    const { type, name, npm } = argv
+    const { type, name, yarn } = argv
 
     /**
      * verify for supported types via `supportedInstallations` keys
@@ -59,9 +59,10 @@ export async function handler(argv) {
     const localConfPath = path.join(process.cwd(), 'wdio.conf.js')
     if (!fs.existsSync(localConfPath)) {
         try {
-            await missingConfigurationPrompt('install', `
-Cannot install packages without a WebdriverIO configuration.
-You can create one by running 'wdio config'`)
+            const promptMessage = `Cannot install packages without a WebdriverIO configuration.
+You can create one by running 'wdio config'`
+
+            await missingConfigurationPrompt('install', promptMessage, yarn)
         } catch {
             process.exit(1)
             return
@@ -82,8 +83,8 @@ You can create one by running 'wdio config'`)
 
     addServiceDeps([selectedPackage], pkgsToInstall, true)
 
-    console.log(`Installing "${selectedPackage.package}"${npm ? ' using npm.' : '.'}`)
-    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: npm })
+    console.log(`Installing "${selectedPackage.package}"${yarn ? ' using yarn.' : '.'}`)
+    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: !yarn }) // use !yarn so the package forces npm install
 
     if (install.status !== 0) {
         console.error('Error installing packages', install.stderr)

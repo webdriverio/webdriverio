@@ -39,9 +39,8 @@ describe('Command: install', () => {
 
         await installCmd.handler({ type: 'service', name: 'chromedriver' })
 
-        expect(utils.missingConfigurationPrompt).toHaveBeenCalledWith('install', `
-Cannot install packages without a WebdriverIO configuration.
-You can create one by running 'wdio config'`)
+        expect(utils.missingConfigurationPrompt).toHaveBeenCalledWith('install', `Cannot install packages without a WebdriverIO configuration.
+You can create one by running 'wdio config'`, undefined)
     })
 
     it('should verify if configuration already has desired installation', async () => {
