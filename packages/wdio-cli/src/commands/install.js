@@ -84,7 +84,7 @@ You can create one by running 'wdio config'`
     addServiceDeps([selectedPackage], pkgsToInstall, true)
 
     console.log(`Installing "${selectedPackage.package}"${yarn ? ' using yarn.' : '.'}`)
-    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: !!yarn }) // use !yarn so the package forces npm install
+    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: !yarn }) // use !yarn so the package forces npm install
 
     if (install.status !== 0) {
         console.error('Error installing packages', install.stderr)

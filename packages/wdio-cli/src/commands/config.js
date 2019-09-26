@@ -10,7 +10,8 @@ export const desc = 'Initialize WebdriverIO and setup configuration in your curr
 export const builder = {
     yarn: {
         type: 'boolean',
-        desc: 'Install packages via yarn package manager.'
+        desc: 'Install packages via yarn package manager.',
+        default: false
     }
 }
 
@@ -47,7 +48,7 @@ export const runConfig = async function (useYarn, exit) {
     addServiceDeps(answers.services, packagesToInstall)
 
     console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
-    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !!useYarn })
+    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
 
     if (result.status !== 0) {
         throw new Error(result.stderr)
