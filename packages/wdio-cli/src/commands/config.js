@@ -60,7 +60,8 @@ export const runConfig = async function (useYarn, exit) {
         runner: answers.runner.short,
         framework: answers.framework.short,
         reporters: answers.reporters.map(({ short }) => short),
-        services: answers.services.map(({ short }) => short)
+        services: answers.services.map(({ short }) => short),
+        packagesToInstall,
     }
 
     renderConfigurationFile(parsedAnswers)
