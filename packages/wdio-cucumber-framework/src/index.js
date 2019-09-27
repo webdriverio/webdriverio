@@ -8,7 +8,7 @@ import CucumberReporter from './reporter'
 
 import { EventEmitter } from 'events'
 
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/config'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import { DEFAULT_OPTS } from './constants'
 import { getDataFromResult, setUserHookNames } from './utils'
 

@@ -2,7 +2,7 @@ import path from 'path'
 import Mocha from 'mocha'
 
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP } from './constants'

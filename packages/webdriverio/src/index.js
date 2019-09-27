@@ -1,7 +1,8 @@
 import path from 'path'
 import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
-import { validateConfig, wrapCommand, runFnInFiberContext, detectBackend } from '@wdio/config'
+import { validateConfig, detectBackend } from '@wdio/config'
+import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'

@@ -1,6 +1,7 @@
 import path from 'path'
 import logger from '@wdio/logger'
-import { detectBackend, runFnInFiberContext } from '@wdio/config'
+import { detectBackend } from '@wdio/config'
+import { runFnInFiberContext } from '@wdio/utils'
 
 import { remote, multiremote, attach } from '../src'
 
@@ -35,7 +36,6 @@ jest.mock('@wdio/config', () => {
     const validateConfigMock = {
         validateConfig: jest.fn().mockReturnValue({ automationProtocol: 'webdriver' }),
         detectBackend: jest.fn(),
-        runFnInFiberContext: jest.fn()
     }
     return validateConfigMock
 })

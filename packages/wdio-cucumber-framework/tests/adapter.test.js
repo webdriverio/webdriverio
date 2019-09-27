@@ -1,8 +1,8 @@
 import path from 'path'
 import mockery from 'mockery'
 import * as Cucumber from 'cucumber'
-import * as config from '@wdio/config'
-const { executeHooksWithArgs, testFnWrapper } = config
+import * as utils from '@wdio/utils'
+const { executeHooksWithArgs, testFnWrapper } = utils
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 

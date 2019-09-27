@@ -1,6 +1,6 @@
 import path from 'path'
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src'
 import { loadModule } from '../src/utils'

@@ -1,6 +1,5 @@
 import Fiber from './fibers'
 import logger from '@wdio/logger'
-import { isFunctionAsync } from '@wdio/utils'
 
 const log = logger('@wdio/sync')
 
@@ -25,7 +24,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
      * make sure args is an array since we are calling apply
      */
     if (!Array.isArray(args)) {
-        args = [args]
+        args = [args].filter((hook) => typeof hook === 'function')
     }
 
     hooks = hooks.map((hook) => new Promise((resolve) => {
@@ -53,7 +52,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
         /**
          * after command hooks require additional Fiber environment
          */
-        return isFunctionAsync(hook) ? execHook() : Fiber(execHook).run()
+        return hook.constructor.name === 'AsyncFunction' ? execHook() : Fiber(execHook).run()
     }))
 
     return Promise.all(hooks)

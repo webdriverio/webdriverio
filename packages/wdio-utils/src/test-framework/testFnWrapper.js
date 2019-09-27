@@ -1,4 +1,4 @@
-import { isFunctionAsync } from '@wdio/utils'
+import { isFunctionAsync } from '../utils'
 import { logHookError } from './errorHandler'
 import { executeHooksWithArgs, executeAsync, runSync } from '../shim'
 

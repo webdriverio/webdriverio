@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-const log = logger('@wdio/config')
+const log = logger('@wdio/utils:shim')
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args) {
     /**
@@ -14,7 +14,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args)
      * make sure args is an array since we are calling apply
      */
     if (!Array.isArray(args)) {
-        args = [args]
+        args = [args].filter((hook) => typeof hook === 'function')
     }
 
     hooks = hooks.map((hook) => new Promise((resolve) => {

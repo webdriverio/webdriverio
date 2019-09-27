@@ -1,5 +1,5 @@
 import Jasmine from 'jasmine'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
 
 import JasmineReporter from './reporter'
