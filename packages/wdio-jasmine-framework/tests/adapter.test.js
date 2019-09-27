@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src'
 
@@ -36,9 +36,15 @@ test('should properly set up jasmine', async () => {
     expect(runTestInFiberContext.mock.calls).toHaveLength(7)
     expect(executeHooksWithArgs.mock.calls).toHaveLength(2)
 
+    const hookArgsFn = runTestInFiberContext.mock.calls[0][2]
+    adapter.lastTest = { title: 'foo' }
+    expect(hookArgsFn('bar')).toEqual([{ title: 'foo' }, 'bar'])
+    delete adapter.lastTest
+    expect(hookArgsFn('bar')).toEqual([{}, 'bar'])
+
     expect(adapter.jrunner.env.beforeAll.mock.calls).toHaveLength(1)
-    expect(adapter.jrunner.env.beforeEach.mock.calls).toHaveLength(1)
-    expect(adapter.jrunner.env.afterEach.mock.calls).toHaveLength(1)
+    expect(adapter.jrunner.env.beforeEach.mock.calls).toHaveLength(0)
+    expect(adapter.jrunner.env.afterEach.mock.calls).toHaveLength(0)
     expect(adapter.jrunner.env.afterAll.mock.calls).toHaveLength(1)
 
     expect(adapter.jrunner.onComplete.mock.calls).toHaveLength(1)

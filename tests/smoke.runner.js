@@ -105,8 +105,17 @@ const customReporterObject = async () => {
     await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = fs.readFileSync(reporterLogsWithReporterAsObjectPath)
-    assert.equal(reporterLogsWithReporterAsObject, REPORTER_LOGS)
+    assert.equal(reporterLogsWithReporterAsObject.toString(), REPORTER_LOGS)
     fs.unlinkSync(reporterLogsWithReporterAsObjectPath)
+}
+
+/**
+ * wdio test run with before/after Test/Hook
+ */
+const wdioHooks = async () => {
+    await launch(
+        path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
+        { specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')] })
 }
 
 /**
@@ -195,6 +204,7 @@ const retryPass = async () => {
         multiremote,
         retryFail,
         retryPass,
+        wdioHooks,
     ]
 
     if (process.env.CI || testFilter) {

@@ -1,5 +1,4 @@
-import { webdriverMonad } from '@wdio/utils'
-import { wrapCommand, runFnInFiberContext } from '@wdio/config'
+import { webdriverMonad, wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../utils'

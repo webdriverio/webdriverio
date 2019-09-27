@@ -31,7 +31,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "5.13.2"
+    "@wdio/utils": "5.13.2"
   },
   "publishConfig": {
     "access": "public"

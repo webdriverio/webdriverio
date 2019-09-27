@@ -2,7 +2,7 @@ import path from 'path'
 import Mocha from 'mocha'
 
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP } from './constants'
@@ -65,8 +65,6 @@ class MochaAdapter {
                 this.runner.on(e, this.emit.bind(this, EVENTS[e])))
 
             this.runner.suite.beforeAll(this.wrapHook('beforeSuite'))
-            this.runner.suite.beforeEach(this.wrapHook('beforeTest'))
-            this.runner.suite.afterEach(this.wrapHook('afterTest'))
             this.runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
         await executeHooksWithArgs(this.config.after, [runtimeError || result, this.capabilities, this.specs])
@@ -97,14 +95,22 @@ class MochaAdapter {
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui)
         const type = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 
+        const hookArgsFn = (context) => {
+            return [{ ...context.test, parent: context.test.parent.title }, context]
+        }
+
         INTERFACES[type].forEach((fnName) => {
             let testCommand = INTERFACES[type][0]
+            const isTest = [testCommand, testCommand + '.only'].includes(fnName)
 
             runTestInFiberContext(
-                [testCommand, testCommand + '.only'],
-                this.config.beforeHook,
-                this.config.afterHook,
-                fnName
+                isTest,
+                isTest ? this.config.beforeTest : this.config.beforeHook,
+                hookArgsFn,
+                isTest ? this.config.afterTest : this.config.afterHook,
+                hookArgsFn,
+                fnName,
+                this.cid
             )
         })
         this.options(options, { context, file, mocha, options })

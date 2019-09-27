@@ -254,7 +254,7 @@ Example:
 // wdio.conf.js
 exports.config = {
     // ...
-    afterTest: (test) => {
+    afterTest: (test, context, { error, result, duration, passed }) => {
         console.log(`Finished test "${test.parent} - ${test.title}"`)
     }
     // ...
