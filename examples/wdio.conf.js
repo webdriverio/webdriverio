@@ -317,7 +317,7 @@ exports.config = {
     },
     beforeStep: function (uri, feature) {
     },
-    afterStep: function (uri, feature, { error, result }) {
+    afterStep: function (uri, feature, { error, result, duration, passed }) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },

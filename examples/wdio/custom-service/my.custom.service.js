@@ -20,13 +20,13 @@ module.exports = class CustomService {
         console.log('execute beforeSuite(suite)')
     }
     beforeHook () {
-        console.log('execute beforeHook()')
+        console.log('execute beforeHook(test, context)')
     }
     afterHook () {
-        console.log('execute afterHook()')
+        console.log('execute afterHook(test, context, { error, result, duration, passed })')
     }
     beforeTest () {
-        console.log('execute beforeTest(test)')
+        console.log('execute beforeTest(test, context)')
     }
     beforeCommand () {
         console.log('execute beforeCommand(commandName, args)')
@@ -35,7 +35,7 @@ module.exports = class CustomService {
         console.log('execute afterCommand(commandName, args, result, error)')
     }
     afterTest () {
-        console.log('execute afterTest(test)')
+        console.log('execute afterTest(test, context, { error, result, duration, passed })')
     }
     afterSuite () {
         console.log('execute afterSuite(suite)')
@@ -62,7 +62,7 @@ module.exports = class CustomService {
         console.log('execute beforeStep(uri, feature)')
     }
     afterStep () {
-        console.log('execute afterStep(uri, feature, { error, result })')
+        console.log('execute afterStep(uri, feature, { error, result, duration, passed })')
     }
     afterScenario () {
         console.log('execute afterScenario(uri, feature, scenario, result, sourceLocation)')
