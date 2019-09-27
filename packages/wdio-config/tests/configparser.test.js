@@ -178,6 +178,15 @@ describe('ConfigParser', () => {
             expect(() => configParser.merge({ exclude: [path.resolve(__dirname, 'foobar.js')] })).toThrow()
         })
 
+        it('should allow specifying a glob pattern for exclude', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
+            configParser.merge({ exclude: [path.resolve(__dirname) + '/*'] })
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(2)
+        })
+
         it('should overwrite exclude if piped into cli command', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
