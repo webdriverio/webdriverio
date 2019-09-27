@@ -32,7 +32,7 @@ const { x, y, width, height } = browser.getWindowRect()
 const { foo, bar } = browser.takeHeapSnapshot()
 
 // browser command return mapped object value
-const { x: x0, y: y0, width: w, height: h } =  browser.getWindowSize()
+const { x: x0, y: y0, width: w, height: h } = browser.getWindowSize()
 
 // browser custom command
 browser.browserCustomCommand(5)
@@ -73,6 +73,22 @@ const reactElement = reactWrapper.react$('')
 reactElement.click()
 const reactElements = reactWrapper.react$$('')
 reactElements[0].click()
+
+
+// touchAction
+const ele = $('')
+const touchAction: WebdriverIO.TouchAction = {
+    action: "longPress",
+    element: $(''),
+    ms: 0,
+    x: 0,
+    y: 0
+}
+ele.touchAction(touchAction)
+browser.touchAction(touchAction)
+
+// dragAndDrop
+ele.dragAndDrop(ele, 0)
 
 // selenium-standalone-service
 const config: WebdriverIO.Config = {

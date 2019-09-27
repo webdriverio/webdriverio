@@ -48,6 +48,10 @@ type BrowserAsync = {
 
 // Browser commands that should not be wrapper with promise
 type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options'>;
+
+// Properties of TouchAction which are similar in sync and async mode
+type TouchActionSync = Omit<WebdriverIO.TouchAction, 'element'>
+
 declare namespace WebdriverIOAsync {
     function remote(
         options?: WebdriverIO.RemoteOptions,
@@ -61,7 +65,10 @@ declare namespace WebdriverIOAsync {
     function multiremote(
         options: WebdriverIO.MultiRemoteOptions
     ): BrowserObject;
-    type TouchActions = string | WebdriverIO.TouchAction<Element> | WebdriverIO.TouchAction<Element>[];
+    interface TouchAction extends TouchActionSync {
+        element?: Element
+    }
+    type TouchActions = string | TouchAction | TouchAction[];
     interface Browser extends BrowserAsync, BrowserStatic {
         waitUntil(
             condition: () => Promise<boolean>,
