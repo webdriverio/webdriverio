@@ -1,15 +1,6 @@
 import CrossBrowserTestingLauncher from '../src/launcher'
 import cbtTunnels from 'cbt_tunnels'
 
-/**
- * remove `beforeAll` and `tests/__mocks__/pac-resolver.js` file once issue is fixed
- */
-beforeAll(() => {
-    if (!global.PAC_RESOLVER_MOCK) {
-        throw new Error('https://github.com/crossbrowsertesting/cbt-tunnel-nodejs/issues/25 has been fixed!')
-    }
-})
-
 describe('wdio-crossbrowsertesting-service', () => {
     const cbtLauncher = new CrossBrowserTestingLauncher({})
     const error = new Error('Error!')
