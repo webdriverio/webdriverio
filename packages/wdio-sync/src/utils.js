@@ -43,11 +43,3 @@ export function sanitizeErrorMessage (commandError, savedError) {
 
     return err
 }
-
-/**
- * filter out arguments passed to specFn & hookFn, don't allow callbacks
- * as there is no need for user to call e.g. `done()`
- */
-export function filterSpecArgs (args) {
-    return args.filter((arg) => typeof arg !== 'function')
-}

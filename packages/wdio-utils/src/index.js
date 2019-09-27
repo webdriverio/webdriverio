@@ -5,6 +5,11 @@ import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
     isFunctionAsync
 } from './utils'
+import {
+    wrapCommand, runFnInFiberContext, executeHooksWithArgs,
+    hasWdioSyncSupport, executeSync, executeAsync,
+} from './shim'
+import { testFnWrapper, runTestInFiberContext } from './test-framework'
 
 export {
     initialisePlugin,
@@ -14,5 +19,17 @@ export {
     commandCallStructure,
     isValidParameter,
     getArgumentType,
-    safeRequire
+    safeRequire,
+
+    /**
+     * wdio-sync shim
+     */
+    wrapCommand,
+    executeSync,
+    executeAsync,
+    runFnInFiberContext,
+    runTestInFiberContext,
+    testFnWrapper,
+    executeHooksWithArgs,
+    hasWdioSyncSupport
 }
