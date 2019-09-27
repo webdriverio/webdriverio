@@ -74,7 +74,6 @@ reactElement.click()
 const reactElements = reactWrapper.react$$('')
 reactElements[0].click()
 
-
 // touchAction
 const ele = $('')
 const touchAction: WebdriverIO.TouchAction = {

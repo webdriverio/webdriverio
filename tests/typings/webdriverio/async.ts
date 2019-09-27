@@ -113,13 +113,11 @@ async function bar() {
         x: 0,
         y: 0
     }
-    ele.touchAction(touchAction)
-    browser.touchAction(touchAction)
+    await ele.touchAction(touchAction)
+    await browser.touchAction(touchAction)
     
     // dragAndDrop
-    ele.dragAndDrop(ele, 0)
-
-
+    await ele.dragAndDrop(ele, 0)
 }
 
 // selenium-standalone-service
@@ -130,6 +128,5 @@ const config: WebdriverIOAsync.Config = {
 
 // allure-reporter
 allure.addFeature('')
-
 
 export default {}
