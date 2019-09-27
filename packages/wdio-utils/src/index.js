@@ -2,7 +2,8 @@ import initialisePlugin from './initialisePlugin'
 import initialiseServices from './initialiseServices'
 import webdriverMonad from './monad'
 import {
-    commandCallStructure, isValidParameter, getArgumentType, safeRequire
+    commandCallStructure, isValidParameter, getArgumentType, safeRequire,
+    isFunctionAsync
 } from './utils'
 import {
     wrapCommand, runFnInFiberContext, executeHooksWithArgs,
@@ -13,6 +14,7 @@ import { testFnWrapper, runTestInFiberContext } from './test-framework'
 export {
     initialisePlugin,
     initialiseServices,
+    isFunctionAsync,
     webdriverMonad,
     commandCallStructure,
     isValidParameter,

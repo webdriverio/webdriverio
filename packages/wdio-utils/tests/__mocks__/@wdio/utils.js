@@ -1,4 +1,5 @@
 import {
+    isFunctionAsync as isFnAsync,
     getArgumentType as getArgumentTypeOrig,
     isValidParameter as isValidParameterOrig,
     commandCallStructure as commandCallStructureOrig
@@ -45,6 +46,7 @@ export const initialisePlugin = jest.fn().mockImplementation(
 export const initialiseServices = jest.fn().mockReturnValue([])
 export const isValidParameter = isValidParameterOrig
 export const commandCallStructure = commandCallStructureOrig
+export const isFunctionAsync = isFnAsync
 export const safeRequire = jest.fn().mockReturnValue(() => {})
 export const webdriverMonad = webdriverMonadOrig
 export const getArgumentType = getArgumentTypeOrig
