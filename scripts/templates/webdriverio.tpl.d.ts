@@ -106,7 +106,7 @@ declare namespace WebdriverIO {
             args: any[]
         ): void;
 
-        beforeHook?(): void;
+        beforeHook?(test: any, context: any): void;
 
         beforeSession?(
             config: Config,
@@ -115,8 +115,8 @@ declare namespace WebdriverIO {
         ): void;
 
         beforeSuite?(suite: Suite): void;
-        beforeTest?(test: Test): void;
-        afterHook?(): void;
+        beforeTest?(test: Test, context: any): void;
+        afterHook?(test: any, context: any, result: { error?: any, result?: any, passed: boolean, duration: number }): void;
 
         after?(
             result: number,
@@ -138,7 +138,7 @@ declare namespace WebdriverIO {
         ): void;
 
         afterSuite?(suite: Suite): void;
-        afterTest?(test: Test): void;
+        afterTest?(test: Test, context: any, result: { error?: any, result?: any, passed: boolean, duration: number }): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;

@@ -234,19 +234,18 @@ exports.config = {
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha)
      */
-    beforeHook: function () {
+    beforeHook: function (test, context) {
     },
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha)
      */
-    afterHook: function () {
+    afterHook: function (test, context, { error, result, duration, passed }) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
-    beforeTest: function (test) {
+    beforeTest: function (test, context) {
     },
     //
     /**
@@ -266,10 +265,9 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-     * @param {Object} test test details
+     * Function to be executed after a test (in Mocha/Jasmine) ends.
      */
-    afterTest: function (test) {
+    afterTest: function (test, context, { error, result, duration, passed }) {
     },
     /**
      * Hook that gets executed after the suite has ended
@@ -319,7 +317,7 @@ exports.config = {
     },
     beforeStep: function (uri, feature) {
     },
-    afterStep: function (uri, feature, { error, result }) {
+    afterStep: function (uri, feature, { error, result, duration, passed }) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },

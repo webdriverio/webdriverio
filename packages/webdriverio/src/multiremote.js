@@ -1,7 +1,6 @@
 import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
-import { webdriverMonad } from '@wdio/utils'
-import { wrapCommand } from '@wdio/config'
+import { webdriverMonad, wrapCommand } from '@wdio/utils'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'

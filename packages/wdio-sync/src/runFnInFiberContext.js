@@ -7,6 +7,8 @@ import Fiber from './fibers'
  */
 export default function runFnInFiberContext (fn) {
     return function (...args) {
+        delete global.browser._NOT_FIBER
+
         return new Promise((resolve, reject) => Fiber(() => {
             try {
                 global._HAS_FIBER_CONTEXT = true

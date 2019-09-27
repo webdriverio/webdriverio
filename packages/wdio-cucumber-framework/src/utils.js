@@ -1,5 +1,4 @@
 import * as path from 'path'
-import { executeHooksWithArgs, runFnInFiberContext } from '@wdio/config'
 import { isFunctionAsync } from '@wdio/utils'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 
@@ -190,69 +189,5 @@ export function setUserHookNames (options) {
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
             }
         })
-    })
-}
-
-/**
- * returns a function that calls first before hook, then user step/hook and finally after hook (even if step has failed)
- * @param {string}      type    Step or Hook
- * @param {Function}    code    step function
- * @param {Function}    before  before hook function
- * @param {Function}    after   after hook function
- * @param {string}      cid     cid
- */
-export function wrapWithHooks (type, code, before, after, cid) {
-    const userFn = async function (...args) {
-        const { uri, feature } = getDataFromResult(global.result)
-
-        // before hook
-        notifyStepHookError(`Before${type}`, await executeHooksWithArgs(before, [uri, feature]), cid)
-
-        // step
-        let result
-        let error
-        try {
-            result = await runFnInFiberContext(code.bind(this, ...args))()
-        } catch (err) {
-            error = err
-        }
-
-        // after
-        notifyStepHookError(`After${type}`, await executeHooksWithArgs(after, [uri, feature, { error, result }]), cid)
-
-        if (error) {
-            throw error
-        }
-        return result
-    }
-    return userFn
-}
-
-/**
- * notify `WDIOCLInterface` about failure in hook
- * we need to do it this way because `beforeStep` and `afterStep` are not real hooks.
- * Otherwise hooks failure are lost.
- * @param {string}  hookName    name of the hook
- * @param {Array}   hookResults hook functions results array
- * @param {string}  cid         cid
- */
-export function notifyStepHookError (hookName, hookResults = [], cid) {
-    const result = hookResults.find(result => result instanceof Error)
-    if (typeof result === 'undefined') {
-        return
-    }
-    const content = formatMessage({
-        payload: {
-            cid: cid,
-            error: result,
-            fullTitle: `${hookName} Hook`,
-            type: 'hook',
-            state: 'fail'
-        }
-    })
-    process.send({
-        origin: 'reporter',
-        name: 'printFailureMessage',
-        content
     })
 }

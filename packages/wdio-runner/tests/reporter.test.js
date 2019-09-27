@@ -177,7 +177,7 @@ describe('BaseReporter', () => {
         setTimeout(() => (reporter.reporters[0].inSync = true), 100)
         setTimeout(() => (reporter.reporters[1].inSync = true), 200)
         await reporter.waitForSync()
-        expect(Date.now() - start).toBeGreaterThanOrEqual(200)
+        expect(Date.now() - start).toBeGreaterThanOrEqual(199)
     })
 
     it('it should fail if waitForSync times out', async () => {

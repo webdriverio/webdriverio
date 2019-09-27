@@ -83,41 +83,6 @@ describe('wrapCommand:runCommand', () => {
         expect(context._hidden_changes_).toEqual([false, false])
     })
 
-    it('should set _NOT_FIBER to false for debug function', async () => {
-        Future.prototype.wait = () => {}
-        const debug = () => {}
-        const runCommand = wrapCommand('foo', debug)
-
-        const context = {
-            options: {}, elementId: 'foo', _hidden_: null, _hidden_changes_: [],
-            get _NOT_FIBER () { return this._hidden_ },
-            set _NOT_FIBER (val) {
-                this._hidden_changes_.push(val)
-                this._hidden_ = val
-            }
-        }
-
-        await runCommand.call(context)
-        expect(context._hidden_changes_).toEqual([false, false])
-    })
-
-    it('should set _NOT_FIBER to false for waitUntil command', async () => {
-        Future.prototype.wait = () => {}
-        const runCommand = wrapCommand('waitUntil', jest.fn())
-
-        const context = {
-            options: {}, elementId: 'foo', _hidden_: null, _hidden_changes_: [],
-            get _NOT_FIBER () { return this._hidden_ },
-            set _NOT_FIBER (val) {
-                this._hidden_changes_.push(val)
-                this._hidden_ = val
-            }
-        }
-
-        await runCommand.call(context)
-        expect(context._hidden_changes_).toEqual([false, false])
-    })
-
     it('should set _NOT_FIBER to multiremote instance', async () => {
         Future.prototype.wait = () => {}
         const runCommand = wrapCommand('waitUntil', jest.fn())

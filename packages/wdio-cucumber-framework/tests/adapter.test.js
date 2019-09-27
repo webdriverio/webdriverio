@@ -1,8 +1,8 @@
 import path from 'path'
 import mockery from 'mockery'
 import * as Cucumber from 'cucumber'
-import * as config from '@wdio/config'
-const { executeHooksWithArgs, runFnInFiberContext, executeAsync, executeSync } = config
+import * as utils from '@wdio/utils'
+const { executeHooksWithArgs, testFnWrapper } = utils
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 
@@ -25,7 +25,13 @@ const wdioReporter = {
 
 const adapterFactory = (cucumberOpts = {}) => new CucumberAdapter(
     '0-2',
-    { cucumberOpts },
+    {
+        cucumberOpts,
+        beforeStep: 'beforeStep',
+        afterStep: 'afterStep',
+        beforeHook: 'beforeHook',
+        afterHook: 'afterHook'
+    },
     ['/foo/bar.feature'],
     { browserName: 'chrome' },
     wdioReporter
@@ -167,49 +173,47 @@ describe('wrapSteps', () => {
 })
 
 describe('wrapStep', () => {
-    test('should use sync if hasWdioSyncSupport is true', () => {
-        config.hasWdioSyncSupport = true
+    const fnWrapperArgs = (type, retries) => [
+        type, {
+            specFn: 'specFn',
+            specFnArgs: [1, 2]
+        }, {
+            beforeFn: `before${type}`,
+            beforeFnArgs: expect.any(Function)
+        }, {
+            afterFn: `after${type}`,
+            afterFnArgs: expect.any(Function)
+        },
+        'cid',
+        retries
+    ]
+
+    test('should be proper type for Step', () => {
         const adapter = adapterFactory()
 
-        const fn = adapter.wrapStep('some code', 123, true, adapter.config)
-        expect(typeof fn).toBe('function')
+        const fn = adapter.wrapStep('specFn', 3, true, adapter.config, 'cid')
+        fn(1, 2)
 
-        fn(1, 2, 3)
-        expect(executeSync).toBeCalledWith(expect.any(Function), 123, [1, 2, 3])
+        expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Step', 3))
+
+        const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
+        expect(beforeFnArgs()).toEqual(['uri', 'feature'])
+        const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
+        expect(afterFnArgs()).toEqual(['uri', 'feature'])
     })
 
-    test('should set proper default arguments', () => {
-        config.hasWdioSyncSupport = true
+    test('should be proper type for Hook', () => {
         const adapter = adapterFactory()
 
-        const fn = adapter.wrapStep('fn', undefined, undefined, {})
-        expect(typeof fn).toBe('function')
+        const fn = adapter.wrapStep('specFn', undefined, false, adapter.config, 'cid')
+        fn(1, 2)
 
-        fn(1, 2, 3)
-        expect(executeSync).toBeCalledWith(expect.any(Function), 0, [1, 2, 3])
-    })
+        expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Hook', 0))
 
-    test('should use async if function name is sync', () => {
-        config.hasWdioSyncSupport = true
-        const adapter = adapterFactory()
-
-        const code = function async () { }
-        const fn = adapter.wrapStep(code, 123, undefined, {})
-        expect(typeof fn).toBe('function')
-
-        fn(1, 2, 3)
-        expect(executeAsync).toBeCalledWith(expect.any(Function), 123, [1, 2, 3])
-    })
-
-    test('should use async hasWdioSyncSupport is false and set proper default arguments', () => {
-        config.hasWdioSyncSupport = false
-        const adapter = adapterFactory()
-
-        const fn = adapter.wrapStep('fn', undefined, undefined, {})
-        expect(typeof fn).toBe('function')
-
-        fn(1, 2, 3)
-        expect(executeAsync).toBeCalledWith(expect.any(Function), 0, [1, 2, 3])
+        const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
+        expect(beforeFnArgs()).toEqual(['uri', 'feature'])
+        const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
+        expect(afterFnArgs()).toEqual(['uri', 'feature'])
     })
 })
 
@@ -255,7 +259,7 @@ afterEach(() => {
     Cucumber.supportCodeLibraryBuilder.reset.mockReset()
     Cucumber.setDefaultTimeout.mockReset()
     executeHooksWithArgs.mockClear()
-    runFnInFiberContext.mockClear()
+    testFnWrapper.mockClear()
     mockery.enable.mockClear()
     mockery.registerMock.mockClear()
     mockery.disable.mockClear()

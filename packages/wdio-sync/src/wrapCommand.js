@@ -35,9 +35,8 @@ export default function wrapCommand (commandName, fn) {
         }
         /**
          * all named nested functions run in parent Fiber context
-         * except of debug and waitUntil
          */
-        this._NOT_FIBER = fn.name !== '' && fn.name !== 'debug' && commandName !== 'waitUntil'
+        this._NOT_FIBER = fn.name !== ''
 
         const future = new Future()
 
