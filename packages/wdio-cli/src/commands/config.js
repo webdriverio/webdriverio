@@ -76,7 +76,6 @@ export const runConfig = async function (useYarn, exit) {
 
 export async function handler(argv) {
     try {
-        console.log('-->', argv.yarn)
         await runConfig(argv.yarn)
     } catch (error) {
         throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
