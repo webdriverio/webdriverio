@@ -63,10 +63,15 @@ class CucumberReporter {
     handleAfterStep (uri, feature, scenario, step, result, /*sourceLocation*/) {
         const type = getStepType(step.type)
 
+        let stepData = { uri, feature, scenario, step }
         if (type === 'hook') {
-            return this.afterHook(uri, feature, scenario, step, result)
+            if (!this.eventListener.isStepRunning) {
+                return this.afterHook(uri, feature, scenario, step, result)
+            }
+            stepData = this.eventListener.getCurrentStep()
         }
-        return this.afterTest(uri, feature, scenario, step, result)
+
+        return this.afterTest(stepData.uri, stepData.feature, stepData.scenario, stepData.step, result)
     }
 
     afterHook (uri, feature, scenario, step, result) {

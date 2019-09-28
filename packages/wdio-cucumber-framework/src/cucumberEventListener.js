@@ -7,6 +7,7 @@ export default class CucumberEventListener extends EventEmitter {
     acceptedPickles = []
     currentPickle = null
     currentStep = null
+    isStepRunning = false
     testCasePreparedEvents = []
 
     constructor (eventBroadcaster) {
@@ -109,6 +110,7 @@ export default class CucumberEventListener extends EventEmitter {
 
         if (step.type === 'Step') {
             this.currentStep = { uri, feature, scenario, step, sourceLocation }
+            this.isStepRunning = true
         }
 
         this.emit('before-step', uri, feature, scenario, step, sourceLocation)
@@ -172,6 +174,10 @@ export default class CucumberEventListener extends EventEmitter {
         const result = testStepFinishedEvent.result
 
         this.emit('after-step', uri, feature, scenario, step, result, sourceLocation)
+
+        if (this.isStepRunning === true && result.status !== 'passed') {
+            this.isStepRunning = false
+        }
     }
 
     // testCaseFinishedEvent = {
@@ -190,6 +196,7 @@ export default class CucumberEventListener extends EventEmitter {
 
         this.currentPickle = null
         this.currentStep = null
+        this.isStepRunning = false
     }
 
     // testRunFinishedEvent = {
