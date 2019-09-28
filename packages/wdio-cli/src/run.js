@@ -26,7 +26,7 @@ export default function run (params) {
      * run the setup
      */
     if (!wdioConf || firstArgument === 'config') {
-        return setup()
+        return setup(params)
     }
 
     /**

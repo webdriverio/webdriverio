@@ -155,6 +155,11 @@ export const CLI_PARAMS = [{
 }, {
     name: 'cucumberOpts',
     description: 'Cucumber options'
+}, {
+    name: 'yes',
+    alias: 'y',
+    description: 'automatically use default config values',
+    type: 'boolean'
 }]
 
 /* istanbul ignore next */

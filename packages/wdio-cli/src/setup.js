@@ -9,10 +9,24 @@ import { CONFIG_HELPER_INTRO, CONFIG_HELPER_SUCCESS_MESSAGE, QUESTIONNAIRE } fro
 import { getNpmPackageName, getPackageName, addServiceDeps } from './utils'
 
 /* istanbul ignore next */
-export default async function setup (exit = true) {
+export default async function setup (params, exit = true) {
     try {
+        var answers
         console.log(CONFIG_HELPER_INTRO)
-        const answers = await inquirer.prompt(QUESTIONNAIRE)
+        if (params.yes) {
+            QUESTIONNAIRE.forEach((question) => {
+                answers = answers || {}
+                if (question.when && !question.when(answers)) return
+
+                if (question.default)
+                    answers[question.name] = question.default
+                else if (question.choices && question.choices.length)
+                    answers[question.name] = question.choices[0]
+            })
+        } else {
+            answers = await inquirer.prompt(QUESTIONNAIRE)
+        }
+
         const packagesToInstall = [
             getNpmPackageName(answers.runner),
             getNpmPackageName(answers.framework),
