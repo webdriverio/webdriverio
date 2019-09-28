@@ -155,6 +155,20 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
         }
         combinedSteps = combinedSteps.concat(child.steps)
     })
+
+    /**
+     * `wdioHookBeforeScenario` should be the first item
+     * otherwise it is swapped with `Background` step(s).
+     * Example:
+     * from: [background step, wdioHookBeforeScenario, userHook, step, userHook, wdioHookAfterScenario]
+     * to:   [wdioHookBeforeScenario, background step, userHook, step, userHook, wdioHookAfterScenario]
+     */
+    const wdioHooks = combinedSteps.filter(step => step.type === 'Hook' && step.location.uri && step.location.uri.includes('@wdio/cucumber-framework'))
+    const idx = combinedSteps.indexOf(wdioHooks[0])
+    if (wdioHooks.length === 2 && idx > 0) {
+        combinedSteps = [wdioHooks[0], ...combinedSteps.slice(0, idx), ...combinedSteps.slice(idx + 1)]
+    }
+
     const targetStep = combinedSteps[stepIndex]
 
     if (targetStep.type === 'Step') {
