@@ -12,6 +12,8 @@ type ElementPromise = Omit<WebdriverIO.Element,
     | 'elementId'
     | 'element-6066-11e4-a52e-4f735466cecf'
     | 'ELEMENT'
+    | 'dragAndDrop'
+    | 'touchAction'
 >;
 
 // Methods which return async element(s) so non-async equivalents cannot just be promise-wrapped
@@ -36,7 +38,7 @@ type ElementStatic = Pick<WebdriverIO.Element,
 >;
 
 // Browser commands that should be wrapper with Promise
-type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$'>;
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$' | 'touchAction'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
@@ -46,6 +48,10 @@ type BrowserAsync = {
 
 // Browser commands that should not be wrapper with promise
 type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options'>;
+
+// Properties of TouchAction which are similar in sync and async mode
+type TouchActionSync = Omit<WebdriverIO.TouchAction, 'element'>
+
 declare namespace WebdriverIOAsync {
     function remote(
         options?: WebdriverIO.RemoteOptions,
@@ -59,7 +65,10 @@ declare namespace WebdriverIOAsync {
     function multiremote(
         options: WebdriverIO.MultiRemoteOptions
     ): BrowserObject;
-
+    interface TouchAction extends TouchActionSync {
+        element?: Element
+    }
+    type TouchActions = string | TouchAction | TouchAction[];
     interface Browser extends BrowserAsync, BrowserStatic {
         waitUntil(
             condition: () => Promise<boolean>,
@@ -78,12 +87,16 @@ declare namespace WebdriverIOAsync {
         // https://github.com/Microsoft/TypeScript/issues/1360
         // executeAsync: <T>(script: string | ((...arguments: any[], callback: (result: T) => void) => void), ...arguments: any[]) => Promise<T>;
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
+        touchAction(action: TouchActions): Promise<void>;
     }
 
-    interface Element extends ElementAsync, ElementStatic { }
+    interface Element extends ElementAsync, ElementStatic {
+        dragAndDrop(target: Element, duration?: number): Promise<void>;
+        touchAction(action: TouchActions): Promise<void>;
+    }
     interface Config { }
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser {}
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser { }
 }
 
 declare var browser: WebdriverIOAsync.BrowserObject;
