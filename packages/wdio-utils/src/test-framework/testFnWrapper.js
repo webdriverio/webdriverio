@@ -58,28 +58,55 @@ export const testFrameworkFnWrapper = async function (
     }
     const duration = Date.now() - testStart
 
-    /**
-     * avoid breaking signature changes for existing mocha and jasmine users
-     */
-    const afterArgs = afterFnArgs(this)
-    if (afterArgs[0] && typeof afterArgs[0] === 'object') {
-        afterArgs[0] = {
-            ...afterArgs[0],
-            error,
-            duration,
-            passed: !error,
-        }
-    }
-
-    await logHookError(`After${type}`, await executeHooksWithArgs(afterFn, [...afterArgs, {
+    let afterArgs = afterFnArgs(this)
+    afterArgs.push({
         error,
         result,
         duration,
         passed: !error
-    }]), cid)
+    })
+
+    /**
+     * avoid breaking changes in hook function signatures
+     */
+    afterArgs = mochaJasmineCompatibility(afterArgs, error, duration)
+    afterArgs = cucumberCompatibility(afterArgs)
+
+    await logHookError(`After${type}`, await executeHooksWithArgs(afterFn, [...afterArgs]), cid)
 
     if (error) {
         throw error
     }
     return result
+}
+
+/**
+ * avoid breaking signature changes for existing mocha and jasmine users
+ * @param {Array} afterArgs args array
+ * @param {Error|undefined} error error
+ * @param {number} duration duration
+ */
+const mochaJasmineCompatibility = (afterArgs, error, duration) => {
+    let args = afterArgs
+    if (afterArgs.length === 3 && afterArgs[0] && typeof afterArgs[0] === 'object') {
+        args = [{
+            ...afterArgs[0],
+            error,
+            duration,
+            passed: !error,
+        }, ...afterArgs.slice(1)]
+    }
+    return args
+}
+
+/**
+ * avoid breaking signature changes for existing cucumber users
+ * @param {Array} afterArgs args array
+ */
+const cucumberCompatibility = (afterArgs) => {
+    let args = afterArgs
+    if (afterArgs.length === 5) {
+        args = [...afterArgs.slice(0, 2), afterArgs[4], ...afterArgs.slice(2, 4)]
+    }
+    return args
 }

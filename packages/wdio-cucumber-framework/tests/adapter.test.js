@@ -143,14 +143,14 @@ describe('wrapSteps', () => {
         const wrappedFunction = jest.fn()
 
         functionWrapper(wrappedFunction)
-        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, true, adapter.config, '0-2')
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, true, adapter.config, '0-2', expect.any(Function))
     })
 
     test('should use passed arguments', () => {
         const wrappedFunction = jest.fn()
 
         functionWrapper(wrappedFunction, { retry: 123 })
-        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 123, true, adapter.config, '0-2')
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 123, true, adapter.config, '0-2', expect.any(Function))
     })
 
     test('should not wrap wdio hooks', () => {
@@ -164,7 +164,7 @@ describe('wrapSteps', () => {
         const userHookFn = () => { }
 
         functionWrapper(userHookFn)
-        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, false, adapter.config, '0-2')
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, false, adapter.config, '0-2', expect.any(Function))
     })
 
     afterEach(() => {
@@ -191,29 +191,29 @@ describe('wrapStep', () => {
     test('should be proper type for Step', () => {
         const adapter = adapterFactory()
 
-        const fn = adapter.wrapStep('specFn', 3, true, adapter.config, 'cid')
+        const fn = adapter.wrapStep('specFn', 3, true, adapter.config, 'cid', jest.fn().mockImplementation(() => 'getCurrentStep'))
         fn(1, 2)
 
         expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Step', 3))
 
         const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
-        expect(beforeFnArgs()).toEqual(['uri', 'feature'])
+        expect(beforeFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
         const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
-        expect(afterFnArgs()).toEqual(['uri', 'feature'])
+        expect(afterFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
     })
 
     test('should be proper type for Hook', () => {
         const adapter = adapterFactory()
 
-        const fn = adapter.wrapStep('specFn', undefined, false, adapter.config, 'cid')
+        const fn = adapter.wrapStep('specFn', undefined, false, adapter.config, 'cid', jest.fn().mockImplementation(() => 'getCurrentStep'))
         fn(1, 2)
 
         expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Hook', 0))
 
         const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
-        expect(beforeFnArgs()).toEqual(['uri', 'feature'])
+        expect(beforeFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
         const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
-        expect(afterFnArgs()).toEqual(['uri', 'feature'])
+        expect(afterFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
     })
 })
 

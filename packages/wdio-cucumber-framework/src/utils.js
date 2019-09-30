@@ -149,12 +149,22 @@ export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
 
 export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
     let combinedSteps = []
-    feature.children.forEach((child) => {
-        if (child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)) {
-            return
-        }
-        combinedSteps = combinedSteps.concat(child.steps)
-    })
+    const background = feature.children.find((child) => child.type === 'Background')
+    feature.children
+        .filter((child) => child.type !== 'Background' && !(child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)))
+        .forEach((child) => { combinedSteps = combinedSteps.concat(child.steps) })
+
+    /**
+     * all the hooks are executed before `Background` step(s).
+     * Example:
+     * from: [Background steps, wdioHookBeforeScenario, userHooks, steps, userHooks, wdioHookAfterScenario]
+     * to:   [wdioHookBeforeScenario, userHooks, Background steps, steps, userHooks, wdioHookAfterScenario]
+     */
+    const firstStepIdx = combinedSteps.indexOf(combinedSteps.find((step) => step.type === 'Step'))
+    if (background) {
+        combinedSteps = [...combinedSteps.slice(0, firstStepIdx), ...background.steps, ...combinedSteps.slice(firstStepIdx)]
+    }
+
     const targetStep = combinedSteps[stepIndex]
 
     if (targetStep.type === 'Step') {

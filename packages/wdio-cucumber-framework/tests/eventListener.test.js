@@ -108,3 +108,13 @@ test('onTestCaseFinished', () => {
     expect(spy).toHaveBeenCalledTimes(1)
     expect(spy).toHaveBeenCalledWith(uri, feature, scenario, result, sourceLocation)
 })
+
+test('getCurrentStep', () => {
+    const eventBroadcaster = new EventEmitter()
+    const listener = new CucumberEventListener(eventBroadcaster)
+
+    expect(listener.getCurrentStep()).toBeNull()
+
+    listener.currentStep = 'foobar'
+    expect(listener.getCurrentStep()).toBe('foobar')
+})
