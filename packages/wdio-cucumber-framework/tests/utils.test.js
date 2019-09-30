@@ -91,7 +91,123 @@ describe('utils', () => {
 
     describe('getStepFromFeature', () => {
         it('should be ok if targetStep.type is not Step', () => {
-            getStepFromFeature({ children: [{ type: 'Foo', steps: [{ type: 'Bar' }] }] }, null, 0)
+            expect(getStepFromFeature({ children: [{ type: 'Foo', steps: [{ type: 'Bar' }] }] }, null, 0))
+                .toEqual({ type: 'Bar' })
+        })
+
+        it('should move wdioHookBeforeScenario to the beginning', () => {
+            const scenario1Line = 21
+            const wdioHookBeforeScenario = {
+                'type': 'Hook',
+                'location': {
+                    'uri': 'node_modules/@wdio/cucumber-framework/build/index.js',
+                    line: 141
+                },
+            }
+            const wdioHookAfterScenario = {
+                'type': 'Hook',
+                'location': {
+                    'uri': 'node_modules/@wdio/cucumber-framework/build/index.js',
+                    line: 151
+                },
+            }
+            const userBeforeHook = {
+                'type': 'Hook',
+                'location': {
+                    'uri': 'test/step-definitions/given.ts',
+                    line: 1
+                },
+            }
+            const userAfterHook = {
+                'type': 'Hook',
+                'location': {
+                    'uri': 'test/step-definitions/given.ts',
+                    line: 2
+                },
+            }
+            const pickle = {
+                steps: [
+                    {
+                        'type': 'Step',
+                        text: 'step12',
+                        'locations': [{ line: 12 }],
+                    },
+                    {
+                        'type': 'Step',
+                        text: 'step13',
+                        'locations': [{ line: 13 }],
+                    },
+                    {
+                        'type': 'Step',
+                        text: 'step22',
+                        'locations': [{ line: 22 }],
+                    },
+                    {
+                        'type': 'Step',
+                        text: 'step23',
+                        'locations': [{ line: 23 }],
+                    },
+                ]
+            }
+            const children = [
+                {
+                    'type': 'Background',
+                    'location': { line: 11 },
+                    'steps': [
+                        {
+                            'type': 'Step',
+                            'location': { line: 12 },
+                        },
+                        {
+                            'type': 'Step',
+                            'location': { line: 13 },
+                        }
+                    ]
+                },
+                {
+                    'type': 'Scenario',
+                    'location': { line: scenario1Line },
+                    'steps': [
+                        wdioHookBeforeScenario,
+                        userBeforeHook,
+                        {
+                            'type': 'Step',
+                            'location': { line: 22 },
+                        },
+                        {
+                            'type': 'Step',
+                            'location': { line: 23 },
+                        },
+                        userAfterHook,
+                        wdioHookAfterScenario
+                    ]
+                },
+                {
+                    'type': 'Scenario',
+                    'location': { line: 31 },
+                    'steps': [
+                        {
+                            'type': 'Step',
+                            'location': { line: 32 },
+                        }
+                    ]
+                }
+            ]
+
+            const steps = pickle.steps.map(step => ({ type: step.type, text: step.text, location: step.locations[0] }))
+            const expectedResult = [
+                wdioHookBeforeScenario,
+                steps[0],
+                steps[1],
+                userBeforeHook,
+                steps[2],
+                steps[3],
+                userAfterHook,
+                wdioHookAfterScenario
+            ]
+            const combinedSteps = [...Array(expectedResult.length).keys()].map((_, idx) => getStepFromFeature({ children }, pickle, idx, { line: scenario1Line }))
+
+            expect(combinedSteps).toEqual(expectedResult)
         })
     })
 

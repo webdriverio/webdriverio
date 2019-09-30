@@ -160,8 +160,8 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
      * `wdioHookBeforeScenario` should be the first item
      * otherwise it is swapped with `Background` step(s).
      * Example:
-     * from: [background step, wdioHookBeforeScenario, userHook, step, userHook, wdioHookAfterScenario]
-     * to:   [wdioHookBeforeScenario, background step, userHook, step, userHook, wdioHookAfterScenario]
+     * from: [Background steps, wdioHookBeforeScenario, userHooks, steps, userHooks, wdioHookAfterScenario]
+     * to:   [wdioHookBeforeScenario, Background steps, userHooks, steps, userHooks, wdioHookAfterScenario]
      */
     const wdioHooks = combinedSteps.filter(step => step.type === 'Hook' && step.location.uri && step.location.uri.includes('@wdio/cucumber-framework'))
     const idx = combinedSteps.indexOf(wdioHooks[0])
