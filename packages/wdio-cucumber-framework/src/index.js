@@ -21,14 +21,6 @@ class CucumberAdapter {
         this.capabilities = capabilities
         this.config = config
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
-
-        /**
-         * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
-         * or `null` for some hooks.
-         *
-         * @return  {object|null}
-         */
-        this.getCurrentStep = () => this._getCurrentStep()
     }
 
     async run () {
@@ -63,7 +55,14 @@ class CucumberAdapter {
             }
 
             this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
-            this._getCurrentStep = this.cucumberReporter.eventListener.getCurrentStep.bind(this.cucumberReporter.eventListener)
+
+            /**
+             * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
+             * or `null` for some hooks.
+             *
+             * @return  {object|null}
+             */
+            this.getCurrentStep = this.cucumberReporter.eventListener.getCurrentStep.bind(this.cucumberReporter.eventListener)
 
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: this.specs,
@@ -194,7 +193,7 @@ class CucumberAdapter {
     wrapSteps (config) {
         const wrapStep = this.wrapStep
         const cid = this.cid
-        const getCurrentStep = this.getCurrentStep
+        const getCurrentStep = () => this.getCurrentStep()
 
         Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
             /**
