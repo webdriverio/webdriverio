@@ -147,26 +147,27 @@ export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
     return scenario.location.line === sourceLocation.line
 }
 
-export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
+export function getStepFromFeature (feature, pickle, stepIndex, sourceLocation) {
     let combinedSteps = []
-    feature.children.forEach((child) => {
-        if (child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)) {
-            return
-        }
-        combinedSteps = combinedSteps.concat(child.steps)
-    })
+    const background = feature.children.find((child) => child.type === 'Background')
+    feature.children
+        .filter((child) => child.type !== 'Background')
+        .forEach((child) => {
+            if (child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)) {
+                return
+            }
+            combinedSteps = combinedSteps.concat(child.steps)
+        })
 
     /**
-     * `wdioHookBeforeScenario` should be the first item
-     * otherwise it is swapped with `Background` step(s).
+     * all the hooks are executed before `Background` step(s).
      * Example:
      * from: [Background steps, wdioHookBeforeScenario, userHooks, steps, userHooks, wdioHookAfterScenario]
-     * to:   [wdioHookBeforeScenario, Background steps, userHooks, steps, userHooks, wdioHookAfterScenario]
+     * to:   [wdioHookBeforeScenario, userHooks, Background steps, steps, userHooks, wdioHookAfterScenario]
      */
-    const wdioHooks = combinedSteps.filter(step => step.type === 'Hook' && step.location.uri && step.location.uri.includes('@wdio/cucumber-framework'))
-    const idx = combinedSteps.indexOf(wdioHooks[0])
-    if (wdioHooks.length === 2 && idx > 0) {
-        combinedSteps = [wdioHooks[0], ...combinedSteps.slice(0, idx), ...combinedSteps.slice(idx + 1)]
+    const firstStepIdx = combinedSteps.indexOf(combinedSteps.find((step) => step.type === 'Step'))
+    if (background) {
+        combinedSteps = [...combinedSteps.slice(0, firstStepIdx), ...background.steps, ...combinedSteps.slice(firstStepIdx)]
     }
 
     const targetStep = combinedSteps[stepIndex]

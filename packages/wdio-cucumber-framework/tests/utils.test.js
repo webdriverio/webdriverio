@@ -197,9 +197,9 @@ describe('utils', () => {
             const steps = pickle.steps.map(step => ({ type: step.type, text: step.text, location: step.locations[0] }))
             const expectedResult = [
                 wdioHookBeforeScenario,
+                userBeforeHook,
                 steps[0],
                 steps[1],
-                userBeforeHook,
                 steps[2],
                 steps[3],
                 userAfterHook,
