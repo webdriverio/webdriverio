@@ -59,10 +59,10 @@ module.exports = class CustomService {
         console.log('execute beforeScenario(uri, feature, scenario, sourceLocation)')
     }
     beforeStep () {
-        console.log('execute beforeStep(uri, feature)')
+        console.log('execute beforeStep(uri, feature, stepData, context)')
     }
     afterStep () {
-        console.log('execute afterStep(uri, feature, { error, result, duration, passed })')
+        console.log('execute afterStep(uri, feature, { error, result, duration, passed }, stepData, context)')
     }
     afterScenario () {
         console.log('execute afterScenario(uri, feature, scenario, result, sourceLocation)')

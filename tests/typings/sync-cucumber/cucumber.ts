@@ -4,9 +4,9 @@ const hook: WebdriverIO.HookFunctions = {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
-    beforeStep: function (uri, feature) {
+    beforeStep: function (uri, feature, stepData, context) {
     },
-    afterStep(uri: string, feature, { error, result, duration, passed }) {
+    afterStep(uri: string, feature, { error, result, duration, passed }, stepData, context) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
