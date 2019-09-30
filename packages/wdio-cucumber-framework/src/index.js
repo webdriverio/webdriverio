@@ -62,7 +62,7 @@ class CucumberAdapter {
              *
              * @return  {object|null}
              */
-            this.getCurrentStep = this.cucumberReporter.eventListener.getCurrentStep.bind(this.cucumberReporter.eventListener)
+            this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
 
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: this.specs,
