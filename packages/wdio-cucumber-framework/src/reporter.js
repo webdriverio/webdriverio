@@ -66,7 +66,6 @@ class CucumberReporter {
         if (type === 'hook') {
             return this.afterHook(uri, feature, scenario, step, result)
         }
-
         return this.afterTest(uri, feature, scenario, step, result)
     }
 
