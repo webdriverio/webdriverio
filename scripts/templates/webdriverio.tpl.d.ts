@@ -106,7 +106,7 @@ declare namespace WebdriverIO {
             args: any[]
         ): void;
 
-        beforeHook?(test: any, context: any): void;
+        beforeHook?(test: any, context: any, stepData?: any, world?: any): void;
 
         beforeSession?(
             config: Config,
@@ -116,7 +116,7 @@ declare namespace WebdriverIO {
 
         beforeSuite?(suite: Suite): void;
         beforeTest?(test: Test, context: any): void;
-        afterHook?(test: any, context: any, result: { error?: any, result?: any, passed: boolean, duration: number }): void;
+        afterHook?(test: any, context: any, result: { error?: any, result?: any, passed: boolean, duration: number }, stepData?: any, world?: any): void;
 
         after?(
             result: number,

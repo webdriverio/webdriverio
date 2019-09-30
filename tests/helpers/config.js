@@ -50,12 +50,18 @@ exports.config = {
         browser.pause(30)
         browser.Cucumber_Test = 1
     },
-    beforeStep: async function () {
+    beforeStep: async function (uri, feature, stepData, context) {
         await browser.pause(20)
         browser.Cucumber_Test += 2
+        browser.Cucumber_CurrentStepText = stepData.step.text
+        browser.Cucumber_CurrentStepContext = context
     },
-    afterStep: function () {
+    afterStep: function (uri, feature, result, stepData, context) {
         browser.pause(25)
+        if (browser.Cucumber_CurrentStepText !== stepData.step.text ||
+            browser.Cucumber_CurrentStepContext !== context) {
+            throw new Error("step data doesn't match")
+        }
         browser.Cucumber_Test = 1
     },
     afterScenario: () => {
