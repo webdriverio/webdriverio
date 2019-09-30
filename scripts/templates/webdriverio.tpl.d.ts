@@ -63,6 +63,7 @@ declare namespace WebdriverIO {
         specFileRetries?: number,
         waitforTimeout?: number,
         waitforInterval?: number,
+        pageLoad?: number,
         framework?: string,
         mochaOpts?: object,
         jasmineNodeOpts?: object,
