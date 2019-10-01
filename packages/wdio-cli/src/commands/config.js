@@ -64,7 +64,12 @@ export const runConfig = async function (useYarn, exit) {
         packagesToInstall,
     }
 
-    renderConfigurationFile(parsedAnswers)
+    try {
+        await renderConfigurationFile(parsedAnswers)
+    } catch (e) {
+        console.error(`Couldn't write config file: ${e.message}`)
+        return !process.env.JEST_WORKER_ID && process.exit(1)
+    }
 
     /**
      * don't exit if running unit tests
