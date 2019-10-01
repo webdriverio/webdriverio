@@ -10,7 +10,6 @@ import { handler } from './commands/run'
 export const run = async () => {
     const argv = yargs
         .commandDir('commands')
-        .demandCommand()
         .help()
 
     /**
