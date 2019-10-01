@@ -11,50 +11,20 @@ Starting with v5 of WebdriverIO the testrunner will be bundled as a separate NPM
 npm install @wdio/cli
 ./node_modules/.bin/wdio --help
 
-WebdriverIO CLI runner
-
-Usage: wdio [options] [configFile]
-Usage: wdio config
-Usage: wdio repl <browserName>
-Usage: wdio install <type> <name>
-
-config file defaults to wdio.conf.js
-The [options] object will override values from the config file.
-An optional list of spec files can be piped to wdio that will override configured specs.
-Same applies to the exclude option. It can take a list of specs to exclude for a given run
-and it also overrides the exclude key from the config file.
+wdio <command>
 
 Commands:
-  wdio.js repl <browserName>  Run WebDriver session in command line
-  wdio.js install <type> <name> Add a `reporter`, `service`, or `framework` to your WebdriverIO project
+  wdio config                 Initialize WebdriverIO and setup configuration in
+                              your current project.
+  wdio install <type> <name>  Add a `reporter`, `service`, or `framework` to
+                              your WebdriverIO project
+  wdio repl <browserName>     Run WebDriver session in command line
+  wdio run <configPath>       Run your WDIO configuration file to initialize
+                              your tests.
 
 Options:
-  --help                prints WebdriverIO help menu                   [boolean]
-  --version             prints WebdriverIO version                     [boolean]
-  --hostname, -h        automation driver host address                  [string]
-  --port, -p            automation driver port                          [number]
-  --user, -u            username if using a cloud service as automation backend
-                                                                        [string]
-  --key, -k             corresponding access key to the user            [string]
-  --watch               watch specs for changes                        [boolean]
-  --logLevel, -l        level of logging verbosity
-                            [choices: "trace", "debug", "info", "warn", "error", "silent"]
-  --bail                stop test runner after specific amount of tests have
-                        failed                                          [number]
-  --baseUrl             shorten url command calls by setting a base url [string]
-  --waitforTimeout, -w  timeout for all waitForXXX commands             [number]
-  --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to
-                        run the specs                                   [string]
-  --reporters, -r       reporters to print out the results on stdout     [array]
-  --suite               overwrites the specs attribute and runs the defined
-                        suite                                            [array]
-  --spec                run only a certain spec file - overrides specs piped
-                        from stdin                                       [array]
-  --exclude             exclude spec file(s) from a run - overrides specs piped
-                        from stdin                                       [array]
-  --mochaOpts           Mocha options
-  --jasmineOpts         Jasmine options
-  --cucumberOpts        Cucumber options
+  --version  Show version number                                       [boolean]
+  --help     Show help                                                 [boolean]
 ```
 
 Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
@@ -72,12 +42,75 @@ Once you have your configuration file set up you can start your
 integration tests by calling:
 
 ```sh
+./node_modules/.bin/wdio run wdio.conf.js
+
+# you can also initalize your configuration without the `run` command
 ./node_modules/.bin/wdio wdio.conf.js
 ```
+
 
 That's it! Now, you can access to the selenium instance via the global variable `browser`.
 
 ## Commands
+
+### wdio config
+
+The `config` command runs the WebdriverIO configuration helper. This helper will ask you a few questions about your WebdriverIO project and create a `wdio.conf.js` file based on your answers.
+
+Example:
+
+```bash
+wdio config
+```
+
+Options:
+```
+--help            prints WebdriverIO help menu                                [boolean]
+--npm             Wether to install the packages using NPM instead of yarn    [boolean]
+```
+
+### wdio run
+
+> This is the default command to run your configuration.
+
+The `run` command initializes your WebdriverIO configuration file and runs your tests.
+
+Example:
+
+```bash
+wdio run ./wdio.conf.js --watch
+```
+
+Options:
+
+```
+--help                prints WebdriverIO help menu                   [boolean]
+--version             prints WebdriverIO version                     [boolean]
+--hostname, -h        automation driver host address                  [string]
+--port, -p            automation driver port                          [number]
+--user, -u            username if using a cloud service as automation backend
+                                                                        [string]
+--key, -k             corresponding access key to the user            [string]
+--watch               watch specs for changes                        [boolean]
+--logLevel, -l        level of logging verbosity
+                            [choices: "trace", "debug", "info", "warn", "error", "silent"]
+--bail                stop test runner after specific amount of tests have
+                        failed                                          [number]
+--baseUrl             shorten url command calls by setting a base url [string]
+--waitforTimeout, -w  timeout for all waitForXXX commands             [number]
+--framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to
+                        run the specs                                   [string]
+--reporters, -r       reporters to print out the results on stdout     [array]
+--suite               overwrites the specs attribute and runs the defined
+                        suite                                            [array]
+--spec                run only a certain spec file - overrides specs piped
+                        from stdin                                       [array]
+--exclude             exclude spec file(s) from a run - overrides specs piped
+                        from stdin                                       [array]
+--mochaOpts           Mocha options
+--jasmineOpts         Jasmine options
+--cucumberOpts        Cucumber options
+```
 
 ### wdio install
 The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.

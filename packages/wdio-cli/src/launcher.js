@@ -9,15 +9,15 @@ import { initialisePlugin, initialiseServices } from '@wdio/utils'
 import CLInterface from './interface'
 import { runOnPrepareHook, runOnCompleteHook, runServiceHook } from './utils'
 
-const log = logger('@wdio/cli:Launcher')
+const log = logger('@wdio/cli:launcher')
 
 class Launcher {
-    constructor (configFile, argv = {}, isWatchMode = false) {
+    constructor (configFilePath, argv = {}, isWatchMode = false) {
         this.argv = argv
-        this.configFile = configFile
+        this.configFilePath = configFilePath
 
         this.configParser = new ConfigParser()
-        this.configParser.addConfigFile(configFile)
+        this.configParser.addConfigFile(configFilePath)
         this.configParser.merge(argv)
 
         const config = this.configParser.getConfig()
@@ -38,7 +38,7 @@ class Launcher {
             : 1
 
         const Runner = initialisePlugin(config.runner, 'runner')
-        this.runner = new Runner(configFile, config)
+        this.runner = new Runner(configFilePath, config)
 
         this.interface = new CLInterface(config, specs, totalWorkerCnt, isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
@@ -327,7 +327,7 @@ class Launcher {
         const worker = this.runner.run({
             cid,
             command: 'run',
-            configFile: this.configFile,
+            configFile: this.configFilePath,
             argv: this.argv,
             caps,
             specs,

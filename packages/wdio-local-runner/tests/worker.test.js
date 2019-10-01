@@ -1,4 +1,5 @@
 import Worker from '../src/worker'
+import logger from '@wdio/logger'
 
 describe('handleMessage', () => {
     it('should emit payload with cid', () => {
@@ -108,5 +109,31 @@ describe('handleExit', () => {
             cid: '0-3',
             exitCode: 42
         })
+    })
+})
+
+describe('postMessage', () => {
+    it('should log if the cid is busy and exit', () => {
+        const worker = new Worker({}, { cid: '0-3' })
+        const log = logger('webdriver')
+        jest.spyOn(log, 'info').mockImplementation((string) => string)
+
+        worker.isBusy = true
+        worker.postMessage('test-message', {})
+
+        expect(log.info)
+            .toHaveBeenCalledWith('worker with cid 0-3 already busy and can\'t take new commands')
+    })
+
+    it('should create a process if it does not have one', () => {
+        const worker = new Worker({}, { cid: '0-3' })
+        worker.childProcess = undefined
+        jest.spyOn(worker, 'startProcess').mockImplementation(() => ({ send: jest.fn() }))
+        worker.postMessage('test-message', {})
+
+        expect(worker.startProcess).toHaveBeenCalled()
+        expect(worker.isBusy).toBeTruthy()
+
+        worker.startProcess.mockRestore()
     })
 })
