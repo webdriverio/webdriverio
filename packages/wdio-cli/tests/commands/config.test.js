@@ -17,6 +17,10 @@ beforeEach(() => {
     errorLogSpy = jest.spyOn(console, 'error')
 })
 
+afterEach(() => {
+    errorLogSpy.mockReset()
+})
+
 test('should create config file', async () => {
     await handler({})
     expect(addServiceDeps).toBeCalledTimes(1)
