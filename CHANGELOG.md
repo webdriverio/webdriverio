@@ -15,6 +15,30 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.14.2 (2019-10-02)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#4560](https://github.com/webdriverio/webdriverio/pull/4560) Fix rendering config file ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#4559](https://github.com/webdriverio/webdriverio/pull/4559) wdio-cli: validate exclusive services ([@baruchvlz](https://github.com/baruchvlz))
+
+#### Committers: 2
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v5.14.1 (2019-10-01)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#4557](https://github.com/webdriverio/webdriverio/pull/4557) don't demand to have a command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
 ## v5.14.0 (2019-10-01)
 
 #### :rocket: New Feature
