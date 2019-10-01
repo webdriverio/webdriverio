@@ -10,8 +10,11 @@ jest.mock('../../src/utils', () => ({
     renderConfigurationFile: jest.fn()
 }))
 
+let errorLogSpy
+
 beforeEach(() => {
     yarnInstall.mockClear()
+    errorLogSpy = jest.spyOn(console, 'error')
 })
 
 test('should create config file', async () => {
@@ -19,11 +22,18 @@ test('should create config file', async () => {
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
     expect(renderConfigurationFile).toBeCalledTimes(1)
+    expect(errorLogSpy).toHaveBeenCalledTimes(0)
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
         dev: true,
         respectNpm5: true
     })
+})
+
+test('should log error if creating config file fails', async () => {
+    renderConfigurationFile.mockReturnValue(Promise.reject(new Error('boom!')))
+    await handler({})
+    expect(errorLogSpy).toHaveBeenCalledTimes(1)
 })
 
 test('installs @wdio/sync if user requests to run in sync mode', async () => {

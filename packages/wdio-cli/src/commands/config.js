@@ -65,10 +65,10 @@ export const runConfig = async function (useYarn, exit) {
     }
 
     try {
-        renderConfigurationFile(parsedAnswers)
+        await renderConfigurationFile(parsedAnswers)
     } catch (e) {
         console.error(`Couldn't write config file: ${e.message}`)
-        return process.exit(1)
+        return !process.env.JEST_WORKER_ID && process.exit(1)
     }
 
     /**
