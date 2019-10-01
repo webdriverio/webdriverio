@@ -7,6 +7,9 @@ import yargs from 'yargs'
 import Launcher from './launcher'
 import { handler } from './commands/run'
 
+const SUPPORTED_COMMANDS = ['config', 'install', 'repl', 'run']
+const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
+
 export const run = async () => {
     const argv = yargs
         .commandDir('commands')
@@ -18,10 +21,9 @@ export const run = async () => {
      * if so, we assume the user ran `wdio path/to/wdio.conf.js` and we execute `wdio run` command
      */
     const params = { ...argv.argv }
-    if (argv.argv._.length === 0) {
-        const wdioConfPath = path.join(process.cwd(), params._[0])
-        const isConfigExisting = fs.existsSync(wdioConfPath)
-        params.argv._.push(isConfigExisting ? 'run' : 'config')
+    if (!params._.find((param) => SUPPORTED_COMMANDS.includes(param))) {
+        params.configPath = path.join(process.cwd(), params._[0] || DEFAULT_CONFIG_FILENAME)
+        params._.push(fs.existsSync(params.configPath) ? 'run' : 'config')
         return handler(params)
     }
 }
