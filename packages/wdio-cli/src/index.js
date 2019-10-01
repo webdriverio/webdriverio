@@ -5,7 +5,7 @@ import path from 'path'
 import yargs from 'yargs'
 
 import Launcher from './launcher'
-import { handler } from './commands/run'
+import { handler, builder } from './commands/run'
 
 const SUPPORTED_COMMANDS = ['config', 'install', 'repl', 'run']
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
@@ -14,6 +14,13 @@ export const run = async () => {
     const argv = yargs
         .commandDir('commands')
         .help()
+
+    /**
+     * parse CLI arguments according to what run expects
+     */
+    for (const [name, param] of Object.entries(builder)) {
+        argv.option(name, param)
+    }
 
     /**
      * if yargs doesn't run a command from the command directory
