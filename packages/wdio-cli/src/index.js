@@ -18,9 +18,11 @@ export const run = async () => {
      * if so, we assume the user ran `wdio path/to/wdio.conf.js` and we execute `wdio run` command
      */
     const params = { ...argv.argv }
-    const wdioConfPath = path.join(process.cwd(), params._[0])
-    if (fs.existsSync(wdioConfPath)) {
-        return handler({ configPath: wdioConfPath, ...params })
+    if (argv.argv._.length === 0) {
+        const wdioConfPath = path.join(process.cwd(), params._[0])
+        const isConfigExisting = fs.existsSync(wdioConfPath)
+        params.argv._.push(isConfigExisting ? 'run' : 'config')
+        return handler(params)
     }
 }
 
