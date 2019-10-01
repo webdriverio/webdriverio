@@ -19,9 +19,7 @@ export const run = async () => {
      */
     const params = { ...argv.argv }
     const wdioConfPath = path.join(process.cwd(), params._[0])
-    const wdioConf = fs.existsSync(wdioConfPath)
-
-    if (wdioConf) {
+    if (fs.existsSync(wdioConfPath)) {
         return handler({ configPath: wdioConfPath, ...params })
     }
 }
