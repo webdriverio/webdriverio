@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 export const EXCLUSIVE_SERVICES = {
     'wdio-chromedriver-service': {
-        services: ['@wdio/selenium-standalone-service$--$selenium-standalone'],
+        services: ['@wdio/selenium-standalone-service'],
         message: '@wdio/selenium-standalone-service already includes chromedriver'
     }
 }
@@ -198,8 +198,11 @@ export const QUESTIONNAIRE = [{
         let result = true
 
         Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
-            const exists = answers.some(s => s.includes(name))
-            const hasExclusive = answers.some(s => services.includes(s))
+            const exists = answers.some(answer => answer.includes(name))
+
+            const hasExclusive = services.some(service =>
+                answers.some(answer => answer.includes(service))
+            )
 
             if (exists && hasExclusive) {
                 result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
