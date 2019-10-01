@@ -1,11 +1,13 @@
 import {
-    isSuccessfulResponse, isValidParameter, getArgumentType, getPrototype, commandCallStructure,
-    environmentDetector, getErrorFromResponseBody, isW3C, CustomRequestError, overwriteElementCommands
+    isSuccessfulResponse, getPrototype, environmentDetector, setupDirectConnect,
+    getErrorFromResponseBody, isW3C, CustomRequestError
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
+import experitestResponse from './__fixtures__/experitest.response.json'
 import chromedriverResponse from './__fixtures__/chromedriver.response.json'
 import geckodriverResponse from './__fixtures__/geckodriver.response.json'
+import ghostdriverResponse from './__fixtures__/ghostdriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
@@ -32,46 +34,6 @@ describe('utils', () => {
             200,
             { value: { message: 'Unable to find element with xpath == //foobar' } }
         )).toBe(true)
-    })
-
-    it('isValidParameter', () => {
-        expect(isValidParameter(1, 'number')).toBe(true)
-        expect(isValidParameter(1, 'number[]')).toBe(false)
-        expect(isValidParameter([1], 'number[]')).toBe(true)
-        expect(isValidParameter(null, 'null')).toBe(true)
-        expect(isValidParameter('', 'null')).toBe(false)
-        expect(isValidParameter(undefined, 'null')).toBe(false)
-        expect(isValidParameter({}, 'object')).toBe(true)
-        expect(isValidParameter([], 'object')).toBe(true)
-        expect(isValidParameter(null, 'object')).toBe(false)
-        expect(isValidParameter(1, '(number|string|object)')).toBe(true)
-        expect(isValidParameter('1', '(number|string|object)')).toBe(true)
-        expect(isValidParameter({}, '(number|string|object)')).toBe(true)
-        expect(isValidParameter(false, '(number|string|object)')).toBe(false)
-        expect(isValidParameter([], '(number|string|object)')).toBe(true)
-        expect(isValidParameter(null, '(number|string|object)')).toBe(false)
-        expect(isValidParameter(1, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter('1', '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter({}, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter(false, '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter([1], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter(['1'], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([{}], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([[]], '(number|string|object)[]')).toBe(true)
-        expect(isValidParameter([null], '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter([false], '(number|string|object)[]')).toBe(false)
-        expect(isValidParameter(['1', false], '(number|string|object)[]')).toBe(false)
-    })
-
-    it('getArgumentType', () => {
-        expect(getArgumentType(1)).toBe('number')
-        expect(getArgumentType(1.2)).toBe('number')
-        expect(getArgumentType(null)).toBe('null')
-        expect(getArgumentType('text')).toBe('string')
-        expect(getArgumentType({})).toBe('object')
-        expect(getArgumentType([])).toBe('object')
-        expect(getArgumentType(true)).toBe('boolean')
-        expect(getArgumentType(false)).toBe('boolean')
     })
 
     it('getPrototype', () => {
@@ -115,28 +77,34 @@ describe('utils', () => {
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
     })
 
-    it('commandCallStructure', () => {
-        expect(commandCallStructure('foobar', ['param', 1, true, { a: 123 }, () => true, null, undefined]))
-            .toBe('foobar("param", 1, true, <object>, <fn>, null, undefined)')
-    })
-
     describe('environmentDetector', () => {
         const chromeCaps = chromedriverResponse.value
         const appiumCaps = appiumResponse.value.capabilities
+        const experitestAppiumCaps = experitestResponse.appium.capabilities
         const geckoCaps = geckodriverResponse.value.capabilities
         const edgeCaps = edgedriverResponse.value.capabilities
+        const phantomCaps = ghostdriverResponse.value
         const safariCaps = safaridriverResponse.value.capabilities
         const safariLegacyCaps = safaridriverLegacyResponse.value
         const standaloneCaps = seleniumstandaloneResponse.value
 
+        it('isMobile', () => {
+            const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+            expect(environmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isMobile).toBe(true)
+            expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobile).toBe(true)
+            expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isMobile).toBe(false)
+        })
+
         it('isW3C', () => {
             const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
             expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
+            expect(environmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
             expect(environmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
+            expect(environmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
             expect(isW3C()).toBe(false)
         })
 
@@ -145,6 +113,7 @@ describe('utils', () => {
             expect(environmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
             expect(environmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
             expect(environmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
+            expect(environmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
         })
 
         it('isSauce', () => {
@@ -287,66 +256,59 @@ describe('utils', () => {
         expect(error.message).toBe('unknown error')
     })
 
-    describe('overwriteElementCommands', () => {
-        it('should overwrite command', function () {
-            const context = {}
-            const origFnMock = jest.fn(() => 1)
-            const propertiesObject = {
-                foo: { value: origFnMock },
-                __elementOverrides__: {
-                    value: { foo(origCmd, arg) { return [origCmd(), arg] } }
+    describe('setupDirectConnect', () => {
+        it('should do nothing if params contain no direct connect caps', function () {
+            const params = { hostname: 'bar', capabilities: { platformName: 'baz' } }
+            const paramsCopy = JSON.parse(JSON.stringify(params))
+            setupDirectConnect(params)
+            expect(params).toEqual(paramsCopy)
+        })
+
+        it('should do nothing if params contain incomplete direct connect caps', function () {
+            const params = { hostname: 'bar', capabilities: { directConnectHost: 'baz' } }
+            const paramsCopy = JSON.parse(JSON.stringify(params))
+            setupDirectConnect(params)
+            expect(params).toEqual(paramsCopy)
+        })
+
+        it('should update connection params if caps contain all direct connect fields', function () {
+            const params = {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: '',
+                capabilities: {
+                    directConnectProtocol: 'https',
+                    directConnectHost: 'bar',
+                    directConnectPort: 4321,
+                    directConnectPath: '/wd/hub'
                 }
             }
-            overwriteElementCommands.call(context, propertiesObject)
-            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
-            expect(origFnMock.mock.calls.length).toBe(1)
-            expect(origFnMock.mock.instances[0]).toBe(propertiesObject.foo)
+            setupDirectConnect(params)
+            expect(params.protocol).toBe('https')
+            expect(params.hostname).toBe('bar')
+            expect(params.port).toBe(4321)
+            expect(params.path).toBe('/wd/hub')
         })
 
-        it('should support rebinding when invoking original fn', function () {
-            const context = {}
-            const origFnMock = jest.fn(() => 1)
-            const origFnContext = {}
-            const propertiesObject = {
-                foo: { value: origFnMock },
-                __elementOverrides__: {
-                    value: { foo(origCmd, arg) { return [origCmd.call(origFnContext), arg] } }
+        it('should update connection params even if path is empty string', function () {
+            const params = {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: '/wd/hub',
+                capabilities: {
+                    directConnectProtocol: 'https',
+                    directConnectHost: 'bar',
+                    directConnectPort: 4321,
+                    directConnectPath: ''
                 }
             }
-            overwriteElementCommands.call(context, propertiesObject)
-            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
-            expect(origFnMock.mock.calls.length).toBe(1)
-            expect(origFnMock.mock.instances[0]).toBe(origFnContext)
-        })
-
-        it('should create __elementOverrides__ if not exists', function () {
-            const propertiesObject = {}
-            overwriteElementCommands.call(null, propertiesObject)
-            expect(propertiesObject.__elementOverrides__).toBeTruthy()
-        })
-
-        it('should throw if user command is not a function', function () {
-            const propertiesObject = { __elementOverrides__: { value: {
-                foo: 'bar'
-            } } }
-            expect(() => overwriteElementCommands.call(null, propertiesObject))
-                .toThrow('overwriteCommand: commands be overwritten only with functions, command: foo')
-        })
-
-        it('should throw if there is no command to be propertiesObject', function () {
-            const propertiesObject = { __elementOverrides__: { value: {
-                foo: jest.fn()
-            } } }
-            expect(() => overwriteElementCommands.call(null, propertiesObject))
-                .toThrow('overwriteCommand: no command to be overwritten: foo')
-        })
-
-        it('should throw on attempt to overwrite not a function', function () {
-            const propertiesObject = { foo: 'bar', __elementOverrides__: { value: {
-                foo: jest.fn()
-            } } }
-            expect(() => overwriteElementCommands.call(null, propertiesObject))
-                .toThrow('overwriteCommand: only functions can be overwritten, command: foo')
+            setupDirectConnect(params)
+            expect(params.protocol).toBe('https')
+            expect(params.hostname).toBe('bar')
+            expect(params.port).toBe(4321)
+            expect(params.path).toBe('')
         })
     })
 })

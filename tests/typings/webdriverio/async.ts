@@ -51,6 +51,18 @@ async function bar() {
     )
     callResult.toFixed(2)
 
+    // browser element command
+    browser.getElementRect('elementId')
+
+    // protocol command return mapped object value
+    const { x, y, width, height } = await browser.getWindowRect()
+
+    // protocol command return unmapped object
+    const { foo, bar } = await browser.takeHeapSnapshot()
+
+    // browser command return mapped object value
+    const { x: x0, y: y0, width: w, height: h }  =  await browser.getWindowSize()
+
     // browser custom command
     await browser.browserCustomCommand(14)
 
@@ -91,6 +103,21 @@ async function bar() {
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
     await reactElements[0].click()
+
+    // touchAction
+    const ele = await $('')
+    const touchAction: WebdriverIOAsync.TouchAction = {
+        action: "longPress",
+        element: await $(''),
+        ms: 0,
+        x: 0,
+        y: 0
+    }
+    await ele.touchAction(touchAction)
+    await browser.touchAction(touchAction)
+    
+    // dragAndDrop
+    await ele.dragAndDrop(ele, 0)
 }
 
 // selenium-standalone-service

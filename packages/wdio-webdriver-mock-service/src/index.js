@@ -21,8 +21,8 @@ export default class WebdriverMockService {
         // define required responses
         this.command.newSession().times(2).reply(200, newSession)
         this.command.deleteSession().times(2).reply(200, deleteSession)
-        this.command.getTitle().times(2).reply(200, { value: 'Mock Page Title' })
-        this.command.getUrl().times(2).reply(200, { value: 'https://mymockpage.com' })
+        this.command.getTitle().times(10).reply(200, { value: 'Mock Page Title' })
+        this.command.getUrl().times(10).reply(200, { value: 'https://mymockpage.com' })
         this.command.getElementRect(ELEMENT_ID).times(2).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this.command.getElementRect(ELEMENT_ALT).times(2).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
         this.command.getLogTypes().reply(200, { value: [] })

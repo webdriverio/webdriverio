@@ -106,4 +106,22 @@ describe('selectByVisibleText test', () => {
             [ELEMENT_KEY]: 'some-sub-elem-321'
         })
     })
+
+    it('should throw if option is not found', async () => {
+        expect.hasAssertions()
+
+        const mockElem = {
+            selector: 'foobar2',
+            elementId: 'some-elem-123',
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            findElementFromElement: jest.fn().mockReturnValue(Promise.resolve({ error: 'no such element' }))
+        }
+        mockElem.selectByVisibleText = elem.selectByVisibleText.bind(mockElem)
+
+        try {
+            await mockElem.selectByVisibleText('non-existing-option')
+        } catch (e) {
+            expect(e.toString()).toBe('Error: Option with text "non-existing-option" not found.')
+        }
+    })
 })

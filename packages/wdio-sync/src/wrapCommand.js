@@ -1,7 +1,10 @@
-import Future from 'fibers/future'
+import { Future } from './fibers'
+import logger from '@wdio/logger'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
+
+const log = logger('@wdio/sync')
 
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
@@ -13,25 +16,31 @@ import { sanitizeErrorMessage } from './utils'
  */
 export default function wrapCommand (commandName, fn) {
     return function wrapCommandFn (...args) {
-        // save error for getting full stack in case of failure
-        // should be before any async calls
-        const stackError = new Error()
+        /**
+         * print error if a user is using a fiberized command outside of the Fibers context
+         */
+        if(!global._HAS_FIBER_CONTEXT && global.WDIO_WORKER) {
+            log.warn(
+                `Can't return command result of ${commandName} synchronously because command ` +
+                'was executed outside of an it block, hook or step definition!'
+            )
+        }
+
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */
         if (this._NOT_FIBER === true) {
             this._NOT_FIBER = isNotInFiber(this, fn.name)
-            return runCommand.apply(this, [fn, stackError, ...args])
+            return fn.apply(this, args)
         }
         /**
          * all named nested functions run in parent Fiber context
-         * except of debug and waitUntil
          */
-        this._NOT_FIBER = fn.name !== '' && fn.name !== 'debug' && commandName !== 'waitUntil'
+        this._NOT_FIBER = fn.name !== ''
 
         const future = new Future()
 
-        const result = runCommandWithHooks.apply(this, [commandName, fn, stackError, ...args])
+        const result = runCommandWithHooks.apply(this, [commandName, fn, ...args])
         result.then(::future.return, ::future.throw)
 
         try {
@@ -63,7 +72,11 @@ export default function wrapCommand (commandName, fn) {
 /**
  * helper method that runs the command with before/afterCommand hook
  */
-async function runCommandWithHooks (commandName, fn, stackError, ...args) {
+async function runCommandWithHooks (commandName, fn, ...args) {
+    // save error for getting full stack in case of failure
+    // should be before any async calls
+    const stackError = new Error()
+
     await executeHooksWithArgs(
         this.options.beforeCommand,
         [commandName, args]
@@ -72,9 +85,9 @@ async function runCommandWithHooks (commandName, fn, stackError, ...args) {
     let commandResult
     let commandError
     try {
-        commandResult = await runCommand.apply(this, [fn, stackError, ...args])
+        commandResult = await fn.apply(this, args)
     } catch (err) {
-        commandError = err
+        commandError = sanitizeErrorMessage(err, stackError)
     }
 
     await executeHooksWithArgs(
@@ -87,14 +100,6 @@ async function runCommandWithHooks (commandName, fn, stackError, ...args) {
     }
 
     return commandResult
-}
-
-async function runCommand (fn, stackError, ...args) {
-    try {
-        return await fn.apply(this, args)
-    } catch (err) {
-        throw sanitizeErrorMessage(err, stackError)
-    }
 }
 
 /**
@@ -112,6 +117,17 @@ function isNotInFiber (context, fnName) {
  * @param {object} context browser or element
  */
 function inFiber(context) {
+    if (context.constructor.name === 'MultiRemoteDriver') {
+        return context.instances.forEach(instance => {
+            context[instance]._NOT_FIBER = false
+            let parent = context[instance].parent
+            while (parent && parent._NOT_FIBER) {
+                parent._NOT_FIBER = false
+                parent = parent.parent
+            }
+        })
+    }
+
     context._NOT_FIBER = false
     let parent = context.parent
     while (parent && parent._NOT_FIBER) {

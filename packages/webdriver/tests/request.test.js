@@ -11,7 +11,6 @@ describe('webdriver request', () => {
         const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
         expect(req.method).toBe('POST')
         expect(req.endpoint).toBe('/foo/bar')
-        expect(Object.keys(req.defaultOptions.headers)).toContain('User-Agent')
     })
 
     it('should be able to make request', () => {
@@ -46,8 +45,10 @@ describe('webdriver request', () => {
             }, 'foobar12345')
 
             expect(options.agent.protocol).toBe('https:')
-            expect(options.uri.href).toBe('https://localhost:4445/wd/hub/session/foobar12345/element')
-            expect(options.headers.foo).toBe('bar')
+            expect(options.uri.href)
+                .toBe('https://localhost:4445/wd/hub/session/foobar12345/element')
+            expect(Object.keys(options.headers))
+                .toEqual(['Connection', 'Accept', 'User-Agent', 'foo'])
         })
 
         it('passes a custom agent', () => {
@@ -108,7 +109,8 @@ describe('webdriver request', () => {
         it('should add the Content-Length header when a request object has a body', () => {
             const req = new WebDriverRequest('POST', '/session', { foo: 'bar' })
             const options = req._createOptions({ path: '/' })
-            expect(Object.keys(options.headers)).toContain('Content-Length')
+            expect(Object.keys(options.headers))
+                .toEqual(['Connection', 'Accept', 'User-Agent', 'Content-Length'])
             expect(options.headers['Content-Length']).toBe(13)
         })
 

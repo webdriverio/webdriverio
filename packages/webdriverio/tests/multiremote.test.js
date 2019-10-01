@@ -69,7 +69,7 @@ test('should be able to add a command to and element in multiremote', async () =
     const browser = await multiremote(caps())
 
     browser.addCommand('myCustomElementCommand', async function () {
-        return this.execute(function () {return 1})
+        return this.execute(() => 1)
     }, true)
 
     const elem = await browser.$('#foo')

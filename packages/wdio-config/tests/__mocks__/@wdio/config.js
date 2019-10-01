@@ -26,18 +26,14 @@ export const getSauceEndpoint = getSauceEndpointMock
 export const validateConfig = jest.fn().mockImplementation(
     (_, config) => Object.assign(
         DEFAULT_CONFIGS_IMPORT,
-        { hostname: 'localhost', port: 4444, protocol: 'http', path: '/wd/hub' },
+        {
+            hostname: 'localhost',
+            port: 4444,
+            protocol: 'http',
+            path: '/wd/hub',
+            automationProtocol: 'webdriver'
+        },
         config
     )
 )
-export const executeSync = jest.fn()
-export const executeAsync = jest.fn()
-export const wrapCommand = (_, origFn) => origFn
 export const ConfigParser = ConfigParserMock
-export const runTestInFiberContext = jest.fn().mockReturnValue(jest.fn())
-export const executeHooksWithArgs = jest.fn()
-export const runFnInFiberContext = jest.fn().mockImplementation((fn) => {
-    return function (...args) {
-        return Promise.resolve(fn.apply(this, args))
-    }
-})

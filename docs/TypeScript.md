@@ -10,7 +10,7 @@ Minimal TypeScript version is 3.5.1
 // wdio.conf.js
 before: function() {
     // not needed for Cucumber
-    require('ts-node').register({ files: true });
+    require('ts-node').register({ files: true })
 },
 ```
 

@@ -37,8 +37,8 @@ describe('wdio-crossbrowsertesting-service', () => {
             user: 'test',
             key: 'testy'
         }
-        expect(cbtLauncher.onPrepare(config)).resolves.toBe('connected')
-            .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
+        await expect(cbtLauncher.onPrepare(config)).resolves.toBe('connected')
+        expect(cbtTunnels.start).toHaveBeenCalledWith({ username: 'test', authkey: 'testy', options: 'some options' }, expect.any(Function))
         expect(cbtLauncher.cbtTunnelOpts).toEqual({ username: 'test', authkey: 'testy', options: 'some options' })
 
     })
@@ -70,7 +70,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())
     })
 
-    it('onComplete: cbtTunnel.stop succesful', async () => {
+    it('onComplete: cbtTunnel.stop successful', async () => {
         cbtLauncher.tunnel = true
         expect(cbtLauncher.onComplete()).resolves.toBe('stopped')
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())

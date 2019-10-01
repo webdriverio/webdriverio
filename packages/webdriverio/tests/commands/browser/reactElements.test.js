@@ -49,4 +49,17 @@ describe('react$', () => {
         await browser.react$$('myComp')
         expect(request.mock.calls.pop()[0].body.args).toEqual(['myComp', {}, {}])
     })
+
+    it('should call getElements with React flag true', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elems = await browser.react$$('myComp')
+
+        expect(elems.filter(elem => elem.isReactElement).length).toBe(3)
+    })
 })

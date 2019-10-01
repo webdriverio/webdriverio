@@ -12,19 +12,19 @@ Since version 3 of MochaJS you can rerun whole test suites (everything inside an
 ```js
 describe('retries', function() {
     // Retry all tests in this suite up to 4 times
-    this.retries(4);
+    this.retries(4)
 
     beforeEach(() => {
-        browser.url('http://www.yahoo.com');
-    });
+        browser.url('http://www.yahoo.com')
+    })
 
     it('should succeed on the 3rd try', function () {
         // Specify this test to only retry up to 2 times
-        this.retries(2);
-        console.log('run');
-        expect(browser.isVisible('.foo')).to.eventually.be.true;
-    });
-});
+        this.retries(2)
+        console.log('run')
+        expect(browser.isVisible('.foo')).to.eventually.be.true
+    })
+})
 ```
 
 ## Rerun single tests in Jasmine or Mocha (@wdio/sync only)
@@ -38,8 +38,8 @@ describe('my flaky app', () => {
      */
     it('should rerun a test at least 3 times', () => {
         // ...
-    }, 3);
-});
+    }, 3)
+})
 ```
 
 The same works for hooks too:
@@ -54,7 +54,7 @@ describe('my flaky app', () => {
     }, 1)
 
     // ...
-});
+})
 ```
 
 If you are using Jasmine, it also means that second parameter of both *test functions* (e.g., `it`) and *hooks* (e.g., `beforeEach`) , which is a `timeout` in Jasmine, is treated as retry count.

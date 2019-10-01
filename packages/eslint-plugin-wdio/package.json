@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-wdio",
-  "version": "5.11.0",
+  "version": "5.13.2",
   "description": "Eslint rules for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/eslint-plugin-wdio",

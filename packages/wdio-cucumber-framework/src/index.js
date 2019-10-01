@@ -6,17 +6,14 @@ import path from 'path'
 
 import CucumberReporter from './reporter'
 
-import Hookrunner from './hookRunner'
 import { EventEmitter } from 'events'
 
-import {
-    executeHooksWithArgs, executeSync, executeAsync,
-    runFnInFiberContext, hasWdioSyncSupport
-} from '@wdio/config'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import { DEFAULT_OPTS } from './constants'
+import { getDataFromResult, setUserHookNames } from './utils'
 
 class CucumberAdapter {
-    constructor (cid, config, specs, capabilities, reporter) {
+    constructor(cid, config, specs, capabilities, reporter) {
         this.cwd = process.cwd()
         this.cid = cid
         this.specs = specs
@@ -33,14 +30,23 @@ class CucumberAdapter {
         try {
             this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
+
+            /**
+             * wdio hooks should be added before spec files are loaded
+             */
+            this.addWdioHooks(this.config)
             this.loadSpecFiles()
-            this.wrapSteps()
+            this.wrapSteps(this.config)
+
+            /**
+             * we need to somehow identify is function is step or hook
+             * so we wrap every user hook function
+             */
+            setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
             const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
 
             const eventBroadcaster = new EventEmitter()
-            // eslint-disable-next-line no-new
-            new Hookrunner(eventBroadcaster, this.config)
             const reporterOptions = {
                 capabilities: this.capabilities,
                 ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
@@ -49,6 +55,14 @@ class CucumberAdapter {
             }
 
             this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+
+            /**
+             * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
+             * or `null` for some hooks.
+             *
+             * @return  {object|null}
+             */
+            this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
 
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: this.specs,
@@ -150,44 +164,82 @@ class CucumberAdapter {
     }
 
     /**
-     * wraps step definition code with sync/async runner with a retry option
+     * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
+     * @param {object} config config
      */
-    wrapSteps () {
-        const wrapStepSync = this.wrapStepSync
-        const wrapStepAsync = this.wrapStepAsync
+    addWdioHooks (config) {
+        Cucumber.Before(function wdioHookBeforeScenario ({ sourceLocation, pickle }) {
+            const { uri, feature } = getDataFromResult(global.result)
+            return executeHooksWithArgs(config.beforeScenario, [uri, feature, pickle, sourceLocation])
+        })
+        Cucumber.After(function wdioHookAfterScenario ({ sourceLocation, pickle, result }) {
+            const { uri, feature } = getDataFromResult(global.result)
+            return executeHooksWithArgs(config.afterScenario, [uri, feature, pickle, result, sourceLocation])
+        })
+        Cucumber.BeforeAll(function wdioHookBeforeFeature () {
+            const { uri, feature, scenarios } = getDataFromResult(global.result)
+            return executeHooksWithArgs(config.beforeFeature, [uri, feature, scenarios])
+        })
+        Cucumber.AfterAll(function wdioHookAfterFeature () {
+            const { uri, feature, scenarios } = getDataFromResult(global.result)
+            return executeHooksWithArgs(config.afterFeature, [uri, feature, scenarios])
+        })
+    }
+
+    /**
+     * wraps step definition code with sync/async runner with a retry option
+     * @param {object} config
+     */
+    wrapSteps (config) {
+        const wrapStep = this.wrapStep
+        const cid = this.cid
+        const getCurrentStep = () => this.getCurrentStep()
 
         Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
-            const retryTest = isFinite(options.retry) ? parseInt(options.retry, 10) : 0
-            return fn.name === 'async' || !hasWdioSyncSupport
-                ? wrapStepAsync(fn, retryTest)
-                /* istanbul ignore next */
-                : wrapStepSync(fn, retryTest)
+            /**
+             * hooks defined in wdio.conf are already wrapped
+             */
+            if (fn.name.startsWith('wdioHook')) {
+                return fn
+            }
+
+            /**
+             * this flag is used to:
+             * - avoid hook retry
+             * - avoid wrap hooks with beforeStep and afterStep
+             */
+            const isStep = !fn.name.startsWith('userHook')
+
+            const retryTest = isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
+            return wrapStep(fn, retryTest, isStep, config, cid, getCurrentStep)
         })
     }
 
     /**
      * wrap step definition to enable retry ability
-     * @param  {Function} code       step definition
-     * @param  {Number}   retryTest  amount of allowed repeats is case of a failure
-     * @return {Function}            wrapped step definiton for sync WebdriverIO code
+     * @param   {Function}  code            step definitoon
+     * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
+     * @param   {boolean}   isStep
+     * @param   {object}    config
+     * @param   {string}    cid             cid
+     * @param   {Function}  getCurrentStep  step definitoon
+     * @return  {Function}                  wrapped step definiton for sync WebdriverIO code
      */
-    wrapStepSync (code, retryTest = 0) {
+    wrapStep (code, retryTest = 0, isStep, config, cid, getCurrentStep) {
         return function (...args) {
-            return runFnInFiberContext(
-                executeSync.bind(this, code, retryTest, args),
-            ).apply(this)
-        }
-    }
-
-    /**
-     * wrap step definition to enable retry ability
-     * @param  {Function} code       step definitoon
-     * @param  {Number}   retryTest  amount of allowed repeats is case of a failure
-     * @return {Function}            wrapped step definiton for async WebdriverIO code
-     */
-    wrapStepAsync (code, retryTest = 0) {
-        return function (...args) {
-            return executeAsync.call(this, code, retryTest, args)
+            /**
+             * wrap user step/hook with wdio before/after hooks
+             */
+            const { uri, feature } = getDataFromResult(global.result)
+            const beforeFn = isStep ? config.beforeStep : config.beforeHook
+            const afterFn = isStep ? config.afterStep : config.afterHook
+            return testFnWrapper.call(this,
+                isStep ? 'Step' : 'Hook',
+                { specFn: code, specFnArgs: args },
+                { beforeFn, beforeFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
+                { afterFn, afterFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
+                cid,
+                retryTest)
         }
     }
 }

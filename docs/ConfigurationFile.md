@@ -27,6 +27,8 @@ exports.config = {
     hostname: 'localhost',
     port: 4444,
     path: '/wd/hub',
+    // Protocol: http | https
+    // protocol: 'http',
     //
     // =================
     // Service Providers
@@ -261,21 +263,22 @@ exports.config = {
     },
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-     * beforeEach in Mocha)
+     * beforeEach in Mocha).
+     * stepData and world are Cucumber framework specific
      */
-    beforeHook: function () {
+    beforeHook: function (test, context/*, stepData, world*/) {
     },
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha)
+     * stepData and world are Cucumber framework specific
      */
-    afterHook: function () {
+    afterHook: function (test, context, { error, result, duration, passed }/*, stepData, world*/) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
-    beforeTest: function (test) {
+    beforeTest: function (test, context) {
     },
     /**
      * Runs before a WebdriverIO command gets executed.
@@ -294,10 +297,9 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-     * @param {Object} test test details
+     * Function to be executed after a test (in Mocha/Jasmine)
      */
-    afterTest: function (test) {
+    afterTest: function (test, context, { error, result, duration, passed }) {
     },
     /**
      * Hook that gets executed after the suite has ended
@@ -342,19 +344,19 @@ exports.config = {
     /**
      * Cucumber specific hooks
      */
-    beforeFeature: function (uri, feature) {
+    beforeFeature: function (uri, feature, scenarios) {
     },
-    beforeScenario: function (uri, feature, scenario) {
+    beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
-    beforeStep: function (uri, feature, scenario, step, sourceLocation) {
+    beforeStep: function (uri, feature, stepData, context) {
     },
-    afterStep: function (uri, feature, scenario, step, result, sourceLocation) {
+    afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
-    afterFeature: function (uri, feature) {
+    afterFeature: function (uri, feature, scenarios) {
     }
-};
+}
 ```
 
 You can also find that file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).

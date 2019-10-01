@@ -71,7 +71,6 @@ describe('WebDriver', () => {
     })
 
     describe('attachToSession', () => {
-
         test('should allow to attach to existing session', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'info' })
             await client.getUrl()
@@ -166,14 +165,20 @@ describe('WebDriver', () => {
         })
     })
 
+    describe('reloadSession', () => {
+        it('should reload session', async () => {
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            await WebDriver.reloadSession(session)
+            expect(request.mock.calls).toHaveLength(2)
+        })
+    })
+
     test('ensure that WebDriver interface exports protocols and other objects', () => {
         expect(WebDriver.WebDriver).not.toBe(undefined)
         expect(WebDriver.DEFAULTS).not.toBe(undefined)
-        expect(WebDriver.WebDriverProtocol).not.toBe(undefined)
-        expect(WebDriver.JsonWProtocol).not.toBe(undefined)
-        expect(WebDriver.MJsonWProtocol).not.toBe(undefined)
-        expect(WebDriver.AppiumProtocol).not.toBe(undefined)
-        expect(WebDriver.ChromiumProtocol).not.toBe(undefined)
     })
 
     afterEach(() => {

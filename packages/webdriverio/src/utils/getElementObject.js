@@ -1,5 +1,4 @@
-import { webdriverMonad } from 'webdriver'
-import { wrapCommand, runFnInFiberContext } from '@wdio/config'
+import { webdriverMonad, wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../utils'
@@ -12,7 +11,7 @@ import { ELEMENT_KEY } from '../constants'
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
-export const getElement = function findElement (selector, res) {
+export const getElement = function findElement (selector, res, isReactElement = false) {
     const browser = getBrowserObject(this)
     const prototype = { ...clone(browser.__propertiesObject__), ...getWDIOPrototype('element'), scope: 'element' }
 
@@ -40,6 +39,8 @@ export const getElement = function findElement (selector, res) {
         client.selector = selector
         client.parent = this
         client.emit = ::this.emit
+        client.isReactElement = isReactElement
+
         return client
     }, prototype)
 
@@ -59,7 +60,7 @@ export const getElement = function findElement (selector, res) {
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
-export const getElements = function getElements (selector, res) {
+export const getElements = function getElements (selector, res, isReactElement = false) {
     const browser = getBrowserObject(this)
 
     const elements = res.map((res, i) => {
@@ -88,6 +89,8 @@ export const getElements = function getElements (selector, res) {
             client.parent = this
             client.index = i
             client.emit = ::this.emit
+            client.isReactElement = isReactElement
+
             return client
         }, { ...clone(browser.__propertiesObject__), ...getWDIOPrototype('element'), scope: 'element' })
 

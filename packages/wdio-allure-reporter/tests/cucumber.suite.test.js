@@ -10,6 +10,7 @@ import { clean, getResults } from 'wdio-allure-helper'
 import AllureReporter from '../src/'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import * as cucumberHelper from './__fixtures__/cucumber'
+import * as attachmentHelper from './__fixtures__/attachment'
 import { commandStart, commandEnd } from './__fixtures__/command'
 
 let processOn
@@ -40,12 +41,17 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onBeforeCommand(commandStart())
             reporter.onAfterCommand(commandEnd())
             reporter.onTestPass(cucumberHelper.testPass())
-            reporter.onSuiteEnd(cucumberHelper.scenarioEnd())
-            reporter.onSuiteEnd(cucumberHelper.featureEnd())
+            reporter.onHookStart(cucumberHelper.hookStart())
+            reporter.addAttachment(attachmentHelper.xmlAttachment())
+            reporter.onHookEnd(cucumberHelper.hookEnd())
+            const suiteResults = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
             reporter.onRunnerEnd(runnerEnd())
+
             const results = getResults(outputDir)
-            expect(results).toHaveLength(1)
-            allureXml = results[0]
+            expect(results).toHaveLength(2) // one for report, one for attachment
+            allureXml = results.find(xml => xml('ns2\\:test-suite').length >= 1)
         })
 
         afterAll(() => {
@@ -62,18 +68,16 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('test-case').attr('status')).toEqual('passed')
         })
 
-        it('should report one hook', () => {
-            expect(allureXml('step > name').eq(0).text()).toEqual('Hook')
-            expect(allureXml('step > title').eq(0).text()).toEqual('Hook')
+        it('should not report passing hook', () => {
+            expect(allureXml('step > name').eq(0).text()).not.toContain('Hook')
+            expect(allureXml('step > title').eq(0).text()).not.toContain('Hook')
         })
 
-        it('should report one step', () => {
-            expect(allureXml('step > name').eq(1).text()).toEqual('I do something')
-            expect(allureXml('step > title').eq(1).text()).toEqual('I do something')
-        })
-
-        it('should report hook and step as passing', () => {
-            expect(allureXml('step[status="passed"]').length).toEqual(2)
+        it('should report one passing step', () => {
+            expect(allureXml('step > name').eq(0).text()).toEqual('I do something')
+            expect(allureXml('step > title').eq(0).text()).toEqual('I do something')
+            expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+            expect(allureXml('step').length).toEqual(1)
         })
 
         it('should detect analytics labels in test case', () => {
@@ -84,6 +88,53 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         it('should add browser name as test argument', () => {
             expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
             expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
+        })
+
+        it('should move attachments from successfull hook to test-case', () => {
+            expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
+        })
+    })
+
+    describe('Skipped test', () => {
+        const outputDir = directory()
+        let allureXml
+
+        beforeAll(() => {
+            const reporter = new AllureReporter({ stdout: true, outputDir, useCucumberStepReporter: true })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onTestSkip(cucumberHelper.testSkipped())
+            const suiteResults = { tests: [cucumberHelper.testSkipped()] }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            allureXml = results[0]
+        })
+
+        afterAll(() => {
+            clean(outputDir)
+        })
+
+        it('should report one suite', () => {
+            expect(allureXml('ns2\\:test-suite > name').text()).toEqual('MyFeature')
+            expect(allureXml('ns2\\:test-suite > title').text()).toEqual('MyFeature')
+        })
+
+        it('should report scenario as pending', () => {
+            expect(allureXml('test-case').attr('status')).toEqual('pending')
+        })
+
+        it('should report one canceled step', () => {
+            expect(allureXml('step > name').eq(0).text()).toEqual('I do something')
+            expect(allureXml('step > title').eq(0).text()).toEqual('I do something')
+            expect(allureXml('step').eq(0).attr('status')).toEqual('canceled')
+            expect(allureXml('step').length).toEqual(1)
         })
     })
 
@@ -109,8 +160,9 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onBeforeCommand(commandStart())
             reporter.onAfterCommand(commandEnd())
             reporter.onTestFail(cucumberHelper.testFail())
-            reporter.onSuiteEnd(cucumberHelper.scenarioEnd('test'))
-            reporter.onSuiteEnd(cucumberHelper.featureEnd('test'))
+            const suiteResults = { tests: ['failed'] }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
             reporter.onRunnerEnd(runnerEnd())
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
@@ -134,8 +186,9 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onHookEnd(cucumberHelper.hookFail())
             reporter.onTestStart(cucumberHelper.testStart())
             reporter.onTestSkip(cucumberHelper.testSkipped())
-            reporter.onSuiteEnd(cucumberHelper.scenarioEnd('hook'))
-            reporter.onSuiteEnd(cucumberHelper.featureEnd('hook'))
+            const suiteResults = { tests: [cucumberHelper.testSkipped()], hooks: [cucumberHelper.hookFail()] }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
             reporter.onRunnerEnd(runnerEnd())
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
@@ -144,7 +197,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('ns2\\:test-suite > name').text()).toEqual('MyFeature')
             expect(allureXml('test-case > name').text()).toEqual('MyScenario')
             expect(allureXml('test-case').attr('status')).toEqual('failed')
-            expect(allureXml('step').attr('status')).toEqual('failed')
+            expect(allureXml('step > name').eq(0).text()).toEqual('Hook')
             expect(allureXml('step').eq(0).attr('status')).toEqual('failed')
             expect(allureXml('step').eq(1).attr('status')).toEqual('canceled')
             expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)

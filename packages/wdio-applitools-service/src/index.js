@@ -50,6 +50,16 @@ export default class ApplitoolsService {
 
             return this.eyes.check(title, Target.window())
         })
+
+        global.browser.addCommand('takeRegionSnapshot', (title, region) => {
+            if (!title) {
+                throw new Error('A title for the Applitools snapshot is missing')
+            }
+            if (!region || region === null) {
+                throw new Error('A region for the Applitools snapshot is missing')
+            }
+            return this.eyes.check(title, Target.region(region))
+        })
     }
 
     beforeTest (test) {

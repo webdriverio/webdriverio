@@ -33,7 +33,7 @@
 import vm from 'vm'
 import repl from 'repl'
 
-import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/config'
+import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/utils'
 
 import { STATIC_RETURNS, INTRO_MESSAGE } from './constants'
 

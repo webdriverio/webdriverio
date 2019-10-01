@@ -46,7 +46,7 @@ export.config = {
 
 ## Usage
 
-Once the service is added you just need to call the `browser.takeSnapshot` command to compare images within the badge. The command takes a screenshot name so Applitools can compare it always with the correct image from the baseline, e.g.
+Once the service is added you just need to call either the `browser.takeSnapshot` command or the `browser.takeRegionSnapshot` command to compare images within the badge. The `browser.takeRegionSnapshot` command takes two additional parameters: 1) `region` which must be of type `Region|webdriver.WebElement|EyesRemoteWebElement|webdriver.By`, and 2) `frame` of type `webdriver.WebElement|EyesRemoteWebElement|string`; see further details [here](https://applitools.com/docs/api/eyes-sdk/classes-gen/class_target/method-target-region-selenium-javascript.html). The command takes a screenshot name so Applitools can compare it always with the correct image from the baseline, e.g.
 
 ```js
 describe('My Google Search', () => {
@@ -59,6 +59,11 @@ describe('My Google Search', () => {
         $('#lst-ib').addValue('WebdriverIO ❤️  Applitools')
         browser.keys('Enter')
         browser.takeSnapshot('search')
+    })
+    
+    it('should open the page and take snapshot of the region with reddit icon in upper left', () => {
+        browser.url('https://reddit.com')
+        browser.takeRegionSnapshot('Reddit icon; main page', 'css=a._30BbATRhFv3V83DHNDjJAO')
     })
 })
 ```

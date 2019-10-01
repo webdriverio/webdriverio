@@ -17,7 +17,8 @@
       "customcommands",
       "multiremote",
       "cloudservices",
-      "autocompletion"
+      "autocompletion",
+      "automationProtocols"
     ],
     "Testrunner": [
       "clioptions",

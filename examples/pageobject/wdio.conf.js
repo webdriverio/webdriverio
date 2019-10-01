@@ -101,16 +101,18 @@ exports.config = {
     //
     // Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
     // beforeEach in Mocha)
-    // beforeHook: function () {
+    // stepData and world are Cucumber framework specific
+    // beforeHook: function (test, context, stepData, world) {
     // },
     //
     // Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
     // afterEach in Mocha)
-    // afterHook: function () {
+    // stepData and world are Cucumber framework specific
+    // afterHook: function (test, context, { error, result, duration, passed }, stepData, world) {
     // },
     //
-    // Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-    // beforeTest: function (test) {
+    // Function to be executed before a test (in Mocha/Jasmine) starts.
+    // beforeTest: function (test, context) {
     // },
     //
     // Runs before a WebdriverIO command gets executed.
@@ -121,8 +123,8 @@ exports.config = {
     // afterCommand: function (commandName, args, result, error) {
     // },
     //
-    // Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-    // afterTest: function (test) {
+    // Function to be executed after a test (in Mocha/Jasmine) ends.
+    // afterTest: function (test, context, { error, result, duration, passed }) {
     // },
     //
     // Hook that gets executed after the suite has ended
@@ -130,27 +132,27 @@ exports.config = {
     // },
     //
     // Runs before a Cucumber Feature
-    // beforeFeature: function (uri, feature) {
+    // beforeFeature: function (uri, feature, scenarios) {
     // },
     //
     // Runs after a Cucumber Feature
-    // afterFeature: function (uri, feature) {
+    // afterFeature: function (uri, feature, scenarios) {
     // }
     //
     // Runs before a Cucumber Scenario
-    // beforeScenario: function (uri, feature, scenario) {
+    // beforeScenario: function (uri, feature, scenario, sourceLocation) {
     // },
     //
     // Runs after a Cucumber Scenario
-    // afterScenario: function (uri, feature, scenario, result) {
+    // afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     // },
     //
     // Runs before a Cucumber Step
-    // beforeStep: function (uri, feature, scenario, step) {
+    // beforeStep: function (uri, feature, stepData, context) {
     // },
     //
     // Runs after a Cucumber Step
-    // afterStep: function (uri, feature, scenario, step, result) {
+    // afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
     // },
     //
     // Gets executed after all tests are done. You still have access to all global variables from

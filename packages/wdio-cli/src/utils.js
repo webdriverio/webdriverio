@@ -1,5 +1,13 @@
+import fs from 'fs'
+import ejs from 'ejs'
+import path from 'path'
 import logger from '@wdio/logger'
 import { execSync } from 'child_process'
+import { promisify } from 'util'
+
+import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
+import inquirer from 'inquirer'
+import { runConfig } from './commands/config'
 
 const log = logger('@wdio/cli:utils')
 
@@ -65,24 +73,6 @@ export async function runOnCompleteHook(onCompleteHook, config, capabilities, ex
 }
 
 /**
- * map package names
- * used in the CLI to find the name of the package for different questions
- * answers.framework {String}
- * answers.reporters | answer.services {Array<string>}
- */
-export function getNpmPackageName(pkgLabels) {
-    if (typeof pkgLabels === 'string') {
-        return pkgLabels.split('/package/')[1]
-    }
-
-    return pkgLabels.map(pkgLabel => pkgLabel.split('/package/')[1])
-}
-
-export function getPackageName(pkg) {
-    return pkg.trim().split(' -')[0]
-}
-
-/**
  * get runner identification by caps
  */
 export function getRunnerName (caps = {}) {
@@ -99,19 +89,6 @@ export function getRunnerName (caps = {}) {
     }
 
     return runner
-}
-
-/**
- * used by the install command to better find the package to install
- */
-export function parseInstallNameAndPackage(list) {
-    const returnObj = {}
-
-    for(let item of list) {
-        returnObj[getPackageName(item)] = getNpmPackageName(item)
-    }
-
-    return returnObj
 }
 
 function buildNewConfigArray(str, type, change) {
@@ -140,24 +117,21 @@ export function findInConfig(config, type) {
     }
 
     const regex = new RegExp(regexStr, 'gmi')
-
     return config.match(regex)
 }
 
-export function replaceConfig(
-    config,
-    type,
-    name
-) {
+export function replaceConfig(config, type, name) {
     const match = findInConfig(config, type)
-    if (match && match.length) {
-        if (type === 'framework') {
-            return buildNewConfigString(config, type, name)
-        }
-        const text = match.pop()
-
-        return config.replace(text, buildNewConfigArray(text, type, name))
+    if (!match || match.length === 0) {
+        return
     }
+
+    if (type === 'framework') {
+        return buildNewConfigString(config, type, name)
+    }
+
+    const text = match.pop()
+    return config.replace(text, buildNewConfigArray(text, type, name))
 }
 
 export function addServiceDeps(names, packages, update) {
@@ -165,7 +139,7 @@ export function addServiceDeps(names, packages, update) {
      * automatically install latest Chromedriver if `wdio-chromedriver-service`
      * was selected for install
      */
-    if (names.some((answer) => answer.includes('wdio-chromedriver-service'))) {
+    if (names.some(({ short }) => short === 'chromedriver')) {
         packages.push('chromedriver')
         if (update) {
             // eslint-disable-next-line no-console
@@ -181,7 +155,7 @@ export function addServiceDeps(names, packages, update) {
      * install Appium if it is not installed globally if `@wdio/appium-service`
      * was selected for install
      */
-    if (names.some((answer) => answer.includes('@wdio/appium-service'))) {
+    if (names.some(({ short }) => short === 'appium')) {
         const result = execSync('appium --version || echo APPIUM_MISSING').toString().trim()
         if (result === 'APPIUM_MISSING') {
             packages.push('appium')
@@ -195,6 +169,49 @@ export function addServiceDeps(names, packages, update) {
                 '\n=======\n')
         }
     }
+}
+/**
+ * @todo add JSComments
+ */
+export function convertPackageHashToObject(string, hash = '$--$') {
+    const splitHash = string.split(hash)
+    return {
+        package: splitHash[0],
+        short: splitHash[1]
+    }
+}
+
+export async function renderConfigurationFile (answers) {
+    const renderFile = promisify(ejs.renderFile)
+    const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
+
+    const renderedTpl = await renderFile(tplPath, { answers })
+
+    fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
+    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
+}
+
+export async function missingConfigurationPrompt(command, message, useYarn = false) {
+    const { config } = await inquirer.prompt([
+        {
+            type: 'confirm',
+            name: 'config',
+            message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
+            default: false
+        }
+    ])
+
+    /**
+     * don't exit if running unit tests
+     */
+    if (!config && !process.env.JEST_WORKER_ID) {
+        /* istanbul ignore next */
+        console.log(message)
+        /* istanbul ignore next */
+        return process.exit(0)
+    }
+
+    return await runConfig(useYarn, true)
 }
 
 export function filterCaps(caps, { browser, device })  {

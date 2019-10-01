@@ -59,7 +59,9 @@ module.exports = {
     scrollToTop: true,
 
     /* Show last update time */
-    enableUpdateTime: true
+    enableUpdateTime: true,
+    
+    blogSidebarCount: 25
 
     // You may provide arbitrary config keys to be used as needed by your
     // template. For example, if you need your repo's URL...

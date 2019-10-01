@@ -6,6 +6,7 @@ export default class CucumberEventListener extends EventEmitter {
     gherkinDocEvents = []
     acceptedPickles = []
     currentPickle = null
+    currentStep = null
     testCasePreparedEvents = []
 
     constructor (eventBroadcaster) {
@@ -106,6 +107,10 @@ export default class CucumberEventListener extends EventEmitter {
         const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
         const step = getStepFromFeature(feature, this.currentPickle, testStepStartedEvent.index, sourceLocation)
 
+        if (step.type === 'Step') {
+            this.currentStep = { uri, feature, scenario, step, sourceLocation }
+        }
+
         this.emit('before-step', uri, feature, scenario, step, sourceLocation)
     }
 
@@ -184,6 +189,7 @@ export default class CucumberEventListener extends EventEmitter {
         this.emit('after-scenario', uri, feature, scenario, result, sourceLocation)
 
         this.currentPickle = null
+        this.currentStep = null
     }
 
     // testRunFinishedEvent = {
@@ -196,5 +202,9 @@ export default class CucumberEventListener extends EventEmitter {
         const feature = doc.feature
 
         this.emit('after-feature', uri, feature)
+    }
+
+    getCurrentStep () {
+        return this.currentStep
     }
 }

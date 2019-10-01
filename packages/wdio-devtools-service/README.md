@@ -176,6 +176,34 @@ browser.enablePerformanceAudits({
 
 The following network throttling profiles are available: `offline`, `GPRS`, `Regular 2G`, `Good 2G`, `Regular 3G`, `Good 3G`, `Regular 4G`, `DSL`, `Wifi` and `online` (no throttling).
 
+### Device Emulation
+
+The service allows you to emulate a specific device type. If set, the browser viewport will be modified to fit the device capabilities as well as the user agent will set according to the device user agent. To set a predefined device profile you can run:
+
+```js
+browser.emulateDevice('iPhone 10')
+// or `browser.emulateDevice('iPhone 10', true)` if you want to be in landscape mode
+```
+
+Available predefined device profiles are: `Blackberry PlayBook`, `BlackBerry Z30`, `Galaxy Note 3`, `Galaxy Note II`, `Galaxy S III`, `Galaxy S5`, `iPad`, `iPad Mini`, `iPad Pro`, `iPhone 4`, `iPhone 5`, `iPhone 6`, `iPhone 6 Plus`, `iPhone 7`, `iPhone 7 Plus`, `iPhone 8`, `iPhone 8 Plus`, `iPhone SE`, `iPhone X`, `JioPhone 2`,
+`Kindle Fire HDX`, `LG Optimus L70`, `Microsoft Lumia 550`, `Microsoft Lumia 950`, `Nexus 10`, `Nexus 4`, `Nexus 5`, `Nexus 5X`, `Nexus 6`, `Nexus 6P`, `Nexus 7`, `Nokia Lumia 520`, `Nokia N9`, `Pixel 2`, `Pixel 2 XL`
+
+You can also define your own device profile by providing an object as parameter like in the following example:
+
+```js
+browser.emulateDevice({
+    viewport: {
+        width: 550, // <number> page width in pixels.
+        height: 300, // <number> page height in pixels.
+        deviceScaleFactor: 1, //  <number> Specify device scale factor (can be thought of as dpr). Defaults to 1
+        isMobile: true, // <boolean> Whether the meta viewport tag is taken into account. Defaults to false
+        hasTouch: true, // <boolean> Specifies if viewport supports touch events. Defaults to false
+        isLandscape: true // <boolean> Specifies if viewport is in landscape mode. Defaults to false
+    },
+    userAgent: 'my custom user agent'
+})
+```
+
 ### Chrome DevTools Access
 
 For now the service allows two different ways to access the Chrome DevTools Protocol:

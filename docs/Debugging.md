@@ -60,10 +60,10 @@ Once execution has finished, the test doesn't actually finish until the devtools
 Note that `wdio.conf.js` can contain javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable. This can used to dynamically change the configuration:
 
 ```js
-const debug = process.env.DEBUG;
-const defaultCapabilities = ...;
-const defaultTimeoutInterval = ...;
-const defaultSpecs = ...;
+const debug = process.env.DEBUG
+const defaultCapabilities = ...
+const defaultTimeoutInterval = ...
+const defaultSpecs = ...
 
 exports.config = {
     // ...

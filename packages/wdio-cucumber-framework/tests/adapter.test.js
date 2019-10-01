@@ -1,7 +1,8 @@
 import path from 'path'
 import mockery from 'mockery'
 import * as Cucumber from 'cucumber'
-import { executeHooksWithArgs, runFnInFiberContext, executeAsync } from '@wdio/config'
+import * as utils from '@wdio/utils'
+const { executeHooksWithArgs, testFnWrapper } = utils
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 
@@ -24,7 +25,13 @@ const wdioReporter = {
 
 const adapterFactory = (cucumberOpts = {}) => new CucumberAdapter(
     '0-2',
-    { cucumberOpts },
+    {
+        cucumberOpts,
+        beforeStep: 'beforeStep',
+        afterStep: 'afterStep',
+        beforeHook: 'beforeHook',
+        afterHook: 'afterHook'
+    },
     ['/foo/bar.feature'],
     { browserName: 'chrome' },
     wdioReporter
@@ -125,66 +132,134 @@ test('loadSpecFiles', () => {
     expect(mockery.disable).toBeCalledTimes(1)
 })
 
-test('wrapSteps', () => {
+describe('wrapSteps', () => {
     const adapter = adapterFactory()
-    adapter.wrapStepSync = jest.fn()
-    adapter.wrapStepAsync = jest.fn()
-    adapter.wrapSteps()
+    adapter.wrapStep = jest.fn()
+    adapter.wrapSteps(adapter.config)
 
     const functionWrapper = Cucumber.setDefinitionFunctionWrapper.mock.calls[0].pop()
-    const wrappedFunction = jest.fn()
-    functionWrapper(wrappedFunction)
 
-    expect(adapter.wrapStepSync).toBeCalledTimes(0)
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 0)
+    test('should use proper default values', () => {
+        const wrappedFunction = jest.fn()
 
-    functionWrapper(wrappedFunction, { retry: 123 })
-    expect(adapter.wrapStepAsync).toBeCalledWith(expect.any(Function), 123)
+        functionWrapper(wrappedFunction)
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, true, adapter.config, '0-2', expect.any(Function))
+    })
+
+    test('should use passed arguments', () => {
+        const wrappedFunction = jest.fn()
+
+        functionWrapper(wrappedFunction, { retry: 123 })
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 123, true, adapter.config, '0-2', expect.any(Function))
+    })
+
+    test('should not wrap wdio hooks', () => {
+        const wdioHookFn = () => { }
+
+        expect(functionWrapper(wdioHookFn)).toBe(wdioHookFn)
+        expect(adapter.wrapStep).toBeCalledTimes(0)
+    })
+
+    test('should not detect user hooks as steps', () => {
+        const userHookFn = () => { }
+
+        functionWrapper(userHookFn)
+        expect(adapter.wrapStep).toBeCalledWith(expect.any(Function), 0, false, adapter.config, '0-2', expect.any(Function))
+    })
+
+    afterEach(() => {
+        adapter.wrapStep.mockClear()
+    })
 })
 
-test('wrapStepSync', () => {
-    const adapter = adapterFactory()
+describe('wrapStep', () => {
+    const fnWrapperArgs = (type, retries) => [
+        type, {
+            specFn: 'specFn',
+            specFnArgs: [1, 2]
+        }, {
+            beforeFn: `before${type}`,
+            beforeFnArgs: expect.any(Function)
+        }, {
+            afterFn: `after${type}`,
+            afterFnArgs: expect.any(Function)
+        },
+        'cid',
+        retries
+    ]
 
-    const fn = adapter.wrapStepSync('some code', 123)
-    expect(typeof fn).toBe('function')
-    expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runFnInFiberContext).toBeCalledTimes(1)
+    test('should be proper type for Step', () => {
+        const adapter = adapterFactory()
+
+        const fn = adapter.wrapStep('specFn', 3, true, adapter.config, 'cid', jest.fn().mockImplementation(() => 'getCurrentStep'))
+        fn(1, 2)
+
+        expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Step', 3))
+
+        const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
+        expect(beforeFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+        const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
+        expect(afterFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+    })
+
+    test('should be proper type for Hook', () => {
+        const adapter = adapterFactory()
+
+        const fn = adapter.wrapStep('specFn', undefined, false, adapter.config, 'cid', jest.fn().mockImplementation(() => 'getCurrentStep'))
+        fn(1, 2)
+
+        expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Hook', 0))
+
+        const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
+        expect(beforeFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+        const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
+        expect(afterFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+    })
 })
 
-test('wrapStepSync with default', () => {
+describe('addHooks', () => {
+    global.result = [{ uri: 'uri' }, 'feature', 'scenario1', 'scenario2']
+    Cucumber.Before.mockImplementationOnce(fn => fn)
+    Cucumber.After.mockImplementationOnce(fn => fn)
+    Cucumber.BeforeAll.mockImplementationOnce(fn => fn)
+    Cucumber.AfterAll.mockImplementationOnce(fn => fn)
     const adapter = adapterFactory()
+    const adapterConfig = {
+        beforeScenario: jest.fn(),
+        afterScenario: jest.fn(),
+        beforeFeature: jest.fn(),
+        afterFeature: jest.fn(),
+    }
+    adapter.addWdioHooks(adapterConfig)
+    const beforeScenario = Cucumber.Before.mock.calls[0][0]
+    const afterScenario = Cucumber.After.mock.calls[0][0]
+    const beforeFeature = Cucumber.BeforeAll.mock.calls[0][0]
+    const afterFeature = Cucumber.AfterAll.mock.calls[0][0]
 
-    const fn = adapter.wrapStepSync('some code')
-    expect(typeof fn).toBe('function')
-    expect(typeof fn(1, 2, 3).then).toBe('function')
-    expect(runFnInFiberContext).toBeCalledTimes(1)
-})
-
-test('wrapStepAsync', () => {
-    const adapter = adapterFactory()
-
-    const fn = adapter.wrapStepAsync('fn', 123)
-    expect(typeof fn).toBe('function')
-
-    fn(1, 2, 3)
-    expect(executeAsync).toBeCalledWith('fn', 123, [1, 2, 3])
-})
-
-test('wrapStepAsync with default value', () => {
-    const adapter = adapterFactory()
-
-    const fn = adapter.wrapStepAsync('fn')
-    expect(typeof fn).toBe('function')
-
-    fn(1, 2, 3)
-    expect(executeAsync).toBeCalledWith('fn', 0, [1, 2, 3])
+    test('beforeScenario', () => {
+        beforeScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation' })
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation'])
+    })
+    test('afterScenario', () => {
+        afterScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation', result: 'result' })
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterScenario, ['uri', 'feature', 'pickle', 'result', 'sourceLocation'])
+    })
+    test('beforeFeature', () => {
+        beforeFeature()
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeFeature, ['uri', 'feature', ['scenario1', 'scenario2']])
+    })
+    test('afterFeature', () => {
+        afterFeature()
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterFeature, ['uri', 'feature', ['scenario1', 'scenario2']])
+    })
 })
 
 afterEach(() => {
+    Cucumber.setDefinitionFunctionWrapper.mockClear()
     Cucumber.supportCodeLibraryBuilder.reset.mockReset()
     Cucumber.setDefaultTimeout.mockReset()
     executeHooksWithArgs.mockClear()
-    runFnInFiberContext.mockClear()
+    testFnWrapper.mockClear()
     mockery.enable.mockClear()
     mockery.registerMock.mockClear()
     mockery.disable.mockClear()

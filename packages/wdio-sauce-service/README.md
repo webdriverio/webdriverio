@@ -77,3 +77,9 @@ Type: `Object`<br>
 Default: `{}`
 
 *(only for vm and or em/simulators)*
+
+### scRelay
+Use Sauce Connect as a Selenium Relay. See more [here](https://wiki.saucelabs.com/display/DOCS/Using+the+Selenium+Relay+with+Sauce+Connect+Proxy).
+
+Type: `Boolean`<br>
+Default: `false`

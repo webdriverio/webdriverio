@@ -11,36 +11,35 @@ export function sanitizeErrorMessage (commandError, savedError) {
     if (commandError instanceof Error) {
         ({ name, message, stack } = commandError)
     } else {
-        ({ name } = savedError)
+        name = 'Error'
         message = commandError
     }
 
     const err = new Error(message)
     err.name = name
-    err.stack = savedError.stack
 
-    // merge stack traces if Error has stack trace
+    let stackArr = savedError.stack.split('\n')
+
+    /**
+     * merge stack traces if `commandError` has stack trace
+     */
     if (stack) {
-        err.stack = stack + '\n' + err.stack
+        // remove duplicated error name from stack trace
+        stack = stack.replace(`${err.name}: ${err.name}`, err.name)
+        // remove first stack trace line from second stack trace
+        stackArr[0] = '\n'
+        // merge
+        stackArr = [...stack.split('\n'), ...stackArr]
     }
 
-    let stackArr = err.stack.split('\n')
-
-    // filter stack trace
-    stackArr = stackArr.filter(STACKTRACE_FILTER_FN)
-
-    // remove duplicates from stack traces
-    err.stack = stackArr.reduce((acc, currentValue) => {
-        return acc.includes(currentValue) ? acc : `${acc}\n${currentValue}`
-    }, '').trim()
+    err.stack = stackArr
+        // filter stack trace
+        .filter(STACKTRACE_FILTER_FN)
+        // remove duplicates from stack traces
+        .reduce((acc, currentValue) => {
+            return acc.includes(currentValue) ? acc : `${acc}\n${currentValue}`
+        }, '')
+        .trim()
 
     return err
-}
-
-/**
- * filter out arguments passed to specFn & hookFn, don't allow callbacks
- * as there is no need for user to call e.g. `done()`
- */
-export function filterSpecArgs (args) {
-    return args.filter((arg) => typeof arg !== 'function')
 }

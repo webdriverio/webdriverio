@@ -34,6 +34,8 @@ exports.config = {
     // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
     // path: '/',<% }
 
+    // Protocol: http | https
+    // protocol: 'http',
     if(answers.env_user && answers.env_key) { %>
     //
     // =================
@@ -174,14 +176,7 @@ exports.config = {
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
     //
-    // Test reporter for stdout.
-    // The only one supported by default is 'dot'
-    // see also: https://webdriver.io/docs/dot-reporter.html
-    <% if(answers.reporters.length) {
-    %>reporters: [<%- answers.reporters.map(reporter => `'${reporter}'`) %>],
-    <% } else {
-    %>// reporters: ['dot'],<%
-    }
+    <%- include('reporters', { reporters: answers.reporters }) %> <%
     if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
@@ -220,7 +215,7 @@ exports.config = {
         source: true,       // <boolean> hide source uris
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+        tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 60000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
@@ -272,29 +267,23 @@ exports.config = {
     // beforeSuite: function (suite) {
     // },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
-    // beforeTest: function (test) {
+    // beforeTest: function (test, context) {
     // },
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha)
      */
-    // beforeHook: function () {
+    // beforeHook: function (test, context) {
     // },
     /**
      * Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
      * afterEach in Mocha)
      */
-    // afterHook: function () {
+    // afterHook: function (test, context, { error, result, duration, passed }) {
     // },
-    /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
-     */
-    // afterTest: function (test) {
-    // },
+    <%- include('afterTest', { reporters: answers.reporters }) %>
     /**
      * Hook that gets executed after the suite has ended
      * @param {Object} suite suite details
@@ -305,22 +294,22 @@ exports.config = {
     /**
      * Runs before a Cucumber feature
      */
-    // beforeFeature: function (uri, feature) {
+    // beforeFeature: function (uri, feature, scenarios) {
     // },
     /**
      * Runs before a Cucumber scenario
      */
-    // beforeScenario: function (uri, feature, scenario) {
+    // beforeScenario: function (uri, feature, scenario, sourceLocation) {
     // },
     /**
      * Runs before a Cucumber step
      */
-    // beforeStep: function (uri, feature, scenario, step, sourceLocation) {
+    // beforeStep: function (uri, feature, stepData, context) {
     // },
     /**
      * Runs after a Cucumber step
      */
-    // afterStep: function (uri, feature, scenario, step, result, sourceLocation) {
+    // afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
     // },
     /**
      * Runs after a Cucumber scenario
@@ -330,7 +319,7 @@ exports.config = {
     /**
      * Runs after a Cucumber feature
      */
-    // afterFeature: function (uri, feature) {
+    // afterFeature: function (uri, feature, scenarios) {
     // },
     <% } %>
     /**

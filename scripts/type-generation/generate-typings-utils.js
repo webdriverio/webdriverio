@@ -1,4 +1,4 @@
-
+const returnTypeMap = require('./webdriver-return-types.json')
 const changeType = (text) => {
     if (text.indexOf('Array.') > -1) {
         const arrayText = 'Array.<'
@@ -56,6 +56,7 @@ const buildCommand = (commandName, commandTags, indentation = 0) => {
 
         if (type === 'return') {
             returnType = getTypes(types, false)
+            returnType = returnType === 'object' ? (returnTypeMap[commandName] || 'ProtocolCommandResponse') : returnType
         }
     }
 

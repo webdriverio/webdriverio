@@ -1,16 +1,66 @@
-import logger from '@wdio/logger'
-
-import command from './command'
 import merge from 'lodash.merge'
-import WebDriverProtocol from '../protocol/webdriver.json'
-import MJsonWProtocol from '../protocol/mjsonwp.json'
-import JsonWProtocol from '../protocol/jsonwp.json'
-import AppiumProtocol from '../protocol/appium.json'
-import ChromiumProtocol from '../protocol/chromium.json'
-import SauceLabsProtocol from '../protocol/saucelabs.json'
-import SeleniumProtocol from '../protocol/selenium.json'
+import logger from '@wdio/logger'
+import {
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    SauceLabsProtocol, SeleniumProtocol
+} from '@wdio/protocols'
+
+import WebDriverRequest from './request'
+import command from './command'
 
 const log = logger('webdriver')
+
+const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
+const MOBILE_CAPABILITIES = [
+    'appium-version', 'appiumVersion', 'device-type', 'deviceType',
+    'device-orientation', 'deviceOrientation', 'deviceName'
+]
+
+/**
+ * start browser session with WebDriver protocol
+ */
+export async function startWebDriverSession (params) {
+    /**
+     * the user could have passed in either w3c style or jsonwp style caps
+     * and we want to pass both styles to the server, which means we need
+     * to check what style the user sent in so we know how to construct the
+     * object for the other style
+     */
+    const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
+        /**
+         * in case W3C compliant capabilities are provided
+         */
+        ? [params.capabilities, params.capabilities.alwaysMatch]
+        /**
+         * otherwise assume they passed in jsonwp-style caps (flat object)
+         */
+        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
+    const sessionRequest = new WebDriverRequest(
+        'POST',
+        '/session',
+        {
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
+        }
+    )
+
+    const response = await sessionRequest.makeRequest(params)
+    const sessionId = response.value.sessionId || response.sessionId
+
+    /**
+     * save original set of capabilities to allow to request the same session again
+     * (e.g. for reloadSession command in WebdriverIO)
+     */
+    params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+
+    /**
+     * save actual receveived session details
+     */
+    params.capabilities = response.value.capabilities || response.value
+
+    return sessionId
+}
 
 /**
  * check if WebDriver requests was successful
@@ -80,52 +130,6 @@ export function isSuccessfulResponse (statusCode, body) {
 }
 
 /**
- * checks if command argument is valid according to specificiation
- *
- * @param  {*}       arg           command argument
- * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
- * @return {Boolean}               true if argument is valid
- */
-export function isValidParameter (arg, expectedType) {
-    let shouldBeArray = false
-
-    if (expectedType.slice(-2) === '[]') {
-        expectedType = expectedType.slice(0, -2)
-        shouldBeArray = true
-    }
-
-    /**
-     * check type of each individual array element
-     */
-    if (shouldBeArray) {
-        if (!Array.isArray(arg)) {
-            return false
-        }
-    } else {
-        /**
-         * transform to array to have a unified check
-         */
-        arg = [arg]
-    }
-
-    for (const argEntity of arg) {
-        const argEntityType = getArgumentType(argEntity)
-        if (!argEntityType.match(expectedType)) {
-            return false
-        }
-    }
-
-    return true
-}
-
-/**
- * get type of command argument
- */
-export function getArgumentType (arg) {
-    return arg === null ? 'null' : typeof arg
-}
-
-/**
  * creates the base prototype for the webdriver monad
  */
 export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
@@ -160,35 +164,11 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData) }
+            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
         }
     }
 
     return prototype
-}
-
-/**
- * get command call structure
- * (for logging purposes)
- */
-export function commandCallStructure (commandName, args) {
-    const callArgs = args.map((arg) => {
-        if (typeof arg === 'string') {
-            arg = `"${arg}"`
-        } else if (typeof arg === 'function') {
-            arg = '<fn>'
-        } else if (arg === null) {
-            arg = 'null'
-        } else if (typeof arg === 'object') {
-            arg = '<object>'
-        } else if (typeof arg === 'undefined') {
-            arg = typeof arg
-        }
-
-        return arg
-    }).join(', ')
-
-    return `${commandName}(${callArgs})`
 }
 
 /**
@@ -211,7 +191,7 @@ export function isW3C (capabilities) {
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
      * - it is an Appium session (since Appium is full W3C compliant)
      */
-    const isAppium = capabilities.automationName || capabilities.deviceName
+    const isAppium = capabilities.automationName || capabilities.deviceName || (capabilities.appiumVersion)
     const hasW3CCaps = (
         capabilities.platformName &&
         capabilities.browserVersion &&
@@ -243,14 +223,24 @@ export function isChrome (caps) {
  * @return {Boolean}       true if platform is mobile device
  */
 export function isMobile (caps) {
+    const browserName = (caps.browserName || '').toLowerCase()
+
+    /**
+     * we have mobile caps if
+     */
     return Boolean(
-        (typeof caps['appium-version'] !== 'undefined') ||
-        (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
-        (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
-        (typeof caps.deviceName !== 'undefined') ||
-        // Check browserName for specific values
-        (caps.browserName === '' ||
-             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
+        /**
+         * capabilities contain mobile only specific capabilities
+         */
+        Object.keys(caps).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
+        /**
+         * browserName is empty (and eventually app is defined)
+         */
+        caps.browserName === '' ||
+        /**
+         * browserName is a mobile browser
+         */
+        MOBILE_BROWSER_NAMES.includes(browserName)
     )
 }
 
@@ -355,50 +345,6 @@ export class CustomRequestError extends Error {
 }
 
 /**
- * overwrite native element commands with user defined
- * @param {object} propertiesObject propertiesObject
- */
-export function overwriteElementCommands(propertiesObject) {
-    const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
-
-    for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
-        if (typeof userDefinedCommand !== 'function') {
-            throw new Error('overwriteCommand: commands be overwritten only with functions, command: ' + commandName)
-        }
-
-        if (!propertiesObject[commandName]) {
-            throw new Error('overwriteCommand: no command to be overwritten: ' + commandName)
-        }
-
-        if (typeof propertiesObject[commandName].value !== 'function') {
-            throw new Error('overwriteCommand: only functions can be overwritten, command: ' + commandName)
-        }
-
-        const origCommand = propertiesObject[commandName].value
-        delete propertiesObject[commandName]
-
-        const newCommand = function (...args) {
-            const element = this
-            return userDefinedCommand.apply(element, [
-                function origCommandFunction() {
-                    const context = this || element // respect explicite context binding, use element as default
-                    return origCommand.apply(context, arguments)
-                },
-                ...args
-            ])
-        }
-
-        propertiesObject[commandName] = {
-            value: newCommand,
-            configurable: true
-        }
-    }
-
-    delete propertiesObject['__elementOverrides__']
-    propertiesObject['__elementOverrides__'] = { value: {} }
-}
-
-/**
  * return all supported flags and return them in a format so we can attach them
  * to the instance protocol
  * @param  {Object} options   driver instance or option object containing these flags
@@ -413,5 +359,26 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isChrome: { value: isChrome },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone }
+    }
+}
+
+/**
+ * Decorate the params object with host updates based on the presence of
+ * directConnect capabilities in the new session response. Note that this
+ * mutates the object.
+ * @param  {Object} params    post-new-session params used to build driver
+ */
+export function setupDirectConnect(params) {
+    const { directConnectProtocol, directConnectHost, directConnectPort,
+        directConnectPath } = params.capabilities
+    if (directConnectProtocol && directConnectHost && directConnectPort &&
+        (directConnectPath || directConnectPath === '')) {
+        log.info('Found direct connect information in new session response. ' +
+            `Will connect to server at ${directConnectProtocol}://` +
+            `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
+        params.protocol = directConnectProtocol
+        params.hostname = directConnectHost
+        params.port = directConnectPort
+        params.path = directConnectPath
     }
 }

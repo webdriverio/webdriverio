@@ -17,9 +17,11 @@ export default class SauceLauncher {
             logger: log.debug
         }, config.sauceConnectOpts)
 
-        config.protocol = 'http'
-        config.hostname = 'localhost'
-        config.port = this.sauceConnectOpts.port || 4445
+        if (config.scRelay) {
+            config.protocol = 'http'
+            config.hostname = 'localhost'
+            config.port = this.sauceConnectOpts.port || 4445
+        }
 
         const sauceConnectTunnelIdentifier = this.sauceConnectOpts.tunnelIdentifier
 

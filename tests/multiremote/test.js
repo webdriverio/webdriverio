@@ -5,6 +5,8 @@ describe('smoke test multiremote', () => {
         assert.equal(
             JSON.stringify(browser.getTitle()),
             JSON.stringify(['Mock Page Title', 'Mock Page Title']))
+        assert.equal(browser.browserB.getTitle(), 'Mock Page Title')
+        assert.equal(browser.browserA.getTitle(), 'Mock Page Title')
     })
 
     describe('add customCommands', () => {
@@ -21,6 +23,16 @@ describe('smoke test multiremote', () => {
             const results = browser.customFn()
 
             assert.strictEqual(results[0] >= 30, true, `First of [${results}] is less than 30`)
+        })
+
+        it('should respect promises if command was added to single browser', () => {
+            browser.customCommandScenario(Object.keys(browser.instances).length)
+            global.browserA.addCommand('foobar', () => {
+                const title = global.browserA.getTitle()
+                return `Title: ${title}`
+            })
+            assert.strictEqual(global.browserA.foobar(), 'Title: Mock Page Title')
+            assert.equal(typeof global.browserB.foobar, 'undefined')
         })
 
         it('should throw if promise rejects', () => {
@@ -59,6 +71,15 @@ describe('smoke test multiremote', () => {
             })
 
             assert.equal(browser.getTitle('Foo '), 'Foo Mock Page Title,Foo Mock Page Title')
+        })
+
+        it('should allow to overwrite element commands of a single browser', () => {
+            browser.customCommandScenario(Object.keys(browser.instances).length)
+            global.browserA.overwriteCommand('getTitle', function (origCommand) {
+                return `Title: ${origCommand()}`
+            })
+            assert.equal(global.browserA.getTitle(), 'Title: Mock Page Title')
+            assert.equal(global.browserB.getTitle(), 'Mock Page Title')
         })
 
         it('should allow to overwrite element commands', () => {

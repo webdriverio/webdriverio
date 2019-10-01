@@ -16,11 +16,11 @@ First off we need a main page object that we call `Page`. It will contain genera
 ```js
 export default class Page {
     constructor() {
-        this.title = 'My Page';
+        this.title = 'My Page'
     }
 
     open(path) {
-        browser.url(path);
+        browser.url(path)
     }
 }
 ```
@@ -31,27 +31,27 @@ Let's start testing the first page. For demo purposes we use [The Internet](http
 
 ```js
 // login.page.js
-import Page from './page';
+import Page from './page'
 
 class LoginPage extends Page {
 
-    get username() { return $('#username'); }
-    get password() { return $('#password'); }
-    get submitBtn() { return $('form button[type="submit"]'); }
-    get flash() { return $('#flash'); }
-    get headerLinks() { return $$('#header a'); }
+    get username() { return $('#username') }
+    get password() { return $('#password') }
+    get submitBtn() { return $('form button[type="submit"]') }
+    get flash() { return $('#flash') }
+    get headerLinks() { return $$('#header a') }
 
     open() {
-        super.open('login');
+        super.open('login')
     }
 
     submit() {
-        this.submitBtn.click();
+        this.submitBtn.click()
     }
 
 }
 
-export default new LoginPage();
+export default new LoginPage()
 ```
 
 Defining selectors in getter functions might look a bit verbose but it is really useful. These functions get evaluated when you actually access the property and not when you generate the object. With that you always request the element before you do an action on it.
@@ -59,51 +59,51 @@ Defining selectors in getter functions might look a bit verbose but it is really
 WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
 
 ```js
-LoginPage.username.setValue('Max Mustermann');
+LoginPage.username.setValue('Max Mustermann')
 ```
 
 which is basically the same thing as:
 
 ```js
-var elem = $('#username');
-elem.setValue('Max Mustermann');
+var elem = $('#username')
+elem.setValue('Max Mustermann')
 ```
 
 or
 
 ```js
-$('#username').setValue('Max Mustermann');
+$('#username').setValue('Max Mustermann')
 ```
 
 After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to require it and that's it. The `Object.create` method returns an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
 
 ```js
 // login.spec.js
-import { expect } from 'chai';
-import LoginPage from '../pageobjects/login.page';
+import { expect } from 'chai'
+import LoginPage from '../pageobjects/login.page'
 
 describe('login form', () => {
     it('should deny access with wrong creds', () => {
-        LoginPage.open();
-        LoginPage.username.setValue('foo');
-        LoginPage.password.setValue('bar');
-        LoginPage.submit();
+        LoginPage.open()
+        LoginPage.username.setValue('foo')
+        LoginPage.password.setValue('bar')
+        LoginPage.submit()
 
-        expect(LoginPage.flash.getText()).to.contain('Your username is invalid!');
-    });
+        expect(LoginPage.flash.getText()).to.contain('Your username is invalid!')
+    })
 
     it('should allow access with correct creds', () => {
-        LoginPage.open();
-        LoginPage.username.setValue('tomsmith');
-        LoginPage.password.setValue('SuperSecretPassword!');
-        LoginPage.submit();
+        LoginPage.open()
+        LoginPage.username.setValue('tomsmith')
+        LoginPage.password.setValue('SuperSecretPassword!')
+        LoginPage.submit()
 
-        expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!');
-    });
-});
+        expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!')
+    })
+})
 ```
 
-From the structural side it makes sense to separate spec files and page objects and put them into different directories. Additionally you can give each page object the ending: `.page.js`. This way it is easy to figure out that you actually require a page object if you execute `var LoginPage = require('../pageobjects/form.page');`.
+From the structural side it makes sense to separate spec files and page objects and put them into different directories. Additionally you can give each page object the ending: `.page.js`. This way it is easy to figure out that you actually require a page object if you execute `const LoginPage = require('../pageobjects/form.page')`.
 
 This is the basic principle of how to write page objects with WebdriverIO. Note that you can build up way more complex page object structures than this. For example have specific page objects for modals or split up a huge page object into different sections objects that inherit from the main page object. The pattern gives you really a lot of opportunities to encapsulate page information from your actual tests, which is important to keep your test suite structured and clear in times where the project and number of tests grows.
 

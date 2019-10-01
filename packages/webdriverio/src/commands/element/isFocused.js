@@ -29,9 +29,10 @@ import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject } from '../../utils'
 import isFocusedScript from '../../scripts/isFocused'
 
-export default function isFocused () {
-    return getBrowserObject(this).execute(isFocusedScript, {
+export default async function isFocused () {
+    const isFocused = await getBrowserObject(this).execute(isFocusedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
     })
+    return Boolean(isFocused)
 }

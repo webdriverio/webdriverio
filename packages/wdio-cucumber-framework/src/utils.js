@@ -1,4 +1,6 @@
 import * as path from 'path'
+import { isFunctionAsync } from '@wdio/utils'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 
 /**
  * NOTE: this function is exported for testing only
@@ -92,15 +94,21 @@ export function getUniqueIdentifier (target, sourceLocation) {
  * @param {object} message { type: string, payload: object }
  */
 export function formatMessage ({ payload = {} }) {
-    let message = {
-        ...payload,
+    let content = { ...payload }
+
+    /**
+     * need to convert Error to plain object, otherwise it is lost on process.send
+     */
+    if (payload.error && (payload.error.message || payload.error.stack)) {
+        const { name, message, stack } = payload.error
+        content.error = { name, message, stack }
     }
 
     if (payload.title && payload.parent) {
-        message.fullTitle = getTestFullTitle(payload.parent, payload.title)
+        content.fullTitle = getTestFullTitle(payload.parent, payload.title)
     }
 
-    return message
+    return content
 }
 
 /**
@@ -131,8 +139,9 @@ export function buildStepPayload(uri, feature, scenario, step, params = {}) {
 
 export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
     if (scenario.type.indexOf('ScenarioOutline') > -1) {
-        return scenario.examples[0].tableBody
-            .some((tableEntry) => tableEntry.location.line === sourceLocation.line)
+        return scenario.examples
+            .some(example => example.tableBody
+                .some(tableEntry => tableEntry.location.line === sourceLocation.line))
     }
 
     return scenario.location.line === sourceLocation.line
@@ -140,12 +149,22 @@ export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
 
 export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
     let combinedSteps = []
-    feature.children.forEach((child) => {
-        if (child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)) {
-            return
-        }
-        combinedSteps = combinedSteps.concat(child.steps)
-    })
+    const background = feature.children.find((child) => child.type === 'Background')
+    feature.children
+        .filter((child) => child.type !== 'Background' && !(child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)))
+        .forEach((child) => { combinedSteps = combinedSteps.concat(child.steps) })
+
+    /**
+     * all the hooks are executed before `Background` step(s).
+     * Example:
+     * from: [Background steps, wdioHookBeforeScenario, userHooks, steps, userHooks, wdioHookAfterScenario]
+     * to:   [wdioHookBeforeScenario, userHooks, Background steps, steps, userHooks, wdioHookAfterScenario]
+     */
+    const firstStepIdx = combinedSteps.indexOf(combinedSteps.find((step) => step.type === 'Step'))
+    if (background) {
+        combinedSteps = [...combinedSteps.slice(0, firstStepIdx), ...background.steps, ...combinedSteps.slice(firstStepIdx)]
+    }
+
     const targetStep = combinedSteps[stepIndex]
 
     if (targetStep.type === 'Step') {
@@ -158,4 +177,27 @@ export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
     }
 
     return targetStep
+}
+
+/**
+ * @param {object[]} result cucumber global result object
+ */
+export const getDataFromResult = ([{ uri }, feature, ...scenarios]) => ({ uri, feature, scenarios })
+
+/**
+ * wrap every user defined hook with function named `userHookFn`
+ * to identify later on is function a step, user hook or wdio hook.
+ * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
+ */
+export function setUserHookNames (options) {
+    CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
+        options[hookName].forEach(testRunHookDefinition => {
+            const hookFn = testRunHookDefinition.code
+            if (!hookFn.name.startsWith('wdioHook')) {
+                const userHookAsyncFn = async function (...args) { return hookFn.apply(this, args) }
+                const userHookFn = function (...args) { return hookFn.apply(this, args) }
+                testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
+            }
+        })
+    })
 }

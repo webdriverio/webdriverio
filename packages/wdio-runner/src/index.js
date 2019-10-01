@@ -177,7 +177,6 @@ export default class Runner extends EventEmitter {
         /**
          * register command event
          */
-        // console.log(this)
         browser.on('command', (command) => this.reporter.emit(
             'client:beforeCommand',
             Object.assign(command, { sessionId: browser.sessionId })
@@ -217,6 +216,12 @@ export default class Runner extends EventEmitter {
         ) {
             return
         }
+
+        /**
+         * suppress @wdio/sync warnings of not running commands inside of
+         * a Fibers contetx
+         */
+        global._HAS_FIBER_CONTEXT = true
 
         let logTypes
         try {

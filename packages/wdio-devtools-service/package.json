@@ -1,13 +1,13 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "5.11.0",
+  "version": "5.13.2",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devtools-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">= 10.13.0"
   },
   "scripts": {
     "build": "run-s clean compile",
@@ -34,9 +34,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "^5.11.0",
-    "chrome-remote-interface": "^0.27.1",
-    "core-js": "~3.1.4",
+    "@wdio/logger": "5.13.2",
+    "chrome-remote-interface": "^0.28.0",
+    "core-js": "~3.2.0",
     "lighthouse": "^5.1.0",
     "puppeteer-core": "^1.15.0",
     "speedline": "^1.4.1",
