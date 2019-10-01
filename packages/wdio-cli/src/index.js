@@ -18,8 +18,10 @@ export const run = async () => {
     /**
      * parse CLI arguments according to what run expects
      */
-    for (const [name, param] of Object.entries(builder)) {
-        argv.option(name, param)
+    if (!process.argv.find((arg) => arg === '--help')) {
+        for (const [name, param] of Object.entries(builder)) {
+            argv.option(name, param)
+        }
     }
 
     /**
