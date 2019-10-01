@@ -160,13 +160,13 @@ exports.config = {
     },
     //
     // Opciones a pasar a Jasmine.
-    // Vea también : https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
+    // Vea también: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Tiempo de espera por default para Jasmine 
         defaultTimeoutInterval: 5000,
         //
-        // El Framework Jasmine permite interceptar cada cromprobación(assertion) para poder obtener logs  
+        // El Framework Jasmine permite interceptar cada comprobación(assertion) para poder obtener logs  
         // del estado de la aplicación o website dependiendo del resultado de la misma. Por ejemplo, es muy práctico tomar una captura de pantalla cada vez que
         // falla una comprobación.
         expectationResultHandler: function(passed, assertion) {
