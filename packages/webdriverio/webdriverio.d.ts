@@ -2,12 +2,16 @@
 
 type $ = (selector: string | Function) => Promise<WebdriverIOAsync.Element>;
 type $$ = (selector: string | Function) => Promise<WebdriverIOAsync.Element[]>;
+type react$ = (selector: string, props?: object, state?: any[] | number | string | object | boolean) => Promise<WebdriverIOAsync.Element>;
+type react$$ = (selector: string, props?: object, state?: any[] | number | string | object | boolean) => Promise<WebdriverIOAsync.Element[]>;
 
 // Element commands that should be wrapper with Promise
 type ElementPromise = Omit<WebdriverIO.Element,
     'addCommand'
     | '$'
     | '$$'
+    | 'react$'
+    | 'react$$'
     | 'selector'
     | 'elementId'
     | 'element-6066-11e4-a52e-4f735466cecf'
@@ -20,6 +24,8 @@ type ElementPromise = Omit<WebdriverIO.Element,
 interface AsyncSelectors {
     $: $;
     $$: $$;
+    react$: react$;
+    react$$: react$$;
 }
 
 // Element commands wrapper with Promise
@@ -38,7 +44,7 @@ type ElementStatic = Pick<WebdriverIO.Element,
 >;
 
 // Browser commands that should be wrapper with Promise
-type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$' | 'touchAction'>;
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$' | 'react$' | 'react$$' | 'touchAction'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
@@ -102,6 +108,8 @@ declare namespace WebdriverIOAsync {
 declare var browser: WebdriverIOAsync.BrowserObject;
 declare var $: $;
 declare var $$: $$;
+declare var react$: react$;
+declare var react$$: react$$;
 
 declare module "webdriverio" {
     export = WebdriverIOAsync

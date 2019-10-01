@@ -103,6 +103,10 @@ async function bar() {
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
     await reactElements[0].click()
+    const reactElement2 = await react$('')
+    await reactElement2.click()
+    const reactElements2 = await react$$('')
+    await reactElements2[0].click()
 
     // touchAction
     const ele = await $('')
@@ -115,7 +119,7 @@ async function bar() {
     }
     await ele.touchAction(touchAction)
     await browser.touchAction(touchAction)
-    
+
     // dragAndDrop
     await ele.dragAndDrop(ele, 0)
 }
