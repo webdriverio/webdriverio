@@ -24,7 +24,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
      * make sure args is an array since we are calling apply
      */
     if (!Array.isArray(args)) {
-        args = [args].filter((hook) => typeof hook === 'function')
+        args = [args]
     }
 
     hooks = hooks.map((hook) => new Promise((resolve) => {
