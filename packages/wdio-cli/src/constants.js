@@ -198,7 +198,13 @@ export const QUESTIONNAIRE = [{
         let result = true
 
         Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
-            if (answers.includes(name) && answers.some(s => services.includes(s))) {
+            const exists = answers.some(answer => answer.includes(name))
+
+            const hasExclusive = services.some(service =>
+                answers.some(answer => answer.includes(service))
+            )
+
+            if (exists && hasExclusive) {
                 result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
             }
         })
