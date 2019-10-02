@@ -44,6 +44,7 @@
     "ts:webdriverio-devtools": "cd tests/typings/sync-devtools && tsc --incremental",
     "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && tsc --incremental",
     "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc --incremental",
+    "ts:webdriverio-reporter": "cd tests/typings/webdriverio-reporter && tsc --incremental",
     "watch": "node ./scripts/watch",
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope"
   },
