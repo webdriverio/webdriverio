@@ -37,5 +37,6 @@
   },
   "dependencies": {
     "fs-extra": "^8.0.1"
-  }
+  },
+  "types": "reporter.d.ts"
 }
