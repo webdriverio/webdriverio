@@ -7,6 +7,7 @@ before(async () => {
 describe('my feature 1', () => {
     it('should do stuff 1', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
+        assert.equal(global.WDIO_SERVICE_BEFORE_SUITE.title, 'my feature 1')
     })
 })
 
