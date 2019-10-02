@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.14.3 (2019-10-02)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `wdio-utils`
+  * [#4561](https://github.com/webdriverio/webdriverio/pull/4561) Remove args filter in executeHooksWithArgs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.14.2 (2019-10-02)
 
 #### :bug: Bug Fix
