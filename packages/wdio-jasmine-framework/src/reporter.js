@@ -20,15 +20,9 @@ export default class JasmineReporter {
 
         this.emit('suite:start', suite)
 
-        const hookBeforeAll = Object.assign({}, suite)
-        hookBeforeAll.type = 'hook'
-        hookBeforeAll.description = '"before all" hook'
-        this.emit('hook:start', hookBeforeAll)
+        this.emitHookStart(suite, 'before all')
 
-        const hookAfterAll = Object.assign({}, suite)
-        hookAfterAll.type = 'hook'
-        hookAfterAll.description = '"after all" hook'
-        this.emit('hook:start', hookAfterAll)
+        this.emitHookStart(suite, 'after all')
 
         this.parent.push({
             description: suite.description,
@@ -112,25 +106,9 @@ export default class JasmineReporter {
             errorsAfterAll = errors.filter(error => error.stack.includes('UserContext.afterAll'))
         }
 
-        const hookBeforeAll = Object.assign({}, suite)
-        hookBeforeAll.type = 'hook'
-        hookBeforeAll.parent = parentSuite
-        hookBeforeAll.description = '"before all" hook'
-        if (errorsBeforeAll) {
-            hookBeforeAll.errors = errorsBeforeAll
-            hookBeforeAll.error = errorsBeforeAll[0]
-        }
-        this.emit('hook:end', hookBeforeAll)
+        this.emitHookEnd(suite, parentSuite, 'before all', errorsBeforeAll)
 
-        const hookAfterAll = Object.assign({}, suite)
-        hookAfterAll.type = 'hook'
-        hookAfterAll.parent = parentSuite
-        hookAfterAll.description = '"after all" hook'
-        if (errorsAfterAll) {
-            hookAfterAll.errors = errorsAfterAll
-            hookAfterAll.error = errorsAfterAll[0]
-        }
-        this.emit('hook:end', hookAfterAll)
+        this.emitHookEnd(suite, parentSuite, 'after all', errorsAfterAll)
 
         this.parent.pop()
         suite.type = 'suite'
@@ -170,6 +148,25 @@ export default class JasmineReporter {
 
     getUniqueIdentifier (target) {
         return target.description + target.id
+    }
+
+    emitHookStart(suite, name) {
+        const hook = Object.assign({}, suite)
+        hook.type = 'hook'
+        hook.description = '"' + name + '" hook'
+        this.emit('hook:start', hook)
+    }
+
+    emitHookEnd(suite, parentSuite, name, errors) {
+        const hook = Object.assign({}, suite)
+        hook.type = 'hook'
+        hook.parent = parentSuite
+        hook.description = '"' + name + '" hook'
+        if (errors) {
+            hook.errors = errors
+            hook.error = errors[0]
+        }
+        this.emit('hook:end', hook)
     }
 
     cleanStack (error) {
