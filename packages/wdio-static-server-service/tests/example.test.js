@@ -1,5 +1,6 @@
 import express from 'express'
 import fs from 'fs-extra'
+import os from 'os'
 
 import StaticServerLauncher from '../src/launcher'
 
@@ -45,7 +46,11 @@ test('should stream logs to log dir', () => {
         outputDir: '/foo/bar'
     })
 
-    const filename = '/foo/bar/wdio-static-server-service.log'
+    let filename = '/foo/bar/wdio-static-server-service.log'
+    if (os.platform() === 'win32') {
+        filename = filename.split('/').join('\\')
+    }
+
     expect(fs.createFileSync).toBeCalledWith(filename)
     expect(fs.createWriteStream).toBeCalledWith(filename)
 })
