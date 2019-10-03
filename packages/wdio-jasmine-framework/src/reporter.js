@@ -68,13 +68,11 @@ export default class JasmineReporter {
     }
 
     suiteDone (suite) {
-        const parentSuite = this.parent[this.parent.length - 1]
-
         /**
          * in case there is a runtime error within one of the specs
          * create an empty test to attach the error to it
          */
-        if (parentSuite.tests === 0 && suite.failedExpectations.length) {
+        if (this.getParentSuite().tests === 0 && suite.failedExpectations.length) {
             const id = 'spec' + Math.random()
             this.specStarted({
                 id,
@@ -106,9 +104,9 @@ export default class JasmineReporter {
             errorsAfterAll = errors.filter(error => error.stack.includes('UserContext.afterAll'))
         }
 
-        this.emitHookEnd(suite, parentSuite, 'before all', errorsBeforeAll)
+        this.emitHookEnd(suite, 'before all', errorsBeforeAll)
 
-        this.emitHookEnd(suite, parentSuite, 'after all', errorsAfterAll)
+        this.emitHookEnd(suite, 'after all', errorsAfterAll)
 
         this.parent.pop()
         suite.type = 'suite'
@@ -150,6 +148,10 @@ export default class JasmineReporter {
         return target.description + target.id
     }
 
+    getParentSuite () {
+        return this.parent[this.parent.length - 1]
+    }
+
     emitHookStart(suite, name) {
         const hook = Object.assign({}, suite)
         hook.type = 'hook'
@@ -157,10 +159,10 @@ export default class JasmineReporter {
         this.emit('hook:start', hook)
     }
 
-    emitHookEnd(suite, parentSuite, name, errors) {
+    emitHookEnd(suite, name, errors) {
         const hook = Object.assign({}, suite)
         hook.type = 'hook'
-        hook.parent = parentSuite
+        hook.parent = this.getParentSuite()
         hook.description = '"' + name + '" hook'
         if (errors) {
             hook.errors = errors
