@@ -19,6 +19,17 @@ export default class JasmineReporter {
         suite.start = new Date()
 
         this.emit('suite:start', suite)
+
+        const hookBeforeAll = Object.assign({}, suite)
+        hookBeforeAll.type = 'hook'
+        hookBeforeAll.description = '"before all" hook'
+        this.emit('hook:start', hookBeforeAll)
+
+        const hookAfterAll = Object.assign({}, suite)
+        hookAfterAll.type = 'hook'
+        hookAfterAll.description = '"after all" hook'
+        this.emit('hook:start', hookAfterAll)
+
         this.parent.push({
             description: suite.description,
             id: suite.id,
@@ -87,10 +98,47 @@ export default class JasmineReporter {
             })
         }
 
+        // errors on beforeAll are swallowed by Jasmine and can only be accessed later on
+        let errorsBeforeAll
+        let errorsAfterAll
+        if (suite.failedExpectations && suite.failedExpectations.length) {
+            let errors = suite.failedExpectations
+
+            if (this.shouldCleanStack) {
+                errors = suite.failedExpectations.map(x => this.cleanStack(x))
+            }
+
+            errorsBeforeAll = errors.filter(error => error.stack.includes('UserContext.beforeAll'))
+            errorsAfterAll = errors.filter(error => error.stack.includes('UserContext.afterAll'))
+        }
+
+        const hookBeforeAll = Object.assign({}, suite)
+        hookBeforeAll.type = 'hook'
+        hookBeforeAll.parent = parentSuite
+        hookBeforeAll.description = '"before all" hook'
+        if (errorsBeforeAll) {
+            hookBeforeAll.errors = errorsBeforeAll
+            hookBeforeAll.error = errorsBeforeAll[0]
+        }
+        this.emit('hook:end', hookBeforeAll)
+
+        const hookAfterAll = Object.assign({}, suite)
+        hookAfterAll.type = 'hook'
+        hookAfterAll.parent = parentSuite
+        hookAfterAll.description = '"after all" hook'
+        if (errorsAfterAll) {
+            hookAfterAll.errors = errorsAfterAll
+            hookAfterAll.error = errorsAfterAll[0]
+        }
+        this.emit('hook:end', hookAfterAll)
+
         this.parent.pop()
         suite.type = 'suite'
         suite.duration = new Date() - this.suiteStart
         this.emit('suite:end', suite)
+
+        // if suite is failed due to a failure in beforeAll / afterAll, increase failed count
+        this.failedCount += suite.status === 'failed' ? 1 : 0
     }
 
     emit (event, payload) {
