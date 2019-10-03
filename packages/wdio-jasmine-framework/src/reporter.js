@@ -101,7 +101,7 @@ export default class JasmineReporter {
         // errors on beforeAll are swallowed by Jasmine and can only be accessed later on
         let errorsBeforeAll
         let errorsAfterAll
-        if (suite.failedExpectations && suite.failedExpectations.length) {
+        if (suite.failedExpectations.length) {
             let errors = suite.failedExpectations
 
             if (this.shouldCleanStack) {
