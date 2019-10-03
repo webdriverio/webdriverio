@@ -108,7 +108,7 @@ test('specDone should pass multiple failed expectations as errors', () => {
 test('suiteDone', () => {
     jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
-    jasmineReporter.suiteDone({ id: 23, description: 'some test suite' })
+    jasmineReporter.suiteDone({ id: 23, description: 'some test suite', failedExpectations: [] })
 
     expect(runnerReporter.emit.mock.calls[4][0]).toBe('hook:end')
     expect(runnerReporter.emit.mock.calls[4][1].title).toBe('"before all" hook')
@@ -169,7 +169,7 @@ test('getFailedCount - error in spec', () => {
     jasmineReporter.specDone({
         id: 24, description: 'some test spec', failedExpectations: [new Error('foobar')], status: 'failed'
     })
-    jasmineReporter.suiteDone({ id: 23, description: 'some test suite' })
+    jasmineReporter.suiteDone({ id: 23, description: 'some test suite', failedExpectations: [] })
     expect(jasmineReporter.getFailedCount()).toBe(1)
 })
 
