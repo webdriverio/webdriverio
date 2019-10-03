@@ -86,6 +86,15 @@ describe('SpecReporter', () => {
                 hooks: [{ error: 1 }, 5, { error: 2 }]
             })).toEqual([1, 2, 3, { error: 1 }, { error: 2 }])
         })
+
+        it('should contain the beforeAll hook at the top and afterAll hook at the bottom', () => {
+            const beforeAll1 = { title: '"before all" hook', error: 1 }
+            const afterAll5 = { title: '"after all" hook', error: 5 }
+            expect(tmpReporter.getEventsToReport({
+                tests: [2, 3, 4],
+                hooks: [beforeAll1, afterAll5]
+            })).toEqual([beforeAll1, 2, 3, 4, afterAll5])
+        })
     })
 
     describe('onTestPass', () => {
