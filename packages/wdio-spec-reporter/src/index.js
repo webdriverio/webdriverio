@@ -147,17 +147,29 @@ class SpecReporter extends WDIOReporter {
      * @return {Object[]}         list of events to report
      */
     getEventsToReport (suite) {
-        return [
-            /**
-             * report all tests
-             */
-            ...suite.tests,
-            /**
-             * and only hooks that failed
-             */
-            ...suite.hooks
-                .filter((hook) => Boolean(hook.error))
-        ]
+        const beforeAllTitle = '"before all" hook'
+        const beforeAll = suite.hooks.find(hook => Boolean(hook.error) && hook.title === beforeAllTitle)
+        if (beforeAll) {
+            // since Jasmine allows test cases to run even if beforeAll failed, ensure beforeAll is on the top
+            return [beforeAll,
+                // report all tests
+                ...suite.tests,
+                // and only hooks that failed, without beforeAll
+                ...suite.hooks.filter(hook => Boolean(hook.error) && hook.title !== beforeAllTitle)
+            ]
+        } else {
+            return [
+                /**
+                 * report all tests
+                 */
+                ...suite.tests,
+                /**
+                 * and only hooks that failed
+                 */
+                ...suite.hooks
+                    .filter((hook) => Boolean(hook.error))
+            ]
+        }
     }
 
     /**
