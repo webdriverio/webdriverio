@@ -108,8 +108,6 @@ declare namespace WebdriverIOAsync {
 declare var browser: WebdriverIOAsync.BrowserObject;
 declare var $: $;
 declare var $$: $$;
-declare var react$: react$;
-declare var react$$: react$$;
 
 declare module "webdriverio" {
     export = WebdriverIOAsync
