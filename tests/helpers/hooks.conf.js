@@ -49,4 +49,7 @@ exports.config = Object.assign({}, config, {
             throw new Error('wdio afterTest error: ' + test.title)
         }
     },
+    beforeSuite(suite) {
+        global.WDIO_SERVICE_BEFORE_SUITE = suite
+    }
 })
