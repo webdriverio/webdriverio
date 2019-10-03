@@ -28,11 +28,11 @@ test('specStarted', () => {
     jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
 
-    expect(runnerReporter.emit.mock.calls[1][0]).toBe('test:start')
-    expect(runnerReporter.emit.mock.calls[1][1].cid).toBe('0-2')
-    expect(runnerReporter.emit.mock.calls[1][1].uid).toBe('some test spec24')
-    expect(runnerReporter.emit.mock.calls[1][1].title).toBe('some test spec')
-    expect(runnerReporter.emit.mock.calls[1][1].type).toBe('test')
+    expect(runnerReporter.emit.mock.calls[3][0]).toBe('test:start')
+    expect(runnerReporter.emit.mock.calls[3][1].cid).toBe('0-2')
+    expect(runnerReporter.emit.mock.calls[3][1].uid).toBe('some test spec24')
+    expect(runnerReporter.emit.mock.calls[3][1].title).toBe('some test spec')
+    expect(runnerReporter.emit.mock.calls[3][1].type).toBe('test')
     expect(jasmineReporter.parent[0].tests).toBe(1)
 })
 
@@ -41,43 +41,43 @@ test('specDone', () => {
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
     jasmineReporter.specDone({ id: 24, description: 'some test spec', failedExpectations: [], status: 'passed' })
 
-    expect(runnerReporter.emit.mock.calls[2][0]).toBe('test:pass')
-    expect(runnerReporter.emit.mock.calls[2][1].cid).toBe('0-2')
-    expect(runnerReporter.emit.mock.calls[2][1].uid).toBe('some test spec24')
-    expect(runnerReporter.emit.mock.calls[2][1].pending).toBe(false)
-    expect(runnerReporter.emit.mock.calls[3][0]).toBe('test:end')
-    expect(runnerReporter.emit.mock.calls[3][1].uid).toBe('some test spec24')
+    expect(runnerReporter.emit.mock.calls[4][0]).toBe('test:pass')
+    expect(runnerReporter.emit.mock.calls[4][1].cid).toBe('0-2')
+    expect(runnerReporter.emit.mock.calls[4][1].uid).toBe('some test spec24')
+    expect(runnerReporter.emit.mock.calls[4][1].pending).toBe(false)
+    expect(runnerReporter.emit.mock.calls[5][0]).toBe('test:end')
+    expect(runnerReporter.emit.mock.calls[5][1].uid).toBe('some test spec24')
 
     jasmineReporter.specDone({
         id: 25, description: 'some failing test spec', failedExpectations: [new Error('foobar')], status: 'failed'
     })
-    expect(runnerReporter.emit.mock.calls[4][0]).toBe('test:fail')
-    expect(runnerReporter.emit.mock.calls[4][1].cid).toBe('0-2')
-    expect(runnerReporter.emit.mock.calls[4][1].uid).toBe('some failing test spec25')
-    expect(runnerReporter.emit.mock.calls[4][1].pending).toBe(false)
-    expect(runnerReporter.emit.mock.calls[4][1].error.message).toBe('foobar')
-    expect(runnerReporter.emit.mock.calls[5][0]).toBe('test:end')
-    expect(runnerReporter.emit.mock.calls[5][1].uid).toBe('some failing test spec25')
+    expect(runnerReporter.emit.mock.calls[6][0]).toBe('test:fail')
+    expect(runnerReporter.emit.mock.calls[6][1].cid).toBe('0-2')
+    expect(runnerReporter.emit.mock.calls[6][1].uid).toBe('some failing test spec25')
+    expect(runnerReporter.emit.mock.calls[6][1].pending).toBe(false)
+    expect(runnerReporter.emit.mock.calls[6][1].error.message).toBe('foobar')
+    expect(runnerReporter.emit.mock.calls[7][0]).toBe('test:end')
+    expect(runnerReporter.emit.mock.calls[7][1].uid).toBe('some failing test spec25')
 
     jasmineReporter.specDone({
         id: 26, description: 'some pending test spec', failedExpectations: [], status: 'pending'
     })
-    expect(runnerReporter.emit.mock.calls[6][0]).toBe('test:pending')
-    expect(runnerReporter.emit.mock.calls[6][1].cid).toBe('0-2')
-    expect(runnerReporter.emit.mock.calls[6][1].uid).toBe('some pending test spec26')
-    expect(runnerReporter.emit.mock.calls[6][1].pending).toBe(true)
-    expect(runnerReporter.emit.mock.calls[7][0]).toBe('test:end')
-    expect(runnerReporter.emit.mock.calls[7][1].uid).toBe('some pending test spec26')
+    expect(runnerReporter.emit.mock.calls[8][0]).toBe('test:pending')
+    expect(runnerReporter.emit.mock.calls[8][1].cid).toBe('0-2')
+    expect(runnerReporter.emit.mock.calls[8][1].uid).toBe('some pending test spec26')
+    expect(runnerReporter.emit.mock.calls[8][1].pending).toBe(true)
+    expect(runnerReporter.emit.mock.calls[9][0]).toBe('test:end')
+    expect(runnerReporter.emit.mock.calls[9][1].uid).toBe('some pending test spec26')
 
     jasmineReporter.specDone({
         id: 27, description: 'some excluded test spec', failedExpectations: [], status: 'excluded'
     })
-    expect(runnerReporter.emit.mock.calls[8][0]).toBe('test:pending')
-    expect(runnerReporter.emit.mock.calls[8][1].cid).toBe('0-2')
-    expect(runnerReporter.emit.mock.calls[8][1].uid).toBe('some excluded test spec27')
-    expect(runnerReporter.emit.mock.calls[8][1].pending).toBe(true)
-    expect(runnerReporter.emit.mock.calls[9][0]).toBe('test:end')
-    expect(runnerReporter.emit.mock.calls[9][1].uid).toBe('some excluded test spec27')
+    expect(runnerReporter.emit.mock.calls[10][0]).toBe('test:pending')
+    expect(runnerReporter.emit.mock.calls[10][1].cid).toBe('0-2')
+    expect(runnerReporter.emit.mock.calls[10][1].uid).toBe('some excluded test spec27')
+    expect(runnerReporter.emit.mock.calls[10][1].pending).toBe(true)
+    expect(runnerReporter.emit.mock.calls[11][0]).toBe('test:end')
+    expect(runnerReporter.emit.mock.calls[11][1].uid).toBe('some excluded test spec27')
 })
 
 test('specDone should pass multiple failed expectations as errors', () => {
@@ -85,19 +85,20 @@ test('specDone should pass multiple failed expectations as errors', () => {
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
     jasmineReporter.specDone({ id: 24, description: 'some test spec', failedExpectations: [{ message: 'I failed' }, { message: 'I failed too!' }], status: 'failed' })
 
-    expect(runnerReporter.emit.mock.calls[2][0]).toBe('test:fail')
+    expect(runnerReporter.emit.mock.calls[4][0]).toBe('test:fail')
     // We still assign the first failedExpectation to 'error' for backwrds compatibility
-    expect(runnerReporter.emit.mock.calls[2][1].error.message).toBe('I failed')
-    expect(runnerReporter.emit.mock.calls[2][1].errors.length).toBe(2)
-    expect(runnerReporter.emit.mock.calls[2][1].errors[0].message).toBe('I failed')
-    expect(runnerReporter.emit.mock.calls[2][1].errors[1].message).toBe('I failed too!')
+    expect(runnerReporter.emit.mock.calls[4][1].error.message).toBe('I failed')
+    expect(runnerReporter.emit.mock.calls[4][1].errors.length).toBe(2)
+    expect(runnerReporter.emit.mock.calls[4][1].errors[0].message).toBe('I failed')
+    expect(runnerReporter.emit.mock.calls[4][1].errors[1].message).toBe('I failed too!')
 })
 
 test('suiteDone', () => {
     jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
     jasmineReporter.suiteDone({ id: 23, description: 'some test suite' })
-    expect(runnerReporter.emit.mock.calls[2][0]).toBe('suite:end')
+
+    expect(runnerReporter.emit.mock.calls[6][0]).toBe('suite:end')
 
     /**
      * check run time errors in suites
@@ -106,13 +107,13 @@ test('suiteDone', () => {
     jasmineReporter.suiteDone({
         id: 25, description: 'some error prone suite', failedExpectations: [new Error('foobar')]
     })
-    expect(runnerReporter.emit.mock.calls[3][0]).toBe('suite:start')
-    expect(runnerReporter.emit.mock.calls[4][0]).toBe('test:start')
-    expect(runnerReporter.emit.mock.calls[4][1].title).toBe('<unknown test>')
-    expect(runnerReporter.emit.mock.calls[5][0]).toBe('test:fail')
-    expect(runnerReporter.emit.mock.calls[5][1].error.message).toBe('foobar')
-    expect(runnerReporter.emit.mock.calls[6][0]).toBe('test:end')
-    expect(runnerReporter.emit.mock.calls[7][0]).toBe('suite:end')
+    expect(runnerReporter.emit.mock.calls[7][0]).toBe('suite:start')
+    expect(runnerReporter.emit.mock.calls[10][0]).toBe('test:start')
+    expect(runnerReporter.emit.mock.calls[10][1].title).toBe('<unknown test>')
+    expect(runnerReporter.emit.mock.calls[11][0]).toBe('test:fail')
+    expect(runnerReporter.emit.mock.calls[11][1].error.message).toBe('foobar')
+    expect(runnerReporter.emit.mock.calls[12][0]).toBe('test:end')
+    expect(runnerReporter.emit.mock.calls[15][0]).toBe('suite:end')
 })
 
 test('getFailedCount', () => {
