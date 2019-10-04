@@ -157,19 +157,18 @@ class SpecReporter extends WDIOReporter {
                 // and only hooks that failed, without beforeAll
                 ...suite.hooks.filter(hook => Boolean(hook.error) && hook.title !== beforeAllTitle)
             ]
-        } else {
-            return [
-                /**
-                 * report all tests
-                 */
-                ...suite.tests,
-                /**
-                 * and only hooks that failed
-                 */
-                ...suite.hooks
-                    .filter((hook) => Boolean(hook.error))
-            ]
         }
+        return [
+            /**
+             * report all tests
+             */
+            ...suite.tests,
+            /**
+             * and only hooks that failed
+             */
+            ...suite.hooks
+                .filter((hook) => Boolean(hook.error))
+        ]
     }
 
     /**
