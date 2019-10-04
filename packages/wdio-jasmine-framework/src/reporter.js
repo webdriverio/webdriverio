@@ -21,10 +21,6 @@ export default class JasmineReporter {
 
         this.emit('suite:start', suite)
 
-        this.emitHookStart(suite, 'before all')
-
-        this.emitHookStart(suite, 'after all')
-
         this.parent.push({
             description: suite.description,
             id: suite.id,
@@ -69,6 +65,29 @@ export default class JasmineReporter {
     }
 
     suiteDone (suite) {
+        // errors on beforeAll are swallowed by Jasmine and can only be accessed at suiteDone
+        let errorsBeforeAll = []
+        let errorsAfterAll = []
+        if (suite.failedExpectations.length) {
+            let errors = suite.failedExpectations
+
+            if (this.shouldCleanStack) {
+                errors = suite.failedExpectations.map(x => this.cleanStack(x))
+            }
+
+            errorsBeforeAll = errors.filter(error => error.stack.includes('UserContext.beforeAll'))
+            errorsAfterAll = errors.filter(error => error.stack.includes('UserContext.afterAll'))
+        }
+
+        // since we cannot know if there was a beforeAll when there is no error, only send out hooks if there are errors
+        if (errorsBeforeAll.length) {
+            this.emitHookStart(suite, 'before all')
+            this.emitHookEnd(suite, 'before all', errorsBeforeAll)
+        }
+
+        // send out queued spec events after beforeAll
+        this.emitQueue()
+
         /**
          * in case there is a runtime error within one of the specs
          * create an empty test to attach the error to it
@@ -92,25 +111,11 @@ export default class JasmineReporter {
             this.emitQueue()
         }
 
-        // errors on beforeAll are swallowed by Jasmine and can only be accessed later on
-        let errorsBeforeAll
-        let errorsAfterAll
-        if (suite.failedExpectations.length) {
-            let errors = suite.failedExpectations
-
-            if (this.shouldCleanStack) {
-                errors = suite.failedExpectations.map(x => this.cleanStack(x))
-            }
-
-            errorsBeforeAll = errors.filter(error => error.stack.includes('UserContext.beforeAll'))
-            errorsAfterAll = errors.filter(error => error.stack.includes('UserContext.afterAll'))
+        // since we cannot know if there was a afterAll when there is no error, only send out hooks if there are errors
+        if (errorsAfterAll.length) {
+            this.emitHookStart(suite, 'after all')
+            this.emitHookEnd(suite, 'after all', errorsAfterAll)
         }
-
-        this.emitHookEnd(suite, 'before all', errorsBeforeAll)
-
-        this.emitHookEnd(suite, 'after all', errorsAfterAll)
-
-        this.emitQueue()
 
         this.parent.pop()
         suite.type = 'suite'
@@ -182,10 +187,8 @@ export default class JasmineReporter {
         hook.type = 'hook'
         hook.parent = this.getParentSuite()
         hook.description = '"' + name + '" hook'
-        if (errors) {
-            hook.errors = errors
-            hook.error = errors[0]
-        }
+        hook.errors = errors
+        hook.error = errors[0]
         this.emit('hook:end', hook)
     }
 
