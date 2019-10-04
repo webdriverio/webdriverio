@@ -97,8 +97,6 @@ Options:
 --bail                stop test runner after specific amount of tests have
                         failed                                          [number]
 --baseUrl             shorten url command calls by setting a base url [string]
---browser             non-mobile browsers in which to run the tests, i.e. "firefox,MicrosoftEdge"'
---device              devices in which to run the tests, i.e. "Google Pixel 2,iPhone XR"'
 --waitforTimeout, -w  timeout for all waitForXXX commands             [number]
 --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to
                         run the specs                                   [string]
