@@ -11,6 +11,7 @@ export default class JasmineReporter {
         this.parent = []
         this.failedCount = 0
         this.startedTest = null
+        this.specEventQueue = []
     }
 
     suiteStarted (suite) {
@@ -36,7 +37,7 @@ export default class JasmineReporter {
         test.type = 'test'
         test.start = new Date()
         this.parent[this.parent.length - 1].tests++
-        this.emit('test:start', test)
+        this.queueEvent('test:start', test)
     }
 
     specDone (test) {
@@ -62,9 +63,9 @@ export default class JasmineReporter {
         const e = 'test:' + test.status.replace(/ed/, '')
         test.type = 'test'
         test.duration = new Date() - this.testStart
-        this.emit(e, test)
+        this.queueEvent(e, test)
         this.failedCount += test.status === 'failed' ? 1 : 0
-        this.emit('test:end', test)
+        this.queueEvent('test:end', test)
     }
 
     suiteDone (suite) {
@@ -88,6 +89,7 @@ export default class JasmineReporter {
                 start: Date.now(),
                 status: 'failed'
             })
+            this.emitQueue()
         }
 
         // errors on beforeAll are swallowed by Jasmine and can only be accessed later on
@@ -108,6 +110,8 @@ export default class JasmineReporter {
 
         this.emitHookEnd(suite, 'after all', errorsAfterAll)
 
+        this.emitQueue()
+
         this.parent.pop()
         suite.type = 'suite'
         suite.duration = new Date() - this.suiteStart
@@ -115,6 +119,20 @@ export default class JasmineReporter {
 
         // if suite is failed due to a failure in beforeAll / afterAll, increase failed count
         this.failedCount += suite.status === 'failed' ? 1 : 0
+    }
+
+    /**
+     * To ensure chronological ordering of the events, since Jasmine only exposes the errors in beforeAll at
+     * suiteDone, we queue the events from the specs until we reach suiteDone. Then, we send out the beforeAll events
+     * first, followed by the queued events from the specs.
+     */
+    queueEvent(event, payload) {
+        this.specEventQueue.push({ event: event, payload: payload })
+    }
+
+    emitQueue() {
+        this.specEventQueue.forEach(item => this.emit(item.event, item.payload))
+        this.specEventQueue = []
     }
 
     emit (event, payload) {
