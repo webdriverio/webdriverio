@@ -1,6 +1,16 @@
 import assert from 'assert'
+import os from 'os'
 
 describe('Mocha smoke test', () => {
+
+    let testJs = 'tests/mocha/test.js:'
+
+    before(() => {
+        if (os.platform() === 'win32') {
+            testJs = testJs.split('/').join('\\')
+        }
+    })
+
     it('should return sync value', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
     })
@@ -29,7 +39,8 @@ describe('Mocha smoke test', () => {
         }
 
         $('elem').click()
-        assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
+
+        assert.equal(err.stack.includes(testJs), true)
     })
 
     it('should chain properly', () => {
@@ -152,7 +163,7 @@ describe('Mocha smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'Boom!')
-            assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
+            assert.equal(err.stack.includes(testJs), true)
         })
 
         it('allows to create custom commands on elements that respects promises', () => {
@@ -250,7 +261,7 @@ describe('Mocha smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'deleteAllCookies')
-            assert.equal(err.stack.includes('tests/mocha/test.js:'), true)
+            assert.equal(err.stack.includes(testJs), true)
         })
     })
 })
