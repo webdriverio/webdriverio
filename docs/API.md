@@ -32,7 +32,8 @@ Of course you can use Node.JS latest [async/await](https://github.com/yortus/asy
 
 ```js
 it('can handle commands using async/await', async function () {
-    let value = await $('#input').getValue()
+    const inputElement = await $('#input')
+    let value = await inputElement.getValue()
     console.log(value) // outputs: some value
 })
 ```
