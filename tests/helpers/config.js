@@ -1,5 +1,3 @@
-const path = require('path')
-
 exports.config = {
     /**
      * server configurations
@@ -39,7 +37,7 @@ exports.config = {
     cucumberOpts: {
         timeout: 5000,
         requireModule: ['@babel/register'],
-        require: [path.join(__dirname, '..', 'cucumber', 'step-definitions', '*.js')]
+        require: ['./tests/cucumber/step-definitions/*.js']
     },
 
     async beforeFeature () {
