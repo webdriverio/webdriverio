@@ -30,6 +30,7 @@ module.exports = {
     camelcase: ['error', { properties: 'never' }],
     'comma-spacing': ['error', { before: false, after: true }],
     'no-lonely-if': 'error',
+    'no-else-return': 'error',
     'no-tabs': 'error',
     'no-trailing-spaces': ['error', {
       skipBlankLines: false,
