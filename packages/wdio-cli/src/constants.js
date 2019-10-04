@@ -51,6 +51,8 @@ export const APPIUM_CAPABILITES = [
     ...APPIUM_IOS_CAPABILITIES
 ]
 
+export const ARGS_CAPABILITES = [...W3C_CAPABILITIES, ...APPIUM_CAPABILITES]
+
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
