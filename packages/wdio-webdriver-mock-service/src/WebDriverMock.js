@@ -1,4 +1,3 @@
-import path from 'path'
 import nock from 'nock'
 
 import {
@@ -33,7 +32,7 @@ export default class WebDriverMock {
         const { method, endpoint, commandData } = protocolFlattened.get(commandName)
 
         return (...args) => {
-            let urlPath = path.join(this.path, endpoint).replace(':sessionId', SESSION_ID)
+            let urlPath = endpoint.replace(':sessionId', SESSION_ID)
             for (const [i, param] of Object.entries(commandData.variables || [])) {
                 urlPath = urlPath.replace(`:${param.name}`, args[i])
             }
