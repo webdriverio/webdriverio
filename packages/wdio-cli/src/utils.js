@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
 
-import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
+import { CONFIG_HELPER_SUCCESS_MESSAGE, W3C_CAPABILITIES, APPIUM_CAPABILITES } from './constants'
 import inquirer from 'inquirer'
 import { runConfig } from './commands/config'
 
@@ -214,36 +214,30 @@ export async function missingConfigurationPrompt(command, message, useYarn = fal
     return await runConfig(useYarn, true)
 }
 
-export function filterCaps(caps, { browser, device })  {
-    if(!browser && !device)
+export function filterCaps(caps, argv) {
+    if (!argv || !Object.entries(argv).length) {
         return caps
+    }
 
     if(caps.constructor === Object){
         log.warn('Cannot filter the capabilities in multiremote mode')
         return caps
     }
 
-    const deviceRelevantKeys = ['deviceName', 'device'],
-        browserRelevantKeys = ['browserName', 'browser'],
-        [browsersToRun, devicesToRun] = [browser, device]
-            .map(flag => !flag
-                ? []
-                : flag.split(',').map(b => b.toLowerCase())
-            )
+    const relevantArgv = Object.keys(argv).filter(arg => [...W3C_CAPABILITIES, ...APPIUM_CAPABILITES].includes(arg))
 
-    return ![browsersToRun, devicesToRun].flat().length
-        ? caps
-        : caps.filter(cap => [
-            [browsersToRun, browserRelevantKeys],
-            [devicesToRun, deviceRelevantKeys]
-        ].some(([platforms, platformRelevantKeys]) =>
-            platforms.some(platform =>
-                platformRelevantKeys.some(
-                    relevantKey =>
-                        (cap[relevantKey] || '')
-                            .toLowerCase()
-                            .includes(platform)
-                )
-            )
-        ))
+    return caps.filter(cap =>
+        relevantArgv.every(arg => {
+            const argValues = argValues === 'string' ? argv[arg].split(',') : [argv[arg]]
+
+            for (const key of Object.keys(cap)) {
+                if (key === arg) {
+                    return argValues.some(v =>  cap[key] === v || `${cap[key]}`.includes(v))
+                }
+                if (cap[key].constructor === Object) {
+                    return Object.keys(filterCaps([cap[key]], { [arg]: argv[arg] })).length
+                }
+            }
+        })
+    )
 }

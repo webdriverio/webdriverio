@@ -18,6 +18,39 @@ To run your tests, execute:
 $ wdio run wdio.conf.js
 `
 
+export const W3C_CAPABILITIES = [
+    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts', 'pageLoadStrategy', 'proxy',
+    'setWindowRect', 'timeouts', 'unhandledPromptBehavior'
+]
+
+export const APPIUM_ANDROID_CAPABILITIES = [
+    'appActivity', 'appPackage', 'appWaitActivity', 'appWaitPackage', 'appWaitDuration', 'deviceReadyTimeout',
+    'androidCoverage', 'androidCoverageEndIntent', 'androidDeviceReadyTimeout', 'androidInstallTimeout',
+    'androidInstallPath', 'adbPort', 'systemPort', 'remoteAdbHost', 'androidDeviceSocket', 'avd', 'avdLaunchTimeout',
+    'avdReadyTimeout', 'avdArgs', 'useKeystore', 'keystorePath', 'keystorePassword', 'keyAlias', 'keyPassword',
+    'chromedriverExecutable', 'chromedriverExecutableDir', 'chromedriverChromeMappingFile', 'autoWebviewTimeout',
+    'intentAction', 'intentCategory', 'intentFlags', 'optionalIntentArguments', 'dontStopAppOnReset',
+    'unicodeKeyboard', 'resetKeyboard', 'noSign', 'ignoreUnimportantViews', 'disableAndroidWatchers', 'chromeOptions',
+    'recreateChromeDriverSessions', 'nativeWebScreenshot', 'androidScreenshotPath', 'autoGrantPermissions',
+    'networkSpeed', 'gpsEnabled', 'isHeadless', 'uiautomator2ServerLaunchTimeout', 'uiautomator2ServerInstallTimeout',
+    'otherApps'
+]
+export const APPIUM_IOS_CAPABILITIES = [
+    'calendarFormat', 'bundleId', 'udid', 'launchTimeout', 'locationServicesEnabled', 'locationServicesAuthorized',
+    'autoAcceptAlerts', 'autoDismissAlerts', 'nativeInstrumentsLib', 'nativeWebTap', 'safariInitialUrl',
+    'safariAllowPopups', 'safariIgnoreFraudWarning', 'safariOpenLinksInBackground', 'keepKeyChains',
+    'localizableStringsDir', 'processArguments', 'interKeyDelay', 'showIOSLog', 'sendKeyStrategy',
+    'screenshotWaitTimeout', 'waitForAppScript', 'webviewConnectRetries', 'appName', 'customSSLCert',
+    'webkitResponseTimeout'
+]
+export const APPIUM_CAPABILITES = [
+    'automationName', 'platformName', 'platformVersion', 'deviceName', 'app', 'browserName', 'newCommandTimeout',
+    'language', 'locale', 'udid', 'orientation', 'autoWebview', 'noReset', 'fullReset', 'eventTimings',
+    'enablePerformanceLogging', 'printPageSourceOnFindFailure',
+    ...APPIUM_ANDROID_CAPABILITIES,
+    ...APPIUM_IOS_CAPABILITIES
+]
+
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
