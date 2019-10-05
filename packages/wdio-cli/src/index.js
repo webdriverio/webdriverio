@@ -1,5 +1,4 @@
 import fs from 'fs'
-import process from 'process'
 import path from 'path'
 
 import yargs from 'yargs'
@@ -34,9 +33,12 @@ export const run = async () => {
         .epilogue(CLI_EPILOGUE)
 
     /**
-     * if yargs doesn't run a command from the command directory
-     * we verify if a WDIO config file exists in the given "path" parameter
-     * if so, we assume the user ran `wdio path/to/wdio.conf.js` and we execute `wdio run` command
+     * The only way we reach this point is if the user runs the binary without a command (i.e. wdio wdio.conf.js)
+     * We can safely assume that if this is the case, the user is trying to execute the `run` command as it
+     * was previous to https://github.com/webdriverio/webdriverio/pull/4402
+     *
+     * Since the `run` command verifies if the configuration file exists before executing
+     * we don't have to check that again here.
      */
     const params = { ...argv.argv }
     const supportedCommands = fs
@@ -55,6 +57,8 @@ export const run = async () => {
             process.exit(1)
         })
     }
+
+    return handler(params)
 }
 
 export default Launcher
