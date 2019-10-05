@@ -13,7 +13,7 @@ test('comes with a factory', async () => {
     expect(typeof JasmineAdapterFactory.run).toBe('function')
     const result = await JasmineAdapterFactory.run(
         '0-2',
-        {},
+        { beforeHook: [], afterHook: [] },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
@@ -24,7 +24,7 @@ test('comes with a factory', async () => {
 test('should properly set up jasmine', async () => {
     const adapter = new JasmineAdapter(
         '0-2',
-        {},
+        { beforeHook: [], afterHook: [] },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
@@ -68,7 +68,9 @@ test('should properly configure the jasmine environment', async () => {
                 stopSpecOnExpectationFailure,
                 random,
                 failFast,
-            }
+            },
+            beforeHook: [],
+            afterHook: []
         },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
@@ -86,7 +88,9 @@ test('should properly configure the jasmine environment', async () => {
 
 test('set custom ', async () => {
     const config = {
-        jasmineNodeOpts: { expectationResultHandler: jest.fn() }
+        jasmineNodeOpts: { expectationResultHandler: jest.fn() },
+        beforeHook: [],
+        afterHook: []
     }
     const adapter = new JasmineAdapter(
         '0-2',
@@ -103,7 +107,7 @@ test('set custom ', async () => {
 test('get data from beforeAll hook', async () => {
     const adapter = new JasmineAdapter(
         '0-2',
-        {},
+        { beforeHook: [], afterHook: [] },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
@@ -121,7 +125,7 @@ test('get data from beforeAll hook', async () => {
 test('get data from execute hook', async () => {
     const adapter = new JasmineAdapter(
         '0-2',
-        {},
+        { beforeHook: [], afterHook: [] },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
