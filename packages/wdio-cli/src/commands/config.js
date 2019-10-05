@@ -15,10 +15,27 @@ export const builder = {
     }
 }
 
-export const runConfig = async function (useYarn, exit) {
+export const runConfig = async function (useYarn, yes, exit) {
     console.log(CONFIG_HELPER_INTRO)
+    let answers
+    if (yes) {
+        QUESTIONNAIRE.forEach((question) => {
+            answers = answers || {}
+            if (question.when && !question.when(answers)) return
 
-    const answers = await inquirer.prompt(QUESTIONNAIRE)
+            if (question.default) {
+                answers[question.name] = question.default
+            } else if (question.choices && question.choices.length) {
+                if (typeof question.choices[0] == 'object' && question.choices[0].value)
+                    answers[question.name] = question.choices[0].value
+                else
+                    answers[question.name] = question.choices[0]
+            }
+        })
+    } else {
+        answers = await inquirer.prompt(QUESTIONNAIRE)
+    }
+
     const packageAnswers = ['reporters', 'runner', 'services', 'framework']
 
     Object.keys(answers).forEach((key) => {
@@ -82,7 +99,7 @@ export const runConfig = async function (useYarn, exit) {
 
 export async function handler(argv) {
     try {
-        await runConfig(argv.yarn)
+        await runConfig(argv.yarn, argv.yes)
     } catch (error) {
         throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
     }
