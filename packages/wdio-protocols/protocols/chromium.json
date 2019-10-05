@@ -415,7 +415,7 @@
       }
     }
   },
-  "/session/:sessionId/se/log/types": {
+  "/session/:sessionId/log/types": {
     "GET": {
       "command": "getLogTypes",
       "description": "Get available log types.",
@@ -428,7 +428,7 @@
       }
     }
   },
-  "/session/:sessionId/se/log": {
+  "/session/:sessionId/log": {
     "POST": {
       "command": "getLogs",
       "description": "Get the log for a given log type. Log buffer is reset after each request.",
