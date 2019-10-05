@@ -70,6 +70,7 @@ export default class WDIOReporter extends EventEmitter {
             const hookStat = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.hooks.push(hookStat)
+            currentSuite.hooksAndTests.push(hookStat)
             this.hooks[hook.uid] = hookStat
             this.onHookStart(hookStat)
         })
@@ -85,6 +86,7 @@ export default class WDIOReporter extends EventEmitter {
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.tests.push(currentTest)
+            currentSuite.hooksAndTests.push(currentTest)
             this.tests[test.uid] = currentTest
             this.onTestStart(currentTest)
         })
@@ -131,8 +133,10 @@ export default class WDIOReporter extends EventEmitter {
             const suiteTests = currentSuite.tests
             if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {
                 currentSuite.tests.push(currentTest)
+                currentSuite.hooksAndTests.push(currentTest)
             } else {
                 suiteTests[suiteTests.length - 1] = currentTest
+                currentSuite.hooksAndTests[ currentSuite.hooksAndTests.length - 1] = currentTest
             }
 
             this.tests[currentTest.uid] = currentTest
