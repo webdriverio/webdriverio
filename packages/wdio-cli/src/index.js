@@ -1,35 +1,40 @@
+import fs from 'fs'
+import process from 'process'
+import path from 'path'
+
 import yargs from 'yargs'
-import pickBy from 'lodash.pickby'
 
-import { CLI_PARAMS, USAGE } from './config'
 import Launcher from './launcher'
-import runCLI from './run'
+import { handler, builder } from './commands/run'
 
-export const run = () => {
-    let argv = yargs
-        .usage(USAGE)
+const SUPPORTED_COMMANDS = ['config', 'install', 'repl', 'run']
+const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
+
+export const run = async () => {
+    const argv = yargs
         .commandDir('commands')
+        .help()
 
     /**
-     * populate cli arguments
+     * parse CLI arguments according to what run expects
      */
-    for (const param of CLI_PARAMS) {
-        argv = argv.option(param.name, param)
+    if (!process.argv.find((arg) => arg === '--help')) {
+        for (const [name, param] of Object.entries(builder)) {
+            argv.option(name, param)
+        }
     }
-
-    const params = pickBy(argv.argv)
 
     /**
-     * fail execution if more than one wdio config file was specified
+     * if yargs doesn't run a command from the command directory
+     * we verify if a WDIO config file exists in the given "path" parameter
+     * if so, we assume the user ran `wdio path/to/wdio.conf.js` and we execute `wdio run` command
      */
-    if (params._.length > 1) {
-        argv.showHelp()
-        console.error(`More than one config file was specified: ${params._.join(', ')}`) // eslint-disable-line
-        console.error('Error: You can only run one wdio config file!') // eslint-disable-line
-        process.exit(1)
+    const params = { ...argv.argv }
+    if (!params._.find((param) => SUPPORTED_COMMANDS.includes(param))) {
+        params.configPath = path.join(process.cwd(), params._[0] || DEFAULT_CONFIG_FILENAME)
+        params._.push(fs.existsSync(params.configPath) ? 'run' : 'config')
+        return handler(params)
     }
-
-    runCLI(params)
 }
 
 export default Launcher

@@ -1,4 +1,4 @@
-import { launch } from '../src/run'
+import { launch } from '../src/commands/run'
 import Launcher from '../src/launcher'
 
 jest.mock('../src/launcher', () => jest.fn().mockImplementation(function(conf, result) {

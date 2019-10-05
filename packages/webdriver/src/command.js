@@ -53,10 +53,13 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
                     continue
                 }
 
+                const actual = commandParam.type.endsWith('[]')
+                    ? `(${(Array.isArray(arg) ? arg : [arg]).map((a) => getArgumentType(a))})[]`
+                    : getArgumentType(arg)
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
                     `Expected: ${commandParam.type}\n` +
-                    `Actual: ${getArgumentType(arg)}` +
+                    `Actual: ${actual}` +
                     moreInfo
                 )
             }

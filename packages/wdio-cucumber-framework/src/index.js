@@ -56,6 +56,14 @@ class CucumberAdapter {
 
             this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
 
+            /**
+             * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
+             * or `null` for some hooks.
+             *
+             * @return  {object|null}
+             */
+            this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
+
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: this.specs,
                 names: this.cucumberOpts.name,
@@ -185,6 +193,7 @@ class CucumberAdapter {
     wrapSteps (config) {
         const wrapStep = this.wrapStep
         const cid = this.cid
+        const getCurrentStep = () => this.getCurrentStep()
 
         Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
             /**
@@ -202,20 +211,21 @@ class CucumberAdapter {
             const isStep = !fn.name.startsWith('userHook')
 
             const retryTest = isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
-            return wrapStep(fn, retryTest, isStep, config, cid)
+            return wrapStep(fn, retryTest, isStep, config, cid, getCurrentStep)
         })
     }
 
     /**
      * wrap step definition to enable retry ability
-     * @param   {Function}  code        step definitoon
-     * @param   {Number}    retryTest   amount of allowed repeats is case of a failure
+     * @param   {Function}  code            step definitoon
+     * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
      * @param   {boolean}   isStep
      * @param   {object}    config
-     * @param   {string}    cid         cid
-     * @return  {Function}              wrapped step definiton for sync WebdriverIO code
+     * @param   {string}    cid             cid
+     * @param   {Function}  getCurrentStep  step definitoon
+     * @return  {Function}                  wrapped step definiton for sync WebdriverIO code
      */
-    wrapStep (code, retryTest = 0, isStep, config, cid) {
+    wrapStep (code, retryTest = 0, isStep, config, cid, getCurrentStep) {
         return function (...args) {
             /**
              * wrap user step/hook with wdio before/after hooks
@@ -226,8 +236,8 @@ class CucumberAdapter {
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
-                { beforeFn, beforeFnArgs: () => [uri, feature] },
-                { afterFn, afterFnArgs: () => [uri, feature] },
+                { beforeFn, beforeFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
+                { afterFn, afterFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
                 cid,
                 retryTest)
         }

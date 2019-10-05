@@ -103,6 +103,21 @@ async function bar() {
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
     await reactElements[0].click()
+
+    // touchAction
+    const ele = await $('')
+    const touchAction: WebdriverIOAsync.TouchAction = {
+        action: "longPress",
+        element: await $(''),
+        ms: 0,
+        x: 0,
+        y: 0
+    }
+    await ele.touchAction(touchAction)
+    await browser.touchAction(touchAction)
+    
+    // dragAndDrop
+    await ele.dragAndDrop(ele, 0)
 }
 
 // selenium-standalone-service

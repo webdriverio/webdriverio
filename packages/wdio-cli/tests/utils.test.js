@@ -1,16 +1,23 @@
-import * as childProcess from 'child_process'
+import fs from 'fs'
+import ejs from 'ejs'
+import childProcess from 'child_process'
 
 import {
     runOnPrepareHook,
     runOnCompleteHook,
-    getNpmPackageName,
     runServiceHook,
     getRunnerName,
-    parseInstallNameAndPackage,
     findInConfig,
     replaceConfig,
-    addServiceDeps
+    addServiceDeps,
+    convertPackageHashToObject,
+    missingConfigurationPrompt,
+    renderConfigurationFile
 } from '../src/utils'
+
+import inquirer from 'inquirer'
+import { runConfig } from '../src/commands/config'
+import { CONFIG_HELPER_SUCCESS_MESSAGE } from '../src/constants'
 
 jest.mock('child_process', function () {
     const m = {
@@ -19,22 +26,15 @@ jest.mock('child_process', function () {
     }
     return m
 })
-global.console.log = jest.fn()
 
-test('getNpmPackageName', () => {
-    const reporters = [
-        ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
-        ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
-        ' junit - https://www.npmjs.com/package/@wdio/junit-reporter',
-        ' random - https://www.npmjs.com/package/wdio-random-reporter'
-    ]
-    expect(getNpmPackageName(reporters)).toEqual([
-        '@wdio/dot-reporter',
-        '@wdio/spec-reporter',
-        '@wdio/junit-reporter',
-        'wdio-random-reporter'
-    ])
-    expect(getNpmPackageName(' mocha - https://www.npmjs.com/package/wdio-mocha-framework')).toEqual('wdio-mocha-framework')
+jest.mock('../src/commands/config.js', () => ({
+    runConfig: jest.fn()
+}))
+
+jest.mock('fs')
+
+beforeEach(() => {
+    global.console.log = jest.fn()
 })
 
 test('runServiceHook', () => {
@@ -133,19 +133,6 @@ test('getRunnerName', () => {
     expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
 })
 
-test('parseInstallNameAndPackage', () => {
-    const reporters = [
-        ' dot - https://www.npmjs.com/package/@wdio/dot-reporter',
-        ' spec - https://www.npmjs.com/package/@wdio/spec-reporter',
-        ' random - https://www.npmjs.com/package/wdio-random-reporter'
-    ]
-    expect(parseInstallNameAndPackage(reporters)).toEqual({
-        dot: '@wdio/dot-reporter',
-        spec: '@wdio/spec-reporter',
-        random: 'wdio-random-reporter'
-    })
-})
-
 describe('findInConfig', () => {
     it('finds text for services', () => {
         const str = "services: ['foo', 'bar'],"
@@ -161,6 +148,28 @@ describe('findInConfig', () => {
         expect(findInConfig(str, 'framework')).toMatchObject([
             "framework: 'mocha'"
         ])
+    })
+})
+
+describe('renderConfigurationFile', () => {
+    it('should write file', async () => {
+        jest.spyOn(ejs, 'renderFile').mockImplementation((a, b, c) => c(null, true))
+
+        await renderConfigurationFile({ foo: 'bar' })
+
+        expect(ejs.renderFile).toHaveBeenCalled()
+        expect(fs.writeFileSync).toHaveBeenCalled()
+        expect(console.log).toHaveBeenCalledWith(CONFIG_HELPER_SUCCESS_MESSAGE)
+    })
+
+    it('should throw error', async () => {
+        jest.spyOn(ejs, 'renderFile').mockImplementation((a, b, c) => c('test error', null))
+
+        try {
+            await renderConfigurationFile({ foo: 'bar' })
+        } catch (error) {
+            expect(error).toBeTruthy()
+        }
     })
 })
 
@@ -210,36 +219,36 @@ describe('replaceConfig', () => {
 describe('addServiceDeps', () => {
     it('should add appium', () => {
         const packages = []
-        addServiceDeps(['@wdio/appium-service'], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual(['appium'])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should not add appium if globally installed', () => {
-        childProcess.default.execSyncRes = '1.13.0'
+        childProcess.execSyncRes = '1.13.0'
         const packages = []
-        addServiceDeps(['@wdio/appium-service'], packages)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual([])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add appium and print message if update and appium globally installed', () => {
         const packages = []
-        addServiceDeps(['@wdio/appium-service'], packages, true)
+        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages, true)
         expect(packages).toEqual([])
         expect(global.console.log).toBeCalled()
     })
 
     it('should add chromedriver', () => {
         const packages = []
-        addServiceDeps(['wdio-chromedriver-service'], packages)
+        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add chromedriver and print message if update', () => {
         const packages = []
-        addServiceDeps(['wdio-chromedriver-service'], packages, true)
+        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages, true)
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).toBeCalled()
     })
@@ -247,4 +256,57 @@ describe('addServiceDeps', () => {
     afterEach(() => {
         global.console.log.mockClear()
     })
+})
+
+describe('convertPackageHashToObject', () => {
+    it('works with default `$--$` hash', () => {
+        expect(convertPackageHashToObject('test/package-name$--$package-name')).toMatchObject({
+            package: 'test/package-name',
+            short: 'package-name'
+        })
+    })
+
+    it('works with custom hash', () => {
+        expect(convertPackageHashToObject('test/package-name##-##package-name', '##-##')).toMatchObject({
+            package: 'test/package-name',
+            short: 'package-name'
+        })
+    })
+})
+
+describe('missingConfigurationPromp', () => {
+    it('should prompt user', async () => {
+        inquirer.prompt.mockImplementation(() => ({ config: true }))
+        await missingConfigurationPrompt()
+        expect(inquirer.prompt).toHaveBeenCalled()
+    })
+
+    it('should call function to initalize configuration helper', async () => {
+        await missingConfigurationPrompt('test')
+        expect(runConfig).toHaveBeenCalledWith(false, true)
+    })
+
+    it('should pass "yarn" flag to runConfig', async () => {
+        await missingConfigurationPrompt('test', 'test message', true)
+        expect(runConfig).toHaveBeenCalledWith(true, true)
+    })
+
+    it('should throw if error occurs', async () => {
+        runConfig.mockImplementation(Promise.reject)
+
+        try {
+            await missingConfigurationPrompt('test')
+        } catch (error) {
+            expect(error).toBeTruthy()
+        }
+    })
+
+    afterEach(() => {
+        runConfig.mockClear()
+        inquirer.prompt.mockClear()
+    })
+})
+
+afterEach(() => {
+    global.console.log.mockReset()
 })

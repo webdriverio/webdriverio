@@ -26,8 +26,8 @@ describe('testFnWrapper', () => {
         retries
     ]
 
-    it('should run fn in sync mode', async () => {
-        const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar' }])
+    it('should run fn in sync mode with mocha or jasmine', async () => {
+        const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar' }, 'context'])
         const result = await testFnWrapper(...args)
 
         expect(result).toBe('@wdio/sync: FooBar 0')
@@ -35,7 +35,24 @@ describe('testFnWrapper', () => {
         expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
         expect(executeHooksWithArgs).toBeCalledWith('afterFn', [
             { duration: expect.any(Number), error: undefined, passed: true, foo: 'bar' },
+            'context',
             { duration: expect.any(Number), error: undefined, passed: true, result: '@wdio/sync: FooBar 0' }
+        ])
+    })
+
+    it('should run fn in sync mode with cucumber', async () => {
+        const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar' }, 2, 3, 4])
+        const result = await testFnWrapper(...args)
+
+        expect(result).toBe('@wdio/sync: FooBar 0')
+        expect(executeHooksWithArgs).toBeCalledTimes(2)
+        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [
+            { foo: 'bar' },
+            2,
+            { duration: expect.any(Number), error: undefined, passed: true, result: '@wdio/sync: FooBar 0' },
+            3,
+            4
         ])
     })
 

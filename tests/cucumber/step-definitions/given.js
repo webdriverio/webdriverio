@@ -49,9 +49,12 @@ Given('I choose the {string} scenario', { retry: { wrapperOptions: { retry: 1 } 
     browser[scenario]()
 })
 
-Given('I go on the website {string}', function (url) {
+const stepText = 'I go on the website'
+Given(`${stepText} {string}`, function (url) {
     // World
     assert.strictEqual(typeof this.attach, 'function')
+    assert.strictEqual(browser.Cucumber_CurrentStepText.startsWith(stepText), true)
+    assert.strictEqual(browser.Cucumber_CurrentStepContext, this)
 
     browser.url(url)
 })
