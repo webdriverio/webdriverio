@@ -4,7 +4,7 @@ title: Autocompletion
 ---
 
 If you have been writing program code for a while, you probably like autocompletion.
-Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations or are excluded from indexing for some reasons, these too could be added via configuration changes.
+Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations (or are excluded from indexing for whatever reason), these too could be added via configuration changes.
 
 
 ![Autocompletion](/img/autocompletion/0.png)
@@ -13,29 +13,29 @@ Autocomplete is available out of the box in many code editors. However if autoco
 
 ![Autocompletion](/img/autocompletion/1.png)
 
-Use standard shortcuts *⇧ + ⌥ + SPACE* on IntelliJ Platform to see available documentation:
+Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
 
 ![Autocompletion](/img/autocompletion/2.png)
 
-So, let's start to consider an example of adding autocompletion to code editors on the IntelliJ Platform like WebStorm.
+So, let's start with an example of adding autocompletion to code editors on the IntelliJ Platform like WebStorm.
 
 ### Node.js Core modules as External library
 
-Open *Settings -> Preferences -> Languages & Frameworks -> JavaScript -> Libraries*
+Open *Settings ▶︎ Preferences ▶︎ Languages & Frameworks ▶︎ JavaScript ▶︎ Libraries*
 
 ![Autocompletion](/img/autocompletion/3.png)
 
-Add new library
+Add new library:
 
 ![Autocompletion](/img/autocompletion/4.png)
 
-Add directory with WebdriverIO commands
+Add directory with WebdriverIO commands:
 
 ![Autocompletion](/img/autocompletion/5.png)
 ![Autocompletion](/img/autocompletion/6.png)
 ![Autocompletion](/img/autocompletion/7.png)
 
-Enter documentation URL
+Enter documentation URL:
 
 ![Autocompletion](/img/autocompletion/8.png)
 ![Autocompletion](/img/autocompletion/9.png)
