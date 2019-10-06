@@ -136,7 +136,7 @@ export default class WDIOReporter extends EventEmitter {
                 currentSuite.hooksAndTests.push(currentTest)
             } else {
                 suiteTests[suiteTests.length - 1] = currentTest
-                currentSuite.hooksAndTests[ currentSuite.hooksAndTests.length - 1] = currentTest
+                currentSuite.hooksAndTests[currentSuite.hooksAndTests.length - 1] = currentTest
             }
 
             this.tests[currentTest.uid] = currentTest
