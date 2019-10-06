@@ -3,7 +3,7 @@
   "packages": [
     "packages/*"
   ],
-  "version": "5.14.3",
+  "version": "5.14.4",
   "changelog": {
     "repo": "webdriverio/webdriverio",
     "cacheDir": ".changelog",
