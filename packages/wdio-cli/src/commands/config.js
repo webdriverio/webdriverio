@@ -21,16 +21,23 @@ export const runConfig = async function (useYarn, yes, exit) {
     if (yes) {
         QUESTIONNAIRE.forEach((question) => {
             answers = answers || {}
-            if (question.when && !question.when(answers)) return
-
-            if (question.default) {
-                answers[question.name] = question.default
-            } else if (question.choices && question.choices.length) {
-                if (typeof question.choices[0] == 'object' && question.choices[0].value)
-                    answers[question.name] = question.choices[0].value
-                else
-                    answers[question.name] = question.choices[0]
+            if (question.when && !question.when(answers)) {
+                return
             }
+
+            answers[question.name] = question.default
+            /**
+             * set default value if existing
+             */
+                ? question.default
+                : question.choices && question.choices.length
+                /**
+                 * pick first choice, select value if it exists
+                 */
+                    ? question.choices[0].value
+                        ? question.choices[0].value
+                        : question.choices[0]
+                    : null
         })
     } else {
         answers = await inquirer.prompt(QUESTIONNAIRE)
