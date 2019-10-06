@@ -78,13 +78,15 @@ describe('SpecReporter', () => {
     describe('getEventsToReport', () => {
         it('should return all tests and hook errors to report', () => {
             expect(tmpReporter.getEventsToReport({
-                tests: [1, 2, 3],
-                hooks: [4, 5, 6]
-            })).toEqual([1, 2, 3])
+                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                hooks: [{}],
+                hooksAndTests: [{}, { type: 'test',  title: '11' }, {}, { type: 'test',  title: '22' }, {}]
+            })).toEqual([{ type: 'test',  title: '11' }, { type: 'test',  title: '22' }])
             expect(tmpReporter.getEventsToReport({
-                tests: [1, 2, 3],
-                hooks: [{ error: 1 }, 5, { error: 2 }]
-            })).toEqual([1, 2, 3, { error: 1 }, { error: 2 }])
+                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                hooks: [{ error: 1 }, {}, { error: 2 }],
+                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test',  title: '33' }, {}, { error: 22 }, {}]
+            })).toEqual([{ error: 11 }, { type: 'test',  title: '33' }, { error: 22 }])
         })
     })
 
@@ -294,7 +296,7 @@ describe('SpecReporter', () => {
         it('should not print if data table format is not given', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => {
                 const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
-                suites[0].tests[0].argument = 'some different format'
+                suites[0].hooksAndTests[0].argument = 'some different format'
                 return suites
             })
             const result = tmpReporter.getResultDisplay()
@@ -304,7 +306,7 @@ describe('SpecReporter', () => {
         it('should not print if data table is empty', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => {
                 const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
-                suites[0].tests[0].argument.rows = []
+                suites[0].hooksAndTests[0].argument.rows = []
                 return suites
             })
 
