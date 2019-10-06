@@ -36,7 +36,8 @@ export const testFrameworkFnWrapper = async function (
     { beforeFn, beforeFnArgs },
     { afterFn, afterFnArgs },
     cid, repeatTest = 0) {
-    await logHookError(`Before${type}`, await executeHooksWithArgs(beforeFn, beforeFnArgs(this)), cid)
+    const beforeArgs = mochaJasmineCompatibility(beforeFnArgs(this), this)
+    await logHookError(`Before${type}`, await executeHooksWithArgs(beforeFn, beforeArgs), cid)
 
     let promise
     let result
@@ -69,7 +70,8 @@ export const testFrameworkFnWrapper = async function (
     /**
      * avoid breaking changes in hook function signatures
      */
-    afterArgs = mochaJasmineCompatibility(afterArgs, error, duration)
+    afterArgs = mochaJasmineCompatibility(afterArgs, this)
+    afterArgs = mochaJasmineResultCompatibility(afterArgs, error, duration)
     afterArgs = cucumberCompatibility(afterArgs)
 
     await logHookError(`After${type}`, await executeHooksWithArgs(afterFn, [...afterArgs]), cid)
@@ -82,11 +84,30 @@ export const testFrameworkFnWrapper = async function (
 
 /**
  * avoid breaking signature changes for existing mocha and jasmine users
+ * @param {Array}   hookArgs args array
+ * @param {object=} context mocha context
+ */
+const mochaJasmineCompatibility = (hookArgs, { test = {} } = {}) => {
+    let args = hookArgs
+    if (hookArgs.length < 4 && hookArgs[0] && typeof hookArgs[0] === 'object') {
+        args[0].fullTitle =
+            // mocha fullTitle
+            test.fullTitle ? test.fullTitle() :
+                // jasmine fullName
+                hookArgs[0].fullName ? hookArgs[0].fullName :
+                    // no fullTitle
+                    undefined
+    }
+    return args
+}
+
+/**
+ * avoid breaking signature changes for existing mocha and jasmine users
  * @param {Array} afterArgs args array
  * @param {Error|undefined} error error
  * @param {number} duration duration
  */
-const mochaJasmineCompatibility = (afterArgs, error, duration) => {
+const mochaJasmineResultCompatibility = (afterArgs, error, duration) => {
     let args = afterArgs
     if (afterArgs.length === 3 && afterArgs[0] && typeof afterArgs[0] === 'object') {
         args = [{
