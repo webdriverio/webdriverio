@@ -15,6 +15,31 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.14.4 (2019-10-06)
+
+#### :bug: Bug Fix
+* `wdio-reporter`, `wdio-spec-reporter`
+  * [#4577](https://github.com/webdriverio/webdriverio/pull/4577) Print hooks as they appear in spec reporter ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4575](https://github.com/webdriverio/webdriverio/pull/4575) runSync return value ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-utils`
+  * [#4574](https://github.com/webdriverio/webdriverio/pull/4574) Add fullTitle to hooks ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-reporter`
+  * [#4550](https://github.com/webdriverio/webdriverio/pull/4550) wdio-reporter: Type definitions ([@lamkovod](https://github.com/lamkovod))
+
+#### :house: Internal
+* `wdio-allure-reporter`
+  * [#4568](https://github.com/webdriverio/webdriverio/pull/4568) Add eslint rule "no-else-return" ([@martinfrancois](https://github.com/martinfrancois))
+* `wdio-static-server-service`, `wdio-webdriver-mock-service`
+  * [#4564](https://github.com/webdriverio/webdriverio/pull/4564) Fix WebdriverIO Tests on Windows ([@martinfrancois](https://github.com/martinfrancois))
+
+#### Committers: 3
+- François Martin ([@martinfrancois](https://github.com/martinfrancois))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@lamkovod](https://github.com/lamkovod)
+
 ## v5.14.3 (2019-10-02)
 
 #### :bug: Bug Fix
