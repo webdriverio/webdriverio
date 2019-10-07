@@ -17,31 +17,7 @@ export const builder = {
 
 export const runConfig = async function (useYarn, yes, exit) {
     console.log(CONFIG_HELPER_INTRO)
-    let answers
-    if (yes) {
-        QUESTIONNAIRE.forEach((question) => {
-            answers = answers || {}
-            if (question.when && !question.when(answers)) {
-                return
-            }
-
-            answers[question.name] = question.default
-            /**
-             * set default value if existing
-             */
-                ? question.default
-                : question.choices && question.choices.length
-                /**
-                 * pick first choice, select value if it exists
-                 */
-                    ? question.choices[0].value
-                        ? question.choices[0].value
-                        : question.choices[0]
-                    : null
-        })
-    } else {
-        answers = await inquirer.prompt(QUESTIONNAIRE)
-    }
+    const answers = await getAnswers(yes)
 
     const packageAnswers = ['reporters', 'runner', 'services', 'framework']
 
@@ -102,6 +78,32 @@ export const runConfig = async function (useYarn, yes, exit) {
         /* istanbul ignore next */
         process.exit(0)
     }
+}
+
+export async function getAnswers(yes) {
+    return yes
+        ? QUESTIONNAIRE.reduce((answers, question) => Object.assign(
+            answers,
+            question.when && !question.when(answers)
+                /**
+                 * set nothing if question doesn't apply
+                 */
+                ? {}
+                : answers[question.name] = question.default
+                    /**
+                     * set default value if existing
+                     */
+                    ? question.default
+                    : question.choices && question.choices.length
+                    /**
+                     * pick first choice, select value if it exists
+                     */
+                        ? question.choices[0].value
+                            ? question.choices[0].value
+                            : question.choices[0]
+                        : {}
+        ), {})
+        : await inquirer.prompt(QUESTIONNAIRE)
 }
 
 export async function handler(argv) {

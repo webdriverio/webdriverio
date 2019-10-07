@@ -1,38 +1,10 @@
-import { runConfig } from '../src/commands/config'
-import { renderConfigurationFile } from '../src/utils'
-
-jest.mock('../src/utils.js', () => ({
-    renderConfigurationFile: jest.fn(),
-    convertPackageHashToObject: () => {
-        return {
-            package: 'mocha',
-            short: 'mocha'
-        }
-    },
-    addServiceDeps: jest.fn()
-}))
+import { getAnswers } from '../src/commands/config'
 
 test('runConfig with yes param', async () => {
-    await runConfig(false, true, true)
-    expect(renderConfigurationFile).toHaveBeenCalledWith({
-        'backend': 'On my local machine',
-        'baseUrl': 'http://localhost',
-        'executionMode': 'sync',
-        'framework': 'mocha',
-        'packagesToInstall': [
-            'mocha',
-            'mocha',
-            'mocha',
-            'mocha',
-            '@wdio/sync',
-        ],
-        'reporters': [
-            'mocha',
-        ],
-        'runner': 'mocha',
-        'services': [
-            'mocha',
-        ],
-        'specs': './test/specs/**/*.js',
-    })
+    let answers = await getAnswers(true)
+    expect(answers.backend).toEqual('On my local machine')
+    expect(answers.baseUrl).toEqual('http://localhost')
+    expect(answers.executionMode).toEqual('sync')
+    expect(answers.framework).toEqual('@wdio/mocha-framework$--$mocha')
+    expect(answers.specs).toEqual('./test/specs/**/*.js')
 })
