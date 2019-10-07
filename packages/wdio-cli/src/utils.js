@@ -246,7 +246,7 @@ export function getCapabilities(arg) {
             }
         )
     }
-    return finalCapabilities
+    return { capabilities: finalCapabilities }
 }
 
 function getPlatformCaps(option) {

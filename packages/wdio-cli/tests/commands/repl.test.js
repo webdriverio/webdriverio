@@ -55,10 +55,10 @@ describe('Command: repl', () => {
 
     it('should set runner if @wdio/sync is installed', async () => {
         setSyncSupport(true)
-        await handler({ browserName: 'foobar' })
+        await handler({ option: 'foobar' })
         expect(remote).toHaveBeenCalledWith({
-            browserName: 'foobar',
             runner: 'repl',
+            option: 'foobar',
             capabilities: {
                 browserName: 'foobar'
             }
