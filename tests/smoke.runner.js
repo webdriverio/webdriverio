@@ -3,7 +3,7 @@ import path from 'path'
 import assert from 'assert'
 
 import launch from './helpers/launch'
-import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS } from './helpers/fixtures'
+import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS, JASMINE_REPORTER_LOGS } from './helpers/fixtures'
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -25,6 +25,29 @@ const jasmineTestrunner = async () => {
             specs: [path.resolve(__dirname, 'jasmine', 'test.js')],
             framework: 'jasmine'
         })
+}
+
+/**
+ * Jasmine reporter
+ */
+const jasmineReporter = async () => {
+    try {
+        await launch(
+            path.resolve(__dirname, 'helpers', 'config.js'),
+            {
+                specs: [path.resolve(__dirname, 'jasmine', 'reporter.js')],
+                reporters: [['smoke-test', { foo: 'bar' }]],
+                framework: 'jasmine',
+                outputDir: __dirname + '/jasmine'
+            })
+    } catch (err) {
+        // expected failure
+    }
+    await sleep(100)
+    const reporterLogsPath = path.join(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogs = fs.readFileSync(reporterLogsPath)
+    assert.equal(reporterLogs.toString(), JASMINE_REPORTER_LOGS)
+    fs.unlinkSync(reporterLogsPath)
 }
 
 /**
@@ -196,6 +219,7 @@ const retryPass = async () => {
     const tests = [
         mochaTestrunner,
         jasmineTestrunner,
+        jasmineReporter,
         cucumberTestrunner,
         cucumberFailAmbiguousDefinitions,
         customService,
