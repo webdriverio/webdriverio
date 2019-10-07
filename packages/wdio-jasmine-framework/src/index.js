@@ -80,7 +80,7 @@ class JasmineAdapter {
 
         const emitHookEvent = (fnName, eventType) => (_test, _context, { error } = {}) => {
             const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
-            const suiteUid = this.reporter.startedSuite ? this.reporter.getUniqueIdentifier(this.reporter.startedSuite) : 'root'
+            const suiteUid = this.reporter.startedSuite ? this.reporter.getUniqueIdentifier(this.reporter.startedSuite) : `root${this.cid}`
             const hook = {
                 type: 'hook',
                 description: title,
