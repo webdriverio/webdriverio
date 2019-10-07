@@ -48,14 +48,9 @@ describe('Command: repl', () => {
     })
 
     it('should set the correct browser', async () => {
-        await handler({ browserName: 'foobar' })
+        await handler({ option: 'foobar' })
 
-        expect(remote).toHaveBeenCalledWith({
-            browserName: 'foobar',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
+        expect(remote).toHaveBeenCalledWith({ capabilities: { browserName: 'foobar' }, option: 'foobar' })
     })
 
     it('should set runner if @wdio/sync is installed', async () => {
