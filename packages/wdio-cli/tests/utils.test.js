@@ -16,7 +16,6 @@ import {
     validateServiceAnswers,
     getCapabilities
 } from '../src/utils'
-import { ANDROID_CONFIG, IOS_CONFIG } from '../src/capabilities'
 
 import inquirer from 'inquirer'
 import { runConfig } from '../src/commands/config'
@@ -322,29 +321,16 @@ afterEach(() => {
 })
 describe('getCapabilities', () => {
     it('should return driver with capabilities for android', () => {
-        expect(getCapabilities({ option: 'foo.apk' })).toEqual({ ...ANDROID_CONFIG, app: 'foo.apk' })
-        expect(getCapabilities({ option: 'android' })).toEqual({
-            ...ANDROID_CONFIG,
-            browserName: 'Chrome'
-        })
+        expect(getCapabilities({ option: 'foo.apk' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'android' })).toMatchSnapshot()
     })
 
     it('should return driver with capabilities for ios', () => {
-        expect(getCapabilities({ option: 'foo.app', device: 'fooName', udid: 'num', ver: 'fooNum' })).toEqual({
-            ...IOS_CONFIG,
-            app: 'foo.app',
-            udid: 'num',
-            deviceName: 'fooName',
-            platformVersion: 'fooNum'
-        })
-        expect(getCapabilities({ option: 'ios' })).toEqual({
-            ...IOS_CONFIG,
-            browserName: 'Safari',
-            platformVersion: null,
-            udid: null })
+        expect(getCapabilities({ option: 'foo.app', device: 'fooName', udid: 'num', ver: 'fooNum' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'ios' })).toMatchSnapshot()
     })
 
     it('should return driver with capabilities for desktop', () => {
-        expect(getCapabilities({ option: 'chrome' })).toEqual({ browserName: 'chrome' })
+        expect(getCapabilities({ option: 'chrome' })).toMatchSnapshot()
     })
 })

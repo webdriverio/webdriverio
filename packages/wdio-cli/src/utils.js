@@ -250,20 +250,14 @@ export function getCapabilities(arg) {
 }
 
 function getPlatformCaps(option) {
-    let platformConfig = {}
-    switch (option) {
-    case /.*\.(apk|app|ipa)$/.test(option) && option:
-        platformConfig = Object.assign({ app: option }, option.endsWith('apk') ? ANDROID_CONFIG : IOS_CONFIG)
-        break
-    case 'android':
-        platformConfig = Object.assign({ browserName: 'Chrome' }, ANDROID_CONFIG)
-        break
-    case 'ios':
-        platformConfig = Object.assign({ browserName: 'Safari' }, IOS_CONFIG)
-        break
+    switch (true) {
+    case /.*\.(apk|app|ipa)$/.test(option):
+        return { app: option, ...(option.endsWith('apk') ? ANDROID_CONFIG : IOS_CONFIG) }
+    case /android/.test(option):
+        return { browserName: 'Chrome', ...ANDROID_CONFIG }
+    case /ios/.test(option):
+        return { browserName: 'Safari', ...IOS_CONFIG }
     default:
-        platformConfig = { browserName: option }
-        break
+        return { browserName: option }
     }
-    return platformConfig
 }
