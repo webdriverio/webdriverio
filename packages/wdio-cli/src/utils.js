@@ -231,7 +231,7 @@ export function filterCaps(caps, argv = {}) {
 
     return caps.filter(cap =>
         cliArgs.every(arg => {
-            const argValues = argv[arg] === 'string' ? argv[arg].split(',') : [argv[arg]]
+            const argValues = typeof argv[arg] === 'string' ? argv[arg].split(',') : [argv[arg]]
 
             for (const key of Object.keys(cap)) {
                 if (key === arg) {
