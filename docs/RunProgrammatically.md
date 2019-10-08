@@ -5,7 +5,7 @@ title: Running Programmatically
 
 WebdriverIO allows running tests without built-in test runner.
 
-Before start you have to setup either [driver binaries](DriverBinaries.md) or selenium-standalone/selenium-grid/appium/etc.
+Before starting, you have to setup either [driver binaries](DriverBinaries.md) or selenium-standalone/selenium-grid/Appium/etc.
 
 Let's start with installing `webdriverio` by calling:
 
@@ -43,10 +43,10 @@ const { remote } = require('webdriverio')
 node test.js
 ```
 
-this should output the following:
+This should output the following:
 
 ```sh
 Title was: WebdriverIO · Next-gen WebDriver test framework for Node.js
 ```
 
-Yay, Congratulations! You've just run your automation script with WebdriverIO.
+Yay, Congratulations! You’ve just run your automation script with WebdriverIO.
