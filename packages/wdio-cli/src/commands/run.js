@@ -122,11 +122,15 @@ export function launch(wdioConfPath, params) {
         .then(process.exit)
         .catch(err => {
             console.error(err)
-            process.exit(1)
+            if (!process.env.JEST_WORKER_ID) {
+                /* istanbul ignore next */
+                process.exit(1)
+            }
         })
 }
 
 export async function handler(argv) {
+    console.log('argv', argv)
     const { configPath, ...params } = argv
 
     if (!fs.existsSync(configPath)) {

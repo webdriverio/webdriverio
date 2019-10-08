@@ -46,19 +46,22 @@ export const run = async () => {
         .map((file) => file.slice(0, -3))
 
     if (!params._.find((param) => supportedCommands.includes(param))) {
-        params.configPath = path.join(process.cwd(), params._[0] || DEFAULT_CONFIG_FILENAME)
-        params._.push(fs.existsSync(params.configPath) ? 'run' : 'config')
-        return handler(params).catch(async (err) => {
-            const output = await new Promise((resolve) => {
-                yargs.parse('--help', (err, argv, output) => resolve(output))
-            })
+        const configPath = params._[0]
+        const workingDir = configPath.startsWith('/') ? '' : process.cwd()
 
-            console.error(`${output}\n\n${err.stack}`)
-            process.exit(1)
+        params.configPath = path.join(workingDir, configPath || DEFAULT_CONFIG_FILENAME)
+
+        return handler(params).catch(async (err) => {
+            yargs.parse('--help', (_, __, output) => {
+                console.error(`${output}\n\n${err.stack}`)
+
+                if (!process.env.JEST_WORKER_ID) {
+                    /* istanbul ignore next */
+                    process.exit(1)
+                }
+            })
         })
     }
-
-    return handler(params)
 }
 
 export default Launcher

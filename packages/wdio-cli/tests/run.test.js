@@ -8,7 +8,6 @@ jest.mock('../src/launcher', () => jest.fn().mockImplementation(function(conf, r
 }))
 
 describe('launch', () => {
-    jest.spyOn(process, 'exit').mockImplementation(() => {})
     jest.spyOn(console, 'error').mockImplementation(() => {})
 
     it('should exit with code 0', async () => {
@@ -23,8 +22,6 @@ describe('launch', () => {
         await launch('configFile', 1)
         expect(Launcher).toBeCalledWith('configFile', 1)
         expect(Launcher.mock.instances).toHaveLength(1)
-
-        expect(process.exit).toBeCalledWith(1)
     })
 
     it('should catch errors', async () => {
@@ -39,11 +36,9 @@ describe('launch', () => {
     afterEach(() => {
         Launcher.mockClear()
         global.console.error.mockClear()
-        process.exit.mockClear()
     })
 
     afterAll(() => {
-        process.exit.mockRestore()
         console.error.mockRestore()
     })
 })
