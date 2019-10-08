@@ -4,12 +4,13 @@ import path from 'path'
 import Launcher from './../launcher'
 import Watcher from './../watcher'
 import { missingConfigurationPrompt } from '../utils'
+import { CLI_EPILOGUE } from '../constants'
 
 export const command = 'run <configPath>'
 
 export const desc = 'Run your WDIO configuration file to initialize your tests.'
 
-export const builder = {
+export const cmdArgs = {
     watch: {
         desc: 'Run WebdriverIO in watch mode',
         type: 'boolean',
@@ -23,6 +24,11 @@ export const builder = {
         alias: 'p',
         desc: 'automation driver port',
         type: 'number'
+    },
+    path: {
+        type: 'string',
+        default: '/wd/hub',
+        desc: 'path to WebDriver endpoints (default /wd/hub)'
     },
     user: {
         alias: 'u',
@@ -83,6 +89,15 @@ export const builder = {
     cucumberOpts: {
         desc: 'Cucumber options'
     }
+}
+
+export const builder = (yargs) => {
+    return yargs
+        .options(cmdArgs)
+        .example('$0 run wdio.conf.js --suite foobar', 'Run testsuite foobar')
+        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run testsuite foobar')
+        .epilogue(CLI_EPILOGUE)
+        .help()
 }
 
 export function launchWithStdin(wdioConfPath, params) {

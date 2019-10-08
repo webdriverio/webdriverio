@@ -11,7 +11,7 @@ import {
     missingConfigurationPrompt
 } from '../utils'
 
-import { SUPPORTED_PACKAGES } from '../constants'
+import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants'
 
 const supportedInstallations = {
     service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
@@ -22,12 +22,27 @@ const supportedInstallations = {
 export const command = 'install <type> <name>'
 export const desc = 'Add a `reporter`, `service`, or `framework` to your WebdriverIO project'
 
-export const builder = {
+export const cmdArgs = {
     yarn: {
         desc: 'Install packages using yarn',
         type: 'boolean',
         default: false
     }
+}
+
+export const builder = (yargs) => {
+    yargs
+        .options(cmdArgs)
+        .epilogue(CLI_EPILOGUE)
+        .help()
+
+    for (const [type, plugins] of Object.entries(supportedInstallations)) {
+        for (const plugin of plugins) {
+            yargs.example(`$0 install ${type} ${plugin.short}`, `Install ${plugin.package}`)
+        }
+    }
+
+    return yargs
 }
 
 export async function handler(argv) {

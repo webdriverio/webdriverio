@@ -5,7 +5,8 @@ import path from 'path'
 import yargs from 'yargs'
 
 import Launcher from './launcher'
-import { handler, builder } from './commands/run'
+import { handler, cmdArgs } from './commands/run'
+import { CLI_EPILOGUE } from './constants'
 
 const SUPPORTED_COMMANDS = ['config', 'install', 'repl', 'run']
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
@@ -13,15 +14,18 @@ const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 export const run = async () => {
     const argv = yargs
         .commandDir('commands')
+        .example('$0 run wdio.conf.js --suite foobar', 'Run testsuite foobar')
+        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run testsuite foobar')
+        .example('$0 install reporter spec', 'Install @wdio/spec-reporter')
+        .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
+        .epilogue(CLI_EPILOGUE)
         .help()
 
     /**
      * parse CLI arguments according to what run expects
      */
     if (!process.argv.find((arg) => arg === '--help')) {
-        for (const [name, param] of Object.entries(builder)) {
-            argv.option(name, param)
-        }
+        yargs.options(cmdArgs)
     }
 
     /**

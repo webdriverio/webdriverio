@@ -1,4 +1,5 @@
-/* istanbul ignore file */
+export const CLI_EPILOGUE = 'Documentation: https://webdriver.io'
+
 export const EXCLUSIVE_SERVICES = {
     'wdio-chromedriver-service': {
         services: ['@wdio/selenium-standalone-service'],

@@ -88,13 +88,6 @@ export const DEFAULTS = {
         type: 'object'
     },
     /**
-     * flag to decide whether to control browser via WebDriver or DevTools
-     */
-    automationProtocol: {
-        type: 'boolean',
-        default: false
-    },
-    /**
      * Whether to allow direct connect caps to adjust endpoint details (Appium only)
      */
     enableDirectConnect: {
