@@ -48,7 +48,11 @@ const pluginMocks = {
             init () { return this },
             hasTests () { return true },
             run() { throw new Error('framework testThrows failed') }
-        }
+        },
+        testNoTests: {
+            init () { return this },
+            hasTests () { return false }
+        },
     }
 }
 

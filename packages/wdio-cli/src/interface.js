@@ -241,7 +241,7 @@ export default class WDIOCLInterface extends EventEmitter {
         const elapsed = (new Date(Date.now() - this.start)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0]
         const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
-        const skipped = this.skippedSpecs > 0 ? chalk.grey(this.skippedSpecs, 'skipped') + ', ' : ''
+        const skipped = this.skippedSpecs > 0 ? chalk.gray(this.skippedSpecs, 'skipped') + ', ' : ''
         const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
         return this.log(
             '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,

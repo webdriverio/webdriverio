@@ -6,7 +6,7 @@ import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
-import { getPrototype, addLocatorStrategyHandler } from './utils'
+import { getPrototype, addLocatorStrategyHandler, isStub } from './utils'
 
 const log = logger('webdriverio')
 
@@ -118,5 +118,3 @@ export const multiremote = async function (params = {}, config = {}) {
 
     return driver
 }
-
-const isStub = (automationProtocol) => automationProtocol === './protocol-stub'

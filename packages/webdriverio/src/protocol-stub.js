@@ -11,7 +11,7 @@ const WARN_ON_COMMANDS = ['addCommand', 'overwriteCommand']
  */
 export default class ProtocolStub {
     static async newSession (options = {}) {
-        const capabilities = emulateSessionCapabilities(options.capabilities)
+        const capabilities = emulateSessionCapabilities(options.capabilities || {})
 
         const browser = addCommands({
             capabilities,
@@ -56,16 +56,25 @@ function addCommands (browser) {
 }
 
 /**
- * remove appium vendor prefix from capabilities
+ * transform capabilities provided by user to look like
+ * capabilities returned by WebDriver
  * @param   {object} caps user defined capabilities
  * @return  {object}
  */
 function emulateSessionCapabilities (caps) {
     const capabilities = {}
+
+    // remove appium vendor prefix from capabilities
     Object.entries(caps).forEach(([key, value]) => {
         const newKey = key.replace('appium:', '')
         capabilities[newKey] = value
     })
+
+    // isChrome
+    if (caps.browserName && caps.browserName.toLowerCase() === 'chrome') {
+        capabilities.chrome = true
+    }
+
     return capabilities
 }
 

@@ -140,14 +140,14 @@ class JasmineAdapter {
             executeMock.apply(this, args)
         }
 
-        this.loadFiles()
+        this._loadFiles()
 
         return this
     }
 
-    loadFiles () {
+    _loadFiles () {
         if (this.config.featureFlags.specFiltering !== true) {
-            return
+            return false
         }
         try {
             if (Array.isArray(this.jasmineNodeOpts.requires)) {

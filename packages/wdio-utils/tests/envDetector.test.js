@@ -1,4 +1,4 @@
-import { sessionEnvironmentDetector } from '../src/envDetector'
+import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector'
 
 import appiumResponse from './__fixtures__/appium.response.json'
 import experitestResponse from './__fixtures__/experitest.response.json'
@@ -139,5 +139,15 @@ describe('sessionEnvironmentDetector', () => {
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
         expect(isAndroid).toEqual(true)
+    })
+})
+
+describe('capabilitiesEnvironmentDetector', () => {
+    it('should return env flags without isW3C and isSeleniumStandalone', () => {
+        const sessionFlags = sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: { w3cCaps: { alwaysMatch : {} } } })
+        const capabilitiesFlags = capabilitiesEnvironmentDetector({})
+
+        const expectedFlags = Object.keys(sessionFlags).filter(flagName => !['isW3C', 'isSeleniumStandalone'].includes(flagName))
+        expect(Object.keys(capabilitiesFlags)).toEqual(expectedFlags)
     })
 })

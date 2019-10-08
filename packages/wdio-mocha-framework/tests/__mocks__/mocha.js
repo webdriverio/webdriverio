@@ -34,3 +34,7 @@ export default class MochaMock {
         })
     }
 }
+
+MochaMock.Runner = jest.fn().mockImplementation(function (total) {
+    return { grep: jest.fn(), total }
+})

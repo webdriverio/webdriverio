@@ -1,6 +1,6 @@
 import path from 'path'
 import logger from '@wdio/logger'
-import { detectBackend } from '@wdio/config'
+import { detectBackend, validateConfig } from '@wdio/config'
 import { runFnInFiberContext } from '@wdio/utils'
 
 import { remote, multiremote, attach } from '../src'
@@ -117,6 +117,30 @@ describe('WebdriverIO module interface', () => {
                 browser.strategies.delete('test-strat')
                 expect(error.message).toBe('Strategy test-strat already exists')
             }
+        })
+
+        it('should properly create stub instance', async () => {
+            validateConfig.mockReturnValueOnce({ automationProtocol: './protocol-stub' })
+            const browser = await remote({ capabilities: { browserName: 'chrome' } })
+
+            expect(browser.sessionId).toBeUndefined()
+            expect(browser.capabilities).toEqual({ browserName: 'chrome', chrome: true })
+            expect(() => browser.addCommand()).toThrow()
+            expect(() => browser.overwriteCommand()).toThrow()
+
+            const flags = {}
+            Object.entries(browser).forEach(([key, value]) => {
+                if (key.startsWith('is')) {
+                    flags[key] = value
+                }
+            })
+            expect(flags).toEqual({
+                isAndroid: false,
+                isChrome: true,
+                isIOS: false,
+                isMobile: false,
+                isSauce: false
+            })
         })
     })
 

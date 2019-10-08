@@ -51,14 +51,14 @@ class MochaAdapter {
 
         this.specs.forEach((spec) => mocha.addFile(spec))
         mocha.suite.on('pre-require', ::this.preRequire)
-        this.loadFiles(mochaOpts)
+        this._loadFiles(mochaOpts)
 
         return this
     }
 
-    loadFiles (mochaOpts) {
+    _loadFiles (mochaOpts) {
         if (this.config.featureFlags.specFiltering !== true) {
-            return
+            return false
         }
         try {
             this.mocha.loadFiles()

@@ -383,6 +383,23 @@ describe('wdio-runner', () => {
             expect(runner._shutdown).toBeCalledWith(0)
             expect(runner.configParser.filterWorkerServices).toBeCalled()
         })
+
+        it('should not initSession if there are no tests to run', async () => {
+            const runner = new WDIORunner()
+            const config = {
+                framework: 'testNoTests',
+                reporters: [],
+                beforeSession: [],
+                featureFlags: {}
+            }
+            runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner._shutdown = jest.fn().mockImplementation((arg) => arg)
+            runner._initSession = jest.fn()
+
+            expect(await runner.run({ argv: {}, caps: {} })).toBe(0)
+            expect(runner._shutdown).toBeCalledWith(0)
+            expect(runner._initSession).not.toBeCalled()
+        })
     })
 
     describe('_initSession', () => {

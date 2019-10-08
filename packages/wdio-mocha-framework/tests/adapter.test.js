@@ -1,4 +1,5 @@
 import path from 'path'
+import Mocha from 'mocha'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
@@ -299,18 +300,65 @@ test('getUID', () => {
     /*eslint-enable indent */
 })
 
-describe('hasTests', () => {
-    test('hasTests', () => {
+describe('loadFiles', () => {
+    test('should do nothing if feature is not enabled', () => {
         const adapter = adapterFactory()
+        adapter._hasTests = null
+        expect(adapter._loadFiles({})).toBe(false)
+        expect(adapter._hasTests).toBe(null)
+    })
+
+    test('should set _hasTests to true if there are tests to run', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.mocha = {
+            loadFiles: jest.fn(),
+            suite: 1 // mochaRunner.total
+        }
+        adapter._loadFiles({})
+        expect(adapter._hasTests).toBe(true)
+    })
+
+    test('should set _hasTests to false if there no tests to run', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.mocha = {
+            loadFiles: jest.fn(),
+            options: { grep: 'regexp foo' },
+            suite: 0 // mochaRunner.total
+        }
+        adapter._loadFiles({ grep: 'foo', invert: 'invert' })
+        expect(Mocha.Runner.mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
+        expect(adapter._hasTests).toBe(false)
+    })
+
+    test('should not fail on exception', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.mocha = {
+            loadFiles: jest.fn().mockImplementation(() => { throw new Error('foo') }),
+        }
+        adapter._loadFiles({})
+        expect(adapter.mocha.loadFiles).toBeCalled()
+        expect(adapter._hasTests).toBe(null)
+    })
+})
+
+describe('hasTests', () => {
+    test('should return true if feature is not enabled', () => {
+        const adapter = adapterFactory()
+        adapter._hasTests = 'foobar'
         expect(adapter.hasTests()).toBe(true)
     })
-    test('hasTests with feature enabled', () => {
+    test('should return _hasTests if feature is enabled', () => {
         const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
-        expect(adapter.hasTests()).toBe(true)
+        adapter._hasTests = 'foobar'
+        expect(adapter.hasTests()).toBe('foobar')
     })
 })
 
 afterEach(() => {
+    Mocha.Runner.mockClear()
     runTestInFiberContext.mockReset()
     executeHooksWithArgs.mockReset()
 })

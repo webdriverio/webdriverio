@@ -386,14 +386,71 @@ test('prepareMessage', () => {
     expect(msgSpec.payload.bar).toBe('foo')
 })
 
-describe('hasTests', () => {
-    test('hasTests', () => {
+describe('loadFiles', () => {
+    test('should do nothing if feature is not enabled', () => {
         const adapter = adapterFactory()
+        adapter._hasTests = null
+        expect(adapter._loadFiles({})).toBe(false)
+        expect(adapter._hasTests).toBe(null)
+    })
+
+    test('should set _hasTests to true if there are tests to run', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.jrunner.loadRequires = jest.fn()
+        adapter.jrunner.loadHelpers = jest.fn()
+        adapter.jrunner.loadSpecs = jest.fn()
+        adapter.jrunner.env = { topSuite() { return { children: [1] } } }
+
+        adapter._loadFiles({})
+
+        expect(adapter.jrunner.loadRequires).toBeCalled()
+        expect(adapter.jrunner.loadHelpers).toBeCalled()
+        expect(adapter.jrunner.loadSpecs).toBeCalled()
+        expect(adapter._hasTests).toBe(true)
+    })
+
+    test('should set _hasTests to false if there no tests to run', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.jasmineNodeOpts.requires = ['r']
+        adapter.jasmineNodeOpts.helpers = ['h']
+        adapter.jrunner.addRequires = jest.fn()
+        adapter.jrunner.addHelperFiles = jest.fn()
+        adapter.jrunner.loadRequires = jest.fn()
+        adapter.jrunner.loadHelpers = jest.fn()
+        adapter.jrunner.loadSpecs = jest.fn()
+        adapter.jrunner.env = { topSuite() { return { children: [] } } }
+
+        adapter._loadFiles({})
+
+        expect(adapter.jrunner.addRequires).toHaveBeenCalledWith(adapter.jasmineNodeOpts.requires)
+        expect(adapter.jrunner.addHelperFiles).toHaveBeenCalledWith(adapter.jasmineNodeOpts.helpers)
+        expect(adapter._hasTests).toBe(false)
+    })
+
+    test('should not fail on exception', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+
+        adapter.jrunner.loadRequires = jest.fn().mockImplementation(() => { throw new Error('foo') }),
+
+        adapter._loadFiles({})
+        expect(adapter.jrunner.loadRequires).toBeCalled()
+        expect(adapter._hasTests).toBe(null)
+    })
+})
+
+describe('hasTests', () => {
+    test('should return true if feature is not enabled', () => {
+        const adapter = adapterFactory()
+        adapter._hasTests = 'foobar'
         expect(adapter.hasTests()).toBe(true)
     })
-    test('hasTests with feature enabled', () => {
+    test('should return _hasTests if feature is enabled', () => {
         const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
-        expect(adapter.hasTests()).toBe(true)
+        adapter._hasTests = 'foobar'
+        expect(adapter.hasTests()).toBe('foobar')
     })
 })
 

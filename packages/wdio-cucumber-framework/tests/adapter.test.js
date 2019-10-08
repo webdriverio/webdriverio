@@ -57,7 +57,7 @@ test('should properly set up cucumber', async () => {
     expect(Cucumber.setDefaultTimeout).toBeCalledWith(60000)
     expect(Cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
 
-    expect(executeHooksWithArgs).toBeCalledTimes(2)
+    expect(executeHooksWithArgs).toBeCalledTimes(1)
     expect(Cucumber.PickleFilter).toBeCalled()
     expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
 })
@@ -77,7 +77,7 @@ test('should properly set up cucumber', async () => {
     expect(Cucumber.setDefaultTimeout).toBeCalledWith(60000)
     expect(Cucumber.supportCodeLibraryBuilder.reset).toBeCalled()
 
-    expect(executeHooksWithArgs).toBeCalledTimes(2)
+    expect(executeHooksWithArgs).toBeCalledTimes(1)
     expect(Cucumber.PickleFilter).toBeCalled()
     expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
 })
@@ -91,6 +91,20 @@ test('should throw when initialization fails', () => {
     const runtimeError = new Error('boom')
     Cucumber.Runtime.mockImplementationOnce(() => { throw runtimeError })
     expect(adapter.init()).rejects.toEqual(runtimeError)
+})
+
+test('should throw when run fails', async () => {
+    const adapter = adapterFactory({ requireModule: ['@babel/register'] })
+    adapter.registerRequiredModules = jest.fn()
+    adapter.loadSpecFiles = jest.fn()
+    adapter.wrapSteps = jest.fn()
+
+    await adapter.init()
+
+    const runtimeError = new Error('boom')
+    adapter.runtime = () => { throw runtimeError }
+
+    expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
 describe('registerRequiredModules', () => {
@@ -135,7 +149,7 @@ test('loadSpecFiles', () => {
     expect(mockery.disable).toBeCalledTimes(1)
 })
 
-describe.only('hasTests', () => {
+describe('hasTests', () => {
     test('should return false if there are no tests', async () => {
         const adapter = adapterFactory()
         adapter.loadSpecFiles = jest.fn()
