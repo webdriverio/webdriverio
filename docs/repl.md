@@ -3,7 +3,7 @@ id: repl
 title: REPL interface
 ---
 
-With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways. 
+With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways.
 
 First you can use it as CLI command and spawn a WebDriver session from the command line, e.g.
 
@@ -17,9 +17,6 @@ This would open a Chrome browser that you can control with the REPL interface. M
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
-<<<<<<< HEAD
-You can apply any available options for your REPL session. (See `wdio --help` for options.)
-=======
 ```sh
 wdio repl android
 OR
@@ -39,8 +36,10 @@ Capabilities for iOS device can be passed with arguments:
 --device  - deviceName
 --udid    - udid (for real devices)
 
+USAGE:
+`wdio repl ios --ver='11.3' --device='iPhone 7' --udid='123432'`
+
 You can apply any options (see `wdio --help`) available for your REPL session.
->>>>>>> wdio-cli: Appium REPL configurations (#4286)
 
 ![WebdriverIO REPL](https://webdriver.io/img/repl.gif)
 
