@@ -149,14 +149,12 @@ class SpecReporter extends WDIOReporter {
     getEventsToReport (suite) {
         return [
             /**
-             * report all tests
+             * report all tests and only hooks that failed
              */
-            ...suite.tests,
-            /**
-             * and only hooks that failed
-             */
-            ...suite.hooks
-                .filter((hook) => Boolean(hook.error))
+            ...suite.hooksAndTests
+                .filter((item) => {
+                    return item.type === 'test' || Boolean(item.error)
+                })
         ]
     }
 

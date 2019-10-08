@@ -14,5 +14,9 @@ export default class SuiteStats extends RunnableStats {
         this.tests = []
         this.hooks = []
         this.suites = []
+        /**
+         * an array of hooks and tests stored in order as they happen
+         */
+        this.hooksAndTests = []
     }
 }
