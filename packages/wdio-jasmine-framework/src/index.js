@@ -78,16 +78,40 @@ class JasmineAdapter {
 
         const hookArgsFn = (context) => [{ ...(self.lastTest || {}) }, context]
 
+        const emitHookEvent = (fnName, eventType) => (_test, _context, { error } = {}) => {
+            const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
+            const suiteUid = this.reporter.startedSuite ? this.reporter.getUniqueIdentifier(this.reporter.startedSuite) : `root${this.cid}`
+            const hook = {
+                type: 'hook',
+                description: title,
+                fullName: title,
+                uid: `${suiteUid}-${fnName}`,
+                error: error ? { message: error.message } : undefined
+            }
+            this.reporter.emit('hook:' + eventType, hook)
+        }
+
         /**
          * wrap commands with wdio-sync
          */
         INTERFACES['bdd'].forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
+            const beforeHook = [...this.config.beforeHook]
+            const afterHook = [...this.config.afterHook]
+
+            /**
+             * add beforeAll and afterAll hooks to reporter
+             */
+            if (fnName.includes('All')) {
+                beforeHook.push(emitHookEvent(fnName, 'start'))
+                afterHook.push(emitHookEvent(fnName, 'end'))
+            }
+
             runTestInFiberContext(
                 isTest,
-                isTest ? this.config.beforeTest : this.config.beforeHook,
+                isTest ? this.config.beforeTest : beforeHook,
                 hookArgsFn,
-                isTest ? this.config.afterTest : this.config.afterHook,
+                isTest ? this.config.afterTest : afterHook,
                 hookArgsFn,
                 fnName,
                 this.cid
