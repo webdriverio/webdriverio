@@ -7,7 +7,7 @@ import { CLI_EPILOGUE } from '../constants'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
-    'mochaOpts', 'jasmineOpts', 'cucumberOpts'
+    'mochaOpts', 'jasmineNodeOpts', 'cucumberOpts'
 ]
 
 export const command = 'repl <browserName>'
