@@ -10,6 +10,17 @@ import { CLI_EPILOGUE } from './constants'
 
 const SUPPORTED_COMMANDS = ['config', 'install', 'repl', 'run']
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
+const DESCRIPTION = [
+    'The `wdio` command allows you run and manage your WebdriverIO test suite.',
+    'If no command is provided it calls the `run` command by default, so:',
+    '',
+    '$ wdio wdio.conf.js',
+    '',
+    'is the same as:',
+    '$ wdio run wdio.conf.js',
+    '',
+    'For more information, visit: https://webdriver.io/docs/clioptions.html'
+]
 
 export const run = async () => {
     const argv = yargs
@@ -18,14 +29,16 @@ export const run = async () => {
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run testsuite foobar')
         .example('$0 install reporter spec', 'Install @wdio/spec-reporter')
         .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
+        .updateStrings({
+            'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:`
+        })
         .epilogue(CLI_EPILOGUE)
-        .help()
 
     /**
      * parse CLI arguments according to what run expects
      */
     if (!process.argv.find((arg) => arg === '--help')) {
-        yargs.options(cmdArgs)
+        return yargs.options(cmdArgs)
     }
 
     /**
