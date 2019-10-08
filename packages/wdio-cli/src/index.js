@@ -5,10 +5,9 @@ import path from 'path'
 import yargs from 'yargs'
 
 import Launcher from './launcher'
-import { handler, cmdArgs } from './commands/run'
+import { handler } from './commands/run'
 import { CLI_EPILOGUE } from './constants'
 
-const SUPPORTED_COMMANDS = ['config', 'install', 'repl', 'run']
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 const DESCRIPTION = [
     'The `wdio` command allows you run and manage your WebdriverIO test suite.',
@@ -35,22 +34,26 @@ export const run = async () => {
         .epilogue(CLI_EPILOGUE)
 
     /**
-     * parse CLI arguments according to what run expects
-     */
-    if (!process.argv.find((arg) => arg === '--help')) {
-        return yargs.options(cmdArgs)
-    }
-
-    /**
      * if yargs doesn't run a command from the command directory
      * we verify if a WDIO config file exists in the given "path" parameter
      * if so, we assume the user ran `wdio path/to/wdio.conf.js` and we execute `wdio run` command
      */
     const params = { ...argv.argv }
-    if (!params._.find((param) => SUPPORTED_COMMANDS.includes(param))) {
+    const supportedCommands = fs
+        .readdirSync(path.join(__dirname, 'commands'))
+        .map((file) => file.slice(0, -3))
+
+    if (!params._.find((param) => supportedCommands.includes(param))) {
         params.configPath = path.join(process.cwd(), params._[0] || DEFAULT_CONFIG_FILENAME)
         params._.push(fs.existsSync(params.configPath) ? 'run' : 'config')
-        return handler(params)
+        return handler(params).catch(async (err) => {
+            const output = await new Promise((resolve) => {
+                yargs.parse('--help', (err, argv, output) => resolve(output))
+            })
+
+            console.error(`${output}\n\n${err.stack}`)
+            process.exit(1)
+        })
     }
 }
 
