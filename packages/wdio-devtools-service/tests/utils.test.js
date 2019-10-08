@@ -1,5 +1,5 @@
 import { format } from 'util'
-import { findCDPInterface, getCDPClient, sumByKey, readIOStream } from '../src/utils'
+import { findCDPInterface, getCDPClient, sumByKey, readIOStream, isBrowserVersionLower } from '../src/utils'
 
 import CDP from 'chrome-remote-interface'
 
@@ -74,4 +74,25 @@ test('readIOStream', async () => {
         .mockReturnValueOnce({ data: '": "bar"}', eof: true })
     const result = await readIOStream(cdpMock, 1)
     expect(result).toEqual({ foo: 'bar' })
+})
+
+describe('isBrowserVersionLower', () => {
+    test('should return false if version capability is missing', () => {
+        expect(isBrowserVersionLower({})).toBe(false)
+    })
+
+    test('should return true if version is lower than required', () => {
+        expect(isBrowserVersionLower({ version: 62 }, 63)).toBe(true)
+    })
+
+    test('should return false if version is higher than required', () => {
+        const versionProps = ['browserVersion', 'browser_version', 'version']
+        let browserVersion = 63
+        versionProps.forEach(prop => {
+            const caps = {}
+            caps[prop] = browserVersion
+            expect(isBrowserVersionLower(caps, 63)).toBe(false)
+            browserVersion++
+        })
+    })
 })

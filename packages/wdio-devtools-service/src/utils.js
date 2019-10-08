@@ -128,3 +128,14 @@ export function quantileAtValue (median, falloff, value) {
     const standardizedX = (Math.log(value) - location) / (Math.SQRT2 * shape)
     return (1 - internalErf_(standardizedX)) / 2
 }
+
+/**
+ * check if browser version is lower than `minVersion`
+ * @param {object} caps capabilities
+ * @param {number} minVersion minimal chrome browser version
+ */
+export function isBrowserVersionLower(caps, minVersion) {
+    const versionProps = ['browserVersion', 'browser_version', 'version']
+    const browserVersion = caps[versionProps.find(prop => caps[prop])]
+    return typeof browserVersion === 'number' && browserVersion < minVersion
+}
