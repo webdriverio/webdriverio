@@ -238,7 +238,9 @@ export function filterCaps(caps, argv = {}) {
                     return argValues.some(v => cap[key] === v || `${cap[key]}`.includes(v))
                 }
                 if (cap[key].constructor === Object) {
-                    return Object.keys(filterCaps([cap[key]], { [arg]: argv[arg] })).length
+                    const filteredObj = filterCaps([cap[key]], { [arg]: argv[arg] })
+                    if(Object.keys(filteredObj).length)
+                        return true
                 }
             }
         })
