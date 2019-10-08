@@ -42,6 +42,35 @@
  *
  */
 
-export default function click () {
-    return this.elementClick(this.elementId)
+export default async function click (options) {
+    const { button } = options || {}
+    const isLeftButton = button === 'left' || button === 0 || !button
+    const isMiddleButton = button === 'middle' || button === 1
+    const isRightButton = button === 'right' || button === 2
+
+    if (isLeftButton) {
+        return this.elementClick(this.elementId)
+    }
+
+    if (isRightButton || isMiddleButton) {
+        if (this.isW3C) {
+            await this.performActions([{
+                type: 'pointer',
+                id: 'pointer1',
+                parameters: { pointerType: 'mouse' },
+                actions: [
+                    { type: 'pointerMove', origin: this, x: 0, y: 0 },
+                    { type: 'pointerDown', button: isRightButton ? 2 : 1 },
+                    { type: 'pointerUp', button: isRightButton ? 2 : 1 }
+                ]
+            }])
+
+            return this.releaseActions()
+        }
+
+        await this.moveTo()
+        return this.positionClick(isRightButton ? 2 : 1)
+    }
+
+    throw new Error('Button type not supported.')
 }
