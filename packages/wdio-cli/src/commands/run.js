@@ -130,7 +130,6 @@ export function launch(wdioConfPath, params) {
 }
 
 export async function handler(argv) {
-    console.log('argv', argv)
     const { configPath, ...params } = argv
 
     if (!fs.existsSync(configPath)) {

@@ -47,9 +47,8 @@ export const run = async () => {
 
     if (!params._.find((param) => supportedCommands.includes(param))) {
         const configPath = params._[0]
-        const workingDir = configPath.startsWith('/') ? '' : process.cwd()
 
-        params.configPath = path.join(workingDir, configPath || DEFAULT_CONFIG_FILENAME)
+        params.configPath = path.resolve(process.cwd(), configPath || DEFAULT_CONFIG_FILENAME)
 
         return handler(params).catch(async (err) => {
             yargs.parse('--help', (_, __, output) => {
