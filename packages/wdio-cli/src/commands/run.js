@@ -83,7 +83,7 @@ export const cmdArgs = {
     mochaOpts: {
         desc: 'Mocha options'
     },
-    jasmineOpts: {
+    jasmineNodeOpts: {
         desc: 'Jasmine options'
     },
     cucumberOpts: {
