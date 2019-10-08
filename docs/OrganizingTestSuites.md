@@ -7,11 +7,13 @@ As projects grow, inevitably more and more integration tests are added. This inc
 
 To prevent this, you should run your tests in parallel. WebdriverIO already tests each spec (or <dfn>feature file</dfn> in Cucumber) in parallel within a single session. In general, try to test a only a single feature per spec file. Try to not have too many or too few tests in one file. (However, there is no golden rule here.)
 
-Once your tests have several spec files, you should start running your tests concurrently. To do this, adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency—meaning that no matter how many files and tests you have, they can run all in parallel.  (Certain limits still apply, like your computer’s CPU, concurrency restrictions, etc.)
+Once your tests have several spec files, you should start running your tests concurrently. To do so, adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency—meaning that no matter how many files and tests you have, they can all run in parallel.  (This is still subject to certain limits, like your computer’s CPU, concurrency restrictions, etc.)
 
-> Let's say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have set `maxInstances` to `1`. The wdio test runner will spawn 3 processes. Therefore, if you have 10 spec files and you set `maxInstances` to `10`, _all_ spec files will get tested simultaneously, and 30 processes will get spawned.
+> Let's say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have set `maxInstances` to `1`. The WDIO test runner will spawn 3 processes. Therefore, if you have 10 spec files and you set `maxInstances` to `10`, _all_ spec files will be tested simultaneously, and 30 processes will be spawned.
 
-You can define the `maxInstances` property globally to set the attribute for all browsers. If you run your own WebDriver grid, you may (for example) have more capacity for one browser than another. In this case, you can _limit_ the `maxInstances` in your capability object:
+You can define the `maxInstances` property globally to set the attribute for all browsers. 
+
+If you run your own WebDriver grid, you may (for example) have more capacity for one browser than another. In that case, you can _limit_ the `maxInstances` in your capability object:
 
 ```js
 // wdio.conf.js
@@ -21,7 +23,7 @@ exports.config = {
     maxInstances: 10,
     // ...
     capabilities: [{
-        browserName: "firefox"
+        browserName: 'firefox'
     }, {
         // maxInstances can get overwritten per capability. So if you have an in-house WebDriver
         // grid with only 5 firefox instance available you can make sure that not more than
@@ -36,7 +38,9 @@ exports.config = {
 
 If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable. 
 
-Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments. Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
+Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments. 
+
+Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
 
 ```js
 // wdio.dev.config.js
@@ -64,7 +68,7 @@ exports.config.reporters.push('allure')
 
 You can easily group test specs in suites and run single specific suites instead of all of them. 
 
-First, define your suites in your wdio config:
+First, define your suites in your WDIO config:
 
 ```js
 // wdio.conf.js
@@ -116,15 +120,17 @@ Or run multiple specs at once:
 wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
 ```
 
-If the `--spec` given does not point to a particular spec file, it is used as a filter for the spec filenames defined in your configuration. 
+If the `--spec` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration. 
 
-To run all specs with the word 'dialog' in the spec file names, you could use:
+To run all specs with the word “dialog” in the spec file names, you could use:
 
 ```sh
 wdio wdio.conf.js --spec dialog
 ```
 
-Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`), you _can't_ use (for example) `describe.only` at the top of your spec file to instruct Mocha to run only that suite. This feature will help you to accomplish the same goal.
+Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`), you _can't_ use (for example) `describe.only` at the top of your spec file to instruct Mocha to run only that suite. 
+
+This feature will help you to accomplish the same goal.
 
 ## Exclude Selected Tests
 
