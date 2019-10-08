@@ -20,7 +20,11 @@ const supportedInstallations = {
 }
 
 export const command = 'install <type> <name>'
-export const desc = 'Add a `reporter`, `service`, or `framework` to your WebdriverIO project'
+export const desc = [
+    'Add a `reporter`, `service`, or `framework` to your WebdriverIO project.',
+    'The command installs the package from NPM, adds it to your package.json',
+    'and modifies the wdio.conf.js accordingly.'
+].join(' ')
 
 export const cmdArgs = {
     yarn: {

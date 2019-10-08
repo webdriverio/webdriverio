@@ -8,7 +8,7 @@ import { CLI_EPILOGUE } from '../constants'
 
 export const command = 'run <configPath>'
 
-export const desc = 'Run your WDIO configuration file to initialize your tests.'
+export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
 
 export const cmdArgs = {
     watch: {
