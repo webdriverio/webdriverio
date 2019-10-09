@@ -37,9 +37,9 @@
  * </example>
  *
  * @alias element.click
- * @uses protocol/element, protocol/elementIdClick
+ * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
  * @type action
- *
+ * @param {Object=} options object containing a property called `button` which can be set to 0 (left) 1 (middle) or 2 (right) button
  */
 
 export default async function click (options) {
