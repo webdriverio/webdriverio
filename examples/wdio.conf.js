@@ -83,11 +83,6 @@ exports.config = {
         specs: [
             'test/ffOnly/*'
         ]
-    }, {
-        browserName: 'phantomjs',
-        exclude: [
-            'test/spec/alert.js'
-        ]
     }],
     //
     //
@@ -97,19 +92,11 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // By default WebdriverIO commands are executed in a synchronous way using
-    // the wdio-sync package. If you still want to run your tests in an async way
-    // e.g. using promises you can set the sync option to false.
-    sync: true,
-    //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevel: 'info',
     //
     // Set directory to store all logs into
     outputDir: __dirname,
-    //
-    // Enables colors for log output.
-    coloredLogs: true,
     //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.

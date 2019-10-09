@@ -3,7 +3,7 @@ id: browserobject
 title: The Browser Object
 ---
 
-If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object. 
+If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object.
 
 The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
 
@@ -70,12 +70,10 @@ console.log(browser.config)
         protocol: 'http',
         waitforTimeout: 10000,
         waitforInterval: 250,
-        coloredLogs: true,
         logLevel: 'debug',
         baseUrl: 'http://localhost',
         connectionRetryTimeout: 90000,
         connectionRetryCount: 3,
-        sync: true,
         specs: [ 'err.js' ],
         fakeUser: 'maxmustermann', // <-- custom option
         fakePassword: 'foobar', // <-- custom option

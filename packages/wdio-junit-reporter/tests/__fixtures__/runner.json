@@ -35,7 +35,6 @@
     "config": {
         "hostname": "127.0.0.1",
         "port": 4444,
-        "sync": true,
         "specs": [
             "./specs/sync.spec.js"
         ],
@@ -57,7 +56,6 @@
         "maxInstancesPerCapability": 100,
         "connectionRetryTimeout": 90000,
         "connectionRetryCount": 3,
-        "debug": false,
         "execArgv": [],
         "runnerEnv": {},
         "runner": "local",
@@ -91,7 +89,6 @@
         "afterFeature": [],
         "afterScenario": [],
         "afterStep": [],
-        "coloredLogs": true,
         "_": [
             "wdio.conf.js"
         ],
