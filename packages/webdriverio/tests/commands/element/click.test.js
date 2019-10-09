@@ -2,7 +2,7 @@ import request from 'request'
 import { remote } from '../../../src'
 
 describe('click test', () => {
-    it('should allow to left click on an element', async () => {
+    it('should allow to left click on an element without passing a button type', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -14,6 +14,28 @@ describe('click test', () => {
         await elem.click()
 
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/click')
+    })
+
+    it('should allow to left click on an element by passing a button type', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        await elem.click({ button: 'left' })
+
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/actions')
+        expect(request.mock.calls[2][0].body.actions[0].actions[1]).toEqual({ type: 'pointerDown', button: 0 })
+        expect(request.mock.calls[2][0].body.actions[0].actions[2]).toEqual({ type: 'pointerUp', button: 0 })
+
+        await elem.click({ button: 0 })
+
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/actions')
+        expect(request.mock.calls[2][0].body.actions[0].actions[1]).toEqual({ type: 'pointerDown', button: 0 })
+        expect(request.mock.calls[2][0].body.actions[0].actions[2]).toEqual({ type: 'pointerUp', button: 0 })
     })
 
     it('should allow to right click on an element', async () => {
@@ -62,6 +84,28 @@ describe('click test', () => {
         expect(request.mock.calls[2][0].body.actions[0].actions[0].type).toBe('pointerMove')
         expect(request.mock.calls[2][0].body.actions[0].actions[1]).toEqual({ type: 'pointerDown', button: 1 })
         expect(request.mock.calls[2][0].body.actions[0].actions[2]).toEqual({ type: 'pointerUp', button: 1 })
+    })
+
+    it('should allow to left click on an element (no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        await elem.click({ button: 'left' })
+
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/moveto')
+        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/click')
+        expect(request.mock.calls[3][0].body).toEqual({ 'button': 0 })
+
+        await elem.click({ button: 0 })
+
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/moveto')
+        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/click')
+        expect(request.mock.calls[3][0].body).toEqual({ 'button': 0 })
     })
 
     it('should allow to right click on an element (no w3c)', async () => {
