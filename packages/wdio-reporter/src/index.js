@@ -140,7 +140,7 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             this.tests[currentTest.uid] = currentTest
-            currentTest.skip()
+            currentTest.skip(test.pendingReason)
             this.counts.skipping++
             this.counts.tests++
             this.onTestSkip(currentTest)

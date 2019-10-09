@@ -28,8 +28,9 @@ describe('TestStats', () => {
     })
 
     it('can get skipped', () => {
-        stat.skip()
+        stat.skip('for no reason')
         expect(stat.state).toBe('skipped')
+        expect(stat.pendingReason).toBe('for no reason')
         expect(stat.complete.mock.calls).toHaveLength(0)
     })
 
