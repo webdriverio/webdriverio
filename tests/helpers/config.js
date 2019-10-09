@@ -26,7 +26,9 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 10000,
-        require: ['@babel/register']
+        require: ['@babel/register'],
+        grep: 'SKIPPED_GREP',
+        invert: true
     },
 
     jasmineNodeOpts: {

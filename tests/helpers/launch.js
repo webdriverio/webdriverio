@@ -11,7 +11,7 @@ export default function launch (...args) {
         if (!isFailing) {
             // eslint-disable-next-line no-console
             console.log('Smoke test successful')
-            return
+            return { skippedSpecs: launcher.interface.skippedSpecs }
         }
 
         const IGNORED_FILES_TO_LOG = ['service.log', 'launcher.log']
