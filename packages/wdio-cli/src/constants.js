@@ -31,7 +31,7 @@ export const ANDROID_CONFIG = {
 export const IOS_CONFIG = {
     platformName: 'iOS',
     automationName: 'XCUITest',
-    deviceName: 'iPhone 8'
+    deviceName: 'iPhone Simulator'
 }
 
 /**

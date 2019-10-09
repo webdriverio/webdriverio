@@ -19,7 +19,9 @@ wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 
 ```sh
 wdio repl android
+```
 OR
+```sh
 wdio repl ios
 ```
 
@@ -32,14 +34,18 @@ wdio repl './path/to/your_app.apk'
 This would open App session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
 
 Capabilities for iOS device can be passed with arguments:
--v      - platformVersion
--d      - deviceName
--u      - udid (for real devices)
+* `-v`      - `platformVersion`: version of Android/iOS platform
+* `-d`      - `deviceName`: name of mobile device
+* `-u`      - `udid`: udid for real devices
 
 USAGE:
-`wdio repl ios --platformVersion 11.3 --deviceName 'iPhone 7' --udid 123432abc`
+```sh
+wdio repl ios --platformVersion 11.3 --deviceName 'iPhone 7' --udid 123432abc
+```
 OR
-`wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc`
+```sh
+wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc
+```
 
 You can apply any options (see `wdio repl --help`) available for your REPL session.
 

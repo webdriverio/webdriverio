@@ -26,7 +26,7 @@ export const builder = {
     },
     udid: {
         alias: 'u',
-        desc: 'UDID for REAL iOS devices',
+        desc: 'UDID of real mobile devices',
         type: 'string',
     }
 }

@@ -7,6 +7,8 @@ Object {
     "automationName": "UiAutomator2",
     "deviceName": "Test",
     "platformName": "Android",
+    "platformVersion": null,
+    "udid": null,
   },
 }
 `;
@@ -18,6 +20,8 @@ Object {
     "browserName": "Chrome",
     "deviceName": "Test",
     "platformName": "Android",
+    "platformVersion": null,
+    "udid": null,
   },
 }
 `;
@@ -48,7 +52,7 @@ Object {
   "capabilities": Object {
     "automationName": "XCUITest",
     "browserName": "Safari",
-    "deviceName": "iPhone 8",
+    "deviceName": "iPhone Simulator",
     "platformName": "iOS",
     "platformVersion": null,
     "udid": null,

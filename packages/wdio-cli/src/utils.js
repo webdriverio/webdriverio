@@ -233,28 +233,27 @@ export const validateServiceAnswers = (answers) => {
 }
 
 export function getCapabilities(arg) {
-    const capabilities = getPlatformCaps(arg.option)
-    let finalCapabilities = { ...capabilities }
-    if (capabilities.platformName === IOS_CONFIG.platformName) {
-        finalCapabilities = {
-            ...capabilities,
-            deviceName: arg.deviceName || IOS_CONFIG.deviceName,
-            platformVersion: arg.platformVersion || null,
-            udid: arg.udid || null
+    const optionalCapabilites = {
+        platformVersion: arg.platformVersion || null,
+        udid: arg.udid || null,
+        ...(arg.deviceName && { deviceName: arg.deviceName })
+    }
+    /**
+     * Parsing of option property and constructing desiredCapabilities
+     * for Appium session. Could be application(1) or browser(2-3) session.
+     */
+    if (/.*\.(apk|app|ipa)$/.test(arg.option)) {
+        return {
+            capabilities: {
+                app: arg.option,
+                ...(arg.option.endsWith('apk') ? ANDROID_CONFIG : IOS_CONFIG),
+                ...optionalCapabilites,
+            }
         }
+    } else if (/android/.test(arg.option)) {
+        return { capabilities: { browserName: 'Chrome', ...ANDROID_CONFIG, ...optionalCapabilites } }
+    } else if (/ios/.test(arg.option)) {
+        return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
     }
-    return { capabilities: finalCapabilities }
-}
-
-function getPlatformCaps(option) {
-    switch (true) {
-    case /.*\.(apk|app|ipa)$/.test(option):
-        return { app: option, ...(option.endsWith('apk') ? ANDROID_CONFIG : IOS_CONFIG) }
-    case /android/.test(option):
-        return { browserName: 'Chrome', ...ANDROID_CONFIG }
-    case /ios/.test(option):
-        return { browserName: 'Safari', ...IOS_CONFIG }
-    default:
-        return { browserName: option }
-    }
+    return { capabilities: { browserName: arg.option } }
 }
