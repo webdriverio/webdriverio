@@ -1,4 +1,6 @@
-export const CLI_EPILOGUE = 'Documentation: https://webdriver.io'
+import { version } from '../package.json'
+
+export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${version})`
 
 export const EXCLUSIVE_SERVICES = {
     'wdio-chromedriver-service': {

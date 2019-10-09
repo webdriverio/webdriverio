@@ -94,8 +94,9 @@ export const cmdArgs = {
 export const builder = (yargs) => {
     return yargs
         .options(cmdArgs)
-        .example('$0 run wdio.conf.js --suite foobar', 'Run testsuite foobar')
-        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run testsuite foobar')
+        .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
+        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
+        .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
         .epilogue(CLI_EPILOGUE)
         .help()
 }
