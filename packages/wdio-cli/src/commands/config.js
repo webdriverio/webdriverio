@@ -12,6 +12,10 @@ export const builder = {
         type: 'boolean',
         desc: 'Install packages via yarn package manager.',
         default: false
+    },
+    yes: {
+        alias: 'y',
+        desc: 'will fill in all config defaults without prompting'
     }
 }
 

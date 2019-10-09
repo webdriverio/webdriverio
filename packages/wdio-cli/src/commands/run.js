@@ -82,10 +82,6 @@ export const builder = {
     },
     cucumberOpts: {
         desc: 'Cucumber options'
-    },
-    yes: {
-        alias: 'y',
-        desc: 'will fill in all config defaults without prompting'
     }
 }
 
