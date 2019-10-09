@@ -15,7 +15,7 @@ export default class ProtocolStub {
 
         const browser = addCommands({
             capabilities,
-            ...capabilitiesEnvironmentDetector(capabilities)
+            ...capabilitiesEnvironmentDetector(capabilities, options._automationProtocol)
         })
 
         return browser

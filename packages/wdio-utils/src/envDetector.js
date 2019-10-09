@@ -43,6 +43,9 @@ function isW3C (capabilities) {
  * @return {Boolean}               true if run by Chromedriver
  */
 function isChrome (caps) {
+    if (!caps) {
+        return false
+    }
     return (
         Boolean(caps.chrome) ||
         Boolean(caps['goog:chromeOptions'])
@@ -56,6 +59,9 @@ function isChrome (caps) {
  * @return {Boolean}       true if platform is mobile device
  */
 function isMobile (caps) {
+    if (!caps) {
+        return false
+    }
     const browserName = (caps.browserName || '').toLowerCase()
 
     /**
@@ -83,6 +89,9 @@ function isMobile (caps) {
  * @return {Boolean}               true if run on iOS device
  */
 function isIOS (caps) {
+    if (!caps) {
+        return false
+    }
     return Boolean(
         (caps.platformName && caps.platformName.match(/iOS/i)) ||
         (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
@@ -95,6 +104,9 @@ function isIOS (caps) {
  * @return {Boolean}               true if run on Android device
  */
 function isAndroid (caps) {
+    if (!caps) {
+        return false
+    }
     return Boolean(
         (caps.platformName && caps.platformName.match(/Android/i)) ||
         (caps.browserName && caps.browserName.match(/Android/i))
@@ -123,23 +135,20 @@ function isSauce (caps) {
  * @return {Boolean}              true if session is run with Selenium Standalone Server
  */
 function isSeleniumStandalone (caps) {
+    if (!caps) {
+        return false
+    }
     return Boolean(caps['webdriver.remote.sessionid'])
 }
 
 /**
  * returns information about the environment before the session is created
- * `isW3C`, `isSeleniumStandalone` cannot be detected
  * @param  {Object}  capabilities           caps provided by user
+ * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
-export function capabilitiesEnvironmentDetector (capabilities) {
-    return {
-        isChrome: isChrome(capabilities),
-        isMobile: isMobile(capabilities),
-        isIOS: isIOS(capabilities),
-        isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities)
-    }
+export function capabilitiesEnvironmentDetector (capabilities, automationProtocol) {
+    return automationProtocol === 'devtools' ? devtoolsEnvironmentDetector(capabilities) : webdriverEnvironmentDetector(capabilities)
 }
 
 /**
@@ -157,5 +166,39 @@ export function sessionEnvironmentDetector ({ capabilities, requestedCapabilitie
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(requestedCapabilities.w3cCaps.alwaysMatch),
         isSeleniumStandalone: isSeleniumStandalone(capabilities)
+    }
+}
+
+/**
+ * returns information about the environment when `devtools` protocol is used
+ * @param  {Object}  capabilities           caps of session response
+ * @return {Object}                         object with environment flags
+ */
+export function devtoolsEnvironmentDetector ({ browserName }) {
+    return {
+        isDevTools: true,
+        isW3C: true,
+        isMobile: false,
+        isIOS: false,
+        isAndroid: false,
+        isChrome: browserName === 'chrome',
+        isSauce: false,
+        isSeleniumStandalone: false,
+    }
+}
+
+/**
+ * returns information about the environment before the session is created
+ * `isW3C`, `isSeleniumStandalone` cannot be detected
+ * @param  {Object}  capabilities           caps provided by user
+ * @return {Object}                         object with environment flags
+ */
+export function webdriverEnvironmentDetector (capabilities) {
+    return {
+        isChrome: isChrome(capabilities),
+        isMobile: isMobile(capabilities),
+        isIOS: isIOS(capabilities),
+        isAndroid: isAndroid(capabilities),
+        isSauce: isSauce(capabilities)
     }
 }

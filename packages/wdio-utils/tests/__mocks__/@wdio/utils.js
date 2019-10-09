@@ -7,7 +7,8 @@ import {
 import webdriverMonadOrig from '../../../src/monad'
 import {
     sessionEnvironmentDetector as sessionEnvDetector,
-    capabilitiesEnvironmentDetector as capabilitiesEnvDetector
+    capabilitiesEnvironmentDetector as capabilitiesEnvDetector,
+    devtoolsEnvironmentDetector as devtoolsEnvDetector
 } from '../../../src/envDetector'
 
 class DotReporter {
@@ -84,3 +85,4 @@ export let hasWdioSyncSupport = false
 export const testFnWrapper = jest.fn()
 export const sessionEnvironmentDetector = sessionEnvDetector
 export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
+export const devtoolsEnvironmentDetector = devtoolsEnvDetector

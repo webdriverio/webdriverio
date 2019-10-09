@@ -38,6 +38,7 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
+        expect(sessionEnvironmentDetector({ requestedCapabilities }).isW3C).toBe(false)
     })
 
     it('isChrome', () => {
@@ -149,5 +150,14 @@ describe('capabilitiesEnvironmentDetector', () => {
 
         const expectedFlags = Object.keys(sessionFlags).filter(flagName => !['isW3C', 'isSeleniumStandalone'].includes(flagName))
         expect(Object.keys(capabilitiesFlags)).toEqual(expectedFlags)
+    })
+
+    it('should return devtools env flags if automationProtocol is devtools', () => {
+        const capabilitiesFlags = capabilitiesEnvironmentDetector({}, 'devtools')
+
+        expect(capabilitiesFlags.isDevTools).toBe(true)
+        expect(capabilitiesFlags.isSeleniumStandalone).toBe(false)
+        expect(capabilitiesFlags.isChrome).toBe(false)
+        expect(capabilitiesFlags.isMobile).toBe(false)
     })
 })

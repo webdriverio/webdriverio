@@ -102,7 +102,7 @@ test('should throw when run fails', async () => {
     await adapter.init()
 
     const runtimeError = new Error('boom')
-    adapter.runtime = () => { throw runtimeError }
+    adapter.runtime.start = () => { throw runtimeError }
 
     expect(adapter.run()).rejects.toEqual(runtimeError)
 })
