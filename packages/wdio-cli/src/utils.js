@@ -5,10 +5,9 @@ import logger from '@wdio/logger'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
 
-import { CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES } from './constants'
 import inquirer from 'inquirer'
 import { runConfig } from './commands/config'
-import { ANDROID_CONFIG, IOS_CONFIG } from './capabilities'
+import { CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG } from './constants'
 
 const log = logger('@wdio/cli:utils')
 
@@ -235,16 +234,14 @@ export const validateServiceAnswers = (answers) => {
 
 export function getCapabilities(arg) {
     const capabilities = getPlatformCaps(arg.option)
-    let finalCapabilities = capabilities
+    let finalCapabilities = { ...capabilities }
     if (capabilities.platformName === IOS_CONFIG.platformName) {
-        finalCapabilities = Object.assign( {},
-            capabilities,
-            {
-                deviceName: arg.device || IOS_CONFIG.deviceName,
-                platformVersion: arg.ver || null,
-                udid: arg.udid || null
-            }
-        )
+        finalCapabilities = {
+            ...capabilities,
+            deviceName: arg.deviceName || IOS_CONFIG.deviceName,
+            platformVersion: arg.platformVersion || null,
+            udid: arg.udid || null
+        }
     }
     return { capabilities: finalCapabilities }
 }

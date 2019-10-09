@@ -32,14 +32,16 @@ wdio repl './path/to/your_app.apk'
 This would open App session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
 
 Capabilities for iOS device can be passed with arguments:
---ver     - platformVersion
---device  - deviceName
---udid    - udid (for real devices)
+-v      - platformVersion
+-d      - deviceName
+-u      - udid (for real devices)
 
 USAGE:
-`wdio repl ios --ver='11.3' --device='iPhone 7' --udid='123432'`
+`wdio repl ios --platformVersion 11.3 --deviceName 'iPhone 7' --udid 123432abc`
+OR
+`wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc`
 
-You can apply any options (see `wdio --help`) available for your REPL session.
+You can apply any options (see `wdio repl --help`) available for your REPL session.
 
 ![WebdriverIO REPL](https://webdriver.io/img/repl.gif)
 

@@ -326,7 +326,7 @@ describe('getCapabilities', () => {
     })
 
     it('should return driver with capabilities for ios', () => {
-        expect(getCapabilities({ option: 'foo.app', device: 'fooName', udid: 'num', ver: 'fooNum' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' })).toMatchSnapshot()
         expect(getCapabilities({ option: 'ios' })).toMatchSnapshot()
     })
 

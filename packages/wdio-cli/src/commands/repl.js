@@ -13,6 +13,23 @@ const IGNORED_ARGS = [
 
 export const command = 'repl <option> [capabilities]'
 export const desc = 'Run WebDriver session in command line'
+export const builder = {
+    platformVersion: {
+        alias: 'v',
+        desc: 'Version of OS for mobile devices',
+        type: 'number',
+    },
+    deviceName: {
+        alias: 'd',
+        desc: 'Device name for mobile devices',
+        type: 'string',
+    },
+    udid: {
+        alias: 'u',
+        desc: 'UDID for REAL iOS devices',
+        type: 'string',
+    }
+}
 
 export const builder = (yargs) => {
     return yargs
