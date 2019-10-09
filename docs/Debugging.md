@@ -26,7 +26,7 @@ exports.config = {
 
 ## The Debug Command
 
-In many cases, you can use [`browser.debug()`](/docs/api/browser/debug.html) to pause your test and inspect the browser. 
+In many cases, you can use [`browser.debug()`](/docs/api/browser/debug.html) to pause your test and inspect the browser.
 
 Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;just like you can in your tests.
 
@@ -59,7 +59,7 @@ Once execution has finished, the test doesn't actually finish until the DevTools
 
 ## Dynamic configuration
 
-Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable. 
+Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable.
 
 Using this technique, you can dynamically change the configuration:
 
@@ -88,6 +88,26 @@ DEBUG=true ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/e2e/myspec.test.
 ```
 
 ...and debug your spec file with the DevTools!
+
+## Debugging with Visual Studio Code (VSCode)
+
+It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
+```
+{
+    "name": "run select spec",
+    "type": "node",
+    "request": "launch",
+    "args": ["wdio.conf.js", "--spec", "${file}"],
+    "cwd": "${workspaceFolder}",
+    "autoAttachChildProcesses": true,
+    "program": "${workspaceRoot}/node_modules/@wdio/cli/bin/wdio.js",
+    "console": "integratedTerminal"
+},
+```
+
+To run all spec files remove `"--spec", "${file}"` from `"args"`
+
+Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
 
 ## Dynamic Repl with Atom
 
