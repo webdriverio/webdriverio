@@ -36,6 +36,22 @@
     });
  * </example>
  *
+ * Example of a right click using the options
+ *
+ * <example>
+    :example.html
+    <button id="myButton">Click me</button>
+    :example.js
+    it('should demonstrate a right click passed as string', () => {
+        const myButton = $('#myButton')
+        myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
+    })
+    it('should demonstrate a right click passed as number', () => {
+        const myButton = $('#myButton')
+        myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
+    })
+ * </example>
+ *
  * @alias element.click
  * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
  * @type action
