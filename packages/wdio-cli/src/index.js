@@ -51,14 +51,14 @@ export const run = async () => {
         params.configPath = path.resolve(process.cwd(), configPath || DEFAULT_CONFIG_FILENAME)
 
         return handler(params).catch(async (err) => {
-            yargs.parse('--help', (_, __, output) => {
-                console.error(`${output}\n\n${err.stack}`)
+            const output = await new Promise((resolve) => (
+                yargs.parse('--help', (err, argv, output) => resolve(output))))
 
-                if (!process.env.JEST_WORKER_ID) {
-                    /* istanbul ignore next */
-                    process.exit(1)
-                }
-            })
+            console.error(`${output}\n\n${err.stack}`)
+            /* istanbul ignore if */
+            if (!process.env.JEST_WORKER_ID) {
+                process.exit(1)
+            }
         })
     }
 }
