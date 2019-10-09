@@ -8,6 +8,10 @@ jest.mock('./../src/commands/run', () => ({
 }))
 
 describe('index', () => {
+    beforeEach(() => {
+        handler.mockClear()
+    })
+
     it('should call config if no known command is used', async () => {
         await run().catch()
 
@@ -19,9 +23,12 @@ describe('index', () => {
 
     it('should work properly with absolute paths', async () => {
         const expectedPath = '/some/absolute/path/here/wdio.conf.js'
-        jest.spyOn(yargs, 'epilogue').mockReturnValue({ argv: { _: [expectedPath] } })
+        jest.spyOn(yargs, 'epilogue').mockReturnValue({
+            argv: { _: [expectedPath] },
+            options: jest.fn()
+        })
 
-        await run().catch()
+        await run({ spec: './foobar.js' }).catch()
 
         expect(handler).toHaveBeenCalledWith({
             _: [expectedPath],
