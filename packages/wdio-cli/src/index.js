@@ -4,7 +4,7 @@ import path from 'path'
 import yargs from 'yargs'
 
 import Launcher from './launcher'
-import { handler } from './commands/run'
+import { handler, cmdArgs } from './commands/run'
 import { CLI_EPILOGUE } from './constants'
 
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
@@ -29,6 +29,17 @@ export const run = async () => {
         .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })
         .epilogue(CLI_EPILOGUE)
+
+    /**
+     * parse CLI arguments according to what run expects, without this adding
+     * `--spec ./test.js` results in propagating the spec parameter as a
+     * string while in reality is should be parsed into a array of strings
+     */
+    if (!process.argv.find((arg) => arg === '--help')) {
+        for (const [name, param] of Object.entries(cmdArgs)) {
+            argv.option(name, param)
+        }
+    }
 
     /**
      * The only way we reach this point is if the user runs the binary without a command (i.e. wdio wdio.conf.js)

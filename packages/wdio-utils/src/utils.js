@@ -121,14 +121,20 @@ export function getArgumentType (arg) {
  * @return {object}       package content
  */
 export function safeRequire (name) {
+    let requirePath
     try {
-        require.resolve(name)
+        const localNodeModules = `${process.cwd()}/node_modules`
+        if (!require.main.paths.includes(localNodeModules)) {
+            require.main.paths.push(localNodeModules)
+        }
+
+        requirePath = require.resolve(name, { paths: require.main.paths })
     } catch (e) {
         return null
     }
 
     try {
-        return require(name)
+        return require(requirePath)
     } catch (e) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
