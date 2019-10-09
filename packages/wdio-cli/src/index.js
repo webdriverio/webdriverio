@@ -36,9 +36,7 @@ export const run = async () => {
      * string while in reality is should be parsed into a array of strings
      */
     if (!process.argv.find((arg) => arg === '--help')) {
-        for (const [name, param] of Object.entries(cmdArgs)) {
-            argv.option(name, param)
-        }
+        argv.options(cmdArgs)
     }
 
     /**
