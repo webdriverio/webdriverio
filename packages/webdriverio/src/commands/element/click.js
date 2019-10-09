@@ -48,7 +48,7 @@
     })
     it('should demonstrate a right click passed as number', () => {
         const myButton = $('#myButton')
-        myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
+        myButton.click({ button: 2 }) // opens the contextmenu at the location of the button
     })
  * </example>
  *
@@ -77,7 +77,7 @@ export default async function click (options) {
         return this.elementClick(this.elementId)
     }
 
-    if (button === 0 || button === 1 || button === 2) {
+    if ([0, 1, 2].includes(button)) {
         if (this.isW3C) {
             await this.performActions([{
                 type: 'pointer',
