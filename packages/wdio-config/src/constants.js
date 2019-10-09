@@ -3,7 +3,6 @@ const DEFAULT_TIMEOUT = 10000
 /* istanbul ignore next */
 
 export const DEFAULT_CONFIGS = {
-    sync: true,
     specs: [],
     suites: {},
     exclude: [],
@@ -22,7 +21,6 @@ export const DEFAULT_CONFIGS = {
     filesToWatch: [],
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,
-    debug: false,
     execArgv: [],
     runnerEnv: {},
     runner: 'local',
