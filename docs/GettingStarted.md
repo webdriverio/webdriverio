@@ -41,34 +41,8 @@ npm i --save-dev @wdio/cli
 We'll next want to generate a configuration file that stores all of our WebdriverIO settings. To do that just run the configuration utility:
 
 ```sh
-./node_modules/.bin/wdio config
+./node_modules/.bin/wdio config -y
 ```
-
-A question interface pops up. It will help to create the config easy and fast. If you are not sure what to answer follow this answers:
-
-__Q: Where should your tests be launched?__<br>
-A: _local_<br>
-<br>
-__Q: Where is your automation backend located?__<br>
-A: _On my local machine_<br>
-<br>
-__Q: Which framework do you want to use?__<br>
-A: _mocha_<br>
-<br>
-__Q: Do you want to run WebdriverIO commands synchronous or asynchronous?__<br>
-A: _sync_ (just press enter, you can also run commands async and handle promises by yourself but for the sake of simplicity let's run them synchronously)<br>
-<br>
-__Q: Where are your test specs located?__<br>
-A: _./test/specs/**/*.js_ (just press enter)<br>
-<br>
-__Q: Which reporter do you want to use?__<br>
-A: _dot_ (just press space and enter)<br>
-<br>
-__Q: Do you want to add a service to your test setup?__<br>
-A: choose either _selenium-standalone_ (if you have JDK installed) or just _chromedriver_<br>
-<br>
-__Q: What is the base url?__<br>
-A: _http://localhost_ (just press enter)<br>
 
 That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. As we're using Geckodriver, we need to override the default path (which uses the Selenium's default of `/wd/hub`). Then, we'll be ready to create your first spec file (test file).
 
