@@ -60,12 +60,13 @@ test('specDone', () => {
     expect(runnerReporter.emit.mock.calls[5][1].uid).toBe('some failing test spec25')
 
     jasmineReporter.specDone({
-        id: 26, description: 'some pending test spec', failedExpectations: [], status: 'pending'
+        id: 26, description: 'some pending test spec', failedExpectations: [], status: 'pending', pendingReason: 'for no reason'
     })
     expect(runnerReporter.emit.mock.calls[6][0]).toBe('test:pending')
     expect(runnerReporter.emit.mock.calls[6][1].cid).toBe('0-2')
     expect(runnerReporter.emit.mock.calls[6][1].uid).toBe('some pending test spec26')
     expect(runnerReporter.emit.mock.calls[6][1].pending).toBe(true)
+    expect(runnerReporter.emit.mock.calls[6][1].pendingReason).toBe('for no reason')
     expect(runnerReporter.emit.mock.calls[7][0]).toBe('test:end')
     expect(runnerReporter.emit.mock.calls[7][1].uid).toBe('some pending test spec26')
 
