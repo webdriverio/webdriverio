@@ -104,6 +104,7 @@ export default class JasmineReporter {
             title: payload.description,
             fullTitle: payload.fullName,
             pending: payload.status === 'pending',
+            pendingReason: payload.pendingReason,
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
             // We maintain the single error property for backwards compatibility with reporters
