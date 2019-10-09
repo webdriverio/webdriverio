@@ -36,12 +36,66 @@
     });
  * </example>
  *
- * @alias element.click
- * @uses protocol/element, protocol/elementIdClick
- * @type action
+ * Example of a right click using the options
  *
+ * <example>
+    :example.html
+    <button id="myButton">Click me</button>
+    :example.js
+    it('should demonstrate a right click passed as string', () => {
+        const myButton = $('#myButton')
+        myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
+    })
+    it('should demonstrate a right click passed as number', () => {
+        const myButton = $('#myButton')
+        myButton.click({ button: 2 }) // opens the contextmenu at the location of the button
+    })
+ * </example>
+ *
+ * @alias element.click
+ * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
+ * @type action
+ * @param {Object=} options object containing a property called `button` which can be set to 0 (left) 1 (middle) or 2 (right) button
  */
 
-export default function click () {
-    return this.elementClick(this.elementId)
+export default async function click (options) {
+    let { button } = options || {}
+
+    if (button === 'left') {
+        button = 0
+    }
+
+    if (button === 'middle') {
+        button = 1
+    }
+
+    if (button === 'right') {
+        button = 2
+    }
+
+    if (typeof button === 'undefined') {
+        return this.elementClick(this.elementId)
+    }
+
+    if ([0, 1, 2].includes(button)) {
+        if (this.isW3C) {
+            await this.performActions([{
+                type: 'pointer',
+                id: 'pointer1',
+                parameters: { pointerType: 'mouse' },
+                actions: [
+                    { type: 'pointerMove', origin: this, x: 0, y: 0 },
+                    { type: 'pointerDown', button },
+                    { type: 'pointerUp', button }
+                ]
+            }])
+
+            return this.releaseActions()
+        }
+
+        await this.moveTo()
+        return this.positionClick(button)
+    }
+
+    throw new Error('Button type not supported.')
 }
