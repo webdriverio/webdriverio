@@ -1,5 +1,5 @@
 import { format } from 'util'
-import { findCDPInterface, getCDPClient, sumByKey, readIOStream, isBrowserVersionLower } from '../src/utils'
+import { findCDPInterface, getCDPClient, sumByKey, readIOStream, isBrowserVersionLower, getChromeMajorVersion } from '../src/utils'
 
 import CDP from 'chrome-remote-interface'
 
@@ -94,5 +94,20 @@ describe('isBrowserVersionLower', () => {
             expect(isBrowserVersionLower(caps, 63)).toBe(false)
             browserVersion++
         })
+    })
+})
+
+describe('getChromeMajorVersion', () => {
+    test('should return whatever value is passed if not a string', () => {
+        expect(getChromeMajorVersion({})).toEqual({})
+        expect(getChromeMajorVersion(true)).toEqual(true)
+        expect(getChromeMajorVersion(78)).toEqual(78)
+        expect(getChromeMajorVersion('foobar')).toEqual('foobar')
+    })
+
+    test('should return major version if proper version is passed', () => {
+        expect(getChromeMajorVersion('78.0.3904.11')).toEqual(78)
+        expect(getChromeMajorVersion('100.0')).toEqual(100)
+        expect(getChromeMajorVersion('78')).toEqual(78)
     })
 })
