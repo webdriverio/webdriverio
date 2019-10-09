@@ -108,6 +108,18 @@ describe('click test', () => {
         expect(request.mock.calls[3][0].body).toEqual({ 'button': 1 })
     })
 
+    it('should throw an error if no valid button type is passed', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        expect(elem.click({ button: 'not-suppported' })).rejects.toThrow('Button type not supported.')
+    })
+
     afterEach(() => {
         request.mockClear()
     })
