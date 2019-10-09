@@ -27,13 +27,26 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-By default, Google Chrome, Firefox and PhantomJS are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
+By default, Google Chrome and Firefox are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
 
 ```js
 // wdio.conf.js
 export.config = {
   // ...
   services: ['selenium-standalone'],
+  seleniumLogs: 'logs',
+  seleniumInstallArgs: {
+    drivers: {
+      chrome: { version: '77.0.3865.40' },
+      firefox: { version: '0.25.0' },
+    }
+  },
+  seleniumArgs: {
+    drivers: {
+      chrome: { version: '77.0.3865.40' },
+      firefox: { version: '0.25.0' },
+    }
+  },
   // ...
 };
 ```
@@ -56,6 +69,7 @@ seleniumLogs : "./",
 
 ### seleniumArgs
 Map of arguments for the Selenium server, passed directly to `Selenium.start()`.
+Please note that latest drivers have to be installed, see `seleniumInstallArgs`.
 
 Type: `Object`
 
@@ -64,10 +78,10 @@ Default: `{}`
 Example:
 ```js
 seleniumArgs: {
-  version : "3.141.5",
+  version : "3.141.59",
   drivers : {
     chrome : {
-      version : "74.0.3729.6",
+      version : "77.0.3865.40",
       arch    : process.arch,
     }
   }
@@ -86,11 +100,11 @@ Default: `{}`
 Example:
 ```js
 seleniumInstallArgs: {
-  version : "3.141.5",
+  version : "3.141.59",
   baseURL : "https://selenium-release.storage.googleapis.com",
   drivers : {
     chrome : {
-      version : "74.0.3729.6",
+      version : "77.0.3865.40",
       arch    : process.arch,
       baseURL : "https://chromedriver.storage.googleapis.com",
     }
