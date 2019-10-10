@@ -15,7 +15,9 @@ export const cmdArgs = {
     },
     yes: {
         alias: 'y',
-        desc: 'will fill in all config defaults without prompting'
+        desc: 'will fill in all config defaults without prompting',
+        type: 'boolean',
+        default: false
     }
 }
 export const builder = (yargs) => {
