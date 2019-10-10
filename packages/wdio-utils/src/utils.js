@@ -128,7 +128,14 @@ export function safeRequire (name) {
             require.main.paths.push(localNodeModules)
         }
 
-        requirePath = require.resolve(name, { paths: require.main.paths })
+        /**
+         * don't set requireOpts when running unit tests as it
+         * confuses Jest require magic
+         */
+        const requireOpts = process.env.JEST_WORKER_ID
+            ? {}
+            : { paths: require.main.paths }
+        requirePath = require.resolve(name, requireOpts)
     } catch (e) {
         return null
     }

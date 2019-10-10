@@ -1,15 +1,22 @@
+import yargs from 'yargs'
+
 import { run } from './../src/index'
 import { handler } from './../src/commands/run'
-import yargs from 'yargs'
 
 jest.mock('./../src/commands/run', () => ({
     ...jest.requireActual('./../src/commands/run'),
-    handler: jest.fn(({ wrongConfig }) => wrongConfig ? Promise.reject({ stack: 'error' }) : Promise.resolve())
+    handler: jest.fn(
+        ({ wrongConfig }) => wrongConfig
+            ? Promise.reject({ stack: 'error' })
+            : Promise.resolve('success'))
 }))
+
+const origArgv = { ...yargs.argv }
 
 describe('index', () => {
     beforeEach(() => {
         handler.mockClear()
+        yargs.argv = origArgv
     })
 
     it('should call config if no known command is used', async () => {
@@ -23,10 +30,7 @@ describe('index', () => {
 
     it('should work properly with absolute paths', async () => {
         const expectedPath = '/some/absolute/path/here/wdio.conf.js'
-        jest.spyOn(yargs, 'epilogue').mockReturnValue({
-            argv: { _: [expectedPath] },
-            options: jest.fn()
-        })
+        yargs.argv._[0] = expectedPath
 
         await run({ spec: './foobar.js' }).catch()
 
@@ -34,17 +38,22 @@ describe('index', () => {
             _: [expectedPath],
             configPath: expectedPath
         })
+        yargs.epilogue.mockClear()
     })
 
     it('should gracefully fail', async () => {
-        jest.spyOn(yargs, 'parse').mockImplementation((str, cb) => cb(null, null, 'test'))
+        yargs.parse.mockImplementation((str, cb) => cb(null, null, 'test'))
+        yargs.argv.wrongConfig = true
         jest.spyOn(console, 'error')
 
-        try {
-            await run()
-        } catch (error) {
-            expect(error).toBeTruthy()
-            expect(console.error).toHaveBeenCalled()
-        }
+        await run()
+        expect(console.error).toHaveBeenCalled()
+        delete yargs.argv.wrongConfig
+    })
+
+    it('should do nothing if command was called', async () => {
+        yargs.argv._.push('run')
+        expect(typeof (await run())).toBe('undefined')
+        yargs.argv._.pop()
     })
 })

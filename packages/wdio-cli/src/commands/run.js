@@ -120,11 +120,16 @@ export function launchWithStdin(wdioConfPath, params) {
 export function launch(wdioConfPath, params) {
     const launcher = new Launcher(wdioConfPath, params)
     return launcher.run()
-        .then(process.exit)
+        .then((...args) => {
+            /* istanbul ignore if */
+            if (!process.env.JEST_WORKER_ID) {
+                process.exit(...args)
+            }
+        })
         .catch(err => {
             console.error(err)
+            /* istanbul ignore if */
             if (!process.env.JEST_WORKER_ID) {
-                /* istanbul ignore next */
                 process.exit(1)
             }
         })

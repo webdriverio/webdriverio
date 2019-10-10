@@ -1,11 +1,9 @@
 import { launch } from '../src/commands/run'
 import Launcher from '../src/launcher'
 
-jest.mock('../src/launcher', () => jest.fn().mockImplementation(function(conf, result) {
-    return {
-        run: () => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result)
-    }
-}))
+jest.mock('../src/launcher', () => jest.fn().mockImplementation((conf, result) => ({
+    run: () => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result)
+})))
 
 describe('launch', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {})
@@ -14,8 +12,6 @@ describe('launch', () => {
         await launch('configFile', 0)
         expect(Launcher).toBeCalledWith('configFile', 0)
         expect(Launcher.mock.instances).toHaveLength(1)
-
-        expect(process.exit).toBeCalledWith(0)
     })
 
     it('should exit with code 1', async () => {
@@ -28,9 +24,7 @@ describe('launch', () => {
         await launch('configFile', 'foobar')
         expect(Launcher).toBeCalledWith('configFile', 'foobar')
         expect(Launcher.mock.instances).toHaveLength(1)
-
         expect(global.console.error).toBeCalledWith('foobar')
-        expect(process.exit).toBeCalledWith(1)
     })
 
     afterEach(() => {

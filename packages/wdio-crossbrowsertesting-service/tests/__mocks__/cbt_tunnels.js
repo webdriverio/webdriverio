@@ -1,4 +1,4 @@
-const cbtTunnels = jest.genMockFromModule('cbt_tunnels')
+const cbtTunnels = {}
 const start = jest.fn().mockImplementation((options, cb) => cb(null, null))
 const stop = jest.fn().mockImplementation((cb) => cb(null))
 
