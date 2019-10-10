@@ -20,7 +20,7 @@ Over time, our community has developed several boilerplate projects that you can
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
     - Task manage through Grunt
     - Examples with demo app https://search.yahoo.com and http://www.phptravels.net, Chai assertion liberary (`expect`, `assert`, `should`)
-    - Appium-specific `.config` file for playback on mobile device. For one-click Appium setup, refer to: appium-setup-made-easy-OSX(https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+    - Appium-specific `.config` file for playback on mobile device. For one-click Appium setup, refer to: [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 
 ### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
