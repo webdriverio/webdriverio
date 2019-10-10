@@ -45,36 +45,8 @@ Next, you’ll generate a configuration file to store your WebdriverIO settings.
 To do that, just run the configuration utility:
 
 ```sh
-./node_modules/.bin/wdio config
+./node_modules/.bin/wdio config -y
 ```
-
-A question interface pops up. It will help to create the configuration file quickly and easily. 
-
-If you are not sure what to answer, follow this example:
-
-__Q: Where should your tests be launched?__<br>
-A: _local_<br>
-<br>
-__Q: Where is your automation backend located?__<br>
-A: _On my local machine_<br>
-<br>
-__Q: Which framework do you want to use?__<br>
-A: _mocha_<br>
-<br>
-__Q: Do you want to run WebdriverIO commands synchronous or asynchronous?__<br>
-A: _sync_ (Just press enter. Alternatively, you could run commands async and handle promises by yourself...but for the sake of simplicity, let’s run sync for now.)<br>
-<br>
-__Q: Where are your test specs located?__<br>
-A: _`./test/specs/**/*.js`_ (just press enter)<br>
-<br>
-__Q: Which reporter do you want to use?__<br>
-A: _dot_ (just press space, then enter)<br>
-<br>
-__Q: Do you want to add a service to your test setup?__<br>
-A: choose either _`selenium-standalone`_ (if you have JDK installed) or just _`chromedriver`_<br>
-<br>
-__Q: What is the base url?__<br>
-A: _`http://localhost`_ (just press enter)<br>
 
 That's it! The configurator will install all required packages for you and create a config file called `wdio.conf.js`. 
 

@@ -12,13 +12,17 @@ export const builder = {
         type: 'boolean',
         desc: 'Install packages via yarn package manager.',
         default: false
+    },
+    yes: {
+        alias: 'y',
+        desc: 'will fill in all config defaults without prompting'
     }
 }
 
-export const runConfig = async function (useYarn, exit) {
+export const runConfig = async function (useYarn, yes, exit) {
     console.log(CONFIG_HELPER_INTRO)
+    const answers = await getAnswers(yes)
 
-    const answers = await inquirer.prompt(QUESTIONNAIRE)
     const packageAnswers = ['reporters', 'runner', 'services', 'framework']
 
     Object.keys(answers).forEach((key) => {
@@ -80,9 +84,35 @@ export const runConfig = async function (useYarn, exit) {
     }
 }
 
+export async function getAnswers(yes) {
+    return yes
+        ? QUESTIONNAIRE.reduce((answers, question) => Object.assign(
+            answers,
+            question.when && !question.when(answers)
+                /**
+                 * set nothing if question doesn't apply
+                 */
+                ? {}
+                : answers[question.name] = question.default
+                    /**
+                     * set default value if existing
+                     */
+                    ? question.default
+                    : question.choices && question.choices.length
+                    /**
+                     * pick first choice, select value if it exists
+                     */
+                        ? question.choices[0].value
+                            ? question.choices[0].value
+                            : question.choices[0]
+                        : {}
+        ), {})
+        : await inquirer.prompt(QUESTIONNAIRE)
+}
+
 export async function handler(argv) {
     try {
-        await runConfig(argv.yarn)
+        await runConfig(argv.yarn, argv.yes)
     } catch (error) {
         throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
     }
