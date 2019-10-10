@@ -15,7 +15,7 @@ Over time, our community has developed several boilerplate projects that you can
     - Examples of multi-selector option to query elements with more than one selector at a time
     - Examples of headless browser execution, using PhantomJS and Chrome
     - Integration with BrowserStack, SauceLabs
-    - Support of reading and writing from MS-Excel documentsfor easy test data management from external data sources with examples
+    - Support of reading and writing from MS-Excel documents for easy test data management from external data sources with examples
     - Database support for any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing queries, fetching result sets, and so on. Includes examples of E2E testing.
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
     - Task manage through Grunt
