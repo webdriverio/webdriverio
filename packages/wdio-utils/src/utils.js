@@ -121,14 +121,38 @@ export function getArgumentType (arg) {
  * @return {object}       package content
  */
 export function safeRequire (name) {
+    let requirePath
     try {
-        require.resolve(name)
+        /**
+         * Check if cli command was called from local directory, if not require
+         * the plugin from the place where the command is called. This avoids
+         * issues where user have the @wdio/cli package installed globally
+         * but run on a project where wdio packages are installed locally. It
+         * also allows to link the package to a random place and have plugins
+         * imported correctly (for dev purposes).
+         */
+        const localNodeModules = `${process.cwd()}/node_modules`
+        /* istanbul ignore if */
+        if (!require.main.paths.includes(localNodeModules)) {
+            require.main.paths.push(localNodeModules)
+
+            /**
+             * don't set requireOpts when running unit tests as it
+             * confuses Jest require magic
+             */
+            const requireOpts = process.env.JEST_WORKER_ID
+                ? {}
+                : { paths: require.main.paths }
+            requirePath = require.resolve(name, requireOpts)
+        } else {
+            requirePath = require.resolve(name)
+        }
     } catch (e) {
         return null
     }
 
     try {
-        return require(name)
+        return require(requirePath)
     } catch (e) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }

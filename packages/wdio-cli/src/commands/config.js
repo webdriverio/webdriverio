@@ -1,13 +1,13 @@
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
-import { CONFIG_HELPER_INTRO, QUESTIONNAIRE } from '../constants'
+import { CONFIG_HELPER_INTRO, QUESTIONNAIRE, CLI_EPILOGUE } from '../constants'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } from '../utils'
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
 
-export const builder = {
+export const cmdArgs = {
     yarn: {
         type: 'boolean',
         desc: 'Install packages via yarn package manager.',
@@ -15,8 +15,16 @@ export const builder = {
     },
     yes: {
         alias: 'y',
-        desc: 'will fill in all config defaults without prompting'
+        desc: 'will fill in all config defaults without prompting',
+        type: 'boolean',
+        default: false
     }
+}
+export const builder = (yargs) => {
+    return yargs
+        .options(cmdArgs)
+        .epilogue(CLI_EPILOGUE)
+        .help()
 }
 
 export const runConfig = async function (useYarn, yes, exit) {

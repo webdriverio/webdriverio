@@ -1,8 +1,26 @@
+import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
 import { hasWdioSyncSupport } from '@wdio/utils'
 
+import { cmdArgs } from './run'
+import { CLI_EPILOGUE } from '../constants'
+
+const IGNORED_ARGS = [
+    'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
+    'mochaOpts', 'jasmineNodeOpts', 'cucumberOpts'
+]
+
 export const command = 'repl <browserName>'
 export const desc = 'Run WebDriver session in command line'
+
+export const builder = (yargs) => {
+    return yargs
+        .options(pickBy(cmdArgs, (_, key) => !IGNORED_ARGS.includes(key)))
+        .example('$0 repl firefox --path /', 'Run repl locally')
+        .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
+        .epilogue(CLI_EPILOGUE)
+        .help()
+}
 
 export const handler = async (argv) => {
     const { browserName } = argv

@@ -1,4 +1,5 @@
 import fs from 'fs-extra'
+import yargs from 'yargs'
 import * as runCmd from './../../src/commands/run'
 import * as utils from './../../src/utils'
 
@@ -68,6 +69,14 @@ describe('Command: run', () => {
 
         process.stdin.isTTY = true
         process.stdout.isTTY = false
+    })
+
+    it('it should properly build command', () => {
+        runCmd.builder(yargs)
+        expect(yargs.options).toHaveBeenCalled()
+        expect(yargs.example).toHaveBeenCalled()
+        expect(yargs.epilogue).toHaveBeenCalled()
+        expect(yargs.help).toHaveBeenCalled()
     })
 
     afterEach(() => {

@@ -12,7 +12,8 @@ import {
     addServiceDeps,
     convertPackageHashToObject,
     missingConfigurationPrompt,
-    renderConfigurationFile
+    renderConfigurationFile,
+    validateServiceAnswers
 } from '../src/utils'
 
 import inquirer from 'inquirer'
@@ -305,6 +306,13 @@ describe('missingConfigurationPromp', () => {
         runConfig.mockClear()
         inquirer.prompt.mockClear()
     })
+})
+
+test('validateServiceAnswers', () => {
+    expect(validateServiceAnswers(['wdio-chromedriver-service', '@wdio/selenium-standalone-service']))
+        .toContain('wdio-chromedriver-service cannot work together with @wdio/selenium-standalone-service')
+    expect(validateServiceAnswers(['@wdio/static-server-service', '@wdio/selenium-standalone-service']))
+        .toBe(true)
 })
 
 afterEach(() => {

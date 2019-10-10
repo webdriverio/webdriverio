@@ -1,4 +1,8 @@
-/* istanbul ignore file */
+import { version } from '../package.json'
+import { validateServiceAnswers } from './utils'
+
+export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${version})`
+
 export const EXCLUSIVE_SERVICES = {
     'wdio-chromedriver-service': {
         services: ['@wdio/selenium-standalone-service'],
@@ -87,43 +91,43 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'hostname',
     message: 'What is the host address of that cloud service?',
-    when: (answers) => answers.backend.indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port on which that service is running?',
     default: '80',
-    when: (answers) => answers.backend.indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'BROWSERSTACK_USER',
-    when: (answers) => answers.backend.startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers) => answers.backend.startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'BROWSERSTACK_ACCESSKEY',
-    when: (answers) => answers.backend.startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers) => answers.backend.startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'SAUCE_USERNAME',
-    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'SAUCE_ACCESS_KEY',
-    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'confirm',
     name: 'headless',
     message: 'Do you want to run your test on Sauce Headless? (https://saucelabs.com/products/web-testing/sauce-headless)',
     default: false,
-    when: (answers) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'list',
     name: 'region',
@@ -132,25 +136,25 @@ export const QUESTIONNAIRE = [{
         'us',
         'eu'
     ],
-    when: (answers) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
     name: 'hostname',
     message: 'What is the IP or URI to your Selenium standalone or grid server?',
     default: 'localhost',
-    when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port which your Selenium standalone or grid server is running on?',
     default: '4444',
-    when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'path',
     message: 'What is the path to your Selenium standalone or grid server?',
     default: '/wd/hub',
-    when: (answers) => answers.backend.indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'list',
     name: 'framework',
@@ -169,66 +173,56 @@ export const QUESTIONNAIRE = [{
     name: 'specs',
     message: 'Where are your test specs located?',
     default: './test/specs/**/*.js',
-    when: (answers) => answers.framework.match(/(mocha|jasmine)/)
+    when: /* istanbul ignore next */ (answers) => answers.framework.match(/(mocha|jasmine)/)
 }, {
     type: 'input',
     name: 'specs',
     message: 'Where are your feature files located?',
     default: './features/**/*.feature',
-    when: (answers) => answers.framework.includes('cucumber')
+    when: /* istanbul ignore next */ (answers) => answers.framework.includes('cucumber')
 }, {
     type: 'input',
     name: 'stepDefinitions',
     message: 'Where are your step definitions located?',
     default: './features/step-definitions',
-    when: (answers) => answers.framework.includes('cucumber')
+    when: /* istanbul ignore next */ (answers) => answers.framework.includes('cucumber')
 }, {
     type: 'checkbox',
     name: 'reporters',
     message: 'Which reporter do you want to use?',
     choices: SUPPORTED_PACKAGES.reporter,
-    default: [SUPPORTED_PACKAGES.reporter.find(({ name }) => name === 'spec').value]
+    default: [SUPPORTED_PACKAGES.reporter.find(
+        /* istanbul ignore next */
+        ({ name }) => name === 'spec').value
+    ]
 }, {
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
     choices: SUPPORTED_PACKAGES.service,
-    default: [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'chromedriver').value],
-    validate: (answers) => {
-        let result = true
-
-        Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
-            const exists = answers.some(answer => answer.includes(name))
-
-            const hasExclusive = services.some(service =>
-                answers.some(answer => answer.includes(service))
-            )
-
-            if (exists && hasExclusive) {
-                result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
-            }
-        })
-
-        return result
-    }
+    default: [SUPPORTED_PACKAGES.service.find(
+        /* istanbul ignore next */
+        ({ name }) => name === 'chromedriver').value
+    ],
+    validate: validateServiceAnswers
 }, {
     type: 'input',
     name: 'outputDir',
     message: 'In which directory should the xunit reports get stored?',
     default: './',
-    when: (answers) => answers.reporters.includes('junit')
+    when: /* istanbul ignore next */ (answers) => answers.reporters.includes('junit')
 }, {
     type: 'input',
     name: 'outputDir',
     message: 'In which directory should the json reports get stored?',
     default: './',
-    when: (answers) => answers.reporters.includes('json')
+    when: /* istanbul ignore next */ (answers) => answers.reporters.includes('json')
 }, {
     type: 'input',
     name: 'outputDir',
     message: 'In which directory should the mochawesome json reports get stored?',
     default: './',
-    when: (answers) => answers.reporters.includes('mochawesome')
+    when: /* istanbul ignore next */ (answers) => answers.reporters.includes('mochawesome')
 }, {
     type: 'input',
     name: 'baseUrl',

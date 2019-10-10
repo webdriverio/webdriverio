@@ -1,7 +1,8 @@
+import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 
-import { handler } from './../../src/commands/config'
+import { handler, builder } from './../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } from '../../src/utils'
 
 jest.mock('../../src/utils', () => ({
@@ -32,6 +33,13 @@ test('should create config file', async () => {
         dev: true,
         respectNpm5: true
     })
+})
+
+test('it should properly build command', () => {
+    builder(yargs)
+    expect(yargs.options).toHaveBeenCalled()
+    expect(yargs.epilogue).toHaveBeenCalled()
+    expect(yargs.help).toHaveBeenCalled()
 })
 
 test('should log error if creating config file fails', async () => {
