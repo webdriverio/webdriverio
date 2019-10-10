@@ -211,5 +211,5 @@ export async function missingConfigurationPrompt(command, message, useYarn = fal
         return process.exit(0)
     }
 
-    return await runConfig(useYarn, true)
+    return await runConfig(useYarn, false, true)
 }
