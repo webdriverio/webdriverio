@@ -23,3 +23,4 @@ export const touchAction = require('./browser/touchAction').default
 export const uploadFile = require('./browser/uploadFile').default
 export const url = require('./browser/url').default
 export const waitUntil = require('./browser/waitUntil').default
+export const custom$ = require('./browser/custom$').default

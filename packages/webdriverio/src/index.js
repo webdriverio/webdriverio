@@ -61,6 +61,14 @@ export const remote = async function (params = {}, remoteModifier) {
         )
     }
 
+    instance.addLocatorStrategy = (name, script) => {
+        if (instance.strategies.get(name)) {
+            throw new Error(`Strategy ${name} already exists`)
+        }
+
+        instance.strategies.set(name, script)
+    }
+
     return instance
 }
 
@@ -107,6 +115,8 @@ export const multiremote = async function (params = {}) {
     driver.overwriteCommand = (name, fn, attachToElement) => {
         origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
     }
+
+    // addLocatorStrategy(driver)
 
     return driver
 }

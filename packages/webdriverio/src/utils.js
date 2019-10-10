@@ -37,6 +37,8 @@ export const getPrototype = (scope) => {
      * register action commands
      */
     applyScopePrototype(prototype, scope)
+    prototype.strategies = { value: new Map() }
+
     return prototype
 }
 
