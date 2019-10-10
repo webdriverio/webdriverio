@@ -4,12 +4,13 @@ import path from 'path'
 import Launcher from './../launcher'
 import Watcher from './../watcher'
 import { missingConfigurationPrompt } from '../utils'
+import { CLI_EPILOGUE } from '../constants'
 
 export const command = 'run <configPath>'
 
-export const desc = 'Run your WDIO configuration file to initialize your tests.'
+export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
 
-export const builder = {
+export const cmdArgs = {
     watch: {
         desc: 'Run WebdriverIO in watch mode',
         type: 'boolean',
@@ -23,6 +24,11 @@ export const builder = {
         alias: 'p',
         desc: 'automation driver port',
         type: 'number'
+    },
+    path: {
+        type: 'string',
+        default: '/wd/hub',
+        desc: 'path to WebDriver endpoints (default /wd/hub)'
     },
     user: {
         alias: 'u',
@@ -77,12 +83,22 @@ export const builder = {
     mochaOpts: {
         desc: 'Mocha options'
     },
-    jasmineOpts: {
+    jasmineNodeOpts: {
         desc: 'Jasmine options'
     },
     cucumberOpts: {
         desc: 'Cucumber options'
     }
+}
+
+export const builder = (yargs) => {
+    return yargs
+        .options(cmdArgs)
+        .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
+        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
+        .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
+        .epilogue(CLI_EPILOGUE)
+        .help()
 }
 
 export function launchWithStdin(wdioConfPath, params) {
@@ -104,10 +120,18 @@ export function launchWithStdin(wdioConfPath, params) {
 export function launch(wdioConfPath, params) {
     const launcher = new Launcher(wdioConfPath, params)
     return launcher.run()
-        .then(process.exit)
+        .then((...args) => {
+            /* istanbul ignore if */
+            if (!process.env.JEST_WORKER_ID) {
+                process.exit(...args)
+            }
+        })
         .catch(err => {
             console.error(err)
-            process.exit(1)
+            /* istanbul ignore if */
+            if (!process.env.JEST_WORKER_ID) {
+                process.exit(1)
+            }
         })
 }
 

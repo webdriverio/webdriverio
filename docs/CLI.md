@@ -3,11 +3,11 @@ id: clioptions
 title: WDIO CLI Options
 ---
 
-WebdriverIO comes with its own test runner to help you start testing as quickly as possible. 
+WebdriverIO comes with its own test runner to help you start testing as quickly as possible.
 
 Fiddling around hooking up WebdriverIO with a test framework is a thing of the past. The WebdriverIO runner does all the work for you, and helps you to run your tests as efficiently as possible.
 
-Starting with v5, WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`. 
+Starting with v5, WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`.
 
 Install it like this:
 
@@ -36,8 +36,8 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. 
-Switch over to the [Configuration File](ConfigurationFile.md) section to see what that file should look like. 
+Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set.
+Switch over to the [Configuration File](ConfigurationFile.md) section to see what that file should look like.
 
 With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
@@ -45,7 +45,7 @@ With the `wdio` configuration helper, it is super easy to generate your config f
 ./node_modules/.bin/wdio config
 ```
 
-...and it launches the helper utility. 
+...and it launches the helper utility.
 
 It will ask you questions and generate a config file for you in less than a minute.
 
@@ -120,7 +120,7 @@ Options:
 --exclude             exclude spec file(s) from a run - overrides specs piped
                         from stdin                                       [array]
 --mochaOpts           Mocha options
---jasmineOpts         Jasmine options
+--jasmineNodeOpts     Jasmine options
 --cucumberOpts        Cucumber options
 ```
 
@@ -182,7 +182,7 @@ jasmine
 
 ## Run the test runner programmatically
 
-Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. 
+Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment.
 For that, you'll need to require the `@wdio/cli` package as module, like this:
 
 ```js
@@ -195,7 +195,7 @@ Or, for ES5:
 const Launcher = require('@wdio/cli').default
 ```
 
-After that, create an instance of the launcher, and run the test. 
+After that, create an instance of the launcher, and run the test.
 
 The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
 
@@ -209,5 +209,5 @@ wdio.run().then((code) => {
 })
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). 
+The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.

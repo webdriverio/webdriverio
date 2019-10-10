@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
 
-import { CONFIG_HELPER_SUCCESS_MESSAGE } from './constants'
+import { CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES } from './constants'
 import inquirer from 'inquirer'
 import { runConfig } from './commands/config'
 
@@ -212,4 +212,22 @@ export async function missingConfigurationPrompt(command, message, useYarn = fal
     }
 
     return await runConfig(useYarn, false, true)
+}
+
+export const validateServiceAnswers = (answers) => {
+    let result = true
+
+    Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
+        const exists = answers.some(answer => answer.includes(name))
+
+        const hasExclusive = services.some(service =>
+            answers.some(answer => answer.includes(service))
+        )
+
+        if (exists && hasExclusive) {
+            result = `${name} cannot work together with ${services.join(', ')}\n${message}\nPlease uncheck one of them.`
+        }
+    })
+
+    return result
 }

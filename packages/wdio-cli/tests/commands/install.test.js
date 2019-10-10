@@ -1,3 +1,4 @@
+import yargs from 'yargs'
 import fs from 'fs'
 import * as installCmd from './../../src/commands/install'
 import * as utils from './../../src/utils'
@@ -17,6 +18,14 @@ describe('Command: install', () => {
         jest.spyOn(utils, 'replaceConfig')
 
         findInConfigMock = jest.spyOn(utils, 'findInConfig')
+    })
+
+    it('it should properly build command', () => {
+        installCmd.builder(yargs)
+        expect(yargs.options).toHaveBeenCalled()
+        expect(yargs.example).toHaveBeenCalled()
+        expect(yargs.epilogue).toHaveBeenCalled()
+        expect(yargs.help).toHaveBeenCalled()
     })
 
     it('should log out when an unknown installation type is passed', async () => {
