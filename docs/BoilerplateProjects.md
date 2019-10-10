@@ -19,7 +19,7 @@ Over time, our community has developed several boilerplate projects that you can
     - Database support for any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing queries, fetching result sets, and so on. Includes examples of E2E testing.
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
     - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com  and http://www.phptravels.net, Chai assertion liberary (`expect`, `assert`, `should`)
+    - Examples with demo app https://search.yahoo.com and http://www.phptravels.net, Chai assertion liberary (`expect`, `assert`, `should`)
     - Appium-specific `.config` file for playback on mobile device. For one-click Appium setup, refer to: appium-setup-made-easy-OSX(https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 
