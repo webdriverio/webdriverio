@@ -132,6 +132,7 @@ export function safeRequire (name) {
          * imported correctly (for dev purposes).
          */
         const localNodeModules = `${process.cwd()}/node_modules`
+        /* istanbul ignore if */
         if (!require.main.paths.includes(localNodeModules)) {
             require.main.paths.push(localNodeModules)
 
