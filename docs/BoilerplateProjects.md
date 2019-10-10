@@ -12,7 +12,7 @@ Over time, our community has developed several boilerplate projects that you can
 - Framework: Cucumber (v5.x), wdio-v5
 - Features:
     - [Page Object](PageObjects.md) Models used with ES6 style class-based approach, and full ES6–ES8 support through Babel
-    - Examples of multi selector option to query elements with more than one selector at a time
+    - Examples of multi-selector option to query elements with more than one selector at a time
     - Examples of headless browser execution, using PhantomJS and Chrome
     - Integration with BrowserStack, SauceLabs
     - Support of reading and writing from MS-Excel documentsfor easy test data management from external data sources with examples
