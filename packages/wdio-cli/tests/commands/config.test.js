@@ -38,7 +38,6 @@ test('should create config file', async () => {
 test('it should properly build command', () => {
     builder(yargs)
     expect(yargs.options).toHaveBeenCalled()
-    expect(yargs.example).toHaveBeenCalled()
     expect(yargs.epilogue).toHaveBeenCalled()
     expect(yargs.help).toHaveBeenCalled()
 })
