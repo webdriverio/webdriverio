@@ -3,12 +3,21 @@ id: clioptions
 title: WDIO CLI Options
 ---
 
-WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
+WebdriverIO comes with its own test runner to help you start testing as quickly as possible. 
 
-Starting with v5 of WebdriverIO the testrunner will be bundled as a separate NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
+Fiddling around hooking up WebdriverIO with a test framework is a thing of the past. The WebdriverIO runner does all the work for you, and helps you to run your tests as efficiently as possible.
+
+Starting with v5, WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`. 
+
+Install it like this:
 
 ```sh
 npm install @wdio/cli
+```
+
+To see the command line interface help, just type the following command in your terminal:
+
+```sh
 ./node_modules/.bin/wdio --help
 
 wdio <command>
@@ -27,19 +36,22 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
+Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. 
+Switch over to the [Configuration File](ConfigurationFile.md) section to see what that file should look like. 
+
+With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
 ```sh
 ./node_modules/.bin/wdio config
 ```
 
-and it launches the helper utility. It will ask you questions depending on the answers you give. This way
-you can generate your config file in less than a minute.
+...and it launches the helper utility. 
+
+It will ask you questions and generate a config file for you in less than a minute.
 
 ![WDIO configuration utility](/img/config-utility.gif)
 
-Once you have your configuration file set up you can start your
-integration tests by calling:
+Once you have your configuration file set up, you can start your tests by running:
 
 ```sh
 ./node_modules/.bin/wdio run wdio.conf.js
@@ -53,7 +65,7 @@ That's it! Now, you can access to the selenium instance via the global variable 
 
 ## Commands
 
-### wdio config
+### `wdio config`
 
 The `config` command runs the WebdriverIO configuration helper. This helper will ask you a few questions about your WebdriverIO project and create a `wdio.conf.js` file based on your answers.
 
@@ -69,7 +81,7 @@ Options:
 --npm             Wether to install the packages using NPM instead of yarn    [boolean]
 ```
 
-### wdio run
+### `wdio run`
 
 > This is the default command to run your configuration.
 
@@ -112,7 +124,7 @@ Options:
 --cucumberOpts        Cucumber options
 ```
 
-### wdio install
+### `wdio install`
 The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.
 
 Example:
@@ -170,18 +182,22 @@ jasmine
 
 ## Run the test runner programmatically
 
-Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the `@wdio/cli` package as module the following way:
+Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. 
+For that, you'll need to require the `@wdio/cli` package as module, like this:
 
 ```js
 import Launcher from '@wdio/cli'
 ```
 
-ES5
+Or, for ES5:
+
 ```js
 const Launcher = require('@wdio/cli').default
-
 ```
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and parameters that will overwrite the value in the config.
+
+After that, create an instance of the launcher, and run the test. 
+
+The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
 
 ```js
 const wdio = new Launcher('/path/to/my/wdio.conf.js', opts)
@@ -193,4 +209,5 @@ wdio.run().then((code) => {
 })
 ```
 
-The run command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that gets resolved if the test ran successful or failed or gets rejected if the launcher was not able to start run the tests.
+The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). 
+It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.

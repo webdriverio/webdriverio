@@ -1,4 +1,4 @@
-import { executeSync } from '../src'
+import { executeSync, runSync } from '../src'
 
 beforeAll(() => {
     if (!global.browser) {
@@ -70,5 +70,31 @@ describe('executeSync', () => {
             error = err
         }
         expect(error.message).toEqual('foobar')
+    })
+})
+
+describe('runSync', () => {
+    it('should return value', async () => {
+        const resolveFn = jest.fn()
+        const rejectFn = jest.fn()
+
+        const fibersFn = runSync((arg) => 'foo' + arg, undefined, ['bar'])
+        await fibersFn(resolveFn, rejectFn)
+
+        expect(rejectFn).not.toBeCalled()
+        expect(resolveFn).toBeCalledWith('foobar')
+    })
+    it('should reject promise on error', async () => {
+        const resolveFn = jest.fn()
+        const rejectFn = jest.fn()
+        const fn = jest.fn().mockImplementation(() => { throw error })
+        const error = new Error('foo')
+
+        const fibersFn = runSync(fn, 1)
+        await fibersFn(resolveFn, rejectFn)
+
+        expect(resolveFn).not.toBeCalled()
+        expect(rejectFn).toBeCalledWith(error)
+        expect(fn).toBeCalledTimes(2)
     })
 })

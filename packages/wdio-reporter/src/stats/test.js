@@ -26,7 +26,8 @@ export default class TestStats extends RunnableStats {
         this.state = 'passed'
     }
 
-    skip () {
+    skip (reason) {
+        this.pendingReason = reason
         this.state = 'skipped'
     }
 

@@ -17,7 +17,6 @@ exports.config = {
      * test configurations
      */
     logLevel: 'trace',
-    coloredLogs: true,
     framework: 'mocha',
     outputDir: __dirname,
 

@@ -94,6 +94,16 @@ describe('touchAction test', () => {
         })
     })
 
+    describe('wrong protocol', () => {
+        it('should transform object into array', async () => {
+            const desktopBrowser = await remote({
+                capabilities: { browserName: 'foobar' }
+            })
+
+            expect(() => desktopBrowser.touchAction(['release'])).toThrow('touchAction can be used with Appium only.')
+        })
+    })
+
     beforeEach(() => {
         request.mockClear()
     })

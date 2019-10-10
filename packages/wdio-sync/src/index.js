@@ -105,10 +105,9 @@ const executeAsync = function (fn, repeatTest = 0, args = []) {
 /**
  * run hook or spec via executeSync
  */
-/* istanbul ignore next */
 function runSync (fn, repeatTest = 0, args = []) {
     return (resolve, reject) =>
-        Fiber(() => executeSync.call(this, fn, repeatTest, args).then(() => resolve(), reject)).run()
+        Fiber(() => executeSync.call(this, fn, repeatTest, args).then(resolve, reject)).run()
 }
 
 export {

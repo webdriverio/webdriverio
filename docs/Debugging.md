@@ -3,9 +3,9 @@ id: debugging
 title: Debugging
 ---
 
-Debugging is significantly more difficult when there are several processes spawning dozens of tests in multiple browsers.
+Debugging is significantly more difficult when several processes spawn dozens of tests in multiple browsers.
 
-For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to 1 and targeting only those specs and browsers that need to be debugged.
+For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
 
 
 In `wdio.conf`:
@@ -26,9 +26,11 @@ exports.config = {
 
 ## The Debug Command
 
-In many cases, you can use [`browser.debug()`](/docs/api/browser/debug.html) to pause your test and inspect the browser. Your command line interface will also switch into a REPL mode that allows you to fiddle around with commands and elements on the page. In REPL mode you can access the browser object or `$` and `$$` functions like you can in your tests.
+In many cases, you can use [`browser.debug()`](/docs/api/browser/debug.html) to pause your test and inspect the browser.
 
-When using `browser.debug()` you will likely need to increase the timeout of the test runner to prevent the test runner from failing the test for taking to long.  For example:
+Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;just like you can in your tests.
+
+When using `browser.debug()`, you will likely need to increase the timeout of the test runner to prevent the test runner from failing the test for taking to long.  For example:
 
 In `wdio.conf`:
 
@@ -43,21 +45,23 @@ See [timeouts](Timeouts.md) for more information on how to do that using other f
 
 ## Debugging in Chrome DevTools
 
-To get it working, you need to pass the `--inspect` flag down to the wdio command running tests like this:
+To get it working, you need to pass the `--inspect` flag down to the `wdio` command running tests like this:
 
 ```sh
 wdio wdio.conf.js --inspect
 ```
 
-This will start the runner process with this inspect flag enabled. With that you can open the DevTools and can connect to the runner process. Make sure you set a `debugger` statement somewhere in order to start fiddling around with commands in the console.
+This will start the runner process with the `inspect` flag enabled. Now, you can open the DevTools and connect to the runner process. (Just remember to set a `debugger` statement somewhere in order to start fiddling around with commands in the console!)
 
-Tests will pause at `debugger` statements, but ONLY once dev-tools has been opened and the debugger attached. If you prefer to break on the first line, you can use `--inspect-brk` instead.
+Tests will pause at `debugger` statements, but ONLY once DevTools has been opened and the debugger attached. If you prefer to break on the first line, you can use `--inspect-brk` instead.
 
-Once execution has finished, the test doesn't actually finish until the devtools is closed. You'll need to do that yourself.
+Once execution has finished, the test doesn't actually finish until the DevTools is closed. You'll need to do that yourself.
 
 ## Dynamic configuration
 
-Note that `wdio.conf.js` can contain javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable. This can used to dynamically change the configuration:
+Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable.
+
+Using this technique, you can dynamically change the configuration:
 
 ```js
 const debug = process.env.DEBUG
@@ -77,14 +81,34 @@ exports.config = {
 }
 ```
 
-You can then prefix the `wdio` command with the debug flag:
+You can then prefix the `wdio` command with the `debug` flag:
 
 ```
 DEBUG=true ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 ```
 
-and debug your spec file with the DevTools.
+...and debug your spec file with the DevTools!
+
+## Debugging with Visual Studio Code (VSCode)
+
+It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
+```
+{
+    "name": "run select spec",
+    "type": "node",
+    "request": "launch",
+    "args": ["wdio.conf.js", "--spec", "${file}"],
+    "cwd": "${workspaceFolder}",
+    "autoAttachChildProcesses": true,
+    "program": "${workspaceRoot}/node_modules/@wdio/cli/bin/wdio.js",
+    "console": "integratedTerminal"
+},
+```
+
+To run all spec files remove `"--spec", "${file}"` from `"args"`
+
+Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
 
 ## Dynamic Repl with Atom
 
-If you are an [Atom](https://atom.io/) hacker you can try [wdio-repl](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) Youtube video to see a demo.
+If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) YouTube video to see a demo.

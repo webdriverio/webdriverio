@@ -15,6 +15,59 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.14.5 (2019-10-09)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#4592](https://github.com/webdriverio/webdriverio/pull/4592) Webdriverio expand click command ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#4591](https://github.com/webdriverio/webdriverio/pull/4591) wdio-devtools-service: better browser name and version check ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-jasmine-framework`
+  * [#4572](https://github.com/webdriverio/webdriverio/pull/4572) Report errors in beforeAll and afterAll with Jasmine ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`
+  * [#4581](https://github.com/webdriverio/webdriverio/pull/4581) Fix sync support for repl command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`, `wdio-reporter`
+  * [#4594](https://github.com/webdriverio/webdriverio/pull/4594) Report pendingReason from Jasmine tests ([@raketenolli](https://github.com/raketenolli))
+
+#### :memo: Documentation
+* [#4584](https://github.com/webdriverio/webdriverio/pull/4584) docs: Edited for grammar, formatting, phrasing, and clarity. ([@Zearin](https://github.com/Zearin))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Oliver Arend ([@raketenolli](https://github.com/raketenolli))
+- Zearin ([@Zearin](https://github.com/Zearin))
+
+## v5.14.4 (2019-10-06)
+
+#### :bug: Bug Fix
+* `wdio-reporter`, `wdio-spec-reporter`
+  * [#4577](https://github.com/webdriverio/webdriverio/pull/4577) Print hooks as they appear in spec reporter ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4575](https://github.com/webdriverio/webdriverio/pull/4575) runSync return value ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-utils`
+  * [#4574](https://github.com/webdriverio/webdriverio/pull/4574) Add fullTitle to hooks ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-reporter`
+  * [#4550](https://github.com/webdriverio/webdriverio/pull/4550) wdio-reporter: Type definitions ([@lamkovod](https://github.com/lamkovod))
+
+#### :house: Internal
+* `wdio-allure-reporter`
+  * [#4568](https://github.com/webdriverio/webdriverio/pull/4568) Add eslint rule "no-else-return" ([@martinfrancois](https://github.com/martinfrancois))
+* `wdio-static-server-service`, `wdio-webdriver-mock-service`
+  * [#4564](https://github.com/webdriverio/webdriverio/pull/4564) Fix WebdriverIO Tests on Windows ([@martinfrancois](https://github.com/martinfrancois))
+
+#### Committers: 3
+- François Martin ([@martinfrancois](https://github.com/martinfrancois))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@lamkovod](https://github.com/lamkovod)
+
 ## v5.14.3 (2019-10-02)
 
 #### :bug: Bug Fix

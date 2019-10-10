@@ -5,7 +5,7 @@ import DevToolsDriver from './driver'
 import Auditor from './auditor'
 import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer from './gatherer/devtools'
-import { findCDPInterface, getCDPClient } from './utils'
+import { findCDPInterface, getCDPClient, isBrowserVersionLower } from './utils'
 import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE } from './constants'
 
 const log = logger('@wdio/devtools-service')
@@ -20,7 +20,7 @@ export default class DevToolsService {
     }
 
     beforeSession (_, caps) {
-        if (caps.browserName !== 'chrome' || (caps.version && caps.version < 63)) {
+        if ((caps.browserName && caps.browserName.toLowerCase() !== 'chrome') || isBrowserVersionLower(caps, 63)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
         }
 
