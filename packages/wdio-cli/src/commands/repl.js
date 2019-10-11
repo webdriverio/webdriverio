@@ -3,7 +3,6 @@ import { remote } from 'webdriverio'
 import { hasWdioSyncSupport } from '@wdio/utils'
 import { getCapabilities } from '../utils'
 
-import { cmdArgs } from './run'
 import { CLI_EPILOGUE } from '../constants'
 
 const IGNORED_ARGS = [
@@ -13,7 +12,7 @@ const IGNORED_ARGS = [
 
 export const command = 'repl <option> [capabilities]'
 export const desc = 'Run WebDriver session in command line'
-export const builder = {
+export const cmdArgs = {
     platformVersion: {
         alias: 'v',
         desc: 'Version of OS for mobile devices',
@@ -36,6 +35,9 @@ export const builder = (yargs) => {
         .options(pickBy(cmdArgs, (_, key) => !IGNORED_ARGS.includes(key)))
         .example('$0 repl firefox --path /', 'Run repl locally')
         .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
+        .example('$0 repl android', 'Run repl browser on launched Android device')
+        .example('$0 repl "./path/to/your_app.app"', 'Run repl native app on iOS simulator')
+        .example('$0 repl ios -v 11.3 -d "iPhone 7" -u 123432abc', 'Run repl browser on iOS device with capabilities')
         .epilogue(CLI_EPILOGUE)
         .help()
 }
