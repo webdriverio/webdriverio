@@ -2,21 +2,22 @@
 id: boilerplate
 title: Boilerplate Projects
 ---
-Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite.
+
+За все время наше сообщество разработало набор шаблонных проектов, который могут быть использованы при настройке и написании собственных тестов.
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
-- Framework: Cucumber (v3.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
+- Фреймворк: Cucumber (v3.x)
+- Функционал: 
+    - PageObject используется с ES6 и полной поддержкой ES6 - ES8 через Babel
+    - Примеры использования множественных селекторов для запроса элемента с несколькими селекторами
+    - Примеры работы с headless-браузером с использованием PhantomsJS и Chrome
+    - Интеграция с BrowserStack
+    - Поддержка чтения/записи данных из MS-Excel для простого управления тестовыми данными из внешних источников с примерами
+    - Поддержка баз данных для любых RDBMS (Oracle, MySql, TeraData, Vertica и т. д.), выполнение любых запросов / выборка результатов и т. д. с примерами для E2E тестирования
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
-    - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com/ and http://www.phptravels.net, Chai assertion liberary (expect, assert, should)
+    - Управление процессами через Grunt
+    - Примеры с демо-приложением https://search.yahoo.com/ и http://www.phptravels.net, assert библиотека - Chai (expect, assert, should)
     - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
