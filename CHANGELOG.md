@@ -15,6 +15,29 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.15.0 (2019-10-11)
+
+#### :rocket: New Feature
+* `wdio-cli`
+  * [#4586](https://github.com/webdriverio/webdriverio/pull/4586) wdio-cli: REPL Appium config v2 ([@lamkovod](https://github.com/lamkovod))
+  * [#4576](https://github.com/webdriverio/webdriverio/pull/4576) Wdio config yes ([@schuttsm](https://github.com/schuttsm))
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-crossbrowsertesting-service`, `wdio-utils`, `webdriver`
+  * [#4587](https://github.com/webdriverio/webdriverio/pull/4587) add examples and epilogue to cli commands ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#4598](https://github.com/webdriverio/webdriverio/pull/4598) touchAction should be used with Appium ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-config`, `wdio-junit-reporter`, `wdio-selenium-standalone-service`, `webdriverio`
+  * [#4596](https://github.com/webdriverio/webdriverio/pull/4596) Proposal to update docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Stephen Schutt ([@schuttsm](https://github.com/schuttsm))
+- [@lamkovod](https://github.com/lamkovod)
+
 ## v5.14.5 (2019-10-09)
 
 #### :rocket: New Feature
