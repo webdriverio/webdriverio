@@ -23,13 +23,13 @@ To see the command line interface help, just type the following command in your 
 wdio <command>
 
 Commands:
-  wdio config                 Initialize WebdriverIO and setup configuration in
-                              your current project.
-  wdio install <type> <name>  Add a `reporter`, `service`, or `framework` to
-                              your WebdriverIO project
-  wdio repl <browserName>     Run WebDriver session in command line
-  wdio run <configPath>       Run your WDIO configuration file to initialize
-                              your tests.
+  wdio config                           Initialize WebdriverIO and setup configuration in
+                                        your current project.
+  wdio install <type> <name>            Add a `reporter`, `service`, or `framework` to
+                                        your WebdriverIO project
+  wdio repl <option> [capabilities]     Run WebDriver session in command line
+  wdio run <configPath>                 Run your WDIO configuration file to initialize
+                                        your tests.
 
 Options:
   --version  Show version number                                       [boolean]

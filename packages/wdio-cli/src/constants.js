@@ -22,6 +22,18 @@ To run your tests, execute:
 $ wdio run wdio.conf.js
 `
 
+export const ANDROID_CONFIG = {
+    platformName: 'Android',
+    automationName: 'UiAutomator2',
+    deviceName: 'Test'
+}
+
+export const IOS_CONFIG = {
+    platformName: 'iOS',
+    automationName: 'XCUITest',
+    deviceName: 'iPhone Simulator'
+}
+
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
