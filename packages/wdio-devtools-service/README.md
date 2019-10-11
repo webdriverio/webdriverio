@@ -181,8 +181,8 @@ The following network throttling profiles are available: `offline`, `GPRS`, `Reg
 The service allows you to emulate a specific device type. If set, the browser viewport will be modified to fit the device capabilities as well as the user agent will set according to the device user agent. To set a predefined device profile you can run:
 
 ```js
-browser.emulateDevice('iPhone 10')
-// or `browser.emulateDevice('iPhone 10', true)` if you want to be in landscape mode
+browser.emulateDevice('iPhone X')
+// or `browser.emulateDevice('iPhone X', true)` if you want to be in landscape mode
 ```
 
 Available predefined device profiles are: `Blackberry PlayBook`, `BlackBerry Z30`, `Galaxy Note 3`, `Galaxy Note II`, `Galaxy S III`, `Galaxy S5`, `iPad`, `iPad Mini`, `iPad Pro`, `iPhone 4`, `iPhone 5`, `iPhone 6`, `iPhone 6 Plus`, `iPhone 7`, `iPhone 7 Plus`, `iPhone 8`, `iPhone 8 Plus`, `iPhone SE`, `iPhone X`, `JioPhone 2`,
