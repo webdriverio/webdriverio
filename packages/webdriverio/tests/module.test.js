@@ -9,7 +9,8 @@ jest.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',
         addCommand: jest.fn(),
-        overwriteCommand: jest.fn()
+        overwriteCommand: jest.fn(),
+        strategies: new Map()
     }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
@@ -94,6 +95,27 @@ describe('WebdriverIO module interface', () => {
 
             browser.overwriteCommand('someCommand', customCommand)
             expect(runFnInFiberContext).toBeCalledTimes(2)
+        })
+
+        it('should attach custom locators to the strategies', async () => {
+            const browser = await remote({ capabilities: {} })
+            const fakeFn = () => { return 'test'}
+
+            browser.addLocatorStrategy('test-strat', fakeFn)
+
+            expect(browser.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
+        })
+
+        it('throws error if trying to overwrite locator strategy', async () => {
+            const browser = await remote({ capabilities: {} })
+            try {
+                const fakeFn = () => { return 'test'}
+
+                browser.addLocatorStrategy('test-strat', fakeFn)
+            } catch (error) {
+                browser.strategies.delete('test-strat')
+                expect(error.message).toBe('Strategy test-strat already exists')
+            }
         })
     })
 
