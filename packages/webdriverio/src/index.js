@@ -116,7 +116,13 @@ export const multiremote = async function (params = {}) {
         origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
     }
 
-    // addLocatorStrategy(driver)
+    driver.addLocatorStrategy = (name, script) => {
+        if (driver.strategies.get(name)) {
+            throw new Error(`Strategy ${name} already exists`)
+        }
+
+        driver.strategies.set(name, script)
+    }
 
     return driver
 }
