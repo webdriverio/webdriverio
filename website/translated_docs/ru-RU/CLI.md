@@ -92,4 +92,4 @@ wdio.run().then((code) => {
 });
 ```
 
-The run command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that gets resolved if the test ran successful or failed or gets rejected if the launcher was not able to start run the tests.
+Команда run возвращает [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), который будет решен, если тесты успешно запустились, и отклонен, если launcher не смог запустить тесты.
