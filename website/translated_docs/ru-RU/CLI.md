@@ -3,7 +3,7 @@ id: clioptions
 title: WDIO CLI Options
 ---
 
-WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
+WebdriverIO поставляется с собственным тест раннером, чтобы помочь приступить к процессу тестирования как можно быстрее. Все, что связано с подключением и настройкой тестовой среды и фреймворков для работы c WebdriverIO, осталось в прошлом. WebdriverIO раннер делает всю работу за вас и помогает сделать процесс тестирования намного эффективнее.
 
 Начиная с 5 версии WebdriverIO, тест раннер представлен в отдельном NPM-пакете `@wdio/cli`. Для просмотра справки по командной строке используйте данную команду в терминале:
 
@@ -72,15 +72,15 @@ $ ./node_modules/.bin/wdio wdio.conf.js
 
 That's it! Now, you can access to the selenium instance via the global variable `browser`.
 
-## Run the test runner programmatically
+## Программный запуск тестов
 
-Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the `@wdio/cli` package as module the following way:
+Вместе использования wdio команд вы также можете добавить тест раннер, как отдельный модуль, и запустить тесты в любой тестовой среде. Для этого вам понадобится импортировать `@wdio/cli` пакет как указано далее:
 
 ```js
 import Launcher from '@wdio/cli';
 ```
 
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and parameters that will overwrite the value in the config.
+После чего, создайте экземпляр Launcher'a и запустите тест. Класс Launcher принимает url до файла конфигурации и параметры, которые перезаписывают значения в конфигурации.
 
 ```js
 const wdio = new Launcher('/path/to/my/wdio.conf.js', opts);
