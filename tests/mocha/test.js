@@ -17,7 +17,7 @@ describe('Mocha smoke test', () => {
 
     let hasRun = false
     it('should retry', () => {
-        if(!hasRun) {
+        if (!hasRun) {
             hasRun = true
             throw new Error('booom!')
         }
@@ -77,6 +77,20 @@ describe('Mocha smoke test', () => {
             // element becomes stale
             elem.click()
         })
+    })
+
+    it('should handle waitUntil timeout', () => {
+        browser.staleElementRefetchScenario()
+        const elem = $('elem')
+        try {
+            browser.waitUntil(() => {
+                elem.click()
+                return false
+            }, 1000)
+        } catch (err) {
+            // ignored
+        }
+        assert.equal(JSON.stringify(elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
     })
 
     describe('isDisplayed', () => {

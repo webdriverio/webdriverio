@@ -7,6 +7,27 @@ import { sanitizeErrorMessage } from './utils'
 const log = logger('@wdio/sync')
 let inCommandHook = false
 
+const timers = []
+const elements = new Set()
+
+/**
+ * resets `_NOT_FIBER` if Timer has timed out
+ */
+process.on('WDIO_TIMER', (payload) => {
+    if (payload.start) {
+        return timers.push(payload.id)
+    }
+    if (timers.includes(payload.id)) {
+        while (timers.pop() !== payload.id);
+    }
+    if (payload.timeout) {
+        elements.forEach(element => { delete element._NOT_FIBER })
+    }
+    if (timers.length === 0) {
+        elements.clear()
+    }
+})
+
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
  * @param  {Function}   fn             function to be executed
@@ -25,6 +46,13 @@ export default function wrapCommand (commandName, fn) {
                 `Can't return command result of ${commandName} synchronously because command ` +
                 'was executed outside of an it block, hook or step definition!'
             )
+        }
+
+        /**
+         * store element if Timer is running to reset `_NOT_FIBER` if timeout has occurred
+         */
+        if (timers.length > 0) {
+            elements.add(this)
         }
 
         /**
