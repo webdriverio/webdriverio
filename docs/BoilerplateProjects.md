@@ -9,7 +9,7 @@ Over time, our community has developed several boilerplate projects that you can
 
 ### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
-- Framework: Cucumber (v5.x), wdio-v5
+- Framework: Cucumber (v5.x)
 - Features:
     - [Page Object](PageObjects.md) Models used with ES6 style class-based approach, and full ES6–ES8 support through Babel
     - Examples of multi-selector option to query elements with more than one selector at a time
@@ -25,7 +25,7 @@ Over time, our community has developed several boilerplate projects that you can
 
 ### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
-- Framework: Jasmine (v3.x), wdio-v5
+- Framework: Jasmine (v3.x)
 - Features:
     - [Page Object](PageObjects.md)s Model used with ES6 style class-based approach, and full ES6–ES8 support through Babel
     - Task manage through Grunt
@@ -38,7 +38,7 @@ Over time, our community has developed several boilerplate projects that you can
 
 ### [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
-- Framework: Mocha (v5.x), wdio-v5
+- Framework: Mocha (v5.x)
 - Features:
     - [Page Object](PageObjects.md)s Model used with ES6 style class-based approach, and full ES6–ES8 support through Babel
     - Task management through Grunt
