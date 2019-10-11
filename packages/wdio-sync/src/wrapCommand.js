@@ -5,6 +5,7 @@ import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
 
 const log = logger('@wdio/sync')
+let inCommandHook = false
 
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
@@ -77,10 +78,7 @@ async function runCommandWithHooks (commandName, fn, ...args) {
     // should be before any async calls
     const stackError = new Error()
 
-    await executeHooksWithArgs(
-        this.options.beforeCommand,
-        [commandName, args]
-    )
+    await runCommandHook.call(this, this.options.beforeCommand, [commandName, args])
 
     let commandResult
     let commandError
@@ -90,16 +88,21 @@ async function runCommandWithHooks (commandName, fn, ...args) {
         commandError = sanitizeErrorMessage(err, stackError)
     }
 
-    await executeHooksWithArgs(
-        this.options.afterCommand,
-        [commandName, args, commandResult, commandError]
-    )
+    await runCommandHook.call(this, this.options.afterCommand, [commandName, args, commandResult, commandError])
 
     if (commandError) {
         throw commandError
     }
 
     return commandResult
+}
+
+async function runCommandHook(hookFn, args) {
+    if (!inCommandHook) {
+        inCommandHook = true
+        await executeHooksWithArgs(hookFn, args)
+        inCommandHook = false
+    }
 }
 
 /**
