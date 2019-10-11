@@ -177,10 +177,8 @@ Type: `Object`<br>
 Default: ``function(opts){return `wdio-${this.cid}-${name}-reporter.log`}``
 
 ```
-outputFileFormat: {
-    single: function (options) {
-        return 'mycustomfilename.xml';
-    }
+outputFileFormat: function (options) {
+    return 'mycustomfilename.xml';
 }
 ```
 > Note: `options.capabilities` is your capabilities object for that runner, so specifying `${options.capabilities}` in your string will return [Object object]. You must specify which properties of capabilities you want in your filename.
