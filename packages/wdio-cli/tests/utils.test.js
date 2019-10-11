@@ -13,7 +13,8 @@ import {
     convertPackageHashToObject,
     missingConfigurationPrompt,
     renderConfigurationFile,
-    validateServiceAnswers
+    validateServiceAnswers,
+    getCapabilities
 } from '../src/utils'
 
 import inquirer from 'inquirer'
@@ -317,4 +318,19 @@ test('validateServiceAnswers', () => {
 
 afterEach(() => {
     global.console.log.mockReset()
+})
+describe('getCapabilities', () => {
+    it('should return driver with capabilities for android', () => {
+        expect(getCapabilities({ option: 'foo.apk' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'android' })).toMatchSnapshot()
+    })
+
+    it('should return driver with capabilities for ios', () => {
+        expect(getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'ios' })).toMatchSnapshot()
+    })
+
+    it('should return driver with capabilities for desktop', () => {
+        expect(getCapabilities({ option: 'chrome' })).toMatchSnapshot()
+    })
 })

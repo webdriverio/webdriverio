@@ -5,9 +5,9 @@ import logger from '@wdio/logger'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
 
-import { CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES } from './constants'
 import inquirer from 'inquirer'
 import { runConfig } from './commands/config'
+import { CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG } from './constants'
 
 const log = logger('@wdio/cli:utils')
 
@@ -230,4 +230,30 @@ export const validateServiceAnswers = (answers) => {
     })
 
     return result
+}
+
+export function getCapabilities(arg) {
+    const optionalCapabilites = {
+        platformVersion: arg.platformVersion || null,
+        udid: arg.udid || null,
+        ...(arg.deviceName && { deviceName: arg.deviceName })
+    }
+    /**
+     * Parsing of option property and constructing desiredCapabilities
+     * for Appium session. Could be application(1) or browser(2-3) session.
+     */
+    if (/.*\.(apk|app|ipa)$/.test(arg.option)) {
+        return {
+            capabilities: {
+                app: arg.option,
+                ...(arg.option.endsWith('apk') ? ANDROID_CONFIG : IOS_CONFIG),
+                ...optionalCapabilites,
+            }
+        }
+    } else if (/android/.test(arg.option)) {
+        return { capabilities: { browserName: 'Chrome', ...ANDROID_CONFIG, ...optionalCapabilites } }
+    } else if (/ios/.test(arg.option)) {
+        return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
+    }
+    return { capabilities: { browserName: arg.option } }
 }
