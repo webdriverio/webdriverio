@@ -5,8 +5,8 @@ import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
 
 const log = logger('@wdio/sync')
-let inCommandHook = false
 
+let inCommandHook = false
 const timers = []
 const elements = new Set()
 
