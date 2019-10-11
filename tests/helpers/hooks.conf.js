@@ -51,5 +51,11 @@ exports.config = Object.assign({}, config, {
     },
     beforeSuite(suite) {
         global.WDIO_SERVICE_BEFORE_SUITE = suite
+    },
+    async beforeCommand() {
+        await browser.pause(1)
+    },
+    async afterCommand() {
+        await browser.pause(1)
     }
 })
