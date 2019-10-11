@@ -15,10 +15,10 @@ title: Boilerplate Projects
     - Интеграция с BrowserStack
     - Поддержка чтения/записи данных из MS-Excel для простого управления тестовыми данными из внешних источников с примерами
     - Поддержка баз данных для любых RDBMS (Oracle, MySql, TeraData, Vertica и т. д.), выполнение любых запросов / выборка результатов и т. д. с примерами для E2E тестирования
-    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
-    - Управление процессами через Grunt
+    - Несколько репортеров (Spec, Junit, Allure, JSON), также локальная версия Junit отчета(.html)
+    - Управление задачами через Grunt
     - Примеры с демо-приложением https://search.yahoo.com/ и http://www.phptravels.net, assert библиотека - Chai (expect, assert, should)
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+    - Файл конфигурации Appium для запуска на мобильных устройствах. Для быстрой настройки Appium [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
