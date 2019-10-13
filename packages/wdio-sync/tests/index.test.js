@@ -111,11 +111,13 @@ describe('executeAsync', () => {
     it('should return rejected promise if fn rejects', async () => {
         let error
         try {
-            await executeAsync(() => Promise.reject('foo'), 1)
+            await executeAsync(() => Promise.reject({
+                stack: ' at node_modules/@wdio/sync/foo.js\n at src/localDir/localFile.js'
+            }))
         } catch (e) {
             error = e
         }
-        expect(error).toEqual('foo')
+        expect(error.stack).toEqual(' at src/localDir/localFile.js')
     })
 
     it('should repeat if fn rejects and repeatTest provided', async () => {
