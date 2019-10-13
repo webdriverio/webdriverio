@@ -29,7 +29,7 @@ title: <?= method.command ?>
 <? method.paramTags.forEach((paramTag) => {
     ?>| <?= paramTag.name ?><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
     ?> | <?= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
-    ?> | <?= paramTag.description ?> |
+?> | <?= paramTag.description.replace(/^\s*-\s*/, '') ?> |
 <? }) ?>
 <? } ?>
 
