@@ -57,9 +57,7 @@ const executeSync = async function (fn, repeatTest = 0, args = []) {
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 
-const executeAsync = function (fn, repeatTest = 0, args = []) {
-    let result, error
-
+const executeAsync = async function (fn, repeatTest = 0, args = []) {
     /**
      * if a new hook gets executed we can assume that all commands should have finished
      * with exception of timeouts where `commandIsRunning` will never be reset but here
@@ -67,40 +65,15 @@ const executeAsync = function (fn, repeatTest = 0, args = []) {
     // commandIsRunning = false
 
     try {
-        result = fn.apply(this, args)
+        return await fn.apply(this, args)
     } catch (e) {
-        error = e
-    }
-
-    /**
-     * handle errors that get thrown directly and are not cause by
-     * rejected promises
-     */
-    if (error) {
-        if (repeatTest) {
-            return executeAsync(fn, --repeatTest, args)
+        if(repeatTest > 0) {
+            return await executeAsync(fn, --repeatTest, args)
         }
-        return new Promise((resolve, reject) => reject(error))
+
+        e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
+        throw e
     }
-
-    /**
-     * handle promise response
-     */
-    if (result && typeof result.catch === 'function') {
-        return result.catch((e) => {
-            if (repeatTest) {
-                return executeAsync(fn, --repeatTest, args)
-            }
-
-            e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
-            return Promise.reject(e)
-        })
-    }
-
-    /**
-     * if we don't retry just return result
-     */
-    return new Promise(resolve => resolve(result))
 }
 
 /**
