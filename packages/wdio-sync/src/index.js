@@ -11,7 +11,7 @@ import { STACKTRACE_FILTER_FN } from './constants'
  *
  * @param  {Function} fn         spec or hook method
  * @param  {Number}   repeatTest number of retries
- * @param  {Array}    args       number of retries
+ * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 const executeSync = async function (fn, repeatTest = 0, args = []) {
@@ -53,14 +53,15 @@ const executeSync = async function (fn, repeatTest = 0, args = []) {
  *
  * @param  {Function} fn         spec or hook method
  * @param  {Number}   repeatTest number of retries
+ * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-/* istanbul ignore next */
+
 const executeAsync = function (fn, repeatTest = 0, args = []) {
     let result, error
 
     /**
-     * if a new hook gets executed we can assume that all commands should have finised
+     * if a new hook gets executed we can assume that all commands should have finished
      * with exception of timeouts where `commandIsRunning` will never be reset but here
      */
     // commandIsRunning = false
@@ -83,23 +84,23 @@ const executeAsync = function (fn, repeatTest = 0, args = []) {
     }
 
     /**
-     * if we don't retry just return result
+     * handle promise response
      */
-    if (repeatTest === 0 || !result || typeof result.catch !== 'function') {
-        return new Promise(resolve => resolve(result))
+    if (result && typeof result.catch === 'function') {
+        return result.catch((e) => {
+            if (repeatTest) {
+                return executeAsync(fn, --repeatTest, args)
+            }
+
+            e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
+            return Promise.reject(e)
+        })
     }
 
     /**
-     * handle promise response
+     * if we don't retry just return result
      */
-    return result.catch((e) => {
-        if (repeatTest) {
-            return executeAsync(fn, --repeatTest, args)
-        }
-
-        e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
-        return Promise.reject(e)
-    })
+    return new Promise(resolve => resolve(result))
 }
 
 /**
