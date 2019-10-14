@@ -41,6 +41,7 @@ class Timer {
     start () {
         this._start = Date.now()
         this._ticks = 0
+        emitTimerEvent({ id: this._start, start: true })
         if (this._leading) {
             this.tick()
         } else {
@@ -55,6 +56,7 @@ class Timer {
                 return
             }
 
+            emitTimerEvent({ id: this._start, timeout: true })
             const reason = this.lastError || new Error(TIMEOUT_ERROR)
             this._reject(reason)
             this.stop()
@@ -69,6 +71,7 @@ class Timer {
     }
 
     stopMain () {
+        emitTimerEvent({ id: this._start })
         clearTimeout(this._mainTimeoutId)
     }
 
@@ -124,6 +127,16 @@ class Timer {
 
     wasConditionExecuted () {
         return this._conditionExecutedCnt > 0
+    }
+}
+
+/**
+ * emit `WDIO_TIMER` event
+ * @param   {object}  payload
+ */
+function emitTimerEvent(payload) {
+    if (hasWdioSyncSupport) {
+        process.emit('WDIO_TIMER', payload)
     }
 }
 

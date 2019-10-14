@@ -64,5 +64,6 @@ export const runFnInFiberContext = jest.fn().mockImplementation((fn) => {
         return Promise.resolve(fn.apply(this, args))
     }
 })
+export const setWdioSyncSupport = value => { hasWdioSyncSupport = value }
 export let hasWdioSyncSupport = false
 export const testFnWrapper = jest.fn()
