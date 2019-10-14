@@ -20,7 +20,13 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 const mochaTestrunner = async () => {
     await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
-        { specs: [path.resolve(__dirname, 'mocha', 'test.js')] })
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'test.js'),
+                path.resolve(__dirname, 'mocha', 'test-middleware.js'),
+                path.resolve(__dirname, 'mocha', 'test-waitForElement.js')
+            ]
+        })
 }
 /**
  * Jasmine wdio testrunner tests

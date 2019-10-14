@@ -17,16 +17,11 @@ describe('Mocha smoke test', () => {
 
     let hasRun = false
     it('should retry', () => {
-        if(!hasRun) {
+        if (!hasRun) {
             hasRun = true
             throw new Error('booom!')
         }
     }, 1)
-
-    it('should be able to wait for an element', () => {
-        browser.waitForDisplayedScenario()
-        assert($('elem').waitForDisplayed(), true)
-    })
 
     it('should work fine after catching an error', () => {
         browser.clickScenario()
@@ -61,22 +56,18 @@ describe('Mocha smoke test', () => {
         assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
     })
 
-    describe('middleware', () => {
-        it('should wait for elements if not found immediately', () => {
-            browser.waitForElementScenario()
-            const elem = $('elem')
-            //Element will be found
-            assert.doesNotThrow(() => elem.click())
-        })
-
-        it('should refetch stale elements', () => {
-            browser.staleElementRefetchScenario()
-
-            const elem = $('elem')
-            elem.click()
-            // element becomes stale
-            elem.click()
-        })
+    it('should handle waitUntil timeout', () => {
+        browser.staleElementRefetchScenario()
+        const elem = $('elem')
+        try {
+            browser.waitUntil(() => {
+                elem.click()
+                return false
+            }, 1000)
+        } catch (err) {
+            // ignored
+        }
+        assert.equal(JSON.stringify(elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
     })
 
     describe('isDisplayed', () => {
