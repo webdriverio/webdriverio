@@ -1,4 +1,4 @@
-import { executeSync, runSync } from '../src'
+import { executeSync, runSync, executeAsync } from '../src'
 
 beforeAll(() => {
     if (!global.browser) {
@@ -55,7 +55,7 @@ describe('executeSync', () => {
         expect(counter).toEqual(0)
     })
 
-    it('should throw if repeatTest attemps exceeded', async () => {
+    it('should throw if repeatTest attempts exceeded', async () => {
         let counter = 3
         let error
         try {
@@ -70,6 +70,67 @@ describe('executeSync', () => {
             error = err
         }
         expect(error.message).toEqual('foobar')
+    })
+})
+
+describe('executeAsync', () => {
+    it('should pass with default values and fn returning synchronous value', async () => {
+        const result = await executeAsync(() => 'foo')
+        expect(result).toEqual('foo')
+    })
+
+    it('should pass when optional arguments are passed', async () => {
+        const result = await executeAsync(async arg => arg, 1, ['foo'])
+        expect(result).toEqual('foo')
+    })
+
+    it('should reject if fn throws error directly', async () => {
+        let error
+        const hook = () => {throw new Error('foo')}
+        try {
+            await executeAsync(hook)
+        } catch (e) {
+            error = e
+        }
+        expect(error.message).toEqual('foo')
+    })
+
+    it('should repeat if fn throws error directly and repeatTest provided', async () => {
+        let counter = 3
+        const result = await executeAsync(() => {
+            if (counter > 0) {
+                counter--
+                throw new Error('foo')
+            }
+            return true
+        }, counter)
+        expect(result).toEqual(true)
+        expect(counter).toEqual(0)
+    })
+
+    it('should return rejected promise if fn rejects', async () => {
+        let error
+        try {
+            await executeAsync(() => Promise.reject({
+                stack: ' at node_modules/@wdio/sync/foo.js\n at src/localDir/localFile.js'
+            }))
+        } catch (e) {
+            error = e
+        }
+        expect(error.stack).toEqual(' at src/localDir/localFile.js')
+    })
+
+    it('should repeat if fn rejects and repeatTest provided', async () => {
+        let counter = 3
+        const result = await executeAsync(() => {
+            if (counter > 0) {
+                counter--
+                return Promise.reject('foo')
+            }
+            return true
+        }, counter)
+        expect(result).toEqual(true)
+        expect(counter).toEqual(0)
     })
 })
 
