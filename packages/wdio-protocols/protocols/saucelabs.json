@@ -182,6 +182,16 @@
       "command": "assertPerformance",
       "description": "Assert against the performance baseline of your app (private beta service, not yet available to the public).",
       "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands",
+      "examples": [
+        [
+          "// test performance for a page",
+          "browser.url('https://webdriver.io')",
+          "const hasRegression = browser.assertPerformance({",
+          "  name: 'my performance test', // make sure that the name is also set in the sauce options in your capabilities",
+          "  metrics: ['score', 'firstPaint']",
+          "})"
+        ]
+      ],
       "parameters": [{
         "name": "name",
         "type": "string",
@@ -197,6 +207,26 @@
         "type": "Boolean",
         "name": "hasRegression",
         "description": "Returns true if any metrics have a regression."
+      }
+    }
+  },
+  "/session/:sessionId/sauce/ondemand/performance/scroll": {
+    "POST": {
+      "command": "jankinessCheck",
+      "description": "Perform a scroll test that evaluates the jankiness of the application.",
+      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands",
+      "examples": [
+        [
+          "// test performance for a page",
+          "browser.url('https://webdriver.io')",
+          "browser.jankinessCheck()"
+        ]
+      ],
+      "parameters": [],
+      "returns": {
+        "type": "Object",
+        "name": "testResults",
+        "description": "An object containing the score as well as metrics around how smooth the UX of the page was during the test."
       }
     }
   }
