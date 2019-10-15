@@ -67,15 +67,17 @@ export function getUniqueIdentifier (target, sourceLocation) {
         const line = sourceLocation.line || ''
 
         if (Array.isArray(target.examples)) {
-            target.examples[0].tableHeader.cells.forEach((header, idx) => {
-                if (name.indexOf('<' + header.value + '>') === -1) {
-                    return
-                }
-
-                target.examples[0].tableBody.forEach((tableEntry) => {
-                    if (tableEntry.location.line === sourceLocation.line) {
-                        name = name.replace('<' + header.value + '>', tableEntry.cells[idx].value)
+            target.examples.forEach((example) => {
+                example.tableHeader.cells.forEach((header, idx) => {
+                    if (name.indexOf('<' + header.value + '>') === -1) {
+                        return
                     }
+
+                    example.tableBody.forEach((tableEntry) => {
+                        if (tableEntry.location.line === sourceLocation.line) {
+                            name = name.replace('<' + header.value + '>', tableEntry.cells[idx].value)
+                        }
+                    })
                 })
             })
         }
