@@ -90,6 +90,11 @@ export const testFrameworkFnWrapper = async function (
 const mochaJasmineCompatibility = (hookArgs, { test = {} } = {}) => {
     let args = hookArgs
     if (hookArgs.length < 4 && hookArgs[0] && typeof hookArgs[0] === 'object') {
+        // jasmine's title
+        if (!args[0].title) {
+            args[0].title = args[0].description
+        }
+
         args[0].fullTitle =
             // mocha fullTitle
             test.fullTitle ? test.fullTitle() :
