@@ -252,7 +252,7 @@ describe('cucumber reporter', () => {
 
             it('passed hook', () => {
                 eventBroadcaster.emit('test-step-finished', {
-                    index: 1,
+                    index: 0,
                     result: { duration: 10, status: 'passed' },
                     testCase: {
                         sourceLocation: { uri: gherkinDocEvent.uri, line: 131 }
@@ -267,7 +267,7 @@ describe('cucumber reporter', () => {
 
             it('failed hook', () => {
                 eventBroadcaster.emit('test-step-finished', {
-                    index: 1,
+                    index: 0,
                     result: { duration: 10, status: 'failed', exception: 'err' },
                     testCase: {
                         sourceLocation: { uri: gherkinDocEvent.uri, line: 131 }
@@ -604,6 +604,7 @@ describe('cucumber reporter', () => {
                     }]
                 }
             })
+            prepareSuite(eventBroadcaster)
             eventBroadcaster.emit('test-case-started', {})
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({

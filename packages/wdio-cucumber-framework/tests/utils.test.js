@@ -1,7 +1,6 @@
 import {
     createStepArgument,
     compareScenarioLineWithSourceLine,
-    getStepFromFeature,
     getTestParent,
     formatMessage,
     getUniqueIdentifier,
@@ -9,6 +8,9 @@ import {
     buildStepPayload,
     getDataFromResult,
     setUserHookNames,
+    getTestCaseSteps,
+    getStepText,
+    getAllSteps
 } from '../src/utils'
 
 describe('utils', () => {
@@ -89,125 +91,89 @@ describe('utils', () => {
         })
     })
 
-    describe('getStepFromFeature', () => {
-        it('should be ok if targetStep.type is not Step', () => {
-            expect(getStepFromFeature({ children: [{ type: 'Foo', steps: [{ type: 'Bar' }] }] }, null, 0))
-                .toEqual({ type: 'Bar' })
+    describe('getStepText', () => {
+        it('should return pickle step text if step was found', () => {
+            const pickle = { steps: [{ locations: [{ line: 1 }], text: '11' }, { locations: [{ line: 1 }, { line: 2 }, { line: 3 }], text: '2' }] }
+            expect(getStepText({ location: { line: 2 } }, pickle)).toEqual('2')
         })
 
-        it('should move wdioHookBeforeScenario to the beginning', () => {
-            const scenario1Line = 21
-            const wdioHookBeforeScenario = {
-                'type': 'Hook',
-                'location': {
-                    'uri': 'node_modules/@wdio/cucumber-framework/build/index.js',
-                    line: 141
-                },
+        it('should return step text if step was not found', () => {
+            const pickle = { steps: [{ locations: [{ line: 1 }], text: '11' }] }
+            expect(getStepText({ location: { line: 2 }, text: 'foo' }, pickle)).toEqual('foo')
+        })
+    })
+
+    describe('getAllSteps', () => {
+        it('should add background steps', () => {
+            const feature = { children: [{ type: 'Background', steps: [1, 2] }, { type: 'Scenario', steps: [3, 4] }] }
+            expect(getAllSteps(feature, { steps: [5, 6] })).toEqual([1, 2, 5, 6])
+        })
+
+        it('should be ok with missing background', () => {
+            const feature = { children: [{ type: 'Scenario', steps: [3, 4] }] }
+            expect(getAllSteps(feature, { steps: [5, 6] })).toEqual([5, 6])
+        })
+    })
+
+    describe('getTestCaseSteps', () => {
+        it('should properly build test case steps array', () => {
+            const feature = {
+                children: [{
+                    type: 'Background', steps: [
+                        { type: 'Step', text: 'Given <browser> is opened', location: { line: 21 } }]
+                }]
             }
-            const wdioHookAfterScenario = {
-                'type': 'Hook',
-                'location': {
-                    'uri': 'node_modules/@wdio/cucumber-framework/build/index.js',
-                    line: 151
-                },
+
+            const scenario = {
+                steps: [
+                    { type: 'Hook', text: '', location: { uri: 'uri', line: 12 } },
+                    { type: 'Step', text: 'Then <user> is logged in', location: { line: 31 } }]
             }
-            const userBeforeHook = {
-                'type': 'Hook',
-                'location': {
-                    'uri': 'test/step-definitions/given.ts',
-                    line: 1
-                },
-            }
-            const userAfterHook = {
-                'type': 'Hook',
-                'location': {
-                    'uri': 'test/step-definitions/given.ts',
-                    line: 2
-                },
-            }
+
             const pickle = {
                 steps: [
-                    {
-                        'type': 'Step',
-                        text: 'step12',
-                        'locations': [{ line: 12 }],
-                    },
-                    {
-                        'type': 'Step',
-                        text: 'step13',
-                        'locations': [{ line: 13 }],
-                    },
-                    {
-                        'type': 'Step',
-                        text: 'step22',
-                        'locations': [{ line: 22 }],
-                    },
-                    {
-                        'type': 'Step',
-                        text: 'step23',
-                        'locations': [{ line: 23 }],
-                    },
+                    { locations: [{ line: 21 }], text: 'Given chrome is opened' },
+                    { locations: [{ line: 31 }, { line: 42 }], text: 'Then John is logged in' }]
+            }
+
+            const testCasePreparedEvent = {
+                sourceLocation: { uri: 'feature' }, steps: [
+                    { sourceLocation: { uri: 'uri', line: 12 }, actionLocation: { uri: 'uri', line: 12 } }, // wdio hook
+                    { sourceLocation: { uri: 'feature', line: 21 }, actionLocation: { uri: 'uri', line: 121 } }, // background step
+                    { actionLocation: { uri: 'uri', line: 17 } }, // tagged hook
+                    { sourceLocation: { uri: 'feature', line: 31 }, actionLocation: { uri: 'uri', line: 131 } }, // scenario step
                 ]
             }
-            const children = [
-                {
-                    'type': 'Background',
-                    'location': { line: 11 },
-                    'steps': [
-                        {
-                            'type': 'Step',
-                            'location': { line: 12 },
-                        },
-                        {
-                            'type': 'Step',
-                            'location': { line: 13 },
-                        }
-                    ]
-                },
-                {
-                    'type': 'Scenario',
-                    'location': { line: scenario1Line },
-                    'steps': [
-                        wdioHookBeforeScenario,
-                        userBeforeHook,
-                        {
-                            'type': 'Step',
-                            'location': { line: 22 },
-                        },
-                        {
-                            'type': 'Step',
-                            'location': { line: 23 },
-                        },
-                        userAfterHook,
-                        wdioHookAfterScenario
-                    ]
-                },
-                {
-                    'type': 'Scenario',
-                    'location': { line: 31 },
-                    'steps': [
-                        {
-                            'type': 'Step',
-                            'location': { line: 32 },
-                        }
-                    ]
+
+            const steps = getTestCaseSteps(feature, scenario, pickle, testCasePreparedEvent)
+            expect(steps).toEqual([{
+                type: 'Hook',
+                text: '',
+                location: {
+                    uri: 'uri',
+                    line: 12
                 }
-            ]
-
-            const steps = pickle.steps.map(step => ({ type: step.type, text: step.text, location: step.locations[0] }))
-            const expectedResult = [
-                wdioHookBeforeScenario,
-                userBeforeHook,
-                steps[0],
-                steps[1],
-                steps[2],
-                steps[3],
-                userAfterHook,
-                wdioHookAfterScenario
-            ]
-            const combinedSteps = [...Array(expectedResult.length).keys()].map((_, idx) => getStepFromFeature({ children }, pickle, idx, { line: scenario1Line }))
-
-            expect(combinedSteps).toEqual(expectedResult)
+            }, {
+                type: 'Step',
+                text: 'Given chrome is opened',
+                location: {
+                    line: 21
+                }
+            }, {
+                type: 'Hook',
+                location: {
+                    uri: 'uri',
+                    line: 17
+                },
+                keyword: 'Hook',
+                text: ''
+            }, {
+                type: 'Step',
+                text: 'Then John is logged in',
+                location: {
+                    line: 31
+                }
+            }])
         })
     })
 
