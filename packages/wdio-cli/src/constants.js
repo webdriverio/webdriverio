@@ -79,7 +79,7 @@ export const SUPPORTED_PACKAGES = {
         // external
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
-        { name: 'crossbrowsertesting', value: 'wdio-crossbrowsertesting-service$--$crossbrowsertesting' },
+        { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
     ],
 }
