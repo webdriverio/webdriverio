@@ -74,3 +74,10 @@ export const SUPPORTED_HOOKS = [
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
     'onReload', 'onPrepare', 'onComplete'
 ]
+
+/**
+ * these services should not be started in worker process
+ */
+export const NON_WORKER_SERVICES = [
+    'chromedriver', 'selenium-standalone', 'appium', 'reportportal', 'firefox-profile'
+]

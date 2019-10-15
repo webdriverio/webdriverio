@@ -285,6 +285,7 @@ describe('wdio-runner', () => {
                 framework: 'testWithFailures'
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner.configParser.filterWorkerServices = jest.fn()
             runner._shutdown = jest.fn()
             runner._initSession = jest.fn().mockReturnValue({
                 capabilities: { browserName: 'chrome' },
@@ -309,6 +310,7 @@ describe('wdio-runner', () => {
                 beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner.configParser.filterWorkerServices = jest.fn()
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
             const failures = await runner.run({ argv: {}, caps: {} })
 
@@ -323,6 +325,7 @@ describe('wdio-runner', () => {
                 beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner.configParser.filterWorkerServices = jest.fn()
             global.browser = { url: jest.fn(url => url) }
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
             const failures = await runner.run({ argv: { watch: true }, caps: {} })
@@ -339,6 +342,7 @@ describe('wdio-runner', () => {
                 beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner.configParser.filterWorkerServices = jest.fn()
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
             runner.emit = jest.fn()
             const failures = await runner.run({ argv: {}, caps: {} })
@@ -357,6 +361,7 @@ describe('wdio-runner', () => {
                 beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner.configParser.filterWorkerServices = jest.fn()
             runner._shutdown = jest.fn()
             runner.endSession = jest.fn()
             runner._initSession = jest.fn().mockReturnValue({})
@@ -370,6 +375,7 @@ describe('wdio-runner', () => {
 
             expect(runner.endSession).toBeCalledTimes(1)
             expect(runner._shutdown).toBeCalledWith(0)
+            expect(runner.configParser.filterWorkerServices).toBeCalled()
         })
     })
 

@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 
 import { detectBackend } from '../utils'
 
-import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
+import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, NON_WORKER_SERVICES } from '../constants'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
@@ -289,5 +289,17 @@ export default class ConfigParser {
         }
 
         return files
+    }
+
+    /**
+     * remove services that has nothing to do in worker
+     */
+    filterWorkerServices () {
+        if (!Array.isArray(this._config.services)) {
+            return
+        }
+        this._config.services = this._config.services.filter((service) => {
+            return !NON_WORKER_SERVICES.includes(service)
+        })
     }
 }
