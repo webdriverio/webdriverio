@@ -27,16 +27,17 @@ describe('testFnWrapper', () => {
     ]
 
     it('should run fn in sync mode with mocha or jasmine', async () => {
-        const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar' }, 'context'])
+        const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar', description: 'foo' }, 'context'])
         const result = await testFnWrapper.call({ test: { fullTitle: () => 'full title' } }, ...args)
 
+        const expectedResults = { duration: expect.any(Number), error: undefined, passed: true }
         expect(result).toBe('@wdio/sync: FooBar 0')
         expect(executeHooksWithArgs).toBeCalledTimes(2)
         expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
         expect(executeHooksWithArgs).toBeCalledWith('afterFn', [
-            { duration: expect.any(Number), error: undefined, passed: true, foo: 'bar', fullTitle: 'full title' },
+            { ...expectedResults, foo: 'bar', fullTitle: 'full title', title: 'foo', description: 'foo' },
             'context',
-            { duration: expect.any(Number), error: undefined, passed: true, result: '@wdio/sync: FooBar 0' }
+            { ...expectedResults, result: '@wdio/sync: FooBar 0' }
         ])
     })
 
