@@ -260,22 +260,35 @@ describe('utils', () => {
         it('ScenarioOutline with <>', () => {
             expect(getUniqueIdentifier({
                 type: 'ScenarioOutline',
-                name: '<someval> here',
+                name: '<someval2> here',
                 examples: [{
                     tableHeader: {
                         cells: [
-                            { value: 'valsome' },
-                            { value: 'someval' }
+                            { value: 'valsome1' },
+                            { value: 'someval1' }
                         ]
                     },
                     tableBody: [{
                         location: { line: 54 }
                     }, {
                         location: { line: 123 },
-                        cells: [{}, { value: 'realval' }]
+                        cells: [{}, { value: 'realval1' }]
+                    }]
+                }, {
+                    tableHeader: {
+                        cells: [
+                            { value: 'valsome2' },
+                            { value: 'someval2' }
+                        ]
+                    },
+                    tableBody: [{
+                        location: { line: 64 }
+                    }, {
+                        location: { line: 234 },
+                        cells: [{}, { value: 'realval2' }]
                     }]
                 }]
-            }, { line: 123 })).toBe('realval here123')
+            }, { line: 234 })).toBe('realval2 here234')
         })
     })
 
