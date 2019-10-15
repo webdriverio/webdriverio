@@ -1,4 +1,4 @@
-import { launch } from '../src/commands/run'
+import { launch, cmdArgs } from '../src/commands/run'
 import Launcher from '../src/launcher'
 
 jest.mock('../src/launcher', () => jest.fn().mockImplementation((conf, result) => ({
@@ -34,5 +34,13 @@ describe('launch', () => {
 
     afterAll(() => {
         console.error.mockRestore()
+    })
+})
+
+describe('cmdArgs', () => {
+    it('should not have default', () => {
+        Object.values(cmdArgs).forEach(cmdArg => {
+            expect(cmdArg.default).toBeUndefined()
+        })
     })
 })

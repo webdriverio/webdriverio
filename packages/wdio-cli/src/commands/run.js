@@ -27,7 +27,6 @@ export const cmdArgs = {
     },
     path: {
         type: 'string',
-        default: '/wd/hub',
         desc: 'path to WebDriver endpoints (default /wd/hub)'
     },
     user: {
