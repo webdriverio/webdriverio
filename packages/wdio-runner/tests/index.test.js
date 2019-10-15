@@ -393,6 +393,7 @@ describe('wdio-runner', () => {
                 featureFlags: {}
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner.configParser.filterWorkerServices = jest.fn()
             runner._shutdown = jest.fn().mockImplementation((arg) => arg)
             runner._initSession = jest.fn()
 

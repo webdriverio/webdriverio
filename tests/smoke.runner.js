@@ -266,11 +266,15 @@ const jasmineSpecFiltering = async () => {
     const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
-            specs: [path.resolve(__dirname, 'jasmine', 'test.js'), path.resolve(__dirname, 'jasmine', 'test-skipped.js')],
+            specs: [
+                path.resolve(__dirname, 'jasmine', 'test.js'),
+                path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
+                path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
+            ],
             framework: 'jasmine',
             featureFlags: { specFiltering: true }
         })
-    assert.strictEqual(skippedSpecs, 1)
+    assert.strictEqual(skippedSpecs, 2)
 }
 
 (async () => {

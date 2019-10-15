@@ -204,7 +204,7 @@ test('customSpecFilter', () => {
     expect(specMock.pend.mock.calls).toHaveLength(0)
 
     adapter.jasmineNodeOpts.grep = '@random'
-    expect(adapter.customSpecFilter(specMock)).toBe(true)
+    expect(adapter.customSpecFilter(specMock)).toBe(false)
     expect(specMock.pend.mock.calls).toHaveLength(1)
 
     adapter.jasmineNodeOpts.invertGrep = true
@@ -213,7 +213,7 @@ test('customSpecFilter', () => {
 
     adapter.jasmineNodeOpts.grep = '@smoke'
     adapter.jasmineNodeOpts.invertGrep = true
-    expect(adapter.customSpecFilter(specMock)).toBe(true)
+    expect(adapter.customSpecFilter(specMock)).toBe(false)
     expect(specMock.pend.mock.calls).toHaveLength(2)
 })
 
@@ -384,6 +384,22 @@ test('prepareMessage', () => {
     expect(msgSpec.type).toBe('beforeTest')
     expect(msgSpec.payload.file).toBe('/some/path.test.js')
     expect(msgSpec.payload.bar).toBe('foo')
+})
+
+describe('_grep', () => {
+    test('should increase totalTests counter if test is not filtered by grep', () => {
+        const adapter = adapterFactory()
+        expect(adapter.totalTests).toBe(0)
+
+        adapter.customSpecFilter = jest.fn().mockImplementation(spec => !!spec.disable)
+
+        adapter._grep({
+            children: [
+                { disable: false }, { disable: true },
+                { children: [{ disable: true }] }]
+        })
+        expect(adapter.totalTests).toBe(2)
+    })
 })
 
 describe('loadFiles', () => {

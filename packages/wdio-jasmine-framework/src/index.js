@@ -23,6 +23,7 @@ class JasmineAdapter {
         this.capabilities = capabilities
         this.specs = specs
         this.jrunner = {}
+        this.totalTests = 0
 
         this.jasmineNodeOpts = Object.assign({
             cleanStack: true
@@ -159,7 +160,8 @@ class JasmineAdapter {
             this.jrunner.loadRequires()
             this.jrunner.loadHelpers()
             this.jrunner.loadSpecs()
-            this._hasTests = this.jrunner.env.topSuite().children.length > 0
+            this._grep(this.jrunner.env.topSuite())
+            this._hasTests = this.totalTests > 0
         } catch (err) {
             log.warn(
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
@@ -169,6 +171,17 @@ class JasmineAdapter {
                 'Error: ', err
             )
         }
+    }
+
+    _grep(suite) {
+        suite.children.forEach((child) => {
+            if (Array.isArray(child.children)) {
+                return this._grep(child)
+            }
+            if (this.customSpecFilter(child)) {
+                this.totalTests++
+            }
+        })
     }
 
     hasTests () {
@@ -195,7 +208,8 @@ class JasmineAdapter {
         const { grep, invertGrep } = this.jasmineNodeOpts
         const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
         if (grepMatch === Boolean(invertGrep)) {
-            spec.pend()
+            spec.pend('grep')
+            return false
         }
         return true
     }
