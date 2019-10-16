@@ -1,12 +1,13 @@
 import { EventEmitter } from 'events'
 
-import { compareScenarioLineWithSourceLine, getStepFromFeature } from './utils'
+import { compareScenarioLineWithSourceLine, getTestCaseSteps } from './utils'
 
 export default class CucumberEventListener extends EventEmitter {
     gherkinDocEvents = []
     acceptedPickles = []
     currentPickle = null
     currentStep = null
+    currentSteps = null
     testCasePreparedEvents = []
 
     constructor (eventBroadcaster) {
@@ -87,8 +88,12 @@ export default class CucumberEventListener extends EventEmitter {
         const { uri, pickle } = this.acceptedPickles.shift()
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const feature = doc.feature
-
         this.currentPickle = pickle
+
+        const testCasePreparedEvent = this.testCasePreparedEvents[this.testCasePreparedEvents.length - 1]
+        const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, testCasePreparedEvent.sourceLocation))
+        this.currentSteps = getTestCaseSteps(feature, scenario, pickle, testCasePreparedEvent)
+
         this.emit('before-scenario', uri, feature, pickle)
     }
 
@@ -105,7 +110,7 @@ export default class CucumberEventListener extends EventEmitter {
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const feature = doc.feature
         const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
-        const step = getStepFromFeature(feature, this.currentPickle, testStepStartedEvent.index, sourceLocation)
+        const step = this.currentSteps[testStepStartedEvent.index]
 
         if (step.type === 'Step') {
             this.currentStep = { uri, feature, scenario, step, sourceLocation }
@@ -168,7 +173,7 @@ export default class CucumberEventListener extends EventEmitter {
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const feature = doc.feature
         const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, sourceLocation))
-        const step = getStepFromFeature(feature, this.currentPickle, testStepFinishedEvent.index, sourceLocation)
+        const step = this.currentSteps[testStepFinishedEvent.index]
         const result = testStepFinishedEvent.result
 
         this.emit('after-step', uri, feature, scenario, step, result, sourceLocation)
@@ -190,6 +195,7 @@ export default class CucumberEventListener extends EventEmitter {
 
         this.currentPickle = null
         this.currentStep = null
+        this.currentSteps = null
     }
 
     // testRunFinishedEvent = {

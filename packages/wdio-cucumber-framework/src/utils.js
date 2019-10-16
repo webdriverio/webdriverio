@@ -149,38 +149,6 @@ export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
     return scenario.location.line === sourceLocation.line
 }
 
-export function getStepFromFeature(feature, pickle, stepIndex, sourceLocation) {
-    let combinedSteps = []
-    const background = feature.children.find((child) => child.type === 'Background')
-    feature.children
-        .filter((child) => child.type !== 'Background' && !(child.type.indexOf('Scenario') > -1 && !compareScenarioLineWithSourceLine(child, sourceLocation)))
-        .forEach((child) => { combinedSteps = combinedSteps.concat(child.steps) })
-
-    /**
-     * all the hooks are executed before `Background` step(s).
-     * Example:
-     * from: [Background steps, wdioHookBeforeScenario, userHooks, steps, userHooks, wdioHookAfterScenario]
-     * to:   [wdioHookBeforeScenario, userHooks, Background steps, steps, userHooks, wdioHookAfterScenario]
-     */
-    const firstStepIdx = combinedSteps.indexOf(combinedSteps.find((step) => step.type === 'Step'))
-    if (background) {
-        combinedSteps = [...combinedSteps.slice(0, firstStepIdx), ...background.steps, ...combinedSteps.slice(firstStepIdx)]
-    }
-
-    const targetStep = combinedSteps[stepIndex]
-
-    if (targetStep.type === 'Step') {
-        const stepLine = targetStep.location.line
-        const pickleStep = pickle.steps.find(s => s.locations.some(loc => loc.line === stepLine))
-
-        if (pickleStep) {
-            return { ...targetStep, text: pickleStep.text }
-        }
-    }
-
-    return targetStep
-}
-
 /**
  * @param {object[]} result cucumber global result object
  */
@@ -202,4 +170,81 @@ export function setUserHookNames (options) {
             }
         })
     })
+}
+
+/**
+ * get test case steps
+ * @param   {object}    feature                 cucumber's feature
+ * @param   {object}    scenario                cucumber's scenario
+ * @param   {object}    pickle                  cucumber's pickleEvent
+ * @param   {object}    testCasePreparedEvent   cucumber's testCasePreparedEvent
+ * @returns {object[]}
+ */
+export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEvent) {
+    const allSteps = getAllSteps(feature, scenario)
+
+    const steps = testCasePreparedEvent.steps.map(eventStep => {
+        /**
+         * find scenario step matching eventStep
+         */
+        let step = allSteps.find(scenarioStep => {
+            const location = scenarioStep.location || {}
+
+            // step
+            if (eventStep.sourceLocation && eventStep.sourceLocation.uri === testCasePreparedEvent.sourceLocation.uri) {
+                return typeof location.uri === 'undefined' && eventStep.sourceLocation.line === location.line
+            }
+
+            // hook
+            return eventStep.actionLocation.uri === location.uri && eventStep.actionLocation.line === location.line
+        })
+
+        // set proper text for step
+        if (step && eventStep.sourceLocation) {
+            step = {
+                ...step,
+                text: getStepText(step, pickle)
+            }
+        }
+
+        // if step was not found `eventStep` is a user defined hook
+        return step ? step : {
+            type: 'Hook',
+            location: { ...eventStep.actionLocation },
+            keyword: 'Hook',
+            text: ''
+        }
+    })
+
+    return steps
+}
+
+/**
+ * get resolved step text for table steps, example:
+ * Then User `<userId>` with `<password>` is logged in
+ * Then User `someUser` with `Password12` is logged in
+ * @param   {object}    step        cucumber's step
+ * @param   {object}    pickle      cucumber's pickleEvent
+ * @returns {string}
+ */
+export function getStepText (step, pickle) {
+    const pickleStep = pickle.steps.find(s => s.locations.some(loc => loc.line === step.location.line))
+
+    return pickleStep ? pickleStep.text : step.text
+}
+
+/**
+ * get an array of background and scenario steps
+ * @param {object}      feature cucumber's feature
+ * @param {object}      scenario cucumber's scenario
+ * @returns {object[]}
+ */
+export function getAllSteps (feature, scenario) {
+    const allSteps = []
+    const background = feature.children.find((child) => child.type === 'Background')
+    if (background) {
+        allSteps.push(...background.steps)
+    }
+    allSteps.push(...scenario.steps)
+    return allSteps
 }
