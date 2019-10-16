@@ -7,6 +7,79 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v5 Boilerplate Projects
 
+### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
+
+- Framework: Cucumber (v5.x)
+- Features:
+    - [Page Object](PageObjects.md) Models used with ES6 style class-based approach, and full ES6–ES8 support through Babel
+    - Examples of multi-selector option to query elements with more than one selector at a time
+    - Examples of headless browser execution, using PhantomJS and Chrome
+    - Integration with BrowserStack, SauceLabs
+    - Support of reading and writing from MS-Excel documents for easy test data management from external data sources with examples
+    - Database support for any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing queries, fetching result sets, and so on. Includes examples of E2E testing.
+    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
+    - Task manage through Grunt
+    - Examples with demo app https://search.yahoo.com and http://www.phptravels.net, Chai assertion liberary (`expect`, `assert`, `should`)
+    - Appium-specific `.config` file for playback on mobile device. For one-click Appium setup, refer to: [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
+
+### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
+
+- Framework: Jasmine (v3.x)
+- Features:
+    - [Page Object](PageObjects.md)s Model used with ES6 style class-based approach, and full ES6–ES8 support through Babel
+    - Task manage through Grunt
+    - Multiple reporting (Spec, Junit, Allure), plus local view of JUnit report (`.html`) format
+    - Jasmine Spec examples with assert module and Jasmine-specific assertions using demo app http://www.phptravels.net
+    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack and SauceLabs
+    - Examples of reading and writing from MS-Excel documentsfor easy test data management from external data sources
+    - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), query execution, and fetching result sets
+
+
+### [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
+
+- Framework: Mocha (v5.x)
+- Features:
+    - [Page Object](PageObjects.md)s Model used with ES6 style class-based approach, and full ES6–ES8 support through Babel
+    - Task management through Grunt
+    - Multiple reporting (Spec, Junit, Allure), plus local view of Junit report (`.html`) format
+    - Mocha Spec examples with `assert` module and Mocha-specific assertions using demo app http://www.phptravels.net
+    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack & SauceLabs
+    - Examples of reading and writing from MS-Excel documents for easy test data management from external data sources
+    - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica, etc.), query execution, and fetching result sets
+
+
+### [jpolley/WebdriverIO_v5_TypeScript](https://github.com/jpolley/WebdriverIO_v5_TypeScript)
+
+This boilerplate uses the following:
+
+- Framework: Mocha
+- Features:
+    - TypeScript Setup
+    - [Page Object](PageObjects.md) Pattern
+    - Chai integration
+    - CI examples (CircleCI, Travis CI, Jenkins)
+    - Allure reporter
+
+### [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
+
+This project creates a powerful boilerplate for UI Automation Testing with WebdriverIO, TypeScript, Mocha, Chai, and Allure reporting.
+
+- Frameworks:
+    - WebdriverIO (v5.x)
+    - TypeScript(v3.x)
+    - @Types/Mocha (v5.x)
+    - Chai (v5.x)
+    - @Wdio/Allure (v5.x)
+    - Axe-core(v3.x)
+- Features:
+    - Accessibility testing with Axe-core
+    - TypeScript [Page Object](PageObjects.md) Models
+    - TypesScript Models
+    - Code Prettier
+    - HTML report with Allure
+    - Single test case for development purposes
+
 ### [luuizeduardo/wdio-automation](https://github.com/luuizeduardo/wdio-automation)
 
 A boilerplate to run E2E tests with Mocha and generate test reports gracefully.
@@ -45,61 +118,6 @@ A powerful boilerplate project to run E2E tests with Cucumber.
     - Multiple reports (Spec, Dot, Allure, Timeline)
     - Code formatter (ESlint, Prettier)
     - Husky
-
-### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
-
-- Framework: Jasmine (v3.x)
-- Features:
-    - [Page Object](PageObjects.md)s Model used with ES6 style class-based approach, and full ES6–ES8 support through Babel
-    - Task manage through Grunt
-    - Multiple reporting (Spec, Junit, Allure), plus local view of JUnit report (`.html`) format
-    - Jasmine Spec examples with assert module and Jasmine-specific assertions using demo app http://www.phptravels.net
-    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack and SauceLabs
-    - Examples of reading and writing from MS-Excel documentsfor easy test data management from external data sources
-    - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), query execution, and fetching result sets
-
-### [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
-
-- Framework: Mocha (v5.x)
-- Features:
-    - [Page Object](PageObjects.md)s Model used with ES6 style class-based approach, and full ES6–ES8 support through Babel
-    - Task management through Grunt
-    - Multiple reporting (Spec, Junit, Allure), plus local view of Junit report (`.html`) format
-    - Mocha Spec examples with `assert` module and Jasmine-specific assertions using demo app http://www.phptravels.net
-    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack & SauceLabs
-    - Examples of reading and writing from MS-Excel documents for easy test data management from external data sources
-    - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica, etc.), query execution, and fetching result sets
-
-### [jpolley/WebdriverIO_v5_TypeScript](https://github.com/jpolley/WebdriverIO_v5_TypeScript)
-
-This boilerplate uses the following:
-
-- Framework: Mocha
-- Features:
-    - TypeScript Setup
-    - [Page Object](PageObjects.md) Pattern
-    - Chai integration
-    - CI examples (CircleCI, Travis CI, Jenkins)
-    - Allure reporter
-
-### [DaleNguyen/WebdriverIO-TypeScript-Boilerplate](https://github.com/dalenguyen/WebdriverIO-TypeScript-Boilerplate)
-
-This project creates a powerful boilerplate for UI Automation Testing with WebdriverIO, TypeScript, Mocha, Chai, and Allure reporting.
-
-- Frameworks:
-    - WebdriverIO (v5.x)
-    - TypeScript(v3.x)
-    - @Types/Mocha (v5.x)
-    - Chai (v5.x)
-    - @Wdio/Allure (v5.x)
-    - Axe-core(v3.x)
-- Features:
-    - Accessibility testing with Axe-core
-    - TypeScript [Page Object](PageObjects.md) Models
-    - TypesScript Models
-    - Code Prettier
-    - HTML report with Allure
-    - Single test case for development purposes
 
 ### [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
@@ -168,22 +186,6 @@ Designed to be quick to get you started without getting terribly complex.
 ----
 
 ## v4 Boilerplate Projects
-
-### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD/tree/wdio-v4)
-
-- Framework: Cucumber (v3.x)
-- Features:
-    - [Page Object](PageObjects.md) Models used with ES6 style class-based approach, and full ES6–ES8 support through Babel
-    - Examples of multi selector option to query elements with more than one selector at a time
-    - Examples of headless browser execution, using PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of reading and writing from MS-Excel documentsfor easy test data management from external data sources with examples
-    - Database support for any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing queries, fetching result sets, and so on. Includes examples of E2E testing.
-    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
-    - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com  and http://www.phptravels.net, Chai assertion liberary (`expect`, `assert`, `should`)
-    - Appium-specific `.config` file for playback on mobile device. For one-click Appium setup, refer to: [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
-
 
 ### [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
