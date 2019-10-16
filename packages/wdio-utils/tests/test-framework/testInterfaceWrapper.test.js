@@ -80,13 +80,17 @@ describe('wrapTestFunction', () => {
 describe('runTestInFiberContext', () => {
     it('should wrap skip and only functions', () => {
         const skipFn = () => { }
+        const onlyFn = function (...args) { return global.foobar(...args) }
         global.foobar = testFunction
-        global.foobar.only = testFnWrapper
+        global.foobar.only = onlyFn
         global.foobar.skip = skipFn
         runTestInFiberContext(true, 'beforeFn', () => [], 'afterFn', () => [], 'foobar', 'cid')
 
+        expect(global.foobar.skip).toBe(skipFn)
+        expect(global.foobar.only).toBe(onlyFn)
+
         const specFn = jest.fn()
-        global.foobar('test title', specFn, 3)
+        global.foobar.only('test title', specFn, 3)
         expect(testFnWrapper).toBeCalledWith(
             'Test',
             { specFn, specFnArgs: ['foo', 'bar'] },
