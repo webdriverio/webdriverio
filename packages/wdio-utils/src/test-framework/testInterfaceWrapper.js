@@ -9,6 +9,8 @@
 import { filterSpecArgs } from '../utils'
 import { testFnWrapper } from './testFnWrapper'
 
+const MOCHA_COMMANDS = ['skip', 'only']
+
 /**
  * runs a hook within fibers context (if function name is not async)
  * it also executes before/after hook
@@ -103,19 +105,18 @@ export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn
 export const runTestInFiberContext = function (isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, fnName, cid, scope = global) {
     const origFn = scope[fnName]
     scope[fnName] = wrapTestFunction(origFn, isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid)
+    addMochaCommands(origFn, scope[fnName])
+}
 
-    /**
-     * support it.skip for the Mocha framework
-     */
-    if (typeof origFn.skip === 'function') {
-        scope[fnName].skip = origFn.skip
-    }
-
-    /**
-     * wrap it.only for the Mocha framework
-     */
-    if (typeof origFn.only === 'function') {
-        const origOnlyFn = origFn.only
-        scope[fnName].only = wrapTestFunction(origOnlyFn, isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid)
-    }
+/**
+ * support `it.skip` and `it.only` for the Mocha framework
+ * @param {Function} origFn original function
+ * @param {function} newFn  wrapped function
+ */
+function addMochaCommands (origFn, newFn) {
+    MOCHA_COMMANDS.forEach((commandName) => {
+        if (typeof origFn[commandName] === 'function') {
+            newFn[commandName] = origFn[commandName]
+        }
+    })
 }
