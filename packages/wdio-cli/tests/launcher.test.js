@@ -67,7 +67,8 @@ describe('launcher', () => {
 
         it('should ignore specFileRetries in watch mode', () => {
             launcher.runSpecs = jest.fn()
-            launcher.runMode({ specs: './', specFileRetries: 2, watch: true }, [caps, caps])
+            launcher.isWatchMode = true
+            launcher.runMode({ specs: './', specFileRetries: 2 }, [caps, caps])
 
             expect(launcher.schedule).toHaveLength(2)
             expect(launcher.schedule[0].specs[0].retries).toBe(0)
@@ -136,6 +137,31 @@ describe('launcher', () => {
             launcher.endHandler({ cid: 1, exitCode: 0 })
             expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: 1, passed: true })
             expect(launcher.resolve).toBeCalledTimes(0)
+        })
+
+        it('should do nothing if watch mode is still running', () => {
+            launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
+            launcher.isWatchMode = true
+            launcher.runSpecs = jest.fn().mockReturnValue(1)
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
+            launcher.interface.emit = jest.fn()
+            launcher.resolve = jest.fn()
+            launcher.endHandler({ cid: 1, exitCode: 1 })
+            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: 1, passed: false })
+            expect(launcher.resolve).toBeCalledTimes(0)
+        })
+
+        it('should resolve and not emit on watch mode stop', () => {
+            launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
+            launcher.isWatchMode = true
+            launcher.hasTriggeredExitRoutine = true
+            launcher.runSpecs = jest.fn().mockReturnValue(1)
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
+            launcher.interface.emit = jest.fn()
+            launcher.resolve = jest.fn()
+            launcher.endHandler({ cid: 1, exitCode: 1 })
+            expect(launcher.interface.emit).not.toBeCalled()
+            expect(launcher.resolve).toBeCalledWith(0)
         })
 
         it('should reschedule when runner failed and retries remain', () => {
