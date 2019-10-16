@@ -15,6 +15,56 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.15.1 (2019-10-16)
+
+#### :rocket: New Feature
+* `wdio-protocols`
+  * [#4617](https://github.com/webdriverio/webdriverio/pull/4617) Add new custom sauce command: jankinessCheck ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#4629](https://github.com/webdriverio/webdriverio/pull/4629) Fix tagged hooks in Cucumber ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4627](https://github.com/webdriverio/webdriverio/pull/4627) Fix getting identifier for multiple tables ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-utils`
+  * [#4641](https://github.com/webdriverio/webdriverio/pull/4641) Avoid wrapping it.only fn ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4633](https://github.com/webdriverio/webdriverio/pull/4633) Add jasmine title to hook ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-config`
+  * [#4640](https://github.com/webdriverio/webdriverio/pull/4640) Fix watch mode ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`
+  * [#4637](https://github.com/webdriverio/webdriverio/pull/4637) Remove default path in cli ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4634](https://github.com/webdriverio/webdriverio/pull/4634) Move cbt to internal services in wdio-cli ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#4609](https://github.com/webdriverio/webdriverio/pull/4609) reset _NOT_FIBER flag on Timer timeout ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`
+  * [#4610](https://github.com/webdriverio/webdriverio/pull/4610) Avoid running command hooks while in command hook ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-config`, `wdio-runner`
+  * [#4623](https://github.com/webdriverio/webdriverio/pull/4623) Filter services that should not run in worker process ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-spec-reporter`
+  * [#4624](https://github.com/webdriverio/webdriverio/pull/4624) Replace table with easy-table in @wdio/spec-repoter ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* Other
+  * [#4593](https://github.com/webdriverio/webdriverio/pull/4593) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+* `wdio-junit-reporter`
+  * [#4607](https://github.com/webdriverio/webdriverio/pull/4607) Update wdio-junit-reporter doc ([@shinxi](https://github.com/shinxi))
+* `wdio-devtools-service`
+  * [#4608](https://github.com/webdriverio/webdriverio/pull/4608) Update README.md ([@ducle91](https://github.com/ducle91))
+
+#### :house: Internal
+* `wdio-sync`
+  * [#4620](https://github.com/webdriverio/webdriverio/pull/4620) wdio-sync: convert executeAsync to async/await ([@MatthewBurstein](https://github.com/MatthewBurstein))
+  * [#4612](https://github.com/webdriverio/webdriverio/pull/4612) Wdio sync executeAsync tests ([@MatthewBurstein](https://github.com/MatthewBurstein))
+
+#### Committers: 6
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Duc Le ([@ducle91](https://github.com/ducle91))
+- Jonathan Xi ([@shinxi](https://github.com/shinxi))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@MatthewBurstein](https://github.com/MatthewBurstein)
+
 ## v5.15.0 (2019-10-11)
 
 #### :rocket: New Feature
