@@ -65,6 +65,11 @@ export default class ConfigParser {
              * detect Selenium backend
              */
             this._config = merge(detectBackend(this._config, isRDC), this._config, MERGE_OPTIONS)
+
+            /**
+             * remove `watch` from config as far as it can be only passed as command line argument
+             */
+            delete this._config.watch
         } catch (e) {
             log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e
