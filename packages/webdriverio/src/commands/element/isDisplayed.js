@@ -41,7 +41,7 @@
  */
 
 import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject, hasElementId } from '../../utils'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
 
 const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome']
@@ -50,19 +50,7 @@ export default async function isDisplayed() {
 
     let browser = getBrowserObject(this)
 
-    /*
-     * This is only necessary as isDisplayed is on the exclusion list for the middleware
-     */
-    if (!this.elementId) {
-        const method = this.isReactElement ? 'react$' : '$'
-
-        this.elementId = (await this.parent[method](this.selector)).elementId
-    }
-
-    /*
-     * if element was still not found it also is not displayed
-     */
-    if (!this.elementId) {
+    if (!await hasElementId(this)) {
         return false
     }
 

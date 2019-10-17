@@ -37,10 +37,14 @@
  */
 
 import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject, hasElementId } from '../../utils'
 import isDisplayedInViewportScript from '../../scripts/isDisplayedInViewport'
 
-export default function isDisplayedInViewport () {
+export default async function isDisplayedInViewport () {
+    if (!await hasElementId(this)) {
+        return false
+    }
+
     return getBrowserObject(this).execute(isDisplayedInViewportScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible

@@ -28,6 +28,12 @@ describe('isDisplayedInViewport test', () => {
         })
     })
 
+    it('should return false if element can\'t be found after refetching it', async () => {
+        const elem = await browser.$('#nonexisting')
+        expect(await elem.isDisplayedInViewport()).toBe(false)
+        expect(request).toBeCalledTimes(2)
+    })
+
     afterEach(() => {
         request.mockClear()
     })
