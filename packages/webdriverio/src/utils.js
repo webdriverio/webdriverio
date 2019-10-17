@@ -360,3 +360,22 @@ export function validateUrl (url, origError) {
 export function getScrollPosition (scope) {
     return getBrowserObject(scope).execute('return { scrollX: this.pageXOffset, scrollY: this.pageYOffset };')
 }
+
+export async function hasElementId (element) {
+    /*
+     * This is only necessary as isDisplayed is on the exclusion list for the middleware
+     */
+    if (!element.elementId) {
+        const method = element.isReactElement ? 'react$' : '$'
+
+        element.elementId = (await element.parent[method](element.selector)).elementId
+    }
+
+    /*
+     * if element was still not found it also is not displayed
+     */
+    if (!element.elementId) {
+        return false
+    }
+    return true
+}
