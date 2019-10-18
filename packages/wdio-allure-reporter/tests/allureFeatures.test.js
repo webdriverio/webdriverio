@@ -278,14 +278,14 @@ describe('reporter runtime implementation', () => {
         })
 
         it('should correctly add argument for selenium', () => {
-            reporter.onRunnerStart({ config: { capabilities: { browserName: 'firefox', version: '1.2.3' } } })
+            reporter.onRunnerStart({ config: { }, capabilities: { browserName: 'firefox', version: '1.2.3' } })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
             expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'firefox-1.2.3')
         })
 
         it('should correctly add argument for appium', () => {
-            reporter.onRunnerStart({ config: { capabilities: { deviceName: 'Android Emulator', platformVersion: '8.0' } } })
+            reporter.onRunnerStart({ config: { }, capabilities: { deviceName: 'Android Emulator', platformVersion: '8.0' } })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
             expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Android Emulator-8.0')
