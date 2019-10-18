@@ -14,6 +14,7 @@ export const getSize = require('./element/getSize').default
 export const getTagName = require('./element/getTagName').default
 export const getText = require('./element/getText').default
 export const getValue = require('./element/getValue').default
+export const isClickable = require('./element/isClickable').default
 export const isDisplayed = require('./element/isDisplayed').default
 export const isDisplayedInViewport = require('./element/isDisplayedInViewport').default
 export const isEnabled = require('./element/isEnabled').default

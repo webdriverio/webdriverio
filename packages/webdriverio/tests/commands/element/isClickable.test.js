@@ -5,7 +5,7 @@
 import request from 'request'
 import { remote } from '../../../src'
 
-describe('isDisplayedInViewport test', () => {
+describe('isClickable test', () => {
     let browser
     let elem
 
@@ -21,7 +21,7 @@ describe('isDisplayedInViewport test', () => {
     })
 
     it('should allow to check if element is displayed', async () => {
-        await elem.isDisplayedInViewport()
+        await elem.isClickable()
         expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
         expect(request.mock.calls[1][0].body.args[0]).toEqual({
@@ -32,7 +32,7 @@ describe('isDisplayedInViewport test', () => {
 
     it('should return false if element can\'t be found after refetching it', async () => {
         const elem = await browser.$('#nonexisting')
-        expect(await elem.isDisplayedInViewport()).toBe(false)
+        expect(await elem.isClickable()).toBe(false)
         expect(request).toBeCalledTimes(2)
     })
 
