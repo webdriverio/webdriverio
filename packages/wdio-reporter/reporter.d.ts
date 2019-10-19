@@ -6,8 +6,8 @@ declare namespace WDIOReporter {
         constructor (options: Options);
 
         onRunnerStart(): void;
-        onBeforeCommand(): void;
-        onAfterCommand(): void;
+        onBeforeCommand(command: BeforeCommand): void;
+        onAfterCommand(command: AfterCommand): void;
         onScreenshot(): void;
         onSuiteStart(suite: Suite): void;
         onHookStart(hook: Hook): void;
@@ -61,8 +61,24 @@ declare namespace WDIOReporter {
         expected: any;
         actual: any;
     }
-}
 
+    interface BeforeCommand {
+        method: string;
+        endpoint: string;
+        body: any;
+        sessionId: string;
+        cid: string;
+    }
+
+    interface AfterCommand {
+        method: string;
+        endpoint: string;
+        body?: any;
+        result?: any;
+        sessionId: string;
+        cid: string;
+    }
+}
 declare module "@wdio/reporter" {
     export default WDIOReporter.Reporter;
 }

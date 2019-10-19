@@ -39,6 +39,23 @@ const options: WDIOReporter.Options = {
     logLevel: ''
 }
 
+const beforeCommand: WDIOReporter.BeforeCommand = {
+    method: 'GET',
+    endpoint: '/wd',
+    body: {},
+    sessionId: 'foo',
+    cid: '0-0',
+}
+
+const afterCommand: WDIOReporter.AfterCommand = {
+    method: 'GET',
+    endpoint: '/wd',
+    body: {},
+    result: {},
+    sessionId: 'foo',
+    cid: '0-0',
+}
+
 class CustomReporter extends WDIOReporter {
     constructor(options: WDIOReporter.Options) {
         super(options)
