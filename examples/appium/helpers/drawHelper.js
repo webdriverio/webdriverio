@@ -3,10 +3,10 @@ const k = 450
 const r = 100
 
 /**
- * simple helper function to draw a circle
- * @param  {Number} h    horizontal center of the circle
- * @param  {Number} k    vertical center of the circle
- * @return {Actions[]}   list of actions for touchAction command
+ * Simple helper function to draw a circle.
+ * @param  {Number} h - horizontal center of the circle
+ * @param  {Number} k - vertical center of the circle
+ * @return {Actions[]} - list of actions for touchAction command
  */
 export function circleAction (h, k) {
     let theta = 0
@@ -25,10 +25,10 @@ export function circleAction (h, k) {
 }
 
 /**
- * helper function to draw an arc
- * @param  {Numver} start start point
- * @param  {Number} end   end point
- * @return {Actions[]}    list of action for touchAction command
+ * Helper function to draw an arc.
+ * @param  {Numver} start - Start point
+ * @param  {Number} end - End point
+ * @return {Actions[]} - List of action for touchAction command
  */
 export function arcAction(start, end) {
     let theta = start
@@ -47,10 +47,10 @@ export function arcAction(start, end) {
 }
 
 /**
- * helper function to draw an curved arc
- * @param  {Numver} start start point
- * @param  {Number} end   end point
- * @return {Actions[]}    list of action for touchAction command
+ * Helper function to draw an curved arc.
+ * @param  {Numver} start - Start point
+ * @param  {Number} end - End point
+ * @return {Actions[]} - List of actions for touchAction command
  */
 export function innerArcAction(start, end) {
     let theta = start

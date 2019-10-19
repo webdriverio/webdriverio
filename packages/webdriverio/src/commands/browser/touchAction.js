@@ -50,7 +50,7 @@
     });
  * </example>
  *
- * @param {String|Object[]} action    action to execute
+ * @param {String|Object[]} action - Action to execute
  *
  * @see https://saucelabs.com/blog/appium-sauce-labs-bootcamp-chapter-2-touch-actions
  * @type mobile

@@ -24,9 +24,9 @@
  */
 
 /**
- * check if element is visible
- * @param  {HTMLElement} elem  element to check
- * @return {Boolean}           true if element is within viewport
+ * Check if element is visible.
+ * @param  {HTMLElement} elem  - Element to check
+ * @return {Boolean}           - True if element is within viewport
  */
 export default function isElementDisplayed(element) {
     function nodeIsElement(node) {

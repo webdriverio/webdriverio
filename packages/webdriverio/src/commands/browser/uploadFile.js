@@ -17,10 +17,10 @@
  * </example>
  *
  * @alias browser.uploadFile
- * @param {String} localPath local path to file
+ * @param {String} localPath - Local path to file
  * @type utility
  * @uses protocol/file
- * @return {String} remote URL
+ * @return {String} - Remote URL
  */
 import fs from 'fs'
 import path from 'path'

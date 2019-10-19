@@ -5,8 +5,8 @@
  * no offset, the mouse will be moved to the center of the element. If the element
  * is not visible, it will be scrolled into view.
  *
- * @param {Number=} xoffset  X offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
- * @param {Number=} yoffset  Y offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
+ * @param {Number=} xoffset  -  X offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
+ * @param {Number=} yoffset  -  Y offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
  *
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
@@ -20,7 +20,7 @@ export default async function moveTo (xoffset, yoffset) {
     }
 
     /**
-     * get rect of element
+     * Get rect of element.
      */
     const { x, y, width, height } = await getElementRect(this)
     const { scrollX, scrollY } = await getScrollPosition(this)
@@ -28,7 +28,7 @@ export default async function moveTo (xoffset, yoffset) {
     const newYoffset = parseInt(y + (typeof yoffset === 'number' ? yoffset : (height / 2)), 10) - scrollY
 
     /**
-     * W3C way of handle the mouse move actions
+     * W3C way to handle mouse move actions.
      */
     return this.performActions([{
         type: 'pointer',

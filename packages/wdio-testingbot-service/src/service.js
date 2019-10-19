@@ -25,16 +25,16 @@ export default class TestingBotService {
     }
 
     /**
-     * Before suite
-     * @param {Object} suite Suite
+     * Before suite.
+     * @param {Object} suite - Suite
     */
     beforeSuite (suite) {
         this.suiteTitle = suite.title
     }
 
     /**
-     * Before test
-     * @param {Object} test Test
+     * Before test.
+     * @param {Object} test - Test
     */
     beforeTest (test) {
         if (!this.isServiceEnabled) {
@@ -42,9 +42,9 @@ export default class TestingBotService {
         }
 
         /**
-         * in jasmine we get Jasmine__TopLevel__Suite as title since service using test
+         * In Jasmine, we get `'Jasmine__TopLevel__Suite'` as title since service using test
          * framework hooks in order to execute async functions.
-         * This tweak allows us to set the real suite name for jasmine jobs.
+         * This tweak allows us to set the real suite name for Jasmine jobs.
          */
         /* istanbul ignore if */
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
@@ -64,7 +64,7 @@ export default class TestingBotService {
 
     /**
      * After test
-     * @param {Object} test Test
+     * @param {Object} test - Test
      */
     afterTest (test) {
         if (!test.passed) {
@@ -77,7 +77,7 @@ export default class TestingBotService {
      */
 
     /**
-     * Before feature
+     * Before feature.
      * @param {string} uri
      * @param {Object} feature
      */
@@ -91,7 +91,7 @@ export default class TestingBotService {
     }
 
     /**
-     * Before scenario
+     * Before scenario.
      * @param {string} uri
      * @param {Object} feature
      * @param {Object} scenario
@@ -105,7 +105,7 @@ export default class TestingBotService {
     }
 
     /**
-     * After scenario
+     * After scenario.
      * @param {string} uri
      * @param {Object} feature
      * @param {Object} pickle
@@ -118,8 +118,8 @@ export default class TestingBotService {
     }
 
     /**
-     * Update TestingBot info
-     * @return {Promise} Promise with result of updateJob method call
+     * Update TestingBot info.
+     * @return {Promise} - Result of `updateJob` method call
      */
     after (result) {
         if (!this.isServiceEnabled) {
@@ -187,8 +187,8 @@ export default class TestingBotService {
 
     /**
      *
-     * @param   {String} sessionId Session id
-     * @returns {String}           TestingBot API URL
+     * @param   {String} sessionId - Session id
+     * @returns {String} - TestingBot API URL
      */
     getRestUrl (sessionId) {
         return `https://api.testingbot.com/v1/tests/${sessionId}`

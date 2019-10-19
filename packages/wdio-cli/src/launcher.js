@@ -56,12 +56,12 @@ class Launcher {
     }
 
     /**
-     * run sequence
-     * @return  {Promise}               that only gets resolves with either an exitCode or an error
+     * Run sequence.
+     * @return  {Promise} - Resolves only with an exitCode or an error
      */
     async run () {
         /**
-         * catches ctrl+c event
+         * Catches ctrl+C event
          */
         exitHook(::this.exitHandler)
         let exitCode
@@ -73,13 +73,13 @@ class Launcher {
             const launcher = initialiseServices(config, caps, 'launcher')
 
             /**
-             * run pre test tasks for runner plugins
-             * (e.g. deploy Lambda function to AWS)
+             * Run pre-test tasks for runner plugins.
+             * (e.g., deploy Lambda function to AWS)
              */
             await this.runner.initialise()
 
             /**
-             * run onPrepare hook
+             * Run onPrepare hook.
              */
             log.info('Run onPrepare hook')
             await runOnPrepareHook(config.onPrepare, config, caps)
@@ -88,15 +88,15 @@ class Launcher {
             exitCode = await this.runMode(config, caps)
 
             /**
-             * run onComplete hook
-             * even if it fails we still want to see result and end logger stream
+             * Run onComplete hook.
+             * Even if it fails, we still want to see results and end logger stream.
              */
             log.info('Run onComplete hook')
             await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
 
             const onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
 
-            // if any of the onComplete hooks failed, update the exit code
+            // If any of the onComplete hooks failed, update the exit code.
             exitCode = onCompleteResults.includes(1) ? 1 : exitCode
 
             await logger.waitForBuffer()
@@ -118,11 +118,11 @@ class Launcher {
     }
 
     /**
-     * run without triggering onPrepare/onComplete hooks
+     * Run without triggering `onPrepare`/`onComplete` hooks.
      */
     runMode (config, caps) {
         /**
-         * fail if no caps were found
+         * Fail if no capabilities were found.
          */
         if (!caps || (!this.isMultiremote && !caps.length)) {
             return new Promise((resolve) => {
@@ -132,12 +132,12 @@ class Launcher {
         }
 
         /**
-         * avoid retries in watch mode
+         * Avoid retries in watch mode.
          */
         const specFileRetries = this.isWatchMode ? 0 : config.specFileRetries
 
         /**
-         * schedule test runs
+         * Schedule test runs.
          */
         let cid = 0
         if (this.isMultiremote) {
@@ -171,7 +171,7 @@ class Launcher {
             this.resolve = resolve
 
             /**
-             * fail if no specs were found or specified
+             * Fail if no specs were found or specified.
              */
             if (Object.values(this.schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
                 log.error('No specs found to run, exiting with failure')
@@ -179,7 +179,7 @@ class Launcher {
             }
 
             /**
-             * return immediately if no spec was run
+             * Return immediately if no spec was run.
              */
             if (this.runSpecs()) {
                 resolve(0)
@@ -188,14 +188,14 @@ class Launcher {
     }
 
     /**
-     * run multiple single remote tests
-     * @return {Boolean} true if all specs have been run and all instances have finished
+     * Run multiple single remote tests.
+     * @return {Boolean} - True if all specs have been run and all instances have finished
      */
     runSpecs () {
         let config = this.configParser.getConfig()
 
         /**
-         * stop spawning new processes when CTRL+C was triggered
+         * Stop spawning new processes if CTRL+C was triggered
          */
         if (this.hasTriggeredExitRoutine) {
             return true
@@ -204,14 +204,14 @@ class Launcher {
         while (this.getNumberOfRunningInstances() < config.maxInstances) {
             let schedulableCaps = this.schedule
                 /**
-                 * bail if number of errors exceeds allowed
+                 * Bail if error count exceeds allowed
                  */
                 .filter(() => {
                     const filter = typeof config.bail !== 'number' || config.bail < 1 ||
                                    config.bail > this.runnerFailed
 
                     /**
-                     * clear number of specs when filter is false
+                     * Clear number of specs when filter is false.
                      */
                     if (!filter) {
                         this.schedule.forEach((t) => { t.specs = [] })
@@ -220,24 +220,24 @@ class Launcher {
                     return filter
                 })
                 /**
-                 * make sure complete number of running instances is not higher than general maxInstances number
+                 * Ensure the total number of running instances is not higher than general maxInstances number
                  */
                 .filter(() => this.getNumberOfRunningInstances() < config.maxInstances)
                 /**
-                 * make sure the capability has available capacities
+                 * Ensure the capability has available capacities.
                  */
                 .filter((a) => a.availableInstances > 0)
                 /**
-                 * make sure capability has still caps to run
+                 * Ensure capability has still caps to run.
                  */
                 .filter((a) => a.specs.length > 0)
                 /**
-                 * make sure we are running caps with less running instances first
+                 * Ensure we are running caps with less running instances first.
                  */
                 .sort((a, b) => a.runningInstances > b.runningInstances)
 
             /**
-             * continue if no capability were schedulable
+             * Continue if no capabilities were schedulable.
              */
             if (schedulableCaps.length === 0) {
                 break
@@ -260,16 +260,16 @@ class Launcher {
     }
 
     /**
-     * gets number of all running instances
-     * @return {number} number of running instances
+     * Gets number of all running instances.
+     * @return {number} - Number of running instances
      */
     getNumberOfRunningInstances () {
         return this.schedule.map((a) => a.runningInstances).reduce((a, b) => a + b)
     }
 
     /**
-     * get number of total specs left to complete whole suites
-     * @return {number} specs left to complete suite
+     * Get number of total specs remaining to complete whole suites.
+     * @return {number} - Specs remaining to complete suite
      */
     getNumberOfSpecsLeft () {
         return this.schedule.map((a) => a.specs.length).reduce((a, b) => a + b)
@@ -277,10 +277,10 @@ class Launcher {
 
     /**
      * Start instance in a child process.
-     * @param  {Array} specs  Specs to run
-     * @param  {Number} cid  Capabilities ID
-     * @param  {String} rid  Runner ID override
-     * @param  {Number} retries  Number of retries remaining
+     * @param  {Array} specs    - Specs to run
+     * @param  {Number} cid     - Capabilities ID
+     * @param  {String} rid     - Runner ID override
+     * @param  {Number} retries - Number of retries remaining
      */
     startInstance (specs, caps, cid, server, rid, retries) {
         let config = this.configParser.getConfig()
@@ -346,9 +346,9 @@ class Launcher {
     }
 
     /**
-     * generates a runner id
-     * @param  {Number} cid capability id (unique identifier for a capability)
-     * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
+     * Generates a runner ID.
+     * @param  {Number} cid - Capability ID (unique identifier for a capability).
+     * @return {String} - Runner ID (combo of `cid` and test id; e.g., 0a, 0b, 1a, 1b ...)
      */
     getRunnerId (cid) {
         if (!this.rid[cid]) {
@@ -358,11 +358,11 @@ class Launcher {
     }
 
     /**
-     * Close test runner process once all child processes have exited
-     * @param  {Number} cid       Capabilities ID
-     * @param  {Number} exitCode  exit code of child process
-     * @param  {Array} specs      Specs that were run
-     * @param  {Number} retries   Number or retries remaining
+     * Close test runner process once all child processes have exited.
+     * @param  {Number} cid       - Capabilities ID
+     * @param  {Number} exitCode  - exit code of child process
+     * @param  {Array} specs      - Specs that were run
+     * @param  {Number} retries   - Number or retries remaining
      */
     endHandler ({ cid, exitCode, specs, retries }) {
         const passed = this.isWatchModeHalted() || exitCode === 0
@@ -405,9 +405,9 @@ class Launcher {
 
     /**
      * We need exitHandler to catch SIGINT / SIGTERM events.
-     * Make sure all started selenium sessions get closed properly and prevent
-     * having dead driver processes. To do so let the runner end its Selenium
-     * session first before killing
+     * Make sure all started Selenium sessions are closed properly. 
+     * Prevent dead driver processes. 
+     * To do so, allow the runner to end its Selenium session first before killing it.
      */
     exitHandler (callback) {
         if (!callback) {

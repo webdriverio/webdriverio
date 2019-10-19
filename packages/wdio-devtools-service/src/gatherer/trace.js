@@ -40,12 +40,12 @@ export default class TraceGatherer extends EventEmitter {
 
     async startTracing (url) {
         /**
-         * delete old trace
+         * Delete old trace
          */
         delete this.trace
 
         /**
-         * register listener for network status monitoring
+         * Register listener for network status monitoring
          */
         const session = await this.driver.getCDPSession()
         this.networkStatusMonitor = new NetworkRecorder()
@@ -62,8 +62,8 @@ export default class TraceGatherer extends EventEmitter {
         })
 
         /**
-         * if this tracing was started from a click event
-         * then we want to discard page trace if no load detected
+         * If this tracing was started from a click event, discard the page trace if 
+         * no load is detected.
          */
         if (url === 'click event') {
             log.info('Start checking for page load for click')
@@ -75,7 +75,7 @@ export default class TraceGatherer extends EventEmitter {
         }
 
         /**
-         * register performance observer
+         * Register performance observer
          */
         await page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
@@ -84,14 +84,14 @@ export default class TraceGatherer extends EventEmitter {
     }
 
     /**
-     * store frame id of frames that are being traced
+     * Store frame id of frames that are being traced.
      */
     async onFrameNavigated (msgObj) {
         if (!this.isTracing) {
             return
         }
         /**
-         * page load failed, cancel tracing
+         * Page load failed. Cancel tracing.
          */
         if (this.failingFrameLoadIds.includes(msgObj.frame.id)) {
             delete this.traceStart
@@ -104,14 +104,14 @@ export default class TraceGatherer extends EventEmitter {
         }
 
         /**
-         * ignore event if
+         * Ignore event if...
          */
         if (
-            // we already detected a frameId before
+            // ...we already detected a frameId before, or...
             this.frameId ||
-            // the event was thrown for a sub frame (e.g. iframe)
+            // ...the event was thrown for a sub frame (e.g., iframe), or...
             msgObj.frame.parentId ||
-            // we don't support the url of given frame
+            // ...we don't support the URL of given frame.
             !isSupportedUrl(msgObj.frame.url)
         ) {
             log.info(`Ignore navigated frame with url ${msgObj.frame.url}`)
@@ -124,11 +124,11 @@ export default class TraceGatherer extends EventEmitter {
         log.info(`Page load detected: ${this.pageUrl}, set frameId ${this.frameId}, set loaderId ${this.loaderId}`)
 
         /**
-         * clear click tracing timeout if it's still waiting
+         * Clear click tracing timeout if it's still waiting.
          *
-         * the reason we have to tie this to Page.frameNavigated instead of Page.frameStartedLoading
+         * The reason we have to tie this to `Page.frameNavigated` instead of `Page.frameStartedLoading`
          * is because the latter can sometimes occur without the former, which will cause a hang
-         * e.g. with duolingo's sign-in button
+         * (e.g., with duolingo's sign-in button).
          */
         if (this.clickTraceTimeout && !this.pageLoadDetected) {
             log.info('Page load detected for click, clearing click trace timeout}')
@@ -140,7 +140,7 @@ export default class TraceGatherer extends EventEmitter {
     }
 
     /**
-     * once the page load event has fired, we can grab some performance
+     * Once the page load event has fired, we can grab some performance
      * metrics and timing
      */
     async onLoadEventFired () {
@@ -201,7 +201,7 @@ export default class TraceGatherer extends EventEmitter {
     }
 
     /**
-     * once tracing has finished capture trace logs into memory
+     * Once tracing has finished, capture trace logs into memory.
      */
     async completeTracing () {
         const traceDuration = Date.now() - this.traceStart
@@ -209,16 +209,16 @@ export default class TraceGatherer extends EventEmitter {
         const page = await this.driver.getActivePage()
 
         /**
-         * download all tracing data
-         * in case it fails, continue without capturing any data
+         * Download all tracing data.
+         * In case it fails, continue without capturing any data.
          */
         try {
             const traceBuffer = await page.tracing.stop()
             const traceEvents = JSON.parse(traceBuffer.toString('utf8'))
 
             /**
-             * modify pid of renderer frame to be the same as where tracing was started
-             * possibly related to https://github.com/GoogleChrome/lighthouse/issues/6968
+             * Modify pid of renderer frame to be the same as where tracing was started
+             * (possibly related to https://github.com/GoogleChrome/lighthouse/issues/6968)
              */
             const startedInBrowserEvt = traceEvents.traceEvents.find(e => e.name === 'TracingStartedInBrowser')
             const mainFrame = (
@@ -256,14 +256,14 @@ export default class TraceGatherer extends EventEmitter {
     }
 
     /**
-     * clear tracing states and emit tracingFinished
+     * Clear tracing states and emit `tracingFinished`.
      */
     finishTracing () {
         log.info(`Tracing for ${this.frameId} completed`)
         this.pageLoadDetected = false
 
         /**
-         * clean up the listeners
+         * Clean up the listeners
          */
         this.driver.getCDPSession().then((session) => {
             NETWORK_RECORDER_EVENTS.forEach(
@@ -283,7 +283,7 @@ export default class TraceGatherer extends EventEmitter {
 
     /**
      * Returns a promise that resolves when the network has been idle (after DCL) for
-     * `networkQuietThresholdMs` ms and a method to cancel internal network listeners/timeout.
+     * `networkQuietThresholdMs` ms, and a method to cancel internal network listeners/timeout.
      * (code from lighthouse source)
      * @param {number} networkQuietThresholdMs
      * @return {{promise: Promise<void>, cancel: function(): void}}

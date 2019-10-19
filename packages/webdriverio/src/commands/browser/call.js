@@ -32,7 +32,7 @@
  * </example>
  *
  * @alias browser.call
- * @param {Function} callback  function to be called
+ * @param {Function} callback - Function to be called
  * @type utility
  *
  */

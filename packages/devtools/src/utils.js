@@ -10,10 +10,10 @@ const log = logger('devtools')
 export const validate = function (command, parameters, variables, ref, args) {
     const commandParams = [...variables.map((v) => Object.assign(v, {
         /**
-         * url variables are:
+         * URL variables are...
          */
-        required: true, // always required as they are part of the endpoint
-        type: 'string'  // have to be always type of string
+        required: true, // ...always required as they are part of the endpoint
+        type: 'string'  // ...have to be always type of string
     })), ...parameters]
 
     const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
@@ -21,7 +21,7 @@ export const validate = function (command, parameters, variables, ref, args) {
     const body = {}
 
     /**
-     * parameter check
+     * Parameter check
      */
     const minAllowedParams = commandParams.filter((param) => param.required).length
     if (args.length < minAllowedParams || args.length > commandParams.length) {
@@ -38,7 +38,7 @@ export const validate = function (command, parameters, variables, ref, args) {
     }
 
     /**
-     * parameter type check
+     * Parameter type check
      */
     for (const [i, arg] of Object.entries(args)) {
         const commandParam = commandParams[i]
@@ -60,7 +60,7 @@ export const validate = function (command, parameters, variables, ref, args) {
         }
 
         /**
-         * rest of args are part of body payload
+         * The remaining args are part of the `body` payload
          */
         body[commandParams[i].name] = arg
     }
@@ -83,7 +83,7 @@ export function getPrototype (commandWrapper) {
 
 export async function findElement (context, using, value) {
     /**
-     * implicitly wait for the element if timeout is set
+     * Implicitly wait for the element if timeout is set.
      */
     const implicitTimeout = this.timeouts.get('implicit')
     const waitForFn = using === 'xpath' ? context.waitForXPath : context.waitForSelector
@@ -98,7 +98,7 @@ export async function findElement (context, using, value) {
             : await context.$(value)
     } catch (err) {
         /**
-         * throw if method failed for other reasons
+         * Throw if method failed for other reasons
          */
         if (!err.message.includes('failed to find element')) {
             throw err
@@ -115,7 +115,7 @@ export async function findElement (context, using, value) {
 
 export async function findElements (context, using, value) {
     /**
-     * implicitly wait for the element if timeout is set
+     * Implicitly wait for the element if timeout is set.
      */
     const implicitTimeout = this.timeouts.get('implicit')
     const waitForFn = using === 'xpath' ? context.waitForXPath : context.waitForSelector
@@ -137,8 +137,8 @@ export async function findElements (context, using, value) {
 }
 
 /**
- * convert DevTools errors into WebDriver errors so tools upstream
- * can handle it in similar fashion (e.g. stale element)
+ * Convert DevTools errors into WebDriver errors, so tools upstream
+ * can handle it in similar fashion (e.g., stale element).
  */
 export function sanitizeError (err) {
     let errorMessage = err.message
@@ -157,7 +157,7 @@ export function sanitizeError (err) {
 }
 
 /**
- * transform elements in argument list to Puppeteer element handles
+ * Transform elements in argument list to Puppeteer element handles.
  */
 export function transformExecuteArgs (args = []) {
     return args.map((arg) => {
@@ -176,7 +176,7 @@ export function transformExecuteArgs (args = []) {
 }
 
 /**
- * fetch marked elements from execute script
+ * Fetch marked elements from execute script.
  */
 export async function transformExecuteResult (page, result) {
     const isResultArray = Array.isArray(result)
@@ -209,12 +209,12 @@ export function getStaleElementError (elementId) {
 
 /**
  * Helper function to get a list of Puppeteer pages from a Chrome browser.
- * In case many headless browser are run in parallel there are situations
+ * In case many headless browsers are running in parallel, there are situations
  * where there are no pages because the machine is busy booting the headless
  * browser.
  *
- * @param  {Puppeteer.Browser} browser  browser instance
- * @return {Puppeteer.Page[]}           list of browser pages
+ * @param  {Puppeteer.Browser} browser  - Browser instance
+ * @return {Puppeteer.Page[]}           - List of browser pages
  */
 export async function getPages (browser, retryInterval = 100) {
     const pages = await browser.pages()

@@ -4,9 +4,9 @@ import implicitWait from './utils/implicitWait'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
- * that wasn't found on the page and automatically waits for it
+ * that wasn't found on the page and automatically waits for it.
  *
- * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
+ * @param  {Function} fn - commandWrap from `wdio-sync` package (or shim if not running in sync)
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
     return function elementErrorHandlerCallback (...args) {
@@ -44,7 +44,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
 }
 
 /**
- * handle single command calls from multiremote instances
+ * Handle single command calls from multiremote instances.
  */
 export const multiremoteHandler = (wrapCommand) => (commandName) => {
     return wrapCommand(commandName, function (...args) {

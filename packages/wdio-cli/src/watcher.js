@@ -24,14 +24,14 @@ export default class Watcher {
 
     async watch () {
         /**
-         * listen on spec changes and rerun specific spec file
+         * Listen on spec changes and rerun specific spec file
          */
         chokidar.watch(this.specs, { ignoreInitial: true })
             .on('add', this.getFileListener())
             .on('change', this.getFileListener())
 
         /**
-         * listen on filesToWatch changes an rerun complete suite
+         * Listen on filesToWatch changes and rerun complete suite
          */
         const { filesToWatch } = this.launcher.configParser.getConfig()
         if (filesToWatch.length) {
@@ -41,12 +41,12 @@ export default class Watcher {
         }
 
         /**
-         * run initial test suite
+         * Run initial test suite.
          */
         await this.launcher.run()
 
         /**
-         * clean interface once all worker finish
+         * Clean interface once all workers are finished.
          */
         const workers = this.getWorkers()
         Object.values(workers).forEach((worker) => worker.on('exit', () => {
@@ -62,9 +62,9 @@ export default class Watcher {
     }
 
     /**
-     * return file listener callback that calls `run` method
-     * @param  {Boolean}  [passOnFile=true]  if true pass on file change as parameter
-     * @return {Function}                    chokidar event callback
+     * Return file listener callback that calls `run` method.
+     * @param  {Boolean}  [passOnFile=true] - If true, pass on file change as parameter
+     * @return {Function}                   - chokidar event callback
      */
     getFileListener (passOnFile = true) {
         return (spec) => this.run(
@@ -73,10 +73,10 @@ export default class Watcher {
     }
 
     /**
-     * helper method to get workers from worker pool of wdio runner
-     * @param  {Function} pickBy             filter by property value (see lodash.pickBy)
-     * @param  {Boolean}  includeBusyWorker  don't filter out busy worker (default: false)
-     * @return {Object}                      Object with workers, e.g. {'0-0': { ... }}
+     * Helper method to get workers from the worker pool of WDIO runner.
+     * @param  {Function} pickBy             - Filter by property value (see lodash.pickBy)
+     * @param  {Boolean}  includeBusyWorker  - Don't filter out busy worker (default: false)
+     * @return {Object} - Object with workers, e.g. {'0-0': { ... }}
      */
     getWorkers (pickByFn, includeBusyWorker) {
         let workers = this.launcher.runner.workerPool
@@ -86,7 +86,7 @@ export default class Watcher {
         }
 
         /**
-         * filter out busy workers, only skip if explicitely desired
+         * Filter out busy workers. Only skip if explicitly desired.
          */
         if (!includeBusyWorker) {
             workers = pickBy(workers, (worker) => !worker.isBusy)
@@ -96,33 +96,33 @@ export default class Watcher {
     }
 
     /**
-     * run workers with params
-     * @param  {Object} [params={}]  parameters to run the worker with
+     * Run workers with params.
+     * @param  {Object} [params={}] - Parameters to run the worker with
      */
     run (params = {}) {
         const workers = this.getWorkers(
             params.spec ? (worker) => worker.specs.includes(params.spec) : null)
 
         /**
-         * don't do anything if no worker was found
+         * do nothing if no workers are found
          */
         if (Object.keys(workers).length === 0) {
             return
         }
 
         /**
-         * update total worker count interface
-         * ToDo: this should have a cleaner solution
+         * Update total worker count interface.
+         * @TODO: This should have a cleaner solution
          */
         this.launcher.interface.totalWorkerCnt = Object.entries(workers).length
 
         /**
-         * clean up interface
+         * Clean up interface.
          */
         this.cleanUp()
 
         /**
-         * trigger new run for non busy worker
+         * Trigger new run for non-busy worker
          */
         for (const [, worker] of Object.entries(workers)) {
             const { cid, caps, specs, sessionId } = worker

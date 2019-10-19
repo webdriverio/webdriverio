@@ -8,20 +8,20 @@ const log = logger('@wdio/sync')
  * It will return with a reject promise due to a design decision to not let hooks/service intefer the
  * actual test process.
  *
- * @param  {Function|Function[]} hooks  list of hooks
- * @param  {Object[]} args  list of parameter for hook functions
- * @return {Promise}  promise that gets resolved once all hooks finished running
+ * @param  {Function|Function[]} hooks - A hook, or list of hooks
+ * @param  {Object[]} args             - List of parameters for hook functions
+ * @return {Promise} - Resolved once all hooks finish running
  */
 export default function executeHooksWithArgs (hooks = [], args) {
     /**
-     * make sure hooks are an array of functions
+     * Ensure `hooks` is an array of functions
      */
     if (typeof hooks === 'function') {
         hooks = [hooks]
     }
 
     /**
-     * make sure args is an array since we are calling apply
+     * Ensure `args` is an array, since we are calling `apply`
      */
     if (!Array.isArray(args)) {
         args = [args]
@@ -50,7 +50,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
         }
 
         /**
-         * after command hooks require additional Fiber environment
+         * After command hooks require additional Fiber environment
          */
         return hook.constructor.name === 'AsyncFunction' ? execHook() : Fiber(execHook).run()
     }))

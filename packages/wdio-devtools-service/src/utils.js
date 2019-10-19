@@ -12,12 +12,12 @@ const RE_USER_DATA_DIR_SWITCH = /--user-data-dir=([^-]*)/
 const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
 
 /**
- * Find Chrome DevTools Interface port by checking Chrome switches from the chrome://version
- * page. In case a newer version is used (+v65) we check the DevToolsActivePort file
+ * Find Chrome DevTools Interface port by checking Chrome switches from the `chrome://version`
+ * page. In case a newer version is used (+v65), we check the DevToolsActivePort file.
  */
 export async function findCDPInterface () {
     /**
-     * check if interface is part of goog:chromeOptions value
+     * check if interface is part of `goog:chromeOptions` value
      */
     const chromeOptions = global.browser.capabilities['goog:chromeOptions']
     if (chromeOptions && chromeOptions.debuggerAddress) {
@@ -26,7 +26,7 @@ export async function findCDPInterface () {
     }
 
     /**
-     * otherwise look into chrome flags
+     * Otherwise, look into chrome flags
      */
     await global.browser.url('chrome://version')
     const cmdLineTextElem = await global.browser.$('#command_line')
@@ -34,7 +34,7 @@ export async function findCDPInterface () {
     let port = parseInt(cmdLineText.match(RE_DEVTOOLS_DEBUGGING_PORT_SWITCH)[1], 10)
 
     /**
-     * newer Chrome versions store port in DevToolsActivePort file
+     * Newer Chrome versions store `port` in DevToolsActivePort file.
      */
     if (port === 0) {
         const userDataDir = cmdLineText.match(RE_USER_DATA_DIR_SWITCH)[1].trim()
@@ -84,7 +84,7 @@ export function isSupportedUrl (url) {
 }
 
 /**
- * Approximates the Gauss error function, the probability that a random variable
+ * Approximates the Gauss error function: the probability that a random variable
  * from the standard normal distribution lies within [-x, x]. Moved from
  * traceviewer.b.math.erf, based on Abramowitz and Stegun, formula 7.1.26.
  * @param {number} x

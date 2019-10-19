@@ -42,7 +42,7 @@
  * </example>
  *
  * @alias $
- * @param {String|Function|Object} selector  selector or JS Function to fetch a certain element
+ * @param {String|Function|Object} selector - Selector or JS Function to fetch a certain element
  * @return {Element}
  * @type utility
  *
@@ -53,7 +53,7 @@ import { ELEMENT_KEY } from '../../constants'
 
 export default async function $ (selector) {
     /**
-     * convert protocol result into WebdriverIO element
+     * Convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */
     if (selector && typeof selector[ELEMENT_KEY] === 'string') {

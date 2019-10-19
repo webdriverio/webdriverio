@@ -19,8 +19,8 @@ const readmeHeaders = ['===', '# ']
 const readmeBadges = ['https://badge', 'https://travis-ci.org/']
 
 /**
- * Generate docs for 3rd party reporters and services
- * @param {object} sidebars website/sidebars
+ * Generate docs for 3rd party reporters and services.
+ * @param {object} sidebars - Website/sidebars
  */
 exports.generate3rdPartyDocs = async (sidebars) => {
     for (const [, [namePlural, nameSingular, packages3rdParty]] of Object.entries(plugins)) {
@@ -46,9 +46,9 @@ exports.generate3rdPartyDocs = async (sidebars) => {
 }
 
 /**
- * Download README.md from github
- * @param {string}              githubUrl   github url to project
- * @return {Promise<string>}                readme content
+ * Download README.md from GitHub.
+ * @param {string} githubUrl - GitHub URL to project
+ * @return {Promise<string>} - README’s content
  */
 function downloadReadme(githubUrl) {
     return new Promise((resolve, reject) => {
@@ -70,10 +70,10 @@ function downloadReadme(githubUrl) {
 
 /**
  * Removes header from README.md
- * @param {string}  readme      readme content
- * @param {string}  preface     docusaurus header
- * @param {string}  repoInfo    repoInfo
- * @return {string}             readme content without header
+ * @param {string}  readme   - README’s content
+ * @param {string}  preface  - docusaurus header
+ * @param {string}  repoInfo - repoInfo
+ * @return {string}          - README’s content without header
  */
 function normalizeDoc(readme, githubUrl, preface, repoInfo) {
     /**
@@ -122,9 +122,9 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
 
 /**
  * 3rd party package info
- * @param {string} packageName package name
- * @param {string} githubUrl GitHub url
- * @param {string} npmUrl npm url
+ * @param {string} packageName - Package name
+ * @param {string} githubUrl - GitHub URL
+ * @param {string} npmUrl - NPM URL
  */
 function buildInfo(packageName, githubUrl, npmUrl) {
     return [

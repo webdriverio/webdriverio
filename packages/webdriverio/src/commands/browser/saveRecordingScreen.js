@@ -13,8 +13,8 @@
  * </example>
  *
  * @alias browser.saveRecordingScreen
- * @param   {String}  filepath  full or relative to the execution directory path to the generated video
- * @return  {Buffer}            video buffer
+ * @param   {String}  filepath  - Full or relative to the execution directory path to the generated video
+ * @return  {Buffer}            - Video buffer
  * @type utility
  *
  */

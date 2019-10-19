@@ -19,7 +19,7 @@ export function getSauceEndpoint (region, isRDC) {
 }
 
 /**
- * helper to detect the Selenium backend according to given capabilities
+ * Helper to detect the Selenium backend according to given capabilities.
  */
 export function detectBackend (options = {}, isRDC = false) {
     let { port, hostname, user, key, protocol, region, headless } = options
@@ -95,10 +95,10 @@ export function detectBackend (options = {}, isRDC = false) {
 }
 
 /**
- * validates configurations based on default values
- * @param  {Object} defaults  object describing all allowed properties
- * @param  {Object} options   option to check agains
- * @return {Object}           validated config enriched with default values
+ * Validates configurations based on default values.
+ * @param  {Object} defaults - Object describing all allowed properties
+ * @param  {Object} options  - Option to check against
+ * @return {Object}          - Validated config, enriched with default values
  */
 export function validateConfig (defaults, options) {
     const params = {}

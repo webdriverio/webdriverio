@@ -30,7 +30,7 @@ export default function keys (value) {
     let keySequence = []
 
     /**
-     * replace key with corresponding unicode character
+     * Replace key with corresponding Unicode character
      */
     if (typeof value === 'string') {
         keySequence = checkUnicode(value)
@@ -50,7 +50,7 @@ export default function keys (value) {
     }
 
     /**
-     * W3C way of handle it key actions
+     * W3C way to handle key actions
      */
     const keyDownActions = keySequence.map((value) => ({ type: 'keyDown', value }))
     const keyUpActions = keySequence.map((value) => ({ type: 'keyUp', value }))

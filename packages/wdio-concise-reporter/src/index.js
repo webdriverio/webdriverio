@@ -37,8 +37,8 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-     * Print the Concise report to the screen
-     * @param  {Object} runner Wdio runner
+     * Print the Concise report to the screen.
+     * @param  {Object} runner - WDIO runner
      */
     printReport(runner) {
         const header = this.chalk.yellow('========= Your concise report ==========')
@@ -53,8 +53,8 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-     * Get the display for failing tests
-     * @return {String} Count display
+     * Get the display for failing tests.
+     * @return {String} - Count display
      */
     getCountDisplay () {
         const failedTestsCount = this.stateCounts.failed
@@ -65,8 +65,8 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-     * Get display for failed tests, e.g. stack trace
-     * @return {Array} Stack trace output
+     * Get display for failed tests (e.g., stack trace).
+     * @return {Array} - Stack trace output
      */
     getFailureDisplay () {
         const output = []
@@ -84,8 +84,8 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-     * Get suites in the order they were called
-     * @return {Array} Ordered suites
+     * Get suites in the order they were called.
+     * @return {Array} - Ordered suites
      */
     getOrderedSuites () {
         this.orderedSuites = []
@@ -101,9 +101,9 @@ export default class ConciseReporter extends WDIOReporter {
 
     /**
      * Get information about the enviroment
-     * @param  {Object}  caps    Enviroment details
-     * @param  {Boolean} verbose
-     * @return {String}          Enviroment string
+     * @param  {Object}  caps    - Enviroment details
+     * @param  {Boolean} verbose 
+     * @return {String} - Enviroment string
      */
     getEnviromentCombo (caps) {
         const device = caps.deviceName

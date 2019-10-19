@@ -12,9 +12,9 @@ import {
 const log = logger('devtools')
 
 /**
- * launches Chrome and returns a Puppeteer browser instance
- * @param  {object} capabilities  session capabilities
- * @return {object}               puppeteer browser instance
+ * Launch Chrome and return a Puppeteer browser instance.
+ * @param  {object} capabilities  - Session capabilities
+ * @return {object} - puppeteer browser instance
  */
 async function launchChrome (capabilities) {
     const chromeOptions = capabilities['goog:chromeOptions'] || {}

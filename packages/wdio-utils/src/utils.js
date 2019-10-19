@@ -1,6 +1,6 @@
 /**
- * overwrite native element commands with user defined
- * @param {object} propertiesObject propertiesObject
+ * Overwrite native element commands with user defined commands.
+ * @param {object} propertiesObject - propertiesObject
  */
 export function overwriteElementCommands(propertiesObject) {
     const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
@@ -43,8 +43,7 @@ export function overwriteElementCommands(propertiesObject) {
 }
 
 /**
- * get command call structure
- * (for logging purposes)
+ * Get command call structure (for logging purposes).
  */
 export function commandCallStructure (commandName, args) {
     const callArgs = args.map((arg) => {
@@ -69,11 +68,11 @@ export function commandCallStructure (commandName, args) {
 }
 
 /**
- * checks if command argument is valid according to specificiation
+ * Checks if command argument is valid (according to specificiation).
  *
- * @param  {*}       arg           command argument
- * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
- * @return {Boolean}               true if argument is valid
+ * @param  {*}       arg           - Command argument
+ * @param  {Object}  expectedType  - Parameter type (e.g. `number`, `string[]` or `(number|string)`)
+ * @return {Boolean}               - True if argument is valid
  */
 export function isValidParameter (arg, expectedType) {
     let shouldBeArray = false
@@ -84,7 +83,7 @@ export function isValidParameter (arg, expectedType) {
     }
 
     /**
-     * check type of each individual array element
+     * Check type of each individual array element
      */
     if (shouldBeArray) {
         if (!Array.isArray(arg)) {
@@ -92,7 +91,7 @@ export function isValidParameter (arg, expectedType) {
         }
     } else {
         /**
-         * transform to array to have a unified check
+         * Transform to array for a unified check
          */
         arg = [arg]
     }
@@ -108,17 +107,17 @@ export function isValidParameter (arg, expectedType) {
 }
 
 /**
- * get type of command argument
+ * Get type of command argument.
  */
 export function getArgumentType (arg) {
     return arg === null ? 'null' : typeof arg
 }
 
 /**
- * Allows to safely require a package, it only throws if the package was found
- * but failed to load due to syntax errors
- * @param  {string} name  of package
- * @return {object}       package content
+ * Allows safe `require` for a package. 
+ * Only throws if the package was found but failed to load due to syntax errors.
+ * @param  {string} name  - Name of package
+ * @return {object}       - Package content
  */
 export function safeRequire (name) {
     let requirePath
@@ -159,17 +158,17 @@ export function safeRequire (name) {
 }
 
 /**
- * is function async
- * @param  {Function} fn  function to check
- * @return {Boolean}      true provided function is async
+ * Is function async?
+ * @param  {Function} fn  - Function to check
+ * @return {Boolean}      - True if `fn` is async
  */
 export function isFunctionAsync (fn) {
     return (fn.constructor && fn.constructor.name === 'AsyncFunction') || fn.name === 'async'
 }
 
 /**
- * filter out arguments passed to specFn & hookFn, don't allow callbacks
- * as there is no need for user to call e.g. `done()`
+ * Filter out arguments passed to `specFn` and `hookFn`. Don't allow callbacks,
+ * as there is no need for user code to call `done()`.
  */
 export function filterSpecArgs (args) {
     return args.filter((arg) => typeof arg !== 'function')

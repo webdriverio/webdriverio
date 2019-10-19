@@ -7,8 +7,8 @@ const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const { PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS } = require('../constants')
 
 /**
- * Generate Protocol docs
- * @param {object} sidebars website/sidebars
+ * Generate Protocol docs.
+ * @param {object} sidebars - Website/sidebars
  */
 exports.generateProtocolDocs = (sidebars) => {
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')

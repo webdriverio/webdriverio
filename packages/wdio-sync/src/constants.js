@@ -23,7 +23,7 @@ const STACKTRACE_FILTER = [
 ]
 
 /**
- * filter stack array
+ * Filter stack array.
  * @param {string} stackRow
  * @returns {boolean}
  */

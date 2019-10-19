@@ -164,8 +164,8 @@ class CucumberAdapter {
     }
 
     /**
-     * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
-     * @param {object} config config
+     * Set `beforeScenario`, `afterScenario`, `beforeFeature`, and `afterFeature`.
+     * @param {object} config - Config
      */
     addWdioHooks (config) {
         Cucumber.Before(function wdioHookBeforeScenario ({ sourceLocation, pickle }) {
@@ -187,8 +187,8 @@ class CucumberAdapter {
     }
 
     /**
-     * wraps step definition code with sync/async runner with a retry option
-     * @param {object} config
+     * Wraps step definition code with sync/async runner, with a retry option.
+     * @param {object} config - Config
      */
     wrapSteps (config) {
         const wrapStep = this.wrapStep
@@ -216,14 +216,14 @@ class CucumberAdapter {
     }
 
     /**
-     * wrap step definition to enable retry ability
-     * @param   {Function}  code            step definitoon
-     * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
-     * @param   {boolean}   isStep
-     * @param   {object}    config
-     * @param   {string}    cid             cid
-     * @param   {Function}  getCurrentStep  step definitoon
-     * @return  {Function}                  wrapped step definiton for sync WebdriverIO code
+     * Wrap step definition to enable retry ability.
+     * @param   {Function}  code            - Step definitoon
+     * @param   {Number}    retryTest       - Allowed retries in case of a failure
+     * @param   {boolean}   isStep          - 
+     * @param   {object}    config          - Config
+     * @param   {string}    cid             - CID
+     * @param   {Function}  getCurrentStep  - Step definitoon
+     * @return  {Function} - Wrapped step definiton for sync WebdriverIO code
      */
     wrapStep (code, retryTest = 0, isStep, config, cid, getCurrentStep) {
         return function (...args) {
@@ -248,7 +248,7 @@ const _CucumberAdapter = CucumberAdapter
 const adapterFactory = {}
 
 /**
- * tested by smoke tests
+ * Tested by smoke tests
  */
 /* istanbul ignore next */
 adapterFactory.run = async function (...args) {

@@ -12,8 +12,8 @@ const MARKDOX_OPTIONS = {
 }
 
 /**
- * Generate WebdriverIO docs
- * @param {object} sidebars website/sidebars
+ * Generate WebdriverIO docs.
+ * @param {object} sidebars - Website/sidebars
  */
 exports.generateWdioDocs = (sidebars) => {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')

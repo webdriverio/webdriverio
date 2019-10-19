@@ -32,14 +32,14 @@ import { getElementFromResponse } from '../../utils'
 
 export default async function selectByIndex (index) {
     /**
-     * negative index check
+     * Negative index check.
      */
     if (index < 0) {
         throw new Error('Index needs to be 0 or any other positive number')
     }
 
     /**
-    * get option elememnts using css
+    * Get option elements using CSS
     */
     const optionElements = await this.findElementsFromElement(this.elementId, 'css selector',  'option')
 

@@ -1,11 +1,11 @@
 /**
- * notify `WDIOCLInterface` about failure in hook
- * we need to do it this way because `beforeFn` and `afterFn` are not real hooks.
- * Otherwise hooks failures are lost.
+ * Notify `WDIOCLInterface` about a failure in a hook.
+ * It must be done this way, because `beforeFn` and `afterFn` are not real hooks.
+ * (Otherwise hooks failures would be lost!)
  *
- * @param {string}  hookName    name of the hook
- * @param {Array}   hookResults hook functions results array
- * @param {string}  cid         cid
+ * @param {string}  hookName    - Name of the hook
+ * @param {Array}   hookResults - Hook functions results array
+ * @param {string}  cid         - Cid
  */
 export const logHookError = (hookName, hookResults = [], cid) => {
     const result = hookResults.find(result => result instanceof Error)
@@ -14,7 +14,7 @@ export const logHookError = (hookName, hookResults = [], cid) => {
     }
 
     /**
-     * need to convert Error to plain object, otherwise it is lost on process.send
+     * Convert Error to a plain object, or it will be lost in `process.send`.
      */
     const error = { message: result.message }
 

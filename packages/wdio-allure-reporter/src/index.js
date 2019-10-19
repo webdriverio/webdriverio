@@ -396,103 +396,104 @@ class AllureReporter extends WDIOReporter {
     }
 
     /**
-     * Assign feature to test
+     * Assign feature to test.
      * @name addFeature
-     * @param {(string)} featureName - feature name or an array of names
+     * @param {string|string[]} featureName - Feature name, or an array of feature names
      */
     static addFeature = (featureName) => {
         tellReporter(events.addFeature, { featureName })
     }
 
     /**
-     * Assign label to test
+     * Assign label to test.
      * @name addLabel
-     * @param {string} name - label name
-     * @param {string} value - label value
+     * @param {string} name - Label name
+     * @param {string} value - Label value
      */
     static addLabel = (name, value) => {
         tellReporter(events.addLabel, name, value)
     }
     /**
      * Assign severity to test
+     * Assign severity to test.
      * @name addSeverity
-     * @param {string} severity - severity value
+     * @param {string} severity - Severity value
      */
     static addSeverity = (severity) => {
         tellReporter(events.addSeverity, { severity })
     }
 
     /**
-     * Assign issue id to test
+     * Assign issue ID to test.
      * @name addIssue
-     * @param {string} issue - issue id value
+     * @param {string} issue - Issue’s ID value
      */
     static addIssue = (issue) => {
         tellReporter(events.addIssue, { issue })
     }
 
     /**
-     * Assign TMS test id to test
+     * Assign TMS test ID to test.
      * @name addTestId
-     * @param {string} testId - test id value
+     * @param {string} testId - Test ID value
      */
     static addTestId = (testId) => {
         tellReporter(events.addTestId, { testId })
     }
 
     /**
-     * Assign story to test
+     * Assign story to test.
      * @name addStory
-     * @param {string} storyName - story name for test
+     * @param {string} storyName - Story name for test
      */
     static addStory = (storyName) => {
         tellReporter(events.addStory, { storyName })
     }
 
     /**
-     * Add environment value
+     * Add environment value.
      * @name addEnvironment
-     * @param {string} name - environment name
-     * @param {string} value - environment value
+     * @param {string} name - Environment name
+     * @param {string} value - Environment value
      */
     static addEnvironment = (name, value) => {
         tellReporter(events.addEnvironment, { name, value })
     }
 
     /**
-     * Assign test description to test
+     * Assign test description to test.
      * @name addDescription
-     * @param {string} description - description for test
-     * @param {string} type - description type 'text'\'html'\'markdown'
+     * @param {string} description - Description for test
+     * @param {string} type - Description type 'text'\'html'\'markdown'
      */
     static addDescription = (description, type) => {
         tellReporter(events.addDescription, { description, type })
     }
 
     /**
-     * Add attachment
+     * Add attachment.
      * @name addAttachment
-     * @param {string} name - attachment file name
-     * @param {string | Buffer} content - attachment content
-     * @param {string} [type='text/plain'] - attachment mime type
+     * @param {string} name - Attachment’s file name
+     * @param {string | Buffer} content - Attachment’s content
+     * @param {string} [type='text/plain'] - Attachment’s MIME type
      */
     static addAttachment = (name, content, type = 'text/plain') => {
         tellReporter(events.addAttachment, { name, content, type })
     }
 
     /**
-     * Start allure step
+     * Start Allure step.
      * @name startStep
-     * @param {string} title - step name in report
+     * @param {string} title - Step name in report
      */
     static startStep = (title) => {
         tellReporter(events.startStep, title)
     }
 
     /**
-     * End current allure step
+     * End current Allure step.
      * @name endStep
-     * @param {string} [status='passed'] - step status
+     * @param {string} [status='passed'] - Step status
      */
     static endStep = (status = stepStatuses.PASSED) => {
         if (!Object.values(stepStatuses).includes(status)) {
@@ -502,14 +503,14 @@ class AllureReporter extends WDIOReporter {
     }
 
     /**
-     * Create allure step
+     * Create Allure step.
      * @name addStep
-     * @param {string} title - step name in report
-     * @param {Object} [attachmentObject={}] - attachment for step
-     * @param {string} attachmentObject.content - attachment content
-     * @param {string} [attachmentObject.name='attachment'] - attachment name
-     * @param {string} [attachmentObject.type='text/plain'] - attachment type
-     * @param {string} [status='passed'] - step status
+     * @param {string} title - Step name in report
+     * @param {Object} [attachmentObject={}] - Attachment for step
+     * @param {string} attachmentObject.content - Attachment’s content
+     * @param {string} [attachmentObject.name='attachment'] - Attachment’s name
+     * @param {string} [attachmentObject.type='text/plain'] - Attachment’s type
+     * @param {string} [status='passed'] - Step status
      */
     static addStep = (title, { content, name = 'attachment', type = 'text/plain' } = {}, status = stepStatuses.PASSED) => {
         if (!Object.values(stepStatuses).includes(status)) {
@@ -521,10 +522,10 @@ class AllureReporter extends WDIOReporter {
     }
 
     /**
-     * Add additional argument to test
+     * Add additional argument to test.
      * @name addArgument
-     * @param {string} name - argument name
-     * @param {string} value - argument value
+     * @param {string} name - Argument name
+     * @param {string} value - Argument value
      */
     static addArgument = (name, value) => {
         tellReporter(events.addArgument, { name, value })

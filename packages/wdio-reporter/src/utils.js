@@ -1,7 +1,7 @@
 /**
- * replaces whitespaces with underscore and removes dots
- * @param  {String} str  variable to sanitize
- * @return {String}      sanitized variable
+ * Replace whitespaces with underscores, and remove dots.
+ * @param  {String} str -  Variable to sanitize
+ * @return {String}     -  Sanitized variable
  */
 export function sanitizeString (str) {
     if (!str) {
@@ -16,8 +16,8 @@ export function sanitizeString (str) {
 }
 
 /**
- * formats capability object into sanitized string for e.g.filenames
- * @param {Object} caps  Selenium capabilities
+ * Formats capability object into sanitized string (e.g., for filenames).
+ * @param {Object} caps  - Selenium capabilities
  */
 export function sanitizeCaps (caps) {
     if (!caps) {
@@ -55,7 +55,7 @@ export function sanitizeCaps (caps) {
  * This exists to maintain compatibility between frameworks
  * with have a soft assertion model (Jasmine) and those that
  * have a hard assertion model (Mocha)
- * @param {*} e  An event emitted by a framework adapter
+ * @param {*} e - An event emitted by a framework adapter
  */
 export function getErrorsFromEvent(e) {
     if (e.errors) return e.errors

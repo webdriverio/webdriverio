@@ -27,8 +27,8 @@
  * </example>
  *
  * @alias element.selectByAttribute
- * @param {String} attribute  attribute of option element to get selected
- * @param {String} value      value of option element to get selected
+ * @param {String} attribute  - Attribute of option element to get selected
+ * @param {String} value      - Value of option element to get selected
  * @uses protocol/findElementFromElement, protocol/elementClick
  * @type action
  *

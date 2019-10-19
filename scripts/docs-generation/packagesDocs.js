@@ -9,8 +9,8 @@ const plugins = {
 }
 
 /**
- * Generate docs for reporter and services
- * @param {object} sidebars website/sidebars
+ * Generate docs for reporter and services.
+ * @param {object} sidebars - Website/sidebars
  */
 exports.generateReportersAndServicesDocs = (sidebars) => {
     const packages = getSubPackages()

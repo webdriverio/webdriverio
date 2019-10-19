@@ -2,12 +2,12 @@ import logger from '@wdio/logger'
 const log = logger('webdriverio')
 
 /**
- * wait on element if:
+ * Wait on element if:
  *  - elementId couldn't be fetched in the first place
  *  - command is not explicit wait command for existance or displayedness
- * @param  {Object}  currentElement  element to wait on if necessary
- * @param  {string}  commandName  name of the command that called this
- * @return {Promise} resolves with element after any necessary waiting
+ * @param  {Object}  currentElement - Element to wait on if necessary
+ * @param  {string}  commandName    - Name of the command that called this
+ * @return {Promise}                - Resolves with element after any necessary waiting
  */
 export default async function implicitWait (currentElement, commandName) {
 

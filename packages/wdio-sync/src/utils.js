@@ -1,9 +1,9 @@
 import { STACKTRACE_FILTER_FN } from './constants'
 
 /**
- * Cleanup stack traces, merge and remove duplicates
- * @param {Error|*} commandError    Error object or anything else including undefined
- * @param {Error}   savedError      Error with root stack trace
+ * Cleanup stack traces. Merge and remove duplicates.
+ * @param {Error|*} commandError -  Error object (or anything else, including undefined)
+ * @param {Error}   savedError   -  Error with root stack trace
  * @returns {Error}
  */
 export function sanitizeErrorMessage (commandError, savedError) {

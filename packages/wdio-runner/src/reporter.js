@@ -12,7 +12,7 @@ const DEFAULT_SYNC_INTERVAL = 100 // 100ms
 /**
  * BaseReporter
  * responsible for initialising reporters for every testrun and propagating events
- * to all these reporters
+ * to all these reporters.
  */
 export default class BaseReporter {
     constructor (config, cid, caps) {
@@ -32,10 +32,10 @@ export default class BaseReporter {
     }
 
     /**
-     * emit events to all registered reporter and wdio launcer
+     * Emit events to all registered reporters and WDIO launcher.
      *
-     * @param  {String} e       event name
-     * @param  {object} payload event payload
+     * @param  {String} e       - Event name
+     * @param  {object} payload - Event payload
      */
     emit (e, payload) {
         payload.cid = this.cid
@@ -84,7 +84,7 @@ export default class BaseReporter {
     }
 
     /**
-     * return write stream object based on reporter name
+     * Return write stream object, based on reporter name.
      */
     getWriteStreamObject (reporter) {
         return {
@@ -97,8 +97,8 @@ export default class BaseReporter {
     }
 
     /**
-     * wait for reporter to finish synchronization, e.g. when sending data asynchronous
-     * to a server (e.g. sumo reporter)
+     * Wait for reporter to finish synchronization (e.g., when sending data asynchronous
+     * to a server, like sumo reporter).
      */
     waitForSync () {
         const startTime = Date.now()
@@ -128,7 +128,7 @@ export default class BaseReporter {
     }
 
     /**
-     * initialise reporters
+     * Initialise reporters.
      */
     initReporter (reporter) {
         let ReporterClass
@@ -146,8 +146,9 @@ export default class BaseReporter {
         }
 
         /**
-         * check if reporter was passed in from a file, e.g.
+         * Check if reporter was passed in from a file.
          *
+         * @example
          * ```js
          * const MyCustomeReporter = require('/some/path/MyCustomeReporter.js')
          * export.config = {
@@ -169,8 +170,9 @@ export default class BaseReporter {
         }
 
         /**
-         * check if reporter is a node package, e.g. wdio-dot reporter
+         * Check if reporter is a node package (e.g., wdio-dot reporter).
          *
+         * @example
          * ```js
          * export.config = {
          *     //...

@@ -22,8 +22,8 @@
  * </example>
  *
  * @alias element.getHTML
- * @param {Boolean=} includeSelectorTag if true it includes the selector element tag (default: true)
- * @return {String}  the HTML of the specified element
+ * @param {Boolean=} includeSelectorTag - If true it includes the selector element tag (default: true)
+ * @return {String} - The HTML of the specified element
  * @uses action/selectorExecute
  * @type property
  *

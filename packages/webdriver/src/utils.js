@@ -17,22 +17,22 @@ const MOBILE_CAPABILITIES = [
 ]
 
 /**
- * start browser session with WebDriver protocol
+ * Start browser session with WebDriver protocol.
  */
 export async function startWebDriverSession (params) {
     /**
-     * the user could have passed in either w3c style or jsonwp style caps
-     * and we want to pass both styles to the server, which means we need
-     * to check what style the user sent in so we know how to construct the
-     * object for the other style
+     * The user could have passed in either W3C-style or JSON-WP-style `caps`,
+     * and we want to pass both styles to the server. 
+     * Therefore, we must check which style the user provided, so we can determine how to 
+     * construct the object for the other style.
      */
     const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
         /**
-         * in case W3C compliant capabilities are provided
+         * In case W3C-compliant capabilities are provided.
          */
         ? [params.capabilities, params.capabilities.alwaysMatch]
         /**
-         * otherwise assume they passed in jsonwp-style caps (flat object)
+         * Otherwise, assume they passed in JSON-WP-style caps (flat object)
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
@@ -40,7 +40,7 @@ export async function startWebDriverSession (params) {
         'POST',
         '/session',
         {
-            capabilities: w3cCaps, // W3C compliant
+            capabilities: w3cCaps,          // W3C compliant
             desiredCapabilities: jsonwpCaps // JSONWP compliant
         }
     )
@@ -49,13 +49,13 @@ export async function startWebDriverSession (params) {
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save original set of capabilities to allow to request the same session again
-     * (e.g. for reloadSession command in WebdriverIO)
+     * Save original set of capabilities. This allows a request for the same session again.
+     * (e.g., for `reloadSession` command in WebdriverIO.)
      */
     params.requestedCapabilities = { w3cCaps, jsonwpCaps }
 
     /**
-     * save actual receveived session details
+     * Save actual receveived session details.
      */
     params.capabilities = response.value.capabilities || response.value
 
@@ -63,9 +63,9 @@ export async function startWebDriverSession (params) {
 }
 
 /**
- * check if WebDriver requests was successful
- * @param  {Object}  body  body payload of response
- * @return {Boolean}       true if request was successful
+ * Check if WebDriver request was successful.
+ * @param  {Object}  body  - Body payload of response
+ * @return {Boolean}       - True if request was successful
  */
 export function isSuccessfulResponse (statusCode, body) {
     /**
@@ -77,7 +77,7 @@ export function isSuccessfulResponse (statusCode, body) {
     }
 
     /**
-     * ignore failing element request to enable lazy loading capability
+     * Ignore failing element request to enable lazy loading capability
      */
     if (
         body.status === 7 && body.value && body.value.message &&
@@ -93,8 +93,8 @@ export function isSuccessfulResponse (statusCode, body) {
     }
 
     /**
-     * if it has a status property, it should be 0
-     * (just here to stay backwards compatible to the jsonwire protocol)
+     * If it has a status property, it should be 0.
+     * (This is only here to stay backwards-compatible with the JSON Wire Protocol)
      */
     if (body.status && body.status !== 0) {
         log.debug(`request failed due to status ${body.status}`)
@@ -104,22 +104,22 @@ export function isSuccessfulResponse (statusCode, body) {
     const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
 
     /**
-     * check status code
+     * Check status code
      */
     if (statusCode === 200 && !hasErrorResponse) {
         return true
     }
 
     /**
-     * if an element was not found we don't flag it as failed request because
-     * we lazy load it
+     * If an element was not found, don't flag it as a failed request,
+     * because we lazy load it.
      */
     if (statusCode === 404 && body.value && body.value.error === 'no such element') {
         return true
     }
 
     /**
-     * that has no error property (Appium only)
+     * That has no error property (Appium only).
      */
     if (hasErrorResponse) {
         log.debug('request failed due to response error:', body.value.error)
@@ -130,7 +130,7 @@ export function isSuccessfulResponse (statusCode, body) {
 }
 
 /**
- * creates the base prototype for the webdriver monad
+ * Creates the base prototype for the webdriver monad.
  */
 export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
     const prototype = {}
@@ -172,21 +172,21 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
 }
 
 /**
- * check if session is based on W3C protocol based on the /session response
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if W3C (browser)
+ * Check if session is based on W3C protocol based on the `/session` response
+ * @param  {Object}  capabilities  - Capabilities of session response
+ * @return {Boolean}               - True if W3C (browser)
  */
 export function isW3C (capabilities) {
     /**
      * JSONWire protocol doesn't return a property `capabilities`.
-     * Also check for Appium response as it is using JSONWire protocol for most of the part.
+     * Also check for Appium response (as it is using JSONWire protocol for most of the part).
      */
     if (!capabilities) {
         return false
     }
 
     /**
-     * assume session to be a WebDriver session when
+     * Assume session to be a WebDriver session when
      * - capabilities are returned
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
      * - it is an Appium session (since Appium is full W3C compliant)
@@ -196,7 +196,7 @@ export function isW3C (capabilities) {
         capabilities.platformName &&
         capabilities.browserVersion &&
         /**
-         * local safari and BrowserStack don't provide platformVersion therefor
+         * Local Safari and BrowserStack don't provide `platformVersion`. Therefore
          * check also if setWindowRect is provided
          */
         (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect'))
@@ -205,9 +205,9 @@ export function isW3C (capabilities) {
 }
 
 /**
- * check if session is run by Chromedriver
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run by Chromedriver
+ * Check whether session is run by Chromedriver.
+ * @param  {Object}  capabilities  - Caps of session response
+ * @return {Boolean}               - True if run by Chromedriver
  */
 export function isChrome (caps) {
     return (
@@ -217,37 +217,37 @@ export function isChrome (caps) {
 }
 
 /**
- * check if current platform is mobile device
+ * Check if current platform is mobile device.
  *
- * @param  {Object}  caps  capabilities
- * @return {Boolean}       true if platform is mobile device
+ * @param  {Object}  caps  - Capabilities
+ * @return {Boolean}       - True if platform is mobile device
  */
 export function isMobile (caps) {
     const browserName = (caps.browserName || '').toLowerCase()
 
     /**
-     * we have mobile caps if
+     * We have mobile capabilities if
      */
     return Boolean(
         /**
-         * capabilities contain mobile only specific capabilities
+         * ...capabilities contain mobile only specific capabilities, or...
          */
         Object.keys(caps).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
         /**
-         * browserName is empty (and eventually app is defined)
+         * ...browserName is empty (and eventually app is defined), or...
          */
         caps.browserName === '' ||
         /**
-         * browserName is a mobile browser
+         * ...browserName is a mobile browser.
          */
         MOBILE_BROWSER_NAMES.includes(browserName)
     )
 }
 
 /**
- * check if session is run on iOS device
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run on iOS device
+ * Check if session is run on iOS device.
+ * @param  {Object}  capabilities  - Caps of session response
+ * @return {Boolean}               - True if run on iOS device
  */
 export function isIOS (caps) {
     return Boolean(
@@ -257,9 +257,9 @@ export function isIOS (caps) {
 }
 
 /**
- * check if session is run on Android device
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run on Android device
+ * Check if session is run on Android device.
+ * @param  {Object}  capabilities  - Caps of session response
+ * @return {Boolean}               - True if run on Android device
  */
 export function isAndroid (caps) {
     return Boolean(
@@ -269,10 +269,10 @@ export function isAndroid (caps) {
 }
 
 /**
- * detects if session is run on Sauce with extended debugging enabled
- * @param  {string}  hostname     hostname of session request
- * @param  {object}  capabilities session capabilities
- * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
+ * Detects if session is run on Sauce with extended debugging enabled.
+ * @param  {string}  hostname     - Hostname of session request
+ * @param  {object}  capabilities - Session capabilities
+ * @return {Boolean}              - True if session is running on Sauce with extended debugging enabled
  */
 export function isSauce (hostname, caps) {
     return Boolean(
@@ -285,19 +285,19 @@ export function isSauce (hostname, caps) {
 }
 
 /**
- * detects if session is run using Selenium Standalone server
- * @param  {object}  capabilities session capabilities
- * @return {Boolean}              true if session is run with Selenium Standalone Server
+ * Setects if session is run using Selenium Standalone server.
+ * @param  {object}  capabilities - Session capabilities
+ * @return {Boolean}              - True if session is run with Selenium Standalone Server
  */
 export function isSeleniumStandalone (caps) {
     return Boolean(caps['webdriver.remote.sessionid'])
 }
 
 /**
- * returns information about the environment
- * @param  {Object}  hostname      name of the host to run the session against
- * @param  {Object}  capabilities  caps of session response
- * @return {Object}                object with environment flags
+ * Returns information about the environment.
+ * @param  {Object}  hostname     - Name of the host to run the session against
+ * @param  {Object}  capabilities - Caps of session response
+ * @return {Object}               - Object with environment flags
  */
 export function environmentDetector ({ hostname, capabilities, requestedCapabilities }) {
     return {
@@ -312,9 +312,9 @@ export function environmentDetector ({ hostname, capabilities, requestedCapabili
 }
 
 /**
- * helper method to determine the error from webdriver response
- * @param  {Object} body body object
- * @return {Object} error
+ * Helper method to determine the error from WebDriver response.
+ * @param  {Object} body - Body object
+ * @return {Object} - Error
  */
 export function getErrorFromResponseBody (body) {
     if (!body) {
@@ -332,7 +332,7 @@ export function getErrorFromResponseBody (body) {
     return new CustomRequestError(body)
 }
 
-//Exporting for testability
+// Exporting for testability
 export class CustomRequestError extends Error {
     constructor(body) {
         super(body.value.message || body.value.class || 'unknown error')
@@ -345,10 +345,9 @@ export class CustomRequestError extends Error {
 }
 
 /**
- * return all supported flags and return them in a format so we can attach them
- * to the instance protocol
- * @param  {Object} options   driver instance or option object containing these flags
- * @return {Object}           prototype object
+ * Return all supported flags. Format flags so we can attach them to the instance protocol.
+ * @param  {Object} options  - Driver instance or option object containing these flags
+ * @return {Object}          - Prototype object
  */
 export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce }) {
     return {
@@ -363,10 +362,10 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
 }
 
 /**
- * Decorate the params object with host updates based on the presence of
- * directConnect capabilities in the new session response. Note that this
- * mutates the object.
- * @param  {Object} params    post-new-session params used to build driver
+ * Decorate the params object with host updates, based on the presence of
+ * `directConnect` capabilities in the new session response. 
+ * Note that this mutates the object.
+ * @param  {Object} params   - Post-new-session params used to build driver
  */
 export function setupDirectConnect(params) {
     const { directConnectProtocol, directConnectHost, directConnectPort,

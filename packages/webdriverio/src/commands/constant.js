@@ -46,7 +46,7 @@ export const formatArgs = function (scope, actions) {
 /**
  * Make sure action has proper options before sending command to Appium.
  *
- * @param  {Object} params  touchAction parameters
+ * @param  {Object} params - touchAction parameters
  * @return null
  */
 export const validateParameters = (params) => {

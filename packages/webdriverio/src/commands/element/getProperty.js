@@ -11,8 +11,8 @@
  * </example>
  *
  * @alias element.getProperty
- * @param {String} property  name of the element property
- * @return {Object|String} the value of the property of the selected element
+ * @param {String} property - Name of the element property
+ * @return {Object|String}  - The value of the property of the selected element
  */
 
 import { getBrowserObject } from '../../utils'

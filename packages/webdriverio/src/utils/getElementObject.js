@@ -6,10 +6,10 @@ import { elementErrorHandler } from '../middlewares'
 import { ELEMENT_KEY } from '../constants'
 
 /**
- * transforms and findElement response into a WDIO element
- * @param  {String} selector  selector that was used to query the element
- * @param  {Object} res       findElement response
- * @return {Object}           WDIO element object
+ * Transforms and findElement response into a WDIO element.
+ * @param  {String} selector  - Selector that was used to query the element
+ * @param  {Object} res       - FindElement response
+ * @return {Object}           - WDIO element object
  */
 export const getElement = function findElement (selector, res, isReactElement = false) {
     const browser = getBrowserObject(this)
@@ -55,10 +55,10 @@ export const getElement = function findElement (selector, res, isReactElement = 
 }
 
 /**
- * transforms and findElement response into a WDIO element
- * @param  {String} selector  selector that was used to query the element
- * @param  {Object} res       findElement response
- * @return {Object}           WDIO element object
+ * Transforms and findElement response into a WDIO element.
+ * @param  {String} selector  - Selector that was used to query the element
+ * @param  {Object} res       - FindElement response
+ * @return {Object}           - WDIO element object
  */
 export const getElements = function getElements (selector, res, isReactElement = false) {
     const browser = getBrowserObject(this)

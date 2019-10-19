@@ -1,11 +1,11 @@
 /**
  *
- * Get a css property from a DOM-element selected by given selector. The return value
+ * Get a CSS property from a DOM-element selected by given selector. The return value
  * is formatted to be testable. Colors gets parsed via [rgb2hex](https://www.npmjs.org/package/rgb2hex)
- * and all other properties get parsed via [css-value](https://www.npmjs.org/package/css-value).
+ * and all other properties get parsed via [`css-value`](https://www.npmjs.org/package/css-value).
  *
- * Note that shorthand CSS properties (e.g. background, font, border, margin, padding, list-style, outline,
- * pause, cue) are not returned, in accordance with the DOM CSS2 specification - you should directly access
+ * Note that shorthand CSS properties (e.g. `background`, `font`, `border`, `margin`, `padding`, `list-style`, `outline`,
+ * `pause`, `cue`) are not returned, in accordance with the DOM CSS2 specification - you should directly access
  * the longhand properties (e.g. background-color) to access the desired values.
  *
  * <example>
@@ -58,8 +58,8 @@
  * </example>
  *
  * @alias element.getCSSProperty
- * @param {String} cssProperty css property name
- * @return {Object} The specified css of the element
+ * @param {String} cssProperty - CSS property name
+ * @return {Object} - The specified CSS of the element
  * @uses protocol/elements, protocol/elementIdCssProperty
  * @type property
  *

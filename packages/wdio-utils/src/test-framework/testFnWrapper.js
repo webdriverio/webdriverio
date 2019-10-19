@@ -3,31 +3,31 @@ import { logHookError } from './errorHandler'
 import { executeHooksWithArgs, executeAsync, runSync } from '../shim'
 
 /**
- * wraps test framework spec/hook function with WebdriverIO before/after hooks
+ * Wrap test framework spec/hook function with WebdriverIO `before`/`after` hooks.
  *
- * @param   {string} type           Test/Step or Hook
- * @param   {object} spec           specFn and specFnArgs
- * @param   {object} before         beforeFn and beforeFnArgs
- * @param   {object} after          afterFn and afterFnArgs
- * @param   {string} cid            cid
- * @param   {number} repeatTest     number of retries if test fails
- * @return  {*}                     specFn result
+ * @param   {string} type           - Test/Step or Hook
+ * @param   {object} spec           - SpecFn and specFnArgs
+ * @param   {object} before         - BeforeFn and beforeFnArgs
+ * @param   {object} after          - AfterFn and afterFnArgs
+ * @param   {string} cid            - Cid
+ * @param   {number} repeatTest     - Number of retries if test fails
+ * @return  {*}                     - SpecFn result
  */
 export const testFnWrapper = function (...args) {
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync }, ...args)
 }
 
 /**
- * wraps test framework spec/hook function with WebdriverIO before/after hooks
+ * Wrap test framework spec/hook function with WebdriverIO `before`/`after` hooks.
  *
- * @param   {object} wrapFunctions  executeHooksWithArgs, executeAsync, runSync
- * @param   {string} type           Test/Step or Hook
- * @param   {object} spec           specFn and specFnArgs array
- * @param   {object} before         beforeFn and beforeFnArgs function
- * @param   {object} after          afterFn and afterFnArgs function
- * @param   {string} cid            cid
- * @param   {number} repeatTest     number of retries if test fails
- * @return  {*}                     specFn result
+ * @param   {object} wrapFunctions  - executeHooksWithArgs, executeAsync, runSync
+ * @param   {string} type           - Test/Step or Hook
+ * @param   {object} spec           - specFn and specFnArgs array
+ * @param   {object} before         - beforeFn and beforeFnArgs function
+ * @param   {object} after          - afterFn and afterFnArgs function
+ * @param   {string} cid            - cid
+ * @param   {number} repeatTest     - number of retries if test fails
+ * @return  {*}                     - specFn result
  */
 export const testFrameworkFnWrapper = async function (
     { executeHooksWithArgs, executeAsync, runSync },
@@ -43,7 +43,8 @@ export const testFrameworkFnWrapper = async function (
     let result
     let error
     /**
-     * user wants handle async command using promises, no need to wrap in fiber context
+     * User wants to handle async command with Promises.
+     * No need to wrap in a Fiber context.
      */
     if (isFunctionAsync(specFn) || !runSync) {
         promise = executeAsync.call(this, specFn, repeatTest, specFnArgs)
@@ -68,7 +69,7 @@ export const testFrameworkFnWrapper = async function (
     })
 
     /**
-     * avoid breaking changes in hook function signatures
+     * Avoid breaking changes in hook function signatures.
      */
     afterArgs = mochaJasmineCompatibility(afterArgs, this)
     afterArgs = mochaJasmineResultCompatibility(afterArgs, error, duration)
@@ -83,9 +84,9 @@ export const testFrameworkFnWrapper = async function (
 }
 
 /**
- * avoid breaking signature changes for existing mocha and jasmine users
- * @param {Array}   hookArgs args array
- * @param {object=} context mocha context
+ * Avoid breaking signature changes for Mocha and Jasmine frameworks.
+ * @param {Array}   hookArgs - Args array
+ * @param {object=} context  - Mocha context
  */
 const mochaJasmineCompatibility = (hookArgs, { test = {} } = {}) => {
     let args = hookArgs
@@ -107,10 +108,10 @@ const mochaJasmineCompatibility = (hookArgs, { test = {} } = {}) => {
 }
 
 /**
- * avoid breaking signature changes for existing mocha and jasmine users
- * @param {Array} afterArgs args array
- * @param {Error|undefined} error error
- * @param {number} duration duration
+ * Avoid breaking signature changes for Mocha and Jasmine frameworks.
+ * @param {Array} afterArgs         - Args array
+ * @param {Error|undefined} error   - Error
+ * @param {number} duration         - Duration
  */
 const mochaJasmineResultCompatibility = (afterArgs, error, duration) => {
     let args = afterArgs
@@ -126,8 +127,8 @@ const mochaJasmineResultCompatibility = (afterArgs, error, duration) => {
 }
 
 /**
- * avoid breaking signature changes for existing cucumber users
- * @param {Array} afterArgs args array
+ * Avoid breaking signature changes for Cucumber framework.
+ * @param {Array} afterArgs - Args array
  */
 const cucumberCompatibility = (afterArgs) => {
     let args = afterArgs

@@ -1,9 +1,9 @@
 import Fiber from './fibers'
 
 /**
- * global function to wrap callbacks into Fiber context
- * @param  {Function} fn  function to wrap around
- * @return {Function}     wrapped around function
+ * Global function to wrap callbacks into a Fiber context.
+ * @param  {Function} fn - Function to wrap around
+ * @return {Function}    - Wrapped function.
  */
 export default function runFnInFiberContext (fn) {
     return function (...args) {

@@ -16,14 +16,14 @@ export default class CommandHandler {
         this.networkHandler = new NetworkHandler(client)
 
         /**
-         * register browser commands
+         * Register browser commands.
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
         commands.forEach(fnName => this.browser.addCommand(fnName, ::this[fnName]))
 
         /**
-         * propagate CDP events to the browser event listener
+         * Propagate CDP events to the browser event listener.
          */
         this.client.on('event', (event) => {
             const method = event.method || 'event'
@@ -33,7 +33,7 @@ export default class CommandHandler {
     }
 
     /**
-     * allow to easily access the CDP from the browser object
+     * Allow easy access to CDP from the browser object.
      */
     cdp (domain, command, args = {}) {
         if (!this.client[domain]) {
@@ -56,8 +56,8 @@ export default class CommandHandler {
     }
 
     /**
-     * helper method to receive Chrome remote debugging connection data to
-     * e.g. use external tools like lighthouse
+     * Helper method to receive Chrome remote debugging connection data 
+     * (e.g., to use external tools like lighthouse).
      */
     cdpConnection () {
         const { host, port } = this.client
@@ -77,7 +77,7 @@ export default class CommandHandler {
     }
 
     /**
-     * get nodeIds to use for other commands
+     * Get nodeIds to use for other commands.
      */
     async getNodeIds (selector) {
         const document = await this.cdp('DOM', 'getDocument')
@@ -89,10 +89,10 @@ export default class CommandHandler {
     }
 
     /**
-     * start tracing the browser
+     * Start tracing the browser.
      *
-     * @param  {string[]} [categories=DEFAULT_TRACING_CATEGORIES]  categories to trace for
-     * @param  {Number}   [samplingFrequency=10000]                sampling frequency
+     * @param  {string[]} [categories=DEFAULT_TRACING_CATEGORIES]  - Categories to trace for
+     * @param  {Number}   [samplingFrequency=10000]                - Sampling frequency
      */
     startTracing (categories = DEFAULT_TRACING_CATEGORIES, samplingFrequency = 10000) {
         if (this.isTracing) {
@@ -108,9 +108,9 @@ export default class CommandHandler {
     }
 
     /**
-     * stop tracing the browser
+     * Stop tracing the browser.
      *
-     * @return {Number}  tracing id to use for other commands
+     * @return {Number}  - Tracing id to use for other commands
      */
     async endTracing () {
         if (!this.isTracing) {
@@ -136,14 +136,14 @@ export default class CommandHandler {
     }
 
     /**
-     * get raw trace logs
+     * Get raw trace logs.
      */
     getTraceLogs () {
         return this.traceEvents
     }
 
     /**
-     * get page weight from last page load
+     * Get page weight from last page load.
      */
     getPageWeight () {
         const pageWeight = sumByKey(Object.values(this.networkHandler.requestTypes), 'size')

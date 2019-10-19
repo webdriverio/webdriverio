@@ -20,8 +20,8 @@
  * </example>
  *
  * @alias element.getElementSize
- * @param {String=} prop     size to receive [optional] ("width" or "height")
- * @return {Object|Number}    requested element size (`{ width: <Number>, height: <Number> }`) or actual width/height as number if prop param is given
+ * @param {String=} prop   - Size to receive [optional] ("width" or "height")
+ * @return {Object|Number} - Requested element size (`{ width: <Number>, height: <Number> }`) or actual width/height as number if prop param is given
  * @type property
  *
  */

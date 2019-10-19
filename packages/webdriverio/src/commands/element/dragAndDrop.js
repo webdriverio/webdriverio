@@ -3,8 +3,8 @@
  * Drag an item to a destination element.
  *
  * @alias element.dragAndDrop
- * @param {Element} target    destination selector
- * @param {Number=}  duration  how long the drag should take place
+ * @param {Element} target   - Destination selector
+ * @param {Number=} duration - How long the drag should take place
  * @uses action/moveToObject, protocol/buttonDown, protocol/buttonUp, property/getLocation, protocol/touchDown, protocol/touchMove, protocol/touchUp
  * @type action
  *
@@ -27,7 +27,7 @@ export default async function dragAndDrop (target, duration = 100) {
     }
 
     /**
-     * get coordinates to drag and drop
+     * Get coordinates to drag and drop
      */
     const { scrollX, scrollY } = await getScrollPosition(this)
     const sourceRect = await getElementRect(this)
@@ -38,7 +38,7 @@ export default async function dragAndDrop (target, duration = 100) {
     const targetY = parseInt(targetRect.y - scrollY + (targetRect.height / 2), 10) - sourceY
 
     /**
-     * W3C way of handle the drag and drop action
+     * W3C way to handle the drag and drop action
      */
     return this.performActions([{
         type: 'pointer',

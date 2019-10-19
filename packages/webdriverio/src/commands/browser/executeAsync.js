@@ -33,10 +33,10 @@ import { verifyArgsAndStripIfElement } from '../../utils'
     });
  * </example>
  *
- * @param {String|Function} script     The script to execute.
- * @param {*=}               arguments  script arguments
+ * @param {String|Function} script    - The script to execute.
+ * @param {*=}              arguments - script arguments
  *
- * @return {*}             The script result.
+ * @return {*}                        - The script result.
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-execute-async-script
  * @type protocol

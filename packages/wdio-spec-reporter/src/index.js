@@ -60,7 +60,7 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Print the report to the screen
+     * Print the report to the screen.
      */
     printReport(runner) {
         const duration = `(${prettyMs(runner._duration)})`
@@ -93,7 +93,7 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * get link to saucelabs job
+     * Get link to SauceLabs job
      */
     getTestLink ({ config, sessionId }) {
         const isSauceJob = (
@@ -118,9 +118,9 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get the header display for the report
-     * @param  {Object} runner Runner data
-     * @return {Array}         Header data
+     * Get the header display for the report.
+     * @param  {Object} runner - Runner data
+     * @return {Array}         - Header data
      */
     getHeaderDisplay(runner) {
         const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
@@ -136,9 +136,9 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * returns everything worth reporting from a suite
-     * @param  {Object}    suite  test suite containing tests and hooks
-     * @return {Object[]}         list of events to report
+     * Returns everything worth reporting from a suite.
+     * @param  {Object}    suite - Test suite containing tests and hooks
+     * @return {Object[]}        - List of events to report
      */
     getEventsToReport (suite) {
         return [
@@ -153,9 +153,9 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get the results from the tests
-     * @param  {Array} suites Runner suites
-     * @return {Array}        Display output list
+     * Get the results from the tests.
+     * @param  {Array} suites - Runner suites
+     * @return {Array}        - Display output list
      */
     getResultDisplay () {
         const output = []
@@ -201,9 +201,9 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get the display for passing, failing and skipped
-     * @param  {String} duration Duration string
-     * @return {Array} Count display
+     * Get the display for passing, failing, and skipped.
+     * @param  {String} duration  - Duration string
+     * @return {Array}            - Count display
      */
     getCountDisplay (duration) {
         const output = []
@@ -232,7 +232,7 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get display for failed tests, e.g. stack trace
+     * Get display for failed tests (e.g., stack trace).
      * @return {Array} Stack trace output
      */
     getFailureDisplay () {
@@ -269,7 +269,7 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get suites in the order they were called
+     * Get suites in the order they were called.
      * @return {Array} Ordered suites
      */
     getOrderedSuites () {
@@ -292,9 +292,9 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Indent a suite based on where how it's nested
-     * @param  {String} uid Unique suite key
-     * @return {String}     Spaces for indentation
+     * Indent a suite based on where how it's nested.
+     * @param  {String} uid - Unique suite key
+     * @return {String}     - Spaces for indentation
      */
     indent (uid) {
         const indents = this.suiteIndents[uid]
@@ -302,9 +302,9 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get a symbol based on state
-     * @param  {String} state State of a test
-     * @return {String}       Symbol to display
+     * Get a symbol based on state.
+     * @param  {String} state - State of a test
+     * @return {String}       - Symbol to display
      */
     getSymbol (state) {
         let symbol = '?' // in case of an unknown state
@@ -325,9 +325,9 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get a color based on a given state
-     * @param  {String} state Test state
-     * @return {String}       State color
+     * Get a color based on a given state.
+     * @param  {String} state - Test state
+     * @return {String}       - State color
      */
     getColor (state) {
         // In case of an unknown state
@@ -350,10 +350,10 @@ class SpecReporter extends WDIOReporter {
     }
 
     /**
-     * Get information about the enviroment
-     * @param  {Object}  caps    Enviroment details
-     * @param  {Boolean} verbose
-     * @return {String}          Enviroment string
+     * Get information about the enviroment.
+     * @param  {Object}  caps    - Enviroment details
+     * @param  {Boolean} verbose - Enable verbose output
+     * @return {String}          - Enviroment string
      */
     getEnviromentCombo (caps, verbose = true, isMultiremote = false) {
         const device = caps.deviceName

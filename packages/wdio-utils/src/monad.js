@@ -10,9 +10,9 @@ const SCOPE_TYPES = {
 
 export default function WebDriver (options, modifier, propertiesObject = {}) {
     /**
-     * In order to allow named scopes for elements we have to propagate that
+     * In order to allow named scopes for elements, we must propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
-     * advantages just provides better description of objects when debugging them
+     * advantages; it just provides a better description of objects when debugging them.
      */
     const scopeType = SCOPE_TYPES[propertiesObject.scope] || SCOPE_TYPES['browser']
     delete propertiesObject.scope
@@ -31,8 +31,8 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         propertiesObject.options = { value: options }
 
         /**
-         * allow to wrap commands if necessary
-         * e.g. in wdio-cli to make them synchronous
+         * Allow wrapping commands if necessary.
+         * (e.g., In wdio-cli, to make them synchronous)
          */
         if (typeof commandWrapper === 'function') {
             for (const [commandName, { value }] of Object.entries(propertiesObject)) {
@@ -46,12 +46,12 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         }
 
         /**
-         * overwrite native element commands with user defined
+         * Overwrite native element commands with user-defined commands.
          */
         overwriteElementCommands.call(this, propertiesObject)
 
         /**
-         * assign propertiesObject to itself so the client can be recreated
+         * Assign propertiesObject to itself so the client can be recreated.
          */
         propertiesObject['__propertiesObject__'] = { value: propertiesObject }
 
@@ -59,7 +59,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         client.sessionId = sessionId
 
         /**
-         * register capabilities only to browser scope
+         * Register capabilities only to browser scope.
          */
         if (scopeType.name === 'Browser') {
             client.capabilities = options.capabilities
@@ -93,12 +93,12 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
 
         /**
          * overwriteCommand
-         * @param  {String}   name              command name to be overwritten
-         * @param  {Function} func              function to replace original command with;
-         *                                      takes original function as first argument.
-         * @param  {boolean=} attachToElement   overwrite browser command (false) or element command (true)
-         * @param  {Object=}  proto             prototype to add function to (optional)
-         * @param  {Object=}  instances         multiremote instances
+         * @param  {String}   name              - Command name to be overwritten
+         * @param  {Function} func              - Function to replace original command with;
+         *                                      - Takes original function as first argument.
+         * @param  {boolean=} attachToElement   - Overwrite browser command (false) or element command (true)
+         * @param  {Object=}  proto             - Prototype to add function to (optional)
+         * @param  {Object=}  instances         - Multiremote instances
          */
         client.overwriteCommand = function (name, func, attachToElement = false, proto, instances) {
             let customCommand = typeof commandWrapper === 'function'
@@ -131,18 +131,18 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     }
 
     /**
-     * Enhance monad prototype with function
-     * @param  {String}   name          name of function to attach to prototype
-     * @param  {Function} func          function to be added to prototype
-     * @param  {Object}   proto         prototype to add function to (optional)
-     * @param  {Function} origCommand   original command to be passed to custom command as first argument
+     * Enhance monad prototype with function.
+     * @param  {String}   name         - Name of function to attach to prototype
+     * @param  {Function} func         - Function to be added to prototype
+     * @param  {Object}   proto        - Prototype to add function to (optional)
+     * @param  {Function} origCommand  - Original command to be passed to custom command as first argument
      */
     unit.lift = function (name, func, proto, origCommand) {
         (proto || prototype)[name] = function next (...args) {
             log.info('COMMAND', commandCallStructure(name, args))
 
             /**
-             * set name of function for better error stack
+             * Set the function name for better error stack.
              */
             Object.defineProperty(func, 'name', {
                 value: name,
@@ -152,8 +152,8 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
             /**
-             * always transform result into promise as we don't know whether or not
-             * the user is running tests with wdio-sync or not
+             * Always transform result into a Promise, because we don't know whether the user 
+             * is running tests with wdio-sync or not.
              */
             Promise.resolve(result).then((res) => {
                 log.info('RESULT', res)
@@ -165,7 +165,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     }
 
     /**
-     * register event emitter
+     * Register EventEmitter.
      */
     for (let eventCommand in EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args) {

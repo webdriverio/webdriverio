@@ -1,11 +1,11 @@
 import implicitWait from './implicitWait'
 
 /**
- * helper utility to refetch an element and all its parent elements when running
- * into stale element exception errors
- * @param  {Object}  currentElement  element to refetch
- * @param  {string}  commandName  name of the command that called this
- * @return {Promise} resolves with element after all its parent were refetched
+ * Helper utility to refetch an element and all its parent elements when running
+ * into stale element exception errors.
+ * @param  {Object}  currentElement - Element to refetch
+ * @param  {string}  commandName    - Name of the command that called this
+ * @return {Promise}                - Resolves with element after all its parent were refetched
  */
 export default async function refetchElement (currentElement, commandName) {
     let selectors = []

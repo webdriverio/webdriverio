@@ -3,13 +3,13 @@ import { hasWdioSyncSupport, runFnInFiberContext } from '@wdio/utils'
 const TIMEOUT_ERROR = 'timeout'
 
 /**
- * Promise-based Timer. Execute fn every tick.
- * When fn is resolved — timer will stop
- * @param {Number} delay - delay between ticks
- * @param {Number} timeout - after that time timer will stop
- * @param {Function} fn - function that returns promise. will execute every tick
- * @param {Boolean} leading - should be function invoked on start
- * @return {promise} Promise-based Timer.
+ * Promise-based Timer. Execute `fn` every tick.
+ * When `fn` resolves, timer will stop.
+ * @param {Number} delay    - Delay between ticks
+ * @param {Number} timeout  - After that time timer will stop
+ * @param {Function} fn     - Function that returns promise. will execute every tick
+ * @param {Boolean} leading - Should be function invoked on start
+ * @return {promise}        - Promise-based Timer
  */
 class Timer {
     constructor (delay, timeout, fn, leading) {
@@ -20,7 +20,7 @@ class Timer {
         this._conditionExecutedCnt = 0
 
         /**
-         * only wrap waitUntil condition if:
+         * Only wrap `waitUntil` condition if:
          *  - wdio-sync is installed
          *  - function name is not async
          */

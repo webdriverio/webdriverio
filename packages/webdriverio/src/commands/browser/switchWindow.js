@@ -19,7 +19,7 @@
     });
  * </example>
  *
- * @param {String|RegExp}  urlOrTitleToMatch  String or regular expression that matches the title or url of the page
+ * @param {String|RegExp}  urlOrTitleToMatch - String or regular expression that matches the title or url of the page
  *
  * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getUrl, protocol/getTitle
  * @alias browser.switchTab
@@ -29,7 +29,7 @@
 
 export default async function switchWindow (urlOrTitleToMatch) {
     /*!
-     * parameter check
+     * Parameter check
      */
     if (typeof urlOrTitleToMatch !== 'string' && !(urlOrTitleToMatch instanceof RegExp)) {
         throw new Error('Unsupported parameter for switchWindow, required is "string" or an RegExp')
@@ -41,7 +41,7 @@ export default async function switchWindow (urlOrTitleToMatch) {
         await this.switchToWindow(tab)
 
         /**
-         * check if url matches
+         * Check if URL matches
          */
         const url = await this.getUrl()
         if (url.match(urlOrTitleToMatch)) {
@@ -49,7 +49,7 @@ export default async function switchWindow (urlOrTitleToMatch) {
         }
 
         /**
-         * check title
+         * Check title
          */
         const title = await this.getTitle()
         if (title.match(urlOrTitleToMatch)) {

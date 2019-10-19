@@ -9,7 +9,7 @@ const MERGE_OPTIONS = { clone: false }
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
 /**
- * run before/after session hook
+ * Run before/after session hooks.
  */
 export function runHook (hookName, config, caps, specs) {
     const catchFn = (e) => log.error(`Error in ${hookName}: ${e.stack}`)
@@ -24,9 +24,9 @@ export function runHook (hookName, config, caps, specs) {
 }
 
 /**
- * sanitizes wdio config from capability properties
- * @param  {Object} caps  desired session capabilities
- * @return {Object}       sanitized caps
+ * Sanitizes WDIO config from capability properties.
+ * @param  {Object} caps  - Desired session capabilities
+ * @return {Object}       - Sanitized capabilities
  */
 export function sanitizeCaps (caps) {
     return Object.keys(caps).filter(key => (
@@ -41,11 +41,11 @@ export function sanitizeCaps (caps) {
 }
 
 /**
- * initialise browser instance depending whether remote or multiremote is requested
- * @param  {Object}  config        configuration of sessions
- * @param  {Object}  capabilities  desired session capabilities
- * @param  {boolean} isMultiremote isMultiremote
- * @return {Promise}               resolves with browser object
+ * Initialise browser instance, depending whether remote or multiremote is requested.
+ * @param  {Object}  config        - Configuration of sessions
+ * @param  {Object}  capabilities  - Desired session capabilities
+ * @param  {boolean} isMultiremote - Is multi remote?
+ * @return {Promise}               - Resolves with browser object
  */
 export async function initialiseInstance (config, capabilities, isMultiremote) {
     /**
@@ -79,10 +79,10 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
 }
 
 /**
- * Filter logTypes based on filter
- * @param  {string[]} excludeDriverLogs logTypes filter
- * @param  {string[]} driverLogTypes    available driver log types
- * @return {string[]}                   logTypes
+ * Filter logTypes based on filter.
+ * @param  {string[]} excludeDriverLogs - LogTypes filter
+ * @param  {string[]} driverLogTypes    - Available driver log types
+ * @return {string[]}                   - logTypes
  */
 export function filterLogTypes(excludeDriverLogs, driverLogTypes) {
     let logTypes = [...driverLogTypes]
@@ -103,9 +103,9 @@ export function filterLogTypes(excludeDriverLogs, driverLogTypes) {
 }
 
 /**
- * Send event to WDIOCLInterface if test or before/after all hook failed
- * @param {string} e        event
- * @param {object} payload  payload
+ * Send event to WDIOCLInterface if test or `beforeAll`/`afterAll` hook failed.
+ * @param {string} e        - Event
+ * @param {object} payload  - Payload
  */
 export function sendFailureMessage(e, payload) {
     if (e === 'test:fail' || (e === 'hook:end' && payload.error && mochaAllHooks.some(hook => payload.title.startsWith(hook)))) {
@@ -118,9 +118,10 @@ export function sendFailureMessage(e, payload) {
 }
 
 /**
- * Gets { sessionId, isW3C, protocol, hostname, port, path, queryParams } of every Multiremote instance
- * @param {object} browser browser
- * @param {boolean} isMultiremote isMultiremote
+ * Gets { sessionId, isW3C, protocol, hostname, port, path, queryParams } of every 
+ * Multiremote instance.
+ * @param {object} browser        - Browser
+ * @param {boolean} isMultiremote - IsMultiremote
  * @return {object}
  */
 export function getInstancesData(browser, isMultiremote) {
@@ -140,9 +141,9 @@ export function getInstancesData(browser, isMultiremote) {
 }
 
 /**
- * Attach to Multiremote
- * @param {object} instances mutliremote instances object
- * @param {object} caps multiremote capabilities
+ * Attach to Multiremote.
+ * @param {object} instances - Mutliremote instances object
+ * @param {object} caps      - Multiremote capabilities
  * @return {object}
  */
 export async function attachToMultiremote(instances, caps) {

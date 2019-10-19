@@ -39,7 +39,7 @@
  * </example>
  *
  * @alias browser.setCookies
- * @param {Object} cookie cookie object or object array
+ * @param {Object|Object[]} cookie - Cookie object, or object array
  * @uses protocol/addCookie
  * @type cookie
  *

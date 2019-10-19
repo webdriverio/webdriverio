@@ -12,7 +12,7 @@ import { CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_
 const log = logger('@wdio/cli:utils')
 
 /**
- * run service launch sequences
+ * Run service launch sequences.
  */
 export async function runServiceHook (launcher, hookName, ...args) {
     try {
@@ -27,8 +27,8 @@ export async function runServiceHook (launcher, hookName, ...args) {
 }
 
 /**
- * Run onPrepareHook in Launcher
- * @param {Array|Function} onPrepareHook - can be array of functions or single function
+ * Run onPrepareHook in Launcher.
+ * @param {Function|Function[]} onPrepareHook - A function or array of functions
  * @param {Object} config
  * @param {Object} capabilities
  */
@@ -49,8 +49,8 @@ export async function runOnPrepareHook(onPrepareHook, config, capabilities) {
 }
 
 /**
- * Run onCompleteHook in Launcher
- * @param {Array|Function} onCompleteHook - can be array of functions or single function
+ * Run onCompleteHook in Launcher.
+ * @param {Function|Function[]} onCompleteHook - A function or array of functions
  * @param {*} config
  * @param {*} capabilities
  * @param {*} exitCode
@@ -73,7 +73,7 @@ export async function runOnCompleteHook(onCompleteHook, config, capabilities, ex
 }
 
 /**
- * get runner identification by caps
+ * Get runner identification by `caps`.
  */
 export function getRunnerName (caps = {}) {
     let runner =
@@ -136,8 +136,8 @@ export function replaceConfig(config, type, name) {
 
 export function addServiceDeps(names, packages, update) {
     /**
-     * automatically install latest Chromedriver if `wdio-chromedriver-service`
-     * was selected for install
+     * Automatically install latest Chromedriver if `wdio-chromedriver-service`
+     * was selected for install.
      */
     if (names.some(({ short }) => short === 'chromedriver')) {
         packages.push('chromedriver')
@@ -152,8 +152,8 @@ export function addServiceDeps(names, packages, update) {
     }
 
     /**
-     * install Appium if it is not installed globally if `@wdio/appium-service`
-     * was selected for install
+     * Install Appium if it is not installed globally if `@wdio/appium-service`
+     * was selected for install.
      */
     if (names.some(({ short }) => short === 'appium')) {
         const result = execSync('appium --version || echo APPIUM_MISSING').toString().trim()
@@ -202,7 +202,7 @@ export async function missingConfigurationPrompt(command, message, useYarn = fal
     ])
 
     /**
-     * don't exit if running unit tests
+     * Don't exit if running unit tests!
      */
     if (!config && !process.env.JEST_WORKER_ID) {
         /* istanbul ignore next */

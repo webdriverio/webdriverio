@@ -3,7 +3,7 @@ import { isFunctionAsync } from '@wdio/utils'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 
 /**
- * NOTE: this function is exported for testing only
+ * (NOTE: This function is exported for testing only.)
  */
 export function createStepArgument ({ argument }) {
     if (!argument) {
@@ -29,18 +29,18 @@ export function createStepArgument ({ argument }) {
 }
 
 /**
- * builds test parent string from feature and scneario names
- * NOTE: this function is exported for testing only
- * @param {object} feature cucumber feature object
- * @param {object} scenario cucumber scenario object
+ * Builds test parent string from feature and scenario names.
+ * (NOTE: This function is exported for testing only.)
+ * @param {object} feature - Cucumber feature object
+ * @param {object} scenario - Cucumber scenario object
  */
 export function getTestParent(feature, scenario) {
     return `${feature.name || 'Undefined Feature'}: ${scenario.name || 'Undefined Scenario'}`
 }
 
 /**
- * builds test title from step keyword and text
- * @param {object} step cucumber step object
+ * Builds test title from step keyword and text.
+ * @param {object} step - Cucumber step object
  */
 export function getTestStepTitle (keyword = '', text = '', type) {
     const title = (!text && type !== 'hook') ? 'Undefined Step' : text
@@ -48,10 +48,10 @@ export function getTestStepTitle (keyword = '', text = '', type) {
 }
 
 /**
- * builds test full title from test parent and title
- * NOTE: this function is exported for testing only
- * @param {string} parent parent suite/scenario
- * @param {string} stepTitle step/test title
+ * Builds test full title from test parent and title.
+ * (NOTE: This function is exported for testing only.)
+ * @param {string} parent - Parent suite/scenario
+ * @param {string} stepTitle - Step/test title
  */
 export function getTestFullTitle(parent, stepTitle) {
     return `${parent}: ${stepTitle}`
@@ -92,7 +92,7 @@ export function getUniqueIdentifier (target, sourceLocation) {
 }
 
 /**
- * format message
+ * Format message.
  * @param {object} message { type: string, payload: object }
  */
 export function formatMessage ({ payload = {} }) {
@@ -114,15 +114,15 @@ export function formatMessage ({ payload = {} }) {
 }
 
 /**
- * Get step type
- * @param {string} type `Step` or `Hook`
+ * Get step type.
+ * @param {string} type - `Step` or `Hook`
  */
 export function getStepType(type) {
     return type === 'Step' ? 'test' : 'hook'
 }
 
 /**
- * build payload for test/hook event
+ * Build payload for test/hook event.
  */
 export function buildStepPayload(uri, feature, scenario, step, params = {}) {
     return {
@@ -150,14 +150,14 @@ export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
 }
 
 /**
- * @param {object[]} result cucumber global result object
+ * @param {object[]} result - Cucumber global result object.
  */
 export const getDataFromResult = ([{ uri }, feature, ...scenarios]) => ({ uri, feature, scenarios })
 
 /**
- * wrap every user defined hook with function named `userHookFn`
- * to identify later on is function a step, user hook or wdio hook.
- * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
+ * Wrap every user-defined hook with function named `userHookFn` to
+ * later identify whether the function a step, user hook, or WDIO hook.
+ * @param {object} options - `Cucumber.supportCodeLibraryBuilder.options`
  */
 export function setUserHookNames (options) {
     CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
@@ -173,11 +173,11 @@ export function setUserHookNames (options) {
 }
 
 /**
- * get test case steps
- * @param   {object}    feature                 cucumber's feature
- * @param   {object}    scenario                cucumber's scenario
- * @param   {object}    pickle                  cucumber's pickleEvent
- * @param   {object}    testCasePreparedEvent   cucumber's testCasePreparedEvent
+ * Get test case steps.
+ * @param   {object}    feature                - Cucumber's feature
+ * @param   {object}    scenario               - Cucumber's scenario
+ * @param   {object}    pickle                 - Cucumber's pickleEvent
+ * @param   {object}    testCasePreparedEvent  - Cucumber's testCasePreparedEvent
  * @returns {object[]}
  */
 export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEvent) {
@@ -220,11 +220,14 @@ export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEve
 }
 
 /**
- * get resolved step text for table steps, example:
- * Then User `<userId>` with `<password>` is logged in
- * Then User `someUser` with `Password12` is logged in
- * @param   {object}    step        cucumber's step
- * @param   {object}    pickle      cucumber's pickleEvent
+ * Get resolved step text for table steps. 
+ *
+ * @example
+ *  Then User `<userId>` with `<password>` is logged in
+ *  Then User `someUser` with `Password12` is logged in
+ *
+ * @param   {object}    step   -    Cucumber's step
+ * @param   {object}    pickle -    Cucumber's pickleEvent
  * @returns {string}
  */
 export function getStepText (step, pickle) {
@@ -234,9 +237,9 @@ export function getStepText (step, pickle) {
 }
 
 /**
- * get an array of background and scenario steps
- * @param {object}      feature cucumber's feature
- * @param {object}      scenario cucumber's scenario
+ * Get an array of Background and Scenario steps.
+ * @param {object}      feature  - Cucumber's feature
+ * @param {object}      scenario - Cucumber's scenario
  * @returns {object[]}
  */
 export function getAllSteps (feature, scenario) {

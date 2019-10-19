@@ -7,12 +7,12 @@ import wrapCommand from './wrapCommand'
 import { STACKTRACE_FILTER_FN } from './constants'
 
 /**
- * execute test or hook synchronously
+ * Execute test or hook synchronously.
  *
- * @param  {Function} fn         spec or hook method
- * @param  {Number}   repeatTest number of retries
- * @param  {Array}    args       arguments passed to hook
- * @return {Promise}             that gets resolved once test/hook is done or was retried enough
+ * @param  {Function} fn         - Spec or hook method
+ * @param  {Number}   repeatTest - Number of retries
+ * @param  {Array}    args       - Number of retries
+ * @return {Promise} - Resolved once test/hook is done or retries are exhausted
  */
 const executeSync = async function (fn, repeatTest = 0, args = []) {
     delete global.browser._NOT_FIBER
@@ -49,18 +49,17 @@ const executeSync = async function (fn, repeatTest = 0, args = []) {
 }
 
 /**
- * execute test or hook asynchronously
+ * Execute test or hook asynchronously.
  *
- * @param  {Function} fn         spec or hook method
- * @param  {Number}   repeatTest number of retries
- * @param  {Array}    args       arguments passed to hook
- * @return {Promise}             that gets resolved once test/hook is done or was retried enough
+ * @param  {Function} fn         - Spec or hook method
+ * @param  {Number}   repeatTest - Number of retries
+ * @return {Promise} - Resolved once test/hook is done or retries are exhausted
  */
 
 const executeAsync = async function (fn, repeatTest = 0, args = []) {
     /**
-     * if a new hook gets executed we can assume that all commands should have finished
-     * with exception of timeouts where `commandIsRunning` will never be reset but here
+     * If a new hook gets executed, we can assume that all commands should have finised
+     * with exception of timeouts, where `commandIsRunning` will never be reset but here.
      */
     // commandIsRunning = false
 
@@ -77,7 +76,7 @@ const executeAsync = async function (fn, repeatTest = 0, args = []) {
 }
 
 /**
- * run hook or spec via executeSync
+ * Run hook / spec via `executeSync`.
  */
 function runSync (fn, repeatTest = 0, args = []) {
     return (resolve, reject) =>

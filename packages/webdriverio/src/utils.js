@@ -28,7 +28,7 @@ const applyScopePrototype = (prototype, scope) => {
 }
 
 /**
- * enhances objects with element commands
+ * Enhances objects with element commands
  */
 export const getPrototype = (scope) => {
     const prototype = {}
@@ -41,9 +41,9 @@ export const getPrototype = (scope) => {
 }
 
 /**
- * get element id from WebDriver response
- * @param  {?Object|undefined} res         body object from response or null
- * @return {?string}   element id or null if element couldn't be found
+ * Get element id from WebDriver response
+ * @param  {?Object|undefined} res  - Body object from response or null
+ * @return {?string}   element      - Id or null if element couldn't be found
  */
 export const getElementFromResponse = (res) => {
     /**
@@ -71,14 +71,14 @@ export const getElementFromResponse = (res) => {
 }
 
 /**
- * traverse up the scope chain until browser element was reached
+ * Traverse up the scope chain until browser element was reached
  */
 export function getBrowserObject (elem) {
     return elem.parent ? getBrowserObject(elem.parent) : elem
 }
 
 /**
- * transform whatever value is into an array of char strings
+ * Transform whatever value is into an array of char strings
  */
 export function transformToCharString (value) {
     const ret = []
@@ -116,10 +116,10 @@ function sanitizeCSS (value) {
 }
 
 /**
- * parse css values to a better format
- * @param  {Object} cssPropertyValue result of WebDriver call
- * @param  {String} cssProperty      name of css property to parse
- * @return {Object}                  parsed css property
+ * Parse CSS values to a better format
+ * @param  {Object} cssPropertyValue - Result of WebDriver call
+ * @param  {String} cssProperty      - Name of CSS property to parse
+ * @return {Object}                  - Parsed CSS property
  */
 export function parseCSS (cssPropertyValue, cssProperty) {
     if (!cssPropertyValue) {
@@ -133,12 +133,12 @@ export function parseCSS (cssPropertyValue, cssProperty) {
 
     if (parsedValue.value.indexOf('rgb') === 0) {
         /**
-         * remove whitespaces in rgb values
+         * Remove whitespaces in RGB values
          */
         parsedValue.value = parsedValue.value.replace(/\s/g, '')
 
         /**
-         * parse color values
+         * Parse color values
          */
         let color = parsedValue.value
         parsedValue.parsed = rgb2hex(parsedValue.value)
@@ -153,7 +153,7 @@ export function parseCSS (cssPropertyValue, cssProperty) {
         parsedValue.parsed = { value, type: 'font', string }
     } else {
         /**
-         * parse other css properties
+         * Parse other CSS properties
          */
         try {
             parsedValue.parsed = cssValue(cssPropertyValue)

@@ -25,8 +25,8 @@
  * </example>
  *
  * @alias browser.getCookies
- * @param {String[]=} names  names of requested cookies
- * @return {Object[]}        requested cookies if existing
+ * @param {String[]=} names  - Names of requested cookies
+ * @return {Object[]}        - Requested cookies if existing
  * @uses webdriver/getAllCookies
  *
  */

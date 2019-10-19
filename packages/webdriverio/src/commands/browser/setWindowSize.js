@@ -10,9 +10,9 @@
  * </example>
  *
  * @alias browser.setWindowSize
- * @param {Number} width browser will be resized to provided width
- * @param {Number} height browser will be resized to provided height
- * @return {Null|Object} Null for *NO*W3C browser and Object{x, y, width, height} for W3C browser
+ * @param {Number} width  - Browser will be resized to provided width
+ * @param {Number} height - Browser will be resized to provided height
+ * @return {Null|Object}  - Null for *NO*W3C browser and `Object{x, y, width, height}` for W3C browser
  * @type window
  *
  */

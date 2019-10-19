@@ -26,10 +26,10 @@
  * </example>
  *
  * @alias element.waitForExist
- * @param {Number=}  ms       time in ms (default: 500)
- * @param {Boolean=} reverse  if true it instead waits for the selector to not match any elements (default: false)
- * @param {String=}  error    if exists it overrides the default error message
- * @return {Boolean} true     if element exists (or doesn't if flag is set)
+ * @param {Number=}  ms       - Time in ms (default: 500)
+ * @param {Boolean=} reverse  - If true, it instead waits for the selector to not match any elements (default: false)
+ * @param {String=}  error    - If exists, it overrides the default error message
+ * @return {Boolean} true     - If element exists (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isExisting
  * @type utility
  *

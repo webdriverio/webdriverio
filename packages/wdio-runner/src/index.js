@@ -20,15 +20,15 @@ export default class Runner extends EventEmitter {
     }
 
     /**
-     * run test suite
-     * @param  {String}    cid            worker id (e.g. `0-0`)
-     * @param  {Object}    argv           cli arguments passed into wdio command
-     * @param  {String[]}  specs          list of spec files to run
-     * @param  {Object}    caps           capabilities to run session with
-     * @param  {String}    configFile     path to config file to get config from
-     * @param  {Object}    server         modified WebDriver target
-     * @param  {Number}    retries        number of retries remaining
-     * @return {Promise}                  resolves in number of failures for testrun
+     * Run test suite
+     * @param  {String}    cid          - Worker id (e.g. `0-0`)
+     * @param  {Object}    argv         - CLI arguments passed to `wdio` command
+     * @param  {String[]}  specs        - List of spec files to run
+     * @param  {Object}    caps         - Capabilities to run session with
+     * @param  {String}    configFile   - Path to config file to get config from
+     * @param  {Object}    server       - Modified WebDriver target
+     * @param  {Number}    retries      - Number of retries remaining
+     * @return {Promise}                - Resolves in number of failures for testrun
      */
     async run ({ cid, argv, specs, caps, configFile, server, retries }) {
         this.cid = cid
@@ -45,12 +45,12 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * merge cli arguments into config
+         * Merge CLI arguments into config
          */
         this.configParser.merge(argv)
 
         /**
-         * merge host/port changes by service launcher into config
+         * Merge host/port changes by service launcher into config
          */
         this.configParser.merge(server)
 
@@ -71,7 +71,7 @@ export default class Runner extends EventEmitter {
         this.inWatchMode = Boolean(this.config.watch)
 
         /**
-         * return if session initialisation failed
+         * Return if session initialisation failed.
          */
         if (!browser) {
             return this._shutdown(1)
@@ -80,8 +80,8 @@ export default class Runner extends EventEmitter {
         const isMultiremote = Boolean(browser.isMultiremote)
 
         /**
-         * kill session of SIGINT signal showed up while trying to
-         * get a session ID
+         * Kill session if a SIGINT signal arrived while trying to
+         * get a session ID.
          */
         if (this.sigintWasCalled) {
             log.info('SIGINT signal detected while starting session, shutting down...')
@@ -90,14 +90,14 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * initialise framework
+         * Initialise framework.
          */
         this.framework = initialisePlugin(this.config.framework, 'framework')
 
         const instances = getInstancesData(browser, isMultiremote)
 
         /**
-         * initialisation successful, send start message
+         * Initialisation successful. Send start message.
          */
         this.reporter.emit('runner:start', {
             cid,
@@ -115,7 +115,7 @@ export default class Runner extends EventEmitter {
         })
 
         /**
-         * report sessionId and target connection information to worker
+         * Report sessionId and target connection information to worker.
          */
         const { protocol, hostname, port, path, queryParams } = browser.options
         const { isW3C, sessionId } = browser
@@ -126,7 +126,7 @@ export default class Runner extends EventEmitter {
         })
 
         /**
-         * kick off tests in framework
+         * Kick off tests in framework.
          */
         let failures = 0
         try {
@@ -139,7 +139,7 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * in watch mode we don't close the session and leave current page opened
+         * In watch mode, don't close the session, and leave current page opened.
          */
         if (!argv.watch) {
             await this.endSession()
@@ -155,10 +155,10 @@ export default class Runner extends EventEmitter {
     }
 
     /**
-     * init WebDriver session
-     * @param  {object}  config        configuration of sessions
-     * @param  {Object}  caps          desired cabilities of session
-     * @return {Promise}               resolves with browser object or null if session couldn't get established
+     * Init WebDriver session.
+     * @param {object} config - Configuration of sessions
+     * @param  {Object}  caps - Desired cabilities of session
+     * @return {Promise|null} - Resolves with browser object (or null if session couldn't get established)
      */
     async _initSession (config, caps) {
         let browser = null
@@ -199,23 +199,23 @@ export default class Runner extends EventEmitter {
     }
 
     /**
-     * fetch logs provided by browser driver
+     * Fetch logs provided by browser driver.
      */
     async _fetchDriverLogs (config, excludeDriverLogs) {
         /**
-         * only fetch logs if
+         * only fetch logs if...
          */
         if (
             /**
-             * a log directory is given in config
+             * ...a log directory is given in config, or...
              */
             !config.outputDir ||
             /**
-             * the session wasn't killed during start up phase
+             * ...the session wasn't killed during start up phase, or...
              */
             !global.browser.sessionId ||
             /**
-             * driver supports it
+             * ...the driver supports it.
              */
             typeof global.browser.getLogs === 'undefined'
         ) {
@@ -223,8 +223,8 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * suppress @wdio/sync warnings of not running commands inside of
-         * a Fibers contetx
+         * Suppress `@wdio/sync` warnings if not running commands inside of
+         * a Fibers context.
          */
         global._HAS_FIBER_CONTEXT = true
 
@@ -267,7 +267,7 @@ export default class Runner extends EventEmitter {
     }
 
     /**
-     * kill worker session
+     * Kill worker session.
      */
     async _shutdown (failures) {
         try {
@@ -280,8 +280,8 @@ export default class Runner extends EventEmitter {
     }
 
     /**
-     * end WebDriver session, a config object can be applied if object has changed
-     * within a hook by the user
+     * End WebDriver session. A config object can be applied if object has changed
+     * within a hook by the user.
      */
     async endSession (payload) {
         /**
@@ -297,7 +297,7 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * make sure instance(s) exist and have `sessionId`
+         * Make sure instance(s) exist and have `sessionId`.
          */
         const hasSessionId = global.browser && (this.isMultiremote
             /**
@@ -310,16 +310,16 @@ export default class Runner extends EventEmitter {
             : global.browser.sessionId)
 
         /**
-         * don't do anything if test framework returns after SIGINT
-         * if endSession is called without payload we expect a session id
+         * Don't do anything if the test framework returns after SIGINT.
+         * If `endSession` is called without a payload, we expect a session id.
          */
         if (!payload && !hasSessionId) {
             return
         }
 
         /**
-         * if payload was called but no session was created, wait until it was
-         * and try to end it
+         * If payload was called but no session was created, wait until it is
+         * and try to end it.
          */
         if (payload && !hasSessionId) {
             await new Promise((resolve) => setTimeout(resolve, 250))
@@ -327,7 +327,7 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * store capabilities for afterSession hook
+         * Store capabilities for `afterSession` hook.
          */
         let capabilities = global.browser.capabilities || {}
         if (this.isMultiremote) {
@@ -337,7 +337,7 @@ export default class Runner extends EventEmitter {
         await global.browser.deleteSession()
 
         /**
-         * delete session(s)
+         * Delete session(s)
          */
         if (this.isMultiremote) {
             global.browser.instances.forEach(i => { delete global.browser[i].sessionId })

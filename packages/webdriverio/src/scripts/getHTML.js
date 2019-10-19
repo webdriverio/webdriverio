@@ -1,10 +1,10 @@
 
 /**
- * get HTML of selector element
+ * Get HTML of selector element.
  *
- * @param  {String}  element             element to get HTML from
- * @param  {Boolean} includeSelectorTag  if true, selector tag gets included (uses outerHTML)
- * @return {String}                      html source
+ * @param  {String}  element             - Element to get HTML from
+ * @param  {Boolean} includeSelectorTag  - If true, selector tag gets included (uses outerHTML)
+ * @return {String}                      - Html source
  */
 
 export default function getHTML (element, includeSelectorTag) {

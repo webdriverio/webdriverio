@@ -18,7 +18,7 @@
  * </example>
  *
  * @alias element.setValue
- * @param {string | number | boolean | object | Array<any>}      value    Value to be added
+ * @param {string|number|boolean|object|Array<any>}      value - Value to be added
  * @uses protocol/elements, protocol/elementIdClear, protocol/elementIdValue
  * @type action
  *

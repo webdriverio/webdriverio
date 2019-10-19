@@ -5,7 +5,7 @@
  * where the object contains a property `element-6066-11e4-a52e-4f735466cecf` with the value of a reference
  * to an element. The command will then transform the reference to an extended WebdriverIO element.
  *
- * Note: chaining `$` and `$$` commands only make sense when you use multiple selector strategies. You will otherwise
+ * Note: Chaining `$` and `$$` commands only make sense when you use multiple selector strategies. You will otherwise
  * make unnecessary requests that slow down the test (e.g. `$('body').$('div')` will trigger two request whereas
  * `$('body div')` does literary the same with just one request)
  *
@@ -43,7 +43,7 @@
  * </example>
  *
  * @alias $
- * @param {String|Function} selector  selector or JS Function to fetch a certain element
+ * @param {String|Function} selector - Selector or function to fetch a certain element
  * @return {Element}
  * @type utility
  *

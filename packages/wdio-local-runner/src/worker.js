@@ -18,20 +18,20 @@ stdErrStream.pipe(process.stderr)
 
 /**
  * WorkerInstance
- * responsible for spawning a sub process to run the framework in and handle its
+ * Responsible for spawning a subprocess to run the framework, and handle its
  * session lifetime.
  */
 export default class WorkerInstance extends EventEmitter {
     /**
-     * assigns paramters to scope of instance
-     * @param  {object}   config      parsed configuration object
-     * @param  {string}   cid         capability id (e.g. 0-1)
-     * @param  {string}   configFile  path to config file (for sub process to parse)
-     * @param  {object}   caps        capability object
-     * @param  {string[]} specs       list of paths to test files to run in this worker
-     * @param  {object}   server      configuration details about automation backend this session is using
-     * @param  {number}   retries     number of retries remaining
-     * @param  {object}   execArgv    execution arguments for the test run
+     * Assigns paramters to scope of instance.
+     * @param  {object}   config      - Parsed configuration object
+     * @param  {string}   cid         - Capability id (e.g. 0-1)
+     * @param  {string}   configFile  - Path to config file (for subprocess to parse)
+     * @param  {object}   caps        - Capability object
+     * @param  {string[]} specs       - List of paths to test files to run in this worker
+     * @param  {object}   server      - Configuration details about automation backend this session is using
+     * @param  {number}   retries     - Number of retries remaining
+     * @param  {object}   execArgv    - Execution arguments for the test run
      */
     constructor (config, { cid, configFile, caps, specs, server, execArgv, retries }, stdout, stderr) {
         super()
@@ -49,7 +49,7 @@ export default class WorkerInstance extends EventEmitter {
     }
 
     /**
-     * spawns process to kick of wdio-runner
+     * Spawns process to kick off wdio-runner.
      */
     startProcess () {
         const { cid, execArgv } = this
@@ -151,9 +151,9 @@ export default class WorkerInstance extends EventEmitter {
     }
 
     /**
-     * sends message to sub process to execute functions in wdio-runner
-     * @param  {string} command  method to run in wdio-runner
-     * @param  {object} argv     arguments for functions to call
+     * Sends a message to the subprocess to execute functions in wdio-runner.
+     * @param  {string} command  - Method to run in wdio-runner
+     * @param  {object} argv     - Arguments for functions to call
      * @return null
      */
     postMessage (command, argv) {

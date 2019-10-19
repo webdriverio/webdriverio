@@ -12,8 +12,8 @@
  * </example>
  *
  * @alias browser.saveScreenshot
- * @param   {String}  filepath  path to the generated image (`.png` suffix is required) relative to the execution directory
- * @return  {Buffer}            screenshot buffer
+ * @param   {String}  filepath - Path to the generated image (`.png` suffix is required) relative to the execution directory
+ * @return  {Buffer}           - Screenshot buffer
  * @type utility
  *
  */

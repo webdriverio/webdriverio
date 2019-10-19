@@ -239,31 +239,31 @@ exports.config = {
 
     /**
      * Gets executed once before all workers get launched.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {Object} config - WDIO configuration object
+     * @param {Array.<Object>} capabilities - List of capabilities details
      */
     onPrepare: function (config, capabilities) {
     },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {Object} config - WDIO configuration object
+     * @param {Array.<Object>} capabilities - List of capabilities details
+     * @param {Array.<String>} specs - List of spec file paths that are to be run
      */
     beforeSession: function (config, capabilities, specs) {
     },
     /**
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {Array.<Object>} capabilities - List of capabilities details
+     * @param {Array.<String>} specs - List of spec file paths that are to be run
      */
     before: function (capabilities, specs) {
     },
     /**
      * Gets executed before the suite starts.
-     * @param {Object} suite suite details
+     * @param {Object} suite - Suite details
      */
     beforeSuite: function (suite) {
     },
@@ -291,17 +291,17 @@ exports.config = {
     },
     /**
      * Runs before a WebdriverIO command is executed.
-     * @param {String} commandName hook command name
-     * @param {Array} args arguments that the command would receive
+     * @param {String} commandName - The hook’s command name
+     * @param {Array} args - Arguments that the command would receive
      */
     beforeCommand: function (commandName, args) {
     },
     /**
      * Runs after a WebdriverIO command gets executed
-     * @param {String} commandName hook command name
-     * @param {Array} args arguments that command would receive
+     * @param {String} commandName - The hook’s command name
+     * @param {Array} args - Arguments that command would receive
      * @param {Number} result 0 - command success, 1 - command error
-     * @param {Object} error error object, if any
+     * @param {Object} error - Error object, if any
      */
     afterCommand: function (commandName, args, result, error) {
     },
@@ -312,7 +312,7 @@ exports.config = {
     },
     /**
      * Hook that gets executed after the suite has ended.
-     * @param {Object} suite suite details
+     * @param {Object} suite - Suite details
      */
     afterSuite: function (suite) {
     },
@@ -320,33 +320,33 @@ exports.config = {
      * Gets executed after all tests are done. You still have access to all global variables from
      * the test.
      * @param {Number} result 0 - test pass, 1 - test fail
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that ran
+     * @param {Array.<Object>} capabilities - List of capabilities details
+     * @param {Array.<String>} specs - List of spec file paths that ran
      */
     after: function (result, capabilities, specs) {
     },
     /**
      * Gets executed right after terminating the webdriver session.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that ran
+     * @param {Object} config - WDIO configuration object
+     * @param {Array.<Object>} capabilities - List of capabilities details
+     * @param {Array.<String>} specs - List of spec file paths that ran
      */
     afterSession: function (config, capabilities, specs) {
     },
     /**
      * Gets executed after all workers have shut down and the process is about to exit. 
      * An error thrown in the `onComplete` hook will result in the test run failing.
-     * @param {Object} exitCode 0 - success, 1 - fail
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {<Object>} results object containing test results
+     * @param {Object} exitCode - 0 for success, 1 for failure
+     * @param {Object} config - WDIO configuration object
+     * @param {Array.<Object>} capabilities - List of capabilities details
+     * @param {<Object>} results - Object containing test results
      */
     onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
     * Gets executed when a refresh happens.
-    * @param {String} oldSessionId session ID of the old session
-    * @param {String} newSessionId session ID of the new session
+    * @param {String} oldSessionId - Session ID of the old session
+    * @param {String} newSessionId - Session ID of the new session
     */
     onReload: function(oldSessionId, newSessionId) {
     },

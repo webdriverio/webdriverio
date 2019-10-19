@@ -32,7 +32,7 @@ import { getElementFromResponse } from '../../utils'
 
 export default async function selectByVisibleText (text) {
     /**
-     * convert value into string
+     * Convert value into string
      */
     text = typeof text === 'number'
         ? text.toString()
@@ -43,7 +43,7 @@ export default async function selectByVisibleText (text) {
         .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
 
     /**
-    * find option element using xpath
+    * Find option element using XPath
     */
     const formatted = /"/.test(normalized)
         ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
@@ -65,7 +65,7 @@ export default async function selectByVisibleText (text) {
     }
 
     /**
-    * select option
+    * Select option
     */
     return this.elementClick(getElementFromResponse(optionElement))
 }

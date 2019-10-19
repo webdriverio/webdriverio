@@ -19,8 +19,8 @@ export default class ConfigParser {
     }
 
     /**
-     * merges config file with default values
-     * @param {String} filename path of file relative to current directory
+     * Merges config file with default values.
+     * @param {String} filename - Path of file relative to current directory
      */
     addConfigFile (filename) {
         if (typeof filename !== 'string') {
@@ -77,8 +77,8 @@ export default class ConfigParser {
     }
 
     /**
-     * merge external object with config object
-     * @param  {Object} object  desired object to merge into the config object
+     * Merge external object with config object.
+     * @param  {Object} object  - Desired object to merge into the config object
      */
     merge (object = {}) {
         this._config = merge(this._config, object, MERGE_OPTIONS)

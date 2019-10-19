@@ -11,8 +11,8 @@
  * </example>
  *
  * @alias element.saveScreenshot
- * @param   {String}  filename  path to the generated image (`.png` suffix is required) relative to the execution directory
- * @return  {Buffer}            screenshot buffer
+ * @param   {String}  filename - Path to the generated image (`.png` suffix is required) relative to the execution directory
+ * @return  {Buffer}           - Screenshot buffer
  * @type utility
  *
  */

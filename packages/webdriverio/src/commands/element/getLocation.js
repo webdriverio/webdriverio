@@ -20,8 +20,8 @@
  * </example>
  *
  * @alias element.getLocation
- * @param {String} prop    can be "x" or "y" to get a result value directly for easier assertions
- * @return {Object|Number}  The X and Y coordinates for the element on the page (`{x:number, y:number}`)
+ * @param {String} prop - Can be "x" or "y" to get a result value directly for easier assertions
+ * @return {Object|Number} - The X and Y coordinates for the element on the page (`{x:number, y:number}`)
  * @uses protocol/elementIdLocation
  * @type property
  */

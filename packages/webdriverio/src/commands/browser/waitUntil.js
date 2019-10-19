@@ -25,11 +25,11 @@
  *
  *
  * @alias browser.waitUntil
- * @param {Function} condition  condition to wait on
- * @param {Number=}  timeout    timeout in ms (default: 5000)
- * @param {String=}  timeoutMsg error message to throw when waitUntil times out
- * @param {Number=}  interval   interval between condition checks (default: 500)
- * @return {Boolean} true if condition is fulfilled
+ * @param {Function} condition  - Condition to wait on
+ * @param {Number=}  timeout    - Timeout in ms (default: 5000)
+ * @param {String=}  timeoutMsg - Error message to throw when waitUntil times out
+ * @param {Number=}  interval   - Interval between condition checks (default: 500)
+ * @return {Boolean}            - True if condition is fulfilled
  * @uses utility/pause
  * @type utility
  *

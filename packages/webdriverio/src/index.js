@@ -11,11 +11,11 @@ import { getPrototype } from './utils'
 const log = logger('webdriverio')
 
 /**
- * A method to create a new session with WebdriverIO
+ * A method to create a new session with WebdriverIO.
  *
- * @param  {Object} [params={}]       Options to create the session with
- * @param  {function} remoteModifier  Modifier function to change the monad object
- * @return {object}                   browser object with sessionId
+ * @param  {Object} [params={}]       - Options to create the session with
+ * @param  {function} remoteModifier  - Modifier function to change the monad object
+ * @return {object}                   - Browser object with sessionId
  */
 export const remote = async function (params = {}, remoteModifier) {
     logger.setLogLevelsConfig(params.logLevels, params.logLevel)
@@ -45,9 +45,8 @@ export const remote = async function (params = {}, remoteModifier) {
     const instance = await ProtocolDriver.newSession(params, modifier, prototype, commandWrapper)
 
     /**
-     * we need to overwrite the original addCommand and overwriteCommand
-     * in order to wrap the function within Fibers (only if webdriverio
-     * is used with @wdio/cli)
+     * We need to overwrite the original `addCommand` and `overwriteCommand`
+     * in order to wrap the function within Fibers. (Only if used with @wdio/cli.)
      */
     if (params.runner) {
         const origAddCommand = ::instance.addCommand
@@ -74,7 +73,7 @@ export const multiremote = async function (params = {}) {
     const browserNames = Object.keys(params)
 
     /**
-     * create all instance sessions
+     * Create all instance sessions
      */
     await Promise.all(
         browserNames.map(async (browserName) => {
@@ -84,7 +83,7 @@ export const multiremote = async function (params = {}) {
     )
 
     /**
-     * use attachToSession capability to wrap instances around blank pod
+     * Use attachToSession capability to wrap instances around blank pod
      */
     const prototype = getPrototype('browser')
     const sessionParams = {
@@ -95,8 +94,8 @@ export const multiremote = async function (params = {}) {
     const driver = WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
 
     /**
-     * in order to get custom command overwritten or added to multiremote instance
-     * we need to pass in the prototype of the multibrowser
+     * In order to get custom command overwritten or added to multiremote instance,
+     * we need to pass in the prototype of the multibrowser.
      */
     const origAddCommand = ::driver.addCommand
     driver.addCommand = (name, fn, attachToElement) => {

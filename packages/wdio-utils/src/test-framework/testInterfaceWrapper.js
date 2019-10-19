@@ -1,9 +1,10 @@
 /**
- * used to wrap mocha, jasmine test frameworks functions (`it`, `beforeEach` and other)
- * with WebdriverIO before/after Test/Hook hooks.
- * Entrypoint is `runTestInFiberContext`, other functions are exported for testing purposes.
+ * @fileoverview Used to wrap Mocha, Jasmine test frameworks functions (`it`, `beforeEach`, 
+ * and others) with WebdriverIO before/after Test/Hook hooks.
  *
- * NOTE: not used by cucumber test framework. `testFnWrapper` is called directly there
+ * Entrypoint is `runTestInFiberContext`. Other functions are exported for testing purposes.
+ *
+ * NOTE: Not used by the Cucumber test framework. `testFnWrapper` is called directly there.
  */
 
 import { filterSpecArgs } from '../utils'
@@ -12,18 +13,18 @@ import { testFnWrapper } from './testFnWrapper'
 const MOCHA_COMMANDS = ['skip', 'only']
 
 /**
- * runs a hook within fibers context (if function name is not async)
- * it also executes before/after hook
+ * Runs a hook within the fibers context (if function name is not async).
+ * Also executes `before`/`after` hooks.
  *
- * @param  {Function} hookFn        function that was passed to the framework hook
- * @param  {Function} origFn        original framework hook function
- * @param  {Function} beforeFn      before hook
- * @param  {Function} beforeFnArgs  function that returns args for `beforeFn`
- * @param  {Function} afterFn       after hook
- * @param  {Function} afterArgsFn   function that returns args for `afterFn`
- * @param  {String}   cid           cid
- * @param  {Number}   repeatTest    number of retries if hook fails
- * @return {Function}               wrapped framework hook function
+ * @param  {Function} hookFn        - Function that was passed to the framework hook
+ * @param  {Function} origFn        - Original framework hook function
+ * @param  {Function} beforeFn      - Before hook
+ * @param  {Function} beforeFnArgs  - Function that returns args for `beforeFn`
+ * @param  {Function} afterFn       - After hook
+ * @param  {Function} afterArgsFn   - Function that returns args for `afterFn`
+ * @param  {String}   cid           - Cid
+ * @param  {Number}   repeatTest    - Number of retries if hook fails
+ * @return {Function}               - Wrapped framework hook function
  */
 export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest = 0) {
     return origFn(function (...hookFnArgs) {
@@ -32,18 +33,18 @@ export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn
 }
 
 /**
- * runs a spec function (test function) within the fibers context
+ * Runs a spec function (test function) within the fibers context.
  *
- * @param  {string}   specTitle     test description
- * @param  {Function} specFn        test function that got passed in from the user
- * @param  {Function} origFn        original framework test function
- * @param  {Function} beforeFn      before hook
- * @param  {Function} beforeFnArgs  function that returns args for `beforeFn`
- * @param  {Function} afterFn       after hook
- * @param  {Function} afterFnArgs   function that returns args for `afterFn`
- * @param  {String}   cid           cid
- * @param  {Number}   repeatTest    number of retries if test fails
- * @return {Function}               wrapped test function
+ * @param  {string}   specTitle     - Test description
+ * @param  {Function} specFn        - Test function that got passed in from the user
+ * @param  {Function} origFn        - Original framework test function
+ * @param  {Function} beforeFn      - Before hook
+ * @param  {Function} beforeFnArgs  - Function that returns args for `beforeFn`
+ * @param  {Function} afterFn       - After hook
+ * @param  {Function} afterFnArgs   - Function that returns args for `afterFn`
+ * @param  {String}   cid           - Cid
+ * @param  {Number}   repeatTest    - Number of retries if test fails
+ * @return {Function}               - Wrapped test function
  */
 export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest = 0) {
     return origFn(specTitle, function (...specFnArgs) {
@@ -52,21 +53,22 @@ export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnAr
 }
 
 /**
- * wraps hooks and test function of a framework within a fiber context
+ * Wraps a framework’s hook or test function within a fiber context.
  *
- * @param  {Function} origFn               original framework function
- * @param  {String[]} testInterfaceFnNames command that runs specs, e.g. `it`, `it.only` or `fit`
- * @param  {Function} beforeFn             before hook
- * @param  {Function} beforeFnArgs         function that returns args for `beforeFn`
- * @param  {Function} afterFn              after hook
- * @param  {Function} afterArgsFn          function that returns args for `afterFn`
- * @param  {String}   cid                  cid
- * @return {Function}                      wrapped test/hook function
+ * @param  {Function} origFn               - Original framework function
+ * @param  {String[]} testInterfaceFnNames - Command that runs specs, e.g. `it`, `it.only` or `fit`
+ * @param  {Function} beforeFn             - Before hook
+ * @param  {Function} beforeFnArgs         - Function that returns args for `beforeFn`
+ * @param  {Function} afterFn              - After hook
+ * @param  {Function} afterArgsFn          - Function that returns args for `afterFn`
+ * @param  {String}   cid                  - Cid
+ * @return {Function}                      - Wrapped test/hook function
  */
 export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid) {
     return function (...specArguments) {
         /**
          * Variadic arguments:
+         * 
          * [title, fn], [title], [fn]
          * [title, fn, retryCnt], [title, retryCnt], [fn, retryCnt]
          */
@@ -79,7 +81,7 @@ export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn
             if (specFn) return runSpec(specTitle, specFn, origFn, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid, retryCnt)
 
             /**
-             * if specFn is undefined we are dealing with a pending function
+             * If specFn is undefined, we are dealing with a pending function
              */
             return origFn(specTitle)
         }
@@ -89,18 +91,19 @@ export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn
 }
 
 /**
- * Wraps global test function like `it` so that commands can run synchronouse
+ * Wraps global test functions (like `it`) so that commands can run synchronously.
  *
- * The scope parameter is used in the qunit framework since all functions are bound to global.QUnit instead of global
+ * The `scope` parameter is used by the QUnit framework, since all functions are bound to 
+ * `global.QUnit` instead of `global`.
  *
- * @param  {boolean}  isTest        is `origFn` test function, otherwise hook
- * @param  {Function} beforeFn      before hook
- * @param  {Function} beforeFnArgs  function that returns args for `beforeFn`
- * @param  {Function} afterFn       after hook
- * @param  {Function} afterArgsFn   function that returns args for `afterFn`
- * @param  {String}   fnName        test interface command to wrap, e.g. `beforeEach`
- * @param  {String}   cid           cid
- * @param  {Object}   scope         the scope to run command from, defaults to global
+ * @param  {boolean}  isTest        - Is `origFn` test function, otherwise hook
+ * @param  {Function} beforeFn      - Before hook
+ * @param  {Function} beforeFnArgs  - Function that returns args for `beforeFn`
+ * @param  {Function} afterFn       - After hook
+ * @param  {Function} afterArgsFn   - Function that returns args for `afterFn`
+ * @param  {String}   fnName        - Test interface command to wrap, e.g. `beforeEach`
+ * @param  {String}   cid           - Cid
+ * @param  {Object}   scope         - The scope to run command from, defaults to global
  */
 export const runTestInFiberContext = function (isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, fnName, cid, scope = global) {
     const origFn = scope[fnName]
@@ -109,9 +112,9 @@ export const runTestInFiberContext = function (isSpec, beforeFn, beforeArgsFn, a
 }
 
 /**
- * support `it.skip` and `it.only` for the Mocha framework
- * @param {Function} origFn original function
- * @param {function} newFn  wrapped function
+ * Support `it.skip` and `it.only` for the Mocha framework.
+ * @param {Function} origFn - Original function
+ * @param {function} newFn  - Wrapped function
  */
 function addMochaCommands (origFn, newFn) {
     MOCHA_COMMANDS.forEach((commandName) => {

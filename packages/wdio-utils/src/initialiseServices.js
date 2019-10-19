@@ -6,11 +6,11 @@ import initialisePlugin from './initialisePlugin'
 const log = logger('@wdio/utils:initialiseServices')
 
 /**
- * initialise services based on configuration
- * @param  {Object}    config  config of running session
- * @param  {Object}    caps    capabilities of running session
- * @param  {String}    type    define sub type of plugins (for services it could be "launcher")
- * @return {Object[]}          list of service classes that got initialised
+ * Initialise services based on configuration.
+ * @param  {Object}    config  - Config of running session
+ * @param  {Object}    caps    - Capabilities of running session
+ * @param  {String}    type    - Define sub type of plugins (for services it could be "launcher")
+ * @return {Object[]}          - List of service classes that got initialised
  */
 export default function initialiseServices (config, caps, type) {
     const initialisedServices = []
@@ -23,7 +23,7 @@ export default function initialiseServices (config, caps, type) {
         let serviceConfig = config
 
         /**
-         * allow custom services with custom options
+         * Allow custom services with custom options.
          */
         if (Array.isArray(serviceName)) {
             serviceConfig = merge(config, serviceName[1] || {})
@@ -31,7 +31,7 @@ export default function initialiseServices (config, caps, type) {
         }
 
         /**
-         * allow custom services that are already initialised
+         * Allow custom services that are already initialised.
          */
         if (serviceName && typeof serviceName === 'object' && !Array.isArray(serviceName)) {
             log.debug('initialise custom initiated service')
@@ -41,7 +41,7 @@ export default function initialiseServices (config, caps, type) {
 
         try {
             /**
-             * allow custom service classes
+             * Allow custom service classes.
              */
             if (typeof serviceName === 'function') {
                 log.debug(`initialise custom service "${serviceName.name}"`)
@@ -53,7 +53,7 @@ export default function initialiseServices (config, caps, type) {
             const Service = initialisePlugin(serviceName, 'service', type)
 
             /**
-             * service only contains a launcher
+             * Service only contains a launcher.
              */
             if (!Service) {
                 continue

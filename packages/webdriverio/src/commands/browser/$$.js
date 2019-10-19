@@ -35,7 +35,7 @@
  * </example>
  *
  * @alias $$
- * @param {String|Function} selector  selector or JS Function to fetch multiple elements
+ * @param {String|Function} selector - Selector or JS Function to fetch multiple elements
  * @return {Element[]}
  * @type utility
  *

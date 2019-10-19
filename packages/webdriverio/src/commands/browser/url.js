@@ -24,7 +24,7 @@
     browser.url('/rootRelative');
  * </example>
  *
- * @param {String=} url  the URL to navigate to
+ * @param {String=} url - The URL to navigate to
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to

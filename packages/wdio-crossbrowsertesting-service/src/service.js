@@ -11,7 +11,7 @@ export default class CrossBrowserTestingService {
     }
 
     /**
-     * gather information about runner
+     * Gather information about runner
      */
     beforeSession (config, capabilities) {
         this.config = config
@@ -33,8 +33,8 @@ export default class CrossBrowserTestingService {
     }
 
     /**
-     * Before test
-     * @param {Object} test Test
+     * Before test.
+     * @param {Object} test - Test
     */
     beforeTest (test) {
         if (!this.isServiceEnabled) {
@@ -42,9 +42,9 @@ export default class CrossBrowserTestingService {
         }
 
         /**
-         * in jasmine we get Jasmine__TopLevel__Suite as title since service using test
+         * In Jasmine we get Jasmine__TopLevel__Suite as title since service using test
          * framework hooks in order to execute async functions.
-         * This tweak allows us to set the real suite name for jasmine jobs.
+         * This tweak allows us to set the real suite name for Jasmine jobs.
          */
         /* istanbul ignore if */
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
@@ -59,8 +59,8 @@ export default class CrossBrowserTestingService {
     }
 
     /**
-     * After test
-     * @param {Object} test Test
+     * After test.
+     * @param {Object} test - Test
      */
     afterTest (test) {
         if (!test.passed) {
@@ -69,11 +69,11 @@ export default class CrossBrowserTestingService {
     }
 
     /**
-     * For CucumberJS
+     * For CucumberJS.
      */
 
     /**
-     * Before feature
+     * Before feature.
      * @param {string} uri
      * @param {Object} feature
      */
@@ -83,9 +83,26 @@ export default class CrossBrowserTestingService {
         }
 
         this.suiteTitle = feature.document.feature.name
+        global.browser.execute('cbt:test-context=Feature: ' + this.suiteTitle)
     }
+
     /**
-     * After step
+     * Before scenario.
+     * @param {string} uri
+     * @param {Object} feature
+     * @param {Object} scenario
+     */
+    beforeScenario (uri, feature, scenario) {
+        if (!this.isServiceEnabled) {
+            return
+        }
+
+        const scenarioName = scenario.name
+        global.browser.execute('cbt:test-context=Scenario: ' + scenarioName)
+    }
+
+    /**
+     * After step.
      * @param {string} uri
      * @param {Object} feature
      * @param {Object} pickle
@@ -98,8 +115,8 @@ export default class CrossBrowserTestingService {
     }
 
     /**
-     * Update info
-     * @return {Promise} Promsie with result of updateJob method call
+     * Update info.
+     * @return {Promise} - Promsie with result of updateJob method call
      */
     after (result) {
         if (!this.isServiceEnabled) {
@@ -109,7 +126,7 @@ export default class CrossBrowserTestingService {
         let failures = this.failures
 
         /**
-         * set failures if user has bail option set in which case afterTest and
+         * Set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
         if (global.browser.config.mochaOpts && global.browser.config.mochaOpts.bail && Boolean(result)) {
@@ -167,7 +184,7 @@ export default class CrossBrowserTestingService {
 
     /**
      *
-     * @param {String} sessionId Session id
+     * @param {String} sessionId - Session ID
      * @returns {String}
      */
     getRestUrl (sessionId) {
@@ -178,12 +195,12 @@ export default class CrossBrowserTestingService {
         let body = { test: {} }
 
         /**
-         * set default values
+         * Set default values
          */
         body.test['name'] = this.suiteTitle
 
         /**
-         * add reload count to title if reload is used
+         * Add reload count to title if reload is used
          */
         if (calledOnReload || this.testCnt) {
             let testCnt = ++this.testCnt

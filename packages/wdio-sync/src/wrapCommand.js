@@ -29,12 +29,12 @@ process.on('WDIO_TIMER', (payload) => {
 })
 
 /**
- * wraps a function into a Fiber ready context to enable sync execution and hooks
- * @param  {Function}   fn             function to be executed
- * @param  {String}     commandName    name of that function
- * @param  {Function[]} beforeCommand  method to be executed before calling the actual function
- * @param  {Function[]} afterCommand   method to be executed after calling the actual function
- * @return {Function}   actual wrapped function
+ * Wraps a function into a Fiber-ready context, to enable sync execution and hooks.
+ * @param  {Function}   fn             - Function to be executed
+ * @param  {String}     commandName    - Name of that function
+ * @param  {Function[]} beforeCommand  - Method to be executed before calling the actual function
+ * @param  {Function[]} afterCommand   - Method to be executed after calling the actual function
+ * @return {Function} - Wrapped function
  */
 export default function wrapCommand (commandName, fn) {
     return function wrapCommandFn (...args) {
@@ -99,7 +99,7 @@ export default function wrapCommand (commandName, fn) {
 }
 
 /**
- * helper method that runs the command with before/afterCommand hook
+ * Helper method that runs the command with `beforeCommand`/`afterCommand` hook.
  */
 async function runCommandWithHooks (commandName, fn, ...args) {
     // save error for getting full stack in case of failure
@@ -134,18 +134,17 @@ async function runCommandHook(hookFn, args) {
 }
 
 /**
- * isNotInFiber
- * if element or its parent has element id then we are in parent's Fiber
- * @param {object} context browser or element
- * @param {string} fnName function name
+ * If element or its parent has element id, then we are in parent's Fiber.
+ * @param {object} context - Browser or element
+ * @param {string} fnName  - Function name
  */
 function isNotInFiber (context, fnName) {
     return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
 }
 
 /**
- * set `_NOT_FIBER` to `false` for element and its parents
- * @param {object} context browser or element
+ * Set `_NOT_FIBER` to `false` for element and its parents.
+ * @param {object} context - Browser or Element.
  */
 function inFiber(context) {
     if (context.constructor.name === 'MultiRemoteDriver') {
