@@ -133,8 +133,8 @@ describe('Failed tests', () => {
         const reporter = new AllureReporter({ stdout: true, outputDir })
 
         const runnerEvent = runnerStart()
-        delete runnerEvent.config.capabilities.browserName
-        delete runnerEvent.config.capabilities.version
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
 
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())
@@ -176,8 +176,8 @@ describe('Failed tests', () => {
 
         const runnerEvent = runnerStart()
         runnerEvent.config.framework = 'jasmine'
-        delete runnerEvent.config.capabilities.browserName
-        delete runnerEvent.config.capabilities.version
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
 
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())

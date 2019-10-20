@@ -44,17 +44,17 @@ describe('utils', () => {
 
     describe('initialiseInstance', () => {
         it('should attach to an existing session if sessionId is within config', () => {
-            initialiseInstance({
+            const config = {
                 sessionId: 123,
                 foo: 'bar'
-            }, [
-                { browserName: 'chrome' }
-            ])
+            }
+            initialiseInstance(config, { browserName: 'chrome', maxInstances: 2 })
             expect(attach).toBeCalledWith({
                 sessionId: 123,
                 foo: 'bar',
-                capabilities: [{ browserName: 'chrome' }]
+                capabilities: { browserName: 'chrome' }
             })
+            expect(config.capabilities).toEqual({ browserName: 'chrome' })
             expect(multiremote).toHaveBeenCalledTimes(0)
             expect(remote).toHaveBeenCalledTimes(0)
         })
