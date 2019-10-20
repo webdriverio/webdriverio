@@ -2,6 +2,7 @@ import fs from 'fs'
 
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
+import logger from '@wdio/logger'
 
 jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
@@ -463,6 +464,20 @@ describe('wdio-runner', () => {
             expect(await runner._shutdown(123)).toBe(123)
             expect(runner.reporter.waitForSync).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
+        })
+
+        it('should emit exit when reporter unsync', async () => {
+            const log = logger('wdio-runner')
+            jest.spyOn(log, 'error').mockImplementation((string) => string)
+
+            const runner = new WDIORunner()
+            runner.reporter = { waitForSync: jest.fn().mockReturnValue(Promise.reject('foo')) }
+            runner.emit = jest.fn()
+
+            expect(await runner._shutdown(123)).toBe(123)
+            expect(runner.reporter.waitForSync).toBeCalledTimes(1)
+            expect(runner.emit).toBeCalledWith('exit', 1)
+            expect(log.error).toHaveBeenCalledWith('foo')
         })
     })
 
