@@ -52,7 +52,7 @@ describe('utils', () => {
             expect(attach).toBeCalledWith({
                 sessionId: 123,
                 foo: 'bar',
-                capabilities: { browserName: 'chrome', maxInstances: 2 }
+                capabilities: { browserName: 'chrome' }
             })
             expect(config.capabilities).toEqual({ browserName: 'chrome' })
             expect(multiremote).toHaveBeenCalledTimes(0)
