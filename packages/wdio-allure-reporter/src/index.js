@@ -15,6 +15,7 @@ class AllureReporter extends WDIOReporter {
             useCucumberStepReporter
         })
         this.config = {}
+        this.capabilities = {}
         this.allure = new Allure()
 
         this.allure.setOptions({ targetDir: outputDir })
@@ -38,6 +39,7 @@ class AllureReporter extends WDIOReporter {
 
     onRunnerStart(runner) {
         this.config = runner.config
+        this.capabilities = runner.capabilities
         this.isMultiremote = runner.isMultiremote || false
     }
 
@@ -98,9 +100,9 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this.allure.getCurrentTest()
 
         if (!this.isMultiremote) {
-            const { browserName, deviceName } = this.config.capabilities
+            const { browserName, deviceName } = this.capabilities
             const targetName = browserName || deviceName || cid
-            const version = this.config.capabilities.version || this.config.capabilities.platformVersion || ''
+            const version = this.capabilities.version || this.capabilities.platformVersion || ''
             const paramName = deviceName ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
