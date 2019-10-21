@@ -66,6 +66,20 @@ describe('webdriver request', () => {
             expect(options.agent).toBe(agent)
         })
 
+        it('turns off agent keep alive if Connection: close header set', () => {
+            const req = new WebDriverRequest('POST', 'session/:sessionId/element')
+            const options = req._createOptions({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/',
+                headers: { Connection: 'close' }
+            }, 'foobar12345')
+
+            expect(options.agent.keepAlive).toBe(false)
+            expect(options.headers['Connection']).toEqual('close')
+        })
+
         it('ignores path when command is a hub command', () => {
             const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
             const options = req._createOptions({
