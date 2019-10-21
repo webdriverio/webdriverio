@@ -52,8 +52,6 @@ export default class CrossBrowserTestingService {
         }
 
         const context = test.parent === 'Jasmine__TopLevel__Suite' ? test.fullName : test.parent + ' - ' + test.title
-
-        global.browser.execute('cbt:test-context=' + context)
     }
 
     afterSuite (suite) {
@@ -87,7 +85,6 @@ export default class CrossBrowserTestingService {
         }
 
         this.suiteTitle = feature.document.feature.name
-        global.browser.execute('cbt:test-context=Feature: ' + this.suiteTitle)
     }
 
     /**
@@ -100,9 +97,7 @@ export default class CrossBrowserTestingService {
         if (!this.isServiceEnabled) {
             return
         }
-
         const scenarioName = scenario.name
-        global.browser.execute('cbt:test-context=Scenario: ' + scenarioName)
     }
 
     /**
