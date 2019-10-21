@@ -23,9 +23,17 @@ export default async function reloadSession () {
     const oldSessionId = this.sessionId
 
     /**
-     * end current running session
+     * end current running session, if session already gone suppress exceptions
      */
-    await this.deleteSession()
+    try {
+        await this.deleteSession()
+    } catch (err) {
+        /** 
+         * ignoring all exceptions that could be caused by browser.deleteSession()
+         * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
+         * this can be worked around in code but requires a lot of overhead
+         */
+    }
 
     const ProtocolDriver = require(this.options.automationProtocol).default
     await ProtocolDriver.reloadSession(this)
