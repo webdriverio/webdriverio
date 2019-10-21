@@ -6,12 +6,12 @@
     :pause.js
     it('should fetch the project title', () => {
         browser.url('https://webdriver.io');
-        browser.useLocatorStrategy('myStrat', (selector) => {
+        browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const header = browser.custom$('header')
-        const projectTitle = header.custom$('.projectTitle')
+        const header = browser.custom$('myStrat', 'header')
+        const projectTitle = header.custom$('myStrat', '.projectTitle')
 
         console.log(projectTitle.getText()) // WEBDRIVER I/O
     });
@@ -37,9 +37,9 @@ async function custom$ (strategyName, strategyArguments) {
     let parent
 
     if (this.elementId) {
-        switch(this.parent.constructor.name) {
+        switch(this.constructor.name) {
         case 'Element':
-            parent = this.parent
+            parent = this
             break
         case 'Browser':
         default:
@@ -48,7 +48,11 @@ async function custom$ (strategyName, strategyArguments) {
         }
     }
 
-    const res = await this.execute(strategy, strategyArguments, parent)
+    let res = await this.execute(strategy, strategyArguments, parent)
+
+    if (Array.isArray(res)) {
+        res = res[0]
+    }
 
     return await getElement.call(this, strategy, res)
 }

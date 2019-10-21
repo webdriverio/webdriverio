@@ -6,12 +6,12 @@
     :pause.js
     it('should get all the plugin wrapper buttons', () => {
         browser.url('https://webdriver.io');
-        browser.useLocatorStrategy('myStrat', (selector) => {
+        browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const pluginRowBlock = browser.custom$('.pluginRowBlock')
-        const pluginWrapper = pluginRowBlock.custom$$('.pluginWrapper')
+        const pluginRowBlock = browser.custom$('myStrat', '.pluginRowBlock')
+        const pluginWrapper = pluginRowBlock.custom$$('myStrat', '.pluginWrapper')
 
         console.log(pluginWrapper.length) // 4
     });

@@ -6,11 +6,11 @@
     :pause.js
     it('should fetch the project title', () => {
         browser.url('https://webdriver.io');
-        browser.useLocatorStrategy('myStrat', (selector) => {
+        browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const projectTitle = browser.custom$('.projectTitle')
+        const projectTitle = browser.custom$('myStrat', '.projectTitle')
 
         console.log(projectTitle.getText()) // WEBDRIVER I/O
     });

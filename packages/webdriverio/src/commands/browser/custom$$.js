@@ -6,11 +6,11 @@
     :pause.js
     it('should get all the plugin wrapper buttons', () => {
         browser.url('https://webdriver.io');
-        browser.useLocatorStrategy('myStrat', (selector) => {
+        browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const pluginWrapper = browser.custom$$('.pluginWrapper')
+        const pluginWrapper = browser.custom$$('myStrat', '.pluginWrapper')
 
         console.log(pluginWrapper.length) // 4
     });
@@ -30,7 +30,11 @@ async function custom$$ (strategyName, strategyArgument) {
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
-    const res = await this.execute(strategy, strategyArgument)
+
+    let res = await this.execute(strategy, strategyArgument)
+    if (!Array.isArray(res)) {
+        res = [res]
+    }
 
     return await getElements.call(this, strategy, res)
 }
