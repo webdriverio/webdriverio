@@ -10,7 +10,8 @@
             return document.querySelectorAll(selector)
         })
 
-        const projectTitle = browser.custom$('.projectTitle')
+        const header = browser.custom$('header')
+        const projectTitle = header.custom$('.projectTitle')
 
         console.log(projectTitle.getText()) // WEBDRIVER I/O
     });
@@ -21,7 +22,6 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-
 import { runFnInFiberContext } from '@wdio/utils/build/shim'
 import { getElement } from '../../utils/getElementObject'
 import { getBrowserObject } from '../../utils'

@@ -10,7 +10,8 @@
             return document.querySelectorAll(selector)
         })
 
-        const pluginWrapper = browser.custom$$('.pluginWrapper')
+        const pluginRowBlock = browser.custom$('.pluginRowBlock')
+        const pluginWrapper = pluginRowBlock.custom$$('.pluginWrapper')
 
         console.log(pluginWrapper.length) // 4
     });
@@ -23,9 +24,11 @@
  */
 import { runFnInFiberContext } from '@wdio/utils/build/shim'
 import { getElements } from '../../utils/getElementObject'
+import { getBrowserObject } from '../../utils'
 
 async function custom$$ (strategyName, strategyArgument) {
-    const strategy = this.strategies.get(strategyName)
+    const browserObject = getBrowserObject(this)
+    const strategy = browserObject.strategies.get(strategyName)
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
