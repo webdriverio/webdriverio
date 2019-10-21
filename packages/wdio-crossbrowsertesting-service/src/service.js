@@ -50,8 +50,6 @@ export default class CrossBrowserTestingService {
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
             this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
-
-        const context = test.parent === 'Jasmine__TopLevel__Suite' ? test.fullName : test.parent + ' - ' + test.title
     }
 
     afterSuite (suite) {
@@ -86,20 +84,6 @@ export default class CrossBrowserTestingService {
 
         this.suiteTitle = feature.document.feature.name
     }
-
-    /**
-     * Before scenario
-     * @param {string} uri
-     * @param {Object} feature
-     * @param {Object} scenario
-     */
-    beforeScenario (uri, feature, scenario) {
-        if (!this.isServiceEnabled) {
-            return
-        }
-        const scenarioName = scenario.name
-    }
-
     /**
      * After step
      * @param {string} uri
