@@ -21,6 +21,6 @@ export default class SharedStoreService {
             }
         })
 
-        global.browser.addCommand('sharedStore', () => sharedStore)
+        global.browser.sharedStore = sharedStore
     }
 }

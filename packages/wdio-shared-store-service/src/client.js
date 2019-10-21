@@ -1,4 +1,7 @@
 import { post } from 'axios'
+import logger from '@wdio/logger'
+
+const log = logger('@wdio/shared-store-service')
 
 let baseUrl
 export const setPort = (port) => { baseUrl = `http://localhost:${port}` }
@@ -10,7 +13,7 @@ export const setPort = (port) => { baseUrl = `http://localhost:${port}` }
  */
 export const getValue = async (key) => {
     const res = await post(`${baseUrl}/get`, { key }).catch(errHandler)
-    return res.data ? res.data.value : undefined
+    return (res && res.data) ? res.data.value : undefined
 }
 
 /**
@@ -22,4 +25,6 @@ export const setValue = async (key, value) => {
     await post(`${baseUrl}/set`, { key, value }).catch(errHandler)
 }
 
-const errHandler = () => { }
+const errHandler = err => {
+    log.warn(err.response.status, err.message)
+}
