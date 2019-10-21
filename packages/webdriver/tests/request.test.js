@@ -66,7 +66,7 @@ describe('webdriver request', () => {
             expect(options.agent).toBe(agent)
         })
 
-        it('ignors path when command is a hub command', () => {
+        it('ignores path when command is a hub command', () => {
             const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
             const options = req._createOptions({
                 protocol: 'https',
