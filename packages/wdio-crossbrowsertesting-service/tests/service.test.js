@@ -88,8 +88,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.cbtAuthkey = undefined
         cbtService.suiteTitle = 'Test suite'
         cbtService.beforeTest(test)
-
-        expect(execute).not.toBeCalled()
         expect(cbtService.suiteTitle).toEqual('Test suite')
     })
 
@@ -108,7 +106,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.beforeSuite({ title: 'Test suite' })
         cbtService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('cbt:test-context=Test parent - Test title')
         expect(cbtService.suiteTitle).toEqual('Test suite')
     })
 
@@ -128,7 +125,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' })
         cbtService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('cbt:test-context=Test parent - Test title')
         expect(cbtService.suiteTitle).toEqual('Test ')
     })
 
@@ -167,8 +163,6 @@ describe('wdio-crossbrowsertesting-service', () => {
     it('beforeFeature: execute not called', () => {
         const cbtService = new CrossBrowserTestingService()
         cbtService.beforeFeature(uri, featureObject)
-
-        expect(execute).not.toBeCalled()
     })
 
     it('beforeFeature: execute called', () => {
@@ -180,7 +174,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.beforeFeature(uri, featureObject)
 
         expect(cbtService.suiteTitle).toEqual('Create a feature')
-        expect(execute).toBeCalledWith('cbt:test-context=Feature: Create a feature')
     })
 
     it('afterScenario: exception happened', () => {
@@ -200,30 +193,6 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         cbtService.afterScenario(uri, {}, {}, { status: 'failed' })
         expect(cbtService.failures).toBe(2)
-    })
-
-    it('beforeScenario: execute not called', () => {
-        const cbtService = new CrossBrowserTestingService()
-        const scenario = { name: 'Scenario name' }
-        cbtService.beforeSession({
-            user: undefined,
-            key: undefined
-        }, {})
-        cbtService.beforeScenario(uri, featureObject, scenario)
-
-        expect(execute).not.toBeCalled()
-    })
-
-    it('beforeScenario: execute called', () => {
-        const cbtService = new CrossBrowserTestingService()
-        const scenario = { name: 'Scenario name' }
-        cbtService.beforeSession({
-            user: 'test',
-            key: 'testy'
-        }, {})
-        cbtService.beforeScenario(uri, featureObject, scenario)
-
-        expect(execute).toBeCalledWith('cbt:test-context=Scenario: Scenario name')
     })
 
     it('after: updatedJob not called', () => {
