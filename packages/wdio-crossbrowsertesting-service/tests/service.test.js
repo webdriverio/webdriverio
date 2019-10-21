@@ -88,7 +88,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.cbtAuthkey = undefined
         cbtService.suiteTitle = 'Test suite'
         cbtService.beforeTest(test)
-        
         expect(cbtService.suiteTitle).toEqual('Test suite')
     })
 
@@ -195,27 +194,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.afterScenario(uri, {}, {}, { status: 'failed' })
         expect(cbtService.failures).toBe(2)
     })
-
-    it('beforeScenario: execute not called', () => {
-        const cbtService = new CrossBrowserTestingService()
-        const scenario = { name: 'Scenario name' }
-        cbtService.beforeSession({
-            user: undefined,
-            key: undefined
-        }, {})
-        cbtService.beforeScenario(uri, featureObject, scenario)
-    })
-
-    it('beforeScenario: execute called', () => {
-        const cbtService = new CrossBrowserTestingService()
-        const scenario = { name: 'Scenario name' }
-        cbtService.beforeSession({
-            user: 'test',
-            key: 'testy'
-        }, {})
-        cbtService.beforeScenario(uri, featureObject, scenario)
-    })
-
+    
     it('after: updatedJob not called', () => {
         const cbtService = new CrossBrowserTestingService()
         const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
