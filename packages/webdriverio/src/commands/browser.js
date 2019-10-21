@@ -1,6 +1,7 @@
 export const $$ = require('./browser/$$').default
 export const $ = require('./browser/$').default
 export const call = require('./browser/call').default
+export const custom$$ = require('./browser/custom$$').default
 export const custom$ = require('./browser/custom$').default
 export const debug = require('./browser/debug').default
 export const deleteCookies = require('./browser/deleteCookies').default
