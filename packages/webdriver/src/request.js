@@ -18,8 +18,8 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 const agents = {
-    http: new http.Agent({ keepAlive: true }),
-    https: new https.Agent({ keepAlive: true })
+    http: http.Agent,
+    https: https.Agent
 }
 
 export default class WebDriverRequest extends EventEmitter {
@@ -45,12 +45,25 @@ export default class WebDriverRequest extends EventEmitter {
 
     _createOptions (options, sessionId) {
         const requestOptions = {
-            agent: options.agent || agents[options.protocol],
             headers: {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
             qs: typeof options.queryParams === 'object' ? options.queryParams : {}
+        }
+
+        if (options.agent) {
+            requestOptions.agent = options.agent
+        } else {
+            let Agent = agents[options.protocol]
+            if (Agent) {
+                let keepAlive = true
+                if (typeof requestOptions.headers['Connection'] === 'string'
+                    && requestOptions.headers['Connection'].trim().toLowerCase() === 'close') {
+                    keepAlive = false
+                }
+                requestOptions.agent = new Agent({ keepAlive })
+            }
         }
 
         /**

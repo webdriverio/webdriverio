@@ -80,6 +80,42 @@ describe('webdriver request', () => {
             expect(options.headers['Connection']).toEqual('close')
         })
 
+        it('preserves agent keep alive if custom', () => {
+            const req = new WebDriverRequest('POST', 'session/:sessionId/element')
+            const agent = new https.Agent({ keepAlive: true })
+            const options = req._createOptions({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/',
+                agent,
+                headers: { Connection: 'close' }
+            }, 'foobar12345')
+
+            expect(options.agent.keepAlive).toBe(true)
+            expect(options.headers['Connection']).toEqual('close')
+        })
+
+        it('doesn\'t store mutations to agent', () => {
+            const req = new WebDriverRequest('POST', 'session/:sessionId/element')
+            const options1 = req._createOptions({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/',
+                headers: { Connection: 'close' }
+            }, 'foobar12345')
+            const options2 = req._createOptions({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/wd/hub/'
+            }, 'foobar12345')
+
+            expect(options1.agent.keepAlive).toBe(false)
+            expect(options2.agent.keepAlive).toBe(true)
+        })
+
         it('ignores path when command is a hub command', () => {
             const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
             const options = req._createOptions({
