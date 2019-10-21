@@ -194,7 +194,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.afterScenario(uri, {}, {}, { status: 'failed' })
         expect(cbtService.failures).toBe(2)
     })
-    
+
     it('after: updatedJob not called', () => {
         const cbtService = new CrossBrowserTestingService()
         const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
