@@ -21,7 +21,6 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-import { runFnInFiberContext } from '@wdio/utils/build/shim'
 import { getElements } from '../../utils/getElementObject'
 
 async function custom$$ (strategyName, strategyArgument) {
@@ -40,4 +39,4 @@ async function custom$$ (strategyName, strategyArgument) {
     return await getElements.call(this, strategy, res)
 }
 
-export default runFnInFiberContext(custom$$)
+export default custom$$

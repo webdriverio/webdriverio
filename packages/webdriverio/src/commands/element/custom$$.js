@@ -22,11 +22,10 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-import { runFnInFiberContext } from '@wdio/utils/build/shim'
 import { getElements } from '../../utils/getElementObject'
 import { getBrowserObject } from '../../utils'
 
-async function custom$$ (strategyName, strategyArgument) {
+async function custom$$ (strategyName, strategyArguments) {
     const browserObject = getBrowserObject(this)
     const strategy = browserObject.strategies.get(strategyName)
 
@@ -34,7 +33,21 @@ async function custom$$ (strategyName, strategyArgument) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    let res = await this.execute(strategy, strategyArgument)
+    let parent
+
+    if (this.elementId) {
+        switch(this.constructor.name) {
+        case 'Element':
+            parent = this
+            break
+        case 'Browser':
+        default:
+            parent = browserObject.$('html')
+            break
+        }
+    }
+
+    let res = await this.execute(strategy, strategyArguments, parent)
 
     if (!Array.isArray(res)) {
         res = [res]
@@ -43,4 +56,4 @@ async function custom$$ (strategyName, strategyArgument) {
     return await getElements.call(this, strategy, res)
 }
 
-export default runFnInFiberContext(custom$$)
+export default custom$$
