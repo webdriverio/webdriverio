@@ -33,6 +33,7 @@ export default async function reloadSession () {
          * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
          * this can be worked around in code but requires a lot of overhead
          */
+         log.warn(`Suppressing error closing the session: ${err.stack}`)
     }
 
     const ProtocolDriver = require(this.options.automationProtocol).default
