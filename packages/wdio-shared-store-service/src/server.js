@@ -27,6 +27,7 @@ const startServer = () => new Promise((resolve, reject) => {
      * https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback
      */
     app.listen(0, (err) => {
+        /* istanbul ignore next */
         if (err) {
             return reject(err)
         }
@@ -47,4 +48,4 @@ function validateBody (req, res, next) {
     next()
 }
 
-export default { startServer, stopServer }
+export default { startServer, stopServer, __store: store }
