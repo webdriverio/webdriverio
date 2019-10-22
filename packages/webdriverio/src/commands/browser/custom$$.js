@@ -32,6 +32,7 @@ async function custom$$ (strategyName, strategyArgument) {
     }
 
     let res = await this.execute(strategy, strategyArgument)
+
     if (!Array.isArray(res)) {
         res = [res]
     }

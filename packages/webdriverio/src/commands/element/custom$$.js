@@ -33,7 +33,12 @@ async function custom$$ (strategyName, strategyArgument) {
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
-    const res = await this.execute(strategy, strategyArgument)
+
+    let res = await this.execute(strategy, strategyArgument)
+
+    if (!Array.isArray(res)) {
+        res = [res]
+    }
 
     return await getElements.call(this, strategy, res)
 }

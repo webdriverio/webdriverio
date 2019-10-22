@@ -24,14 +24,18 @@
 import { runFnInFiberContext } from '@wdio/utils/build/shim'
 import { getElement } from '../../utils/getElementObject'
 
-async function custom$ (strategyName, strategyArgument) {
+async function custom$ (strategyName, strategyArguments) {
     const strategy = this.strategies.get(strategyName)
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
-    const res = await this.execute(strategy, strategyArgument)
 
+    let res = await this.execute(strategy, strategyArguments)
+
+    if (Array.isArray(res)) {
+        res = res[0]
+    }
     return await getElement.call(this, strategy, res)
 }
 
