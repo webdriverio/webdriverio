@@ -45,4 +45,16 @@ describe('custom$', () => {
             expect(error.message).toBe('No strategy found for test')
         }
     })
+
+    it('should return array even if the script returns one element', async () => {
+        browser.addLocatorStrategy('test', function testLocatorStrategy() {})
+
+        const elems = await browser.custom$$('test', '.foo')
+
+        expect(request.mock.calls[1][0].method).toBe('POST')
+        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+        expect(elems[0].elementId).toBe('some-elem-123')
+        expect(elems[0][ELEMENT_KEY]).toBe('some-elem-123')
+        expect(elems[0].ELEMENT).toBe(undefined)
+    })
 })

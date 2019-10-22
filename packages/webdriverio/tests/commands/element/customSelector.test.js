@@ -37,4 +37,17 @@ describe('custom$', () => {
             expect(error.message).toBe('No strategy found for test')
         }
     })
+
+    it('should fetch element one element even if the script returns multiple', async () => {
+        browser.addLocatorStrategy('test', function testLocatorStrategsMultiple() {})
+
+        const elem = await browser.custom$('test', '.foo')
+        const custom = await elem.custom$('test', '.test')
+
+        expect(request.mock.calls[1][0].method).toBe('POST')
+        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
+        expect(custom.elementId).toBe('some-elem-123')
+        expect(custom[ELEMENT_KEY]).toBe('some-elem-123')
+        expect(custom.ELEMENT).toBe(undefined)
+    })
 })
