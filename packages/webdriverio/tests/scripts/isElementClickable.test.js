@@ -12,7 +12,7 @@ describe('isElementClickable script', () => {
         }
     })
 
-    it('should be clickabke if in viewport and elementFromPoint matches', () => {
+    it('should be clickable if in viewport and elementFromPoint matches', () => {
         const elemMock = {
             getBoundingClientRect: () => ({
                 height: 55,
@@ -27,7 +27,23 @@ describe('isElementClickable script', () => {
         expect(isElementClickable(elemMock)).toBe(true)
     })
 
-    it("should be not clickabke if in viewport but elementFromPoint doesn't match", () => {
+    it('should be not clickable if in viewport and elementFromPoint matches but is disabled', () => {
+        const elemMock = {
+            getBoundingClientRect: () => ({
+                height: 55,
+                width: 22,
+                top: 33,
+                left: 455
+            }),
+            scrollIntoView: () => {},
+            disabled: true
+        }
+        global.document = { elementFromPoint: () => elemMock }
+
+        expect(isElementClickable(elemMock)).toBe(false)
+    })
+
+    it("should be not clickable if in viewport but elementFromPoint doesn't match", () => {
         const elemMock = {
             getBoundingClientRect: () => ({
                 height: 55,
@@ -42,7 +58,7 @@ describe('isElementClickable script', () => {
         expect(isElementClickable(elemMock)).toBe(false)
     })
 
-    it('should be not clickabke if not in viewport', () => {
+    it('should be not clickable if not in viewport', () => {
         const elemMock = {
             getBoundingClientRect: () => ({
                 height: 55,

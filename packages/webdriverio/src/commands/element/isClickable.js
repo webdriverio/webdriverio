@@ -4,9 +4,10 @@
  * Return true if the selected DOM-element:
  *
  * - exists;
- * - visible;
+ * - is visible;
  * - is within viewport (if not try scroll to it);
- * - it's center is not overlapped with another element.
+ * - its center is not overlapped with another element;
+ * - is not disabled.
  *
  * otherwise return false.
  *
@@ -15,8 +16,12 @@
  * <example>
     :isClickable.js
     it('should detect if an element is clickable', () => {
-        let clickable = $('#el').isClickable();
+        const el = $('#el')
+        let clickable = el.isClickable();
         console.log(clickable); // outputs: true or flase
+
+        // wait for element to be clickable
+        browser.waitUntil(() => el.isClickable())
     });
  * </example>
  *

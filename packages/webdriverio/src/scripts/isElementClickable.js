@@ -1,5 +1,5 @@
 /**
- * check if element is within the viewport or is overlapped by another element
+ * check if element is within the viewport or is overlapped by another element or disabled
  * @param  {HTMLElement} elem  element to check
  * @return {Boolean}           false if element is not overlapped
  */
@@ -16,7 +16,9 @@ export default function isElementClickable (elem) {
         return document.elementFromPoint(x, y)
     }
 
-    // isElementInViewport.js
+    /**
+     * copied from `isElementInViewport.js`
+     */
     function isElementInViewport (elem) {
         if (!elem.getBoundingClientRect) {
             return false
@@ -34,7 +36,7 @@ export default function isElementClickable (elem) {
     }
 
     function isClickable (elem) {
-        return isElementInViewport(elem) && getOverlappingElement(elem) === elem
+        return isElementInViewport(elem) && getOverlappingElement(elem) === elem && elem.disabled !== true
     }
 
     // scroll to the element if it's not clickable
