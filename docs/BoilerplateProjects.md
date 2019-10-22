@@ -79,6 +79,20 @@ This project creates a powerful boilerplate for UI Automation Testing with Webdr
     - Code Prettier
     - HTML report with Allure
     - Single test case for development purposes
+    
+### [ssehmi/WebdriverIO-TypeScript-Cucumber-Boilerplate](https://github.com/ssehmi/e2e)
+
+This is a boilerplate project to run E2E tests with CucumberJS tests with chai assertions written in typescript.
+
+- Frameworks:
+    - WebdriverIO (v5.x)
+    - TypeScript(v3.x)
+    - Chai (v5.x)
+    - @Wdio/Allure (v5.x)
+- Features:
+    - TypeScript decorators for cucumber steps
+    - Prettier
+    - Allure Reporting
 
 ### [luuizeduardo/wdio-automation](https://github.com/luuizeduardo/wdio-automation)
 
