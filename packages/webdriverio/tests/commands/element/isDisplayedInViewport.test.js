@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import request from 'request'
 import { remote } from '../../../src'
 

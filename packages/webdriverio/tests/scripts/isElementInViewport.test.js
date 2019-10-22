@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-
 import isElementInViewport from '../../src/scripts/isElementInViewport'
 
 describe('isElementInViewport script', () => {

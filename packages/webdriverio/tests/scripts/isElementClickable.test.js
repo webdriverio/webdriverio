@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-
 import isElementClickable from '../../src/scripts/isElementClickable'
 
 describe('isElementClickable script', () => {
