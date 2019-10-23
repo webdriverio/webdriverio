@@ -52,6 +52,68 @@ describe('reloadSession test', () => {
         })
     })
 
+    it('should be ok even if deleteSession throws an exception (JSONWP)', async () => {
+        let scenario = {
+            sessionIdMock: 'foobar-234',
+            requestMock: [{}, {}],
+            newSessionId: 'foobar-234',
+            jsonwpMode: true
+        }
+
+        const hook = jest.fn()
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                jsonwpMode: scenario.jsonwpMode,
+                browserName: 'foobar'
+            },
+            onReload: [hook]
+        })
+
+        browser.sessionId = null // INFO: destroy sessionId in browser object
+
+        request.setSessionId(scenario.sessionIdMock)
+        request.setMockResponse(scenario.requestMock)
+
+        await browser.reloadSession()
+
+        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
+        expect(request.mock.calls[1][0].method).toBe('POST')
+        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session')
+        expect(hook).toBeCalledWith(null, scenario.newSessionId)
+    })
+
+    it('should be ok even if deleteSession throws an exception (non-JSONWP)', async () => {
+        let scenario = {
+            sessionIdMock: 'ignored if jsonwpMode is false',
+            requestMock: [{}, {}],
+            newSessionId: undefined,
+            jsonwpMode: false
+        }
+
+        const hook = jest.fn()
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                jsonwpMode: scenario.jsonwpMode,
+                browserName: 'foobar'
+            },
+            onReload: [hook]
+        })
+
+        browser.sessionId = null // INFO: destroy sessionId in browser object
+
+        request.setSessionId(scenario.sessionIdMock)
+        request.setMockResponse(scenario.requestMock)
+
+        await browser.reloadSession()
+
+        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
+        expect(request.mock.calls[1][0].method).toBe('POST')
+        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session')
+        expect(hook).toBeCalledWith(null, scenario.newSessionId)
+    })
+
     afterEach(() => {
         request.mockClear()
         request.resetSessionId()
