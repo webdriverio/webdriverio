@@ -1,3 +1,6 @@
+import logger from '@wdio/logger'
+const log = logger('webdriverio')
+
 /**
  *
  * Creates a new Selenium session with your current capabilities. This is useful if you
@@ -23,9 +26,18 @@ export default async function reloadSession () {
     const oldSessionId = this.sessionId
 
     /**
-     * end current running session
+     * end current running session, if session already gone suppress exceptions
      */
-    await this.deleteSession()
+    try {
+        await this.deleteSession()
+    } catch (err) {
+        /**
+         * ignoring all exceptions that could be caused by browser.deleteSession()
+         * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
+         * this can be worked around in code but requires a lot of overhead
+         */
+        log.warn(`Suppressing error closing the session: ${err.stack}`)
+    }
 
     const ProtocolDriver = require(this.options.automationProtocol).default
     await ProtocolDriver.reloadSession(this)
