@@ -302,6 +302,15 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.resolve(FIXTURES_PATH, 'test.es6'))
         })
 
+        it('should include mjs files', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+
+            const mjsFile = path.resolve(FIXTURES_PATH, '*.mjs')
+            const specs = configParser.getSpecs([mjsFile])
+            expect(specs).toContain(path.resolve(FIXTURES_PATH, 'test.mjs'))
+        })
+
         it('should not include other file types', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
