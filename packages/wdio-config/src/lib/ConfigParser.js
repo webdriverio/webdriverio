@@ -278,6 +278,7 @@ export default class ConfigParser {
 
             filenames = filenames.filter(filename =>
                 filename.slice(-3) === '.js' ||
+                filename.slice(-4) === '.mjs' ||
                 filename.slice(-4) === '.es6' ||
                 filename.slice(-3) === '.ts' ||
                 filename.slice(-8) === '.feature' ||
