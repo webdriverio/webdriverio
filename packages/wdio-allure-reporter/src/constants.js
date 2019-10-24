@@ -21,6 +21,7 @@ const stepStatuses = {
 }
 
 const events = {
+    addLabel: 'allure:addLabel',
     addFeature: 'allure:addFeature',
     addStory: 'allure:addStory',
     addSeverity: 'allure:addSeverity',
