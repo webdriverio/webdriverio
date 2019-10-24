@@ -23,6 +23,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     registerListeners() {
+        process.on(events.addLabel, ::this.addLabel)
         process.on(events.addFeature, ::this.addFeature)
         process.on(events.addStory, ::this.addStory)
         process.on(events.addSeverity, ::this.addSeverity)
@@ -264,6 +265,15 @@ class AllureReporter extends WDIOReporter {
         }
     }
 
+    addLabel(name, value) {
+        if (!this.isAnyTestRunning()) {
+            return false
+        }
+
+        const test = this.allure.getCurrentTest()
+        test.addLabel(name, value)
+    }
+
     addStory({ storyName }) {
         if (!this.isAnyTestRunning()) {
             return false
@@ -394,6 +404,15 @@ class AllureReporter extends WDIOReporter {
         tellReporter(events.addFeature, { featureName })
     }
 
+    /**
+     * Assign label to test
+     * @name addLabel
+     * @param {string} name - label name
+     * @param {string} value - label value
+     */
+    static addLabel = (name, value) => {
+        tellReporter(events.addLabel, name, value)
+    }
     /**
      * Assign severity to test
      * @name addSeverity

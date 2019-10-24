@@ -20,9 +20,10 @@ describe('Important constants', () => {
     })
 
     it('should have correct events', () => {
-        expect(Object.values(events)).toHaveLength(12)
+        expect(Object.values(events)).toHaveLength(13)
         expect(events.addSeverity).toEqual('allure:addSeverity')
         expect(events.addIssue).toEqual('allure:addIssue')
+        expect(events.addLabel).toEqual('allure:addLabel')
         expect(events.addTestId).toEqual('allure:addTestId')
         expect(events.startStep).toEqual('allure:startStep')
         expect(events.endStep).toEqual('allure:endStep')

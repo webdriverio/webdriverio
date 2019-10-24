@@ -44,6 +44,7 @@ exports.config = {
 - `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
 
 ## Supported Allure API
+* `addLabel(name, value)` - assign a custom label to test
 * `addFeature(featureName)` – assign feature to test
 * `addStory(storyName)` – assign user story to test
 * `addSeverity(value)` – assign severity to test
