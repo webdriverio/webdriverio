@@ -407,7 +407,7 @@ class AllureReporter extends WDIOReporter {
     /**
      * Assign label to test
      * @name addLabel
-     * @param {string} label - label name
+     * @param {string} name - label name
      * @param {string} value - label value
      */
     static addLabel = (name, value) => {
