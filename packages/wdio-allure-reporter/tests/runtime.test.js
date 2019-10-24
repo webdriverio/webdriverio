@@ -22,7 +22,7 @@ describe('reporter reporter api', () => {
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addStory, { storyName: 'Story' })
     })
 
-    it('should pass correct data from addStory', () => {
+    it('should pass correct data from addFeature', () => {
         reporter.addFeature('foo')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addFeature, { featureName: 'foo' })
