@@ -11,6 +11,23 @@ afterAll(() => {
 })
 
 describe('reporter runtime implementation', () => {
+    it('should correct add custom label', () => {
+        const reporter = new AllureReporter({ stdout: true })
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return { addLabel }
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+
+        }
+
+        reporter.addLabel('customLabel', 'Label')
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('customLabel', 'Label')
+    })
+
     it('should correct add story label', () => {
         const reporter = new AllureReporter({ stdout: true })
         const addLabel = jest.fn()

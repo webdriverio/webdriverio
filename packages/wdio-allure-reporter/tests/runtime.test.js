@@ -10,6 +10,12 @@ describe('reporter reporter api', () => {
         jest.resetAllMocks()
     })
 
+    it.only('should pass correct data from addLabel', () => {
+        reporter.addLabel('customLabel', 'Label')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addLabel, 'customLabel', 'Label')
+    })
+
     it('should pass correct data from addStory', () => {
         reporter.addStory('Story')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
