@@ -34,7 +34,7 @@ exports.generateProtocolDocs = (sidebars) => {
                 description.returnTags = [] // tbd
                 description.throwsTags = [] // tbd
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
-                description.customEditUrl = `${config.repoUrl}/edit/master/packages/webdriver/protocol/${protocolName}.json`
+                description.customEditUrl = `${config.repoUrl}/edit/master/packages/wdio-protocols/protocol/${protocolName}.json`
 
                 let protocolNote
                 if (VENDOR_PROTOCOLS.includes(protocolName)) {
@@ -58,7 +58,7 @@ exports.generateProtocolDocs = (sidebars) => {
                         '---',
                         `id: ${protocolName}`,
                         `title: ${protocol}`,
-                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/master/packages/webdriver/protocol/${protocolName}.json`,
+                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/master/packages/wdio-protocols/protocol/${protocolName}.json`,
                         '---\n'
                     ].join('\n')]
                 }
