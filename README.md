@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-    <a href="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master">
+    <a href="https://travis-ci.org/webdriverio/webdriverio">
         <img alt="Build Status" src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master">
     </a>
     <a href="https://codecov.io/gh/webdriverio/webdriverio">
