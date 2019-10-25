@@ -186,7 +186,6 @@ declare namespace WebdriverIO {
             attachToElement?: boolean
         ): void;
         options: RemoteOptions;
-        config: Config;
         // ... browser commands ...
     }
 
