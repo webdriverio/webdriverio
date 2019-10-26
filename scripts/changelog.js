@@ -45,7 +45,7 @@ const BANNER = `
  */
 // eslint-disable-next-line no-console
 console.log('Start generating changelog...')
-changelog.createMarkdown({ tagFrom: 'v5.15.0' }).then((newChangelog) => {
+changelog.createMarkdown({ tagFrom: 'v5.15.1' }).then((newChangelog) => {
     let changelogContent = fs.readFileSync(changelogPath, 'utf8')
     changelogContent = changelogContent.replace('---', '---\n' + newChangelog)
     fs.writeFileSync(changelogPath, changelogContent, 'utf8')

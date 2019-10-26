@@ -15,6 +15,67 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.15.4 (2019-10-25)
+
+#### :memo: Documentation
+* `wdio-protocols`
+  * [#4686](https://github.com/webdriverio/webdriverio/pull/4686) mention error scenario for dismiss and accept alert ([@kellyselden](https://github.com/kellyselden))
+
+#### :house: Internal
+* [#4684](https://github.com/webdriverio/webdriverio/pull/4684) open travis site instead of picture when clicking on build-badge ([@anneloreegger](https://github.com/anneloreegger))
+
+#### Committers: 3
+- Kelly Selden ([@kellyselden](https://github.com/kellyselden))
+- [@anneloreegger](https://github.com/anneloreegger)
+
+
+## v5.15.3 (2019-10-25)
+
+#### :rocket: New Feature
+* `wdio-config`
+  * [#4672](https://github.com/webdriverio/webdriverio/pull/4672) Add support for run *.mjs files ([@AleksandrHorev](https://github.com/AleksandrHorev))
+* `webdriverio`
+  * [#4656](https://github.com/webdriverio/webdriverio/pull/4656) Check if element is clickable ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#4676](https://github.com/webdriverio/webdriverio/pull/4676) wdio-allure-reporter: implement addLabel ([@erwinheitzman](https://github.com/erwinheitzman))
+* `webdriverio`
+  * [#4669](https://github.com/webdriverio/webdriverio/pull/4669) Update reloadSession.js in order to allow for session reload even if remote session has been terminated on server-side ([@mikesalvia](https://github.com/mikesalvia))
+
+#### :memo: Documentation
+* [#4670](https://github.com/webdriverio/webdriverio/pull/4670) Update Boilerplate example readme ([@ssehmi](https://github.com/ssehmi))
+
+#### Committers: 5
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@AleksandrHorev](https://github.com/AleksandrHorev)
+- sat ([@ssehmi](https://github.com/ssehmi))
+
+
+## v5.15.2 (2019-10-21)
+
+#### :bug: Bug Fix
+* `wdio-crossbrowsertesting-service`
+  * [#4664](https://github.com/webdriverio/webdriverio/pull/4664) Fix CrossBrowserTesting Service error  ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+* `wdio-allure-reporter`, `wdio-runner`
+  * [#4655](https://github.com/webdriverio/webdriverio/pull/4655) Fix attach to session caps ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#4647](https://github.com/webdriverio/webdriverio/pull/4647) isDisplayedInViewport returns false if element is missing ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#4654](https://github.com/webdriverio/webdriverio/pull/4654) Update waitForExist.js ([@hakubo](https://github.com/hakubo))
+* Other
+  * [#4653](https://github.com/webdriverio/webdriverio/pull/4653) Update API.md ([@hakubo](https://github.com/hakubo))
+
+#### Committers: 4
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Daphne Magsby ([@daphnemcrossbrowser](https://github.com/daphnemcrossbrowser))
+- Jakub Olek ([@hakubo](https://github.com/hakubo))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
 ## v5.15.1 (2019-10-16)
 
 #### :rocket: New Feature
