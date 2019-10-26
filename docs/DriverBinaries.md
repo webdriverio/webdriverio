@@ -103,7 +103,8 @@ So the top of your file should look like:
 exports.config = {
     runner: 'local',
     //
-    // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
+    // Override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
+    // If you want to run IE or Edge drivers, set it to '/wd/hub' instead.
     path: '/',
 }
 ```
