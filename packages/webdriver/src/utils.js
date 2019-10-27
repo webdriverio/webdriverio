@@ -16,6 +16,13 @@ const MOBILE_CAPABILITIES = [
     'device-orientation', 'deviceOrientation', 'deviceName'
 ]
 
+const BROWSER_DRIVER_ERRORS = [
+    'unknown command: wd/hub/session', // chromedriver
+    'HTTP method not allowed', // geckodriver
+    "'POST /wd/hub/session' was not found.", // safaridriver
+    'Command not found' // iedriver
+]
+
 /**
  * start browser session with WebDriver protocol
  */
@@ -45,7 +52,14 @@ export async function startWebDriverSession (params) {
         }
     )
 
-    const response = await sessionRequest.makeRequest(params)
+    let response
+    try {
+        response = await sessionRequest.makeRequest(params)
+    } catch (err) {
+        log.error(err)
+        const message = getSessionError(err)
+        throw new Error('Failed to create session.\n' + message)
+    }
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
@@ -381,4 +395,36 @@ export function setupDirectConnect(params) {
         params.port = directConnectPort
         params.path = directConnectPath
     }
+}
+
+/**
+ * get human readable message from response error
+ * @param {Error} err response error
+ */
+export const getSessionError = (err) => {
+    if (!err.message) {
+        return 'See logs for more information.'
+    }
+
+    // browser driver / service is not started
+    if (err.code === 'ECONNREFUSED') {
+        return `Unable to connect to "${err.address}:${err.port}", make sure browser driver is running on that address.`
+    }
+
+    // wrong path: selenium-standalone
+    if (err.message.includes('Whoops! The URL specified routes to this help page.')) {
+        return 'Make sure there is no `path` in wdio.conf!'
+    }
+
+    // wrong path: chromedriver, geckodriver, etc
+    if (BROWSER_DRIVER_ERRORS.some(m => err.message.includes(m))) {
+        return "Make sure `path: '/'` exists in config!"
+    }
+
+    // edge driver on localhost
+    if (err.message.includes('Bad Request - Invalid Hostname') && err.message.includes('HTTP Error 400')) {
+        return 'Run browser driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1'
+    }
+
+    return err.message
 }
