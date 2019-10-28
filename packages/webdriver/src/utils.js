@@ -413,17 +413,24 @@ export const getSessionError = (err) => {
 
     // wrong path: selenium-standalone
     if (err.message.includes('Whoops! The URL specified routes to this help page.')) {
-        return "Make sure there is no `path: '/'` or path set to valid uri, ex: '/wd/hub', in wdio.conf!"
+        return "It seems you are running a Selenium Standalone server and point to a wrong path. Please set `path: '/wd/hub'` in your wdio.conf.js!"
     }
 
     // wrong path: chromedriver, geckodriver, etc
     if (BROWSER_DRIVER_ERRORS.some(m => err.message.includes(m))) {
-        return "Make sure `path: '/'` exists in config!"
+        return "Make sure to set `path: '/'` in your wdio.conf.js!"
     }
 
     // edge driver on localhost
     if (err.message.includes('Bad Request - Invalid Hostname') && err.message.includes('HTTP Error 400')) {
-        return 'Run browser driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1'
+        return "Run edge driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1, or set `hostname: 'localhost'` in your wdio.conf.js"
+    }
+
+    // Illegal w3c capability
+    if (err.message.includes('Illegal key values seen in w3c capabilities')) {
+        return err.message +
+            '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc.' +
+            '\nSee more https://www.w3.org/TR/webdriver/#capabilities'
     }
 
     return err.message

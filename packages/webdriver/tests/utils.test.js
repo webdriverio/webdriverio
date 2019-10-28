@@ -334,19 +334,27 @@ describe('utils', () => {
         it('path: selenium-standalone path', () => {
             expect(getSessionError({
                 message: 'Whoops! The URL specified routes to this help page.'
-            })).toContain("no `path: '/'` or")
+            })).toContain("set `path: '/wd/hub'` in")
         })
 
         it('path: chromedriver, geckodriver, etc', () => {
             expect(getSessionError({
                 message: 'HTTP method not allowed'
-            })).toContain("`path: '/'` exists")
+            })).toContain("set `path: '/'` in")
         })
 
-        it('path: chromedriver, geckodriver, etc', () => {
+        it('edge driver localhost issue', () => {
             expect(getSessionError({
                 message: 'Bad Request - Invalid Hostname 400 <br> HTTP Error 400'
             })).toContain('127.0.0.1 instead of localhost')
+        })
+
+        it('illegal w3c cap', () => {
+            const message = getSessionError({
+                message: 'Illegal key values seen in w3c capabilities: [chromeOptions]'
+            })
+            expect(message).toContain('[chromeOptions]')
+            expect(message).toContain('add vendor prefix')
         })
     })
 
