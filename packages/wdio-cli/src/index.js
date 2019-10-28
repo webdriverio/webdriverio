@@ -27,7 +27,7 @@ export const run = async () => {
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.feature:5', 'Run scenario by line number')
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.feature:5:10', 'Run scenarios by line number')
-        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.feature:5:10,./test/e2e/b.feature', 'Run scenarios by line number in single feature and another complete feature')
+        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.feature:5:10 --spec ./test/e2e/b.feature', 'Run scenarios by line number in single feature and another complete feature')
         .example('$0 install reporter spec', 'Install @wdio/spec-reporter')
         .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })

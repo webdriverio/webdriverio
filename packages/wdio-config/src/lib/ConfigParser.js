@@ -105,7 +105,7 @@ export default class ConfigParser {
          */
 
         if (this._config.spec && ConfigParser.isCucumberFeatureWithLineNumber(this._config.spec)) {
-            this._config.cucumberFeaturesWithLineNumbers = this._config.spec
+            this._config.cucumberFeaturesWithLineNumbers = this._config.spec.join(',')
         }
 
         if (spec.length > 0) {
@@ -223,9 +223,6 @@ export default class ConfigParser {
     setFilePathToFilterOptions (cliArgFileList, config) {
         const filesToFilter = new Set()
         const fileList = ConfigParser.getFilePaths(config)
-        if (typeof cliArgFileList === 'string') {
-            cliArgFileList = cliArgFileList[0].split(',')
-        }
         cliArgFileList.forEach(filteredFile => {
             filteredFile = ConfigParser.removeLineNumbers(filteredFile)
             let globMatchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
@@ -273,17 +270,7 @@ export default class ConfigParser {
     }
 
     static isCucumberFeatureWithLineNumber(patterns) {
-        let isCucumberFeatureWithLineNumber = false
-        if (typeof patterns === 'string') {
-            isCucumberFeatureWithLineNumber = patterns.include(':')
-        } else {
-            for (let i=0; i< patterns.length; i++) {
-                if (patterns[i].includes(':')) {
-                    isCucumberFeatureWithLineNumber = true
-                }
-            }
-        }
-        return isCucumberFeatureWithLineNumber
+        return patterns.find((pattern) => pattern.includes(':'))
     }
     /**
      * returns a flatten list of globed files
@@ -298,9 +285,7 @@ export default class ConfigParser {
             patterns = this.removeLineNumbers(patterns)
             patterns = [patterns]
         } else {
-            for (let i=0; i< patterns.length; i++) {
-                patterns[i] = this.removeLineNumbers(patterns[i])
-            }
+            patterns = patterns.map(::this.removeLineNumbers)
         }
 
         if (!Array.isArray(patterns)) {
