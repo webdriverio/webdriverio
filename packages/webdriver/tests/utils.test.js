@@ -1,6 +1,6 @@
 import {
     isSuccessfulResponse, getPrototype, environmentDetector, setupDirectConnect,
-    getErrorFromResponseBody, isW3C, CustomRequestError
+    getErrorFromResponseBody, isW3C, CustomRequestError, getSessionError
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -309,6 +309,43 @@ describe('utils', () => {
             expect(params.hostname).toBe('bar')
             expect(params.port).toBe(4321)
             expect(params.path).toBe('')
+        })
+    })
+
+    describe('getSessionError', () => {
+        it('should return unchanged message', () => {
+            expect(getSessionError({ message: 'foobar' })).toEqual('foobar')
+        })
+
+        it('should return "more info" if no message', () => {
+            expect(getSessionError({})).toEqual('See logs for more information.')
+        })
+
+        it('ECONNREFUSED', () => {
+            expect(getSessionError({
+                code: 'ECONNREFUSED',
+                address: '127.0.0.1',
+                port: 4444,
+                message: 'ECONNREFUSED 127.0.0.1:4444'
+            })).toContain('Unable to connect to "127.0.0.1:4444"')
+        })
+
+        it('path: selenium-standalone path', () => {
+            expect(getSessionError({
+                message: 'Whoops! The URL specified routes to this help page.'
+            })).toContain('no `path` in wdio.conf')
+        })
+
+        it('path: chromedriver, geckodriver, etc', () => {
+            expect(getSessionError({
+                message: 'HTTP method not allowed'
+            })).toContain("`path: '/'` exists")
+        })
+
+        it('path: chromedriver, geckodriver, etc', () => {
+            expect(getSessionError({
+                message: 'Bad Request - Invalid Hostname 400 <br> HTTP Error 400'
+            })).toContain('127.0.0.1 instead of localhost')
         })
     })
 })

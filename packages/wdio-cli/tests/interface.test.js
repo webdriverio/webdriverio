@@ -106,13 +106,40 @@ describe('cli interface', () => {
         wdioClInterface.printReporters = jest.fn()
 
         expect(wdioClInterface.onMessage({
+            cid: '0-0',
             origin: 'worker',
-            name: 'error',
+            name: 'barfoo',
             content: 'foobar'
-        })).toEqual([undefined, 'worker', 'error', 'foobar'])
+        })).toEqual(['0-0', 'worker', 'barfoo', 'foobar'])
 
         expect(wdioClInterface.messages).toEqual({ reporter: {} })
         expect(wdioClInterface.printReporters).not.toBeCalled()
+    })
+
+    it('should print error message on worker error', () => {
+        const err = { message: 'foo', stack: 'bar' }
+        wdioClInterface.onMessage({
+            cid: '0-0',
+            origin: 'worker',
+            name: 'error',
+            content: err
+        })
+
+        expect(wdioClInterface.log).toBeCalledTimes(1)
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'Error:', 'foo')
+    })
+
+    it('should print message on worker error', () => {
+        const err = 'bar'
+        wdioClInterface.onMessage({
+            cid: '0-0',
+            origin: 'worker',
+            name: 'error',
+            content: err
+        })
+
+        expect(wdioClInterface.log).toBeCalledTimes(1)
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'Error:', 'bar')
     })
 
     it('should ignore messages that do not contain a proper origin', () => {
