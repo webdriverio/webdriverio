@@ -402,18 +402,18 @@ export function setupDirectConnect(params) {
  * @param {Error} err response error
  */
 export const getSessionError = (err) => {
-    if (!err.message) {
-        return 'See logs for more information.'
-    }
-
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${err.address}:${err.port}", make sure browser driver is running on that address.`
     }
 
+    if (!err.message) {
+        return 'See logs for more information.'
+    }
+
     // wrong path: selenium-standalone
     if (err.message.includes('Whoops! The URL specified routes to this help page.')) {
-        return 'Make sure there is no `path` in wdio.conf!'
+        return "Make sure there is no `path: '/'` or path set to valid uri, ex: '/wd/hub', in wdio.conf!"
     }
 
     // wrong path: chromedriver, geckodriver, etc

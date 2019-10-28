@@ -333,7 +333,7 @@ describe('utils', () => {
         it('path: selenium-standalone path', () => {
             expect(getSessionError({
                 message: 'Whoops! The URL specified routes to this help page.'
-            })).toContain('no `path` in wdio.conf')
+            })).toContain("no `path: '/'` or")
         })
 
         it('path: chromedriver, geckodriver, etc', () => {
