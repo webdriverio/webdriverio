@@ -1,6 +1,7 @@
 import {
     isSuccessfulResponse, getPrototype, environmentDetector, setupDirectConnect,
-    getErrorFromResponseBody, isW3C, CustomRequestError, getSessionError
+    getErrorFromResponseBody, isW3C, CustomRequestError, getSessionError,
+    startWebDriverSession
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -346,6 +347,19 @@ describe('utils', () => {
             expect(getSessionError({
                 message: 'Bad Request - Invalid Hostname 400 <br> HTTP Error 400'
             })).toContain('127.0.0.1 instead of localhost')
+        })
+    })
+
+    describe('startWebDriverSession', () => {
+        it('should handle sessionRequest error', async () => {
+            let error
+            try {
+                await startWebDriverSession({})
+            } catch (err) {
+                error = err
+            }
+
+            expect(error.message).toContain('Failed to create session')
         })
     })
 })
