@@ -38,7 +38,7 @@ type ElementStatic = Pick<WebdriverIO.Element,
 >;
 
 // Browser commands that should be wrapper with Promise
-type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | '$' | '$$' | 'touchAction'>;
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | 'config' | '$' | '$$' | 'touchAction'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
@@ -47,7 +47,7 @@ type BrowserAsync = {
 } & AsyncSelectors;
 
 // Browser commands that should not be wrapper with promise
-type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options'>;
+type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | 'config'>;
 
 // Properties of TouchAction which are similar in sync and async mode
 type TouchActionSync = Omit<WebdriverIO.TouchAction, 'element'>

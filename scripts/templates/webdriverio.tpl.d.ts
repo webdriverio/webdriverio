@@ -175,6 +175,7 @@ declare namespace WebdriverIO {
     }
 
     interface Browser {
+        config: Config;
         addCommand(
             name: string,
             func: Function,
