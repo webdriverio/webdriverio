@@ -221,6 +221,9 @@
       "api/element/getValue": {
         "title": "getValue"
       },
+      "api/element/isClickable": {
+        "title": "isClickable"
+      },
       "api/element/isDisplayed": {
         "title": "isDisplayed"
       },
