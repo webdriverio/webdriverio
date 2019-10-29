@@ -12,6 +12,7 @@ const { Changelog } = require('lerna-changelog')
 const { load } = require('lerna-changelog/lib/configuration')
 
 const root = path.resolve(__dirname, '..')
+const pkg = require(path.join(root, 'package.json'))
 const { version } = require(path.join(root, 'lerna.json'))
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
@@ -45,9 +46,11 @@ const BANNER = `
  */
 // eslint-disable-next-line no-console
 console.log('Start generating changelog...')
-changelog.createMarkdown({ tagFrom: 'v5.15.1' }).then((newChangelog) => {
+changelog.createMarkdown({ tagFrom: `v${version}` }).then((newChangelog) => {
+    newChangelog = `\n\n## ${pkg.version} ` + newChangelog.slice(newChangelog.indexOf('(')) + '\n'
+
     let changelogContent = fs.readFileSync(changelogPath, 'utf8')
-    changelogContent = changelogContent.replace('---', '---\n' + newChangelog)
+    changelogContent = changelogContent.replace('---', '---' + newChangelog)
     fs.writeFileSync(changelogPath, changelogContent, 'utf8')
 
     /**
