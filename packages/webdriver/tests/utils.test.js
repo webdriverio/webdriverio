@@ -349,11 +349,19 @@ describe('utils', () => {
             })).toContain('127.0.0.1 instead of localhost')
         })
 
-        it('illegal w3c cap', () => {
+        it('illegal w3c cap passed to selenium standalone', () => {
             const message = getSessionError({
                 message: 'Illegal key values seen in w3c capabilities: [chromeOptions]'
             })
             expect(message).toContain('[chromeOptions]')
+            expect(message).toContain('add vendor prefix')
+        })
+
+        it('wrong host port, port in use, illegal w3c cap passed to grid', () => {
+            const message = getSessionError({
+                message: 'Response has empty body'
+            })
+            expect(message).toContain('valid hostname:port or the port is not in use')
             expect(message).toContain('add vendor prefix')
         })
     })

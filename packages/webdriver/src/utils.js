@@ -426,11 +426,18 @@ export const getSessionError = (err) => {
         return "Run edge driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1, or set `hostname: 'localhost'` in your wdio.conf.js"
     }
 
-    // Illegal w3c capability
+    const w3cCapMessage = '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc to non W3C capabilities.' +
+        '\nSee more https://www.w3.org/TR/webdriver/#capabilities'
+
+    // Illegal w3c capability passed to selenium standalone
     if (err.message.includes('Illegal key values seen in w3c capabilities')) {
-        return err.message +
-            '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc.' +
-            '\nSee more https://www.w3.org/TR/webdriver/#capabilities'
+        return err.message + w3cCapMessage
+    }
+
+    // wrong host/port, port in use, illegal w3c capability passed to selenium grid
+    if (err.message === 'Response has empty body') {
+        return 'Make sure to connect to valid hostname:port or the port is not in use.' +
+            '\nIf you use a grid server ' + w3cCapMessage
     }
 
     return err.message
