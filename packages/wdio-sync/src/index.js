@@ -72,7 +72,7 @@ const executeAsync = async function (fn, repeatTest = 0, args = []) {
         }
 
         if (e.stack) {
-           e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
+            e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
         }
         throw e
     }
