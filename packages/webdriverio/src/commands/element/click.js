@@ -64,7 +64,7 @@
  * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
  * @type action
  * @param options Object (optional)
- * @param options.button String | Number (optional)
+ * @param options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
  * @param options.x Number (optional)
  * @param options.y Number (optional)
  */
