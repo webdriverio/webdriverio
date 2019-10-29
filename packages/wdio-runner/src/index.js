@@ -178,13 +178,14 @@ export default class Runner extends EventEmitter {
      * init protocol session
      * @param  {object}  config        configuration of sessions
      * @param  {Object}  caps          desired cabilities of session
-     * @param  {Object}  browserStub
+     * @param  {Object}  browserStub   stubbed `browser` object with only capabilities, config and env flags
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     async _initSession (config, caps, browserStub) {
         const browser = await this._startSession(config, caps)
 
-        if (!browser) { return browser }
+        // return null if session couldn't get established
+        if (!browser) { return null }
 
         // add flags declared by user to browser object
         if (browserStub) {
