@@ -18,6 +18,17 @@ export function getSauceEndpoint (region, isRDC) {
     return `ondemand.${REGION_MAPPING[shortRegion]}saucelabs.com`
 }
 
+export function removeLineNumbers(pattern) {
+    if (pattern.includes(':')) {
+        pattern = pattern.split(':')[0]
+    }
+    return pattern
+}
+
+export function isCucumberFeatureWithLineNumber(patterns) {
+    return patterns.find((pattern) => pattern.includes(':'))
+}
+
 /**
  * helper to detect the Selenium backend according to given capabilities
  */

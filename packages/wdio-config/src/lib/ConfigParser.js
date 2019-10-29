@@ -5,7 +5,7 @@ import merge from 'deepmerge'
 
 import logger from '@wdio/logger'
 
-import { detectBackend } from '../utils'
+import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber } from '../utils'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, NON_WORKER_SERVICES } from '../constants'
 
@@ -104,7 +104,7 @@ export default class ConfigParser {
          * run single spec file only, regardless of multiple-spec specification
          */
 
-        if (this._config.spec && ConfigParser.isCucumberFeatureWithLineNumber(this._config.spec)) {
+        if (this._config.spec && isCucumberFeatureWithLineNumber(this._config.spec)) {
             this._config.cucumberFeaturesWithLineNumbers = this._config.spec.join(',')
         }
 
@@ -224,7 +224,7 @@ export default class ConfigParser {
         const filesToFilter = new Set()
         const fileList = ConfigParser.getFilePaths(config)
         cliArgFileList.forEach(filteredFile => {
-            filteredFile = ConfigParser.removeLineNumbers(filteredFile)
+            filteredFile = removeLineNumbers(filteredFile)
             let globMatchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
             if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
                 filesToFilter.add(path.resolve(process.cwd(), filteredFile))
@@ -262,16 +262,6 @@ export default class ConfigParser {
         return this._capabilities
     }
 
-    static removeLineNumbers(pattern) {
-        if (pattern.includes(':')) {
-            pattern = pattern.split(':')[0]
-        }
-        return pattern
-    }
-
-    static isCucumberFeatureWithLineNumber(patterns) {
-        return patterns.find((pattern) => pattern.includes(':'))
-    }
     /**
      * returns a flatten list of globed files
      *
@@ -282,10 +272,10 @@ export default class ConfigParser {
         let files = []
 
         if (typeof patterns === 'string') {
-            patterns = this.removeLineNumbers(patterns)
+            patterns = removeLineNumbers(patterns)
             patterns = [patterns]
         } else {
-            patterns = patterns.map(::this.removeLineNumbers)
+            patterns = patterns.map(pattern => removeLineNumbers(pattern))
         }
 
         if (!Array.isArray(patterns)) {
