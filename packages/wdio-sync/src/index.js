@@ -70,7 +70,9 @@ const executeAsync = async function (fn, repeatTest = 0, args = []) {
         if(repeatTest > 0) {
             return await executeAsync(fn, --repeatTest, args)
         }
-
+        
+        // Only instances of `Error` have a stack trace. Specifcally in mocha, `this.skip()` 
+        // does a `throw new Pending('sync skip')` which is not a subsclass of `Error`
         if (e.stack) {
             e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
         }
