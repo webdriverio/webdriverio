@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.15.7 (2019-10-30)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#4713](https://github.com/webdriverio/webdriverio/pull/4713) wdio-allure-reporter:fix addLabel ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-sync`
+  * [#4698](https://github.com/webdriverio/webdriverio/pull/4698) pretty e.stack only if it exists ([@colinbendell](https://github.com/colinbendell))
+
+#### Committers: 2
+- Colin Bendell ([@colinbendell](https://github.com/colinbendell))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v5.15.6 (2019-10-30)
 
 #### :memo: Documentation
