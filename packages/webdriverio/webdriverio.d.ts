@@ -2,7 +2,7 @@
 
 declare namespace WebdriverIO {
     function remote(
-        options?: WebdriverIO.RemoteOptions,
+        options?: RemoteOptions,
         modifier?: (...args: any[]) => any
     ): BrowserObject;
 
@@ -11,7 +11,7 @@ declare namespace WebdriverIO {
     ): BrowserObject;
 
     function multiremote(
-        options: WebdriverIO.MultiRemoteOptions
+        options: MultiRemoteOptions
     ): BrowserObject;
 
     interface Browser {
@@ -49,23 +49,20 @@ declare namespace WebdriverIO {
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
     }
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIO.Browser { }
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }
 }
-
-type $ = (selector: string | Function) => Promise<WebdriverIO.Element>;
-type $$ = (selector: string | Function) => Promise<WebdriverIO.Element[]>;
 
 declare var browser: WebdriverIO.BrowserObject;
 
 /**
  * find a single element on the page.
  */
-declare var $: $;
+declare var $: (selector: string | Function) => Promise<WebdriverIO.Element>;
 
 /**
  * find multiple elements on the page.
  */
-declare var $$: $$;
+declare var $$: (selector: string | Function) => Promise<WebdriverIO.Element[]>;
 
 declare module "webdriverio" {
     export = WebdriverIO
