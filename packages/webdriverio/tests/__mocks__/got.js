@@ -7,7 +7,7 @@ let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
 const genericSubSubElementId = 'some-sub-sub-elem-231'
-const requestMock = jest.fn().mockImplementation((params, cb) => {
+const requestMock = jest.fn().mockImplementation((uri, params) => {
     let value = {}
     let jsonwpMode = false
     let sessionResponse = {
@@ -21,9 +21,9 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     if (
-        params.body &&
-        params.body.capabilities &&
-        params.body.capabilities.alwaysMatch.jsonwpMode
+        params.json &&
+        params.json.capabilities &&
+        params.json.capabilities.alwaysMatch.jsonwpMode
     ) {
         jsonwpMode = true
         sessionResponse = {
@@ -33,38 +33,38 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     if (
-        params.body &&
-        params.body.capabilities &&
-        params.body.capabilities.alwaysMatch.mobileMode
+        params.json &&
+        params.json.capabilities &&
+        params.json.capabilities.alwaysMatch.mobileMode
     ) {
         sessionResponse.capabilities.deviceName = 'iNode'
     }
 
     if (
-        params.body &&
-        params.body.capabilities &&
-        params.body.capabilities.alwaysMatch.keepBrowserName
+        params.json &&
+        params.json.capabilities &&
+        params.json.capabilities.alwaysMatch.keepBrowserName
     ) {
-        sessionResponse.capabilities.browserName = params.body.capabilities.alwaysMatch.browserName
+        sessionResponse.capabilities.browserName = params.json.capabilities.alwaysMatch.browserName
     }
 
     switch (params.uri.path) {
     case '/wd/hub/session':
         value = sessionResponse
 
-        if (params.body.capabilities.alwaysMatch.browserName && params.body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
+        if (params.json.capabilities.alwaysMatch.browserName && params.json.capabilities.alwaysMatch.browserName.includes('noW3C')) {
             value.desiredCapabilities = { browserName: 'mockBrowser' }
             delete value.capabilities
         }
 
         break
     case `/wd/hub/session/${sessionId}/element`:
-        if (params.body && params.body.value === '#nonexisting') {
+        if (params.json && params.json.value === '#nonexisting') {
             value = { elementId: null }
             break
         }
 
-        if (params.body && params.body.value === '#slowRerender') {
+        if (params.json && params.json.value === '#slowRerender') {
             ++requestMock.retryCnt
             if (requestMock.retryCnt === 2) {
                 ++requestMock.retryCnt
@@ -133,18 +133,18 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         break
     case `/wd/hub/session/${sessionId}/execute`:
     case `/wd/hub/session/${sessionId}/execute/sync`: {
-        const script = Function(params.body.script)
-        const args = params.body.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
+        const script = Function(params.json.script)
+        const args = params.json.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
 
         let result = null
-        if (params.body.script.includes('resq')) {
-            if (params.body.script.includes('react$$')) {
+        if (params.json.script.includes('resq')) {
+            if (params.json.script.includes('react$$')) {
                 result = [
                     { [ELEMENT_KEY]: genericElementId },
                     { [ELEMENT_KEY]: 'some-elem-456' },
                     { [ELEMENT_KEY]: 'some-elem-789' },
                 ]
-            } else if (params.body.script.includes('react$')) {
+            } else if (params.json.script.includes('react$')) {
                 result = args[0] === 'myNonExistingComp'
                     ? new Error('foobar')
                     : { [ELEMENT_KEY]: genericElementId }
@@ -209,11 +209,11 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
 
         if (requestMock.retryCnt > 1) {
             const response = { value: null }
-            return cb(null, {
+            return Promise.resolve({
                 headers: { foo: 'bar' },
                 statusCode: 200,
-                body: response
-            }, response)
+                body: JSON.stringify(response)
+            })
         }
 
         // https://www.w3.org/TR/webdriver1/#handling-errors
@@ -224,7 +224,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             }
         }
 
-        return cb(null, {
+        return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 404,
             body: error
@@ -235,7 +235,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
      * empty response
      */
     if (params.uri.path === '/wd/hub/empty') {
-        return cb(null, {
+        return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 500,
             body: ''
@@ -253,18 +253,18 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
          */
         if (requestMock.retryCnt > 3) {
             const response = { value: 'caught' }
-            return cb(null, {
+            return Promise.resolve({
                 headers: { foo: 'bar' },
                 statusCode: 200,
-                body: response
-            }, response)
+                body: JSON.stringify(response)
+            })
         }
 
-        return cb(new Error('Could not send request'), {
+        return Promise.reject({
             headers: { foo: 'bar' },
             statusCode: 400,
-            body: {}
-        }, {})
+            body: '{}'
+        })
     }
 
     /**
@@ -294,11 +294,11 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         response = response.value
     }
 
-    cb(null, {
+    return Promise.resolve({
         headers: { foo: 'bar' },
         statusCode,
-        body: response
-    }, response)
+        body: JSON.stringify(response)
+    })
 })
 
 requestMock.retryCnt = 0

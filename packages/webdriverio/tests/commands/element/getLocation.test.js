@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('getLocation test', () => {
@@ -12,7 +12,7 @@ describe('getLocation test', () => {
         const elem = await browser.$('#foo')
         const size = await elem.getLocation()
 
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/rect')
+        expect(got.mock.calls[2][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/rect')
         expect(size.x).toBe(15)
         expect(size.y).toBe(20)
     })
@@ -28,7 +28,7 @@ describe('getLocation test', () => {
         const elem = await browser.$('#foo')
         const size = await elem.getLocation()
 
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/location')
+        expect(got.mock.calls[2][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/location')
         expect(size.x).toBe(15)
         expect(size.y).toBe(20)
     })
@@ -48,6 +48,6 @@ describe('getLocation test', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

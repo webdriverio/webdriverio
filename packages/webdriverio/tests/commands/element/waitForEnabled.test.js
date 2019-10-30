@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('waitForEnabled', () => {
@@ -6,7 +6,7 @@ describe('waitForEnabled', () => {
     let browser
 
     beforeAll(async () => {
-        request.mockClear()
+        got.mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',

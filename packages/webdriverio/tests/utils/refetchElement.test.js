@@ -1,5 +1,5 @@
 import { remote } from '../../src'
-import request from 'request'
+import got from 'got'
 import refetchElement from '../../src/utils/refetchElement'
 
 jest.mock('../../src/commands/element/waitForExist', () => ({
@@ -53,7 +53,7 @@ describe('refetchElement', () => {
 
     it('should successfully refetch an element that isn\'t immediately present', async () => {
         const elem = await browser.$('#foo')
-        request.retryCnt = 0
+        got.retryCnt = 0
         const notFound = await browser.$('#slowRerender')
         const refetchedElement = await refetchElement(notFound, 'click')
         expect(waitForExist.default.mock.calls).toHaveLength(1)

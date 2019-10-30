@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { ELEMENT_KEY } from '../../../src/constants'
 import { remote } from '../../../src'
 
@@ -33,8 +33,8 @@ describe('react$', () => {
         expect(elems[2].ELEMENT).toBe(undefined)
         expect(elems[2].selector).toBe('myComp')
         expect(elems[2].index).toBe(2)
-        expect(request).toBeCalledTimes(4)
-        expect(request.mock.calls.pop()[0].body.args)
+        expect(got).toBeCalledTimes(4)
+        expect(got.mock.calls.pop()[1].json.args)
             .toEqual(['myComp', { some: 'props' }, { some: 'state' }])
     })
 
@@ -47,7 +47,7 @@ describe('react$', () => {
         })
 
         await browser.react$$('myComp')
-        expect(request.mock.calls.pop()[0].body.args).toEqual(['myComp', {}, {}])
+        expect(got.mock.calls.pop()[1].json.args).toEqual(['myComp', {}, {}])
     })
 
     it('should call getElements with React flag true', async () => {

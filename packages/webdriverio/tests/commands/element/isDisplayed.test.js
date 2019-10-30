@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 jest.mock('../../../src/scripts/isElementDisplayed', () => ({
     __esModule: true,
@@ -17,13 +17,13 @@ describe('isDisplayed test', () => {
             }
         })
         elem = await browser.$('#foo')
-        request.mockClear()
+        got.mockClear()
     })
 
     it('should allow to check if element is displayed', async () => {
         expect(await elem.isDisplayed()).toBe(true)
-        expect(request).toBeCalledTimes(1)
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+        expect(got).toBeCalledTimes(1)
+        expect(got.mock.calls[0][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
     it('should allow to check if element is displayed in mobile mode without browserName', async () => {
@@ -35,18 +35,18 @@ describe('isDisplayed test', () => {
             }
         })
         elem = await browser.$('#foo')
-        request.mockClear()
+        got.mockClear()
         expect(await elem.isDisplayed()).toBe(true)
-        expect(request).toBeCalledTimes(1)
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+        expect(got).toBeCalledTimes(1)
+        expect(got.mock.calls[0][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
     it('should refetch element if non existing', async () => {
         delete elem.elementId
         expect(await elem.isDisplayed()).toBe(true)
-        expect(request).toBeCalledTimes(2)
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+        expect(got).toBeCalledTimes(2)
+        expect(got.mock.calls[0][1].uri.path).toBe('/wd/hub/session/foobar-123/element')
+        expect(got.mock.calls[1][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
     it('should refect React element if non existing', async () => {
@@ -70,7 +70,7 @@ describe('isDisplayed test', () => {
         expect(await elem.isDisplayed()).toBe(true)
 
         elem.selector = '#nonexisting'
-        request.setMockResponse([{ error: 'no such element', statusCode: 404 }])
+        got.setMockResponse([{ error: 'no such element', statusCode: 404 }])
 
         expect(await elem.isDisplayed()).toBe(false)
     })
@@ -78,7 +78,7 @@ describe('isDisplayed test', () => {
     it('should return false if element can\'t be found after refetching it', async () => {
         const elem = await browser.$('#nonexisting')
         expect(await elem.isDisplayed()).toBe(false)
-        expect(request).toBeCalledTimes(2)
+        expect(got).toBeCalledTimes(2)
     })
 
     describe('isElementDisplayed script', () => {
@@ -91,12 +91,12 @@ describe('isDisplayed test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            request.mockClear()
+            got.mockClear()
 
             expect(await elem.isDisplayed()).toBe(true)
-            expect(request).toBeCalledTimes(1)
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+            expect(got).toBeCalledTimes(1)
+            expect(got.mock.calls[0][1].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })
@@ -110,12 +110,12 @@ describe('isDisplayed test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            request.mockClear()
+            got.mockClear()
 
             expect(await elem.isDisplayed()).toBe(true)
-            expect(request).toBeCalledTimes(1)
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+            expect(got).toBeCalledTimes(1)
+            expect(got.mock.calls[0][1].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })
@@ -129,12 +129,12 @@ describe('isDisplayed test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            request.mockClear()
+            got.mockClear()
 
             expect(await elem.isDisplayed()).toBe(true)
-            expect(request).toBeCalledTimes(1)
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+            expect(got).toBeCalledTimes(1)
+            expect(got.mock.calls[0][1].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })
@@ -149,13 +149,13 @@ describe('isDisplayed test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            request.mockClear()
+            got.mockClear()
             browser.isDevTools = true
 
             expect(await elem.isDisplayed()).toBe(true)
-            expect(request).toBeCalledTimes(1)
-            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+            expect(got).toBeCalledTimes(1)
+            expect(got.mock.calls[0][1].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
                 ELEMENT: 'some-elem-123'
             })

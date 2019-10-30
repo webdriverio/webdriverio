@@ -1,9 +1,9 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('getValue', () => {
     beforeEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 
     test('should get the value using getElementProperty', async () => {
@@ -17,7 +17,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/property/value')
+        expect(got.mock.calls[2][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/property/value')
     })
 
     test('should get the value using getElementAttribute', async () => {
@@ -31,7 +31,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/value')
+        expect(got.mock.calls[2][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/value')
     })
 
     it('should get value in mobile mode', async () => {
@@ -45,6 +45,6 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/value')
+        expect(got.mock.calls[2][1].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/value')
     })
 })

@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('reloadSession test', () => {
@@ -29,7 +29,7 @@ describe('reloadSession test', () => {
 
     scenarios.forEach(scenario => {
         it(scenario.name, async () => {
-            const oldSessionId = request.getSessionId()
+            const oldSessionId = got.getSessionId()
             const hook = jest.fn()
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -40,14 +40,14 @@ describe('reloadSession test', () => {
                 onReload: [hook]
             })
 
-            request.setSessionId(scenario.sessionIdMock)
-            request.setMockResponse(scenario.requestMock)
+            got.setSessionId(scenario.sessionIdMock)
+            got.setMockResponse(scenario.requestMock)
             await browser.reloadSession()
 
-            expect(request.mock.calls[1][0].method).toBe('DELETE')
-            expect(request.mock.calls[1][0].uri.pathname).toBe(`/wd/hub/session/${oldSessionId}`)
-            expect(request.mock.calls[2][0].method).toBe('POST')
-            expect(request.mock.calls[2][0].uri.pathname).toBe('/wd/hub/session')
+            expect(got.mock.calls[1][1].method).toBe('DELETE')
+            expect(got.mock.calls[1][1].uri.pathname).toBe(`/wd/hub/session/${oldSessionId}`)
+            expect(got.mock.calls[2][1].method).toBe('POST')
+            expect(got.mock.calls[2][1].uri.pathname).toBe('/wd/hub/session')
             expect(hook).toBeCalledWith(oldSessionId, scenario.newSessionId)
         })
     })
@@ -72,14 +72,14 @@ describe('reloadSession test', () => {
 
         browser.sessionId = null // INFO: destroy sessionId in browser object
 
-        request.setSessionId(scenario.sessionIdMock)
-        request.setMockResponse(scenario.requestMock)
+        got.setSessionId(scenario.sessionIdMock)
+        got.setMockResponse(scenario.requestMock)
 
         await browser.reloadSession()
 
-        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session')
+        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in got.mock.calls as it will not complete
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.pathname).toBe('/wd/hub/session')
         expect(hook).toBeCalledWith(null, scenario.newSessionId)
     })
 
@@ -103,20 +103,20 @@ describe('reloadSession test', () => {
 
         browser.sessionId = null // INFO: destroy sessionId in browser object
 
-        request.setSessionId(scenario.sessionIdMock)
-        request.setMockResponse(scenario.requestMock)
+        got.setSessionId(scenario.sessionIdMock)
+        got.setMockResponse(scenario.requestMock)
 
         await browser.reloadSession()
 
-        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session')
+        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in got.mock.calls as it will not complete
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.pathname).toBe('/wd/hub/session')
         expect(hook).toBeCalledWith(null, scenario.newSessionId)
     })
 
     afterEach(() => {
-        request.mockClear()
-        request.resetSessionId()
-        request.setMockResponse()
+        got.mockClear()
+        got.resetSessionId()
+        got.setMockResponse()
     })
 })
