@@ -31,6 +31,7 @@ async function custom$$ (strategyName, strategyArguments) {
     const strategy = browserObject.strategies.get(strategyName)
 
     if (!strategy) {
+        /* istanbul ignore next */
         throw Error('No strategy found for ' + strategyName)
     }
 
@@ -43,7 +44,9 @@ async function custom$$ (strategyName, strategyArguments) {
             break
         case 'Browser':
         default:
+            /* istanbul ignore next */
             parent = browserObject.$('html')
+            /* istanbul ignore next */
             break
         }
     }

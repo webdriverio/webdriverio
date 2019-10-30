@@ -128,6 +128,33 @@ describe('WebdriverIO module interface', () => {
             expect(WebDriver.attachToSession).toBeCalled()
             expect(WebDriver.newSession.mock.calls).toHaveLength(2)
         })
+
+        it('should attach custom locators to the strategies', async () => {
+            const driver = await multiremote({
+                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
+            })
+            const fakeFn = () => { return 'test'}
+
+            driver.addLocatorStrategy('test-strat', fakeFn)
+
+            expect(driver.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
+        })
+
+        it('throws error if trying to overwrite locator strategy', async () => {
+            const driver = await multiremote({
+                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
+            })
+            try {
+                const fakeFn = () => { return 'test'}
+
+                driver.addLocatorStrategy('test-strat', fakeFn)
+            } catch (error) {
+                driver.strategies.delete('test-strat')
+                expect(error.message).toBe('Strategy test-strat already exists')
+            }
+        })
     })
 
     describe('attach', () => {
