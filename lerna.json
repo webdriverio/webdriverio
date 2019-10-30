@@ -4,6 +4,11 @@
     "packages/*"
   ],
   "version": "5.15.4",
+  "command": {
+    "bootstrap": {
+      "npmClientArgs": ["--no-package-lock"]
+    }
+  },
   "changelog": {
     "repo": "webdriverio/webdriverio",
     "cacheDir": ".changelog",
