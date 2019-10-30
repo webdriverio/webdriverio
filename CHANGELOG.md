@@ -15,7 +15,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
-## 5.15.5 (2019-10-30)
+## v5.15.5 (2019-10-30)
 
 #### :rocket: New Feature
 * `webdriverio`

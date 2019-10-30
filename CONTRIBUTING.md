@@ -121,7 +121,7 @@ You are now all set and just need to call:
 
 ```sh
 # ensure to have pulled the latest code
-$ git pull origin master
+$ git pull origin master --tags
 # release using Lerna
 $ npm run release
 ```
