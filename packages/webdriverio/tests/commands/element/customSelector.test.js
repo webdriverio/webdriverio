@@ -39,7 +39,7 @@ describe('custom$', () => {
     })
 
     it('should fetch element one element even if the script returns multiple', async () => {
-        browser.addLocatorStrategy('test', function testLocatorStrategsMultiple() {})
+        browser.addLocatorStrategy('test', function testLocatorStrategiesMultiple() {})
 
         const elem = await browser.custom$('test', '.foo')
         const custom = await elem.custom$('test', '.test')
@@ -49,5 +49,13 @@ describe('custom$', () => {
         expect(custom.elementId).toBe('some-elem-123')
         expect(custom[ELEMENT_KEY]).toBe('some-elem-123')
         expect(custom.ELEMENT).toBe(undefined)
+    })
+
+    it('should throw error if no element is returned from the user script', async () => {
+        browser.addLocatorStrategy('test-no-element', function testLocatorStrategiesNoElement() {})
+        const elem = await browser.$('#foo')
+        const err = await elem.custom$('test-no-element', '.foo').catch(err => err)
+
+        expect(err.message).toBe('Your locator strategy script must return an element')
     })
 })

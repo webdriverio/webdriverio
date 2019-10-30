@@ -19,7 +19,7 @@ describe('custom$', () => {
     })
 
     it('should fetch element', async () => {
-        browser.addLocatorStrategy('test', function testLocatorStrategsMultiple() { })
+        browser.addLocatorStrategy('test', function testLocatorStrategiesMultiple() { })
 
         const elem = await browser.$('#foo')
         const elems = await elem.custom$$('test', '.test')
@@ -40,11 +40,9 @@ describe('custom$', () => {
     })
 
     it('should error if no strategy found', async () => {
-        try {
-            await browser.custom$('test', '.foo')
-        } catch (error) {
-            expect(error.message).toBe('No strategy found for test')
-        }
+        const err = await browser.custom$$('test', '.foo').catch(err => err)
+
+        expect(err.message).toBe('No strategy found for test')
     })
 
     it('should return array even if the script returns one element', async () => {
@@ -58,5 +56,14 @@ describe('custom$', () => {
         expect(elems[0].elementId).toBe('some-elem-123')
         expect(elems[0][ELEMENT_KEY]).toBe('some-elem-123')
         expect(elems[0].ELEMENT).toBe(undefined)
+    })
+
+    it('should return an empty array if no elements are returned from script', async () => {
+        browser.addLocatorStrategy('test-no-element', function testLocatorStrategiesNoElement() {})
+
+        const elem = await browser.$('#foo')
+        const res = await elem.custom$$('test-no-element', '.test')
+
+        expect(res).toMatchObject([])
     })
 })

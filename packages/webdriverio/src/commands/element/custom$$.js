@@ -24,6 +24,7 @@
  */
 import { getElements } from '../../utils/getElementObject'
 import { getBrowserObject } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
 
 async function custom$$ (strategyName, strategyArguments) {
     const browserObject = getBrowserObject(this)
@@ -49,11 +50,18 @@ async function custom$$ (strategyName, strategyArguments) {
 
     let res = await this.execute(strategy, strategyArguments, parent)
 
+    /**
+     * if the user's script return just one element
+     * then we convert it to an array as this method
+     * should return multiple elements
+     */
     if (!Array.isArray(res)) {
         res = [res]
     }
 
-    return await getElements.call(this, strategy, res)
+    res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
+
+    return res.length ? await getElements.call(this, strategy, res) : []
 }
 
 export default custom$$

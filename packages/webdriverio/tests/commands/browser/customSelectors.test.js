@@ -19,7 +19,7 @@ describe('custom$', () => {
     })
 
     it('should fetch element', async () => {
-        browser.addLocatorStrategy('test', function testLocatorStrategsMultiple() { })
+        browser.addLocatorStrategy('test', function testLocatorStrategiesMultiple() { })
 
         const elems = await browser.custom$$('test', '.foo')
 
@@ -56,5 +56,12 @@ describe('custom$', () => {
         expect(elems[0].elementId).toBe('some-elem-123')
         expect(elems[0][ELEMENT_KEY]).toBe('some-elem-123')
         expect(elems[0].ELEMENT).toBe(undefined)
+    })
+
+    it('should return an empty array if no elements are returned from script', async () => {
+        browser.addLocatorStrategy('test-no-element', function testLocatorStrategiesNoElement() {})
+        const res = await browser.custom$$('test-no-element', '.foo')
+
+        expect(res).toMatchObject([])
     })
 })

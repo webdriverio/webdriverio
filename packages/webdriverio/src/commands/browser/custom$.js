@@ -22,6 +22,7 @@
  * @return {Element}
  */
 import { getElement } from '../../utils/getElementObject'
+import { ELEMENT_KEY } from '../../constants'
 
 async function custom$ (strategyName, strategyArguments) {
     const strategy = this.strategies.get(strategyName)
@@ -32,10 +33,20 @@ async function custom$ (strategyName, strategyArguments) {
 
     let res = await this.execute(strategy, strategyArguments)
 
+    /**
+     * if the user's script returns multiple elements
+     * then we just return the first one as this method
+     * is intended to return just one element
+     */
     if (Array.isArray(res)) {
         res = res[0]
     }
-    return await getElement.call(this, strategy, res)
+
+    if (res && typeof res[ELEMENT_KEY] === 'string') {
+        return await getElement.call(this, strategy, res)
+    }
+
+    throw Error('Your locator strategy script must return an element')
 }
 
 export default custom$
