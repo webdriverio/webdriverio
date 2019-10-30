@@ -15,6 +15,29 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## 5.15.5 (2019-10-30)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#4700](https://github.com/webdriverio/webdriverio/pull/4700) webdriverio: expanded click command with offset ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* Other
+  * [#4701](https://github.com/webdriverio/webdriverio/pull/4701) website: add isClickable to en.json ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#4695](https://github.com/webdriverio/webdriverio/pull/4695) Webdriverio add config typing to browser object ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :house: Internal
+* `wdio-devtools-service`
+  * [#4678](https://github.com/webdriverio/webdriverio/pull/4678) Update puppeteer-core in group default to the latest version 🚀 ([@greenkeeper[bot]](https://github.com/apps/greenkeeper))
+* `wdio-junit-reporter`
+  * [#4692](https://github.com/webdriverio/webdriverio/pull/4692) Update validator in group default to the latest version 🚀 ([@greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.15.4 (2019-10-25)
 
 #### :memo: Documentation
