@@ -1,5 +1,6 @@
 {
-  "version": "5.15.4",
+  "name": "webdriverio-monorepo",
+  "version": "5.15.5",
   "private": true,
   "scripts": {
     "create": "node ./scripts/generateSubPackage",
