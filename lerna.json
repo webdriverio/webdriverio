@@ -3,10 +3,12 @@
   "packages": [
     "packages/*"
   ],
-  "version": "5.15.4",
+  "version": "5.15.5",
   "command": {
     "bootstrap": {
-      "npmClientArgs": ["--no-package-lock"]
+      "npmClientArgs": [
+        "--no-package-lock"
+      ]
     }
   },
   "changelog": {
