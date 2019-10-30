@@ -22,7 +22,7 @@ describe('reporter runtime implementation', () => {
             getCurrentTest: mock,
         }
 
-        reporter.addLabel('customLabel', 'Label')
+        reporter.addLabel({ name: 'customLabel', value: 'Label' })
         expect(addLabel).toHaveBeenCalledTimes(1)
         expect(addLabel).toHaveBeenCalledWith('customLabel', 'Label')
     })
@@ -259,7 +259,7 @@ describe('reporter runtime implementation', () => {
 
     it('should do nothing if no tests run', () => {
         const reporter = new AllureReporter({ stdout: true })
-        expect(reporter.addLabel()).toEqual(false)
+        expect(reporter.addLabel({})).toEqual(false)
         expect(reporter.addStory({})).toEqual(false)
         expect(reporter.addFeature({})).toEqual(false)
         expect(reporter.addSeverity({})).toEqual(false)
