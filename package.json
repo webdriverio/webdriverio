@@ -48,7 +48,7 @@
     "ts:webdriverio-reporter": "cd tests/typings/webdriverio-reporter && tsc --incremental",
     "watch": "node ./scripts/watch",
     "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope",
-    "version": "npm run changelog && git add CHANGELOG.md"
+    "preversion": "npm run changelog && git add CHANGELOG.md"
   },
   "devDependencies": {
     "@babel/cli": "^7.6.2",
