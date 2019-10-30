@@ -68,7 +68,7 @@ For sync mode (`@wdio/sync`), `webdriverio` types must be replaced with `@wdio/s
 }
 ```
 
-Please avoid importing `webdriverio` or `@wdio/sync` explicitly. 
+Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`.
 
 ### Typed Configuration
@@ -154,7 +154,7 @@ declare module WebdriverIO {
 **Async mode**
 
 ```typescript
-declare module WebdriverIOAsync {
+declare module WebdriverIO {
     // adding command to `$()`
     interface Element {
         // don't forget to wrap return values with Promise
