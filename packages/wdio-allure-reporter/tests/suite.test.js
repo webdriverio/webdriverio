@@ -33,7 +33,7 @@ describe('Passing tests', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        reporter.addLabel('customLabel', 'Label')
+        reporter.addLabel({ name: 'customLabel', value: 'Label' })
         reporter.addStory({ storyName: 'Story' })
         reporter.addFeature( { featureName: 'foo' })
         reporter.addSeverity({ severity: 'baz' })

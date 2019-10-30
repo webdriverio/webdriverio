@@ -265,7 +265,7 @@ class AllureReporter extends WDIOReporter {
         }
     }
 
-    addLabel(name, value) {
+    addLabel({ name, value }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -411,7 +411,7 @@ class AllureReporter extends WDIOReporter {
      * @param {string} value - label value
      */
     static addLabel = (name, value) => {
-        tellReporter(events.addLabel, name, value)
+        tellReporter(events.addLabel, { name, value })
     }
     /**
      * Assign severity to test
