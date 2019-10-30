@@ -17,12 +17,18 @@ let allTypeLines = []
 const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
 const INDENTATION = ' '.repeat(8)
 
+const jsDocTemplate = `
+${INDENTATION}/**
+${INDENTATION} * {DESCRIPTION}
+${INDENTATION} */`
+
 const gatherCommands = (commandPath, commandFile, promisify = false) => {
     const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
 
     if (specifics[commandName]) {
         const specificCommand = specifics[commandName]
-        specificCommand.forEach((cmd) => {
+        const { properties, description } = specificCommand
+        properties.forEach((cmd) => {
             const params = []
             cmd.parameters.forEach((p) => {
                 params.push(`${p.name}: ${p.type}`)
@@ -33,7 +39,7 @@ const gatherCommands = (commandPath, commandFile, promisify = false) => {
             const paramStr = params.length === 0 ? '' : params
                 .map((p, idx) => '\n' + paramIndentation + p + (idx + 1 < params.length ? ',' : ''))
                 .join('\n') + '\n' + INDENTATION
-            allTypeLines.push('', INDENTATION + commandName + `(${paramStr}): ${returns};`)
+            allTypeLines.push(jsDocTemplate.replace('{DESCRIPTION}', description), INDENTATION + commandName + `(${paramStr}): ${returns};`)
         })
     } else if (!EXCLUDED_COMMANDS.includes(commandName)) {
         const commandContents = fs.readFileSync(commandPath).toString()

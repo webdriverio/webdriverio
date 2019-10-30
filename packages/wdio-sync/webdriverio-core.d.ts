@@ -235,6 +235,9 @@ declare namespace WebdriverIO {
             attributeName: string
         ): string;
 
+        /**
+         * Get a css property from a DOM-element selected by given selector.
+         */
         getCSSProperty(
             cssProperty: string
         ): CSSProperty;
@@ -246,10 +249,16 @@ declare namespace WebdriverIO {
             includeSelectorTag?: boolean
         ): string;
 
+        /**
+         * Determine an element’s location on the page.
+         */
         getLocation(
             prop: LocationParam
         ): number;
 
+        /**
+         * Determine an element’s location on the page.
+         */
         getLocation(): LocationReturn;
 
         /**
@@ -259,10 +268,16 @@ declare namespace WebdriverIO {
             property: string
         ): object | string;
 
+        /**
+         * Get the width and height for an DOM-element.
+         */
         getSize(
             prop: SizeParam
         ): number;
 
+        /**
+         * Get the width and height for an DOM-element.
+         */
         getSize(): SizeReturn;
 
         /**
@@ -417,6 +432,9 @@ declare namespace WebdriverIO {
             selector: string | Function
         ): Element;
 
+        /**
+         * [appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         */
         touchAction(
             action: TouchActions
         ): void;
@@ -522,6 +540,9 @@ declare namespace WebdriverIO {
             names?: string[]
         ): void;
 
+        /**
+         * Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)
+         */
         getCookies(
             names?: string[]
         ): Cookie[];
@@ -606,10 +627,16 @@ declare namespace WebdriverIO {
             filepath: string
         ): Buffer;
 
+        /**
+         * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page.
+         */
         setCookies(
             cookie: Cookie
         ): void;
 
+        /**
+         * Sets the timeouts (implicit, pageLoad, script) associated with the current session.
+         */
         setTimeout(
             timeouts: Timeouts
         ): void;
@@ -629,6 +656,9 @@ declare namespace WebdriverIO {
             urlOrTitleToMatch: string | RegExp
         ): void;
 
+        /**
+         * [appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         */
         touchAction(
             action: TouchActions
         ): void;

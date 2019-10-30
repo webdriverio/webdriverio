@@ -7,6 +7,14 @@ const { PROTOCOLS } = require('../constants')
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.ts')
 const returnTypeMap = require('./webdriver-return-types.json')
 
+const INDENTATION = ' '.repeat(8)
+const jsDocTemplate = `
+${INDENTATION}/**
+${INDENTATION} * [{PROTOCOL}]
+${INDENTATION} * {DESCRIPTION}
+${INDENTATION} * {REF}
+${INDENTATION} */`
+
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     lines.push(`    // ${protocolName} types`)
@@ -14,7 +22,10 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
     for (const [, methods] of Object.entries(definition)) {
         for (const [, description] of Object.entries(methods)) {
-            const { command, parameters = [], variables = [], returns } = description
+            const { command, parameters = [], variables = [], returns, ref } = description
+            if (!ref) {
+                throw new Error(`missing ref for command ${command} in ${protocolName}`)
+            }
             const vars = variables
                 // sessionId is handled by WebdriverIO for all protocol requests
                 .filter((v) => v.name != 'sessionId')
@@ -25,7 +36,12 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             let returnValue = returns ? returns.type.toLowerCase() : 'void'
             returnValue = returnValue === '*' ? 'any' : returnValue
             returnValue = returnValue === 'object' ? (returnTypeMap[command] || 'ProtocolCommandResponse') : returnValue
-            lines.push(`        ${command}(${varsAndParams.join(', ')}): ${returnValue};`)
+            const jsDoc = jsDocTemplate
+                .replace('{PROTOCOL}', protocolName)
+                .replace('{DESCRIPTION}', description.description || '')
+                .replace('{REF}', ref)
+            lines.push(jsDoc)
+            lines.push(`${INDENTATION}${command}(${varsAndParams.join(', ')}): ${returnValue};`)
         }
     }
 
