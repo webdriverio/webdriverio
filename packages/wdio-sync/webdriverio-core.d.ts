@@ -161,10 +161,15 @@ declare namespace WebdriverIO {
         ELEMENT?: string;
         selector: string;
         elementId: string;
+
+        /**
+         * add command to `element` scope
+         */
         addCommand(
             name: string,
             func: Function
         ): void;
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -173,6 +178,7 @@ declare namespace WebdriverIO {
         $$(
             selector: string | Function
         ): Element[];
+
         /**
          * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
          * to fetch a single element on the page similar to the `$` command from the browser scope. The difference when calling
@@ -183,6 +189,7 @@ declare namespace WebdriverIO {
         $(
             selector: string | Function
         ): Element;
+
         /**
          * Add a value to an object found by given selector. You can also use unicode
          * characters like Left arrow or Back space. WebdriverIO will take care of
@@ -193,22 +200,26 @@ declare namespace WebdriverIO {
         addValue(
             value: string | number | boolean | object | any[]
         ): void;
+
         /**
          * Clear a `<textarea>` or text `<input>` element’s value. Make sure you can interact with the
          * element before using this command. You can't clear an input element that is disabled or in
          * readonly mode.
          */
         clearValue(): void;
+
         /**
          * Click on an element.
          */
         click(
             options?: object
         ): void;
+
         /**
          * Double-click on an element.
          */
         doubleClick(): void;
+
         /**
          * Drag an item to a destination element.
          */
@@ -216,39 +227,49 @@ declare namespace WebdriverIO {
             target: Element,
             duration?: number
         ): void;
+
         /**
          * Get an attribute from a DOM-element based on the attribute name.
          */
         getAttribute(
             attributeName: string
         ): string;
+
         getCSSProperty(
             cssProperty: string
         ): CSSProperty;
+
         /**
          * Get source code of specified DOM element by selector.
          */
         getHTML(
             includeSelectorTag?: boolean
         ): string;
+
         getLocation(
             prop: LocationParam
         ): number;
+
         getLocation(): LocationReturn;
+
         /**
          * The Get Element Property command will return the result of getting a property of an element.
          */
         getProperty(
             property: string
         ): object | string;
+
         getSize(
             prop: SizeParam
         ): number;
+
         getSize(): SizeReturn;
+
         /**
          * Get tag name of a DOM-element.
          */
         getTagName(): string;
+
         /**
          * Get the text content from a DOM-element. Make sure the element
          * you want to request the text from [is interactable](http://www.w3.org/TR/webdriver/#interactable)
@@ -257,42 +278,51 @@ declare namespace WebdriverIO {
          * as a workaround.
          */
         getText(): string;
+
         /**
          * Get the value of a `<textarea>`, `<select>` or text `<input>` found by given selector.
          * If multiple elements are found via the given selector, an array of values is returned instead.
          * For input with checkbox or radio type use isSelected.
          */
         getValue(): string;
+
         /**
          * Return true if the selected DOM-element:
          */
         isClickable(): boolean;
+
         /**
          * Return true if the selected DOM-element is displayed.
          */
         isDisplayed(): boolean;
+
         /**
          * Return true if the selected DOM-element found by given selector is partially visible and within the viewport.
          */
         isDisplayedInViewport(): boolean;
+
         /**
          * Return true or false if the selected DOM-element is enabled.
          */
         isEnabled(): boolean;
+
         /**
          * Returns true if element exists in the DOM
          */
         isExisting(): boolean;
+
         /**
          * Return true or false if the selected DOM-element currently has focus. If the selector matches
          * multiple elements, it will return true if one of the elements has focus.
          */
         isFocused(): boolean;
+
         /**
          * Will return true or false whether or not an `<option>` or `<input>` element of type
          * checkbox or radio is currently selected.
          */
         isSelected(): boolean;
+
         /**
          * Move the mouse by an offset of the specified element. If no element is specified,
          * the move is relative to the current mouse cursor. If an element is provided but
@@ -303,6 +333,7 @@ declare namespace WebdriverIO {
             xoffset?: number,
             yoffset?: number
         ): void;
+
         /**
          * The `react$$` command is a useful command to query multiple React Components
          * by their actual name and filter them by props and state.
@@ -312,6 +343,7 @@ declare namespace WebdriverIO {
             props?: object,
             state?: any[] | number | string | object | boolean
         ): Element[];
+
         /**
          * The `react$` command is a useful command to query React Components by their
          * actual name and filter them by props and state.
@@ -321,12 +353,14 @@ declare namespace WebdriverIO {
             props?: object,
             state?: any[] | number | string | object | boolean
         ): Element;
+
         /**
          * Save a screenshot of an element to a PNG file on your OS.
          */
         saveScreenshot(
             filename: string
         ): Buffer;
+
         /**
          * Scroll element into viewport.
          * https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
@@ -334,6 +368,7 @@ declare namespace WebdriverIO {
         scrollIntoView(
             scrollIntoViewOptions?: object | boolean
         ): void;
+
         /**
          * Select option with a specific value.
          */
@@ -341,18 +376,21 @@ declare namespace WebdriverIO {
             attribute: string,
             value: string
         ): void;
+
         /**
          * Select option with a specific index.
          */
         selectByIndex(
             index: number
         ): void;
+
         /**
          * Select option with displayed text matching the argument.
          */
         selectByVisibleText(
             text: string
         ): void;
+
         /**
          * Send a sequence of key strokes to an element (clears value before). If the element
          * doesn't need to be cleared first then use addValue. You can also use
@@ -364,21 +402,25 @@ declare namespace WebdriverIO {
         setValue(
             value: string | number | boolean | object | any[]
         ): void;
+
         /**
          * Access elements inside a given element's shadowRoot
          */
         shadow$$(
             selector: string | Function
         ): Element[];
+
         /**
          * Access an element inside a given element's shadowRoot
          */
         shadow$(
             selector: string | Function
         ): Element;
+
         touchAction(
             action: TouchActions
         ): void;
+
         /**
          * Wait for an element for the provided amount of
          * milliseconds to be displayed or not displayed.
@@ -388,6 +430,7 @@ declare namespace WebdriverIO {
             reverse?: boolean,
             error?: string
         ): boolean;
+
         /**
          * Wait for an element (selected by css selector) for the provided amount of
          * milliseconds to be (dis/en)abled. If multiple elements get queried by given
@@ -398,6 +441,7 @@ declare namespace WebdriverIO {
             reverse?: boolean,
             error?: string
         ): boolean;
+
         /**
          * Wait for an element for the provided amount of
          * milliseconds to be present within the DOM. Returns true if the selector
@@ -420,17 +464,26 @@ declare namespace WebdriverIO {
 
     interface Browser {
         config: Config;
+        options: RemoteOptions;
+
+        /**
+         * add command to `browser` or `element` scope
+         */
         addCommand(
             name: string,
             func: Function,
             attachToElement?: boolean
         ): void;
+
+        /**
+         * overwrite `browser` or `element` command
+         */
         overwriteCommand(
             name: string,
             func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
         ): void;
-        options: RemoteOptions;
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an
@@ -440,6 +493,7 @@ declare namespace WebdriverIO {
         $$(
             selector: string | Function
         ): Element[];
+
         /**
          * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
          * to fetch a single element on the page. It returns an object that with an extended prototype to call
@@ -451,6 +505,7 @@ declare namespace WebdriverIO {
         $(
             selector: string | Function | object
         ): Element;
+
         /**
          * This command helps you to debug your integration tests. It stops the running browser and gives
          * you time to jump into it and check the state of your application (e.g. using dev tools).
@@ -459,19 +514,23 @@ declare namespace WebdriverIO {
          * them.
          */
         debug(): void;
+
         /**
          * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
          */
         deleteCookies(
             names?: string[]
         ): void;
+
         getCookies(
             names?: string[]
         ): Cookie[];
+
         /**
          * Returns browser window size (and position for drivers with W3C support).
          */
         getWindowSize(): WebDriver.RectReturn;
+
         /**
          * Send a sequence of key strokes to the active element. You can also use characters like
          * "Left arrow" or "Back space". WebdriverIO will take care of translating them into unicode
@@ -481,6 +540,7 @@ declare namespace WebdriverIO {
         keys(
             value: string | string[]
         ): void;
+
         /**
          * Open new window in browser. This command is the equivalent function to `window.open()`. This command does not
          * work in mobile environments.
@@ -490,6 +550,7 @@ declare namespace WebdriverIO {
             windowName?: string,
             windowFeatures?: string
         ): string;
+
         /**
          * Pauses execution for a specific amount of time. It is recommended to not use this command to wait for an
          * element to show up. In order to avoid flaky test results it is better to use commands like
@@ -498,6 +559,7 @@ declare namespace WebdriverIO {
         pause(
             milliseconds: number
         ): void;
+
         /**
          * The `react$$` command is a useful command to query multiple React Components
          * by their actual name and filter them by props and state.
@@ -507,6 +569,7 @@ declare namespace WebdriverIO {
             props?: object,
             state?: any[] | number | string | object | boolean
         ): Element[];
+
         /**
          * The `react$` command is a useful command to query React Components by their
          * actual name and filter them by props and state.
@@ -516,6 +579,7 @@ declare namespace WebdriverIO {
             props?: object,
             state?: any[] | number | string | object | boolean
         ): Element;
+
         /**
          * Creates a new Selenium session with your current capabilities. This is useful if you
          * test highly stateful application where you need to clean the browser session between
@@ -524,6 +588,7 @@ declare namespace WebdriverIO {
          * new Selenium sessions is very time consuming especially when using cloud services.
          */
         reloadSession(): void;
+
         /**
          * Appium only. Save a video started by startRecordingScreen command to file.
          * See [Appium docs](http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/)
@@ -531,6 +596,7 @@ declare namespace WebdriverIO {
         saveRecordingScreen(
             filepath: string
         ): Buffer;
+
         /**
          * Save a screenshot of the current browsing context to a PNG file on your OS. Be aware that
          * some browser drivers take screenshots of the whole document (e.g. Geckodriver with Firefox)
@@ -539,12 +605,15 @@ declare namespace WebdriverIO {
         saveScreenshot(
             filepath: string
         ): Buffer;
+
         setCookies(
             cookie: Cookie
         ): void;
+
         setTimeout(
             timeouts: Timeouts
         ): void;
+
         /**
          * Resizes browser window outer size according to provided width and height.
          */
@@ -552,15 +621,18 @@ declare namespace WebdriverIO {
             width: number,
             height: number
         ): null | object;
+
         /**
          * Switch focus to a particular tab / window.
          */
         switchWindow(
             urlOrTitleToMatch: string | RegExp
         ): void;
+
         touchAction(
             action: TouchActions
         ): void;
+
         /**
          * Uploads a file to the Selenium Standalone server or other browser driver
          * (e.g. Chromedriver) by using the [`file`](/api/protocol/file.html) command.
@@ -570,6 +642,7 @@ declare namespace WebdriverIO {
         uploadFile(
             localPath: string
         ): string;
+
         /**
          * Protocol binding to load or get the URL of the browser. If a baseUrl is
          * specified in the config, it will be prepended to the url parameter using

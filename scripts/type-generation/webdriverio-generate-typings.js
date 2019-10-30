@@ -15,6 +15,7 @@ const browserCommands = fs.readdirSync(browserDir)
 let allTypeLines = []
 
 const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
+const INDENTATION = ' '.repeat(8)
 
 const gatherCommands = (commandPath, commandFile, promisify = false) => {
     const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
@@ -28,7 +29,11 @@ const gatherCommands = (commandPath, commandFile, promisify = false) => {
             })
             const returns = promisify ? `Promise<${cmd.return}>` : cmd.return
 
-            allTypeLines.push(`${commandName}(${params.length > 0 ? '\n            ' : ''}${params.join(',\n            ')}${params.length > 0 ? '\n        ' : ''}): ${returns}`)
+            const paramIndentation = INDENTATION + ' '.repeat(4)
+            const paramStr = params.length === 0 ? '' : params
+                .map((p, idx) => '\n' + paramIndentation + p + (idx + 1 < params.length ? ',' : ''))
+                .join('\n') + '\n' + INDENTATION
+            allTypeLines.push('', INDENTATION + commandName + `(${paramStr}): ${returns};`)
         })
     } else if (!EXCLUDED_COMMANDS.includes(commandName)) {
         const commandContents = fs.readFileSync(commandPath).toString()
@@ -37,7 +42,7 @@ const gatherCommands = (commandPath, commandFile, promisify = false) => {
         const command = buildCommand(commandName, commandTags, 4, promisify)
         const jsdoc = getJsDoc(commandName, commandContents, 8)
 
-        allTypeLines.push(jsdoc + command)
+        allTypeLines.push('', INDENTATION + jsdoc + command + ';')
     }
 
     return allTypeLines
@@ -50,7 +55,7 @@ const generateTypes = (packageName, promisify) => {
         const commandPath = path.resolve(`${browserDir}/${commandFile}`)
         bCommands = gatherCommands(commandPath, commandFile, promisify)
     })
-    const allBrowserCommands = `${bCommands.join(';\n        ')};`
+    const allBrowserCommands = bCommands.join('\n')
 
     allTypeLines = []
 
@@ -60,7 +65,7 @@ const generateTypes = (packageName, promisify) => {
         eCommands = gatherCommands(commandPath, commandFile, promisify)
     })
 
-    const allElementCommands = `${eCommands.join(';\n        ')};`
+    const allElementCommands = eCommands.join('\n')
 
     const templatePath = path.resolve(__dirname + '../../templates/webdriverio.tpl.d.ts')
     const templateContents = fs.readFileSync(templatePath, 'utf8')
