@@ -3,7 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const dox = require('dox')
-const { buildCommand } = require('./generate-typings-utils')
+const { buildCommand, getJsDoc } = require('./generate-typings-utils')
 const specifics = require('./specific-types.json')
 
 const elementDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/element')
@@ -17,7 +17,7 @@ let allTypeLines = []
 const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
 
 const gatherCommands = (commandPath, commandFile, promisify = false) => {
-    const commandName = commandFile.substr(0, commandFile.indexOf('.js')).replace('$', '$$$')
+    const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
 
     if (specifics[commandName]) {
         const specificCommand = specifics[commandName]
@@ -35,8 +35,9 @@ const gatherCommands = (commandPath, commandFile, promisify = false) => {
         const commandDocs = dox.parseComments(commandContents)
         const commandTags = commandDocs[0].tags
         const command = buildCommand(commandName, commandTags, 4, promisify)
+        const jsdoc = getJsDoc(commandName, commandContents, 8)
 
-        allTypeLines.push(command)
+        allTypeLines.push(jsdoc + command)
     }
 
     return allTypeLines
@@ -64,8 +65,8 @@ const generateTypes = (packageName, promisify) => {
     const templatePath = path.resolve(__dirname + '../../templates/webdriverio.tpl.d.ts')
     const templateContents = fs.readFileSync(templatePath, 'utf8')
 
-    let typingsContents = templateContents.replace('// ... element commands ...', allElementCommands)
-    typingsContents = typingsContents.replace('// ... browser commands ...', allBrowserCommands)
+    let typingsContents = templateContents.replace('// ... element commands ...', () => allElementCommands)
+    typingsContents = typingsContents.replace('// ... browser commands ...', () => allBrowserCommands)
 
     const outputFileWebdriverio = path.join(__dirname, '..', '..', `packages/${packageName}`, 'webdriverio-core.d.ts')
     fs.writeFileSync(outputFileWebdriverio, typingsContents, { encoding: 'utf-8' })
