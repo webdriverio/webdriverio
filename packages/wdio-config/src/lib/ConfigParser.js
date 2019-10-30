@@ -196,11 +196,11 @@ export default class ConfigParser {
         }
 
         if (Array.isArray(capSpecs)) {
-            specs = specs.concat(ConfigParser.getFilePaths(capSpecs))
+            specs = ConfigParser.getFilePaths(capSpecs)
         }
 
         if (Array.isArray(capExclude)) {
-            exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
+            exclude = ConfigParser.getFilePaths(capExclude)
         }
 
         return specs.filter(spec => !exclude.includes(spec))
