@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.15.6 (2019-10-30)
+
+#### :memo: Documentation
+* `wdio-protocols`
+  * [#4702](https://github.com/webdriverio/webdriverio/pull/4702) Add readme for @wdio/protocols ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v5.15.5 (2019-10-30)
 
 #### :rocket: New Feature
