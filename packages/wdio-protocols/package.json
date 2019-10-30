@@ -10,6 +10,7 @@
     "node": ">=10.0.0"
   },
   "scripts": {
+    "compile": "echo \"nothing to compile\"",
     "build": "echo \"nothing to build\"",
     "test": "echo \"run json linting tests\""
   },

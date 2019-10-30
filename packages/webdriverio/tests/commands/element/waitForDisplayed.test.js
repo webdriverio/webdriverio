@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('waitForDisplayed', () => {
@@ -6,7 +6,7 @@ describe('waitForDisplayed', () => {
     let browser
 
     beforeEach(async () => {
-        request.mockClear()
+        got.mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -38,7 +38,8 @@ describe('waitForDisplayed', () => {
         const result = await elem.waitForDisplayed(duration)
 
         expect(result).toBe(true)
-        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/displayed')
+        expect(got.mock.calls[2][1].uri.path)
+            .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
     test('should call isDisplayed and return true if eventually true', async () => {

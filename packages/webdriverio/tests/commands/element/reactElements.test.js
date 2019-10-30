@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 
@@ -19,7 +19,7 @@ describe('elem.react$', () => {
             true
         )
         expect(elem.elementId).toBe('some-elem-123')
-        expect(request.mock.calls.pop()[0].body.args)
+        expect(got.mock.calls.pop()[1].json.args)
             .toEqual([
                 'MyComp',
                 { some: 'props' },
@@ -43,7 +43,7 @@ describe('elem.react$', () => {
 
         await elem.react$$('MyComp')
         expect(elem.elementId).toBe('some-elem-123')
-        expect(request.mock.calls.pop()[0].body.args).toEqual([
+        expect(got.mock.calls.pop()[1].json.args).toEqual([
             'MyComp',
             {},
             {},

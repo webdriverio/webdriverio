@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 
@@ -12,9 +12,11 @@ describe('elements', () => {
         })
 
         const elems = await browser.$$('.foo')
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/elements')
-        expect(request.mock.calls[1][0].body).toEqual({ using: 'css selector', value: '.foo' })
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.path)
+            .toBe('/session/foobar-123/elements')
+        expect(got.mock.calls[1][1].json)
+            .toEqual({ using: 'css selector', value: '.foo' })
         expect(elems).toHaveLength(3)
 
         expect(elems[0].elementId).toBe('some-elem-123')
@@ -73,6 +75,6 @@ describe('elements', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

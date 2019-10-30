@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('pause test', () => {
@@ -19,7 +19,7 @@ describe('pause test', () => {
 
         expect((end - start) > 490).toBe(true)
         expect((end - start) < 590).toBe(true)
-        expect(request.mock.calls).toHaveLength(1)
+        expect(got.mock.calls).toHaveLength(1)
     })
 
     it('should pause for default value', async () => {
@@ -29,10 +29,10 @@ describe('pause test', () => {
 
         expect((end - start) > 990).toBe(true)
         expect((end - start) < 1090).toBe(true)
-        expect(request.mock.calls).toHaveLength(1)
+        expect(got.mock.calls).toHaveLength(1)
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

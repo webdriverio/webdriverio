@@ -4,7 +4,7 @@
 
 global.window.open = jest.fn()
 
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('newWindow', () => {
@@ -17,10 +17,10 @@ describe('newWindow', () => {
         })
 
         await browser.newWindow('https://webdriver.io', 'some name', 'some params')
-        expect(request.mock.calls).toHaveLength(4)
-        expect(request.mock.calls[1][0].body.args).toEqual(['https://webdriver.io', 'some name', 'some params'])
-        expect(request.mock.calls[2][0].uri.path).toContain('/window/handles')
-        expect(request.mock.calls[3][0].body.handle).toBe('window-handle-3')
+        expect(got.mock.calls).toHaveLength(4)
+        expect(got.mock.calls[1][1].json.args).toEqual(['https://webdriver.io', 'some name', 'some params'])
+        expect(got.mock.calls[2][1].uri.path).toContain('/window/handles')
+        expect(got.mock.calls[3][1].json.handle).toBe('window-handle-3')
     })
 
     it('should fail if url is invalid', async () => {

@@ -2,7 +2,7 @@ import url from 'url'
 import http from 'http'
 import path from 'path'
 import https from 'https'
-import request from 'request'
+import got from 'got'
 import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
@@ -32,8 +32,9 @@ export default class WebDriverRequest extends EventEmitter {
         this.requiresSessionId = this.endpoint.match(/:sessionId/)
         this.defaultOptions = {
             method,
-            followAllRedirects: true,
-            json: true
+            retry: 0, // we have our own retry mechanism
+            followRedirect: true,
+            responseType: 'json'
         }
     }
 
@@ -50,7 +51,7 @@ export default class WebDriverRequest extends EventEmitter {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
-            qs: typeof options.queryParams === 'object' ? options.queryParams : {},
+            searchParams: typeof options.queryParams === 'object' ? options.queryParams : {},
             timeout: options.connectionRetryTimeout
         }
 
@@ -59,7 +60,7 @@ export default class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.body = this.body
+            requestOptions.json = this.body
             requestOptions.headers = {
                 ...requestOptions.headers,
                 ...({ 'Content-Length': contentLength })
@@ -87,29 +88,21 @@ export default class WebDriverRequest extends EventEmitter {
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
-            requestOptions.auth = {
-                user: options.user,
-                pass: options.key
-            }
+            requestOptions.auth = `${options.user}:${options.key}`
         }
-
-        /**
-         * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
-         */
-        requestOptions.strictSSL = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
 
         return requestOptions
     }
 
-    _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
+    async _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
             log.info('DATA', fullRequestOptions.body)
         }
 
-        return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
-            const error = err || getErrorFromResponseBody(body)
+        try {
+            const response = await got(fullRequestOptions.uri, fullRequestOptions)
 
             if (typeof body === 'string' && body.includes('Whoops! The URL specified routes to this help page.')) {
                 const fixedPath = fullRequestOptions.uri.path.startsWith('/wd/hub') ? '/' : '/wd/hub'
@@ -128,19 +121,28 @@ export default class WebDriverRequest extends EventEmitter {
                  * if body contains HTML the command was called on a node
                  * directly without using a hub, therefor throw
                  */
-                if (typeof body === 'string' && body.startsWith('<!DOCTYPE html>')) {
-                    return reject(new Error('Command can only be called to a Selenium Hub'))
+                if (response.body.startsWith('<!DOCTYPE html>')) {
+                    throw new Error('Command can only be called to a Selenium Hub')
                 }
 
-                body = { value: body || null }
+                return { value: JSON.parse(response.body) || null }
             }
+
+            return JSON.parse(response.body)
+        } catch (err) {
+            if (!err.body) {
+                throw err
+            }
+
+            const body = JSON.parse(err.body)
+            const error = getErrorFromResponseBody(body)
 
             /**
              * Resolve only if successful response
              */
-            if (!err && isSuccessfulResponse(response.statusCode, body)) {
+            if (isSuccessfulResponse(err.statusCode, body)) {
                 this.emit('response', { result: body })
-                return resolve(body)
+                return body
             }
 
             /**
@@ -150,7 +152,7 @@ export default class WebDriverRequest extends EventEmitter {
             if(error.name === 'stale element reference') {
                 log.warn('Request encountered a stale element - terminating request')
                 this.emit('response', { error })
-                return reject(error)
+                return Promise.reject(error)
             }
 
             /**
@@ -160,14 +162,14 @@ export default class WebDriverRequest extends EventEmitter {
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
                 log.error('Request failed due to', error)
                 this.emit('response', { error })
-                return reject(error)
+                return Promise.reject(error)
             }
 
             ++retryCount
             this.emit('retry', { error, retryCount })
             log.warn('Request failed due to', error.message)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-            this._request(fullRequestOptions, totalRetryCount, retryCount).then(resolve, reject)
-        }))
+            return this._request(fullRequestOptions, totalRetryCount, retryCount)
+        }
     }
 }
