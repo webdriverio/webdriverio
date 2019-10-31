@@ -381,3 +381,13 @@ export async function hasElementId (element) {
     }
     return true
 }
+
+export function addLocatorStrategyHandler(scope) {
+    return (name, script) => {
+        if (scope.strategies.get(name)) {
+            throw new Error(`Strategy ${name} already exists`)
+        }
+
+        scope.strategies.set(name, script)
+    }
+}

@@ -6,7 +6,7 @@ import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
-import { getPrototype } from './utils'
+import { getPrototype, addLocatorStrategyHandler } from './utils'
 
 const log = logger('webdriverio')
 
@@ -61,13 +61,7 @@ export const remote = async function (params = {}, remoteModifier) {
         )
     }
 
-    instance.addLocatorStrategy = (name, script) => {
-        if (instance.strategies.get(name)) {
-            throw new Error(`Strategy ${name} already exists`)
-        }
-
-        instance.strategies.set(name, script)
-    }
+    instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
 
     return instance
 }
@@ -116,13 +110,7 @@ export const multiremote = async function (params = {}) {
         origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
     }
 
-    driver.addLocatorStrategy = (name, script) => {
-        if (driver.strategies.get(name)) {
-            throw new Error(`Strategy ${name} already exists`)
-        }
-
-        driver.strategies.set(name, script)
-    }
+    driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
 
     return driver
 }
