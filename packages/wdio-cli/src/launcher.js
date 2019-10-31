@@ -302,13 +302,17 @@ class Launcher {
                 if (type) {
                     debugType = type
                 }
+                /* istanbul ignore next */
                 if (host) {
+                    /* istanbul ignore next */
                     debugHost = `${host}:`
                 }
             }
         }
 
+        /* istanbul ignore next */
         if (debugType) {
+            /* istanbul ignore next */
             debugArgs.push(`--${debugType}=${debugHost}${(debugPort + processNumber)}`)
         }
 
