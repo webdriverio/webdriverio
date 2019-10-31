@@ -1,6 +1,7 @@
 import {
     isSuccessfulResponse, getPrototype, environmentDetector, setupDirectConnect,
-    getErrorFromResponseBody, isW3C, CustomRequestError
+    getErrorFromResponseBody, isW3C, CustomRequestError, getSessionError,
+    startWebDriverSession
 } from '../src/utils'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -309,6 +310,72 @@ describe('utils', () => {
             expect(params.hostname).toBe('bar')
             expect(params.port).toBe(4321)
             expect(params.path).toBe('')
+        })
+    })
+
+    describe('getSessionError', () => {
+        it('should return unchanged message', () => {
+            expect(getSessionError({ message: 'foobar' })).toEqual('foobar')
+        })
+
+        it('should return "more info" if no message', () => {
+            expect(getSessionError({})).toEqual('See logs for more information.')
+        })
+
+        it('ECONNREFUSED', () => {
+            expect(getSessionError({
+                code: 'ECONNREFUSED',
+                address: '127.0.0.1',
+                port: 4444,
+                message: 'ECONNREFUSED 127.0.0.1:4444'
+            })).toContain('Unable to connect to "127.0.0.1:4444"')
+        })
+
+        it('path: selenium-standalone path', () => {
+            expect(getSessionError({
+                message: 'Whoops! The URL specified routes to this help page.'
+            })).toContain("set `path: '/wd/hub'` in")
+        })
+
+        it('path: chromedriver, geckodriver, etc', () => {
+            expect(getSessionError({
+                message: 'HTTP method not allowed'
+            })).toContain("set `path: '/'` in")
+        })
+
+        it('edge driver localhost issue', () => {
+            expect(getSessionError({
+                message: 'Bad Request - Invalid Hostname 400 <br> HTTP Error 400'
+            })).toContain('127.0.0.1 instead of localhost')
+        })
+
+        it('illegal w3c cap passed to selenium standalone', () => {
+            const message = getSessionError({
+                message: 'Illegal key values seen in w3c capabilities: [chromeOptions]'
+            })
+            expect(message).toContain('[chromeOptions]')
+            expect(message).toContain('add vendor prefix')
+        })
+
+        it('wrong host port, port in use, illegal w3c cap passed to grid', () => {
+            const message = getSessionError({
+                message: 'Response has empty body'
+            })
+            expect(message).toContain('valid hostname:port or the port is not in use')
+            expect(message).toContain('add vendor prefix')
+        })
+    })
+
+    describe('startWebDriverSession', () => {
+        it('should handle sessionRequest error', async () => {
+            let error
+            try {
+                await startWebDriverSession({})
+            } catch (err) {
+                error = err
+            }
+
+            expect(error.message).toContain('Failed to create session')
         })
     })
 })

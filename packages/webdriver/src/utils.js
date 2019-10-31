@@ -16,6 +16,13 @@ const MOBILE_CAPABILITIES = [
     'device-orientation', 'deviceOrientation', 'deviceName'
 ]
 
+const BROWSER_DRIVER_ERRORS = [
+    'unknown command: wd/hub/session', // chromedriver
+    'HTTP method not allowed', // geckodriver
+    "'POST /wd/hub/session' was not found.", // safaridriver
+    'Command not found' // iedriver
+]
+
 /**
  * start browser session with WebDriver protocol
  */
@@ -45,7 +52,14 @@ export async function startWebDriverSession (params) {
         }
     )
 
-    const response = await sessionRequest.makeRequest(params)
+    let response
+    try {
+        response = await sessionRequest.makeRequest(params)
+    } catch (err) {
+        log.error(err)
+        const message = getSessionError(err)
+        throw new Error('Failed to create session.\n' + message)
+    }
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
@@ -381,4 +395,50 @@ export function setupDirectConnect(params) {
         params.port = directConnectPort
         params.path = directConnectPath
     }
+}
+
+/**
+ * get human readable message from response error
+ * @param {Error} err response error
+ */
+export const getSessionError = (err) => {
+    // browser driver / service is not started
+    if (err.code === 'ECONNREFUSED') {
+        return `Unable to connect to "${err.address}:${err.port}", make sure browser driver is running on that address.`
+    }
+
+    if (!err.message) {
+        return 'See logs for more information.'
+    }
+
+    // wrong path: selenium-standalone
+    if (err.message.includes('Whoops! The URL specified routes to this help page.')) {
+        return "It seems you are running a Selenium Standalone server and point to a wrong path. Please set `path: '/wd/hub'` in your wdio.conf.js!"
+    }
+
+    // wrong path: chromedriver, geckodriver, etc
+    if (BROWSER_DRIVER_ERRORS.some(m => err.message.includes(m))) {
+        return "Make sure to set `path: '/'` in your wdio.conf.js!"
+    }
+
+    // edge driver on localhost
+    if (err.message.includes('Bad Request - Invalid Hostname') && err.message.includes('HTTP Error 400')) {
+        return "Run edge driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1, or set `hostname: 'localhost'` in your wdio.conf.js"
+    }
+
+    const w3cCapMessage = '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc to non W3C capabilities.' +
+        '\nSee more https://www.w3.org/TR/webdriver/#capabilities'
+
+    // Illegal w3c capability passed to selenium standalone
+    if (err.message.includes('Illegal key values seen in w3c capabilities')) {
+        return err.message + w3cCapMessage
+    }
+
+    // wrong host/port, port in use, illegal w3c capability passed to selenium grid
+    if (err.message === 'Response has empty body') {
+        return 'Make sure to connect to valid hostname:port or the port is not in use.' +
+            '\nIf you use a grid server ' + w3cCapMessage
+    }
+
+    return err.message
 }

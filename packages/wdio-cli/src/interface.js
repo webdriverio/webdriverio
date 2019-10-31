@@ -169,6 +169,10 @@ export default class WDIOCLInterface extends EventEmitter {
             return log.warn(`Can't identify message from worker: ${JSON.stringify(event)}, ignoring!`)
         }
 
+        if (event.origin === 'worker' && event.name === 'error') {
+            return this.log(`[${event.cid}]`, 'Error:', event.content.message || event.content.stack || event.content)
+        }
+
         if (event.origin !== 'reporter') {
             return this.log(event.cid, event.origin, event.name, event.content)
         }
