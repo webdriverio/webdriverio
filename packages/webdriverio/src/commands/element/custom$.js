@@ -3,9 +3,9 @@
  * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
  *
  * <example>
-    :pause.js
+    :example.js
     it('should fetch the project title', () => {
-        browser.url('https://webdriver.io');
+        browser.url('https://webdriver.io')
         browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
@@ -14,7 +14,7 @@
         const projectTitle = header.custom$('myStrat', '.projectTitle')
 
         console.log(projectTitle.getText()) // WEBDRIVER I/O
-    });
+    })
  * </example>
  *
  * @alias custom$

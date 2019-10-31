@@ -3,9 +3,9 @@
  * The `customs$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
  *
  * <example>
-    :pause.js
+    :example.js
     it('should get all the plugin wrapper buttons', () => {
-        browser.url('https://webdriver.io');
+        browser.url('https://webdriver.io')
         browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
@@ -14,7 +14,7 @@
         const pluginWrapper = pluginRowBlock.custom$$('myStrat', '.pluginWrapper')
 
         console.log(pluginWrapper.length) // 4
-    });
+    })
  * </example>
  *
  * @alias custom$$
