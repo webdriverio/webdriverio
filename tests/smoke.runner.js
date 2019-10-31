@@ -223,6 +223,19 @@ const retryPass = async () => {
     }
 }
 
+/**
+ * wdio-shared-store-service tests
+ */
+const sharedStoreServiceTest = async () => {
+    await launch(
+        path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'shared-store-service.js'),
+            ]
+        })
+}
+
 (async () => {
     /**
      * Usage example: `npm run test:smoke -- customService`
@@ -242,6 +255,7 @@ const retryPass = async () => {
         retryFail,
         retryPass,
         wdioHooks,
+        sharedStoreServiceTest,
     ]
 
     if (process.env.CI || testFilter) {
