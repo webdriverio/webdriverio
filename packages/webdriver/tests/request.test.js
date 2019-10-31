@@ -201,7 +201,10 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', path)
             req.emit = jest.fn()
 
-            const opts = Object.assign(req.defaultOptions, { uri: { path: '/session/foobar-123/element' } })
+            const opts = Object.assign(
+                req.defaultOptions,
+                { uri: { pathname: '/session/foobar-123/element' } }
+            )
             const res = await req._request(opts)
 
             expect(res).toEqual(expectedResponse)
@@ -213,7 +216,9 @@ describe('webdriver request', () => {
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, {
-                uri: { path: '/session/foobar-123/element/some-sub-sub-elem-231/click' }, body: { foo: 'bar' } })
+                uri: { pathname: '/session/foobar-123/element/some-sub-sub-elem-231/click' },
+                body: { foo: 'bar' }
+            })
 
             const error = await req._request(opts).catch(err => err)
             expect(error.message).toBe('element is not attached to the page document')
@@ -226,38 +231,19 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', path)
             req.emit = jest.fn()
 
-            const opts = Object.assign(req.defaultOptions, { uri: { path: '/empty' } })
+            const opts = Object.assign(req.defaultOptions, { uri: { pathname: '/empty' } })
             await expect(req._request(opts)).rejects.toEqual(new Error('Response has empty body'))
             expect(req.emit.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toHaveLength(0)
             expect(error.mock.calls).toHaveLength(1)
-<<<<<<< HEAD
-        })
-
-        it('should let user know if wrong path is set', async () => {
-            const req = new WebDriverRequest('POST', path)
-            req.emit = jest.fn()
-
-            const opts = Object.assign(req.defaultOptions, { uri: { path: '/wrong/path' } })
-            await expect(req._request(opts)).rejects.toEqual(new Error('Wrong path set! Please set path to "/wd/hub".'))
-            expect(req.emit.mock.calls).toHaveLength(1)
-            expect(warn.mock.calls).toHaveLength(0)
-            expect(error.mock.calls).toHaveLength(1)
-=======
->>>>>>> fix last unit tests for webdriver packages
         })
 
         it('should retry requests but still fail', async () => {
             const req = new WebDriverRequest('POST', path)
             req.emit = jest.fn()
 
-<<<<<<< HEAD
-            const opts = Object.assign(req.defaultOptions, { uri: { path: '/failing' } })
-            await expect(req._request(opts, 2)).rejects.toEqual(new Error('Could not send request'))
-=======
-            const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/failing' } })
+            const opts = Object.assign(req.defaultOptions, { uri: { pathname: '/failing' } })
             await expect(req._request(opts, 2)).rejects.toEqual(new Error('unknown error'))
->>>>>>> fix last unit tests for webdriver packages
             expect(req.emit.mock.calls).toHaveLength(3)
             expect(warn.mock.calls).toHaveLength(2)
             expect(error.mock.calls).toHaveLength(1)
@@ -267,13 +253,7 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', path)
             req.emit = jest.fn()
 
-<<<<<<< HEAD
-            request.mockClear()
-            const opts = Object.assign(req.defaultOptions, { uri: { path: '/failing' }, body: { foo: 'bar' } })
-=======
-            got.mockClear()
-            const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/failing' }, json: { foo: 'bar' } })
->>>>>>> fix last unit tests for webdriver packages
+            const opts = Object.assign(req.defaultOptions, { uri: { pathname: '/failing' }, json: { foo: 'bar' } })
             expect(await req._request(opts, 3)).toEqual({ value: 'caught' })
             expect(req.emit.mock.calls).toHaveLength(4)
             expect(logger().warn.mock.calls).toHaveLength(3)
