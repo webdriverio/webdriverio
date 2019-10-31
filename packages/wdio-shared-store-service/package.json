@@ -33,7 +33,7 @@
   "dependencies": {
     "@polka/parse": "^1.0.0-next.0",
     "@wdio/logger": "5.13.2",
-    "axios": "^0.19.0",
+    "got": "^9.6.0",
     "polka": "^0.5.2"
   },
   "peerDependencies": {},

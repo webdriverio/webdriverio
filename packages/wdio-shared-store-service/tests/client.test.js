@@ -1,4 +1,4 @@
-import { post } from 'axios'
+import { post } from 'got'
 import { getValue, setValue, setPort } from '../src/client'
 
 const port = '3000'
@@ -11,18 +11,18 @@ describe('client', () => {
 
     it('should set value', async () => {
         await setValue('foo', 'bar')
-        expect(post).toBeCalledWith(`${baseUrl}/set`, { key: 'foo', value: 'bar' })
+        expect(post).toBeCalledWith(`${baseUrl}/set`, { json: true, body: { key: 'foo', value: 'bar' } })
     })
 
     it('should get value', async () => {
         const result = await getValue('foo')
-        expect(post).toBeCalledWith(`${baseUrl}/get`, { key: 'foo' })
+        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: true, body: { key: 'foo' } })
         expect(result).toBe('store value')
     })
 
     it('should not fail if key is not in store', async () => {
         const result = await getValue()
-        expect(post).toBeCalledWith(`${baseUrl}/get`, { key: undefined })
+        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: true, body: { key: undefined } })
         expect(result).toBeUndefined()
     })
 

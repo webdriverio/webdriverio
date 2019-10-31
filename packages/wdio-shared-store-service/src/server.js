@@ -42,6 +42,9 @@ const stopServer = () => new Promise((resolve) => {
 })
 
 function validateBody (req, res, next) {
+    if (!req.path.endsWith('/get') && !req.path.endsWith('/set')) {
+        return next()
+    }
     if (req.method === 'POST' && typeof req.body.key !== 'string') {
         res.end(JSON.stringify({ error: 'Invalid payload, key is required.' }))
     }

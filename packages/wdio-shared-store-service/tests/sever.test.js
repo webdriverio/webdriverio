@@ -1,4 +1,4 @@
-const { post } = jest.requireActual('axios')
+const { post } = jest.requireActual('got')
 import StoreServer from '../src/server'
 
 const { startServer, stopServer, __store } = StoreServer
@@ -14,21 +14,36 @@ describe('WdioSharedStoreService exports', () => {
         getUrl = `${baseUrl}/get`
     })
 
-    it('should not fail if payload is not json', async () => {
-        await post(setUrl, 'foobar')
-        await post(getUrl, 'foobar')
+    it('should not fail if payload has no key/value', async () => {
+        await post(setUrl, { json: true, body: {} })
+        await post(getUrl, { json: true, body: {} })
         expect(__store).toEqual({})
     })
 
+    it('should handle non json type', async () => {
+        let error
+        await post(getUrl, { body: 'foobar' }).catch((err) => { error = err })
+        expect(error.statusCode).toBe(422)
+        expect(error.statusMessage).toBe('Unprocessable Entity')
+        expect(error.url).toContain('/get')
+        expect(error.body).toBe('Invalid JSON')
+    })
+
+    it('should handle 404', async () => {
+        let error
+        await post(getUrl + 'foobar', { json: true }).catch((err) => { error = err })
+        expect(error.statusCode).toBe(404)
+    })
+
     it('should set entry', async () => {
-        await post(setUrl, { key: 'foo', value: 'bar' })
+        await post(setUrl, { json: true, body: { key: 'foo', value: 'bar' } })
         expect(__store).toEqual({ foo: 'bar' })
     })
 
     it('should get entry', async () => {
         __store.foobar = 'barfoo'
-        const res = await post(getUrl, { key: 'foobar' })
-        expect(res.data.value).toEqual('barfoo')
+        const res = await post(getUrl, { json: true, body: { key: 'foobar' } })
+        expect(res.body.value).toEqual('barfoo')
     })
 
     afterEach(() => {
