@@ -1,16 +1,20 @@
 import BrowserstackService from '../src/service'
-import request from 'request'
+import got from 'got'
 import logger from '@wdio/logger'
-
-jest.mock('request', () => ({
-    put: jest.fn(),
-    get: jest.fn()
-}))
 
 const log = logger('test')
 let service
 
 beforeEach(() => {
+    got.mockReturnValue(Promise.resolve({
+        body: JSON.stringify({
+            automation_session: {
+                browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
+            }
+        })
+    }))
+    got.put.mockReturnValue(Promise.resolve({}))
+
     global.browser = {
         config: {},
         capabilities: {
@@ -30,27 +34,10 @@ it('should initialize correctly', () => {
 })
 
 describe('onReload()', () => {
-    beforeAll(() => {
-        request.get.mockImplementation((url, opts, cb) =>
-            cb(
-                null,
-                { statusCode: 200 },
-                {
-                    automation_session: {
-                        browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
-                    }
-                }
-            )
-        )
-        request.put.mockImplementation((url, opts, cb) => {
-            cb(null, { statusCode: 200 }, {})
-        })
-    })
-
     it('should update and get session', async () => {
         await service.onReload(1, 2)
-        expect(request.put).toHaveBeenCalled()
-        expect(request.get).toHaveBeenCalled()
+        expect(got.put).toHaveBeenCalled()
+        expect(got).toHaveBeenCalled()
     })
 
     it('should reset failures', async () => {
@@ -65,27 +52,24 @@ describe('onReload()', () => {
 
 describe('_printSessionURL', () => {
     beforeAll(() => {
-        request.get.mockImplementation((url, opts, cb) =>
-            cb(
-                null,
-                { statusCode: 200 },
-                {
-                    automation_session: {
-                        name: 'Smoke Test',
-                        duration: 65,
-                        os: 'OS X',
-                        os_version: 'Sierra',
-                        browser_version: '61.0',
-                        browser: 'chrome',
-                        device: null,
-                        status: 'failed',
-                        reason: 'CLIENT_STOPPED_SESSION',
-                        browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
-                    }
+        got.mockReturnValue(Promise.resolve({
+            body: JSON.stringify({
+                automation_session: {
+                    name: 'Smoke Test',
+                    duration: 65,
+                    os: 'OS X',
+                    os_version: 'Sierra',
+                    browser_version: '61.0',
+                    browser: 'chrome',
+                    device: null,
+                    status: 'failed',
+                    reason: 'CLIENT_STOPPED_SESSION',
+                    browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
                 }
-            )
-        )
+            })
+        }))
     })
+
     it('should get and log session details', async () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
 
@@ -96,44 +80,35 @@ describe('_printSessionURL', () => {
         )
     })
 
-    it('should throw an error if it recieves a non 200 status code', () => {
-        request.get.mockImplementationOnce((url, opts, cb) => cb(null, { statusCode: 404 }, {}))
+    it('should throw an error if it recieves a non 200 status code', async () => {
+        const response = new Error('Not Found')
+        response.statusCode = 404
+        got.mockReturnValue(Promise.reject(response))
 
-        expect(service._printSessionURL()).rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
-    })
-
-    it('should reject and throw an error if request receives an error', () => {
-        const e = new Error("I'm an error!")
-        request.get.mockImplementationOnce((url, opts, cb) => cb(e, {}, {}))
-        expect(service._printSessionURL()).rejects.toThrow(e)
+        expect(service._printSessionURL())
+            .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
     })
 })
 
 describe('_printSessionURL Appium', () => {
-    beforeAll(() => {
-        request.get.mockImplementation((url, opts, cb) =>
-            cb(
-                null,
-                { statusCode: 200 },
-                {
-                    automation_session: {
-                        name: 'Smoke Test',
-                        duration: 65,
-                        os: 'ios',
-                        os_version: '12.1',
-                        browser_version: 'app',
-                        browser: null,
-                        device: 'iPhone XS',
-                        status: 'failed',
-                        reason: 'CLIENT_STOPPED_SESSION',
-                        browser_url: 'https://app-automate.browserstack.com/builds/1/sessions/2'
-                    }
-                }
-            )
-        )
-    })
-
     beforeEach(() => {
+        got.mockReturnValue(Promise.resolve({
+            body: JSON.stringify({
+                automation_session: {
+                    name: 'Smoke Test',
+                    duration: 65,
+                    os: 'ios',
+                    os_version: '12.1',
+                    browser_version: 'app',
+                    browser: null,
+                    device: 'iPhone XS',
+                    status: 'failed',
+                    reason: 'CLIENT_STOPPED_SESSION',
+                    browser_url: 'https://app-automate.browserstack.com/builds/1/sessions/2'
+                }
+            })
+        }))
+
         global.browser.capabilities = {
             device: 'iPhone XS',
             os: 'iOS',
@@ -152,24 +127,20 @@ describe('_printSessionURL Appium', () => {
     })
 
     it('should throw an error if it recieves a non 200 status code', () => {
-        request.get.mockImplementationOnce((url, opts, cb) => cb(null, { statusCode: 404 }, {}))
-
-        expect(service._printSessionURL()).rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
-    })
-
-    it('should reject and throw an error if request receives an error', () => {
-        const e = new Error("I'm an error!")
-        request.get.mockImplementationOnce((url, opts, cb) => cb(e, {}, {}))
-        expect(service._printSessionURL()).rejects.toThrow(e)
+        const response = new Error('Not Found')
+        response.statusCode = 404
+        got.mockReturnValue(Promise.reject(response))
+        expect(service._printSessionURL())
+            .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
     })
 })
 
 describe('before', () => {
-    it('should set auth to default values if not provided', () => {
+    it('should set auth to default values if not provided', async () => {
         let service = new BrowserstackService({}, [{}], { capabilities: {} })
 
         service.beforeSession({})
-        service.before()
+        await service.before()
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
@@ -180,7 +151,7 @@ describe('before', () => {
 
         service = new BrowserstackService({}, [{}], { capabilities: {} })
         service.beforeSession({ user: 'blah' })
-        service.before()
+        await service.before()
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
@@ -191,7 +162,7 @@ describe('before', () => {
         })
         service = new BrowserstackService({}, [{}], { capabilities: {} })
         service.beforeSession({ key: 'blah' })
-        service.before()
+        await service.before()
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
@@ -245,11 +216,11 @@ describe('before', () => {
         expect(service.sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
 
-    it('should log the url', () => {
+    it('should log the url', async () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
         const service = new BrowserstackService({}, [{}], { capabilities: {} })
 
-        service.before()
+        await service.before()
         expect(logInfoSpy).toHaveBeenCalled()
     })
 })

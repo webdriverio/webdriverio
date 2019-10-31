@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import request from 'request'
+import got from 'got'
 
 import { BROWSER_DESCRIPTION } from './constants'
 
@@ -80,18 +80,10 @@ export default class BrowserstackService {
     }
 
     _update(sessionId, requestBody) {
-        return new Promise((resolve, reject) => {
-            request.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
-                json: true,
-                auth: this.auth,
-                body: requestBody
-            }, (error, response, body) => {
-                /* istanbul ignore if */
-                if (error) {
-                    return reject(error)
-                }
-                return resolve(body)
-            })
+        return got.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
+            json: true,
+            auth: this.auth,
+            body: requestBody
         })
     }
 
@@ -103,32 +95,28 @@ export default class BrowserstackService {
         }
     }
 
-    _printSessionURL() {
+    async _printSessionURL() {
         const capabilities = global.browser.capabilities
-        return new Promise((resolve, reject) => request.get(
-            `${this.sessionBaseUrl}/${this.sessionId}.json`,
-            {
+
+        try {
+            const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
                 json: true,
                 auth: this.auth
-            },
-            (error, response, body) => {
-                if (error) {
-                    return reject(error)
-                }
+            })
 
-                if (response.statusCode !== 200) {
-                    return reject(new Error(`Bad response code: Expected (200), Received (${response.statusCode})!`))
-                }
+            /**
+             * These keys describe the browser the test was run on
+             */
+            const browserString = BROWSER_DESCRIPTION
+                .map(k => capabilities[k])
+                .filter(v => !!v)
+                .join(' ')
 
-                // These keys describe the browser the test was run on
-                const browserString = BROWSER_DESCRIPTION
-                    .map(k => capabilities[k])
-                    .filter(v => !!v)
-                    .join(' ')
-
-                log.info(`${browserString} session: ${body.automation_session.browser_url}`)
-                return resolve(body)
-            }
-        ))
+            const body = JSON.parse(response.body)
+            log.info(`${browserString} session: ${body.automation_session.browser_url}`)
+            return body
+        } catch (err) {
+            throw new Error(`Bad response code: Expected (200), Received (${err.statusCode})!`)
+        }
     }
 }
