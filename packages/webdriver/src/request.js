@@ -91,6 +91,11 @@ export default class WebDriverRequest extends EventEmitter {
             requestOptions.auth = `${options.user}:${options.key}`
         }
 
+        /**
+         * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
+         */
+        requestOptions.rejectUnauthorized = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
+
         return requestOptions
     }
 
@@ -122,19 +127,21 @@ export default class WebDriverRequest extends EventEmitter {
                  * directly without using a hub, therefor throw
                  */
                 if (response.body.startsWith('<!DOCTYPE html>')) {
-                    throw new Error('Command can only be called to a Selenium Hub')
+                    return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
                 }
 
                 return { value: JSON.parse(response.body) || null }
             }
 
-            return JSON.parse(response.body)
+            const body = JSON.parse(response.body)
+            this.emit('response', { result: body })
+            return body
         } catch (err) {
-            if (!err.body) {
+            if (typeof err.body === 'undefined') {
                 throw err
             }
 
-            const body = JSON.parse(err.body)
+            const body = err.body ? JSON.parse(err.body) : err.body
             const error = getErrorFromResponseBody(body)
 
             /**
