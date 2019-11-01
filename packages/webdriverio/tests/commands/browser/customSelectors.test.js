@@ -26,8 +26,8 @@ describe('custom$', () => {
     })
 
     it('should error if no strategy found', async () => {
-        const elem = await browser.$('#foo')
-        const err = await elem.custom$$('test', '.foo').catch(err => err)
+        const err = await browser.custom$$('test', '.foo').catch(err => err)
+
         expect(err.message).toBe('No strategy found for test')
     })
 

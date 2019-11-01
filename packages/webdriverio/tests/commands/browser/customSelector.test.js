@@ -38,8 +38,7 @@ describe('custom$', () => {
 
     it('should throw error if no element is returned from the user script', async () => {
         browser.addLocatorStrategy('test-no-element', () => null)
-        const elem = await browser.$('#foo')
-        const err = await elem.custom$('test-no-element', '.foo').catch(err => err)
+        const err = await browser.custom$('test-no-element', '.foo').catch(err => err)
 
         expect(err.message).toBe('Your locator strategy script must return an element')
     })
