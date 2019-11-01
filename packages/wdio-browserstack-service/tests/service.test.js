@@ -144,10 +144,7 @@ describe('before', () => {
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
-        expect(service.auth).toEqual({
-            user: 'NotSetUser',
-            pass: 'NotSetKey'
-        })
+        expect(service.auth).toEqual('NotSetUser:NotSetKey')
 
         service = new BrowserstackService({}, [{}], { capabilities: {} })
         service.beforeSession({ user: 'blah' })
@@ -182,10 +179,7 @@ describe('before', () => {
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
-        expect(service.auth).toEqual({
-            user: 'foo',
-            pass: 'bar'
-        })
+        expect(service.auth).toEqual('foo:bar')
         expect(service.sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
     })
 
@@ -209,10 +203,7 @@ describe('before', () => {
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
-        expect(service.auth).toEqual({
-            user: 'foo',
-            pass: 'bar'
-        })
+        expect(service.auth).toEqual('foo:bar')
         expect(service.sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
 

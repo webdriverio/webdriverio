@@ -31,13 +31,12 @@ export default class BrowserstackService {
 
     before() {
         this.sessionId = global.browser.sessionId
-        this.auth = {
-            user: this.config.user,
-            pass: this.config.key
-        }
+        this.auth = `${this.config.user}:${this.config.key}`
+
         if (this.config.capabilities.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
+
         return this._printSessionURL()
     }
 
@@ -81,9 +80,8 @@ export default class BrowserstackService {
 
     _update(sessionId, requestBody) {
         return got.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
-            json: true,
-            auth: this.auth,
-            body: requestBody
+            json: requestBody,
+            auth: this.auth
         })
     }
 
@@ -100,7 +98,6 @@ export default class BrowserstackService {
 
         try {
             const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
-                json: true,
                 auth: this.auth
             })
 
