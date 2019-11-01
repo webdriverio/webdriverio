@@ -51,6 +51,7 @@ export const getElement = function findElement (selector, res, isReactElement = 
         browser.__propertiesObject__[name] = { value: fn }
         origAddCommand(name, runFnInFiberContext(fn))
     }
+
     return elementInstance
 }
 

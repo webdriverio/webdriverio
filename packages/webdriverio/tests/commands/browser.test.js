@@ -8,7 +8,9 @@ const files = fs
     .readdirSync(dir)
     .map(f => path.basename(f, path.extname(f)))
 
-test(scope + ' commands list', () => {
+test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
-    expect(prototype).toEqual(files)
+    const expected = [...files, 'strategies']
+
+    expect(prototype).toEqual(expected)
 })

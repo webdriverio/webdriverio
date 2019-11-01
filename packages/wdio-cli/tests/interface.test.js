@@ -385,7 +385,7 @@ describe('cli interface', () => {
             })
 
             expect(result[1]).toContain('Error')
-            expect(result[1]).toContain('Uknown error.')
+            expect(result[1]).toContain('Unknown error.')
         })
 
         it('string error', () => {
