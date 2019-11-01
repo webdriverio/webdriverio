@@ -37,6 +37,8 @@ export const getPrototype = (scope) => {
      * register action commands
      */
     applyScopePrototype(prototype, scope)
+    prototype.strategies = { value: new Map() }
+
     return prototype
 }
 
@@ -378,4 +380,14 @@ export async function hasElementId (element) {
         return false
     }
     return true
+}
+
+export function addLocatorStrategyHandler(scope) {
+    return (name, script) => {
+        if (scope.strategies.get(name)) {
+            throw new Error(`Strategy ${name} already exists`)
+        }
+
+        scope.strategies.set(name, script)
+    }
 }

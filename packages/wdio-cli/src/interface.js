@@ -92,7 +92,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onTestError(payload) {
-        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Uknown error.' }
+        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Unknown error.' }
         if (payload.error) {
             error.type = payload.error.type || error.type
             error.message = payload.error.message || error.message

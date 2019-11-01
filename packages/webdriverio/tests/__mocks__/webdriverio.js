@@ -6,7 +6,8 @@ const wdioMock = {
     on: jest.fn(),
     sessionId: 'fakeid',
     react$: jest.fn(),
-    react$$: jest.fn()
+    react$$: jest.fn(),
+    custom$: jest.fn(),
 }
 
 export const attach = jest.fn().mockImplementation(() => ({ ...wdioMock }))
