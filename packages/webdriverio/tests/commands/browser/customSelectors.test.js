@@ -1,6 +1,4 @@
-import request from 'request'
 import { remote } from '../../../src'
-import { ELEMENT_KEY } from '../../../src/constants'
 
 describe('custom$', () => {
     let browser
@@ -14,54 +12,39 @@ describe('custom$', () => {
         })
     })
 
-    afterEach(() => {
-        browser = null
-    })
-
     it('should fetch element', async () => {
-        browser.addLocatorStrategy('test', function testLocatorStrategiesMultiple() { })
+        browser.addLocatorStrategy('test', (selector) => [
+            { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-foobar` },
+            { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-other-foobar` }
+        ])
 
-        const elems = await browser.custom$$('test', '.foo')
+        const elems = await browser.custom$$('test', '.test')
 
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-        expect(elems[0].elementId).toBe('some-elem-123')
-        expect(elems[0][ELEMENT_KEY]).toBe('some-elem-123')
-        expect(elems[0].ELEMENT).toBe(undefined)
-
-        expect(elems[1].elementId).toBe('some-elem-456')
-        expect(elems[1][ELEMENT_KEY]).toBe('some-elem-456')
-        expect(elems[1].ELEMENT).toBe(undefined)
-
-        expect(elems[2].elementId).toBe('some-elem-789')
-        expect(elems[2][ELEMENT_KEY]).toBe('some-elem-789')
-        expect(elems[2].ELEMENT).toBe(undefined)
+        expect(elems).toHaveLength(2)
+        expect(elems[0].elementId).toBe('.test-foobar')
+        expect(elems[1].elementId).toBe('.test-other-foobar')
     })
 
     it('should error if no strategy found', async () => {
-        try {
-            await browser.custom$('test', '.foo')
-        } catch (error) {
-            expect(error.message).toBe('No strategy found for test')
-        }
+        const elem = await browser.$('#foo')
+        const err = await elem.custom$$('test', '.foo').catch(err => err)
+        expect(err.message).toBe('No strategy found for test')
     })
 
     it('should return array even if the script returns one element', async () => {
-        browser.addLocatorStrategy('test', function testLocatorStrategy() {})
+        browser.addLocatorStrategy('test', (selector) => (
+            { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-foobar` }
+        ))
 
-        const elems = await browser.custom$$('test', '.foo')
+        const elems = await browser.custom$$('test', '.test')
 
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-        expect(elems[0].elementId).toBe('some-elem-123')
-        expect(elems[0][ELEMENT_KEY]).toBe('some-elem-123')
-        expect(elems[0].ELEMENT).toBe(undefined)
+        expect(elems).toHaveLength(1)
+        expect(elems[0].elementId).toBe('.test-foobar')
     })
 
     it('should return an empty array if no elements are returned from script', async () => {
-        browser.addLocatorStrategy('test-no-element', function testLocatorStrategiesNoElement() {})
-        const res = await browser.custom$$('test-no-element', '.foo')
-
-        expect(res).toMatchObject([])
+        browser.addLocatorStrategy('test-no-element', () => null)
+        const elems = await browser.custom$$('test-no-element', '.test')
+        expect(elems).toMatchObject([])
     })
 })

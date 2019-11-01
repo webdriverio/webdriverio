@@ -159,8 +159,6 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
                 { [ELEMENT_KEY]: 'some-elem-456' },
                 { [ELEMENT_KEY]: 'some-elem-789' },
             ]
-        } else if (params.body.script.includes('testLocatorStrategiesNoElement')) {
-            result = {}
         } else {
             result = script.apply(this, args)
         }

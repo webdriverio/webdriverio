@@ -35,23 +35,15 @@ async function custom$$ (strategyName, strategyArguments) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    let parent
-
-    if (this.elementId) {
-        switch(this.constructor.name) {
-        case 'Element':
-            parent = this
-            break
-        case 'Browser':
-        default:
-            /* istanbul ignore next */
-            parent = browserObject.$('html')
-            /* istanbul ignore next */
-            break
-        }
+    /**
+     * fail if root element is not found, similar to:
+     * $('.notExisting').$('.someElem')
+     */
+    if (!this.elementId) {
+        throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
     }
 
-    let res = await this.execute(strategy, strategyArguments, parent)
+    let res = await this.execute(strategy, strategyArguments, this)
 
     /**
      * if the user's script return just one element

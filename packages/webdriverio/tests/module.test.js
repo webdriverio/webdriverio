@@ -107,10 +107,11 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('throws error if trying to overwrite locator strategy', async () => {
+            expect.assertions(1)
             const browser = await remote({ capabilities: {} })
+
             try {
                 const fakeFn = () => { return 'test'}
-
                 browser.addLocatorStrategy('test-strat', fakeFn)
             } catch (error) {
                 browser.strategies.delete('test-strat')
@@ -134,21 +135,21 @@ describe('WebdriverIO module interface', () => {
                 browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
                 browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
             })
+
             const fakeFn = () => { return 'test'}
-
             driver.addLocatorStrategy('test-strat', fakeFn)
-
             expect(driver.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
         })
 
         it('throws error if trying to overwrite locator strategy', async () => {
+            expect.assertions(1)
             const driver = await multiremote({
                 browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
                 browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
             })
+
             try {
                 const fakeFn = () => { return 'test'}
-
                 driver.addLocatorStrategy('test-strat', fakeFn)
             } catch (error) {
                 driver.strategies.delete('test-strat')
