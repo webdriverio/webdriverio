@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/crossbrowsertesting-service')
@@ -146,23 +146,17 @@ export default class CrossBrowserTestingService {
         return this.updateJob(oldSessionId, this.failures, true, browserName)
     }
 
-    updateJob (sessionId, failures, calledOnReload = false, browserName) {
-        return new Promise((resolve, reject) => request.put(this.getRestUrl(sessionId), {
-            json: true,
-            auth: {
-                user: this.cbtUsername,
-                pass: this.cbtAuthkey
-            },
-            body: this.getBody(failures, calledOnReload, browserName)
-        }, (e, res, body) => {
-            /* istanbul ignore if */
-            this.failures = 0
-            if (e) {
-                return reject(e)
-            }
-            global.browser.jobData = body
-            return resolve(body)
-        }))
+    async updateJob (sessionId, failures, calledOnReload = false, browserName) {
+        const json = this.getBody(failures, calledOnReload, browserName)
+        this.failures = 0
+        const response = await got.put(this.getRestUrl(sessionId), {
+            json,
+            auth: `${this.cbtUsername}:this.cbtAuthkey`
+        })
+
+        const body = JSON.parse(response.body)
+        global.browser.jobData = body
+        return body
     }
 
     /**

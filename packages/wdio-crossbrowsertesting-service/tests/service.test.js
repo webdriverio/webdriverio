@@ -1,10 +1,7 @@
 import CrossBrowserTestingService from '../src/service'
-import request from 'request'
+import got from 'got'
 
-jest.mock('request', () => ({
-    put: jest.fn(),
-    get: jest.fn()
-}))
+got.put.mockReturnValue(Promise.resolve({ body: '{}' }))
 
 const uri = 'some/uri'
 const featureObject = {
@@ -195,19 +192,19 @@ describe('wdio-crossbrowsertesting-service', () => {
         expect(cbtService.failures).toBe(2)
     })
 
-    it('after: updatedJob not called', () => {
+    it('after: updatedJob not called', async () => {
         const cbtService = new CrossBrowserTestingService()
         const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
         cbtService.beforeSession({
             user: undefined,
             key: undefined
         }, {})
-        cbtService.after()
+        await cbtService.after()
 
         expect(updateJobSpy).not.toBeCalled()
     })
 
-    it('after: updatedJob called with passed params', () => {
+    it('after: updatedJob called with passed params', async () => {
         const cbtService = new CrossBrowserTestingService()
         const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
 
@@ -220,12 +217,12 @@ describe('wdio-crossbrowsertesting-service', () => {
         }, {})
 
         cbtService.failures = 2
-        cbtService.after()
+        await cbtService.after()
 
         expect(updateJobSpy).toBeCalledWith('test', 2)
     })
 
-    test('after: with bail set', () => {
+    test('after: with bail set', async () => {
         const cbtService = new CrossBrowserTestingService()
         cbtService.beforeSession({ user: 'test', key: 'testy' }, {})
         cbtService.failures = 5
@@ -234,12 +231,12 @@ describe('wdio-crossbrowsertesting-service', () => {
         global.browser.isMultiremote = false
         global.browser.sessionId = 'test'
         global.browser.config = { mochaOpts: { bail: 1 } }
-        cbtService.after(1)
+        await cbtService.after(1)
 
         expect(cbtService.updateJob).toBeCalledWith('test', 1)
     })
 
-    it('after: with multi-remote: updatedJob called with passed params', () => {
+    it('after: with multi-remote: updatedJob called with passed params', async () => {
         const cbtService = new CrossBrowserTestingService()
         const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
         cbtService.beforeSession({
@@ -250,7 +247,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         global.browser.isMultiremote = true
         global.browser.sessionId = 'sessionId'
         cbtService.failures = 2
-        cbtService.after()
+        await cbtService.after()
 
         expect(updateJobSpy).toBeCalledWith('sessionChromeA', 2, false, 'chromeA')
         expect(updateJobSpy).toBeCalledWith('sessionChromeB', 2, false, 'chromeB')
@@ -366,23 +363,18 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('updateJob success', async () => {
-        request.put.mockImplementation((url, opts, cb) => {
-            cb(null, { statusCode: 200 }, {})
-        })
-
         const service = new CrossBrowserTestingService()
         service.beforeSession({ user: 'test', key: 'testy' }, {})
         service.suiteTitle = 'my test'
 
         await service.updateJob('12345', 23, true)
-
         expect(service.failures).toBe(0)
     })
 
     it('updateJob failure', async () => {
-        request.put.mockImplementation((url, opts, cb) => {
-            cb(new Error('Failure'), { statusCode: 500 }, {})
-        })
+        const response = new Error('Failure')
+        response.statusCode = 500
+        got.put.mockReturnValue(Promise.reject(response))
 
         const service = new CrossBrowserTestingService()
         service.beforeSession({ user: 'test', key: 'testy' }, {})
@@ -395,5 +387,4 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         expect(service.failures).toBe(0)
     })
-
 })
