@@ -105,7 +105,7 @@ export default class ConfigParser {
          */
 
         if (this._config.spec && isCucumberFeatureWithLineNumber(this._config.spec)) {
-            this._config.cucumberFeaturesWithLineNumbers = this._config.spec.join(',')
+            this._config.cucumberFeaturesWithLineNumbers = this._config.spec
         }
 
         if (spec.length > 0) {

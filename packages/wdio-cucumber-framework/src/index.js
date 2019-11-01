@@ -64,7 +64,7 @@ class CucumberAdapter {
              */
             this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
 
-            const featurePathsToRun = this.config.cucumberFeaturesWithLineNumbers ? this.config.cucumberFeaturesWithLineNumbers.toString().split(',') : this.specs
+            const featurePathsToRun = this.config.cucumberFeaturesWithLineNumbers ? this.config.cucumberFeaturesWithLineNumbers : this.specs
 
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: featurePathsToRun,
