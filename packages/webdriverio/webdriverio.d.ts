@@ -1,8 +1,60 @@
-/// <reference types="webdriverio/webdriverio-core"/>
+/// <reference types="webdriverio/webdriverio-core-v5"/>
 
-declare namespace WebdriverIO {
+type $ = (selector: string | Function) => Promise<WebdriverIOAsync.Element>;
+type $$ = (selector: string | Function) => Promise<WebdriverIOAsync.Element[]>;
+
+// Element commands that should be wrapper with Promise
+type ElementPromise = Omit<WebdriverIO.Element,
+    'addCommand'
+    | '$'
+    | '$$'
+    | 'selector'
+    | 'elementId'
+    | 'element-6066-11e4-a52e-4f735466cecf'
+    | 'ELEMENT'
+    | 'dragAndDrop'
+    | 'touchAction'
+>;
+
+// Methods which return async element(s) so non-async equivalents cannot just be promise-wrapped
+interface AsyncSelectors {
+    $: $;
+    $$: $$;
+}
+
+// Element commands wrapper with Promise
+type ElementAsync = {
+    [K in keyof ElementPromise]:
+    (...args: Parameters<ElementPromise[K]>) => Promise<ReturnType<ElementPromise[K]>>;
+} & AsyncSelectors;
+
+// Element commands that should not be wrapper with promise
+type ElementStatic = Pick<WebdriverIO.Element,
+    'addCommand'
+    | 'selector'
+    | 'elementId'
+    | 'element-6066-11e4-a52e-4f735466cecf'
+    | 'ELEMENT'
+>;
+
+// Browser commands that should be wrapper with Promise
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | 'config' | '$' | '$$' | 'touchAction'>;
+
+// Browser commands wrapper with Promise
+type BrowserAsync = {
+    [K in keyof BrowserPromise]:
+    (...args: Parameters<BrowserPromise[K]>) => Promise<ReturnType<BrowserPromise[K]>>;
+} & AsyncSelectors;
+
+// Browser commands that should not be wrapper with promise
+type BrowserStatic = Pick<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | 'config'>;
+
+// Properties of TouchAction which are similar in sync and async mode
+type TouchActionSync = Omit<WebdriverIO.TouchAction, 'element'>
+
+declare namespace WebdriverIOAsync {
     function remote(
-        options?: RemoteOptions,
+        options?: WebdriverIO.RemoteOptions,
         modifier?: (...args: any[]) => any
     ): BrowserObject;
 
@@ -11,13 +63,13 @@ declare namespace WebdriverIO {
     ): BrowserObject;
 
     function multiremote(
-        options: MultiRemoteOptions
+        options: WebdriverIO.MultiRemoteOptions
     ): BrowserObject;
-
-    interface Browser {
-        /**
-         * waits until the condition is fulfilled with a truthy value
-         */
+    interface TouchAction extends TouchActionSync {
+        element?: Element
+    }
+    type TouchActions = string | TouchAction | TouchAction[];
+    interface Browser extends BrowserAsync, BrowserStatic {
         waitUntil(
             condition: () => Promise<boolean>,
             timeout?: number,
@@ -25,45 +77,32 @@ declare namespace WebdriverIO {
             interval?: number
         ): Promise<boolean>;
 
-        /**
-         * execute any async action within your test spec
-         */
+        // there is no way to wrap generic functions, like `<T>(arg: T) => T`
+        // have to declare explicitly for sync and async typings.
+        // https://github.com/microsoft/TypeScript/issues/5453
         call: <T>(callback: (...args: any[]) => Promise<T>) => Promise<T>;
-
-        /**
-         * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
-         * The executed script is assumed to be synchronous and the result of evaluating the script is returned to
-         * the client.
-         */
         execute: <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => Promise<T>;
 
-        // there is no way to add callback as last parameter after `...args`.
+        // also there is no way to add callback as last parameter after `...args`.
         // https://github.com/Microsoft/TypeScript/issues/1360
         // executeAsync: <T>(script: string | ((...arguments: any[], callback: (result: T) => void) => void), ...arguments: any[]) => Promise<T>;
-        /**
-         * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
-         * The executed script is assumed to be asynchronous and must signal that is done by invoking
-         * the provided callback, which is always provided as the final argument to the function. The value
-         * to this callback will be returned to the client.
-         */
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
+        touchAction(action: TouchActions): Promise<void>;
     }
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }
+    interface Element extends ElementAsync, ElementStatic {
+        dragAndDrop(target: Element, duration?: number): Promise<void>;
+        touchAction(action: TouchActions): Promise<void>;
+    }
+    interface Config { }
+
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser { }
 }
 
-declare var browser: WebdriverIO.BrowserObject;
-
-/**
- * find a single element on the page.
- */
-declare var $: (selector: string | Function) => Promise<WebdriverIO.Element>;
-
-/**
- * find multiple elements on the page.
- */
-declare var $$: (selector: string | Function) => Promise<WebdriverIO.Element[]>;
+declare var browser: WebdriverIOAsync.BrowserObject;
+declare var $: $;
+declare var $$: $$;
 
 declare module "webdriverio" {
-    export = WebdriverIO
+    export = WebdriverIOAsync
 }

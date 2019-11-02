@@ -106,7 +106,7 @@ async function bar() {
 
     // touchAction
     const ele = await $('')
-    const touchAction: WebdriverIO.TouchAction = {
+    const touchAction: WebdriverIOAsync.TouchAction = {
         action: "longPress",
         element: await $(''),
         ms: 0,
@@ -121,7 +121,7 @@ async function bar() {
 }
 
 // selenium-standalone-service
-const config: WebdriverIO.Config = {
+const config: WebdriverIOAsync.Config = {
     skipSeleniumInstall: true,
     seleniumLogs: ''
 }

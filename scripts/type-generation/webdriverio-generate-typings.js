@@ -12,8 +12,6 @@ const elementCommands = fs.readdirSync(elementDir)
 const browserDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/browser')
 const browserCommands = fs.readdirSync(browserDir)
 
-let allTypeLines = []
-
 const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
 const INDENTATION = ' '.repeat(8)
 
@@ -23,6 +21,7 @@ ${INDENTATION} * {DESCRIPTION}
 ${INDENTATION} */`
 
 const gatherCommands = (commandPath, commandFile, promisify = false) => {
+    const allTypeLines = []
     const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
 
     if (specifics[commandName]) {
@@ -54,23 +53,19 @@ const gatherCommands = (commandPath, commandFile, promisify = false) => {
     return allTypeLines
 }
 
-const generateTypes = (packageName, promisify) => {
-    allTypeLines = []
+const generateTypes = (packageName, promisify, fileName = 'webdriverio-core.d.ts') => {
     let bCommands = []
     browserCommands.forEach((commandFile) => {
         const commandPath = path.resolve(`${browserDir}/${commandFile}`)
-        bCommands = gatherCommands(commandPath, commandFile, promisify)
+        bCommands.push(...gatherCommands(commandPath, commandFile, promisify))
     })
     const allBrowserCommands = bCommands.join('\n')
-
-    allTypeLines = []
 
     let eCommands = []
     elementCommands.forEach((commandFile) => {
         const commandPath = path.resolve(`${elementDir}/${commandFile}`)
-        eCommands = gatherCommands(commandPath, commandFile, promisify)
+        eCommands.push(...gatherCommands(commandPath, commandFile, promisify))
     })
-
     const allElementCommands = eCommands.join('\n')
 
     const templatePath = path.resolve(__dirname + '../../templates/webdriverio.tpl.d.ts')
@@ -79,12 +74,13 @@ const generateTypes = (packageName, promisify) => {
     let typingsContents = templateContents.replace('// ... element commands ...', () => allElementCommands)
     typingsContents = typingsContents.replace('// ... browser commands ...', () => allBrowserCommands)
 
-    const outputFileWebdriverio = path.join(__dirname, '..', '..', `packages/${packageName}`, 'webdriverio-core.d.ts')
-    fs.writeFileSync(outputFileWebdriverio, typingsContents, { encoding: 'utf-8' })
+    const outputFile = path.join(__dirname, '..', '..', `packages/${packageName}`, fileName)
+    fs.writeFileSync(outputFile, typingsContents, { encoding: 'utf-8' })
 
     // eslint-disable-next-line no-console
-    console.log(`Generated typings file at ${outputFileWebdriverio}`)
+    console.log(`Generated typings file at ${outputFile}`)
 }
 
-generateTypes('webdriverio', true)
+generateTypes('webdriverio', true) // to be used in v6
+generateTypes('webdriverio', false, 'webdriverio-core-v5.d.ts') // remove in v6
 generateTypes('wdio-sync', false)

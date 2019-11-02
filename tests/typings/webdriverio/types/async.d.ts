@@ -3,7 +3,7 @@
  */
 
 // module should be "webdriverio" if used within `ts` file instead of `d.ts`
-declare module WebdriverIO {
+declare module WebdriverIOAsync {
     interface BrowserObject {
         // multiremote
         instances: ['myBrowserInstance']
