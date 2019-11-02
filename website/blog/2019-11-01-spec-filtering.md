@@ -64,4 +64,6 @@ describe('my suite in ' + browser.capabilities.browserName, () => {
 
 We are happy to answer any questions and awaiting your feedback.
 
+Please note that the feature will be enabled for all test frameworks in v6 so it's recommended to start preparation in advance.
+
 Thanks!
