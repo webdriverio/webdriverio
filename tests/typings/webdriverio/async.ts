@@ -1,7 +1,7 @@
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote } from 'webdriverio'
 
-// An example of adding command withing ts file to WebdriverIOAsync
+// An example of adding command withing ts file to WebdriverIO (async)
 declare module "webdriverio" {
     interface Browser {
         browserCustomCommand: (arg: unknown) => Promise<void>
@@ -115,7 +115,7 @@ async function bar() {
     }
     await ele.touchAction(touchAction)
     await browser.touchAction(touchAction)
-    
+
     // dragAndDrop
     await ele.dragAndDrop(ele, 0)
 }
