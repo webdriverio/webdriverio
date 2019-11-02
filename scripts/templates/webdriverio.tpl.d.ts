@@ -161,6 +161,10 @@ declare namespace WebdriverIO {
         ELEMENT?: string;
         selector: string;
         elementId: string;
+
+        /**
+         * add command to `element` scope
+         */
         addCommand(
             name: string,
             func: Function
@@ -176,17 +180,25 @@ declare namespace WebdriverIO {
 
     interface Browser {
         config: Config;
+        options: RemoteOptions;
+
+        /**
+         * add command to `browser` or `element` scope
+         */
         addCommand(
             name: string,
             func: Function,
             attachToElement?: boolean
         ): void;
+
+        /**
+         * overwrite `browser` or `element` command
+         */
         overwriteCommand(
             name: string,
             func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
         ): void;
-        options: RemoteOptions;
         // ... browser commands ...
     }
 

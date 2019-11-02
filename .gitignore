@@ -66,8 +66,6 @@ tests/typings/**/dist
 /*.js
 allure-reporter.d.ts
 devtools.d.ts
-webdriver.d.ts
-webdriverio-core.d.ts
 !babel.config.js
 !.eslintrc.js
 packages/**/package-lock.json

@@ -1,4 +1,4 @@
-/// <reference types="webdriverio/webdriverio-core"/>
+/// <reference types="webdriverio/webdriverio-core-v5"/>
 
 type $ = (selector: string | Function) => Promise<WebdriverIOAsync.Element>;
 type $$ = (selector: string | Function) => Promise<WebdriverIOAsync.Element[]>;
