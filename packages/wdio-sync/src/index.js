@@ -10,11 +10,11 @@ import { STACKTRACE_FILTER_FN } from './constants'
  * execute test or hook synchronously
  *
  * @param  {Function} fn         spec or hook method
- * @param  {Number}   repeatTest number of retries
+ * @param  {Number}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeSync = async function (fn, repeatTest = 0, args = []) {
+const executeSync = async function (fn, retries, args = []) {
     delete global.browser._NOT_FIBER
 
     try {
@@ -32,8 +32,9 @@ const executeSync = async function (fn, repeatTest = 0, args = []) {
 
         return res
     } catch (e) {
-        if (repeatTest) {
-            return await executeSync(fn, --repeatTest, args)
+        if (retries.limit > retries.attempts) {
+            retries.attempts++
+            return await executeSync(fn, retries, args)
         }
 
         /**
@@ -52,23 +53,17 @@ const executeSync = async function (fn, repeatTest = 0, args = []) {
  * execute test or hook asynchronously
  *
  * @param  {Function} fn         spec or hook method
- * @param  {Number}   repeatTest number of retries
+ * @param  {object}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-
-const executeAsync = async function (fn, repeatTest = 0, args = []) {
-    /**
-     * if a new hook gets executed we can assume that all commands should have finished
-     * with exception of timeouts where `commandIsRunning` will never be reset but here
-     */
-    // commandIsRunning = false
-
+const executeAsync = async function (fn, retries, args = []) {
     try {
         return await fn.apply(this, args)
     } catch (e) {
-        if(repeatTest > 0) {
-            return await executeAsync(fn, --repeatTest, args)
+        if (retries.limit > retries.attempts) {
+            retries.attempts++
+            return await executeAsync(fn, retries, args)
         }
 
         // Only instances of `Error` have a stack trace. Specifcally in mocha, `this.skip()`

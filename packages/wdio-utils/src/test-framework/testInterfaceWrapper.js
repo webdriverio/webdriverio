@@ -25,7 +25,7 @@ const MOCHA_COMMANDS = ['skip', 'only']
  * @param  {Number}   repeatTest    number of retries if hook fails
  * @return {Function}               wrapped framework hook function
  */
-export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest = 0) {
+export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest) {
     return origFn(function (...hookFnArgs) {
         return testFnWrapper.call(this, 'Hook', { specFn: hookFn, specFnArgs: filterSpecArgs(hookFnArgs) }, { beforeFn, beforeFnArgs }, { afterFn, afterFnArgs }, cid, repeatTest)
     })
@@ -45,7 +45,7 @@ export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn
  * @param  {Number}   repeatTest    number of retries if test fails
  * @return {Function}               wrapped test function
  */
-export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest = 0) {
+export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest) {
     return origFn(specTitle, function (...specFnArgs) {
         return testFnWrapper.call(this, 'Test', { specFn, specFnArgs: filterSpecArgs(specFnArgs) }, { beforeFn, beforeFnArgs }, { afterFn, afterFnArgs }, cid, repeatTest)
     })
