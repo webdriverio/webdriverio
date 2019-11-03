@@ -19,7 +19,7 @@ describe('runHook', () => {
             { beforeFn: 'beforeFn', beforeFnArgs },
             { afterFn: 'afterFn', afterFnArgs },
             'cid',
-            0
+            undefined
         )
     })
 })
@@ -35,7 +35,7 @@ describe('runSpec', () => {
             { beforeFn: 'beforeFn', beforeFnArgs },
             { afterFn: 'afterFn', afterFnArgs },
             'cid',
-            0
+            undefined
         )
     })
 })

@@ -3,7 +3,7 @@ id: options
 title: Options
 ---
 
-WebdriverIO is not just a binding for the WebDriver protocol (like Selenium). It is a full test framework with numerous additional features and utilities. It is based on the [`webdriver`](https://www.npmjs.com/package/webdriver) package, which is a lightweight, non-opinionated implementation of the WebDriver specification including mobile commands supported by Appium. 
+WebdriverIO is not just a binding for the WebDriver protocol (like Selenium). It is a full test framework with numerous additional features and utilities. It is based on the [`webdriver`](https://www.npmjs.com/package/webdriver) package, which is a lightweight, non-opinionated implementation of the WebDriver specification including mobile commands supported by Appium.
 
 WebdriverIO takes the protocol commands and creates smart user commands that makes using the protocol for test automation much easier.
 
@@ -44,7 +44,7 @@ Type: `Object`<br>
 Default: `null`
 
 ### `capabilities`
-Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support the WebDriver protocol, you’ll need to use the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfuly run a session. 
+Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support the WebDriver protocol, you’ll need to use the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfuly run a session.
 
 Additionaly, a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/), which helps you create this object by clicking together your desired capabilities.
 
@@ -133,15 +133,15 @@ Type: `Object`|`Object[]`<br>
 Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
 
 ### `baseUrl`
-Shorten `url` command calls by setting a base URL. 
-- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one). 
+Shorten `url` command calls by setting a base URL.
+- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
 - If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
 
 Type: `String`<br>
 Default: `null`
 
 ### `bail`
-If you want your test run to stop after a specific number of test failures, use `bail`. 
+If you want your test run to stop after a specific number of test failures, use `bail`.
 (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
 
 Type: `Number`<br>
@@ -154,7 +154,7 @@ Type: `Number`<br>
 Default: `0`
 
 ### `waitforTimeout`
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time. 
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
 
 To increase the timeout for a _test_, please see the framework docs.
 
@@ -168,7 +168,7 @@ Type: `Number`<br>
 Default: `500`
 
 ### `services`
-Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort. 
+Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
 
 Unlike plugins, they don't add new commands. Instead, they hook into the test process.
 
@@ -211,7 +211,7 @@ reporters: [
 
 ### `automationProtocol`
 
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available. 
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
 
 If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
 
@@ -237,7 +237,7 @@ Type: `String`
 Default: `null`
 
 ### `region`
-If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU. 
+If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU.
 To change your region to EU, add `region: 'eu'` to your config.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
@@ -260,9 +260,9 @@ Default: `false`
 ## `Hooks`
 
 WebdriverIO allows you to set hooks to trigger at specific times of the test lifecycle.
-This allows custom actions (e.g., take screenshot if a test fails). 
+This allows custom actions (e.g., take screenshot if a test fails).
 
-Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test). 
+Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test).
 
 The following hooks are available: `onPrepare`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
 
@@ -275,7 +275,7 @@ Example:
 // wdio.conf.js
 exports.config = {
     // ...
-    afterTest: (test, context, { error, result, duration, passed }) => {
+    afterTest: (test, context, { error, result, duration, passed, retries }) => {
         console.log(`Finished test "${test.parent} - ${test.title}"`)
     }
     // ...
