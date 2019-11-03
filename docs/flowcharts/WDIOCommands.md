@@ -45,11 +45,11 @@ This flowchart provides a high level overview of the @wdio/cli run, repl, config
         EXECUTEWIZARD[Execute setup wizard]-->
         QUESTIONNAIRE[Run questionaire, store<br>answers package variables.]-->
         SYNCMODE{executionMode<br>       is sync?}
+        SYNCMODE-->|Yes|INSTALLWDIOSYNC["Install<br>@wdio/sync"]
+        INSTALLWDIOSYNC-->YARNCHECK["If --yarn, Install packages using<br>yarn, otherwise use npm"]
+        YARNCHECK-->CREATEWDIOCONFIG["Create wdio.conf.js"]   
         SYNCMODE-->|No|ASYNCMODE["Do not install<br>@wdio/sync"]
-        SYNCMODE-->|Yes|INSTALLWDIOSYNC["Install<br>@wdio/sync"]-->
-        ASYNCMODE-->CREATEWDIOCONFIG
-        YARNCHECK["If --yarn, Install packages using<br>yarn, otherwise use npm"]-->
-        CREATEWDIOCONFIG["Create wdio.conf.js"]`;
+        ASYNCMODE-->CREATEWDIOCONFIG`;
     (function(){
         createFlowChart(runRepl);
     })();
