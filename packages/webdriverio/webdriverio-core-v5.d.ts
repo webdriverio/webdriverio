@@ -61,6 +61,7 @@ declare namespace WebdriverIO {
         baseUrl?: string,
         bail?: number,
         specFileRetries?: number,
+        readonly specFileRetryAttempts?: number,
         waitforTimeout?: number,
         waitforInterval?: number,
         framework?: string,

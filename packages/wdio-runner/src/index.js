@@ -60,6 +60,9 @@ export default class Runner extends EventEmitter {
         this.configParser.filterWorkerServices()
 
         this.config = this.configParser.getConfig()
+
+        this.config.specFileRetryAttempts = (this.config.specFileRetries || 0) - (retries || 0)
+
         logger.setLogLevelsConfig(this.config.logLevels, this.config.logLevel)
         this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
         initialiseServices(this.config, caps).map(::this.configParser.addService)
@@ -111,7 +114,7 @@ export default class Runner extends EventEmitter {
                     return caps
                 }, {})
                 : browser.capabilities,
-            retry: (this.config.specFileRetries || 0) - (retries || 0)
+            retry: this.config.specFileRetryAttempts
         })
 
         /**
