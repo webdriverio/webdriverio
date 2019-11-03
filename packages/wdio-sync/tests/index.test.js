@@ -9,19 +9,19 @@ beforeAll(() => {
 describe('executeSync', () => {
     it('should pass with default values and regular fn', async () => {
         global.browser._NOT_FIBER = true
-        expect(await executeSync(() => 1)).toEqual(1)
+        expect(await executeSync(() => 1, {})).toEqual(1)
         expect(global.browser._NOT_FIBER).toBe(undefined)
     })
 
     it('should pass with args and async fn', async () => {
-        expect(await executeSync(async arg => arg, 1, [2])).toEqual(2)
+        expect(await executeSync(async arg => arg, { limit: 1, attempts: 0 }, [2])).toEqual(2)
     })
 
     it('should filter stack on failure', async () => {
         global.browser._NOT_FIBER = true
         let error
         try {
-            await executeSync(() => { throw new Error('foobar') })
+            await executeSync(() => { throw new Error('foobar') }, {})
         } catch (err) {
             error = err
         }
@@ -36,7 +36,7 @@ describe('executeSync', () => {
                 const err = new Error('foobar')
                 err.stack = false
                 throw err
-            })
+            }, {})
         } catch (err) {
             error = err
         }
@@ -45,18 +45,21 @@ describe('executeSync', () => {
 
     it('should repeat step on failure', async () => {
         let counter = 3
+        const repeatTest = { limit: counter, attempts: 0 }
         expect(await executeSync(() => {
             if (counter > 0) {
                 counter--
                 throw new Error('foobar')
             }
             return true
-        }, counter)).toEqual(true)
+        }, repeatTest)).toEqual(true)
         expect(counter).toEqual(0)
+        expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
     })
 
     it('should throw if repeatTest attempts exceeded', async () => {
         let counter = 3
+        const repeatTest = { limit: counter - 1, attempts: 0 }
         let error
         try {
             await executeSync(() => {
@@ -65,22 +68,23 @@ describe('executeSync', () => {
                     throw new Error('foobar')
                 }
                 return true
-            }, counter - 1)
+            }, repeatTest)
         } catch (err) {
             error = err
         }
         expect(error.message).toEqual('foobar')
+        expect(repeatTest).toEqual({ limit: 2, attempts: 2 })
     })
 })
 
 describe('executeAsync', () => {
     it('should pass with default values and fn returning synchronous value', async () => {
-        const result = await executeAsync(() => 'foo')
+        const result = await executeAsync(() => 'foo', {})
         expect(result).toEqual('foo')
     })
 
     it('should pass when optional arguments are passed', async () => {
-        const result = await executeAsync(async arg => arg, 1, ['foo'])
+        const result = await executeAsync(async arg => arg, { limit: 1, attempts: 0 }, ['foo'])
         expect(result).toEqual('foo')
     })
 
@@ -88,7 +92,7 @@ describe('executeAsync', () => {
         let error
         const hook = () => {throw new Error('foo')}
         try {
-            await executeAsync(hook)
+            await executeAsync(hook, {})
         } catch (e) {
             error = e
         }
@@ -97,15 +101,17 @@ describe('executeAsync', () => {
 
     it('should repeat if fn throws error directly and repeatTest provided', async () => {
         let counter = 3
+        const repeatTest = { limit: counter, attempts: 0 }
         const result = await executeAsync(() => {
             if (counter > 0) {
                 counter--
                 throw new Error('foo')
             }
             return true
-        }, counter)
+        }, repeatTest)
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
+        expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
     })
 
     it('should return rejected promise if fn rejects', async () => {
@@ -113,7 +119,7 @@ describe('executeAsync', () => {
         try {
             await executeAsync(() => Promise.reject({
                 stack: ' at node_modules/@wdio/sync/foo.js\n at src/localDir/localFile.js'
-            }))
+            }), {})
         } catch (e) {
             error = e
         }
@@ -122,15 +128,17 @@ describe('executeAsync', () => {
 
     it('should repeat if fn rejects and repeatTest provided', async () => {
         let counter = 3
+        const repeatTest = { limit: counter, attempts: 0 }
         const result = await executeAsync(() => {
             if (counter > 0) {
                 counter--
                 return Promise.reject('foo')
             }
             return true
-        }, counter)
+        }, repeatTest)
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
+        expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
     })
 })
 
@@ -139,7 +147,7 @@ describe('runSync', () => {
         const resolveFn = jest.fn()
         const rejectFn = jest.fn()
 
-        const fibersFn = runSync((arg) => 'foo' + arg, undefined, ['bar'])
+        const fibersFn = runSync((arg) => 'foo' + arg, {}, ['bar'])
         await fibersFn(resolveFn, rejectFn)
 
         expect(rejectFn).not.toBeCalled()
@@ -151,7 +159,7 @@ describe('runSync', () => {
         const fn = jest.fn().mockImplementation(() => { throw error })
         const error = new Error('foo')
 
-        const fibersFn = runSync(fn, 1)
+        const fibersFn = runSync(fn, { limit: 1, attempts: 0 })
         await fibersFn(resolveFn, rejectFn)
 
         expect(resolveFn).not.toBeCalled()

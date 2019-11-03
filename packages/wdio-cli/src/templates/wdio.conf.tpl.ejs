@@ -281,7 +281,7 @@ exports.config = {
      * Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
      * afterEach in Mocha)
      */
-    // afterHook: function (test, context, { error, result, duration, passed }) {
+    // afterHook: function (test, context, { error, result, duration, passed, retries }) {
     // },
     <%- include('afterTest', { reporters: answers.reporters }) %>
     /**

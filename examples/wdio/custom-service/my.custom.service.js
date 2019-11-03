@@ -23,7 +23,7 @@ module.exports = class CustomService {
         console.log('execute beforeHook(test, context)')
     }
     afterHook () {
-        console.log('execute afterHook(test, context, { error, result, duration, passed })')
+        console.log('execute afterHook(test, context, { error, result, duration, passed, retries })')
     }
     beforeTest () {
         console.log('execute beforeTest(test, context)')
@@ -35,7 +35,7 @@ module.exports = class CustomService {
         console.log('execute afterCommand(commandName, args, result, error)')
     }
     afterTest () {
-        console.log('execute afterTest(test, context, { error, result, duration, passed })')
+        console.log('execute afterTest(test, context, { error, result, duration, passed, retries })')
     }
     afterSuite () {
         console.log('execute afterSuite(suite)')

@@ -3,14 +3,14 @@ import { testFnWrapper } from '../../src/test-framework/testFnWrapper'
 
 jest.mock('../../src/shim', () => ({
     executeHooksWithArgs: jest.fn(),
-    executeAsync: async (fn, repeatTest, args = []) => fn('async', repeatTest, ...args),
+    executeAsync: async (fn, { limit, attempts }, args = []) => fn('async', limit, attempts, ...args),
     runSync: null,
 }))
 
 const executeHooksWithArgs = shim.executeHooksWithArgs
 
 describe('testFnWrapper', () => {
-    const origFn = (mode, repeatTest, arg) => `${mode}: Foo${arg} ${repeatTest}`
+    const origFn = (mode, limit, attempts, arg) => `${mode}: Foo${arg} ${limit} ${attempts}`
     const buildArgs = (specFn, retries, beforeFnArgs, afterFnArgs) => [
         'Foo',
         { specFn, specFnArgs: ['Bar'] },
@@ -24,20 +24,38 @@ describe('testFnWrapper', () => {
         const args = buildArgs(origFn, undefined, () => [], () => [])
         const result = await testFnWrapper(...args)
 
-        expect(result).toBe('async: FooBar 0')
+        expect(result).toBe('async: FooBar 0 0')
         expect(executeHooksWithArgs).toBeCalledTimes(2)
         expect(executeHooksWithArgs).toBeCalledWith('beforeFn', [])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [{ duration: expect.any(Number), error: undefined, result: 'async: FooBar 0', passed: true }])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [{
+            duration: expect.any(Number),
+            error: undefined,
+            result: 'async: FooBar 0 0',
+            passed: true,
+            retries: {
+                limit: 0,
+                attempts: 0
+            }
+        }])
     })
 
     it('should run fn in async mode if specFn is async', async () => {
         const args = buildArgs(async (...args) => origFn(...args), 11, () => ['beforeFnArgs'], () => ['afterFnArgs'])
         const result = await testFnWrapper(...args)
 
-        expect(result).toBe('async: FooBar 11')
+        expect(result).toBe('async: FooBar 11 0')
         expect(executeHooksWithArgs).toBeCalledTimes(2)
         expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', ['afterFnArgs', { duration: expect.any(Number), error: undefined, result: 'async: FooBar 11', passed: true }])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFn', ['afterFnArgs', {
+            duration: expect.any(Number),
+            error: undefined,
+            result: 'async: FooBar 11 0',
+            passed: true,
+            retries: {
+                limit: 11,
+                attempts: 0
+            }
+        }])
     })
 
     it('should throw on error', async () => {
@@ -57,7 +75,16 @@ describe('testFnWrapper', () => {
         expect(error).toBe(expectedError)
         expect(executeHooksWithArgs).toBeCalledTimes(2)
         expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', ['afterFnArgs', { duration: expect.any(Number), error: expectedError, result: undefined, passed: false }])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFn', ['afterFnArgs', {
+            duration: expect.any(Number),
+            error: expectedError,
+            result: undefined,
+            passed: false,
+            retries: {
+                limit: 0,
+                attempts: 0
+            }
+        }])
     })
 
     afterEach(() => {

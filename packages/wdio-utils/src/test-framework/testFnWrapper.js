@@ -36,6 +36,7 @@ export const testFrameworkFnWrapper = async function (
     { beforeFn, beforeFnArgs },
     { afterFn, afterFnArgs },
     cid, repeatTest = 0) {
+    const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = mochaJasmineCompatibility(beforeFnArgs(this), this)
     await logHookError(`Before${type}`, await executeHooksWithArgs(beforeFn, beforeArgs), cid)
 
@@ -46,9 +47,9 @@ export const testFrameworkFnWrapper = async function (
      * user wants handle async command using promises, no need to wrap in fiber context
      */
     if (isFunctionAsync(specFn) || !runSync) {
-        promise = executeAsync.call(this, specFn, repeatTest, specFnArgs)
+        promise = executeAsync.call(this, specFn, retries, specFnArgs)
     } else {
-        promise = new Promise(runSync.call(this, specFn, repeatTest, specFnArgs))
+        promise = new Promise(runSync.call(this, specFn, retries, specFnArgs))
     }
 
     const testStart = Date.now()
@@ -61,6 +62,7 @@ export const testFrameworkFnWrapper = async function (
 
     let afterArgs = afterFnArgs(this)
     afterArgs.push({
+        retries,
         error,
         result,
         duration,

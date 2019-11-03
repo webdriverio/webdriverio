@@ -229,7 +229,7 @@ exports.config = {
      * afterEach in Mocha)
      * stepData and world are Cucumber framework specific
      */
-    afterHook: function (test, context, { error, result, duration, passed }/*, stepData, world*/) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
@@ -256,7 +256,7 @@ exports.config = {
     /**
      * Function to be executed after a test (in Mocha/Jasmine) ends.
      */
-    afterTest: function (test, context, { error, result, duration, passed }) {
+    afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
      * Hook that gets executed after the suite has ended

@@ -3,7 +3,7 @@ id: configurationfile
 title: Testrunner Configuration
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s just a NodeJS module that exports a JSON. 
+The configuration file contains all necessary information to run your test suite. It’s just a NodeJS module that exports a JSON.
 
 Here is an example configuration with all supported properties and additional information:
 
@@ -52,10 +52,10 @@ exports.config = {
     // Specify Test Files
     // ==================
     // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called. 
+    // from which `wdio` was called.
     //
     // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
-    // then the current working directory is where your `package.json` resides, so `wdio` 
+    // then the current working directory is where your `package.json` resides, so `wdio`
     // will be called from there.
     //
     specs: [
@@ -72,15 +72,15 @@ exports.config = {
     // ============
     // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your `capabilities`, you can overwrite the `spec` and `exclude` 
+    // sessions. Within your `capabilities`, you can overwrite the `spec` and `exclude`
     // options in order to group specific specs to a specific capability.
     //
     // First, you can define how many instances should be started at the same time. Let's
     // say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have
-    // set `maxInstances` to 1. wdio will spawn 3 processes. 
+    // set `maxInstances` to 1. wdio will spawn 3 processes.
     //
-    // Therefore, if you have 10 spec files and you set `maxInstances` to 10, all spec files 
-    // will be tested at the same time and 30 processes will be spawned. 
+    // Therefore, if you have 10 spec files and you set `maxInstances` to 10, all spec files
+    // will be tested at the same time and 30 processes will be spawned.
     //
     // The property basically handles how many capabilities from the same test should run tests.
     //
@@ -282,7 +282,7 @@ exports.config = {
      *
      * (`stepData` and `world` are Cucumber-specific.)
      */
-    afterHook: function (test, context, { error, result, duration, passed }/*, stepData, world*/) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
@@ -308,7 +308,7 @@ exports.config = {
     /**
      * Function to be executed after a test (in Mocha/Jasmine)
      */
-    afterTest: function (test, context, { error, result, duration, passed }) {
+    afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
      * Hook that gets executed after the suite has ended.
@@ -334,7 +334,7 @@ exports.config = {
     afterSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed after all workers have shut down and the process is about to exit. 
+     * Gets executed after all workers have shut down and the process is about to exit.
      * An error thrown in the `onComplete` hook will result in the test run failing.
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object

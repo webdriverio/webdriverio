@@ -61,6 +61,7 @@ declare namespace WebdriverIO {
         baseUrl?: string,
         bail?: number,
         specFileRetries?: number,
+        readonly specFileRetryAttempts?: number,
         waitforTimeout?: number,
         waitforInterval?: number,
         framework?: string,
@@ -116,7 +117,13 @@ declare namespace WebdriverIO {
 
         beforeSuite?(suite: Suite): void;
         beforeTest?(test: Test, context: any): void;
-        afterHook?(test: any, context: any, result: { error?: any, result?: any, passed: boolean, duration: number }, stepData?: any, world?: any): void;
+        afterHook?(test: any, context: any, result: {
+            error?: any,
+            result?: any,
+            passed: boolean,
+            duration: number,
+            retries: { limit: number, attempts: number }
+        }, stepData?: any, world?: any): void;
 
         after?(
             result: number,
@@ -138,7 +145,13 @@ declare namespace WebdriverIO {
         ): void;
 
         afterSuite?(suite: Suite): void;
-        afterTest?(test: Test, context: any, result: { error?: any, result?: any, passed: boolean, duration: number }): void;
+        afterTest?(test: Test, context: any, result: {
+            error?: any,
+            result?: any,
+            passed: boolean,
+            duration: number,
+            retries: { limit: number, attempts: number }
+        }): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
@@ -214,6 +227,22 @@ declare namespace WebdriverIO {
         click(
             options?: object
         ): void;
+
+        /**
+         * The `customs$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+         */
+        custom$$(
+            strategyName: string,
+            strategyArguments: any
+        ): Element;
+
+        /**
+         * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+         */
+        custom$(
+            strategyName: string,
+            strategyArguments: any
+        ): Element;
 
         /**
          * Double-click on an element.
@@ -522,6 +551,22 @@ declare namespace WebdriverIO {
          */
         $(
             selector: string | Function | object
+        ): Element;
+
+        /**
+         * The `customs$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+         */
+        custom$$(
+            strategyName: string,
+            strategyArguments: any
+        ): Element;
+
+        /**
+         * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+         */
+        custom$(
+            strategyName: string,
+            strategyArguments: any
         ): Element;
 
         /**
