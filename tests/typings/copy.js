@@ -28,6 +28,8 @@ const packages = {
 
     '@types/selenium-standalone': 'packages/wdio-selenium-standalone-service/node_modules/@types/selenium-standalone',
     '@wdio/selenium-standalone-service': 'packages/wdio-selenium-standalone-service',
+
+    '@wdio/shared-store-service': 'packages/wdio-shared-store-service',
 }
 
 /**
