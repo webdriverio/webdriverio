@@ -44,6 +44,9 @@
       "selenium-standalone-service": {
         "title": "Selenium Standalone Service"
       },
+      "shared-store-service": {
+        "title": "Shared Store Service"
+      },
       "spec-reporter": {
         "title": "Spec Reporter"
       },
@@ -103,6 +106,12 @@
       },
       "api/browser/call": {
         "title": "call"
+      },
+      "api/browser/custom$": {
+        "title": "custom$"
+      },
+      "api/browser/custom$$": {
+        "title": "custom$$"
       },
       "api/browser/debug": {
         "title": "debug"
@@ -187,6 +196,12 @@
       },
       "api/element/click": {
         "title": "click"
+      },
+      "api/element/custom$": {
+        "title": "custom$"
+      },
+      "api/element/custom$$": {
+        "title": "custom$$"
       },
       "api/element/doubleClick": {
         "title": "doubleClick"
