@@ -45,8 +45,7 @@ module.exports = {
     scripts: [
         'https://buttons.github.io/buttons.js',
         'https://platform.twitter.com/widgets.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.3.1/mermaid.min.js'
+        'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js'
     ],
 
     /* On page navigation for the current documentation page */
