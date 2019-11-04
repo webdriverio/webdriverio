@@ -70,7 +70,7 @@ export default class Runner extends EventEmitter {
         await runHook('beforeSession', this.config, this.caps, this.specs)
         const browser = await this._initSession(this.config, this.caps)
 
-        this.reporter = new BaseReporter(this.config, this.cid, browser.capabilities)
+        this.reporter = new BaseReporter(this.config, this.cid, browser ? browser.capabilities : {})
         this.inWatchMode = Boolean(this.config.watch)
 
         /**
