@@ -101,12 +101,14 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this.allure.getCurrentTest()
 
         if (!this.isMultiremote) {
-            const { browserName, deviceName } = this.capabilities
-            const targetName = browserName || this.capabilities.device || deviceName || cid
-            const browserstackVersion = this.capabilities.os_version || this.capabilities.osVersion
-            const version = browserstackVersion || this.capabilities.version || this.capabilities.platformVersion || ''
-            const paramName = this.capabilities.device || deviceName ? 'device' : 'browser'
-            const paramValue = version ? `${targetName}-${version}` : targetName
+            // eslint-disable-next-line camelcase
+            const { browserName, device, deviceName, version, platformVersion, os_version, osVersion } = this.capabilities
+            const targetName = browserName || device || deviceName || cid
+            // eslint-disable-next-line camelcase
+            const browserstackVersion = os_version || osVersion
+            const paramVersion = browserstackVersion || version || platformVersion || ''
+            const paramName = device || deviceName ? 'device' : 'browser'
+            const paramValue = paramVersion ? `${targetName}-${paramVersion}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
         } else {
             currentTest.addParameter('argument', 'isMultiremote', 'true')
