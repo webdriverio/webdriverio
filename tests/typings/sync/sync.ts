@@ -94,6 +94,10 @@ const config: WebdriverIO.Config = {
     skipSeleniumInstall: true
 }
 
+// shared-store-service
+browser.sharedStore.get('foo')
+browser.sharedStore.set('foo', ['q', 1, true, null, {'w' : {}, 'e': [] }, [{}]])
+
 // allure-reporter
 allure.addFeature('')
 
