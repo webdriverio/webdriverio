@@ -2,7 +2,6 @@
 /**
  *
  * Return true if the selected DOM-element:
- *
  * - exists;
  * - is visible;
  * - is within viewport (if not try scroll to it);

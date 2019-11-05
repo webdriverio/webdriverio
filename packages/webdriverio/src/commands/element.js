@@ -35,6 +35,7 @@ export const setValue = require('./element/setValue').default
 export const shadow$$ = require('./element/shadow$$').default
 export const shadow$ = require('./element/shadow$').default
 export const touchAction = require('./element/touchAction').default
+export const waitForClickable = require('./element/waitForClickable').default
 export const waitForDisplayed = require('./element/waitForDisplayed').default
 export const waitForEnabled = require('./element/waitForEnabled').default
 export const waitForExist = require('./element/waitForExist').default
