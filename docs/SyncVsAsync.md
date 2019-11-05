@@ -7,8 +7,6 @@ title: Sync mode vs async
 
 Every browser/element function call returns a Promise and needs to be awaited to get result.
 
-It's not allowed to chain functions.
-
 Example
 
 ```js
@@ -28,7 +26,7 @@ describe('suite async', () => {
 
 ### Common issues in async mode
 
-- `await $('body').click()` throws `$(...).click is not a function` because the element was not awaited. To fix this first await element then do click, like this:
+`await $('body').click()` throws `$(...).click is not a function` because the element was not awaited. To fix this, first await element then trigger the click, like so:
 ```js
 const el = await $('body')
 await el.click()
@@ -42,7 +40,7 @@ await el.click()
 
 ## Sync mode
 
-If you have `@wdio/sync` installed you can avoid awaiting browser/element calls. It is still required to deal with Promises from 3rd-party libraries, use [browser.call](/api/browser/call.html) to do that.
+If you're using`@wdio/sync` then you can avoid awaiting for browser/element calls. It is still required to deal with Promises from 3rd-party libraries, you should use [browser.call](/api/browser/call.html) for this.
 
 Example
 
@@ -83,11 +81,11 @@ describe('suite sync', () => {
 
 ### How does sync mode work?
 
-Every browser/element command is wrapped with [fibers](https://github.com/laverdet/node-fibers) in sync mode to make async code look like sync.
+Every browser/element command is wrapped with [fibers](https://github.com/laverdet/node-fibers) while in sync mode.
 
 ### Common issues in sync mode
 
 - declaring test function as `async` and not awaiting browser/element functions
-- not awaiting 3rd party librariy promises with `browser.call`
+- not awaiting 3rd-party library promises with `browser.call`
 - using sync mode while `@wdio/sync` package is not installed
-- `fibers` failed to install properly. To fix it see `npm install` errors
+- `fibers` failed to install properly. There might be some issues with `node-gyp` or you have unsupported NodeJS version. See `npm install` errors for more details
