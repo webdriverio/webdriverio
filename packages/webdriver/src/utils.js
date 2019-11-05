@@ -404,7 +404,8 @@ export function setupDirectConnect(params) {
 export const getSessionError = (err) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
-        return `Unable to connect to "${err.address}:${err.port}", make sure browser driver is running on that address.`
+        return `Unable to connect to "${err.address}:${err.port}", make sure browser driver is running on that address.` +
+            '\nIf you use services like chromedriver see initialiseServices logs above or in wdio.log file.'
     }
 
     if (!err.message) {
