@@ -391,3 +391,9 @@ export function addLocatorStrategyHandler(scope) {
         scope.strategies.set(name, script)
     }
 }
+
+/**
+ * is protocol stub
+ * @param {string} automationProtocol
+ */
+export const isStub = (automationProtocol) => automationProtocol === './protocol-stub'

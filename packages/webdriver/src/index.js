@@ -1,11 +1,11 @@
 import logger from '@wdio/logger'
 
-import { webdriverMonad } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
-import { startWebDriverSession, environmentDetector, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 
 export default class WebDriver {
     static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
@@ -27,7 +27,7 @@ export default class WebDriver {
         }
 
         const sessionId = await startWebDriverSession(params)
-        const environment = environmentDetector(params)
+        const environment = sessionEnvironmentDetector(params)
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }

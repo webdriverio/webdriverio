@@ -37,7 +37,7 @@ export const WDIO_DEFAULTS = {
         type: (param) => {
             if (typeof param !== 'string') {
                 throw new Error('the "automationProtocol" option needs to from type strings')
-            } else if (!['webdriver', 'devtools'].includes(param.toLowerCase())) {
+            } else if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
             }
 

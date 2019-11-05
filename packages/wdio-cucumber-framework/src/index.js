@@ -21,12 +21,10 @@ class CucumberAdapter {
         this.capabilities = capabilities
         this.config = config
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
+        this._hasTests = true
     }
 
-    async run () {
-        let runtimeError
-        let result
-
+    async init () {
         try {
             this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
@@ -76,15 +74,35 @@ class CucumberAdapter {
                 order: this.cucumberOpts.order,
                 pickleFilter
             })
-            const runtime = new Cucumber.Runtime({
+            this._hasTests = testCases.length > 0
+            this.runtime = new Cucumber.Runtime({
                 eventBroadcaster,
                 options: this.cucumberOpts,
                 supportCodeLibrary,
                 testCases
             })
+        } catch (runtimeError) {
+            await executeHooksWithArgs(this.config.after, [runtimeError, this.capabilities, this.specs])
+            throw runtimeError
+        }
 
-            await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
-            result = await runtime.start() ? 0 : 1
+        return this
+    }
+
+    hasTests () {
+        /**
+         * Avoid spec filtering only if the feature is disabled explicitly
+         * The feature has no impact on how framework/browser session is initialised.
+         */
+        return this.config.featureFlags.specFiltering === false || this._hasTests
+    }
+
+    async run () {
+        let runtimeError
+        let result
+
+        try {
+            result = await this.runtime.start() ? 0 : 1
 
             /**
              * if we ignore undefined definitions we trust the reporter
@@ -251,10 +269,10 @@ const adapterFactory = {}
  * tested by smoke tests
  */
 /* istanbul ignore next */
-adapterFactory.run = async function (...args) {
+adapterFactory.init = async function (...args) {
     const adapter = new _CucumberAdapter(...args)
-    const result = await adapter.run()
-    return result
+    const instance = await adapter.init()
+    return instance
 }
 
 export default adapterFactory

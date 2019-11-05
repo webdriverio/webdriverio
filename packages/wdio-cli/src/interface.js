@@ -22,6 +22,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.isWatchMode = isWatchMode
         this.inDebugMode = false
         this.specFileRetries = config.specFileRetries || 0
+        this.skippedSpecs = 0
 
         this.on('job:start', ::this.addJob)
         this.on('job:end', ::this.clearJob)
@@ -79,7 +80,11 @@ export default class WDIOCLInterface extends EventEmitter {
         this.onJobComplete(cid, job, retries, chalk.bold.red('FAILED'))
     }
 
-    onJobComplete(cid, job, retries, message) {
+    onSpecSkip(cid, job) {
+        this.onJobComplete(cid, job, 0, 'SKIPPED', log.info)
+    }
+
+    onJobComplete(cid, job, retries, message, _logger = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
             details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
@@ -88,7 +93,7 @@ export default class WDIOCLInterface extends EventEmitter {
             details.push(`(${retries} retries)`)
         }
 
-        return this.log(...details)
+        return _logger(...details)
     }
 
     onTestError(payload) {
@@ -110,9 +115,13 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * add job to interface
      */
-    addJob({ cid, caps, specs }) {
-        this.jobs.set(cid, { caps, specs })
-        this.onSpecRunning(cid)
+    addJob({ cid, caps, specs, hasTests }) {
+        this.jobs.set(cid, { caps, specs, hasTests })
+        if (hasTests) {
+            this.onSpecRunning(cid)
+        } else {
+            this.skippedSpecs++
+        }
     }
 
     /**
@@ -126,6 +135,10 @@ export default class WDIOCLInterface extends EventEmitter {
         const retry = !passed && retries > 0
         if (!retry) {
             this.result.finished++
+        }
+
+        if (job && job.hasTests === false) {
+            return this.onSpecSkip(cid, job)
         }
 
         if (passed) {
@@ -163,6 +176,10 @@ export default class WDIOCLInterface extends EventEmitter {
         if (event.origin === 'debugger' && event.name === 'stop') {
             this.inDebugMode = false
             return this.inDebugMode
+        }
+
+        if (event.name === 'testFrameworkInit') {
+            return this.emit('job:start', event.content)
         }
 
         if (!event.origin) {
@@ -224,9 +241,10 @@ export default class WDIOCLInterface extends EventEmitter {
         const elapsed = (new Date(Date.now() - this.start)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0]
         const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
+        const skipped = this.skippedSpecs > 0 ? chalk.gray(this.skippedSpecs, 'skipped') + ', ' : ''
         const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
         return this.log(
-            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
+            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
             '\n'
         )
     }

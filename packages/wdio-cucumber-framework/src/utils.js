@@ -29,7 +29,7 @@ export function createStepArgument ({ argument }) {
 }
 
 /**
- * builds test parent string from feature and scneario names
+ * builds test parent string from feature and scenario names
  * NOTE: this function is exported for testing only
  * @param {object} feature cucumber feature object
  * @param {object} scenario cucumber scenario object

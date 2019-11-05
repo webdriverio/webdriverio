@@ -1,7 +1,7 @@
 import os from 'os'
 import uuidv4 from 'uuid/v4'
 import logger from '@wdio/logger'
-import { webdriverMonad } from '@wdio/utils'
+import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import DevToolsDriver from './devtoolsdriver'
@@ -46,17 +46,10 @@ export default class DevTools {
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
-        const environmentPrototype = {
-            isDevTools: { value: true },
-            isW3C: { value: true },
-            isMobile: { value: false },
-            isIOS: { value: false },
-            isAndroid: { value: false },
-            isChrome: { value: browserName === 'chrome' },
-            isSauce: { value: false },
-            isSeleniumStandalone: { value: false },
-            getPuppeteer: { value: /* istanbul ignore next */ () => browser }
-        }
+        const environmentPrototype = { getPuppeteer: { value: /* istanbul ignore next */ () => browser } }
+        Object.entries(devtoolsEnvironmentDetector({ browserName })).forEach(([name, value]) => {
+            environmentPrototype[name] = { value }
+        })
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }

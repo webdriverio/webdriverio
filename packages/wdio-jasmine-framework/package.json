@@ -38,7 +38,7 @@
   "dependencies": {
     "@wdio/logger": "5.13.2",
     "@wdio/utils": "5.15.1",
-    "jasmine": "^3.3.0"
+    "jasmine": "^3.5.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"

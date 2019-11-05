@@ -70,7 +70,7 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
         options[browserName] = merge(config, capabilities[browserName], MERGE_OPTIONS)
     }
 
-    const browser = await multiremote(options)
+    const browser = await multiremote(options, config)
     for (let browserName of Object.keys(capabilities)) {
         global[browserName] = browser[browserName]
     }
