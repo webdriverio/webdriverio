@@ -17,6 +17,7 @@
       "customcommands",
       "multiremote",
       "cloudservices",
+      "sync-vs-async",
       "autocompletion",
       "automationProtocols"
     ],
