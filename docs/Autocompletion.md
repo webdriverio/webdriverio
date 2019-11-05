@@ -9,7 +9,7 @@ Autocomplete is available out of the box in many code editors.
 
 ![Autocompletion](/img/autocompletion/0.png)
 
-Type defintions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
 
 ![Autocompletion](/img/autocompletion/1.png)
 
