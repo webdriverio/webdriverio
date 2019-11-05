@@ -3,6 +3,10 @@ id: sync-vs-async
 title: Sync mode vs async
 ---
 
+## How to enable/disable sync mode
+
+To enable sync mode it's only required to install `@wdio/sync` package, to disable sync mode uninstall `@wdio/sync`.
+
 ## Async mode
 
 Every browser/element function call returns a Promise and needs to be awaited to get result.
