@@ -14,10 +14,16 @@ async function generateDocs() {
      */
 
     try {
+        const faq = sidebars.docs.FAQ
+        delete sidebars.docs.FAQ
+
         generateProtocolDocs(sidebars)
         generateWdioDocs(sidebars)
         generateReportersAndServicesDocs(sidebars)
         await generate3rdPartyDocs(sidebars)
+
+        // move FAQ section to the end of the list
+        sidebars.docs.FAQ = faq
 
         writeSidebars(sidebars)
     } catch (err) {

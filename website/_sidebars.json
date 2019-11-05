@@ -38,6 +38,10 @@
       "jenkins",
       "runprogrammatically",
       "driverbinaries"
+    ],
+    "FAQ": [
+      "faq-general",
+      "faq-capabilities"
     ]
   },
   "api": {
