@@ -14,13 +14,13 @@ describe('cli interface', () => {
     })
 
     it('should add jobs', () => {
-        wdioClInterface.emit('job:start', { cid: '0-0' })
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
         expect(wdioClInterface.jobs.size).toBe(1)
     })
 
     it('should mark jobs as pass or failed', () => {
-        wdioClInterface.emit('job:start', { cid: '0-0' })
-        wdioClInterface.emit('job:start', { cid: '0-1' })
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
+        wdioClInterface.emit('job:start', { cid: '0-1', hasTests: true })
         expect(wdioClInterface.result.finished).toBe(0)
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.failed).toBe(0)
@@ -35,8 +35,8 @@ describe('cli interface', () => {
     })
 
     it('should mark jobs as retried when failing', () => {
-        wdioClInterface.emit('job:start', { cid: '0-0' })
-        wdioClInterface.emit('job:start', { cid: '0-1' })
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
+        wdioClInterface.emit('job:start', { cid: '0-1', hasTests: true })
         expect(wdioClInterface.result.finished).toBe(0)
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.retries).toBe(0)
@@ -63,6 +63,16 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.failed).toBe(1)
     })
 
+    it('should mark jobs as skipped', () => {
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: false })
+        expect(wdioClInterface.result.finished).toBe(0)
+        wdioClInterface.emit('job:end', { cid: '0-0' })
+        expect(wdioClInterface.result.finished).toBe(1)
+        expect(wdioClInterface.result.passed).toBe(0)
+        expect(wdioClInterface.result.failed).toBe(0)
+        expect(wdioClInterface.result.retries).toBe(0)
+    })
+
     it('should allow to store reporter messages', () => {
         wdioClInterface.onMessage({
             origin: 'reporter',
@@ -86,6 +96,15 @@ describe('cli interface', () => {
         })
         expect(wdioClInterface.onTestError).toBeCalledWith('printFailureMessage')
         expect(wdioClInterface.messages).toEqual({ reporter: {} })
+    })
+
+    it('should trigger job:start event on testFrameworkInit', () => {
+        wdioClInterface.emit = jest.fn()
+        wdioClInterface.onMessage({
+            name: 'testFrameworkInit',
+            content: 'content'
+        })
+        expect(wdioClInterface.emit).toBeCalledWith('job:start', 'content')
     })
 
     it('should print reporter messages in watch mode', () => {
@@ -284,6 +303,13 @@ describe('cli interface', () => {
                 expect(wdioClInterface.onJobComplete).toBeCalledWith(scenario.cid, scenario.job, scenario.retries, scenario.message)
             })
         })
+
+        it('onSpecSkip', () => {
+            wdioClInterface.onJobComplete = jest.fn()
+            wdioClInterface.jobs.set('cid', job)
+            wdioClInterface.onSpecSkip(cid, job)
+            expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 0, 'SKIPPED', expect.any(Function))
+        })
     })
 
     describe('sigintTrigger', () => {
@@ -340,12 +366,17 @@ describe('cli interface', () => {
         it('retries', () => {
             wdioClInterface.totalWorkerCnt = 2
             wdioClInterface.result.retries = 33
-            expect(wdioClInterface.printSummary().some(x => x.includes(33))).toBe(true)
+            expect(wdioClInterface.printSummary().some(x => x.includes('yellow 33 retries'))).toBe(true)
         })
 
         it('failed', () => {
             wdioClInterface.result.failed = 44
-            expect(wdioClInterface.printSummary().some(x => x.includes(44))).toBe(true)
+            expect(wdioClInterface.printSummary().some(x => x.includes('red 44 failed'))).toBe(true)
+        })
+
+        it('skipped', () => {
+            wdioClInterface.skippedSpecs = 55
+            expect(wdioClInterface.printSummary().some(x => x.includes('gray 55 skipped'))).toBe(true)
         })
 
         it('percentCompleted', () => {

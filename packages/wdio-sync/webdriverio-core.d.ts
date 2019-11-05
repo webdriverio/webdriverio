@@ -69,7 +69,10 @@ declare namespace WebdriverIO {
         jasmineNodeOpts?: object,
         reporters?: (string | object)[],
         services?: (string | object)[],
-        execArgv?: string[]
+        execArgv?: string[],
+        featureFlags?: {
+            specFiltering?: boolean,
+        },
     }
 
     interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }

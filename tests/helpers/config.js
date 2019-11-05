@@ -26,11 +26,15 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 10000,
-        require: ['@babel/register']
+        require: ['@babel/register'],
+        grep: 'SKIPPED_GREP',
+        invert: true
     },
 
     jasmineNodeOpts: {
-        defaultTimeoutInterval: 1000 * 60 * 3
+        defaultTimeoutInterval: 1000 * 60 * 3,
+        grep: 'SKIPPED_GREP',
+        invertGrep: true
     },
 
     cucumberOpts: {

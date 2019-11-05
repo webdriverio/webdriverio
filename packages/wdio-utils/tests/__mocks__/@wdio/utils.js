@@ -5,6 +5,12 @@ import {
     commandCallStructure as commandCallStructureOrig
 } from '../../../src/utils'
 import webdriverMonadOrig from '../../../src/monad'
+import {
+    sessionEnvironmentDetector as sessionEnvDetector,
+    capabilitiesEnvironmentDetector as capabilitiesEnvDetector,
+    devtoolsEnvironmentDetector as devtoolsEnvDetector
+} from '../../../src/envDetector'
+
 class DotReporter {
     constructor (options) {
         this.options = options
@@ -30,14 +36,24 @@ const pluginMocks = {
     },
     framework: {
         testNoFailures: {
+            init () { return this },
+            hasTests () { return true },
             run() { return 0 }
         },
         testWithFailures: {
+            init () { return this },
+            hasTests () { return true },
             run() { return 123 }
         },
         testThrows: {
+            init () { return this },
+            hasTests () { return true },
             run() { throw new Error('framework testThrows failed') }
-        }
+        },
+        testNoTests: {
+            init () { return this },
+            hasTests () { return false }
+        },
     }
 }
 
@@ -67,3 +83,6 @@ export const runFnInFiberContext = jest.fn().mockImplementation((fn) => {
 export const setWdioSyncSupport = value => { hasWdioSyncSupport = value }
 export let hasWdioSyncSupport = false
 export const testFnWrapper = jest.fn()
+export const sessionEnvironmentDetector = sessionEnvDetector
+export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
+export const devtoolsEnvironmentDetector = devtoolsEnvDetector

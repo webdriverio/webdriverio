@@ -13,7 +13,7 @@ export const supportCodeLibraryBuilder = {
 
 export const setDefaultTimeout = jest.fn()
 export const setDefinitionFunctionWrapper = jest.fn()
-export const getTestCasesFromFilesystem = jest.fn()
+export const getTestCasesFromFilesystem = jest.fn().mockImplementation(() => [])
 export const PickleFilter = jest.fn()
 export const Runtime = jest.fn().mockImplementation(() => ({
     start: jest.fn().mockImplementation(() => true)

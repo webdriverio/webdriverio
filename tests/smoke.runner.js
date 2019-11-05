@@ -18,26 +18,30 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
  * Mocha wdio testrunner tests
  */
 const mochaTestrunner = async () => {
-    await launch(
+    const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [
                 path.resolve(__dirname, 'mocha', 'test.js'),
                 path.resolve(__dirname, 'mocha', 'test-middleware.js'),
-                path.resolve(__dirname, 'mocha', 'test-waitForElement.js')
+                path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
+                path.resolve(__dirname, 'mocha', 'test-skipped.js')
             ]
         })
+    assert.strictEqual(skippedSpecs, 0)
 }
+
 /**
  * Jasmine wdio testrunner tests
  */
 const jasmineTestrunner = async () => {
-    await launch(
+    const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
-            specs: [path.resolve(__dirname, 'jasmine', 'test.js')],
+            specs: [path.resolve(__dirname, 'jasmine', 'test.js'), path.resolve(__dirname, 'jasmine', 'test-skipped.js')],
             framework: 'jasmine'
         })
+    assert.strictEqual(skippedSpecs, 0)
 }
 
 /**
@@ -67,16 +71,18 @@ const jasmineReporter = async () => {
  * Cucumber wdio testrunner tests
  */
 const cucumberTestrunner = async () => {
-    await launch(
+    const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
-            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+            specs: [path.resolve(__dirname, 'cucumber', 'test.feature'), path.resolve(__dirname, 'cucumber', 'test-skipped.feature')],
             framework: 'cucumber',
             cucumberOpts: {
+                tagExpression: '(not @SKIPPED_TAG)',
                 ignoreUndefinedDefinitions: true
             }
         }
     )
+    assert.strictEqual(skippedSpecs, 1)
 }
 
 /**
@@ -236,6 +242,41 @@ const sharedStoreServiceTest = async () => {
         })
 }
 
+/**
+ * Mocha with specFiltering feature enabled
+ */
+const mochaSpecFiltering = async () => {
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'test-empty.js'),
+                path.resolve(__dirname, 'mocha', 'test-skipped.js'),
+                path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
+            ],
+            featureFlags: { specFiltering: true }
+        })
+    assert.strictEqual(skippedSpecs, 2)
+}
+
+/**
+ * Jasmine with specFiltering feature enabled
+ */
+const jasmineSpecFiltering = async () => {
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'jasmine', 'test.js'),
+                path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
+                path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
+            ],
+            framework: 'jasmine',
+            featureFlags: { specFiltering: true }
+        })
+    assert.strictEqual(skippedSpecs, 2)
+}
+
 (async () => {
     /**
      * Usage example: `npm run test:smoke -- customService`
@@ -256,6 +297,8 @@ const sharedStoreServiceTest = async () => {
         retryPass,
         wdioHooks,
         sharedStoreServiceTest,
+        mochaSpecFiltering,
+        jasmineSpecFiltering
     ]
 
     if (process.env.CI || testFilter) {
