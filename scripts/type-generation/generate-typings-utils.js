@@ -10,6 +10,7 @@ const changeType = (text) => {
     case 'Buffer':
     case 'Function':
     case 'RegExp':
+    case 'WaitForOptions':
     case 'Element':
     case 'Element[]': {
         break
