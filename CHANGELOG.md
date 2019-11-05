@@ -15,6 +15,42 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.0 (2019-11-05)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-runner`, `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#4531](https://github.com/webdriverio/webdriverio/pull/4531) Init framework before browser ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`, `webdriverio`
+  * [#4736](https://github.com/webdriverio/webdriverio/pull/4736) Add waitForClickable command ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-runner`, `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#4722](https://github.com/webdriverio/webdriverio/pull/4722) Add test retry attempts to after hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-protocols`, `webdriverio`
+  * [#4603](https://github.com/webdriverio/webdriverio/pull/4603) custom locator strategy ([@baruchvlz](https://github.com/baruchvlz))
+* `wdio-shared-store-service`
+  * [#4663](https://github.com/webdriverio/webdriverio/pull/4663) Shared store service to exchange data between workers ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `webdriver`
+  * [#4690](https://github.com/webdriverio/webdriverio/pull/4690) Handle session errors ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-runner`, `webdriver`
+  * [#4730](https://github.com/webdriverio/webdriverio/pull/4730) Pass empty capabilities if session failed to start ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-allure-reporter`
+  * [#4719](https://github.com/webdriverio/webdriverio/pull/4719) Looks for Browserstack style versions in capabilities ([@mikesalvia](https://github.com/mikesalvia))
+
+#### :memo: Documentation
+* Other
+  * [#4733](https://github.com/webdriverio/webdriverio/pull/4733) Add docs to describe difference between sync and async modes ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-shared-store-service`
+  * [#4727](https://github.com/webdriverio/webdriverio/pull/4727) shared-store: add types ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#4706](https://github.com/webdriverio/webdriverio/pull/4706) Types refactoring ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.15.7 (2019-10-30)
 
 #### :bug: Bug Fix
