@@ -4,7 +4,7 @@ import util from 'util'
 import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
-import { initialiseServices, initialisePlugin } from '@wdio/utils'
+import { initialiseServices, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 
 import BaseReporter from './reporter'
@@ -103,7 +103,7 @@ export default class Runner extends EventEmitter {
 
         this.reporter.caps = browser.capabilities
 
-        await runHook('before', this.config, this.caps, this.specs)
+        await executeHooksWithArgs(this.config.before, [this.caps, this.specs])
 
         /**
          * kill session of SIGINT signal showed up while trying to
