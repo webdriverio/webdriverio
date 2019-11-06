@@ -1,5 +1,6 @@
 import fs from 'fs'
 
+import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
 import logger from '@wdio/logger'
@@ -278,10 +279,12 @@ describe('wdio-runner', () => {
         it('should fail if init session fails', async () => {
             const runner = new WDIORunner()
             const beforeSession = jest.fn()
+            const before = jest.fn()
             const caps = { browserName: '123' }
             const specs = ['foobar']
             const config = {
                 reporters: [],
+                before: [before],
                 beforeSession: [beforeSession],
                 framework: 'testWithFailures',
                 featureFlags: {}
@@ -302,8 +305,9 @@ describe('wdio-runner', () => {
 
             expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
+            expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs])
 
-            // session capabilities should be passed to repoter
+            // session capabilities should be passed to reporter
             expect(runner.reporter.caps).toEqual({ browserName: 'chrome' })
         })
 
@@ -537,6 +541,7 @@ describe('wdio-runner', () => {
     })
 
     afterEach(() => {
+        executeHooksWithArgs.mockClear()
         attach.mockClear()
         delete global.browser
     })
