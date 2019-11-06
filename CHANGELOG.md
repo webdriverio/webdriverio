@@ -15,6 +15,19 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.1 (2019-11-06)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#4739](https://github.com/webdriverio/webdriverio/pull/4739) Pass capabilities to reporter before session started ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4729](https://github.com/webdriverio/webdriverio/pull/4729) Update autocompletion doc ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.0 (2019-11-05)
 
 #### :rocket: New Feature
