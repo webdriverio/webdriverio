@@ -6,6 +6,9 @@ const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.js')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.js')
 const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.js')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.js')
+const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
+const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
+const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.js')
 
 describe('ConfigParser', () => {
@@ -52,10 +55,44 @@ describe('ConfigParser', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH] })
-
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             expect(specs).toContain(INDEX_PATH)
+        })
+
+        it('should allow specifying a spec file which is Cucumber feature file with line number', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            let featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
+            expect(specs).toContain(featureFileWithoutLine)
+        })
+
+        it('should allow specifying a spec file which is Cucumber feature file with line numbers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            let featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0]
+            expect(specs).toContain(featureFileWithoutLine)
+        })
+
+        it('should allow specifying a spec file which is Cucumber feature files with line number', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2, FIXTURES_CUCUMBER_FEATURE_B_LINE_7] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(2)
+            let featureFileA = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
+            expect(specs).toContain(featureFileA)
+            let featureFileB = FIXTURES_CUCUMBER_FEATURE_B_LINE_7.split(':')[0]
+            expect(specs).toContain(featureFileB)
         })
 
         it('should allow specifying mutliple single spec file', () => {

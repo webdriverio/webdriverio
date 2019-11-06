@@ -5,7 +5,7 @@ import merge from 'deepmerge'
 
 import logger from '@wdio/logger'
 
-import { detectBackend } from '../utils'
+import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber } from '../utils'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, NON_WORKER_SERVICES } from '../constants'
 
@@ -103,6 +103,11 @@ export default class ConfigParser {
         /**
          * run single spec file only, regardless of multiple-spec specification
          */
+
+        if (this._config.spec && isCucumberFeatureWithLineNumber(this._config.spec)) {
+            this._config.cucumberFeaturesWithLineNumbers = this._config.spec
+        }
+
         if (spec.length > 0) {
             this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs)]
         }
@@ -166,7 +171,7 @@ export default class ConfigParser {
         if (suites.length > 0) {
             let suiteSpecs = []
             for (let suiteName of suites) {
-                // ToDo: log warning if suite was not found
+                // TODO: log warning if suite was not found
                 let suite = this._config.suites[suiteName]
 
                 if (suite && Array.isArray(suite)) {
@@ -219,6 +224,7 @@ export default class ConfigParser {
         const filesToFilter = new Set()
         const fileList = ConfigParser.getFilePaths(config)
         cliArgFileList.forEach(filteredFile => {
+            filteredFile = removeLineNumbers(filteredFile)
             let globMatchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
             if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
                 filesToFilter.add(path.resolve(process.cwd(), filteredFile))
@@ -266,7 +272,10 @@ export default class ConfigParser {
         let files = []
 
         if (typeof patterns === 'string') {
+            patterns = removeLineNumbers(patterns)
             patterns = [patterns]
+        } else {
+            patterns = patterns.map(pattern => removeLineNumbers(pattern))
         }
 
         if (!Array.isArray(patterns)) {
