@@ -4,12 +4,12 @@ title: Autocompletion
 ---
 
 If you have been writing program code for a while, you probably like autocompletion.
-Autocomplete is available out of the box in many code editors. However if autocompletion is required for packages that are not installed in the usual locations (or are excluded from indexing for whatever reason), these too could be added via configuration changes.
+Autocomplete is available out of the box in many code editors.
 
 
 ![Autocompletion](/img/autocompletion/0.png)
 
-[JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
 
 ![Autocompletion](/img/autocompletion/1.png)
 
@@ -17,33 +17,40 @@ Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see 
 
 ![Autocompletion](/img/autocompletion/2.png)
 
-So, let's start with an example of adding autocompletion to code editors on the IntelliJ Platform like WebStorm.
+### TypeScript
 
-### Node.js Core modules as External library
+For TypeScript please see [TypeScript](TypeScript.md)
 
-Open *Settings ▶︎ Preferences ▶︎ Languages & Frameworks ▶︎ JavaScript ▶︎ Libraries*
+### Visual Studio Code (VSCode)
 
-![Autocompletion](/img/autocompletion/3.png)
+It's required to create `jsconfig.json` in project root and refer to used wdio packages to make autocompletion work in vanilla js. See examples below.
 
-Add new library:
+![Autocompletion](/img/autocompletion/14.png)
 
-![Autocompletion](/img/autocompletion/4.png)
+Sync version (you have `@wdio/sync` package installed) with Mocha
+```json
+{
+  "include": [
+    "**/*.js",
+    "**/*.json",
+    "node_modules/@wdio/sync",
+    "node_modules/@wdio/mocha-framework"
+  ]
+}
+```
 
-Add directory with WebdriverIO commands:
+Async version with Cucumber
+```json
+{
+  "include": [
+    "**/*.js",
+    "**/*.json",
+    "node_modules/webdriverio"
+    "node_modules/@wdio/cucumber-framework"
+  ]
+}
+```
 
-![Autocompletion](/img/autocompletion/5.png)
-![Autocompletion](/img/autocompletion/6.png)
-![Autocompletion](/img/autocompletion/7.png)
+### IntelliJ
 
-Enter documentation URL:
-
-![Autocompletion](/img/autocompletion/8.png)
-![Autocompletion](/img/autocompletion/9.png)
-![Autocompletion](/img/autocompletion/10.png)
-
-### Using TypeScript community stubs (TypeScript definition files)
-
-WebStorm provides one more workaround for adding coding assistance. It allows you to download [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) stubs.
-
-![Autocompletion](/img/autocompletion/11.png)
-![Autocompletion](/img/autocompletion/12.png)
+Autocompletion works out of the box in IDEA and WebStorm.
