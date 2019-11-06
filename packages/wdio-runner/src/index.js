@@ -68,15 +68,15 @@ export default class Runner extends EventEmitter {
         const isMultiremote = this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
 
         /**
-         * create `browser` stub
+         * create `browser` stub only if `specFiltering` feature is enabled
          */
-        let browser = await this._startSession({
+        let browser = this.config.featureFlags.specFiltering === true ? await this._startSession({
             ...this.config,
             _automationProtocol: this.config.automationProtocol,
             automationProtocol: './protocol-stub'
-        }, caps)
+        }, caps) : undefined
 
-        this.reporter = new BaseReporter(this.config, this.cid, browser.capabilities)
+        this.reporter = new BaseReporter(this.config, this.cid, { ...caps })
         /**
          * initialise framework
          */
