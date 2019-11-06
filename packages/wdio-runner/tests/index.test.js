@@ -331,6 +331,7 @@ describe('wdio-runner', () => {
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()
             global.browser = { url: jest.fn(url => url) }
+            runner._startSession = jest.fn().mockReturnValue({ })
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
             const failures = await runner.run({ argv: { watch: true }, caps: {} })
 
