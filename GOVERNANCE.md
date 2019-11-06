@@ -94,6 +94,7 @@ A Committer is invited to become a TSC member by existing TSC members. A nominat
 1. Set the GitHub user to have the "Owner" role for the WebdriverIO organization
 1. Invite to the Gitter TSC chatroom (`webdriverio/TSC`)
 1. Add the TSC member as an admin to WebdriverIO Twitter Account
+1. Add the TSC member to the NPM organization
 1. Tweet congratulations to the new TSC member from the WebdriverIO Twitter account
 
 ## Consensus Seeking Process
