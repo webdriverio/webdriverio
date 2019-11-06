@@ -15,6 +15,25 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.2 (2019-11-06)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`
+  * [#4696](https://github.com/webdriverio/webdriverio/pull/4696) [NEW FEATURE] Add the ability to provided Feature file with line number or numbers as --spec on CLI ([@mikesalvia](https://github.com/mikesalvia))
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#4745](https://github.com/webdriverio/webdriverio/pull/4745) Fix before hook args ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* [#4737](https://github.com/webdriverio/webdriverio/pull/4737) Build a script that grants TSC members to release @wdio packages ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.1 (2019-11-06)
 
 #### :bug: Bug Fix
