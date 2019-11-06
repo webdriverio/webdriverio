@@ -76,7 +76,7 @@ export default class Runner extends EventEmitter {
             automationProtocol: './protocol-stub'
         }, caps) : undefined
 
-        this.reporter = new BaseReporter(this.config, this.cid)
+        this.reporter = new BaseReporter(this.config, this.cid, { ...caps })
         /**
          * initialise framework
          */
@@ -92,7 +92,6 @@ export default class Runner extends EventEmitter {
         await runHook('beforeSession', this.config, this.caps, this.specs)
         browser = await this._initSession(this.config, this.caps, browser)
 
-        this.reporter.caps = browser ? browser.capabilities : {}
         this.inWatchMode = Boolean(this.config.watch)
 
         /**
@@ -101,6 +100,8 @@ export default class Runner extends EventEmitter {
         if (!browser) {
             return this._shutdown(1)
         }
+
+        this.reporter.caps = browser.capabilities
 
         await runHook('before', this.config, this.caps, this.specs)
 
@@ -177,7 +178,7 @@ export default class Runner extends EventEmitter {
     /**
      * init protocol session
      * @param  {object}  config        configuration of sessions
-     * @param  {Object}  caps          desired cabilities of session
+     * @param  {Object}  caps          desired capabilities of session
      * @param  {Object}  browserStub   stubbed `browser` object with only capabilities, config and env flags
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
@@ -224,7 +225,7 @@ export default class Runner extends EventEmitter {
     /**
      * start protocol session
      * @param  {object}  config        configuration of sessions
-     * @param  {Object}  caps          desired cabilities of session
+     * @param  {Object}  caps          desired capabilities of session
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     async _startSession (config, caps) {
@@ -269,7 +270,7 @@ export default class Runner extends EventEmitter {
 
         /**
          * suppress @wdio/sync warnings of not running commands inside of
-         * a Fibers contetx
+         * a Fibers context
          */
         global._HAS_FIBER_CONTEXT = true
 
