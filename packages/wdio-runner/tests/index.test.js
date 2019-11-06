@@ -302,6 +302,9 @@ describe('wdio-runner', () => {
 
             expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
+
+            // session capabilities should be passed to repoter
+            expect(runner.reporter.caps).toEqual({ browserName: 'chrome' })
         })
 
         it('should return failures count', async () => {
@@ -331,6 +334,7 @@ describe('wdio-runner', () => {
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()
             global.browser = { url: jest.fn(url => url) }
+            runner._startSession = jest.fn().mockReturnValue({ })
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
             const failures = await runner.run({ argv: { watch: true }, caps: {} })
 
@@ -400,6 +404,34 @@ describe('wdio-runner', () => {
             expect(await runner.run({ argv: {}, caps: {} })).toBe(0)
             expect(runner._shutdown).toBeCalledWith(0)
             expect(runner._initSession).not.toBeCalled()
+        })
+
+        it('should shutdown if session was not created', async () => {
+            const runner = new WDIORunner()
+            const caps = { browserName: '123' }
+            const specs = ['foobar']
+            const config = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                featureFlags: {}
+            }
+            runner.configParser.getConfig = jest.fn().mockReturnValue(config)
+            runner.configParser.filterWorkerServices = jest.fn()
+            runner._shutdown = jest.fn().mockReturnValue('_shutdown')
+            runner.endSession = jest.fn()
+            runner._initSession = jest.fn().mockReturnValue(null)
+            expect(await runner.run({
+                argv: { reporters: [] },
+                cid: '0-0',
+                caps,
+                specs
+            })).toBe('_shutdown')
+
+            expect(runner._shutdown).toBeCalledWith(1)
+
+            // user defined capabilities should be used until browser session is started
+            expect(runner.reporter.caps).toEqual(caps)
         })
     })
 
