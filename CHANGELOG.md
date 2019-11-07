@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.3 (2019-11-07)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#4750](https://github.com/webdriverio/webdriverio/pull/4750) Fix removeLineNumbers ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.2 (2019-11-06)
 
 #### :rocket: New Feature
