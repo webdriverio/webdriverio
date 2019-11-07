@@ -37,7 +37,8 @@
       "watcher",
       "jenkins",
       "runprogrammatically",
-      "driverbinaries"
+      "driverbinaries",
+      "flowchartsoverview"
     ]
   },
   "api": {
@@ -45,5 +46,14 @@
       "api"
     ],
     "Protocols": []
+  },
+  "flowcharts": {
+      "Flowcharts": [
+        "flowcharts/wdiocommands",
+        "flowcharts/localtestrunnerlifecycle",
+        "flowcharts/createlocalworkerprocess",
+        "flowcharts/testexecution",
+        "flowcharts/highleveloverview"
+      ]
   }
 }

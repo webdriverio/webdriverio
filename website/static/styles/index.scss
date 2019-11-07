@@ -71,3 +71,15 @@ blockquote {
         }
     }
 }
+
+article .flowcharttogglelink {
+    text-align: center;
+    color: blue;
+}
+
+.flowcharttogglemenu,#flowChartGraphDiv {
+    margin: auto;
+    padding-left: auto;
+    padding-right: auto;
+    text-align: center;
+}
