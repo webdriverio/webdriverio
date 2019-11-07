@@ -18,9 +18,16 @@ export function getSauceEndpoint (region, isRDC) {
     return `ondemand.${REGION_MAPPING[shortRegion]}saucelabs.com`
 }
 
+/**
+ * remove line numbers from file path, ex:
+ * `/foo:9` or `c:\bar:14:5`
+ * @param   {string} filePath path to spec file
+ * @returns {string}
+ */
 export function removeLineNumbers(pattern) {
-    if (pattern.includes(':')) {
-        pattern = pattern.split(':')[0]
+    const matcher = pattern.match(/:\d+(:\d+$|$)/)
+    if (matcher) {
+        pattern = pattern.substring(0, matcher.index)
     }
     return pattern
 }
