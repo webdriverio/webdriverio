@@ -4,7 +4,7 @@
  * @return {Boolean}           false if element is not overlapped
  */
 export default function isElementClickable (elem) {
-    if (!elem.getBoundingClientRect || !elem.scrollIntoView || !document.elementFromPoint) {
+    if (!elem.getBoundingClientRect || !elem.scrollIntoView || !elem.contains || !document.elementFromPoint) {
         return false
     }
 
@@ -36,7 +36,10 @@ export default function isElementClickable (elem) {
     }
 
     function isClickable (elem) {
-        return isElementInViewport(elem) && getOverlappingElement(elem) === elem && elem.disabled !== true
+        const elementFromPoint = getOverlappingElement(elem)
+
+        return isElementInViewport(elem) && elem.disabled !== true &&
+            (elementFromPoint === elem || elem.contains(elementFromPoint))
     }
 
     // scroll to the element if it's not clickable
