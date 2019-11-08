@@ -15,6 +15,28 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.4 (2019-11-08)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4754](https://github.com/webdriverio/webdriverio/pull/4754) isClickable handles child elements ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cucumber-framework`
+  * [#4753](https://github.com/webdriverio/webdriverio/pull/4753) Fix cucumber framework initialisation  ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#4755](https://github.com/webdriverio/webdriverio/pull/4755) webdriverio: update url doc ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-protocols`, `webdriver`
+  * [#4752](https://github.com/webdriverio/webdriverio/pull/4752) Assertperf typings fix ([@enriquegh](https://github.com/enriquegh))
+
+#### :house: Internal
+* [#4756](https://github.com/webdriverio/webdriverio/pull/4756) website: build status of master branch ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.3 (2019-11-07)
 
 #### :bug: Bug Fix
