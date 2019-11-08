@@ -82,15 +82,15 @@ test('should properly set up cucumber', async () => {
     expect(Cucumber.getTestCasesFromFilesystem).toBeCalled()
 })
 
-test('should throw when initialization fails', () => {
+test('should throw when initialization fails', async () => {
     const adapter = adapterFactory({ requireModule: ['@babel/register'] })
     adapter.registerRequiredModules = jest.fn()
     adapter.loadSpecFiles = jest.fn()
     adapter.wrapSteps = jest.fn()
 
     const runtimeError = new Error('boom')
-    Cucumber.Runtime.mockImplementationOnce(() => { throw runtimeError })
-    expect(adapter.init()).rejects.toEqual(runtimeError)
+    Cucumber.PickleFilter.mockImplementationOnce(() => { throw runtimeError })
+    await expect(adapter.init()).rejects.toEqual(runtimeError)
 })
 
 test('should throw when run fails', async () => {
@@ -102,7 +102,9 @@ test('should throw when run fails', async () => {
     await adapter.init()
 
     const runtimeError = new Error('boom')
-    adapter.runtime.start = () => { throw runtimeError }
+    Cucumber.Runtime = jest.fn().mockImplementationOnce(() => ({
+        start: () => { throw runtimeError }
+    }))
 
     expect(adapter.run()).rejects.toEqual(runtimeError)
 })

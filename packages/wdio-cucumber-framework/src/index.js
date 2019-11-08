@@ -26,63 +26,31 @@ class CucumberAdapter {
 
     async init () {
         try {
-            this.registerRequiredModules()
-            Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
+            this.eventBroadcaster = new EventEmitter()
 
-            /**
-             * wdio hooks should be added before spec files are loaded
-             */
-            this.addWdioHooks(this.config)
-            this.loadSpecFiles()
-            this.wrapSteps(this.config)
-
-            /**
-             * we need to somehow identify is function is step or hook
-             * so we wrap every user hook function
-             */
-            setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
-            Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
-            const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
-
-            const eventBroadcaster = new EventEmitter()
             const reporterOptions = {
                 capabilities: this.capabilities,
                 ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
                 failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
                 tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
             }
-
-            this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
-
-            /**
-             * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
-             * or `null` for some hooks.
-             *
-             * @return  {object|null}
-             */
-            this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
+            this.cucumberReporter = new CucumberReporter(this.eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
 
             const featurePathsToRun = this.config.cucumberFeaturesWithLineNumbers ? this.config.cucumberFeaturesWithLineNumbers : this.specs
-
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: featurePathsToRun,
                 names: this.cucumberOpts.name,
                 tagExpression: this.cucumberOpts.tagExpression
             })
-            const testCases = await Cucumber.getTestCasesFromFilesystem({
+
+            this.testCases = await Cucumber.getTestCasesFromFilesystem({
                 cwd: this.cwd,
-                eventBroadcaster,
+                eventBroadcaster: this.eventBroadcaster,
                 featurePaths: this.specs,
                 order: this.cucumberOpts.order,
                 pickleFilter
             })
-            this._hasTests = testCases.length > 0
-            this.runtime = new Cucumber.Runtime({
-                eventBroadcaster,
-                options: this.cucumberOpts,
-                supportCodeLibrary,
-                testCases
-            })
+            this._hasTests = this.testCases.length > 0
         } catch (runtimeError) {
             await executeHooksWithArgs(this.config.after, [runtimeError, this.capabilities, this.specs])
             throw runtimeError
@@ -104,7 +72,40 @@ class CucumberAdapter {
         let result
 
         try {
-            result = await this.runtime.start() ? 0 : 1
+            this.registerRequiredModules()
+            Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
+
+            /**
+             * wdio hooks should be added before spec files are loaded
+             */
+            this.addWdioHooks(this.config)
+            this.loadSpecFiles()
+            this.wrapSteps(this.config)
+
+            /**
+             * we need to somehow identify is function is step or hook
+             * so we wrap every user hook function
+             */
+            setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
+            Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
+            const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
+
+            /**
+             * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
+             * or `null` for some hooks.
+             *
+             * @return  {object|null}
+             */
+            this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
+
+            const runtime = new Cucumber.Runtime({
+                eventBroadcaster: this.eventBroadcaster,
+                options: this.cucumberOpts,
+                supportCodeLibrary,
+                testCases: this.testCases
+            })
+
+            result = await runtime.start() ? 0 : 1
 
             /**
              * if we ignore undefined definitions we trust the reporter
