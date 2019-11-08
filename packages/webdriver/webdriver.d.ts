@@ -2199,10 +2199,10 @@ declare namespace WebDriver {
 
         /**
          * [saucelabs]
-         * Assert against the performance baseline of your app (private beta service, not yet available to the public).
+         * Assert against the performance baseline of your app.
          * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
          */
-        assertPerformance(name: string, metrics?: string[]): boolean;
+        assertPerformance(name: string, metrics?: string[]): ProtocolCommandResponse;
 
         /**
          * [saucelabs]
