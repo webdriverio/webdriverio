@@ -17,6 +17,7 @@ describe('isElementClickable script', () => {
                 left: 455
             }),
             scrollIntoView: () => {},
+            contains: () => false
         }
         global.document = { elementFromPoint: () => elemMock }
 
