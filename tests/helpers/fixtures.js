@@ -67,3 +67,23 @@ onBeforeCommand
 onAfterCommand
 onRunnerEnd
 `
+
+export const CUCUMBER_REPORTER_LOGS = `onRunnerStart
+onSuiteStart
+onSuiteStart
+onHookStart
+onHookEnd
+onHookStart
+onHookEnd
+onTestStart
+onTestPass
+onHookStart
+onHookEnd
+onHookStart
+onHookEnd
+onSuiteEnd
+onSuiteEnd
+onBeforeCommand
+onAfterCommand
+onRunnerEnd
+`
