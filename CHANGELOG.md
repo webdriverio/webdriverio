@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.5 (2019-11-09)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`, `wdio-sync`, `webdriverio`
+  * [#4760](https://github.com/webdriverio/webdriverio/pull/4760) wdio-cucumber-framework: test-run-started event ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.4 (2019-11-08)
 
 #### :bug: Bug Fix
