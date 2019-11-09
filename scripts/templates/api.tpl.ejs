@@ -27,8 +27,9 @@ title: <?= method.command ?>
 | Name | Type | Details |
 | ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
+    var paramKey = (paramTag.types && paramTag.typesDescription) ? paramTag.typesDescription : paramTag.type
     ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
-    ?> | <?= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
+    ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
 <? } ?>
