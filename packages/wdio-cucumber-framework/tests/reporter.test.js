@@ -161,15 +161,23 @@ describe('cucumber reporter', () => {
         const cid = '0-1'
         const specs = ['/foobar.js']
         let eventBroadcaster
+        let cucumberReporter
 
         beforeEach(() => {
             eventBroadcaster = new EventEmitter()
-            new CucumberReporter(eventBroadcaster, { failAmbiguousDefinitions: true }, cid, specs, wdioReporter)
+            cucumberReporter = new CucumberReporter(eventBroadcaster, { failAmbiguousDefinitions: true }, cid, specs, wdioReporter)
         })
 
-        it('should send proper data on `gherkin-document` event', () => {
-            wdioReporter.emit.mockClear()
+        it('should not send any data on `gherkin-document` event', () => {
             loadGherkin(eventBroadcaster)
+            expect(cucumberReporter.eventListener.gherkinDocEvents).toEqual([gherkinDocEvent])
+            expect(wdioReporter.emit).not.toHaveBeenCalled()
+        })
+
+        it('should send proper data on `test-run-started` event', () => {
+            loadGherkin(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('test-run-started')
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
                 cid,
@@ -574,6 +582,9 @@ describe('cucumber reporter', () => {
 
         it('should add tags on handleBeforeFeatureEvent', () => {
             eventBroadcaster.emit('gherkin-document', gherkinDocEvent)
+            expect(wdioReporter.emit).not.toBeCalled()
+
+            eventBroadcaster.emit('test-run-started')
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
                 type: 'feature',

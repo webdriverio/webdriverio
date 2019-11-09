@@ -742,7 +742,7 @@ declare namespace WebdriverIO {
         ): string;
 
         /**
-         * Protocol binding to load or get the URL of the browser. If a baseUrl is
+         * Protocol binding to load the URL of the browser. If a baseUrl is
          * specified in the config, it will be prepended to the url parameter using
          * node's url.resolve() method.
          */

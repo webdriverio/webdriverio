@@ -10,7 +10,13 @@ const fs = {
 }
 
 import launch from './helpers/launch'
-import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS, JASMINE_REPORTER_LOGS } from './helpers/fixtures'
+import {
+    SERVICE_LOGS,
+    LAUNCHER_LOGS,
+    REPORTER_LOGS,
+    JASMINE_REPORTER_LOGS,
+    CUCUMBER_REPORTER_LOGS,
+} from './helpers/fixtures'
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -72,10 +78,12 @@ const jasmineReporter = async () => {
  */
 const cucumberTestrunner = async () => {
     const { skippedSpecs } = await launch(
-        path.resolve(__dirname, 'helpers', 'config.js'),
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
-            specs: [path.resolve(__dirname, 'cucumber', 'test.feature'), path.resolve(__dirname, 'cucumber', 'test-skipped.feature')],
-            framework: 'cucumber',
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'test.feature'),
+                path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+            ],
             cucumberOpts: {
                 tagExpression: '(not @SKIPPED_TAG)',
                 ignoreUndefinedDefinitions: true
@@ -90,10 +98,9 @@ const cucumberTestrunner = async () => {
  */
 const cucumberFailAmbiguousDefinitions = async () => {
     const hasFailed = await launch(
-        path.resolve(__dirname, 'helpers', 'config.js'),
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
             specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
-            framework: 'cucumber',
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
                 failAmbiguousDefinitions: true
@@ -104,6 +111,28 @@ const cucumberFailAmbiguousDefinitions = async () => {
         () => true
     )
     assert.equal(hasFailed, true)
+}
+
+/**
+ * Cucumber reporter
+ */
+const cucumberReporter = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'reporter')
+    try {
+        await launch(
+            path.resolve(basePath, 'reporter.config.js'),
+            {
+                specs: [path.resolve(basePath, 'reporter.feature')],
+                outputDir: basePath,
+            })
+    } catch (err) {
+        // expected failure
+    }
+    await sleep(100)
+    const reporterLogsPath = path.join(basePath, 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogs = await fs.readFile(reporterLogsPath)
+    assert.equal(reporterLogs.toString(), CUCUMBER_REPORTER_LOGS)
+    await fs.unlink(reporterLogsPath)
 }
 
 /**
@@ -289,6 +318,7 @@ const jasmineSpecFiltering = async () => {
         jasmineReporter,
         cucumberTestrunner,
         cucumberFailAmbiguousDefinitions,
+        cucumberReporter,
         customService,
         customReporterString,
         customReporterObject,

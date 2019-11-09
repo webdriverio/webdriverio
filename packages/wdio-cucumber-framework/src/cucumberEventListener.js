@@ -14,6 +14,7 @@ export default class CucumberEventListener extends EventEmitter {
         super()
         eventBroadcaster
             .on('gherkin-document', this.onGherkinDocument.bind(this))
+            .on('test-run-started', this.onTestRunStarted.bind(this))
             .on('pickle-accepted', this.onPickleAccepted.bind(this))
             .on('test-case-prepared', this.onTestCasePrepared.bind(this))
             .on('test-case-started', this.onTestCaseStarted.bind(this))
@@ -58,12 +59,12 @@ export default class CucumberEventListener extends EventEmitter {
     // }
     onGherkinDocument (gherkinDocEvent) {
         this.gherkinDocEvents.push(gherkinDocEvent)
+    }
 
-        const uri = gherkinDocEvent.uri
-        const doc = gherkinDocEvent.document
-        const feature = doc.feature
+    onTestRunStarted () {
+        const doc = this.gherkinDocEvents[this.gherkinDocEvents.length - 1]
 
-        this.emit('before-feature', uri, feature)
+        this.emit('before-feature', doc.uri, doc.document.feature)
     }
 
     // pickleEvent = {
