@@ -22,6 +22,7 @@ class CucumberAdapter {
         this.config = config
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
         this._hasTests = true
+        this.cucumberFeaturesWithLineNumbers = this.config.cucumberFeaturesWithLineNumbers || []
     }
 
     async init () {
@@ -36,7 +37,7 @@ class CucumberAdapter {
             }
             this.cucumberReporter = new CucumberReporter(this.eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
 
-            const featurePathsToRun = this.config.cucumberFeaturesWithLineNumbers ? this.config.cucumberFeaturesWithLineNumbers : this.specs
+            const featurePathsToRun = this.cucumberFeaturesWithLineNumbers.length > 0 ? this.cucumberFeaturesWithLineNumbers : this.specs
             const pickleFilter = new Cucumber.PickleFilter({
                 featurePaths: featurePathsToRun,
                 names: this.cucumberOpts.name,
@@ -238,13 +239,13 @@ class CucumberAdapter {
 
     /**
      * wrap step definition to enable retry ability
-     * @param   {Function}  code            step definitoon
+     * @param   {Function}  code            step definition
      * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
      * @param   {boolean}   isStep
      * @param   {object}    config
      * @param   {string}    cid             cid
-     * @param   {Function}  getCurrentStep  step definitoon
-     * @return  {Function}                  wrapped step definiton for sync WebdriverIO code
+     * @param   {Function}  getCurrentStep  step definition
+     * @return  {Function}                  wrapped step definition for sync WebdriverIO code
      */
     wrapStep (code, retryTest = 0, isStep, config, cid, getCurrentStep) {
         return function (...args) {
