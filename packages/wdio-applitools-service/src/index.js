@@ -59,7 +59,6 @@ export default class ApplitoolsService {
                 throw new Error('A region for the Applitools snapshot is missing')
             }
             if (!frame) {
-                console.log(frame)
                 return this.eyes.check(title, Target.region(region))
             }
             return this.eyes.check(title, Target.region(region, frame))
