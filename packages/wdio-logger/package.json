@@ -33,7 +33,7 @@
     "chalk": "^3.0.0",
     "loglevel": "^1.6.0",
     "loglevel-plugin-prefix": "^0.8.4",
-    "strip-ansi": "^5.2.0"
+    "strip-ansi": "^6.0.0"
   },
   "publishConfig": {
     "access": "public"
