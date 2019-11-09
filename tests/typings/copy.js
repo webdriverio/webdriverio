@@ -4,7 +4,7 @@ const path = require('path')
 
 // TypeScript project root for testing particular typings
 const outDirs = [
-    'sync', 'sync-mocha', 'sync-jasmine', 'webdriverio', 'webdriverio-mocha',
+    'sync', 'sync-applitools', 'sync-mocha', 'sync-jasmine', 'webdriverio', 'webdriverio-applitools', 'webdriverio-mocha',
     'webdriverio-jasmine', 'sync-cucumber', 'devtools', 'sync-devtools', 'webdriverio-reporter'
 ]
 
@@ -15,6 +15,9 @@ const packages = {
     'webdriverio': 'packages/webdriverio',
     '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
     '@wdio/reporter': 'packages/wdio-reporter',
+
+    '@applitools/visual-grid-client': 'packages/wdio-applitools-service/node_modules/@applitools/visual-grid-client',
+    '@wdio/applitools-service': 'packages/wdio-applitools-service',
 
     '@types/mocha': 'packages/wdio-mocha-framework/node_modules/@types/mocha',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',

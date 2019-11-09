@@ -1,11 +1,11 @@
 /// <reference types="@applitools/visual-grid-client"/>
 
-declare module "webdriverio" {
+declare module WebdriverIOAsync {
     interface Config extends ApplitoolsConfig {}
     interface Browser extends ApplitoolsBrowserAsync {}
 }
 
-declare module "@wdio/sync" {
+declare module WebdriverIO {
     interface Config extends ApplitoolsConfig {}
     interface Browser extends ApplitoolsBrowser {}
 }
