@@ -72,7 +72,7 @@ describe('utils', () => {
                     browserName: 'chrome',
                     foo: 'bar'
                 }
-            })
+            }, { foo: 'bar' })
             expect(remote).toHaveBeenCalledTimes(0)
         })
 

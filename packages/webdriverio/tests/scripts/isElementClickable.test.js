@@ -17,8 +17,25 @@ describe('isElementClickable script', () => {
                 left: 455
             }),
             scrollIntoView: () => {},
+            contains: () => false
         }
         global.document = { elementFromPoint: () => elemMock }
+
+        expect(isElementClickable(elemMock)).toBe(true)
+    })
+
+    it('should be clickable if in viewport and elementFromPoint is child of elem', () => {
+        const elemMock = {
+            getBoundingClientRect: () => ({
+                height: 55,
+                width: 22,
+                top: 33,
+                left: 455
+            }),
+            scrollIntoView: () => {},
+            contains: () => true
+        }
+        global.document = { elementFromPoint: () => 'some element' }
 
         expect(isElementClickable(elemMock)).toBe(true)
     })

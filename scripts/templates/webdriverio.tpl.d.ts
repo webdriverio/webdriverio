@@ -69,7 +69,10 @@ declare namespace WebdriverIO {
         jasmineNodeOpts?: object,
         reporters?: (string | object)[],
         services?: (string | object)[],
-        execArgv?: string[]
+        execArgv?: string[],
+        featureFlags?: {
+            specFiltering?: boolean,
+        },
     }
 
     interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
@@ -168,6 +171,13 @@ declare namespace WebdriverIO {
         ms?: number
     }
     type TouchActions = string | TouchAction | TouchAction[];
+
+    type WaitForOptions = {
+        timeout?: number,
+        interval?: number,
+        timeoutMsg?: string,
+        reverse?: boolean,
+    }
 
     interface Element {
         "element-6066-11e4-a52e-4f735466cecf"?: string;

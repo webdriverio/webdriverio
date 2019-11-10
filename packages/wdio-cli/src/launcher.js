@@ -341,7 +341,6 @@ class Launcher {
         worker.on('error', ::this.interface.onMessage)
         worker.on('exit', ::this.endHandler)
 
-        this.interface.emit('job:start', { cid, caps, specs })
         this.runnerStarted++
     }
 

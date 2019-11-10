@@ -69,7 +69,10 @@ declare namespace WebdriverIO {
         jasmineNodeOpts?: object,
         reporters?: (string | object)[],
         services?: (string | object)[],
-        execArgv?: string[]
+        execArgv?: string[],
+        featureFlags?: {
+            specFiltering?: boolean,
+        },
     }
 
     interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
@@ -168,6 +171,13 @@ declare namespace WebdriverIO {
         ms?: number
     }
     type TouchActions = string | TouchAction | TouchAction[];
+
+    type WaitForOptions = {
+        timeout?: number,
+        interval?: number,
+        timeoutMsg?: string,
+        reverse?: boolean,
+    }
 
     interface Element {
         "element-6066-11e4-a52e-4f735466cecf"?: string;
@@ -332,6 +342,11 @@ declare namespace WebdriverIO {
 
         /**
          * Return true if the selected DOM-element:
+         * - exists;
+         * - is visible;
+         * - is within viewport (if not try scroll to it);
+         * - its center is not overlapped with another element;
+         * - is not disabled.
          */
         isClickable(): boolean;
 
@@ -467,6 +482,14 @@ declare namespace WebdriverIO {
         touchAction(
             action: TouchActions
         ): void;
+
+        /**
+         * Wait for an element for the provided amount of
+         * milliseconds to be clickable or not clickable.
+         */
+        waitForClickable(
+            options?: WaitForOptions
+        ): boolean;
 
         /**
          * Wait for an element for the provided amount of
@@ -620,7 +643,7 @@ declare namespace WebdriverIO {
         /**
          * Pauses execution for a specific amount of time. It is recommended to not use this command to wait for an
          * element to show up. In order to avoid flaky test results it is better to use commands like
-         * [`waitforExist`](/docs/api/element/waitForExist.html) or other waitFor* commands.
+         * [`waitForExist`](/docs/api/element/waitForExist.html) or other waitFor* commands.
          */
         pause(
             milliseconds: number
@@ -719,7 +742,7 @@ declare namespace WebdriverIO {
         ): string;
 
         /**
-         * Protocol binding to load or get the URL of the browser. If a baseUrl is
+         * Protocol binding to load the URL of the browser. If a baseUrl is
          * specified in the config, it will be prepended to the url parameter using
          * node's url.resolve() method.
          */

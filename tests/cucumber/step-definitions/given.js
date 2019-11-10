@@ -2,12 +2,18 @@
 import assert from 'assert'
 import { Given, BeforeAll, Before, After, AfterAll } from 'cucumber'
 
+browser.addCommand('rootLevel', () => {
+    return true
+})
+
 BeforeAll(() => {
     // defined and modified in hooks
     assert.equal(browser.Cucumber_Test, 0)
 
     // should resolve promises
     assert.strictEqual(browser.pause(1), undefined)
+
+    assert.strictEqual(browser.rootLevel(), true)
 })
 Before(function (scenario) {
     // defined and modified in hooks

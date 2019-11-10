@@ -21,6 +21,50 @@ class CucumberAdapter {
         this.capabilities = capabilities
         this.config = config
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
+        this._hasTests = true
+    }
+
+    async init () {
+        try {
+            this.eventBroadcaster = new EventEmitter()
+
+            const reporterOptions = {
+                capabilities: this.capabilities,
+                ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
+                failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
+                tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
+            }
+            this.cucumberReporter = new CucumberReporter(this.eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+
+            const featurePathsToRun = this.config.cucumberFeaturesWithLineNumbers ? this.config.cucumberFeaturesWithLineNumbers : this.specs
+            const pickleFilter = new Cucumber.PickleFilter({
+                featurePaths: featurePathsToRun,
+                names: this.cucumberOpts.name,
+                tagExpression: this.cucumberOpts.tagExpression
+            })
+
+            this.testCases = await Cucumber.getTestCasesFromFilesystem({
+                cwd: this.cwd,
+                eventBroadcaster: this.eventBroadcaster,
+                featurePaths: this.specs,
+                order: this.cucumberOpts.order,
+                pickleFilter
+            })
+            this._hasTests = this.testCases.length > 0
+        } catch (runtimeError) {
+            await executeHooksWithArgs(this.config.after, [runtimeError, this.capabilities, this.specs])
+            throw runtimeError
+        }
+
+        return this
+    }
+
+    hasTests () {
+        /**
+         * Avoid spec filtering only if the feature is disabled explicitly
+         * The feature has no impact on how framework/browser session is initialised.
+         */
+        return this.config.featureFlags.specFiltering === false || this._hasTests
     }
 
     async run () {
@@ -46,16 +90,6 @@ class CucumberAdapter {
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
             const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
 
-            const eventBroadcaster = new EventEmitter()
-            const reporterOptions = {
-                capabilities: this.capabilities,
-                ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
-                failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
-                tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
-            }
-
-            this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
-
             /**
              * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
              * or `null` for some hooks.
@@ -64,26 +98,13 @@ class CucumberAdapter {
              */
             this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
 
-            const pickleFilter = new Cucumber.PickleFilter({
-                featurePaths: this.specs,
-                names: this.cucumberOpts.name,
-                tagExpression: this.cucumberOpts.tagExpression
-            })
-            const testCases = await Cucumber.getTestCasesFromFilesystem({
-                cwd: this.cwd,
-                eventBroadcaster,
-                featurePaths: this.specs,
-                order: this.cucumberOpts.order,
-                pickleFilter
-            })
             const runtime = new Cucumber.Runtime({
-                eventBroadcaster,
+                eventBroadcaster: this.eventBroadcaster,
                 options: this.cucumberOpts,
                 supportCodeLibrary,
-                testCases
+                testCases: this.testCases
             })
 
-            await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
             result = await runtime.start() ? 0 : 1
 
             /**
@@ -251,10 +272,10 @@ const adapterFactory = {}
  * tested by smoke tests
  */
 /* istanbul ignore next */
-adapterFactory.run = async function (...args) {
+adapterFactory.init = async function (...args) {
     const adapter = new _CucumberAdapter(...args)
-    const result = await adapter.run()
-    return result
+    const instance = await adapter.init()
+    return instance
 }
 
 export default adapterFactory

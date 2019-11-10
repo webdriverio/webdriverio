@@ -10,7 +10,13 @@ const fs = {
 }
 
 import launch from './helpers/launch'
-import { SERVICE_LOGS, LAUNCHER_LOGS, REPORTER_LOGS, JASMINE_REPORTER_LOGS } from './helpers/fixtures'
+import {
+    SERVICE_LOGS,
+    LAUNCHER_LOGS,
+    REPORTER_LOGS,
+    JASMINE_REPORTER_LOGS,
+    CUCUMBER_REPORTER_LOGS,
+} from './helpers/fixtures'
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -18,26 +24,30 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
  * Mocha wdio testrunner tests
  */
 const mochaTestrunner = async () => {
-    await launch(
+    const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [
                 path.resolve(__dirname, 'mocha', 'test.js'),
                 path.resolve(__dirname, 'mocha', 'test-middleware.js'),
-                path.resolve(__dirname, 'mocha', 'test-waitForElement.js')
+                path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
+                path.resolve(__dirname, 'mocha', 'test-skipped.js')
             ]
         })
+    assert.strictEqual(skippedSpecs, 0)
 }
+
 /**
  * Jasmine wdio testrunner tests
  */
 const jasmineTestrunner = async () => {
-    await launch(
+    const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
-            specs: [path.resolve(__dirname, 'jasmine', 'test.js')],
+            specs: [path.resolve(__dirname, 'jasmine', 'test.js'), path.resolve(__dirname, 'jasmine', 'test-skipped.js')],
             framework: 'jasmine'
         })
+    assert.strictEqual(skippedSpecs, 0)
 }
 
 /**
@@ -67,16 +77,20 @@ const jasmineReporter = async () => {
  * Cucumber wdio testrunner tests
  */
 const cucumberTestrunner = async () => {
-    await launch(
-        path.resolve(__dirname, 'helpers', 'config.js'),
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
-            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
-            framework: 'cucumber',
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'test.feature'),
+                path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+            ],
             cucumberOpts: {
+                tagExpression: '(not @SKIPPED_TAG)',
                 ignoreUndefinedDefinitions: true
             }
         }
     )
+    assert.strictEqual(skippedSpecs, 1)
 }
 
 /**
@@ -84,10 +98,9 @@ const cucumberTestrunner = async () => {
  */
 const cucumberFailAmbiguousDefinitions = async () => {
     const hasFailed = await launch(
-        path.resolve(__dirname, 'helpers', 'config.js'),
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
             specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
-            framework: 'cucumber',
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
                 failAmbiguousDefinitions: true
@@ -98,6 +111,28 @@ const cucumberFailAmbiguousDefinitions = async () => {
         () => true
     )
     assert.equal(hasFailed, true)
+}
+
+/**
+ * Cucumber reporter
+ */
+const cucumberReporter = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'reporter')
+    try {
+        await launch(
+            path.resolve(basePath, 'reporter.config.js'),
+            {
+                specs: [path.resolve(basePath, 'reporter.feature')],
+                outputDir: basePath,
+            })
+    } catch (err) {
+        // expected failure
+    }
+    await sleep(100)
+    const reporterLogsPath = path.join(basePath, 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogs = await fs.readFile(reporterLogsPath)
+    assert.equal(reporterLogs.toString(), CUCUMBER_REPORTER_LOGS)
+    await fs.unlink(reporterLogsPath)
 }
 
 /**
@@ -236,6 +271,41 @@ const sharedStoreServiceTest = async () => {
         })
 }
 
+/**
+ * Mocha with specFiltering feature enabled
+ */
+const mochaSpecFiltering = async () => {
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'test-empty.js'),
+                path.resolve(__dirname, 'mocha', 'test-skipped.js'),
+                path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
+            ],
+            featureFlags: { specFiltering: true }
+        })
+    assert.strictEqual(skippedSpecs, 2)
+}
+
+/**
+ * Jasmine with specFiltering feature enabled
+ */
+const jasmineSpecFiltering = async () => {
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'jasmine', 'test.js'),
+                path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
+                path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
+            ],
+            framework: 'jasmine',
+            featureFlags: { specFiltering: true }
+        })
+    assert.strictEqual(skippedSpecs, 2)
+}
+
 (async () => {
     /**
      * Usage example: `npm run test:smoke -- customService`
@@ -248,6 +318,7 @@ const sharedStoreServiceTest = async () => {
         jasmineReporter,
         cucumberTestrunner,
         cucumberFailAmbiguousDefinitions,
+        cucumberReporter,
         customService,
         customReporterString,
         customReporterObject,
@@ -256,6 +327,8 @@ const sharedStoreServiceTest = async () => {
         retryPass,
         wdioHooks,
         sharedStoreServiceTest,
+        mochaSpecFiltering,
+        jasmineSpecFiltering
     ]
 
     if (process.env.CI || testFilter) {

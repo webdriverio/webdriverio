@@ -15,6 +15,116 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.5 (2019-11-09)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`, `wdio-sync`, `webdriverio`
+  * [#4760](https://github.com/webdriverio/webdriverio/pull/4760) wdio-cucumber-framework: test-run-started event ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v5.16.4 (2019-11-08)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4754](https://github.com/webdriverio/webdriverio/pull/4754) isClickable handles child elements ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cucumber-framework`
+  * [#4753](https://github.com/webdriverio/webdriverio/pull/4753) Fix cucumber framework initialisation  ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#4755](https://github.com/webdriverio/webdriverio/pull/4755) webdriverio: update url doc ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-protocols`, `webdriver`
+  * [#4752](https://github.com/webdriverio/webdriverio/pull/4752) Assertperf typings fix ([@enriquegh](https://github.com/enriquegh))
+
+#### :house: Internal
+* [#4756](https://github.com/webdriverio/webdriverio/pull/4756) website: build status of master branch ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v5.16.3 (2019-11-07)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#4750](https://github.com/webdriverio/webdriverio/pull/4750) Fix removeLineNumbers ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v5.16.2 (2019-11-06)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`
+  * [#4696](https://github.com/webdriverio/webdriverio/pull/4696) [NEW FEATURE] Add the ability to provided Feature file with line number or numbers as --spec on CLI ([@mikesalvia](https://github.com/mikesalvia))
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#4745](https://github.com/webdriverio/webdriverio/pull/4745) Fix before hook args ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* [#4737](https://github.com/webdriverio/webdriverio/pull/4737) Build a script that grants TSC members to release @wdio packages ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v5.16.1 (2019-11-06)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#4739](https://github.com/webdriverio/webdriverio/pull/4739) Pass capabilities to reporter before session started ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4729](https://github.com/webdriverio/webdriverio/pull/4729) Update autocompletion doc ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v5.16.0 (2019-11-05)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-runner`, `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#4531](https://github.com/webdriverio/webdriverio/pull/4531) Init framework before browser ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`, `webdriverio`
+  * [#4736](https://github.com/webdriverio/webdriverio/pull/4736) Add waitForClickable command ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-runner`, `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#4722](https://github.com/webdriverio/webdriverio/pull/4722) Add test retry attempts to after hooks ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-protocols`, `webdriverio`
+  * [#4603](https://github.com/webdriverio/webdriverio/pull/4603) custom locator strategy ([@baruchvlz](https://github.com/baruchvlz))
+* `wdio-shared-store-service`
+  * [#4663](https://github.com/webdriverio/webdriverio/pull/4663) Shared store service to exchange data between workers ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `webdriver`
+  * [#4690](https://github.com/webdriverio/webdriverio/pull/4690) Handle session errors ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-runner`, `webdriver`
+  * [#4730](https://github.com/webdriverio/webdriverio/pull/4730) Pass empty capabilities if session failed to start ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-allure-reporter`
+  * [#4719](https://github.com/webdriverio/webdriverio/pull/4719) Looks for Browserstack style versions in capabilities ([@mikesalvia](https://github.com/mikesalvia))
+
+#### :memo: Documentation
+* Other
+  * [#4733](https://github.com/webdriverio/webdriverio/pull/4733) Add docs to describe difference between sync and async modes ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-shared-store-service`
+  * [#4727](https://github.com/webdriverio/webdriverio/pull/4727) shared-store: add types ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#4706](https://github.com/webdriverio/webdriverio/pull/4706) Types refactoring ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.15.7 (2019-10-30)
 
 #### :bug: Bug Fix

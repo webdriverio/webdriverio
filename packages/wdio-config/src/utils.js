@@ -19,6 +19,24 @@ export function getSauceEndpoint (region, isRDC) {
 }
 
 /**
+ * remove line numbers from file path, ex:
+ * `/foo:9` or `c:\bar:14:5`
+ * @param   {string} filePath path to spec file
+ * @returns {string}
+ */
+export function removeLineNumbers(pattern) {
+    const matcher = pattern.match(/:\d+(:\d+$|$)/)
+    if (matcher) {
+        pattern = pattern.substring(0, matcher.index)
+    }
+    return pattern
+}
+
+export function isCucumberFeatureWithLineNumber(patterns) {
+    return patterns.find((pattern) => pattern.includes(':'))
+}
+
+/**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {

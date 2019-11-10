@@ -24,6 +24,9 @@ export const DEFAULT_CONFIGS = {
     execArgv: [],
     runnerEnv: {},
     runner: 'local',
+    featureFlags: {
+        specFiltering: undefined
+    },
 
     /**
      * framework defaults

@@ -259,7 +259,7 @@ describe('utils', () => {
     })
 
     describe('getTestStepTitle', () => {
-        it('keword and title are not passed', () => {
+        it('keyword and title are not passed', () => {
             expect(getTestStepTitle()).toEqual('Undefined Step')
         })
         it('should not add undefined step for hooks', () => {
