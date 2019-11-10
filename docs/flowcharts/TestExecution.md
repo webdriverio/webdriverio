@@ -19,18 +19,23 @@ This flowchart explains the test execution process and the interaction between @
 <script>
     var setupTest = `
     graph TD
-        START("@wdio/runner index.js called from child process via a run message.")-->
+        START("@wdio/runner index.js called from<br>child process via a run message.")-->
         EXECUTERUN["Execute @wdio/runner index.js run method."]-->
-        STOREVARS["Store worker id in cid, specs in specs variable.<br>Store capabilities in caps variable."]-->
-        PARSECONFIG["Parse config file using @wdio/config configParser method.<br>Add to @wdio/runner index.js class."]-->
+        PARSECONFIG["Parse config file using @wdio/config configParser<br>method. Add to @wdio/runner index.js class."]-->
+        MERGECLIARGS[Merge CLI args and host<br>port changes into config]-->
+        REMOVESERVICES["Use @wdio/config filterWorkerServices<br>to remove services not used in worker"]-->
         SETLOGLEVEL[Set log level]-->
+        SETISMULTIREMOTEFLAG[Set isMultiremote flag]-->
+        SETUPREPORTER["Initialise BaseReporter object which creates a new<br>@wdio/runner reporter instance.All reporters listed<br>in the wdio.conf.js reporters property are initialised."]-->
+        INITTESTFRAMEWORK["Test framework from the wdio.conf. js property is<br>initialised usingthe @wdio/utils initialisePlugin method.<br>Supported frameworks are @wdio/mocha-framework,<br>@wdio/cucumber-framework and @wdio/jasmine-framework."]-->
+        INITSERVICES["Initialise services"]-->
         RUNEFORESESSIONHOOK[Run wdio.conf.js beforeSession hook.]-->
-        INITSESSION[Initialise session, store in variable named browser.]-->
-        SETUPREPORTER["Initialise BaseReporter object. A new instance of the @wdio/runner reporter.js<br>BaseReporter object is created. All reporters listed in the wdio.conf.js reporters<br>property are initialised."]
+        INITSESSION[Initialise session, store in browser global variable.]-->
+        SETWATCHMODEFLAG["Set watch mode flag"]-->
+        TESTINITCOMPLETE(Test initialization complete)
     `;
     var runTest = `
     graph TD
-        INITTEST["Test framework is initialised using the @wdio/utils initialisePlugin method.<br>The test framework defined in the wdio.conf.js framework property.<br>Test frameworks include @wdio/mocha-framework, @wdio/cucumber-framework<br>and @wdio/jasmine-framework packages."]-->
         INITCOMPLETE[Initialisation successful, send runner:start message to reporter.]-->
         MESSAGECHILDPROCESS[report sessionId and target connection information to worker]-->
         KICKOFFTESTS["Kick off tests in framework by calling th e framework's run<br>method, e.g. @wdio/mocha-framework run()."]-->
