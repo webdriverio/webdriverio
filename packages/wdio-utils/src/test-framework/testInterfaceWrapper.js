@@ -1,4 +1,5 @@
 /**
+ * @fileoverview
  * used to wrap mocha, jasmine test frameworks functions (`it`, `beforeEach` and other)
  * with WebdriverIO before/after Test/Hook hooks.
  * Entrypoint is `runTestInFiberContext`, other functions are exported for testing purposes.

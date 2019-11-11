@@ -1,5 +1,5 @@
 /**
- * Constants around commands
+ * @fileoverview Constants around commands
  */
 
 const TOUCH_ACTIONS = ['press', 'longPress', 'tap', 'moveTo', 'wait', 'release']
