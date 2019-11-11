@@ -15,6 +15,24 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.6 (2019-11-11)
+
+#### :bug: Bug Fix
+* `wdio-config`, `wdio-cucumber-framework`
+  * [#4764](https://github.com/webdriverio/webdriverio/pull/4764) Fix watch mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-applitools-service`
+  * [#4762](https://github.com/webdriverio/webdriverio/pull/4762) wdio-applitools-service: add typings ([@ablok](https://github.com/ablok))
+* Other
+  * [#4763](https://github.com/webdriverio/webdriverio/pull/4763) docs(template): Fix API parameters ([@Zearin](https://github.com/Zearin))
+
+#### Committers: 3
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Zearin ([@Zearin](https://github.com/Zearin))
+
+
 ## v5.16.5 (2019-11-09)
 
 #### :bug: Bug Fix
