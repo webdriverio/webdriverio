@@ -39,12 +39,12 @@ export default class TraceGatherer extends EventEmitter {
     }
 
     async startTracing (url) {
-        /**
+        /*
          * delete old trace
          */
         delete this.trace
 
-        /**
+        /*
          * register listener for network status monitoring
          */
         const session = await this.driver.getCDPSession()
@@ -61,7 +61,7 @@ export default class TraceGatherer extends EventEmitter {
             screenshots: true
         })
 
-        /**
+        /*
          * if this tracing was started from a click event
          * then we want to discard page trace if no load detected
          */
@@ -74,7 +74,7 @@ export default class TraceGatherer extends EventEmitter {
             }, FRAME_LOAD_START_TIMEOUT)
         }
 
-        /**
+        /*
          * register performance observer
          */
         await page.evaluateOnNewDocument(registerPerformanceObserverInPage)
@@ -90,7 +90,7 @@ export default class TraceGatherer extends EventEmitter {
         if (!this.isTracing) {
             return
         }
-        /**
+        /*
          * page load failed, cancel tracing
          */
         if (this.failingFrameLoadIds.includes(msgObj.frame.id)) {
@@ -103,7 +103,7 @@ export default class TraceGatherer extends EventEmitter {
             return clearTimeout(this.clickTraceTimeout)
         }
 
-        /**
+        /*
          * ignore event if
          */
         if (
@@ -123,7 +123,7 @@ export default class TraceGatherer extends EventEmitter {
         this.pageUrl = msgObj.frame.url
         log.info(`Page load detected: ${this.pageUrl}, set frameId ${this.frameId}, set loaderId ${this.loaderId}`)
 
-        /**
+        /*
          * clear click tracing timeout if it's still waiting
          *
          * the reason we have to tie this to Page.frameNavigated instead of Page.frameStartedLoading
@@ -148,7 +148,7 @@ export default class TraceGatherer extends EventEmitter {
             return
         }
 
-        /**
+        /*
          * Ensure that page is fully loaded and all metrics can be calculated.
          *
          * This can only be ensured if the following conditions are met:
@@ -163,7 +163,7 @@ export default class TraceGatherer extends EventEmitter {
             this.waitForNetworkIdleEvent.promise,
             this.waitForCPUIdleEvent.promise
         ]).then(() => () => {
-            /**
+            /*
              * ensure that we trace at least for 5s to ensure that we can
              * calculate firstInteractive
              */
@@ -208,7 +208,7 @@ export default class TraceGatherer extends EventEmitter {
         log.info(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this.frameId}`)
         const page = await this.driver.getActivePage()
 
-        /**
+        /*
          * download all tracing data
          * in case it fails, continue without capturing any data
          */
@@ -216,7 +216,7 @@ export default class TraceGatherer extends EventEmitter {
             const traceBuffer = await page.tracing.stop()
             const traceEvents = JSON.parse(traceBuffer.toString('utf8'))
 
-            /**
+            /*
              * modify pid of renderer frame to be the same as where tracing was started
              * possibly related to https://github.com/GoogleChrome/lighthouse/issues/6968
              */
@@ -262,7 +262,7 @@ export default class TraceGatherer extends EventEmitter {
         log.info(`Tracing for ${this.frameId} completed`)
         this.pageLoadDetected = false
 
-        /**
+        /*
          * clean up the listeners
          */
         this.driver.getCDPSession().then((session) => {

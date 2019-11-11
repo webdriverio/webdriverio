@@ -10,7 +10,7 @@ const MOBILE_CAPABILITIES = [
  * @return {Boolean}               true if W3C (browser)
  */
 function isW3C (capabilities) {
-    /**
+    /*
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
      */
@@ -18,7 +18,7 @@ function isW3C (capabilities) {
         return false
     }
 
-    /**
+    /*
      * assume session to be a WebDriver session when
      * - capabilities are returned
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
@@ -28,7 +28,7 @@ function isW3C (capabilities) {
     const hasW3CCaps = (
         capabilities.platformName &&
         capabilities.browserVersion &&
-        /**
+        /*
          * local safari and BrowserStack don't provide platformVersion therefor
          * check also if setWindowRect is provided
          */
@@ -64,19 +64,19 @@ function isMobile (caps) {
     }
     const browserName = (caps.browserName || '').toLowerCase()
 
-    /**
+    /*
      * we have mobile caps if
      */
     return Boolean(
-        /**
+        /*
          * capabilities contain mobile only specific capabilities
          */
         Object.keys(caps).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
-        /**
+        /*
          * browserName is empty (and eventually app is defined)
          */
         caps.browserName === '' ||
-        /**
+        /*
          * browserName is a mobile browser
          */
         MOBILE_BROWSER_NAMES.includes(browserName)

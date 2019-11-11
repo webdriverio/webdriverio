@@ -15,14 +15,14 @@ export default class CommandHandler {
         this.isTracing = false
         this.networkHandler = new NetworkHandler(client)
 
-        /**
+        /*
          * register browser commands
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
         commands.forEach(fnName => this.browser.addCommand(fnName, ::this[fnName]))
 
-        /**
+        /*
          * propagate CDP events to the browser event listener
          */
         this.client.on('event', (event) => {

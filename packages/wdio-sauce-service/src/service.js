@@ -23,7 +23,7 @@ export default class SauceService {
         this.isRDC = 'testobject_api_key' in this.capabilities
         this.isServiceEnabled = true
 
-        /**
+        /*
          * if no user and key is specified even though a sauce service was
          * provided set user and key with values so that the session request
          * will fail (not for RDC tho due to other auth mechansim)
@@ -52,7 +52,7 @@ export default class SauceService {
             return
         }
 
-        /**
+        /*
          * in jasmine we get Jasmine__TopLevel__Suite as title since service using test
          * framework hooks in order to execute async functions.
          * This tweak allows us to set the real suite name for jasmine jobs.
@@ -79,9 +79,10 @@ export default class SauceService {
         }
     }
 
-    /**
+    /*
      * For CucumberJS
      */
+
     beforeFeature (uri, feature) {
         if (!this.isServiceEnabled || this.isRDC) {
             return
@@ -116,7 +117,7 @@ export default class SauceService {
 
         let failures = this.failures
 
-        /**
+        /*
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
@@ -173,7 +174,7 @@ export default class SauceService {
     getBody (failures, calledOnReload = false, browserName) {
         let body = {}
 
-        /**
+        /*
          * set default values
          */
         body.name = this.suiteTitle
@@ -182,7 +183,7 @@ export default class SauceService {
             body.name = `${browserName}: ${body.name}`
         }
 
-        /**
+        /*
          * add reload count to title if reload is used
          */
         if (calledOnReload || this.testCnt) {

@@ -8,7 +8,7 @@ export {
     detectBackend,
     ConfigParser,
 
-    /**
+    /*
      * constants
      */
     DEFAULT_CONFIGS

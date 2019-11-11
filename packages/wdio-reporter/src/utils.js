@@ -26,7 +26,7 @@ export function sanitizeCaps (caps) {
 
     let result
 
-    /**
+    /*
      * mobile caps
      */
     if (caps.deviceName) {

@@ -1,3 +1,7 @@
+import { findElement } from '../../utils'
+import { getElement } from '../../utils/getElementObject'
+import { ELEMENT_KEY } from '../../constants'
+
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
  * to fetch a single element on the page similar to the `$` command from the browser scope. The difference when calling
@@ -48,12 +52,8 @@
  * @type utility
  *
  */
-import { findElement } from '../../utils'
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-
 export default async function $ (selector) {
-    /**
+    /*
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */

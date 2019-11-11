@@ -15,7 +15,7 @@ export default class NetworkHandler {
     findRequest (params) {
         let request = this.requestLog.requests.find((req) => req.id === params.requestId)
 
-        /**
+        /*
          * If no match is found, check if the corresponding request is the cached first request
          */
         if (!request && this.cachedFirstRequest && this.cachedFirstRequest.id === params.requestId) {
@@ -27,7 +27,7 @@ export default class NetworkHandler {
     onDataReceived (params) {
         let request = this.findRequest(params)
 
-        /**
+        /*
          * ensure that
          *  - a requestWillBeSent event was triggered before
          *  - the request type is accurate and known (sometimes this is not the case when `Network.requestWillBeSent` is triggered)
@@ -42,7 +42,7 @@ export default class NetworkHandler {
 
     onNetworkResponseReceived (params) {
         let request = this.findRequest(params)
-        /**
+        /*
          * ensure that a requestWillBeSent event was triggered before
          */
         if (!request) {
@@ -60,25 +60,25 @@ export default class NetworkHandler {
         let isFirstRequestOfFrame = false
 
         if (
-            /**
+            /*
              * A new page was opened when request type is a document.
              * The first request is sent before the Page.frameNavigated event is triggered,
              * so this request must be cached to be able to add it to the requestLog later.
              */
             params.type === 'Document' &&
-            /**
+            /*
              * ensure that only page loads triggered by non scripts (devtools only) are considered
              * new page loads
              */
             params.initiator.type === 'other' &&
-            /**
+            /*
              * ignore pages not initated by the user
              */
             IGNORED_URLS.filter((url) => params.request.url.startsWith(url)).length === 0
         ) {
             isFirstRequestOfFrame = true
 
-            /**
+            /*
              * reset the request type sizes
              */
             this.requestTypes = {}
@@ -119,7 +119,7 @@ export default class NetworkHandler {
     }
 
     onPageFrameNavigated (params) {
-        /**
+        /*
          * Only create a requestLog for pages that don't have a parent frame.
          * I.e. iframes are ignored
          */
@@ -129,11 +129,11 @@ export default class NetworkHandler {
                 url: params.frame.url,
                 requests: []
             }
-            /**
+            /*
              * Add the first request that was cached before the actual requestLog could be created
              */
             if (this.cachedFirstRequest && this.cachedFirstRequest.loaderId === params.frame.loaderId) {
-                /**
+                /*
                  * Delete the loaderId of the first request so that all request data has the same structure
                  */
                 delete this.cachedFirstRequest.loaderId

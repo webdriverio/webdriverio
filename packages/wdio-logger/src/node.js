@@ -23,25 +23,25 @@ const matches = {
 }
 
 const SERIALIZERS = [{
-    /**
+    /*
      * display error stack
      */
     matches: (err) => err instanceof Error,
     serialize: (err) => err.stack
 }, {
-    /**
+    /*
      * color commands blue
      */
     matches: (log) => log === matches.COMMAND,
     serialize: (log) => chalk.magenta(log)
 }, {
-    /**
+    /*
      * color data yellow
      */
     matches: (log) => log === matches.DATA,
     serialize: (log) => chalk.yellow(log)
 }, {
-    /**
+    /*
      * color result cyan
      */
     matches: (log) => log === matches.RESULT,
@@ -57,14 +57,14 @@ const originalFactory = log.methodFactory
 log.methodFactory = function (methodName, logLevel, loggerName) {
     const rawMethod = originalFactory(methodName, logLevel, loggerName)
     return (...args) => {
-        /**
+        /*
          * create logFile lazily
          */
         if (!logFile && process.env.WDIO_LOG_PATH) {
             logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
         }
 
-        /**
+        /*
          * split `prefixer: value` sting to `prefixer: ` and `value`
          * so that SERIALIZERS can match certain string
          */
@@ -85,7 +85,7 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
 
         const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
         if (logFile && logFile.writable) {
-            /**
+            /*
              * empty logging cache if stuff got logged before
              */
             if (logCache.size) {
@@ -109,7 +109,7 @@ prefix.apply(log, {
 })
 
 export default function getLogger (name) {
-    /**
+    /*
      * check if logger was already initiated
      */
     if (loggers[name]) {
@@ -126,7 +126,7 @@ export default function getLogger (name) {
     loggers[name].setLevel(logLevel)
     return loggers[name]
 }
-/**
+/*
  * Wait for writable stream to be flushed.
  * Calling this prevents part of the logs in the very env to be lost.
  */
@@ -141,7 +141,7 @@ getLogger.waitForBuffer = async () => new Promise(resolve => {
 })
 getLogger.setLevel = (name, level) => loggers[name].setLevel(level)
 getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) => {
-    /**
+    /*
      * set log level
      */
     if (process.env.WDIO_LOG_LEVEL === undefined) {
@@ -150,7 +150,7 @@ getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) =>
 
     logLevelsConfig = {}
 
-    /**
+    /*
      * build logLevelsConfig object
      */
     Object.entries(logLevels).forEach(([logName, logLevel]) => {
@@ -158,13 +158,13 @@ getLogger.setLogLevelsConfig = (logLevels = {}, wdioLogLevel = DEFAULT_LEVEL) =>
         logLevelsConfig[logLevelName] = logLevel
     })
 
-    /**
+    /*
      * set log level for each logger
      */
     Object.keys(loggers).forEach(logName => {
         const logLevelName = getLogLevelName(logName)
 
-        /**
+        /*
          * either apply log level from logLevels object or use global logLevel
          */
         const logLevel = typeof logLevelsConfig[logLevelName] !== 'undefined' ? logLevelsConfig[logLevelName] : process.env.WDIO_LOG_LEVEL

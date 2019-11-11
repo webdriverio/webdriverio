@@ -28,7 +28,7 @@ export const DEFAULT_CONFIGS = {
         specFiltering: undefined
     },
 
-    /**
+    /*
      * framework defaults
      */
     mochaOpts: {
@@ -41,7 +41,7 @@ export const DEFAULT_CONFIGS = {
         timeout: DEFAULT_TIMEOUT
     },
 
-    /**
+    /*
      * hooks
      */
     onPrepare: [],
@@ -60,7 +60,7 @@ export const DEFAULT_CONFIGS = {
     onComplete: [],
     onReload: [],
 
-    /**
+    /*
      * cucumber specific hooks
      */
     beforeFeature: [],
@@ -78,7 +78,7 @@ export const SUPPORTED_HOOKS = [
     'onReload', 'onPrepare', 'onComplete'
 ]
 
-/**
+/*
  * these services should not be started in worker process
  */
 export const NON_WORKER_SERVICES = [

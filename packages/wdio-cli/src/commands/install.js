@@ -50,14 +50,14 @@ export const builder = (yargs) => {
 }
 
 export async function handler(argv) {
-    /**
+    /*
      * type = service | reporter | framework
      * name = names for the supported service or reporter
      * yarn = optional flag to install package using yarn instead of default yarn
      */
     const { type, name, yarn } = argv
 
-    /**
+    /*
      * verify for supported types via `supportedInstallations` keys
      */
     if (!Object.keys(supportedInstallations).includes(type)) {
@@ -66,7 +66,7 @@ export async function handler(argv) {
         return
     }
 
-    /**
+    /*
      * verify if the name of the `type` is valid
      */
     if (!supportedInstallations[type].find(pkg => pkg.short === name)) {

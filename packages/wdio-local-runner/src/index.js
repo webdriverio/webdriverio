@@ -15,7 +15,7 @@ export default class LocalRunner {
         this.stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
     }
 
-    /**
+    /*
      * nothing to initialise when running locally
      */
     initialise () {}
@@ -25,7 +25,7 @@ export default class LocalRunner {
     }
 
     run ({ command, argv, ...options }) {
-        /**
+        /*
          * adjust max listeners on stdout/stderr when creating listeners
          */
         const workerCnt = this.getWorkerCount()
@@ -54,7 +54,7 @@ export default class LocalRunner {
             const { caps, server, sessionId, config, isMultiremote, instances } = worker
             let payload = {}
 
-            /**
+            /*
              * put connection information to payload if in watch mode
              * in order to attach to browser session and kill it
              */

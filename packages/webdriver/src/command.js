@@ -11,7 +11,7 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
     return function protocolCommand (...args) {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
-            /**
+            /*
              * url variables are:
              */
             required: true, // always required as they are part of the endpoint
@@ -22,7 +22,7 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
         const moreInfo = `\n\nFor more info see ${ref}\n`
         const body = {}
 
-        /**
+        /*
          * parameter check
          */
         const minAllowedParams = commandParams.filter((param) => param.required).length
@@ -39,14 +39,14 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
             )
         }
 
-        /**
+        /*
          * parameter type check
          */
         for (const [i, arg] of Object.entries(args)) {
             const commandParam = commandParams[i]
 
             if (!isValidParameter(arg, commandParam.type)) {
-                /**
+                /*
                  * ignore if argument is not required
                  */
                 if (typeof arg === 'undefined' && !commandParam.required) {
@@ -64,7 +64,7 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
                 )
             }
 
-            /**
+            /*
              * inject url variables
              */
             if (i < variables.length) {
@@ -73,7 +73,7 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
                 continue
             }
 
-            /**
+            /*
              * rest of args are part of body payload
              */
             body[commandParams[i].name] = arg

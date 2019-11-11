@@ -1,3 +1,5 @@
+import { getElementFromResponse } from '../../utils'
+
 /**
  *
  * Select option with a specific index.
@@ -27,18 +29,15 @@
  * @type action
  *
  */
-
-import { getElementFromResponse } from '../../utils'
-
 export default async function selectByIndex (index) {
-    /**
+    /*
      * negative index check
      */
     if (index < 0) {
         throw new Error('Index needs to be 0 or any other positive number')
     }
 
-    /**
+    /*
     * get option elememnts using css
     */
     const optionElements = await this.findElementsFromElement(this.elementId, 'css selector',  'option')
@@ -51,7 +50,7 @@ export default async function selectByIndex (index) {
         throw new Error(`Option with index "${index}" not found. Select element only contains ${optionElements.length} option elements`)
     }
 
-    /**
+    /*
     * select option
     */
     return this.elementClick(getElementFromResponse(optionElements[index]))

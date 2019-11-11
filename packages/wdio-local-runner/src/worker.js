@@ -87,14 +87,14 @@ export default class WorkerInstance extends EventEmitter {
     _handleMessage (payload) {
         const { cid, childProcess } = this
 
-        /**
+        /*
          * resolve pending commands
          */
         if (payload.name === 'finisedCommand') {
             this.isBusy = false
         }
 
-        /**
+        /*
          * store sessionId and connection data to worker instance
          */
         if (payload.name === 'sessionStarted') {
@@ -108,7 +108,7 @@ export default class WorkerInstance extends EventEmitter {
             return
         }
 
-        /**
+        /*
          * handle debug command called within worker process
          */
         if (payload.origin === 'debugger' && payload.name === 'start') {
@@ -121,7 +121,7 @@ export default class WorkerInstance extends EventEmitter {
             return replQueue.next()
         }
 
-        /**
+        /*
          * handle debugger results
          */
         if (replQueue.isRunning && payload.origin === 'debugger' && payload.name === 'result') {
@@ -139,7 +139,7 @@ export default class WorkerInstance extends EventEmitter {
     _handleExit (exitCode) {
         const { cid, childProcess, specs, retries } = this
 
-        /**
+        /*
          * delete process of worker
          */
         delete this.childProcess
@@ -163,7 +163,7 @@ export default class WorkerInstance extends EventEmitter {
             return log.info(`worker with cid ${cid} already busy and can't take new commands`)
         }
 
-        /**
+        /*
          * start up process if worker hasn't done yet or if child process
          * closes after running its job
          */

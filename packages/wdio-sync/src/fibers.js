@@ -11,11 +11,11 @@ const origErrorFn = ::console.error
 const errors = []
 console.error = /* istanbul ignore next */ (...args) => errors.push(args)
 
-/**
+/*
  * Helper method to retrieve a version of `fibers` for your Node version.
  */
 try {
-    /**
+    /*
      * try original fibers package first
      */
     // eslint-disable-next-line import/no-unresolved
@@ -28,7 +28,7 @@ try {
 
 if (!Fiber || !Future) {
     try {
-        /**
+        /*
          * fallback to fibers compiled for Node v8
          */
         // eslint-disable-next-line import/no-unresolved
@@ -42,7 +42,7 @@ if (!Fiber || !Future) {
 
 console.error = origErrorFn
 
-/**
+/*
  * throw if no fibers could be loaded
  */
 if (!Fiber || !Future) {

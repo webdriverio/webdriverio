@@ -1,7 +1,7 @@
 import { circleAction, arcAction, innerArcAction } from './helpers/drawHelper'
 import { remote } from '../../packages/webdriverio/build'
 
-/**
+/*
  * in order to test this you need to compile the app from the old v4 repository
  * (https://github.com/webdriverio-boneyard/v4/blob/master/package.json#L34)
  */

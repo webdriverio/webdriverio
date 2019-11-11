@@ -22,7 +22,7 @@ const executeSync = async function (fn, retries, args = []) {
         let res = fn.apply(this, args)
         global._HAS_FIBER_CONTEXT = false
 
-        /**
+        /*
          * sometimes function result is Promise,
          * we need to await result before proceeding
          */
@@ -37,7 +37,7 @@ const executeSync = async function (fn, retries, args = []) {
             return await executeSync(fn, retries, args)
         }
 
-        /**
+        /*
          * no need to modify stack if no stack available
          */
         if (!e.stack) {

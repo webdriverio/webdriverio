@@ -1,13 +1,13 @@
 import Page from './page'
 
 class DynamicPage extends Page {
-    /**
+    /*
      * define elements
      */
     get btnStart () { return $('button=Start') }
     get loadedPage () { return $('#finish') }
 
-    /**
+    /*
      * define or overwrite page methods
      */
     open () {

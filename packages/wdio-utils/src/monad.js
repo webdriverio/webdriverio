@@ -9,7 +9,7 @@ const SCOPE_TYPES = {
 }
 
 export default function WebDriver (options, modifier, propertiesObject = {}) {
-    /**
+    /*
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
      * advantages just provides better description of objects when debugging them
@@ -30,7 +30,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
         propertiesObject.options = { value: options }
 
-        /**
+        /*
          * allow to wrap commands if necessary
          * e.g. in wdio-cli to make them synchronous
          */
@@ -45,12 +45,12 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             }
         }
 
-        /**
+        /*
          * overwrite native element commands with user defined
          */
         overwriteElementCommands.call(this, propertiesObject)
 
-        /**
+        /*
          * assign propertiesObject to itself so the client can be recreated
          */
         propertiesObject['__propertiesObject__'] = { value: propertiesObject }
@@ -58,7 +58,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId
 
-        /**
+        /*
          * register capabilities only to browser scope
          */
         if (scopeType.name === 'Browser') {
@@ -74,7 +74,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
-                /**
+                /*
                  * add command to every multiremote instance
                  */
                 if (instances) {
@@ -106,14 +106,14 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 : func
             if (attachToElement) {
                 if (instances) {
-                    /**
+                    /*
                      * add command to every multiremote instance
                      */
                     Object.values(instances).forEach(instance => {
                         instance.__propertiesObject__.__elementOverrides__.value[name] = customCommand
                     })
                 } else {
-                    /**
+                    /*
                      * regular mode
                      */
                     this.__propertiesObject__.__elementOverrides__.value[name] = customCommand
@@ -141,7 +141,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         (proto || prototype)[name] = function next (...args) {
             log.info('COMMAND', commandCallStructure(name, args))
 
-            /**
+            /*
              * set name of function for better error stack
              */
             Object.defineProperty(func, 'name', {
@@ -151,7 +151,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
 
             const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
-            /**
+            /*
              * always transform result into promise as we don't know whether or not
              * the user is running tests with wdio-sync or not
              */
@@ -164,7 +164,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         }
     }
 
-    /**
+    /*
      * register event emitter
      */
     for (let eventCommand in EVENTHANDLER_FUNCTIONS) {

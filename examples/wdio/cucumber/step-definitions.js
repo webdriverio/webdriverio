@@ -1,4 +1,4 @@
-/**
+/*
  * to run these tests you need install Cucumber.js on your machine
  * take a look at https://github.com/cucumber/cucumber-js for more informations
  *

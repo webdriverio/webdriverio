@@ -1,3 +1,9 @@
+import fs from 'fs'
+import { getElement } from '../../utils/getElementObject'
+import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
+
+const resqScript = fs.readFileSync(require.resolve('resq'))
+
 /**
  *
  * The `react$` command is a useful command to query React Components by their
@@ -27,12 +33,6 @@
  * @return {Element}
  *
  */
-import fs from 'fs'
-import { getElement } from '../../utils/getElementObject'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
-
-const resqScript = fs.readFileSync(require.resolve('resq'))
-
 export default async function react$(selector, props = {}, state = {}) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)

@@ -1,3 +1,7 @@
+import { getElement } from '../../utils/getElementObject'
+import { getBrowserObject } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
+
 /**
  *
  * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
@@ -22,10 +26,6 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-import { getElement } from '../../utils/getElementObject'
-import { getBrowserObject } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
-
 async function custom$ (strategyName, strategyArguments) {
     const browserObject = getBrowserObject(this)
     const strategy = browserObject.strategies.get(strategyName)
@@ -34,7 +34,7 @@ async function custom$ (strategyName, strategyArguments) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    /**
+    /*
      * fail if root element is not found, similar to:
      * $('.notExisting').$('.someElem')
      */
@@ -44,7 +44,7 @@ async function custom$ (strategyName, strategyArguments) {
 
     let res = await this.execute(strategy, strategyArguments, this)
 
-    /**
+    /*
      * if the user's script returns multiple elements
      * then we just return the first one as this method
      * is intended to return just one element

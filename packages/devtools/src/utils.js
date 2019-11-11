@@ -9,7 +9,7 @@ const log = logger('devtools')
 
 export const validate = function (command, parameters, variables, ref, args) {
     const commandParams = [...variables.map((v) => Object.assign(v, {
-        /**
+        /*
          * url variables are:
          */
         required: true, // always required as they are part of the endpoint
@@ -20,7 +20,7 @@ export const validate = function (command, parameters, variables, ref, args) {
     const moreInfo = `\n\nFor more info see ${ref}\n`
     const body = {}
 
-    /**
+    /*
      * parameter check
      */
     const minAllowedParams = commandParams.filter((param) => param.required).length
@@ -37,14 +37,14 @@ export const validate = function (command, parameters, variables, ref, args) {
         )
     }
 
-    /**
+    /*
      * parameter type check
      */
     for (const [i, arg] of Object.entries(args)) {
         const commandParam = commandParams[i]
 
         if (!isValidParameter(arg, commandParam.type)) {
-            /**
+            /*
              * ignore if argument is not required
              */
             if (typeof arg === 'undefined' && !commandParam.required) {
@@ -59,7 +59,7 @@ export const validate = function (command, parameters, variables, ref, args) {
             )
         }
 
-        /**
+        /*
          * rest of args are part of body payload
          */
         body[commandParams[i].name] = arg
@@ -82,7 +82,7 @@ export function getPrototype (commandWrapper) {
 }
 
 export async function findElement (context, using, value) {
-    /**
+    /*
      * implicitly wait for the element if timeout is set
      */
     const implicitTimeout = this.timeouts.get('implicit')
@@ -97,7 +97,7 @@ export async function findElement (context, using, value) {
             ? (await context.$x(value))[0]
             : await context.$(value)
     } catch (err) {
-        /**
+        /*
          * throw if method failed for other reasons
          */
         if (!err.message.includes('failed to find element')) {
@@ -114,7 +114,7 @@ export async function findElement (context, using, value) {
 }
 
 export async function findElements (context, using, value) {
-    /**
+    /*
      * implicitly wait for the element if timeout is set
      */
     const implicitTimeout = this.timeouts.get('implicit')
@@ -222,7 +222,7 @@ export async function getPages (browser, retryInterval = 100) {
     if (pages.length === 0) {
         log.info('no browser pages found, retrying...')
 
-        /**
+        /*
          * wait for some milliseconds to try again
          */
         await new Promise((resolve) => setTimeout(resolve, retryInterval))

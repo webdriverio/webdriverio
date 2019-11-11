@@ -56,7 +56,7 @@ export default class DevToolsService {
             const page = await this.devtoolsDriver.getActivePage()
             page.on('requestfailed', ::this.traceGatherer.onFrameLoadFail)
 
-            /**
+            /*
              * enable domains for client
              */
             await Promise.all(['Page', 'Network', 'Console'].map(
@@ -79,7 +79,7 @@ export default class DevToolsService {
         global.browser.addCommand('disablePerformanceAudits', ::this._disablePerformanceAudits)
         global.browser.addCommand('emulateDevice', ::this._emulateDevice)
 
-        /**
+        /*
          * allow user to work with Puppeteer directly
          */
         global.browser.addCommand('getPuppeteer',
@@ -91,7 +91,7 @@ export default class DevToolsService {
             return
         }
 
-        /**
+        /*
          * set browser profile
          */
         this._setThrottlingProfile(this.networkThrottling, this.cpuThrottling, this.cacheEnabled)
@@ -105,7 +105,7 @@ export default class DevToolsService {
             return
         }
 
-        /**
+        /*
          * update custom commands once tracing finishes
          */
         this.traceGatherer.once('tracingComplete', (traceEvents) => {
@@ -123,7 +123,7 @@ export default class DevToolsService {
         return new Promise((resolve) => {
             log.info(`Wait until tracing for command ${commandName} finishes`)
 
-            /**
+            /*
              * wait until tracing stops
              */
             this.traceGatherer.once('tracingFinished', async () => {

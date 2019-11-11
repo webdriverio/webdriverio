@@ -37,7 +37,7 @@ export default function debug(commandTimeout = 5000) {
     const repl = new WDIORepl()
     const { introMessage } = WDIORepl
 
-    /**
+    /*
      * run repl in standalone mode
      */
     if (!process.env.WDIO_WORKER) {
@@ -52,12 +52,12 @@ export default function debug(commandTimeout = 5000) {
         return repl.start(context)
     }
 
-    /**
+    /*
      * register worker process as debugger target
      */
     process._debugProcess(process.pid)
 
-    /**
+    /*
      * initialise repl in testrunner
      */
     process.send({
@@ -91,7 +91,7 @@ export default function debug(commandTimeout = 5000) {
                     })
                 }
 
-                /**
+                /*
                  * try to do some smart serializations
                  */
                 if (typeof result === 'function') {

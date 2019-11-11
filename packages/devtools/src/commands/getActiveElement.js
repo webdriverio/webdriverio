@@ -7,7 +7,7 @@ export default async function getActiveElement () {
     const page = this.getPageHandle(true)
     const selector = `[${SERIALIZE_PROPERTY}]`
 
-    /**
+    /*
      * set data property to active element to allow to query for it
      */
     const hasElem = await page.$eval('html', command, SERIALIZE_PROPERTY)
@@ -16,7 +16,7 @@ export default async function getActiveElement () {
         throw new Error('no element active')
     }
 
-    /**
+    /*
      * query for element
      */
     const activeElement = await findElement.call(this, {
@@ -24,7 +24,7 @@ export default async function getActiveElement () {
         value: selector
     })
 
-    /**
+    /*
      * clean up data property
      */
     await page.$eval(selector, cleanUp, SERIALIZE_PROPERTY)

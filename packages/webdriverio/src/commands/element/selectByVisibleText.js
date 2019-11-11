@@ -1,3 +1,5 @@
+import { getElementFromResponse } from '../../utils'
+
 /**
  *
  * Select option with displayed text matching the argument.
@@ -27,11 +29,8 @@
  * @type action
  *
  */
-
-import { getElementFromResponse } from '../../utils'
-
 export default async function selectByVisibleText (text) {
-    /**
+    /*
      * convert value into string
      */
     text = typeof text === 'number'
@@ -42,7 +41,7 @@ export default async function selectByVisibleText (text) {
         .trim() // strip leading and trailing white-space characters
         .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
 
-    /**
+    /*
     * find option element using xpath
     */
     const formatted = /"/.test(normalized)
@@ -64,7 +63,7 @@ export default async function selectByVisibleText (text) {
         throw new Error(`Option with text "${text}" not found.`)
     }
 
-    /**
+    /*
     * select option
     */
     return this.elementClick(getElementFromResponse(optionElement))

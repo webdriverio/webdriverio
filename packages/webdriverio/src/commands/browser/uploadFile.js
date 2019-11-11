@@ -1,3 +1,7 @@
+import fs from 'fs'
+import path from 'path'
+import archiver from 'archiver'
+
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
  * (e.g. Chromedriver) by using the [`file`](/api/protocol/file.html) command.
@@ -22,19 +26,15 @@
  * @uses protocol/file
  * @return {String} remote URL
  */
-import fs from 'fs'
-import path from 'path'
-import archiver from 'archiver'
-
 export default async function uploadFile (localPath) {
-    /**
+    /*
      * parameter check
      */
     if (typeof localPath !== 'string') {
         throw new Error('number or type of arguments don\'t agree with uploadFile command')
     }
 
-    /**
+    /*
      * check if command is available
      */
     if (typeof this.file !== 'function') {

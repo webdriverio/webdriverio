@@ -3,7 +3,7 @@ import { getValue, setValue, setPort } from './client'
 
 export default class SharedStoreService {
     async beforeSession () {
-        /**
+        /*
          * get port from parent's pid file saved in `onPrepare` hook
          */
         const port = await readFile(getPidPath(process.ppid))

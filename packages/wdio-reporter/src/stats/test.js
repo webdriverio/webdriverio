@@ -14,7 +14,7 @@ export default class TestStats extends RunnableStats {
         this.output = []
         this.argument = test.argument
 
-        /**
+        /*
          * initial test state is pending
          * the state can change to the following: passed, skipped, failed
          */

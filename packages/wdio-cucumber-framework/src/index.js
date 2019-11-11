@@ -61,7 +61,7 @@ class CucumberAdapter {
     }
 
     hasTests () {
-        /**
+        /*
          * Avoid spec filtering only if the feature is disabled explicitly
          * The feature has no impact on how framework/browser session is initialised.
          */
@@ -76,14 +76,14 @@ class CucumberAdapter {
             this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
 
-            /**
+            /*
              * wdio hooks should be added before spec files are loaded
              */
             this.addWdioHooks(this.config)
             this.loadSpecFiles()
             this.wrapSteps(this.config)
 
-            /**
+            /*
              * we need to somehow identify is function is step or hook
              * so we wrap every user hook function
              */
@@ -108,7 +108,7 @@ class CucumberAdapter {
 
             result = await runtime.start() ? 0 : 1
 
-            /**
+            /*
              * if we ignore undefined definitions we trust the reporter
              * with the fail count
              */
@@ -122,7 +122,7 @@ class CucumberAdapter {
 
         await executeHooksWithArgs(this.config.after, [runtimeError || result, this.capabilities, this.specs])
 
-        /**
+        /*
          * in case the spec has a runtime error throw after the wdio hook
          */
         if (runtimeError) {
@@ -218,14 +218,14 @@ class CucumberAdapter {
         const getCurrentStep = () => this.getCurrentStep()
 
         Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
-            /**
+            /*
              * hooks defined in wdio.conf are already wrapped
              */
             if (fn.name.startsWith('wdioHook')) {
                 return fn
             }
 
-            /**
+            /*
              * this flag is used to:
              * - avoid hook retry
              * - avoid wrap hooks with beforeStep and afterStep
@@ -249,7 +249,7 @@ class CucumberAdapter {
      */
     wrapStep (code, retryTest = 0, isStep, config, cid, getCurrentStep) {
         return function (...args) {
-            /**
+            /*
              * wrap user step/hook with wdio before/after hooks
              */
             const { uri, feature } = getDataFromResult(global.result)

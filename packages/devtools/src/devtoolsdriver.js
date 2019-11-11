@@ -33,7 +33,7 @@ export default class DevToolsDriver {
             this.currentWindowHandle = pageId
         }
 
-        /**
+        /*
          * set default timeouts
          */
         this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
@@ -55,14 +55,14 @@ export default class DevToolsDriver {
         const self = this
         const { command, ref, parameters, variables = [] } = commandInfo
 
-        /**
+        /*
          * check if command is implemented
          */
         if (typeof this.commands[command] !== 'function') {
             return () => { throw new Error(`Command "${command}" is not yet implemented`) }
         }
 
-        /**
+        /*
          * within here you find the webdriver scope
          */
         const wrappedCommand = async function (...args) {
@@ -73,7 +73,7 @@ export default class DevToolsDriver {
             try {
                 result = await self.commands[command].call(self, params)
             } catch (err) {
-                /**
+                /*
                  * if though we check for an execution context before executing a command we
                  * can technically still run into the situation (especially if the command
                  * contains multiple interaction with the page and is long) where the execution
@@ -142,13 +142,13 @@ export default class DevToolsDriver {
     }
 
     async checkPendingNavigations (pendingNavigationStart) {
-        /**
+        /*
          * ensure there is no page transition happening and an execution context
          * is available
          */
         let page = this.getPageHandle()
 
-        /**
+        /*
          * ignore pending navigation check if dialog is open
          * or there are no pages
          */
@@ -159,7 +159,7 @@ export default class DevToolsDriver {
         pendingNavigationStart = pendingNavigationStart || Date.now()
         const pageloadTimeout = this.timeouts.get('pageLoad')
 
-        /**
+        /*
          * if current page is a frame we have to get the page from the browser
          * that has this frame listed
          */
@@ -175,7 +175,7 @@ export default class DevToolsDriver {
         try {
             await executionContext.evaluate('1')
 
-            /**
+            /*
              * if we have an execution context, also check for the ready state
              */
             const readyState = await executionContext.evaluate('document.readyState')
@@ -183,7 +183,7 @@ export default class DevToolsDriver {
                 return this.checkPendingNavigations(pendingNavigationStart)
             }
         } catch (err) {
-            /**
+            /*
              * throw original error if a context could not be established
              */
             if (pageloadTimeoutReached) {

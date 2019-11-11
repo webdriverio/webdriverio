@@ -65,7 +65,7 @@ export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnAr
  */
 export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid) {
     return function (...specArguments) {
-        /**
+        /*
          * Variadic arguments:
          * [title, fn], [title], [fn]
          * [title, fn, retryCnt], [title, retryCnt], [fn, retryCnt]
@@ -78,7 +78,7 @@ export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn
         if (isSpec) {
             if (specFn) return runSpec(specTitle, specFn, origFn, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid, retryCnt)
 
-            /**
+            /*
              * if specFn is undefined we are dealing with a pending function
              */
             return origFn(specTitle)

@@ -9,7 +9,7 @@ import { INTERFACES, EVENTS, NOOP } from './constants'
 
 const log = logger('@wdio/mocha-framework')
 
-/**
+/*
 * Extracts the mocha UI type following this convention:
 *  - If the mochaOpts.ui provided doesn't contain a '-' then the full name
 *      is taken as ui type (i.e. 'bdd','tdd','qunit')
@@ -63,7 +63,7 @@ class MochaAdapter {
         try {
             this.mocha.loadFiles()
 
-            /**
+            /*
              * grep
              */
             const mochaRunner = new Mocha.Runner(this.mocha.suite)
@@ -84,7 +84,7 @@ class MochaAdapter {
     }
 
     hasTests () {
-        /**
+        /*
          * filter specs only if feature enabled explicitly to avoid breaking changes.
          * If the feature is enabled user should avoid interacting with `browser` object before session is started
          */
@@ -110,7 +110,7 @@ class MochaAdapter {
         })
         await executeHooksWithArgs(this.config.after, [runtimeError || result, this.capabilities, this.specs])
 
-        /**
+        /*
          * in case the spec has a runtime error throw after the wdio hook
          */
         if (runtimeError) {
@@ -202,7 +202,7 @@ class MochaAdapter {
                 actual: params.err.actual
             }
 
-            /**
+            /*
              * hook failures are emitted as "test:fail"
              */
             if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all)*" hook/g)) {
@@ -219,7 +219,7 @@ class MochaAdapter {
             message.file = params.payload.file
             message.duration = params.payload.duration
 
-            /**
+            /*
              * Add the current test title to the payload for cases where it helps to
              * identify the test, e.g. when running inside a beforeEach hook
              */
@@ -254,7 +254,7 @@ class MochaAdapter {
     }
 
     emit (event, payload, err) {
-        /**
+        /*
          * For some reason, Mocha fires a second 'suite:end' event for the root suite,
          * with no matching 'suite:start', so this can be ignored.
          */

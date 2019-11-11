@@ -9,7 +9,7 @@ const { generateReportersAndServicesDocs } = require('./packagesDocs')
 const { generate3rdPartyDocs } = require('./3rdPartyDocs')
 
 async function generateDocs() {
-    /**
+    /*
      * NOTE: all generate docs functions mutate `sidebars` object!
      */
 

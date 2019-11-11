@@ -21,18 +21,18 @@ const BROWSER_DRIVER_ERRORS = [
  * start browser session with WebDriver protocol
  */
 export async function startWebDriverSession (params) {
-    /**
+    /*
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
     const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
-        /**
+        /*
          * in case W3C compliant capabilities are provided
          */
         ? [params.capabilities, params.capabilities.alwaysMatch]
-        /**
+        /*
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
@@ -56,13 +56,13 @@ export async function startWebDriverSession (params) {
     }
     const sessionId = response.value.sessionId || response.sessionId
 
-    /**
+    /*
      * save original set of capabilities to allow to request the same session again
      * (e.g. for reloadSession command in WebdriverIO)
      */
     params.requestedCapabilities = { w3cCaps, jsonwpCaps }
 
-    /**
+    /*
      * save actual receveived session details
      */
     params.capabilities = response.value.capabilities || response.value
@@ -76,7 +76,7 @@ export async function startWebDriverSession (params) {
  * @return {Boolean}       true if request was successful
  */
 export function isSuccessfulResponse (statusCode, body) {
-    /**
+    /*
      * response contains a body
      */
     if (!body || typeof body.value === 'undefined') {
@@ -84,7 +84,7 @@ export function isSuccessfulResponse (statusCode, body) {
         return false
     }
 
-    /**
+    /*
      * ignore failing element request to enable lazy loading capability
      */
     if (
@@ -100,7 +100,7 @@ export function isSuccessfulResponse (statusCode, body) {
         return true
     }
 
-    /**
+    /*
      * if it has a status property, it should be 0
      * (just here to stay backwards compatible to the jsonwire protocol)
      */
@@ -111,14 +111,14 @@ export function isSuccessfulResponse (statusCode, body) {
 
     const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
 
-    /**
+    /*
      * check status code
      */
     if (statusCode === 200 && !hasErrorResponse) {
         return true
     }
 
-    /**
+    /*
      * if an element was not found we don't flag it as failed request because
      * we lazy load it
      */
@@ -126,7 +126,7 @@ export function isSuccessfulResponse (statusCode, body) {
         return true
     }
 
-    /**
+    /*
      * that has no error property (Appium only)
      */
     if (hasErrorResponse) {
@@ -143,7 +143,7 @@ export function isSuccessfulResponse (statusCode, body) {
 export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
     const prototype = {}
     const ProtocolCommands = merge(
-        /**
+        /*
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium
          * (e.g. set/get geolocation)
@@ -151,19 +151,19 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
         isMobile
             ? merge({}, JsonWProtocol, WebDriverProtocol)
             : isW3C ? WebDriverProtocol : JsonWProtocol,
-        /**
+        /*
          * only apply mobile protocol if session is actually for mobile
          */
         isMobile ? merge({}, MJsonWProtocol, AppiumProtocol) : {},
-        /**
+        /*
          * only apply special Chrome commands if session is using Chrome
          */
         isChrome ? ChromiumProtocol : {},
-        /**
+        /*
          * only Sauce Labs specific vendor commands
          */
         isSauce ? SauceLabsProtocol : {},
-        /**
+        /*
          * only apply special commands when running tests using
          * Selenium Grid or Selenium Standalone server
          */

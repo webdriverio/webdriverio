@@ -13,7 +13,7 @@ export default async function elementClick ({ elementId }) {
         throw getStaleElementError(elementId)
     }
 
-    /**
+    /*
      * in order to allow clicking on option elements (as WebDriver does)
      * we need to check if the element is such a an element and select
      * it instead of actually executing the click
@@ -26,18 +26,18 @@ export default async function elementClick ({ elementId }) {
         })
     }
 
-    /**
+    /*
      * ensure to fulfill the click promise if the click has triggered an alert
      */
     return new Promise((resolve, reject) => {
-        /**
+        /*
          * listen on possible modal dialogs that might pop up due to the
          * click action, just continue in this case
          */
         const dialogHandler = () => resolve(null)
         page.once('dialog', dialogHandler)
         return elementHandle.click().then(() => {
-            /**
+            /*
              * no modals popped up, so clean up the listener
              */
             page.removeListener('dialog', dialogHandler)

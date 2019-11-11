@@ -33,7 +33,7 @@ export const run = async () => {
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })
         .epilogue(CLI_EPILOGUE)
 
-    /**
+    /*
      * parse CLI arguments according to what run expects, without this adding
      * `--spec ./test.js` results in propagating the spec parameter as a
      * string while in reality is should be parsed into a array of strings
@@ -42,7 +42,7 @@ export const run = async () => {
         argv.options(cmdArgs)
     }
 
-    /**
+    /*
      * The only way we reach this point is if the user runs the binary without a command (i.e. wdio wdio.conf.js)
      * We can safely assume that if this is the case, the user is trying to execute the `run` command as it
      * was previous to https://github.com/webdriverio/webdriverio/pull/4402

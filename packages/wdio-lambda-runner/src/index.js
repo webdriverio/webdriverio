@@ -31,7 +31,7 @@ export default class AWSLambdaRunner extends EventEmitter {
     }
 
     async initialise () {
-        /**
+        /*
          * generate temp dir for AWS service
          */
         this.serviceDir = tmp.dirSync({
@@ -42,12 +42,12 @@ export default class AWSLambdaRunner extends EventEmitter {
 
         log.info('Generating temporary AWS Lamdba service directory at %s', this.serviceDir.name)
 
-        /**
+        /*
          * link node_modules
          */
         this.link(this.nodeModulesDir, path.resolve(this.serviceDir.name, 'node_modules'))
 
-        /**
+        /*
          * link wdio config
          */
         this.link(
@@ -55,14 +55,14 @@ export default class AWSLambdaRunner extends EventEmitter {
             path.resolve(this.serviceDir.name, this.configFile)
         )
 
-        /**
+        /*
          * link specs
          */
         this.specs.forEach((spec) => {
             this.link(spec, path.join(this.serviceDir.name, spec.replace(process.cwd(), '')))
         })
 
-        /**
+        /*
          * create config
          */
         const runnerConfig = Object.assign(DEFAULT_CONFIG, {
@@ -73,7 +73,7 @@ export default class AWSLambdaRunner extends EventEmitter {
             }
         })
 
-        /**
+        /*
          * copy over files
          */
         shell.cp(path.resolve(__dirname, '..', 'config', 'serverless.yml'), path.resolve(this.serviceDir.name, 'serverless.yml'))
@@ -116,7 +116,7 @@ export default class AWSLambdaRunner extends EventEmitter {
             const child = shell.exec(script, { async: true, silent: true })
             child.stdout.on('data', (stdout) => {
                 const trimmedStdout = stdout.trim().replace(/^Serverless: /, '')
-                /**
+                /*
                  * in case stdout is starting with `{` we assume it
                  * is the resulrt of serverless.run therefor return
                  * json
@@ -128,7 +128,7 @@ export default class AWSLambdaRunner extends EventEmitter {
             })
             child.stderr.on('data', ::log.error)
             child.on('close', (code) => {
-                /**
+                /*
                  * ...otherwise resolve with status code
                  */
                 if (code === 0) {

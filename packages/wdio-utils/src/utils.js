@@ -83,7 +83,7 @@ export function isValidParameter (arg, expectedType) {
         shouldBeArray = true
     }
 
-    /**
+    /*
      * check type of each individual array element
      */
     if (shouldBeArray) {
@@ -91,7 +91,7 @@ export function isValidParameter (arg, expectedType) {
             return false
         }
     } else {
-        /**
+        /*
          * transform to array to have a unified check
          */
         arg = [arg]
@@ -123,7 +123,7 @@ export function getArgumentType (arg) {
 export function safeRequire (name) {
     let requirePath
     try {
-        /**
+        /*
          * Check if cli command was called from local directory, if not require
          * the plugin from the place where the command is called. This avoids
          * issues where user have the @wdio/cli package installed globally
@@ -136,7 +136,7 @@ export function safeRequire (name) {
         if (!require.main.paths.includes(localNodeModules)) {
             require.main.paths.push(localNodeModules)
 
-            /**
+            /*
              * don't set requireOpts when running unit tests as it
              * confuses Jest require magic
              */

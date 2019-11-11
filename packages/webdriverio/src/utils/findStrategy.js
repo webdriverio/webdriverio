@@ -187,7 +187,7 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     }
     }
 
-    /**
+    /*
      * ensure selector strategy is supported
      */
     if (!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {

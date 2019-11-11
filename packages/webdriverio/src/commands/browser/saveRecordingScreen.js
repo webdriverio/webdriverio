@@ -1,3 +1,6 @@
+import fs from 'fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
 /**
  *
  * Appium only. Save a video started by startRecordingScreen command to file.
@@ -18,12 +21,8 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function saveRecordingScreen (filepath) {
-    /**
+    /*
      * type check
      */
     if (typeof filepath !== 'string') {

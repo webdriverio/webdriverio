@@ -1,3 +1,6 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import isElementInViewportScript from '../../scripts/isElementInViewport'
 
 /**
  *
@@ -35,11 +38,6 @@
  * @type state
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isElementInViewportScript from '../../scripts/isElementInViewport'
-
 export default async function isDisplayedInViewport () {
     if (!await this.isDisplayed()) {
         return false

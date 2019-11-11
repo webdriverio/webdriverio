@@ -34,7 +34,7 @@ export default class ProtocolStub {
             return ProtocolStub.newSession(options)
         }
 
-        /**
+        /*
          * MultiRemote
          */
         return addCommands(modifier({

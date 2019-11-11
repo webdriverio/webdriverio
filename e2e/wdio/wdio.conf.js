@@ -1,17 +1,17 @@
 const path = require('path')
 
 exports.config = {
-    /**
+    /*
      * run tests with devtools
      */
     automationProtocol: 'devtools',
 
-    /**
+    /*
      * specify test files
      */
     specs: [path.resolve(__dirname, '*.e2e.js')],
 
-    /**
+    /*
      * capabilities
      */
     capabilities: [{
@@ -28,7 +28,7 @@ exports.config = {
         'goog:chromeOptions': { headless: true }
     }],
 
-    /**
+    /*
      * test configurations
      */
     logLevel: 'trace',

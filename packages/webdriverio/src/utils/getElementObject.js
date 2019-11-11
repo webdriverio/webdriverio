@@ -19,12 +19,12 @@ export const getElement = function findElement (selector, res, isReactElement = 
         const elementId = getElementFromResponse(res)
 
         if (elementId) {
-            /**
+            /*
              * set elementId for easy access
              */
             client.elementId = elementId
 
-            /**
+            /*
              * set element id with proper key so element can be passed into execute commands
              */
             if (this.isW3C) {
@@ -69,12 +69,12 @@ export const getElements = function getElements (selector, res, isReactElement =
             const elementId = getElementFromResponse(res)
 
             if (elementId) {
-                /**
+                /*
                  * set elementId for easy access
                  */
                 client.elementId = elementId
 
-                /**
+                /*
                  * set element id with proper key so element can be passed into execute commands
                  */
                 if (this.isW3C) {

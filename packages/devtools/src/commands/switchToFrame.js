@@ -4,7 +4,7 @@ import { getStaleElementError } from '../utils'
 export default async function switchToFrame ({ id }) {
     const page = this.getPageHandle(true)
 
-    /**
+    /*
      * switch frame by element ID
      */
     if (typeof id[ELEMENT_KEY] === 'string') {
@@ -24,11 +24,11 @@ export default async function switchToFrame ({ id }) {
         return null
     }
 
-    /**
+    /*
      * switch frame by number
      */
     if (typeof id === 'number') {
-        /**
+        /*
          * `page` has `frames` method while `frame` has `childFrames` method
          */
         let getFrames = page.frames || page.childFrames
@@ -43,7 +43,7 @@ export default async function switchToFrame ({ id }) {
         return null
     }
 
-    /**
+    /*
      * switch to parent frame
      */
     if (id === null && typeof page.parentFrame === 'function') {

@@ -2,25 +2,25 @@ const path = require('path')
 
 exports.config = {
 
-    /**
+    /*
      * server configurations
      */
     hostname: 'localhost',
     port: 4444,
 
-    /**
+    /*
      * specify test files
      */
     specs: [path.resolve(__dirname, 'jasmine.spec.js')],
 
-    /**
+    /*
      * capabilities
      */
     capabilities: [{
         browserName: 'chrome'
     }],
 
-    /**
+    /*
      * test configurations
      */
     logLevel: 'trace',
@@ -33,7 +33,7 @@ exports.config = {
         defaultTimeoutInterval: 1000 * 60 * 3
     },
 
-    /**
+    /*
      * hooks
      */
     onPrepare: function() {

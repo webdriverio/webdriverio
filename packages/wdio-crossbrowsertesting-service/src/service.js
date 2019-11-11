@@ -41,7 +41,7 @@ export default class CrossBrowserTestingService {
             return
         }
 
-        /**
+        /*
          * in jasmine we get Jasmine__TopLevel__Suite as title since service using test
          * framework hooks in order to execute async functions.
          * This tweak allows us to set the real suite name for jasmine jobs.
@@ -68,7 +68,7 @@ export default class CrossBrowserTestingService {
         }
     }
 
-    /**
+    /*
      * For CucumberJS
      */
 
@@ -108,7 +108,7 @@ export default class CrossBrowserTestingService {
 
         let failures = this.failures
 
-        /**
+        /*
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
@@ -177,12 +177,12 @@ export default class CrossBrowserTestingService {
     getBody (failures, calledOnReload = false, browserName) {
         let body = { test: {} }
 
-        /**
+        /*
          * set default values
          */
         body.test['name'] = this.suiteTitle
 
-        /**
+        /*
          * add reload count to title if reload is used
          */
         if (calledOnReload || this.testCnt) {

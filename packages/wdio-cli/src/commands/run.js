@@ -144,7 +144,7 @@ export async function handler(argv) {
     const localConf = path.join(process.cwd(), 'wdio.conf.js')
     const wdioConf = configPath || (fs.existsSync(localConf) ? localConf : null)
 
-    /**
+    /*
      * if `--watch` param is set, run launcher in watch mode
      */
     if (params.watch) {
@@ -152,7 +152,7 @@ export async function handler(argv) {
         return watcher.watch()
     }
 
-    /**
+    /*
      * if stdin.isTTY, then no piped input is present and launcher should be
      * called immediately, otherwise piped input is processed, expecting
      * a list of files to process.

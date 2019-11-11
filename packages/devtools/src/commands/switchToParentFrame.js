@@ -1,7 +1,7 @@
 export default async function switchToParentFrame () {
     const page = this.getPageHandle(true)
 
-    /**
+    /*
      * check if we can access child frames, if now we are already in the
      * parent browsing context
      */

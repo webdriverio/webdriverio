@@ -34,7 +34,7 @@ class JunitReporter extends WDIOReporter {
             : runner.sanitizedCapabilities
 
         for (let suiteKey of Object.keys(this.suites)) {
-            /**
+            /*
              * ignore root before all
              */
             /* istanbul ignore if  */
@@ -55,7 +55,7 @@ class JunitReporter extends WDIOReporter {
                 .property('capabilities', runner.sanitizedCapabilities)
                 .property('file', specFileName.replace(process.cwd(), '.'))
 
-            /**
+            /*
              * Add failed before and after all hooks to suite as tests.
              */
             const failedHooks = suite.hooks.filter(hook => hook.error && (hook.title === '"before all" hook' || hook.title === '"after all" hook'))

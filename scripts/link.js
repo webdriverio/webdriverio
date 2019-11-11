@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/**
+/*
  * This script initialises the playground by linking all package into the /test directory
  */
 

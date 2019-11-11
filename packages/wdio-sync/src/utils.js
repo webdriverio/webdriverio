@@ -20,7 +20,7 @@ export function sanitizeErrorMessage (commandError, savedError) {
 
     let stackArr = savedError.stack.split('\n')
 
-    /**
+    /*
      * merge stack traces if `commandError` has stack trace
      */
     if (stack) {

@@ -1,3 +1,5 @@
+import { parseCSS } from '../../utils'
+
 /**
  *
  * Get a css property from a DOM-element selected by given selector. The return value
@@ -64,9 +66,6 @@
  * @type property
  *
  */
-
-import { parseCSS } from '../../utils'
-
 export default async function getCSSProperty (cssProperty) {
     const cssValue = await this.getElementCSSValue(this.elementId, cssProperty)
     return parseCSS(cssValue, cssProperty)

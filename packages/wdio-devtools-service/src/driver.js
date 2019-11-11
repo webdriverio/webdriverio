@@ -11,7 +11,7 @@ export default class DevToolsDriver {
     constructor (browser) {
         this.browser = browser
 
-        /**
+        /*
          * ToDo (Christian): handle target changes
          * this should usually never happens as we only connect within one
          * target within the VM so maybe we can discard this

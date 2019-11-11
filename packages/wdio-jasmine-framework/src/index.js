@@ -52,17 +52,17 @@ class JasmineAdapter {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this.jasmineNodeOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
         jasmineEnv.addReporter(this.reporter)
 
-        /**
+        /*
          * Set whether to stop suite execution when a spec fails
          */
         const stopOnSpecFailure = !!this.jasmineNodeOpts.stopOnSpecFailure
 
-        /**
+        /*
          * Set whether to stop spec execution when an expectation fails
         */
         const stopSpecOnExpectationFailure = !!this.jasmineNodeOpts.stopSpecOnExpectationFailure
 
-        /**
+        /*
          * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
          */
         jasmineEnv.configure({
@@ -73,7 +73,7 @@ class JasmineAdapter {
             failFast: this.jasmineNodeOpts.failFast
         })
 
-        /**
+        /*
          * enable expectHandler
          */
         jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
@@ -93,7 +93,7 @@ class JasmineAdapter {
             this.reporter.emit('hook:' + eventType, hook)
         }
 
-        /**
+        /*
          * wrap commands with wdio-sync
          */
         INTERFACES['bdd'].forEach((fnName) => {
@@ -101,7 +101,7 @@ class JasmineAdapter {
             const beforeHook = [...this.config.beforeHook]
             const afterHook = [...this.config.afterHook]
 
-            /**
+            /*
              * add beforeAll and afterAll hooks to reporter
              */
             if (fnName.includes('All')) {
@@ -120,13 +120,13 @@ class JasmineAdapter {
             )
         })
 
-        /**
+        /*
          * for a clean stdout we need to avoid that Jasmine initialises the
          * default reporter
          */
         Jasmine.prototype.configureDefaultReporter = NOOP
 
-        /**
+        /*
          * wrap Suite and Spec prototypes to get access to their data
          */
         let beforeAllMock = jasmine.Suite.prototype.beforeAll
@@ -185,7 +185,7 @@ class JasmineAdapter {
     }
 
     hasTests () {
-        /**
+        /*
          * filter specs only if feature enabled explicitly to avoid breaking changes.
          * If the feature is enabled user should avoid interacting with `browser` object before session is started
          */
@@ -297,7 +297,7 @@ class JasmineAdapter {
             try {
                 expectationResultHandler.call(this, passed, data)
             } catch (e) {
-                /**
+                /*
                  * propagate expectationResultHandler error if actual assertion passed
                  * but the custom handler decides to throw
                  */

@@ -1,3 +1,4 @@
+import newWindowHelper from '../../scripts/newWindow'
 
 /**
  *
@@ -29,9 +30,6 @@
  * @alias browser.newWindow
  * @type window
  */
-
-import newWindowHelper from '../../scripts/newWindow'
-
 export default async function newWindow (url, windowName = 'New Window', windowFeatures = '') {
     /*!
      * parameter check

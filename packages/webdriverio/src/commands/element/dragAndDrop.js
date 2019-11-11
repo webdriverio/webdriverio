@@ -1,3 +1,7 @@
+import { getElementRect, getScrollPosition } from '../../utils'
+
+const ACTION_BUTTON = 0
+
 /**
  *
  * Drag an item to a destination element.
@@ -9,11 +13,6 @@
  * @type action
  *
  */
-
-import { getElementRect, getScrollPosition } from '../../utils'
-
-const ACTION_BUTTON = 0
-
 export default async function dragAndDrop (target, duration = 100) {
     if (!target || target.constructor.name !== 'Element') {
         throw new Error('command dragAndDrop requires an WebdriverIO Element as first parameter')
@@ -26,7 +25,7 @@ export default async function dragAndDrop (target, duration = 100) {
         return this.buttonUp(ACTION_BUTTON)
     }
 
-    /**
+    /*
      * get coordinates to drag and drop
      */
     const { scrollX, scrollY } = await getScrollPosition(this)
@@ -37,7 +36,7 @@ export default async function dragAndDrop (target, duration = 100) {
     const targetX = parseInt(targetRect.x - scrollX + (targetRect.width / 2), 10) - sourceX
     const targetY = parseInt(targetRect.y - scrollY + (targetRect.height / 2), 10) - sourceY
 
-    /**
+    /*
      * W3C way of handle the drag and drop action
      */
     return this.performActions([{

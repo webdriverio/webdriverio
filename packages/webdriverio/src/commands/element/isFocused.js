@@ -1,3 +1,7 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import isFocusedScript from '../../scripts/isFocused'
+
 /**
  *
  * Return true or false if the selected DOM-element currently has focus. If the selector matches
@@ -24,11 +28,6 @@
  * @type state
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isFocusedScript from '../../scripts/isFocused'
-
 export default async function isFocused () {
     const isFocused = await getBrowserObject(this).execute(isFocusedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible

@@ -19,7 +19,7 @@ class Timer {
         this._leading = leading
         this._conditionExecutedCnt = 0
 
-        /**
+        /*
          * only wrap waitUntil condition if:
          *  - wdio-sync is installed
          *  - function name is not async
@@ -49,7 +49,7 @@ class Timer {
         }
 
         this._mainTimeoutId = setTimeout(() => {
-            /**
+            /*
              * make sure that condition was executed at least once
              */
             if (!this.wasConditionExecuted()) {

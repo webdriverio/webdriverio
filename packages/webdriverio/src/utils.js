@@ -33,7 +33,7 @@ const applyScopePrototype = (prototype, scope) => {
 export const getPrototype = (scope) => {
     const prototype = {}
 
-    /**
+    /*
      * register action commands
      */
     applyScopePrototype(prototype, scope)
@@ -48,21 +48,21 @@ export const getPrototype = (scope) => {
  * @return {?string}   element id or null if element couldn't be found
  */
 export const getElementFromResponse = (res) => {
-    /**
+    /*
     * a function selector can return null
     */
     if (!res) {
         return null
     }
 
-    /**
+    /*
      * deprecated JSONWireProtocol response
      */
     if (res.ELEMENT) {
         return res.ELEMENT
     }
 
-    /**
+    /*
      * W3C WebDriver response
      */
     if (res[ELEMENT_KEY]) {
@@ -134,12 +134,12 @@ export function parseCSS (cssPropertyValue, cssProperty) {
     }
 
     if (parsedValue.value.indexOf('rgb') === 0) {
-        /**
+        /*
          * remove whitespaces in rgb values
          */
         parsedValue.value = parsedValue.value.replace(/\s/g, '')
 
-        /**
+        /*
          * parse color values
          */
         let color = parsedValue.value
@@ -154,7 +154,7 @@ export function parseCSS (cssPropertyValue, cssProperty) {
         parsedValue.value = sanitizeCSS(font[0].value || font[0].string)
         parsedValue.parsed = { value, type: 'font', string }
     } else {
-        /**
+        /*
          * parse other css properties
          */
         try {
@@ -191,7 +191,7 @@ function fetchElementByJSFunction (selector, scope) {
     if (!scope.elementId) {
         return scope.execute(selector)
     }
-    /**
+    /*
      * use a regular function because IE does not understand arrow functions
      */
     const script = (function (elem) { return (selector).call(elem) }).toString().replace('selector', `(${selector.toString()})`)
@@ -202,7 +202,7 @@ function fetchElementByJSFunction (selector, scope) {
  * logic to find an element
  */
 export async function findElement(selector) {
-    /**
+    /*
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string') {
@@ -212,7 +212,7 @@ export async function findElement(selector) {
             : this.findElement(using, value)
     }
 
-    /**
+    /*
      * fetch element with JS function
      */
     if (typeof selector === 'function') {
@@ -229,7 +229,7 @@ export async function findElement(selector) {
  * logic to find a elements
  */
 export async function findElements(selector) {
-    /**
+    /*
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string') {
@@ -239,7 +239,7 @@ export async function findElements(selector) {
             : this.findElements(using, value)
     }
 
-    /**
+    /*
      * fetch element with JS function
      */
     if (typeof selector === 'function') {
@@ -282,7 +282,7 @@ export async function getElementRect(scope) {
 
     let defaults = { x: 0, y: 0, width: 0, height: 0 }
 
-    /**
+    /*
      * getElementRect workaround for Safari 12.0.3
      * if one of [x, y, height, width] is undefined get rect with javascript
      */
@@ -344,7 +344,7 @@ export function validateUrl (url, origError) {
         const urlObject = new URL(url)
         return urlObject.href
     } catch (e) {
-        /**
+        /*
          * if even adding http:// doesn't help, fail with original error
          */
         if (origError) {

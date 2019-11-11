@@ -37,7 +37,7 @@ export default class JasmineReporter {
     }
 
     specDone (test) {
-        /**
+        /*
          * excluded tests are treated as pending tests
          */
         if (test.status === 'excluded') {
@@ -67,7 +67,7 @@ export default class JasmineReporter {
     suiteDone (suite) {
         const parentSuite = this.parent[this.parent.length - 1]
 
-        /**
+        /*
          * in case there is a runtime error within one of the specs
          * create an empty test to attach the error to it
          */

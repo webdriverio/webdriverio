@@ -44,7 +44,7 @@ export const remote = async function (params = {}, remoteModifier) {
     const commandWrapper = params.runner ? wrapCommand : (_, origFn) => origFn
     const instance = await ProtocolDriver.newSession(params, modifier, prototype, commandWrapper)
 
-    /**
+    /*
      * we need to overwrite the original addCommand and overwriteCommand
      * in order to wrap the function within Fibers (only if webdriverio
      * is used with @wdio/cli)
@@ -75,7 +75,7 @@ export const multiremote = async function (params = {}, config = {}) {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 
-    /**
+    /*
      * create all instance sessions
      */
     await Promise.all(
@@ -85,7 +85,7 @@ export const multiremote = async function (params = {}, config = {}) {
         })
     )
 
-    /**
+    /*
      * use attachToSession capability to wrap instances around blank pod
      */
     const prototype = getPrototype('browser')
@@ -98,7 +98,7 @@ export const multiremote = async function (params = {}, config = {}) {
     const ProtocolDriver = isStub(config.automationProtocol) ? require(config.automationProtocol).default : WebDriver
     const driver = ProtocolDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
 
-    /**
+    /*
      * in order to get custom command overwritten or added to multiremote instance
      * we need to pass in the prototype of the multibrowser
      */

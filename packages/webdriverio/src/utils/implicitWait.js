@@ -19,7 +19,7 @@ export default async function implicitWait (currentElement, commandName) {
 
         try {
             await currentElement.waitForExist()
-            /**
+            /*
              * if waitForExist was successful requery element and assign elementId to the scope
              */
             return await currentElement.parent.$(currentElement.selector)

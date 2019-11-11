@@ -5,7 +5,7 @@ import { buildTableData, printTable, getFormattedRows } from './utils'
 
 class SpecReporter extends WDIOReporter {
     constructor (options) {
-        /**
+        /*
          * make spec reporter to write to output stream by default
          */
         options = Object.assign({ stdout: true }, options)
@@ -142,7 +142,7 @@ class SpecReporter extends WDIOReporter {
      */
     getEventsToReport (suite) {
         return [
-            /**
+            /*
              * report all tests and only hooks that failed
              */
             ...suite.hooksAndTests

@@ -1,3 +1,5 @@
+import { ELEMENT_KEY } from '../../constants'
+
 /**
  *
  * Scroll element into viewport.
@@ -18,9 +20,6 @@
  * @type utility
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-
 export default function scrollIntoView (scrollIntoViewOptions = true) {
     return this.parent.execute(/* istanbul ignore next */function (elem, options) {
         elem.scrollIntoView(options)

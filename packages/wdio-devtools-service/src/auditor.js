@@ -83,7 +83,7 @@ export default class Auditor {
     async getDiagnostics () {
         const result = await this._audit(Diagnostics)
 
-        /**
+        /*
          * return null if Audit fails
          */
         if (!Object.prototype.hasOwnProperty.call(result, 'details')) {
@@ -118,7 +118,7 @@ export default class Auditor {
             firstMeaningfulPaint, firstCPUIdle, firstInteractive, speedIndex, estimatedInputLatency
         } = await this.getMetrics()
 
-        /**
+        /*
          * return null if any of the metrics could not bet calculated and
          * therefor are undefined
          */

@@ -13,7 +13,7 @@ export const logHookError = (hookName, hookResults = [], cid) => {
         return
     }
 
-    /**
+    /*
      * need to convert Error to plain object, otherwise it is lost on process.send
      */
     const error = { message: result.message }

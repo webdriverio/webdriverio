@@ -7,7 +7,7 @@ const { getSubPackages } = require('./utils/helpers')
 
 const packages = getSubPackages()
 
-/**
+/*
  * set proper size of max listener
  */
 require('events').EventEmitter.defaultMaxListeners = packages.length + 3

@@ -102,7 +102,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('test:fail',  /* istanbul ignore next */ (test) => {
             const testStat = this.tests[test.uid]
 
-            /**
+            /*
              * replace "Ensure the done() callback is being called in this test." with more meaningful
              * message (Mocha only)
              */
@@ -122,7 +122,7 @@ export default class WDIOReporter extends EventEmitter {
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
-            /**
+            /*
              * In Mocha: tests that are skipped don't have a start event but a test end.
              * In Jasmine: tests have a start event, therefor we need to replace the
              * test instance with the pending test here
@@ -166,7 +166,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onRunnerEnd(this.runnerStat)
         })
 
-        /**
+        /*
          * browser client event handlers
          */
         this.on('client:command',  /* istanbul ignore next */ (payload) => {

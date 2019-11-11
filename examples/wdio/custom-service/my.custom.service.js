@@ -1,4 +1,4 @@
-/**
+/*
  * you can also use
  * `export default class CustomService`
  * here

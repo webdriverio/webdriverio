@@ -1,18 +1,18 @@
 const path = require('path')
 
 exports.config = {
-    /**
+    /*
      * server configurations
      */
     hostname: 'localhost',
     port: 4444,
 
-    /**
+    /*
      * specify test files
      */
     specs: [path.resolve(__dirname, 'mocha.test.js')],
 
-    /**
+    /*
      * capabilities
      */
     capabilities: {
@@ -28,7 +28,7 @@ exports.config = {
         }
     },
 
-    /**
+    /*
      * test configurations
      */
     logLevel: 'trace',

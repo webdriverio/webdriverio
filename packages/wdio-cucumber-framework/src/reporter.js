@@ -100,13 +100,13 @@ class CucumberReporter {
 
         if (result.status === Status.UNDEFINED) {
             if (this.options.ignoreUndefinedDefinitions) {
-                /**
+                /*
                  * mark test as pending
                  */
                 state = 'pending'
                 stepTitle += ' (undefined step)'
             } else {
-                /**
+                /*
                  * mark test as failed
                  */
                 this.failedCount++

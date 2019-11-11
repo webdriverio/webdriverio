@@ -43,7 +43,7 @@ export const testFrameworkFnWrapper = async function (
     let promise
     let result
     let error
-    /**
+    /*
      * user wants handle async command using promises, no need to wrap in fiber context
      */
     if (isFunctionAsync(specFn) || !runSync) {
@@ -69,7 +69,7 @@ export const testFrameworkFnWrapper = async function (
         passed: !error
     })
 
-    /**
+    /*
      * avoid breaking changes in hook function signatures
      */
     afterArgs = mochaJasmineCompatibility(afterArgs, this)

@@ -99,7 +99,7 @@ export default class WDIORepl {
         )
 
         result.then((res) => {
-            /**
+            /*
              * don't do anything if timeout was called
              */
             if (timeout._called) {
@@ -109,7 +109,7 @@ export default class WDIORepl {
             clearTimeout(timeout)
             return callback(null, res)
         }, (e) => {
-            /**
+            /*
              * don't do anything if timeout was called
              */
             if (timeout._called) {

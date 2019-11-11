@@ -53,7 +53,7 @@ export default class WebDriverRequest extends EventEmitter {
             qs: typeof options.queryParams === 'object' ? options.queryParams : {}
         }
 
-        /**
+        /*
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
@@ -65,7 +65,7 @@ export default class WebDriverRequest extends EventEmitter {
             }
         }
 
-        /**
+        /*
          * if we don't have a session id we set it here, unless we call commands that don't require session ids, for
          * example /sessions. The call to /sessions is not connected to a session itself and it therefore doesn't
          * require it
@@ -82,7 +82,7 @@ export default class WebDriverRequest extends EventEmitter {
                 : path.join(options.path, this.endpoint.replace(':sessionId', sessionId)))
         )
 
-        /**
+        /*
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
@@ -92,7 +92,7 @@ export default class WebDriverRequest extends EventEmitter {
             }
         }
 
-        /**
+        /*
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
          */
         requestOptions.strictSSL = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
@@ -110,12 +110,12 @@ export default class WebDriverRequest extends EventEmitter {
         return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
             const error = err || getErrorFromResponseBody(body)
 
-            /**
+            /*
              * hub commands don't follow standard response formats
              * and can have empty bodies
              */
             if (this.isHubCommand) {
-                /**
+                /*
                  * if body contains HTML the command was called on a node
                  * directly without using a hub, therefor throw
                  */
@@ -126,7 +126,7 @@ export default class WebDriverRequest extends EventEmitter {
                 body = { value: body || null }
             }
 
-            /**
+            /*
              * Resolve only if successful response
              */
             if (!err && isSuccessfulResponse(response.statusCode, body)) {
@@ -134,7 +134,7 @@ export default class WebDriverRequest extends EventEmitter {
                 return resolve(body)
             }
 
-            /**
+            /*
              *  stop retrying as this will never be successful.
              *  we will handle this at the elementErrorHandler
              */
@@ -144,7 +144,7 @@ export default class WebDriverRequest extends EventEmitter {
                 return reject(error)
             }
 
-            /**
+            /*
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
              */

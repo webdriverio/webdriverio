@@ -1,5 +1,6 @@
+import { getElementRect, getScrollPosition } from '../../utils'
+
 /**
- *
  * Move the mouse by an offset of the specified element. If no element is specified,
  * the move is relative to the current mouse cursor. If an element is provided but
  * no offset, the mouse will be moved to the center of the element. If the element
@@ -11,15 +12,12 @@
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
  */
-
-import { getElementRect, getScrollPosition } from '../../utils'
-
 export default async function moveTo (xoffset, yoffset) {
     if (!this.isW3C) {
         return this.moveToElement(this.elementId, xoffset, yoffset)
     }
 
-    /**
+    /*
      * get rect of element
      */
     const { x, y, width, height } = await getElementRect(this)
@@ -27,7 +25,7 @@ export default async function moveTo (xoffset, yoffset) {
     const newXoffset = parseInt(x + (typeof xoffset === 'number' ? xoffset : (width / 2)), 10) - scrollX
     const newYoffset = parseInt(y + (typeof yoffset === 'number' ? yoffset : (height / 2)), 10) - scrollY
 
-    /**
+    /*
      * W3C way of handle the mouse move actions
      */
     return this.performActions([{

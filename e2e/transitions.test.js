@@ -48,7 +48,7 @@ test('can handle random page transitions', async () => {
         const title = await browser.getTitle()
         expect(typeof title).toBe('string')
 
-        /**
+        /*
          * stop loop if new page was reached
          */
         if (title.includes('GitHub')) {

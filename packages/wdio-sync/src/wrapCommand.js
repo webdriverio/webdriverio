@@ -38,7 +38,7 @@ process.on('WDIO_TIMER', (payload) => {
  */
 export default function wrapCommand (commandName, fn) {
     return function wrapCommandFn (...args) {
-        /**
+        /*
          * print error if a user is using a fiberized command outside of the Fibers context
          */
         if(!global._HAS_FIBER_CONTEXT && global.WDIO_WORKER) {
@@ -48,21 +48,21 @@ export default function wrapCommand (commandName, fn) {
             )
         }
 
-        /**
+        /*
          * store element if Timer is running to reset `_NOT_FIBER` if timeout has occurred
          */
         if (timers.length > 0) {
             elements.add(this)
         }
 
-        /**
+        /*
          * Avoid running some functions in Future that are not in Fiber.
          */
         if (this._NOT_FIBER === true) {
             this._NOT_FIBER = isNotInFiber(this, fn.name)
             return fn.apply(this, args)
         }
-        /**
+        /*
          * all named nested functions run in parent Fiber context
          */
         this._NOT_FIBER = fn.name !== ''
@@ -77,14 +77,14 @@ export default function wrapCommand (commandName, fn) {
             inFiber(this)
             return futureResult
         } catch (e) {
-            /**
+            /*
              * in case some 3rd party lib rejects without bundling into an error
              */
             if (typeof e === 'string') {
                 throw new Error(e)
             }
 
-            /**
+            /*
              * in case we run commands where no fiber function was used
              * e.g. when we call deleteSession
              */

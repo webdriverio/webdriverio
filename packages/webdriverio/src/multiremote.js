@@ -43,7 +43,7 @@ export default class MultiRemote {
         this.baseInstance = new MultiRemoteDriver(this.instances, propertiesObject)
         const client = Object.create(this.baseInstance, propertiesObject)
 
-        /**
+        /*
          * attach instances to wrapper client
          */
         for (const [identifier, instance] of Object.entries(this.instances)) {
@@ -72,7 +72,7 @@ export default class MultiRemote {
         const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: 'element' }
 
         const element = webdriverMonad({}, (client) => {
-            /**
+            /*
              * attach instances to wrapper client
              */
             for (const [i, identifier] of Object.entries(Object.keys(instances))) {
@@ -97,7 +97,7 @@ export default class MultiRemote {
                 Object.entries(instances).map(([, instance]) => instance[commandName](...args))
             )
 
-            /**
+            /*
              * return element object to call commands directly
              */
             if (commandName === '$') {

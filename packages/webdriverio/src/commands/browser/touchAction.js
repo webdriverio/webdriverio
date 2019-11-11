@@ -1,3 +1,5 @@
+import { touchAction as touchActionCommand } from '../constant'
+
 /**
  *
  * The Touch Action API provides the basis of all gestures that can be automated in Appium.
@@ -58,9 +60,6 @@
  * @uses mobile/performTouchAction, mobile/performMultiAction
  *
  */
-
-import { touchAction as touchActionCommand } from '../constant'
-
 export default function touchAction (...args) {
     return touchActionCommand.apply(this, args)
 }

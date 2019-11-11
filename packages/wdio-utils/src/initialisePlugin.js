@@ -7,7 +7,7 @@ import { safeRequire } from './utils'
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
 export default function initialisePlugin (name, type, target = 'default') {
-    /**
+    /*
      * directly import packages that are scoped
      */
     if (name[0] === '@') {
@@ -15,7 +15,7 @@ export default function initialisePlugin (name, type, target = 'default') {
         return service[target]
     }
 
-    /**
+    /*
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
     const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
@@ -23,7 +23,7 @@ export default function initialisePlugin (name, type, target = 'default') {
         return scopedPlugin[target]
     }
 
-    /**
+    /*
      * check for old type of
      */
     const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)

@@ -45,7 +45,7 @@ exports.generateWdioDocs = (sidebars) => {
                 }
             )
 
-            /**
+            /*
              * add command to sidebar
              */
             if (!sidebars.api[scope]) {

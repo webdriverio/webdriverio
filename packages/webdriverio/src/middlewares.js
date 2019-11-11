@@ -17,7 +17,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
             try {
                 const result = await fn(commandName, commandFn).apply(this, args)
 
-                /**
+                /*
                  * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
                  * as `stale element reference`
                  */

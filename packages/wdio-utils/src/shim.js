@@ -3,14 +3,14 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/utils:shim')
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args) {
-    /**
+    /*
      * make sure hooks are an array of functions
      */
     if (!Array.isArray(hooks)) {
         hooks = [hooks]
     }
 
-    /**
+    /*
      * make sure args is an array since we are calling apply
      */
     if (!Array.isArray(args)) {
@@ -27,7 +27,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args)
             return resolve(e)
         }
 
-        /**
+        /*
          * if a promise is returned make sure we don't have a catch handler
          * so in case of a rejection it won't cause the hook to fail
          */
@@ -55,7 +55,7 @@ let executeSync = function (fn, _, args = []) { return fn.apply(this, args) }
 let executeAsync = function (fn, _, args = []) { return fn.apply(this, args) }
 let runSync = null
 
-/**
+/*
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
  */
 try {

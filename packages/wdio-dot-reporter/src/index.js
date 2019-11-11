@@ -6,7 +6,7 @@ import WDIOReporter from '@wdio/reporter'
  */
 export default class DotReporter extends WDIOReporter {
     constructor (options) {
-        /**
+        /*
          * make dot reporter to write to output stream by default
          */
         options = Object.assign({ stdout: true }, options)

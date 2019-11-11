@@ -22,7 +22,7 @@
  *
  */
 export default async function doubleClick () {
-    /**
+    /*
      * move to element
      */
 
@@ -31,7 +31,7 @@ export default async function doubleClick () {
         return this.positionDoubleClick()
     }
 
-    /**
+    /*
      * W3C way of handle the double click actions
      */
     await this.performActions([{

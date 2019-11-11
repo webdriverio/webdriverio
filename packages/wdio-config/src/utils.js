@@ -48,7 +48,7 @@ export function isCucumberFeatureWithLineNumber(spec) {
 export function detectBackend (options = {}, isRDC = false) {
     let { port, hostname, user, key, protocol, region, headless } = options
 
-    /**
+    /*
      * browserstack
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
@@ -60,7 +60,7 @@ export function detectBackend (options = {}, isRDC = false) {
         }
     }
 
-    /**
+    /*
      * testingbot
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
@@ -71,7 +71,7 @@ export function detectBackend (options = {}, isRDC = false) {
         }
     }
 
-    /**
+    /*
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
@@ -92,11 +92,11 @@ export function detectBackend (options = {}, isRDC = false) {
     }
 
     if (
-        /**
+        /*
          * user and key are set in config
          */
         (typeof user === 'string' || typeof key === 'string') &&
-        /**
+        /*
          * but no custom WebDriver endpoint was configured
          */
         !hostname
@@ -108,7 +108,7 @@ export function detectBackend (options = {}, isRDC = false) {
         )
     }
 
-    /**
+    /*
      * no cloud provider detected, fallback to local browser driver
      */
     return {
@@ -128,7 +128,7 @@ export function validateConfig (defaults, options) {
     const params = {}
 
     for (const [name, expectedOption] of Object.entries(defaults)) {
-        /**
+        /*
          * check if options is given
          */
         if (typeof options[name] === 'undefined' && !expectedOption.default && expectedOption.required) {

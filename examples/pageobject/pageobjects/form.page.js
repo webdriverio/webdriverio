@@ -1,7 +1,7 @@
 import Page from './page'
 
 class FormPage extends Page {
-    /**
+    /*
      * define elements
      */
     get username () { return $('#username') }
@@ -9,7 +9,7 @@ class FormPage extends Page {
     get submitButton () { return $('#login button[type=submit]') }
     get flash () { return $('#flash') }
 
-    /**
+    /*
      * define or overwrite page methods
      */
     open () {

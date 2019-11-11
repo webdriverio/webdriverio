@@ -1,3 +1,5 @@
+import { checkUnicode } from '../../utils'
+
 /**
  *
  * Send a sequence of key strokes to the active element. You can also use characters like
@@ -23,13 +25,10 @@
  * @see https://w3c.github.io/webdriver/#dispatching-actions
  *
  */
-
-import { checkUnicode } from '../../utils'
-
 export default function keys (value) {
     let keySequence = []
 
-    /**
+    /*
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
@@ -42,14 +41,14 @@ export default function keys (value) {
         throw new Error('"keys" command requires a string or array of strings as parameter')
     }
 
-    /**
+    /*
      * JsonWireProtocol action
      */
     if (!this.isW3C) {
         return this.sendKeys(keySequence)
     }
 
-    /**
+    /*
      * W3C way of handle it key actions
      */
     const keyDownActions = keySequence.map((value) => ({ type: 'keyDown', value }))

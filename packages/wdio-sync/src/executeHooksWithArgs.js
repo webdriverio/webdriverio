@@ -13,14 +13,14 @@ const log = logger('@wdio/sync')
  * @return {Promise}  promise that gets resolved once all hooks finished running
  */
 export default function executeHooksWithArgs (hooks = [], args) {
-    /**
+    /*
      * make sure hooks are an array of functions
      */
     if (typeof hooks === 'function') {
         hooks = [hooks]
     }
 
-    /**
+    /*
      * make sure args is an array since we are calling apply
      */
     if (!Array.isArray(args)) {
@@ -49,7 +49,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
             resolve(result)
         }
 
-        /**
+        /*
          * after command hooks require additional Fiber environment
          */
         return hook.constructor.name === 'AsyncFunction' ? execHook() : Fiber(execHook).run()

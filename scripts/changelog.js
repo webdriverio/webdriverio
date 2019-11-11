@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/**
+/*
  * script to auto update CHANGELOG.md file
  */
 const fs = require('fs')
@@ -27,7 +27,7 @@ const config = load({ nextVersionFromMetadata: false })
 config.nextVersion = version
 const changelog = new Changelog(config)
 
-/**
+/*
  * update local tags
  */
 shell.exec('git fetch --tags --force')
@@ -39,7 +39,7 @@ const BANNER = `
 ###                 ###
 #######################`
 
-/**
+/*
  * in case the error check above doesn't has any effect and a release
  * was made without updating changelogs, just put
  *
@@ -56,7 +56,7 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
     changelogContent = changelogContent.replace('---', '---' + newChangelog)
     fs.writeFileSync(changelogPath, changelogContent, 'utf8')
 
-    /**
+    /*
      * print changelog
      */
     const highlighted = highlight(newChangelog, {

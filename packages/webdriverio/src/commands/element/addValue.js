@@ -1,3 +1,5 @@
+import { transformToCharString } from '../../utils'
+
 /**
  *
  * Add a value to an object found by given selector. You can also use unicode
@@ -24,9 +26,6 @@
  * @type action
  *
  */
-
-import { transformToCharString } from '../../utils'
-
 export default function addValue (value) {
     if (!this.isW3C) {
         return this.elementSendKeys(this.elementId, transformToCharString(value))

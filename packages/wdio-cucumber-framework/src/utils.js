@@ -2,7 +2,7 @@ import * as path from 'path'
 import { isFunctionAsync } from '@wdio/utils'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 
-/**
+/*
  * NOTE: this function is exported for testing only
  */
 export function createStepArgument ({ argument }) {
@@ -98,7 +98,7 @@ export function getUniqueIdentifier (target, sourceLocation) {
 export function formatMessage ({ payload = {} }) {
     let content = { ...payload }
 
-    /**
+    /*
      * need to convert Error to plain object, otherwise it is lost on process.send
      */
     if (payload.error && (payload.error.message || payload.error.stack)) {
@@ -184,7 +184,7 @@ export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEve
     const allSteps = getAllSteps(feature, scenario)
 
     const steps = testCasePreparedEvent.steps.map(eventStep => {
-        /**
+        /*
          * find scenario step matching eventStep
          */
         let step = allSteps.find(scenarioStep => {

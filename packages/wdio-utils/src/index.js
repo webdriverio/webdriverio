@@ -22,7 +22,7 @@ export {
     getArgumentType,
     safeRequire,
 
-    /**
+    /*
      * wdio-sync shim
      */
     wrapCommand,
@@ -34,7 +34,7 @@ export {
     executeHooksWithArgs,
     hasWdioSyncSupport,
 
-    /**
+    /*
      * environmentDetector
      */
     sessionEnvironmentDetector,

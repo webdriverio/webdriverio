@@ -29,12 +29,12 @@ export default class WebdriverMockService {
     }
 
     before () {
-        /**
+        /*
          * assign mocks to browser object to tweak responses
          */
         global.browser.mocks = this.mocks
 
-        /**
+        /*
          * register request interceptors for specific scenarios
          */
         global.browser.addCommand('waitForElementScenario', ::this.waitForElementScenario)
@@ -163,7 +163,7 @@ export default class WebdriverMockService {
     }
 }
 
-/**
+/*
  * export for 3rd party usage
  */
 export { WebDriverMock }

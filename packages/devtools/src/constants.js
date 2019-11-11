@@ -35,7 +35,7 @@ export const DEFAULT_FLAGS = [
     '--disable-ipc-flooding-protection',
     '--disable-renderer-backgrounding',
     '--enable-features=NetworkService,NetworkServiceInProcess',
-    /**
+    /*
      * `site-per-process` affects `page.frames()`, see #4471
      * `TranslateUI` disables built-in Google Translate service
      */

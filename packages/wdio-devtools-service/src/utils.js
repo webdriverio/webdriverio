@@ -16,7 +16,7 @@ const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
  * page. In case a newer version is used (+v65) we check the DevToolsActivePort file
  */
 export async function findCDPInterface () {
-    /**
+    /*
      * check if interface is part of goog:chromeOptions value
      */
     const chromeOptions = global.browser.capabilities['goog:chromeOptions']
@@ -25,7 +25,7 @@ export async function findCDPInterface () {
         return { host, port: parseInt(port, 10) }
     }
 
-    /**
+    /*
      * otherwise look into chrome flags
      */
     await global.browser.url('chrome://version')
@@ -33,7 +33,7 @@ export async function findCDPInterface () {
     const cmdLineText = await cmdLineTextElem.getText()
     let port = parseInt(cmdLineText.match(RE_DEVTOOLS_DEBUGGING_PORT_SWITCH)[1], 10)
 
-    /**
+    /*
      * newer Chrome versions store port in DevToolsActivePort file
      */
     if (port === 0) {

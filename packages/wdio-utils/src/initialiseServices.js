@@ -22,7 +22,7 @@ export default function initialiseServices (config, caps, type) {
     for (let serviceName of config.services) {
         let serviceConfig = config
 
-        /**
+        /*
          * allow custom services with custom options
          */
         if (Array.isArray(serviceName)) {
@@ -30,7 +30,7 @@ export default function initialiseServices (config, caps, type) {
             serviceName = serviceName[0]
         }
 
-        /**
+        /*
          * allow custom services that are already initialised
          */
         if (serviceName && typeof serviceName === 'object' && !Array.isArray(serviceName)) {
@@ -40,7 +40,7 @@ export default function initialiseServices (config, caps, type) {
         }
 
         try {
-            /**
+            /*
              * allow custom service classes
              */
             if (typeof serviceName === 'function') {
@@ -52,7 +52,7 @@ export default function initialiseServices (config, caps, type) {
             log.debug(`initialise wdio service "${serviceName}"`)
             const Service = initialisePlugin(serviceName, 'service', type)
 
-            /**
+            /*
              * service only contains a launcher
              */
             if (!Service) {

@@ -97,13 +97,13 @@ module.exports = function (docfile) {
 
                 if(exampleCodeLine.length) {
 
-                    /**
+                    /*
                      * remove filename expression in first line
                      */
                     exampleFilename = exampleCodeLine.shift().trim().substr(1)
                     var code = exampleCodeLine.join('\n')
 
-                    /**
+                    /*
                      * add example
                      */
                     if(exampleFilename !== '' && code !== '') {
@@ -114,13 +114,13 @@ module.exports = function (docfile) {
                         })
                     }
 
-                    /**
+                    /*
                      * reset loop conditions
                      */
                     exampleCodeLine = []
                 }
 
-                /**
+                /*
                  * if this is the last line of code dont proceed
                  */
                 if(currentLine === example.length) {
@@ -132,7 +132,7 @@ module.exports = function (docfile) {
             exampleCodeLine.push(line.substr(4))
         })
 
-        /**
+        /*
          * remove example section from description
          */
         description = description.substr(0, description.indexOf('<example>'))

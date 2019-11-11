@@ -35,7 +35,7 @@ export default class Runner extends EventEmitter {
         this.specs = specs
         this.caps = caps
 
-        /**
+        /*
          * add config file
          */
         try {
@@ -44,17 +44,17 @@ export default class Runner extends EventEmitter {
             return this._shutdown(1)
         }
 
-        /**
+        /*
          * merge cli arguments into config
          */
         this.configParser.merge(argv)
 
-        /**
+        /*
          * merge host/port changes by service launcher into config
          */
         this.configParser.merge(server)
 
-        /**
+        /*
          * remove services that has nothing to do in worker
          */
         this.configParser.filterWorkerServices()
@@ -67,7 +67,7 @@ export default class Runner extends EventEmitter {
 
         const isMultiremote = this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
 
-        /**
+        /*
          * create `browser` stub only if `specFiltering` feature is enabled
          */
         let browser = this.config.featureFlags.specFiltering === true ? await this._startSession({
@@ -77,7 +77,7 @@ export default class Runner extends EventEmitter {
         }, caps) : undefined
 
         this.reporter = new BaseReporter(this.config, this.cid, { ...caps })
-        /**
+        /*
          * initialise framework
          */
         this.framework = initialisePlugin(this.config.framework, 'framework')
@@ -94,7 +94,7 @@ export default class Runner extends EventEmitter {
 
         this.inWatchMode = Boolean(this.config.watch)
 
-        /**
+        /*
          * return if session initialisation failed
          */
         if (!browser) {
@@ -105,7 +105,7 @@ export default class Runner extends EventEmitter {
 
         await executeHooksWithArgs(this.config.before, [this.caps, this.specs])
 
-        /**
+        /*
          * kill session of SIGINT signal showed up while trying to
          * get a session ID
          */
@@ -117,7 +117,7 @@ export default class Runner extends EventEmitter {
 
         const instances = getInstancesData(browser, isMultiremote)
 
-        /**
+        /*
          * initialisation successful, send start message
          */
         this.reporter.emit('runner:start', {
@@ -135,7 +135,7 @@ export default class Runner extends EventEmitter {
             retry: this.config.specFileRetryAttempts
         })
 
-        /**
+        /*
          * report sessionId and target connection information to worker
          */
         const { protocol, hostname, port, path, queryParams } = browser.options
@@ -146,7 +146,7 @@ export default class Runner extends EventEmitter {
             content: { sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances }
         })
 
-        /**
+        /*
          * kick off tests in framework
          */
         let failures = 0
@@ -159,7 +159,7 @@ export default class Runner extends EventEmitter {
             failures = 1
         }
 
-        /**
+        /*
          * in watch mode we don't close the session and leave current page opened
          */
         if (!argv.watch) {
@@ -197,13 +197,13 @@ export default class Runner extends EventEmitter {
             })
         }
 
-        /**
+        /*
          * register global helper method to fetch elements
          */
         global.$ = (selector) => browser.$(selector)
         global.$$ = (selector) => browser.$$(selector)
 
-        /**
+        /*
          * register command event
          */
         browser.on('command', (command) => this.reporter.emit(
@@ -211,7 +211,7 @@ export default class Runner extends EventEmitter {
             Object.assign(command, { sessionId: browser.sessionId })
         ))
 
-        /**
+        /*
          * register result event
          */
         browser.on('result', (result) => this.reporter.emit(
@@ -248,19 +248,19 @@ export default class Runner extends EventEmitter {
      * fetch logs provided by browser driver
      */
     async _fetchDriverLogs (config, excludeDriverLogs) {
-        /**
+        /*
          * only fetch logs if
          */
         if (
-            /**
+            /*
              * a log directory is given in config
              */
             !config.outputDir ||
-            /**
+            /*
              * the session wasn't killed during start up phase
              */
             !global.browser.sessionId ||
-            /**
+            /*
              * driver supports it
              */
             typeof global.browser.getLogs === 'undefined'
@@ -268,7 +268,7 @@ export default class Runner extends EventEmitter {
             return
         }
 
-        /**
+        /*
          * suppress @wdio/sync warnings of not running commands inside of
          * a Fibers context
          */
@@ -278,7 +278,7 @@ export default class Runner extends EventEmitter {
         try {
             logTypes = await global.browser.getLogTypes()
         } catch (errIgnored) {
-            /**
+            /*
              * getLogTypes is not supported by browser
              */
             return
@@ -296,7 +296,7 @@ export default class Runner extends EventEmitter {
                 return log.warn(`Couldn't fetch logs for ${logType}: ${e.message}`)
             }
 
-            /**
+            /*
              * don't write to file if no logs were captured
              */
             if (logs.length === 0) {
@@ -330,7 +330,7 @@ export default class Runner extends EventEmitter {
      * within a hook by the user
      */
     async endSession (payload) {
-        /**
+        /*
          * Attach to browser session before killing it in Multiremote
          */
         if (!global.browser && payload && payload.argv && payload.argv.watch) {
@@ -342,20 +342,20 @@ export default class Runner extends EventEmitter {
             }
         }
 
-        /**
+        /*
          * make sure instance(s) exist and have `sessionId`
          */
         const hasSessionId = global.browser && (this.isMultiremote
-            /**
+            /*
              * every multiremote instance should exist and should have `sessionId`
              */
             ? !global.browser.instances.some(i => global.browser[i] && !global.browser[i].sessionId)
-            /**
+            /*
              * browser object should have `sessionId` in regular mode
              */
             : global.browser.sessionId)
 
-        /**
+        /*
          * don't do anything if test framework returns after SIGINT
          * if endSession is called without payload we expect a session id
          */
@@ -363,7 +363,7 @@ export default class Runner extends EventEmitter {
             return
         }
 
-        /**
+        /*
          * if payload was called but no session was created, wait until it was
          * and try to end it
          */
@@ -372,7 +372,7 @@ export default class Runner extends EventEmitter {
             return this.endSession(payload)
         }
 
-        /**
+        /*
          * store capabilities for afterSession hook
          */
         let capabilities = global.browser.capabilities || {}
@@ -382,7 +382,7 @@ export default class Runner extends EventEmitter {
 
         await global.browser.deleteSession()
 
-        /**
+        /*
          * delete session(s)
          */
         if (this.isMultiremote) {

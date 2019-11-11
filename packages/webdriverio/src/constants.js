@@ -2,18 +2,18 @@
 
 const HOOK_DEFINITION = {
     type: (param) => {
-        /**
+        /*
          * option must be an array
          */
         if (!Array.isArray(param)) {
             throw new Error('a hook option needs to be a list of functions')
         }
 
-        /**
+        /*
          * array elements must be functions
          */
         for (const option of param) {
-            /**
+            /*
              * either a string
              */
             if (typeof option === 'function') {
@@ -29,7 +29,7 @@ const HOOK_DEFINITION = {
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 export const WDIO_DEFAULTS = {
-    /**
+    /*
      * allows to specify automation protocol
      */
     automationProtocol: {
@@ -52,7 +52,7 @@ export const WDIO_DEFAULTS = {
             }
         }
     },
-    /**
+    /*
      * define specs for test execution
      */
     specs: {
@@ -62,7 +62,7 @@ export const WDIO_DEFAULTS = {
             }
         }
     },
-    /**
+    /*
      * exclude specs from test execution
      */
     exclude: {
@@ -72,19 +72,19 @@ export const WDIO_DEFAULTS = {
             }
         }
     },
-    /**
+    /*
      * key/value definition of suites (named by key) and a list of specs as value
      * to specify a specific set of tests to execute
      */
     suites: {
         type: 'object'
     },
-    /**
+    /*
      * capabilities of WebDriver sessions
      */
     capabilities: {
         type: (param) => {
-            /**
+            /*
              * should be an object
              */
             if (!Array.isArray(param)) {
@@ -95,7 +95,7 @@ export const WDIO_DEFAULTS = {
                 throw new Error('the "capabilities" options needs to be an object or a list of objects')
             }
 
-            /**
+            /*
              * or an array of objects
              */
             for (const option of param) {
@@ -110,13 +110,13 @@ export const WDIO_DEFAULTS = {
         },
         required: true
     },
-    /**
+    /*
      * Shorten navigateTo command calls by setting a base url
      */
     baseUrl: {
         type: 'string'
     },
-    /**
+    /*
      * If you only want to run your tests until a specific amount of tests have failed use
      * bail (default is 0 - don't bail, run all tests).
      */
@@ -124,27 +124,27 @@ export const WDIO_DEFAULTS = {
         type: 'number',
         default: 0
     },
-    /**
+    /*
      * Default interval for all waitFor* commands
      */
     waitforInterval: {
         type: 'number',
         default: 500
     },
-    /**
+    /*
      * Default timeout for all waitFor* commands
      */
     waitforTimeout: {
         type: 'number',
         default: 3000
     },
-    /**
+    /*
      * supported test framework by wdio testrunner
      */
     framework: {
         type: 'string'
     },
-    /**
+    /*
      * list of reporters to use, a reporter can be either a string or an object with
      * reporter options, e.g.:
      * [
@@ -157,7 +157,7 @@ export const WDIO_DEFAULTS = {
      */
     reporters: {
         type: (param) => {
-            /**
+            /*
              * option must be an array
              */
             if (!Array.isArray(param)) {
@@ -169,18 +169,18 @@ export const WDIO_DEFAULTS = {
                 (typeof option === 'function')
             )
 
-            /**
+            /*
              * array elements must be:
              */
             for (const option of param) {
-                /**
+                /*
                  * either a string or a function (custom reporter)
                  */
                 if (isValidReporter(option)) {
                     continue
                 }
 
-                /**
+                /*
                  * or an array with the name of the reporter as first element and the options
                  * as second element
                  */
@@ -202,19 +202,19 @@ export const WDIO_DEFAULTS = {
             return true
         }
     },
-    /**
+    /*
      * set of WDIO services to use
      */
     services: {
         type: (param) => {
-            /**
+            /*
              * should be an array
              */
             if (!Array.isArray(param)) {
                 throw new Error('the "services" options needs to be a list of strings and/or arrays')
             }
 
-            /**
+            /*
              * with arrays and/or strings
              */
             for (const option of param) {
@@ -230,7 +230,7 @@ export const WDIO_DEFAULTS = {
         },
         default: []
     },
-    /**
+    /*
      * Node arguments to specify when launching child processes
      */
     execArgv: {
@@ -241,26 +241,26 @@ export const WDIO_DEFAULTS = {
         },
         default: []
     },
-    /**
+    /*
      * amount of instances to be allowed to run in total
      */
     maxInstances: {
         type: 'number'
     },
-    /**
+    /*
      * amount of instances to be allowed to run per capability
      */
     maxInstancesPerCapability: {
         type: 'number'
     },
-    /**
+    /*
      * directory for log files
      */
     outputDir: {
         type: 'string',
         default: process.cwd()
     },
-    /**
+    /*
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {
@@ -271,7 +271,7 @@ export const WDIO_DEFAULTS = {
         }
     },
 
-    /**
+    /*
      * hooks
      */
     onPrepare: HOOK_DEFINITION,
@@ -290,7 +290,7 @@ export const WDIO_DEFAULTS = {
     onComplete: HOOK_DEFINITION,
     onReload: HOOK_DEFINITION,
 
-    /**
+    /*
      * cucumber specific hooks
      */
     beforeFeature: HOOK_DEFINITION,

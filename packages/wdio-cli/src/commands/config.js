@@ -54,7 +54,7 @@ export const runConfig = async function (useYarn, yes, exit) {
         packagesToInstall.push('@wdio/sync')
     }
 
-    /**
+    /*
      * add packages that are required by services
      */
     addServiceDeps(answers.services, packagesToInstall)
@@ -83,7 +83,7 @@ export const runConfig = async function (useYarn, yes, exit) {
         return !process.env.JEST_WORKER_ID && process.exit(1)
     }
 
-    /**
+    /*
      * don't exit if running unit tests
      */
     if (exit && !process.env.JEST_WORKER_ID) {
@@ -97,17 +97,17 @@ export async function getAnswers(yes) {
         ? QUESTIONNAIRE.reduce((answers, question) => Object.assign(
             answers,
             question.when && !question.when(answers)
-                /**
+                /*
                  * set nothing if question doesn't apply
                  */
                 ? {}
                 : answers[question.name] = question.default
-                    /**
+                    /*
                      * set default value if existing
                      */
                     ? question.default
                     : question.choices && question.choices.length
-                    /**
+                    /*
                      * pick first choice, select value if it exists
                      */
                         ? question.choices[0].value

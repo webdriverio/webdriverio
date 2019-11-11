@@ -3,7 +3,7 @@ import chalk from 'chalk'
 
 export default class ConciseReporter extends WDIOReporter {
     constructor (options) {
-        /**
+        /*
          * make Concise reporter to write to output stream by default
          */
         options = Object.assign(options, { stdout: true })

@@ -1,4 +1,4 @@
-/**
+/*
  * Multiremote example
  * To run this script you need to have Babel installed on your system.
  * If not try to run: `$ npm install @babel/node`

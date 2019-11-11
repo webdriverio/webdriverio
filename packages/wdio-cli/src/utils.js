@@ -135,7 +135,7 @@ export function replaceConfig(config, type, name) {
 }
 
 export function addServiceDeps(names, packages, update) {
-    /**
+    /*
      * automatically install latest Chromedriver if `wdio-chromedriver-service`
      * was selected for install
      */
@@ -151,7 +151,7 @@ export function addServiceDeps(names, packages, update) {
         }
     }
 
-    /**
+    /*
      * install Appium if it is not installed globally if `@wdio/appium-service`
      * was selected for install
      */
@@ -201,7 +201,7 @@ export async function missingConfigurationPrompt(command, message, useYarn = fal
         }
     ])
 
-    /**
+    /*
      * don't exit if running unit tests
      */
     if (!config && !process.env.JEST_WORKER_ID) {
@@ -238,7 +238,7 @@ export function getCapabilities(arg) {
         udid: arg.udid || null,
         ...(arg.deviceName && { deviceName: arg.deviceName })
     }
-    /**
+    /*
      * Parsing of option property and constructing desiredCapabilities
      * for Appium session. Could be application(1) or browser(2-3) session.
      */

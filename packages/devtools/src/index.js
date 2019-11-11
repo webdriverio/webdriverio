@@ -36,7 +36,7 @@ export default class DevTools {
             )
         }
 
-        /**
+        /*
          * save original set of capabilities to allow to request the same session again
          * (e.g. for reloadSession command in WebdriverIO)
          */

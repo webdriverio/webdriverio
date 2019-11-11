@@ -1,3 +1,6 @@
+import nodeUrl from 'url'
+import { validateUrl } from '../../utils'
+
 /**
  *
  * Protocol binding to load the URL of the browser. If a baseUrl is
@@ -31,10 +34,6 @@
  * @type protocol
  *
  */
-
-import nodeUrl from 'url'
-import { validateUrl } from '../../utils'
-
 export default function url (path) {
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')

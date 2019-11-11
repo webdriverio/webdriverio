@@ -20,7 +20,7 @@ export default class BaseReporter {
         this.cid = cid
         this.caps = caps
 
-        /**
+        /*
          * these configurations are not publicly documented as there should be no desire for it
          */
         this.reporterSyncInterval = this.config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
@@ -40,7 +40,7 @@ export default class BaseReporter {
     emit (e, payload) {
         payload.cid = this.cid
 
-        /**
+        /*
          * Send failure message (only once) in case of test or hook failure
          */
         sendFailureMessage(e, payload)
@@ -113,7 +113,7 @@ export default class BaseReporter {
                     return reject(new Error(`Some reporters are still unsynced: ${unsyncedReporter.join(', ')}`))
                 }
 
-                /**
+                /*
                  * no reporter are in need to sync anymore, continue
                  */
                 if (!unsyncedReporter.length) {
@@ -137,7 +137,7 @@ export default class BaseReporter {
             setLogFile: NOOP
         }
 
-        /**
+        /*
          * check if reporter has custom options
          */
         if (Array.isArray(reporter)) {
@@ -145,7 +145,7 @@ export default class BaseReporter {
             reporter = reporter[0]
         }
 
-        /**
+        /*
          * check if reporter was passed in from a file, e.g.
          *
          * ```js
@@ -168,7 +168,7 @@ export default class BaseReporter {
             return new ReporterClass(options)
         }
 
-        /**
+        /*
          * check if reporter is a node package, e.g. wdio-dot reporter
          *
          * ```js
@@ -190,7 +190,7 @@ export default class BaseReporter {
             return new ReporterClass(options)
         }
 
-        /**
+        /*
          * throw error if reporter property was invalid
          */
         throw new Error('Invalid reporters config')

@@ -37,7 +37,7 @@ process.on('message', (m) => {
     )
 })
 
-/**
+/*
  * catch sigint messages as they are handled by main process
  */
 exitHook((callback) => {

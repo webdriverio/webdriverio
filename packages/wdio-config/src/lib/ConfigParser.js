@@ -30,19 +30,19 @@ export default class ConfigParser {
         var filePath = path.resolve(process.cwd(), filename)
 
         try {
-            /**
+            /*
              * clone the original config
              */
             var fileConfig = merge(require(filePath).config, {}, MERGE_OPTIONS)
 
-            /**
+            /*
              * merge capabilities
              */
             const defaultTo = Array.isArray(this._capabilities) ? [] : {}
             this._capabilities = merge(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
             delete fileConfig.capabilities
 
-            /**
+            /*
              * Add hooks from the file config and remove them from file config object to avoid
              * complications when using merge function
              */
@@ -53,7 +53,7 @@ export default class ConfigParser {
 
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
-            /**
+            /*
              * For Sauce Labs RDC we need to determine if the config file has a `testobject_api_key`
              * If so, we need to provide a boolean to the `detectBackend` to set the correct hostname
              *
@@ -61,12 +61,12 @@ export default class ConfigParser {
              */
             const isRDC = Array.isArray(this._capabilities) && this._capabilities.some(capability => 'testobject_api_key' in capability)
 
-            /**
+            /*
              * detect Selenium backend
              */
             this._config = merge(detectBackend(this._config, isRDC), this._config, MERGE_OPTIONS)
 
-            /**
+            /*
              * remove `watch` from config as far as it can be only passed as command line argument
              */
             delete this._config.watch
@@ -85,7 +85,7 @@ export default class ConfigParser {
         let spec = Array.isArray(object.spec) ? object.spec : []
         let exclude = Array.isArray(object.exclude) ? object.exclude : []
 
-        /**
+        /*
          * overwrite config specs that got piped into the wdio command
          */
         if (object.specs && object.specs.length > 0) {
@@ -94,23 +94,23 @@ export default class ConfigParser {
             this._config.exclude = object.exclude
         }
 
-        /**
+        /*
          * merge capabilities
          */
         const defaultTo = Array.isArray(this._capabilities) ? [] : {}
         this._capabilities = merge(this._capabilities, this._config.capabilities || defaultTo, MERGE_OPTIONS)
 
-        /**
+        /*
          * save original specs if Cucumber's feature line number is provided
          */
         if (this._config.spec && isCucumberFeatureWithLineNumber(this._config.spec)) {
-            /**
+            /*
              * `this._config.spec` is string instead of Array in watch mode
              */
             this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...this._config.spec] : [this._config.spec]
         }
 
-        /**
+        /*
          * run single spec file only, regardless of multiple-spec specification
          */
         if (spec.length > 0) {
@@ -120,7 +120,7 @@ export default class ConfigParser {
             this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude)]
         }
 
-        /**
+        /*
          * user and key could get added via cli arguments so we need to detect again
          * Note: cli arguments are on the right and overwrite config
          * if host and port are default, remove them to get new values
@@ -170,7 +170,7 @@ export default class ConfigParser {
         let exclude = ConfigParser.getFilePaths(this._config.exclude)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
-        /**
+        /*
          * check if user has specified a specific suites to run
          */
         if (suites.length > 0) {

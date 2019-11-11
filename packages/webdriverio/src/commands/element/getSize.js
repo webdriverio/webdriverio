@@ -1,3 +1,5 @@
+import { getElementRect } from '../../utils'
+
 /**
  *
  * Get the width and height for an DOM-element.
@@ -25,9 +27,6 @@
  * @type property
  *
  */
-
-import { getElementRect } from '../../utils'
-
 export default async function getSize(prop = null) {
     let rect = {}
 

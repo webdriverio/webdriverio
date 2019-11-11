@@ -10,7 +10,7 @@ export default class WDIOCLInterface extends EventEmitter {
     constructor (config, specs, totalWorkerCnt, isWatchMode = false) {
         super()
 
-        /**
+        /*
          * Colors can be forcibly enabled/disabled with env variable `FORCE_COLOR`
          * `FORCE_COLOR=1` - forcibly enable colors
          * `FORCE_COLOR=0` - forcibly disable colors
@@ -35,7 +35,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.jobs = new Map()
         this.start = new Date()
 
-        /**
+        /*
          * The relationship between totalWorkerCnt and these counters are as follows:
          * totalWorkerCnt - retries = finished = passed + failed
          */
@@ -46,7 +46,7 @@ export default class WDIOCLInterface extends EventEmitter {
             failed: 0
         }
         this.messages = {
-            /**
+            /*
              * messages from worker reporters
              */
             reporter: {}
@@ -209,7 +209,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     sigintTrigger () {
-        /**
+        /*
          * allow to exit repl mode via Ctrl+C
          */
         if (this.inDebugMode) {
@@ -225,7 +225,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     printReporters () {
-        /**
+        /*
          * print reporter output
          */
         const reporter = this.messages.reporter

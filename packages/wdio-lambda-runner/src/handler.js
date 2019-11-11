@@ -7,7 +7,7 @@ module.exports.run = (event, context, callback) => {
     log.info('Start Lambda function...')
     const runner = new Runner()
 
-    /**
+    /*
      * run test
      */
     runner.run(event).catch((e) => {

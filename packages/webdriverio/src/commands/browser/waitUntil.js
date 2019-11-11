@@ -1,3 +1,5 @@
+import Timer from '../../utils/Timer'
+
 /**
  *
  * This wait command is your universal weapon if you want to wait on something. It expects a condition
@@ -34,9 +36,6 @@
  * @type utility
  *
  */
-
-import Timer from '../../utils/Timer'
-
 export default function (condition, timeout, timeoutMsg, interval) {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')

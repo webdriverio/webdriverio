@@ -1,4 +1,4 @@
-/**
+/*
  * in order to run this file make sure you have `webdriverio` and `devtools`
  * installed using NPM before running it:
  *

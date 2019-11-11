@@ -30,7 +30,7 @@ export function runHook (hookName, config, caps, specs) {
  */
 export function sanitizeCaps (caps) {
     return Object.keys(caps).filter(key => (
-        /**
+        /*
          * filter out all wdio config keys
          */
         !Object.keys(DEFAULT_CONFIGS).includes(key)
@@ -48,7 +48,7 @@ export function sanitizeCaps (caps) {
  * @return {Promise}               resolves with browser object
  */
 export async function initialiseInstance (config, capabilities, isMultiremote) {
-    /**
+    /*
      * check if config has sessionId and attach it to a running session if so
      */
     if (config.sessionId) {
@@ -154,7 +154,7 @@ export async function attachToMultiremote(instances, caps) {
         }
     }
 
-    /**
+    /*
      * attach to every multiremote instance
      */
     await Promise.all(

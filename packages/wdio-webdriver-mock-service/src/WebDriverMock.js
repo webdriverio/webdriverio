@@ -40,14 +40,14 @@ export default class WebDriverMock {
             if (method === 'POST') {
                 return this.scope[method.toLowerCase()](urlPath, (body) => {
                     for (const param of commandData.parameters) {
-                        /**
+                        /*
                          * check if parameter was set
                          */
                         if (!body[param.name]) {
                             return false
                         }
 
-                        /**
+                        /*
                          * check if parameter has correct type
                          */
                         if (param.required && typeof body[param.name] === 'undefined') {
@@ -55,7 +55,7 @@ export default class WebDriverMock {
                         }
                     }
 
-                    /**
+                    /*
                      * all parameters are valid
                      */
                     return true

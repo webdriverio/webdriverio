@@ -1,3 +1,6 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import isElementClickableScript from '../../scripts/isElementClickable'
 
 /**
  *
@@ -30,11 +33,6 @@
  * @type state
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isElementClickableScript from '../../scripts/isElementClickable'
-
 export default async function isClickable () {
     if (!await this.isDisplayed()) {
         return false

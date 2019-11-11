@@ -1,3 +1,7 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import getHTMLScript from '../../scripts/getHTML'
+
 /**
  *
  * Get source code of specified DOM element by selector.
@@ -28,11 +32,6 @@
  * @type property
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import getHTMLScript from '../../scripts/getHTML'
-
 export default function getHTML (includeSelectorTag = true) {
     return getBrowserObject(this).execute(getHTMLScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible

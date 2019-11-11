@@ -15,7 +15,7 @@ export default class WebDriver {
             logger.setLevel('webdriver', params.logLevel)
         }
 
-        /**
+        /*
          * if the server responded with direct connect information, update the
          * params to speak directly to the appium host instead of a load
          * balancer (see https://github.com/appium/python-client#direct-connect-urls
@@ -85,7 +85,7 @@ export default class WebDriver {
     }
 }
 
-/**
+/*
  * Helper methods consumed by webdriverio package
  */
 export { getPrototype }

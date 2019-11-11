@@ -45,7 +45,7 @@ export const builder = (yargs) => {
 export const handler = async (argv) => {
     const caps = getCapabilities(argv)
 
-    /**
+    /*
      * runner option required to wrap commands within Fibers context
      */
     const execMode = hasWdioSyncSupport ? { runner: 'repl' } : {}

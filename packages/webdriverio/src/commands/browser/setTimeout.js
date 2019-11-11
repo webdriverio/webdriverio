@@ -32,7 +32,7 @@ export default async function setTimeout(timeouts) {
         throw new Error('Parameter for "setTimeout" command needs to be an object')
     }
 
-    /**
+    /*
      * If value is not an integer, or it is less than 0 or greater than the maximum safe
      * integer, return error with error code invalid argument.
      */
@@ -46,7 +46,7 @@ export default async function setTimeout(timeouts) {
     const pageLoad = timeouts['page load'] || timeouts.pageLoad
     const script = timeouts.script
 
-    /**
+    /*
      * JsonWireProtocol action
      */
     if (!this.isW3C) {

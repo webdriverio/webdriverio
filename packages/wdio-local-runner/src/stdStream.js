@@ -5,7 +5,7 @@ export default class RunnerStream extends Transform {
     constructor () {
         super()
 
-        /**
+        /*
          * Remove events that are automatically created by Writable stream
          */
         this.on('pipe', () => {

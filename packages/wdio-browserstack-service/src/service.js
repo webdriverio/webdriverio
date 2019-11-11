@@ -60,7 +60,7 @@ export default class BrowserstackService {
         return this._update(this.sessionId, this._getBody())
     }
 
-    /**
+    /*
      * For CucumberJS
      */
 

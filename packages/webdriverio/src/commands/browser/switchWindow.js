@@ -40,7 +40,7 @@ export default async function switchWindow (urlOrTitleToMatch) {
     for (const tab of tabs) {
         await this.switchToWindow(tab)
 
-        /**
+        /*
          * check if url matches
          */
         const url = await this.getUrl()
@@ -48,7 +48,7 @@ export default async function switchWindow (urlOrTitleToMatch) {
             return tab
         }
 
-        /**
+        /*
          * check title
          */
         const title = await this.getTitle()

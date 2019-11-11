@@ -1,3 +1,5 @@
+import { getBrowserObject } from '../../utils'
+
 /**
  *
  * Returns browser window size (and position for drivers with W3C support).
@@ -18,9 +20,6 @@
  * @type window
  *
  */
-
-import { getBrowserObject } from '../../utils'
-
 export default function getWindowSize() {
     const browser = getBrowserObject(this)
 

@@ -1,3 +1,5 @@
+import { getElementFromResponse } from '../../utils'
+
 /**
  *
  * Select option with a specific value.
@@ -33,18 +35,15 @@
  * @type action
  *
  */
-
-import { getElementFromResponse } from '../../utils'
-
 export default async function selectByAttribute (attribute, value) {
-    /**
+    /*
      * convert value into string
      */
     value = typeof value === 'number'
         ? value.toString()
         : value
 
-    /**
+    /*
     * find option elememnt using xpath
     */
     const normalized = `[normalize-space(@${attribute.trim()}) = "${value.trim()}"]`
@@ -54,7 +53,7 @@ export default async function selectByAttribute (attribute, value) {
         throw new Error(`Option with attribute "${attribute}=${value}" not found.`)
     }
 
-    /**
+    /*
     * select option
     */
     return this.elementClick(getElementFromResponse(optionElement))

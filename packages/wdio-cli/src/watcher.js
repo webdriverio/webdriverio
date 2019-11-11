@@ -23,14 +23,14 @@ export default class Watcher {
     }
 
     async watch () {
-        /**
+        /*
          * listen on spec changes and rerun specific spec file
          */
         chokidar.watch(this.specs, { ignoreInitial: true })
             .on('add', this.getFileListener())
             .on('change', this.getFileListener())
 
-        /**
+        /*
          * listen on filesToWatch changes an rerun complete suite
          */
         const { filesToWatch } = this.launcher.configParser.getConfig()
@@ -40,17 +40,17 @@ export default class Watcher {
                 .on('change', this.getFileListener(false))
         }
 
-        /**
+        /*
          * run initial test suite
          */
         await this.launcher.run()
 
-        /**
+        /*
          * clean interface once all worker finish
          */
         const workers = this.getWorkers()
         Object.values(workers).forEach((worker) => worker.on('exit', () => {
-            /**
+            /*
              * check if all workers have finished
              */
             if (Object.values(workers).find((w) => w.isBusy)) {
@@ -85,7 +85,7 @@ export default class Watcher {
             workers = pickBy(workers, pickByFn)
         }
 
-        /**
+        /*
          * filter out busy workers, only skip if explicitely desired
          */
         if (!includeBusyWorker) {
@@ -103,25 +103,25 @@ export default class Watcher {
         const workers = this.getWorkers(
             params.spec ? (worker) => worker.specs.includes(params.spec) : null)
 
-        /**
+        /*
          * don't do anything if no worker was found
          */
         if (Object.keys(workers).length === 0) {
             return
         }
 
-        /**
+        /*
          * update total worker count interface
          * ToDo: this should have a cleaner solution
          */
         this.launcher.interface.totalWorkerCnt = Object.entries(workers).length
 
-        /**
+        /*
          * clean up interface
          */
         this.cleanUp()
 
-        /**
+        /*
          * trigger new run for non busy worker
          */
         for (const [, worker] of Object.entries(workers)) {

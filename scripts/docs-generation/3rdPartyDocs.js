@@ -76,12 +76,12 @@ function downloadReadme(githubUrl) {
  * @return {string}             readme content without header
  */
 function normalizeDoc(readme, githubUrl, preface, repoInfo) {
-    /**
+    /*
      * remove badges
      */
     let readmeArr = readme.split('\n').filter(row => !readmeBadges.some(b => row.includes(b)))
 
-    /**
+    /*
      * get index of header to remove further
      */
     let sliceIdx = 0
@@ -92,19 +92,19 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
     }
     readmeArr = readmeArr.slice(sliceIdx)
 
-    /**
+    /*
      * prepend additional # to header rows
      * and add path to links
      */
     readmeArr.forEach((row, idx) => {
-        /**
+        /*
          * prepend # to header rows
          */
         if (row.match(/^(#)\1* /)) {
             readmeArr[idx] = `#${row}`
         }
 
-        /**
+        /*
          * transform partial to full links
          * match links like [foo](bar). `stringInParentheses` would be `bar`
          * do not match [foo](http://bar), [foo](#bar)

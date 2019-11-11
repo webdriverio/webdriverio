@@ -1,3 +1,6 @@
+import fs from 'fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
 /**
  *
  * Save a screenshot of an element to a PNG file on your OS.
@@ -16,12 +19,8 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function saveScreenshot (filepath) {
-    /**
+    /*
      * type check
      */
     if (typeof filepath !== 'string' || !filepath.endsWith('.png')) {

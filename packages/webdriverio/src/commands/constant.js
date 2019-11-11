@@ -18,7 +18,7 @@ export const formatArgs = function (scope, actions) {
 
         const formattedAction = { action: action.action, options: {} }
 
-        /**
+        /*
          * don't propagate for actions that don't require element options
          */
         const actionElement = action.element && typeof action.element.elementId === 'string'
@@ -32,7 +32,7 @@ export const formatArgs = function (scope, actions) {
         if (isFinite(action.y)) formattedAction.options.y = action.y
         if (action.ms) formattedAction.options.ms = action.ms
 
-        /**
+        /*
          * remove options property if empty
          */
         if (Object.keys(formattedAction.options).length === 0) {
