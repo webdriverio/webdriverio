@@ -101,13 +101,18 @@ export default class ConfigParser {
         this._capabilities = merge(this._capabilities, this._config.capabilities || defaultTo, MERGE_OPTIONS)
 
         /**
-         * run single spec file only, regardless of multiple-spec specification
+         * save original specs if Cucumber's feature line number is provided
          */
-
         if (this._config.spec && isCucumberFeatureWithLineNumber(this._config.spec)) {
-            this._config.cucumberFeaturesWithLineNumbers = this._config.spec
+            /**
+             * `this._config.spec` is string instead of Array in watch mode
+             */
+            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...this._config.spec] : [this._config.spec]
         }
 
+        /**
+         * run single spec file only, regardless of multiple-spec specification
+         */
         if (spec.length > 0) {
             this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs)]
         }
@@ -216,7 +221,7 @@ export default class ConfigParser {
      * options from cli argument
      *
      * @param  {String} cliArgFileList  list of files in a string from
-     * @param  {Object} config  config object that stores the spec and exlcude attributes
+     * @param  {Object} config  config object that stores the spec and exclude attributes
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
