@@ -100,6 +100,32 @@ describe('wdio-applitools-service', () => {
             expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
         })
 
+        it('should register takeRegionSnapshot command with frame', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            global.browser.takeRegionSnapshot('foobar', 'foobarRegion', 'foobarFrame')
+            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegionWithFrame')
+        })
+
+        it('should register if takeRegionSnapshot command is used with null frame', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            global.browser.takeRegionSnapshot('foobar', 'foobarRegion', null)
+            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
+        })
+
         it('should throw if takeRegionSnapshot command is used without title', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService()

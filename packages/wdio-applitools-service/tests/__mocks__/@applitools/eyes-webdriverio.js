@@ -1,6 +1,11 @@
 const Target = {
     window: jest.fn().mockReturnValue('some window'),
-    region: jest.fn().mockReturnValue('foobarRegion')
+    region: jest.fn().mockImplementation((region, frame) => {
+        if(frame) {
+            return 'foobarRegionWithFrame'
+        }
+        return 'foobarRegion'
+    })
 }
 
 class Eyes {
