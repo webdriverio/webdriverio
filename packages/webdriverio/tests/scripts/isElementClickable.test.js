@@ -87,6 +87,7 @@ describe('isElementClickable script', () => {
             clientWidth: 22,
             getClientRects: () => [{}],
             scrollIntoView: () => { },
+            contains: () => false,
             disabled: true
         }
         global.document = { elementFromPoint: () => elemMock }
@@ -106,6 +107,7 @@ describe('isElementClickable script', () => {
             clientWidth: 22,
             getClientRects: () => [{}],
             scrollIntoView: () => { },
+            contains: () => false
         }
         global.document = { elementFromPoint: () => null }
 
@@ -120,10 +122,9 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 999
             }),
-            clientHeight: 55,
-            clientWidth: 22,
             getClientRects: () => [{}],
             scrollIntoView: () => { },
+            contains: () => false
         }
         global.document = { elementFromPoint: () => elemMock }
 
