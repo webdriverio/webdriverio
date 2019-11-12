@@ -8,11 +8,13 @@ class AllureReporter extends WDIOReporter {
     constructor(options) {
         const outputDir = options.outputDir || 'allure-results'
         const useCucumberStepReporter = Boolean(options.useCucumberStepReporter)
+        const disableMochaHooks = Boolean(options.disableMochaHooks)
 
         super({
             ...options,
             outputDir,
-            useCucumberStepReporter
+            useCucumberStepReporter,
+            disableMochaHooks
         })
         this.config = {}
         this.capabilities = {}
@@ -208,7 +210,7 @@ class AllureReporter extends WDIOReporter {
         }
 
         // add beforeEach / afterEach hook as step to test
-        if (isMochaEachHooks(hook.title)) {
+        if (this.options.disableMochaHooks && isMochaEachHooks(hook.title)) {
             if (this.allure.getCurrentTest()) {
                 this.allure.startStep(hook.title)
             }
@@ -216,7 +218,7 @@ class AllureReporter extends WDIOReporter {
         }
 
         // don't add hook as test to suite for mocha All hooks
-        if (isMochaAllHooks(hook.title)) {
+        if (this.options.disableMochaHooks && isMochaAllHooks(hook.title)) {
             return
         }
 
@@ -226,12 +228,12 @@ class AllureReporter extends WDIOReporter {
 
     onHookEnd(hook) {
         // ignore global hooks
-        if (!hook.parent || !this.allure.getCurrentSuite() || (!isMochaAllHooks(hook.title) && !this.allure.getCurrentTest())) {
+        if (!hook.parent || !this.allure.getCurrentSuite() || (this.options.disableMochaHooks && !isMochaAllHooks(hook.title) && !this.allure.getCurrentTest())) {
             return false
         }
 
         // set beforeEach / afterEach hook (step) status
-        if (isMochaEachHooks(hook.title)) {
+        if (this.options.disableMochaHooks && isMochaEachHooks(hook.title)) {
             if (hook.error) {
                 this.allure.endStep(stepStatuses.FAILED)
             } else {
@@ -242,27 +244,29 @@ class AllureReporter extends WDIOReporter {
 
         // set hook (test) status
         if (hook.error) {
-            if (isMochaAllHooks(hook.title)) {
+            if (this.options.disableMochaHooks && isMochaAllHooks(hook.title)) {
                 this.onTestStart(hook)
             }
             this.onTestFail(hook)
-        } else if (!isMochaAllHooks(hook.title)) {
-            this.onTestPass()
+        } else if (this.options.disableMochaHooks || this.options.useCucumberStepReporter) {
+            if (!isMochaAllHooks(hook.title)) {
+                this.onTestPass()
 
-            // remove hook from suite if it has no steps
-            if (this.allure.getCurrentTest().steps.length === 0 && !this.options.useCucumberStepReporter) {
-                this.allure.getCurrentSuite().testcases.pop()
-            } else if (this.options.useCucumberStepReporter) {
-                // remove hook when it's registered as a step and if it's passed
-                const step = this.allure.getCurrentTest().steps.pop()
+                // remove hook from suite if it has no steps
+                if (this.allure.getCurrentTest().steps.length === 0 && !this.options.useCucumberStepReporter) {
+                    this.allure.getCurrentSuite().testcases.pop()
+                } else if (this.options.useCucumberStepReporter) {
+                    // remove hook when it's registered as a step and if it's passed
+                    const step = this.allure.getCurrentTest().steps.pop()
 
-                // if it had any attachments, reattach them to current test
-                if (step && step.attachments.length >= 1) {
-                    step.attachments.forEach(attachment => {
-                        this.allure.getCurrentTest().addAttachment(attachment)
-                    })
+                    // if it had any attachments, reattach them to current test
+                    if (step && step.attachments.length >= 1) {
+                        step.attachments.forEach(attachment => {
+                            this.allure.getCurrentTest().addAttachment(attachment)
+                        })
+                    }
                 }
-            }
+            } else if (!this.options.disableMochaHooks) this.onTestPass()
         }
     }
 
