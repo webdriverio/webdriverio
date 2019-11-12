@@ -16,7 +16,10 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 455
             }),
-            scrollIntoView: () => {},
+            clientHeight: 55,
+            clientWidth: 22,
+            getClientRects: () => [{}],
+            scrollIntoView: () => { },
             contains: () => false
         }
         global.document = { elementFromPoint: () => elemMock }
@@ -32,10 +35,42 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 455
             }),
-            scrollIntoView: () => {},
+            clientHeight: 55,
+            clientWidth: 22,
+            getClientRects: () => [{}],
+            scrollIntoView: () => { },
             contains: () => true
         }
         global.document = { elementFromPoint: () => 'some element' }
+
+        expect(isElementClickable(elemMock)).toBe(true)
+    })
+
+    it('should be clickable if in viewport and elementFromPoint of the rect matches', () => {
+        const elemMock = {
+            getBoundingClientRect: () => ({
+                height: 55,
+                width: 22,
+                top: 33,
+                left: 455
+            }),
+            clientHeight: 55,
+            clientWidth: 22,
+            getClientRects: () => [{
+                height: 55,
+                width: 2200,
+                top: 33,
+                left: 45500
+            }],
+            scrollIntoView: () => { },
+            contains: () => false
+        }
+        global.document = {
+            // only return elemMock in getOverlappingRects
+            elementFromPoint: (x) => {
+                return x > 45500 ? elemMock : null
+            }
+        }
 
         expect(isElementClickable(elemMock)).toBe(true)
     })
@@ -48,7 +83,11 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 455
             }),
-            scrollIntoView: () => {},
+            clientHeight: 55,
+            clientWidth: 22,
+            getClientRects: () => [{}],
+            scrollIntoView: () => { },
+            contains: () => false,
             disabled: true
         }
         global.document = { elementFromPoint: () => elemMock }
@@ -64,7 +103,11 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 455
             }),
-            scrollIntoView: () => {},
+            clientHeight: 55,
+            clientWidth: 22,
+            getClientRects: () => [{}],
+            scrollIntoView: () => { },
+            contains: () => false
         }
         global.document = { elementFromPoint: () => null }
 
@@ -79,7 +122,9 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 999
             }),
-            scrollIntoView: () => {},
+            getClientRects: () => [{}],
+            scrollIntoView: () => { },
+            contains: () => false
         }
         global.document = { elementFromPoint: () => elemMock }
 
