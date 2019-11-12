@@ -4,7 +4,7 @@
  * @return {Boolean}           false if element is not overlapped
  */
 export default function isElementClickable (elem) {
-    if (!elem.getBoundingClientRect || !elem.scrollIntoView || !elem.contains || !document.elementFromPoint) {
+    if (!elem.getBoundingClientRect || !elem.scrollIntoView || !elem.contains || !elem.getClientRects || !document.elementFromPoint) {
         return false
     }
 
@@ -16,9 +16,32 @@ export default function isElementClickable (elem) {
         return document.elementFromPoint(x, y)
     }
 
-    /**
-     * copied from `isElementInViewport.js`
-     */
+    // get overlapping element rects (currently only the first)
+    // applicable if element's text is multiline.
+    function getOverlappingRects (elem) {
+        const elems = []
+
+        const rects = elem.getClientRects()
+        // webdriver clicks on center of the first element's rect (line of text), it might change in future
+        const rect = rects[0]
+        const x = rect.left + (rect.width / 2)
+        const y = rect.top + (rect.height / 2)
+        elems.push(document.elementFromPoint(x, y))
+
+        return elems
+    }
+
+    // get overlapping elements
+    function getOverlappingElements (elem) {
+        return [getOverlappingElement(elem), ...getOverlappingRects(elem)]
+    }
+
+    // is one of overlapping elements the `elem` or one of its child
+    function isOverlappingElementMatch (elementsFromPoint, elem) {
+        return elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || elem.contains(elementFromPoint))
+    }
+
+    // copied from `isElementInViewport.js`
     function isElementInViewport (elem) {
         if (!elem.getBoundingClientRect) {
             return false
@@ -36,10 +59,7 @@ export default function isElementClickable (elem) {
     }
 
     function isClickable (elem) {
-        const elementFromPoint = getOverlappingElement(elem)
-
-        return isElementInViewport(elem) && elem.disabled !== true &&
-            (elementFromPoint === elem || elem.contains(elementFromPoint))
+        return isElementInViewport(elem) && elem.disabled !== true && isOverlappingElementMatch(getOverlappingElements(elem), elem)
     }
 
     // scroll to the element if it's not clickable
