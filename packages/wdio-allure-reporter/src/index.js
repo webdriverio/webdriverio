@@ -101,13 +101,22 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this.allure.getCurrentTest()
 
         if (!this.isMultiremote) {
-            // eslint-disable-next-line camelcase
-            const { browserName, device, deviceName, version, platformVersion, os_version, osVersion } = this.capabilities
-            const targetName = browserName || device || deviceName || cid
-            // eslint-disable-next-line camelcase
-            const browserstackVersion = os_version || osVersion
-            const paramVersion = browserstackVersion || version || platformVersion || ''
-            const paramName = device || deviceName ? 'device' : 'browser'
+            const { browserName, device, deviceName, version, platformVersion } = this.capabilities
+
+            let targetName = browserName || device || deviceName || cid
+            let paramVersion = version || platformVersion || ''
+            let paramName = device || deviceName ? 'device' : 'browser'
+
+            if (this.config.hostname.includes('browserstack')) {
+                // eslint-disable-next-line camelcase
+                const { browser_name: browserNameLegacy, os_version: osVersionLegacy, osVersion: osVersionW3C } = this.capabilities
+                const { version: mobileVersion } = this.capabilities.mobile
+
+                targetName = browserNameLegacy || mobileVersion || device || deviceName || cid
+                paramVersion = osVersionW3C || osVersionLegacy || version || platformVersion || ''
+                paramName = mobileVersion || device || deviceName ? 'device' : 'browser'
+            }
+
             const paramValue = paramVersion ? `${targetName}-${paramVersion}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
         } else {
