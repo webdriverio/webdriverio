@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.7 (2019-11-13)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4772](https://github.com/webdriverio/webdriverio/pull/4772) Handle multiline text in isClickable ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#4775](https://github.com/webdriverio/webdriverio/pull/4775) Document behaviour of custom services added by name ([@codiophile](https://github.com/codiophile))
+
+#### Committers: 3
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Erik Blomqvist ([@codiophile](https://github.com/codiophile))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.6 (2019-11-11)
 
 #### :bug: Bug Fix
