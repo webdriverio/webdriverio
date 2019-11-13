@@ -29,7 +29,7 @@
           " */"
         ],
         [
-          "// Get Performance Logs (needs capturePerformance capability)",
+          "// Get Performance Logs (needs capturePerformance capability see: https://wiki.saucelabs.com/display/DOCS/Measure+Page+Load+Performance+Using+Test+Automation#MeasurePageLoadPerformanceUsingTestAutomation-EnableYourScript)",
           "console.log(browser.getPageLogs('sauce:performance'));",
           "/**",
           " * outputs:",
