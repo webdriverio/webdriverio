@@ -59,4 +59,16 @@ exports.config = {
 }
 ```
 
+> **Note:** Services that are added by name behave slightly differently compared to your own imported services. Instead of the service handling all the hooks, as in the example above, the service needs to export a launcher that handles `onPrepare` and `onComplete`. The rest of the hooks will be handled by the service (the default export), as normal.
+> 
+> Example:
+>
+> ```
+> import Launcher from './launcher'
+> import Service from './service'
+> 
+> export default Service
+> export const launcher = Launcher
+> ```
+
 We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please create a Pull Request to our [configuration utility](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/config.js#L20-L34) so that your package will be suggested whenever someone runs `wdio config`.
