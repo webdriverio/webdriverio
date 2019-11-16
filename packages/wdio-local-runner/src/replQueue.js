@@ -3,6 +3,8 @@ import WDIORepl from './repl'
 /**
  * repl queue class
  * allows to run debug commands in mutliple workers one after another
+ *
+ * @extends ReplQueue
  */
 export default class ReplQueue {
     constructor () {

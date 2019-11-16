@@ -3,10 +3,14 @@ import WDIOReporter from '@wdio/reporter'
 import { limit } from './utils'
 
 /**
- * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
- * uses junit-report-builder (https://github.com/davidparsson/junit-report-builder) to build report.The report
- * generated from this reporter should conform to the standard JUnit report schema
+ * Reporter that converts test results from a single instance/runner into an XML JUnit report.
+ * This class uses junit-report-builder (https://github.com/davidparsson/junit-report-builder)
+ * to build report.
+ *
+ * The report generated from this reporter should conform to the standard JUnit report schema
  * (https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd).
+ *
+ * @extends WDIOReporter
  */
 class JunitReporter extends WDIOReporter {
     constructor (options) {

@@ -5,6 +5,8 @@ function indentAll(lines) {
 /**
  * An error that encapsulates more than one error, to support soft-assertions from Jasmine
  * even though Allure's API assumes one error-per test
+ *
+ * @extends Error
  */
 export default class CompoundError extends Error {
     constructor(...innerErrors) {
