@@ -50,7 +50,7 @@
     "lodash.union": "^4.6.0",
     "log-update": "^3.2.0",
     "webdriverio": "5.16.7",
-    "yargs": "^14.0.0",
+    "yargs": "^15.0.1",
     "yarn-install": "^1.0.0"
   },
   "publishConfig": {
