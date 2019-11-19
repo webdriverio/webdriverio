@@ -1,5 +1,6 @@
 import fs from 'fs'
 import nodeLogger from '../src/node'
+import nodeLogger2 from '../src/nodeCopy'
 
 describe('wdio-logger node', () => {
     describe('log level', () => {
