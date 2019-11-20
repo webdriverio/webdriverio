@@ -189,9 +189,11 @@ describe('wdio-logger node', () => {
             process.env.WDIO_LOG_PATH = 'wdio.test.log'
 
             const log = nodeLogger('test-logFile4')
+            const log2 = nodeLogger2('test-logFile4')
             log.info('DATA')
             log.info('RESULT')
             log.info('COMMAND')
+            log2.info('foo')
             log.info(new Error('bar'))
 
             expect(write.mock.calls.length).toBe(4)
