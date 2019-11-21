@@ -53,8 +53,8 @@ let logLevelsConfig = {}
 const logCache = new Set()
 let logFile
 
-const originalFactory = log.methodFactory
-log.methodFactory = function (methodName, logLevel, loggerName) {
+const originalFactory = log.getLogger('__wdioLogger').methodFactory
+const wdioLoggerMethodFactory = function (methodName, logLevel, loggerName) {
     const rawMethod = originalFactory(methodName, logLevel, loggerName)
     return (...args) => {
         /**
@@ -101,6 +101,9 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
     }
 }
 
+if (log.methodFactory.name === originalFactory.name) {
+    log.methodFactory = wdioLoggerMethodFactory
+}
 prefix.apply(log, {
     template: '%t %l %n:',
     timestampFormatter: (date) => chalk.gray(date.toISOString()),
