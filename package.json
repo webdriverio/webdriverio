@@ -124,7 +124,8 @@
       "packages/wdio-devtools-service/src/scripts",
       "packages/webdriverio/build",
       "packages/webdriver/build",
-      "packages/wdio-cucumber-framework/tests/fixtures"
+      "packages/wdio-cucumber-framework/tests/fixtures",
+      "packages/wdio-logger/build"
     ]
   },
   "greenkeeper": {
