@@ -9,16 +9,16 @@ export default function isElementClickable (elem) {
     }
 
     // get overlapping element
-    function getOverlappingElement (elem) {
+    function getOverlappingElement (elem, context = document) {
         const elemDimension = elem.getBoundingClientRect()
         const x = elemDimension.left + (elem.clientWidth / 2)
         const y = elemDimension.top + (elem.clientHeight / 2)
-        return document.elementFromPoint(x, y)
+        return context.elementFromPoint(x, y)
     }
 
     // get overlapping element rects (currently only the first)
     // applicable if element's text is multiline.
-    function getOverlappingRects (elem) {
+    function getOverlappingRects (elem, context = document) {
         const elems = []
 
         const rects = elem.getClientRects()
@@ -26,19 +26,38 @@ export default function isElementClickable (elem) {
         const rect = rects[0]
         const x = rect.left + (rect.width / 2)
         const y = rect.top + (rect.height / 2)
-        elems.push(document.elementFromPoint(x, y))
+        elems.push(context.elementFromPoint(x, y))
 
         return elems
     }
 
     // get overlapping elements
-    function getOverlappingElements (elem) {
-        return [getOverlappingElement(elem), ...getOverlappingRects(elem)]
+    function getOverlappingElements (elem, context) {
+        return [getOverlappingElement(elem, context), ...getOverlappingRects(elem, context)]
     }
 
     // is one of overlapping elements the `elem` or one of its child
     function isOverlappingElementMatch (elementsFromPoint, elem) {
-        return elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || elem.contains(elementFromPoint))
+        if (elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || elem.contains(elementFromPoint))) {
+            return true
+        }
+
+        // shadow root
+        let elemsWithShadowRoot = [...new Set(elementsFromPoint)]
+        elemsWithShadowRoot = elemsWithShadowRoot.filter(x => x && x.shadowRoot && x.shadowRoot.elementFromPoint)
+
+        let shadowElementsFromPoint = []
+        for (let shadowElement of elemsWithShadowRoot) {
+            shadowElementsFromPoint.push(...getOverlappingElements(elem, shadowElement.shadowRoot))
+        }
+        shadowElementsFromPoint = [...new Set(shadowElementsFromPoint)]
+        shadowElementsFromPoint = shadowElementsFromPoint.filter(x => !elementsFromPoint.includes(x))
+
+        if (shadowElementsFromPoint.length === 0) {
+            return false
+        }
+
+        return isOverlappingElementMatch(shadowElementsFromPoint, elem)
     }
 
     // copied from `isElementInViewport.js`
