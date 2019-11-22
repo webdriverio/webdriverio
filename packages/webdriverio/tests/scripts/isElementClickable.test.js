@@ -125,7 +125,7 @@ describe('isElementClickable script', () => {
         expect(isElementClickable(elemMock)).toBe(false)
     })
 
-    it('should be clickable if not in viewport', () => {
+    it('should be clickable when element is inside in the ShadowDom', () => {
         const getBoundingClientRect = () => ({
             height: 55,
             width: 22,
