@@ -53,57 +53,56 @@ let logLevelsConfig = {}
 const logCache = new Set()
 let logFile
 
-const originalFactory = log.getLogger('__wdioLogger').methodFactory
-const wdioLoggerMethodFactory = function (methodName, logLevel, loggerName) {
-    const rawMethod = originalFactory(methodName, logLevel, loggerName)
-    return (...args) => {
-        /**
-         * create logFile lazily
-         */
-        if (!logFile && process.env.WDIO_LOG_PATH) {
-            logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
-        }
-
-        /**
-         * split `prefixer: value` sting to `prefixer: ` and `value`
-         * so that SERIALIZERS can match certain string
-         */
-        const match = Object.values(matches).filter(x => args[0].endsWith(`: ${x}`))[0]
-        if (match) {
-            const prefixStr = args.shift().slice(0, -match.length - 1)
-            args.unshift(prefixStr, match)
-        }
-
-        args = args.map((arg) => {
-            for (const s of SERIALIZERS) {
-                if (s.matches(arg)) {
-                    return s.serialize(arg)
-                }
-            }
-            return arg
-        })
-
-        const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
-        if (logFile && logFile.writable) {
+const originalFactory = log.methodFactory
+if (originalFactory.name === 'defaultMethodFactory') {
+    log.methodFactory = function (methodName, logLevel, loggerName) {
+        const rawMethod = originalFactory(methodName, logLevel, loggerName)
+        return (...args) => {
             /**
-             * empty logging cache if stuff got logged before
+             * create logFile lazily
              */
-            if (logCache.size) {
-                logCache.forEach((log) => logFile.write(log))
-                logCache.clear()
+            if (!logFile && process.env.WDIO_LOG_PATH) {
+                logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
             }
 
-            return logFile.write(logText)
-        }
+            /**
+             * split `prefixer: value` sting to `prefixer: ` and `value`
+             * so that SERIALIZERS can match certain string
+             */
+            const match = Object.values(matches).filter(x => args[0].endsWith(`: ${x}`))[0]
+            if (match) {
+                const prefixStr = args.shift().slice(0, -match.length - 1)
+                args.unshift(prefixStr, match)
+            }
 
-        logCache.add(logText)
-        rawMethod(...args)
+            args = args.map((arg) => {
+                for (const s of SERIALIZERS) {
+                    if (s.matches(arg)) {
+                        return s.serialize(arg)
+                    }
+                }
+                return arg
+            })
+
+            const logText = ansiStrip(`${util.format.apply(this, args)}\n`)
+            if (logFile && logFile.writable) {
+                /**
+                 * empty logging cache if stuff got logged before
+                 */
+                if (logCache.size) {
+                    logCache.forEach((log) => logFile.write(log))
+                    logCache.clear()
+                }
+
+                return logFile.write(logText)
+            }
+
+            logCache.add(logText)
+            rawMethod(...args)
+        }
     }
 }
 
-if (log.methodFactory.name === originalFactory.name) {
-    log.methodFactory = wdioLoggerMethodFactory
-}
 prefix.apply(log, {
     template: '%t %l %n:',
     timestampFormatter: (date) => chalk.gray(date.toISOString()),
