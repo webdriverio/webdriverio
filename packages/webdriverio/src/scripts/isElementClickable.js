@@ -4,7 +4,19 @@
  * @return {Boolean}           false if element is not overlapped
  */
 export default function isElementClickable (elem) {
-    if (!elem.getBoundingClientRect || !elem.scrollIntoView || !elem.contains || !elem.getClientRects || !document.elementFromPoint) {
+    if (!elem.getBoundingClientRect || !elem.scrollIntoView || !elem.getClientRects || !document.elementFromPoint) {
+        return false
+    }
+
+    // check if the childElement is contained in containerElement with ShadowDom support
+    function nodeContains(containerElement, childElement){
+        // see https://github.com/jsdom/jsdom/blob/75a921eab52c239b2468e08be9f547f46c7f86bd/lib/jsdom/living/nodes/Node-impl.js#L358
+        while (childElement) {
+            if (childElement === containerElement) return true
+            // DocumentFragment / ShadowRoot
+            if (childElement.nodeType === 11) childElement = childElement.host
+            childElement = childElement.parentNode
+        }
         return false
     }
 
@@ -38,7 +50,7 @@ export default function isElementClickable (elem) {
 
     // is one of overlapping elements the `elem` or one of its child
     function isOverlappingElementMatch (elementsFromPoint, elem) {
-        return elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || elem.contains(elementFromPoint))
+        return elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || nodeContains(elementFromPoint, elem))
     }
 
     // copied from `isElementInViewport.js`
