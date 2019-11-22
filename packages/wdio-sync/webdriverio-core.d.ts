@@ -305,7 +305,7 @@ declare namespace WebdriverIO {
          */
         getProperty(
             property: string
-        ): object | string;
+        ): object | string | boolean | number;
 
         /**
          * Get the width and height for an DOM-element.
