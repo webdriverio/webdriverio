@@ -1,6 +1,6 @@
 import fs from 'fs'
 import nodeLogger from '../src/node'
-import nodeLogger2 from '../build/node'
+import nodeLogger2 from '../.npm/node'
 
 describe('wdio-logger node', () => {
     describe('log level', () => {
