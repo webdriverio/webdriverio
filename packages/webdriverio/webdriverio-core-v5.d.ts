@@ -292,6 +292,13 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
+         * Return true if the selected DOM-element matches with the provided one.
+         */
+        equals(
+            el: Element
+        ): boolean;
+
+        /**
          * Get an attribute from a DOM-element based on the attribute name.
          */
         getAttribute(

@@ -7,6 +7,7 @@ export const custom$$ = require('./element/custom$$').default
 export const custom$ = require('./element/custom$').default
 export const doubleClick = require('./element/doubleClick').default
 export const dragAndDrop = require('./element/dragAndDrop').default
+export const equals = require('./element/equals').default
 export const getAttribute = require('./element/getAttribute').default
 export const getCSSProperty = require('./element/getCSSProperty').default
 export const getHTML = require('./element/getHTML').default
