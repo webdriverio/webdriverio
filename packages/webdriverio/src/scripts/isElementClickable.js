@@ -62,10 +62,13 @@ export default function isElementClickable (elem) {
         return isElementInViewport(elem) && elem.disabled !== true && isOverlappingElementMatch(getOverlappingElements(elem), elem)
     }
 
+    // returns true for Chrome and Firefox and false for Safari, Edge and IE
+    let scrollIntoViewFullSupport = !window.safari || !window.StyleMedia
+
     // scroll to the element if it's not clickable
     if (!isClickable(elem)) {
-        // works well in dialogs, but the element may be still overlapped by some sticky header/footerx
-        elem.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+        // works well in dialogs, but the element may be still overlapped by some sticky header/footer
+        elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'nearest', inline: 'nearest' } : false)
 
         // if element is still not clickable take another scroll attempt
         if (!isClickable(elem)) {
