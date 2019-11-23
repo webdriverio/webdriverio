@@ -43,13 +43,16 @@ export default function isElementClickable (elem) {
         }
 
         // shadow root
+        // filter unique elements with shadowRoot
         let elemsWithShadowRoot = [...new Set(elementsFromPoint)]
         elemsWithShadowRoot = elemsWithShadowRoot.filter(x => x && x.shadowRoot && x.shadowRoot.elementFromPoint)
 
+        // getOverlappingElements of every element with shadowRoot
         let shadowElementsFromPoint = []
         for (let shadowElement of elemsWithShadowRoot) {
             shadowElementsFromPoint.push(...getOverlappingElements(elem, shadowElement.shadowRoot))
         }
+        // remove duplicates and parents
         shadowElementsFromPoint = [...new Set(shadowElementsFromPoint)]
         shadowElementsFromPoint = shadowElementsFromPoint.filter(x => !elementsFromPoint.includes(x))
 
