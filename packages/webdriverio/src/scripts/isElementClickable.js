@@ -8,6 +8,11 @@ export default function isElementClickable (elem) {
         return false
     }
 
+    // Edge before switching to Chromium
+    const isOldEdge = !!window.StyleMedia
+    // returns true for Chrome and Firefox and false for Safari, Edge and IE
+    const scrollIntoViewFullSupport = !(window.safari || isOldEdge)
+
     // get overlapping element
     function getOverlappingElement (elem, context = document) {
         const elemDimension = elem.getBoundingClientRect()
@@ -36,9 +41,31 @@ export default function isElementClickable (elem) {
         return [getOverlappingElement(elem, context), ...getOverlappingRects(elem, context)]
     }
 
+    // is a node a descendant of a given node
+    function nodeContains (elem, otherNode) {
+        // Edge doesn't support neither Shadow Dom nor contains if ShadowRoot polyfill is used
+        if (isOldEdge) {
+            let tmpElement = otherNode
+            while (tmpElement) {
+                if (tmpElement === elem) {
+                    return true
+                }
+
+                // DocumentFragment / ShadowRoot polyfill like ShadyRoot
+                if (tmpElement.nodeType === 11 && tmpElement.host) {
+                    tmpElement = tmpElement.host
+                }
+                tmpElement = tmpElement.parentNode
+            }
+            return false
+        }
+
+        return elem.contains(otherNode)
+    }
+
     // is one of overlapping elements the `elem` or one of its child
     function isOverlappingElementMatch (elementsFromPoint, elem) {
-        if (elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || elem.contains(elementFromPoint))) {
+        if (elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || nodeContains(elem, elementFromPoint))) {
             return true
         }
 
@@ -84,9 +111,6 @@ export default function isElementClickable (elem) {
         return isElementInViewport(elem) && elem.disabled !== true && isOverlappingElementMatch(getOverlappingElements(elem), elem)
     }
 
-    // returns true for Chrome and Firefox and false for Safari, Edge and IE
-    let scrollIntoViewFullSupport = !window.safari || !window.StyleMedia
-
     // scroll to the element if it's not clickable
     if (!isClickable(elem)) {
         // works well in dialogs, but the element may be still overlapped by some sticky header/footer
@@ -96,7 +120,7 @@ export default function isElementClickable (elem) {
         if (!isClickable(elem)) {
             // scroll to element, try put it in the screen center.
             // Should definitely work even if element was covered with sticky header/footer
-            elem.scrollIntoView({ block: 'center', inline: 'center' })
+            elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'center', inline: 'center' } : true)
 
             return isClickable(elem)
         }
