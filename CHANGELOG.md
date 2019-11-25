@@ -15,6 +15,27 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.9 (2019-11-25)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#4800](https://github.com/webdriverio/webdriverio/pull/4800) isClickable shadow root support ([@mgrybyk](https://github.com/mgrybyk))
+  * [#4798](https://github.com/webdriverio/webdriverio/pull/4798) Fix scrollIntoView in isClickable for old browsers  ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-crossbrowsertesting-service`
+  * [#4794](https://github.com/webdriverio/webdriverio/pull/4794) wdio-crossbrowsertesting-service: fix process killed prematurely ([@bcaudan](https://github.com/bcaudan))
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriverio`
+  * [#4797](https://github.com/webdriverio/webdriverio/pull/4797) fix(webdriverio): broader return types for Element.getProperty ([@jrobinson01](https://github.com/jrobinson01))
+
+#### Committers: 3
+- Bastien Caudan ([@bcaudan](https://github.com/bcaudan))
+- John Robinson ([@jrobinson01](https://github.com/jrobinson01))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.7 (2019-11-13)
 
 #### :bug: Bug Fix
