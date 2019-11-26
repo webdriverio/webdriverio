@@ -90,6 +90,10 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
         })
 
+        it('should detect tags labels on top in test case', () => {
+            expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('critical')
+        })
+
         it('should move attachments from successfull hook to test-case', () => {
             expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
         })

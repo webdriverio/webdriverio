@@ -126,19 +126,16 @@ class AllureReporter extends WDIOReporter {
 
     getLabels(test){
         var tags = test.tags
+        var labels = []
         if (tags != null && tags != undefined){
-            var labels = []
             tags.forEach(function (tag) {
                 var label = tag.name.replace(/[@]/, '').split('=')
-                label.length == 2
-                    ?
+                if(label.length == 2){
                     labels.push({ name: label[0], value: label[1] })
-                    :
-                    console.log('Wrong label: ' + tag.name)
+                }
             })
-            return labels
         }
-        return []
+        return labels
     }
 
     onTestPass() {
