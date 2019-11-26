@@ -191,7 +191,7 @@ describe('window handling', () => {
     it('should switch to window created by DOM interaction', async () => {
         const newWindowLink = await browser.findElement('css selector', '#newWindow')
         await browser.elementClick(newWindowLink[ELEMENT_KEY])
-        await sleep(500)
+        await sleep(1000)
         expect(await browser.getWindowHandles()).toHaveLength(2)
 
         const handles = await browser.getWindowHandles()
