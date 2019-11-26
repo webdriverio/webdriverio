@@ -337,7 +337,7 @@ describe('auxiliary methods', () => {
     })
 })
 
-describe('hooks handling', () => {
+describe('hooks handling disabbled Mocha Hooks', () => {
     let reporter, startCase, endCase, startStep, endStep
     const allureInstance = ({ suite = true, test = { steps: [1] } } = {}) => ({
         getCurrentSuite: jest.fn(() => suite),
@@ -349,7 +349,7 @@ describe('hooks handling', () => {
     })
 
     beforeEach(() => {
-        reporter = new AllureReporter({ stdout: true })
+        reporter = new AllureReporter({ stdout: true, disableMochaHooks: true })
         reporter.onTestStart = jest.fn(test => startCase(test.title))
         startCase = jest.fn()
         endCase = jest.fn(result => result)
@@ -421,13 +421,22 @@ describe('hooks handling', () => {
         expect(startCase).toHaveBeenCalledTimes(0)
     })
 
-    it('should remove passed hooks if there are no steps', () => {
+    it('should not pop test case if no steps and before hook', () => {
         const testcases = [1]
         reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
 
         expect(endCase).toHaveBeenCalledTimes(0)
         expect(testcases).toHaveLength(1)
+    })
+
+    it('should pop test case if no steps and custom hook', () => {
+        const testcases = [1]
+        reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
+        reporter.onHookEnd({ title: 'bar', parent: 'foo' })
+
+        expect(endCase).toHaveBeenCalledTimes(1)
+        expect(testcases).toHaveLength(0)
     })
 
     it('should keep passed hooks if there are some steps', () => {
@@ -493,6 +502,61 @@ describe('hooks handling', () => {
         expect(startCase).toHaveBeenCalledTimes(1)
         expect(endCase).toHaveBeenCalledTimes(1)
         expect(endCase.mock.results[0].value).toBe('broken')
+    })
+})
+
+describe('hooks handling default', () => {
+    let reporter, startCase, endCase, startStep, endStep
+    const allureInstance = ({ suite = true, test = { steps: [1] } } = {}) => ({
+        getCurrentSuite: jest.fn(() => suite),
+        getCurrentTest: jest.fn(() => {return test}),
+        startCase,
+        endCase,
+        startStep,
+        endStep
+    })
+
+    beforeEach(() => {
+        reporter = new AllureReporter({ stdout: true, disableMochaHooks: false })
+        reporter.onTestStart = jest.fn(test => startCase(test.title))
+        startCase = jest.fn()
+        endCase = jest.fn(result => result)
+        startStep = jest.fn()
+        endStep = jest.fn(result => result)
+    })
+
+    it('should capture mocha each hooks', () => {
+        reporter.allure = allureInstance()
+        reporter.onHookStart({ title: '"before each" hook', parent: 'foo' })
+
+        expect(startStep).toHaveBeenCalledTimes(0)
+        expect(startCase).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not ignore mocha each hooks if no test', () => {
+        reporter.allure = allureInstance({ test: null })
+        reporter.onHookStart({ title: '"after each" hook', parent: 'foo' })
+
+        expect(startStep).toHaveBeenCalledTimes(0)
+        expect(startCase).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not keep passed hooks if there are no steps (before/after)', () => {
+        const testcases = [1]
+        reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
+        reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
+
+        expect(endCase).toHaveBeenCalledTimes(0)
+        expect(testcases).toHaveLength(1)
+    })
+
+    it('should not keep passed hooks if there are some steps', () => {
+        const testcases = [1]
+        reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [1] } })
+        reporter.onHookEnd({ title: 'foo', parent: 'bar' })
+
+        expect(endCase).toHaveBeenCalledTimes(0)
+        expect(testcases).toHaveLength(1)
     })
 })
 
