@@ -1,4 +1,6 @@
+import command from '../scripts/getUrl'
+
 export default async function getUrl () {
     const page = this.getPageHandle(true)
-    return page.url()
+    return page.$eval('html', command)
 }
