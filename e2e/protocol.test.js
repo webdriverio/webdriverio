@@ -24,6 +24,11 @@ it('should navigate to a page and get page info', async () => {
     expect(await browser.getPageSource()).toContain('WebdriverJS Testpage')
 })
 
+it('should include the hash', async () => {
+    await browser.navigateTo('http://guinea-pig.webdriver.io#hash=hello')
+    expect(await browser.getUrl()).toBe('http://guinea-pig.webdriver.io/#hash=hello')
+})
+
 describe('timeouts', () => {
     beforeAll(async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
