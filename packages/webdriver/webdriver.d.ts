@@ -360,6 +360,9 @@ declare namespace WebDriver {
         connectionRetryCount?: number;
         user?: string;
         key?: string;
+        headers?: {
+            [name: string]: string;
+        };
     }
 
     interface AttachSessionOptions extends Options {
