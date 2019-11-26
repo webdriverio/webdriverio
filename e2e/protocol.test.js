@@ -25,7 +25,7 @@ it('should navigate to a page and get page info', async () => {
 })
 
 it('should include the hash', async () => {
-    await browser.navigateTo('http://guinea-pig.webdriver.ioe#hash=hello')
+    await browser.navigateTo('http://guinea-pig.webdriver.io#hash=hello')
     expect(await browser.getUrl()).toBe('http://guinea-pig.webdriver.io/#hash=hello')
 })
 
