@@ -1,5 +1,6 @@
 import fs from 'fs'
 import nodeLogger from '../src/node'
+import nodeLogger2 from '../build/node'
 
 describe('wdio-logger node', () => {
     describe('log level', () => {
@@ -198,6 +199,19 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[1].value).toContain('test-logFile4: cyan RESULT')
             expect(write.mock.results[2].value).toContain('test-logFile4: magenta COMMAND')
             expect(write.mock.results[3].value).toContain('test-logFile4: Error: bar')
+        })
+
+        it('is not confused by multiple copies of source code', () => {
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+
+            const log = nodeLogger('test-logFile4')
+            const log2 = nodeLogger2('test-logFile4')
+            log.info('foo')
+            log2.error(new Error('bar'))
+
+            expect(write.mock.calls.length).toBe(2)
+            expect(write.mock.results[0].value).toContain('test-logFile4: foo')
+            expect(write.mock.results[1].value).toContain('test-logFile4: Error: bar')
         })
 
         describe('waitForBuffer with logFile', () => {
