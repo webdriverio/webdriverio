@@ -3,8 +3,10 @@
 const fs = require('fs')
 const path = require('path')
 const dox = require('dox')
+
 const { buildCommand, getJsDoc } = require('./generate-typings-utils')
 const specifics = require('./specific-types.json')
+const { EDIT_WARNING } = require('../constants')
 
 const elementDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/element')
 const elementCommands = fs.readdirSync(elementDir)
@@ -71,7 +73,7 @@ const generateTypes = (packageName, promisify, fileName = 'webdriverio-core.d.ts
     const templatePath = path.resolve(__dirname + '../../templates/webdriverio.tpl.d.ts')
     const templateContents = fs.readFileSync(templatePath, 'utf8')
 
-    let typingsContents = templateContents.replace('// ... element commands ...', () => allElementCommands)
+    let typingsContents = EDIT_WARNING + templateContents.replace('// ... element commands ...', () => allElementCommands)
     typingsContents = typingsContents.replace('// ... browser commands ...', () => allBrowserCommands)
 
     const outputFile = path.join(__dirname, '..', '..', `packages/${packageName}`, fileName)
