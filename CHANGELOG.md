@@ -15,6 +15,40 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.10 (2019-11-26)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#4659](https://github.com/webdriverio/webdriverio/pull/4659) devtools automationProtocol: getUrl does not include #hash ([@dylang](https://github.com/dylang))
+* `wdio-config`
+  * [#4812](https://github.com/webdriverio/webdriverio/pull/4812) Allow overwriting specs and exclude in capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-logger`
+  * [#4785](https://github.com/webdriverio/webdriverio/pull/4785) Fix bug where multiple copies of logger breaks logging errors ([@johnnymo87](https://github.com/johnnymo87))
+* `webdriverio`
+  * [#4808](https://github.com/webdriverio/webdriverio/pull/4808) Fix isClickable in Edge if element is in ShadowRoot polyfill ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#4773](https://github.com/webdriverio/webdriverio/pull/4773) wdio-allure-reporter: add flag to ignore/allow mocha hooks to have stacktrace and screenshots when they fail ([@luiscspinho](https://github.com/luiscspinho))
+
+#### :memo: Documentation
+* Other
+  * [#4813](https://github.com/webdriverio/webdriverio/pull/4813) Extend checklist for type definitions ([@christian-bromann](https://github.com/christian-bromann))
+  * [#4814](https://github.com/webdriverio/webdriverio/pull/4814) document isSynchronised in custom reporter ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#4811](https://github.com/webdriverio/webdriverio/pull/4811) Warn devs to not develop on generate d.ts files ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#4809](https://github.com/webdriverio/webdriverio/pull/4809) webdriver: Add the `headers` option to the Options type ([@iamakulov](https://github.com/iamakulov))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dylan Greene ([@dylang](https://github.com/dylang))
+- Ivan Akulov ([@iamakulov](https://github.com/iamakulov))
+- Jon Mohrbacher ([@johnnymo87](https://github.com/johnnymo87))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@luiscspinho](https://github.com/luiscspinho)
+
+
 ## v5.16.9 (2019-11-25)
 
 #### :bug: Bug Fix
