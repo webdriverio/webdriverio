@@ -91,7 +91,11 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestStart(test) {
+        const currentTest = this.allure.getCurrentTest();
         if (this.options.useCucumberStepReporter) {
+            this.getLabels(test).forEach(function (label) {
+                currentTest.addLabel(label.name, label.value);
+              });
             return this.allure.startStep(test.title)
         }
 
@@ -118,6 +122,24 @@ class AllureReporter extends WDIOReporter {
         currentTest.addLabel('language', 'javascript')
         currentTest.addLabel('framework', 'wdio')
         currentTest.addLabel('thread', cid)
+    }
+
+    getLabels(test){
+        var tags = test.tags;
+        if (tags != null && tags != undefined){
+            var labels = [];
+            tags.forEach(function (tag) {
+                var label = tag.name.replace(/[@]/, '').split('=');
+                label.length == 2
+                    ?
+                    labels.push({name: label[0], value: label[1]})
+                    :
+                    console.log('Wrong label: ' + tag.name);
+            });
+            return labels;
+        } else {
+            return [];
+        }
     }
 
     onTestPass() {
