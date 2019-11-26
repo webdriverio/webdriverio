@@ -194,11 +194,11 @@ export default class ConfigParser {
             let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
             if (Array.isArray(capSpecs)) {
-                tmpSpecs = tmpSpecs.concat(ConfigParser.getFilePaths(capSpecs))
+                tmpSpecs = ConfigParser.getFilePaths(capSpecs)
             }
 
             if (Array.isArray(capExclude)) {
-                exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
+                exclude = ConfigParser.getFilePaths(capExclude)
             }
 
             specs = [...new Set(tmpSpecs)]
@@ -206,11 +206,11 @@ export default class ConfigParser {
         }
 
         if (Array.isArray(capSpecs)) {
-            specs = specs.concat(ConfigParser.getFilePaths(capSpecs))
+            specs = ConfigParser.getFilePaths(capSpecs)
         }
 
         if (Array.isArray(capExclude)) {
-            exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
+            exclude = ConfigParser.getFilePaths(capExclude)
         }
 
         return specs.filter(spec => !exclude.includes(spec))
