@@ -1,6 +1,6 @@
 {
   "name": "@wdio/utils",
-  "version": "5.16.5",
+  "version": "5.16.10",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-utils",
@@ -31,7 +31,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "5.16.5",
+    "@wdio/logger": "5.16.10",
     "deepmerge": "^4.0.0"
   },
   "publishConfig": {
