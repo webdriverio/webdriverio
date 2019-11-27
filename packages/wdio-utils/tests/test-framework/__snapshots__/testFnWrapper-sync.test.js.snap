@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testFnWrapper should propagate jasmine failed expecations as errors 1`] = `
+Array [
+  Object {
+    "description": "foo",
+    "duration": 0,
+    "error": Object {
+      "actual": true,
+      "expected": false,
+      "matcherName": "toEqual",
+      "message": "Expected true to equal false.",
+      "passed": false,
+      "stack": "Error: Expected true to equal false.
+    at <Jasmine>
+    at UserContext.it",
+    },
+    "failedExpectations": Array [
+      Object {
+        "actual": true,
+        "expected": false,
+        "matcherName": "toEqual",
+        "message": "Expected true to equal false.",
+        "passed": false,
+        "stack": "Error: Expected true to equal false.
+    at <Jasmine>
+    at UserContext.it",
+      },
+    ],
+    "foo": "bar",
+    "fullTitle": "full title",
+    "passed": false,
+    "title": "foo",
+  },
+  "context",
+  Object {
+    "duration": 0,
+    "error": Object {
+      "actual": true,
+      "expected": false,
+      "matcherName": "toEqual",
+      "message": "Expected true to equal false.",
+      "passed": false,
+      "stack": "Error: Expected true to equal false.
+    at <Jasmine>
+    at UserContext.it",
+    },
+    "passed": false,
+    "result": "@wdio/sync: FooBar 0 0",
+    "retries": Object {
+      "attempts": 0,
+      "limit": 0,
+    },
+  },
+]
+`;
+
+exports[`testFnWrapper should propagate jasmine failed expecations as errors 2`] = `
+Object {
+  "actual": true,
+  "expected": false,
+  "matcherName": "toEqual",
+  "message": "Expected true to equal false.",
+  "passed": false,
+  "stack": "Error: Expected true to equal false.
+    at <Jasmine>
+    at UserContext.it",
+}
+`;
