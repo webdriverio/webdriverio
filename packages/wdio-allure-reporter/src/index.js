@@ -55,6 +55,10 @@ class AllureReporter extends WDIOReporter {
 
             // handle cucumber scenarii as allure "case" instead of "suite"
             this.allure.startCase(suite.title)
+            const currentTest = this.allure.getCurrentTest()
+            this.getLabels(suite).forEach(({ name, value }) => {
+                currentTest.addLabel(name, value)
+            })
             return this.setCaseParameters(suite.cid)
         }
 
@@ -91,11 +95,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestStart(test) {
-        const currentTest = this.allure.getCurrentTest()
         if (this.options.useCucumberStepReporter) {
-            this.getLabels(test).forEach(function (label) {
-                currentTest.addLabel(label.name, label.value)
-            })
             return this.allure.startStep(test.title)
         }
 
@@ -125,12 +125,12 @@ class AllureReporter extends WDIOReporter {
     }
 
     getLabels(test){
-        var tags = test.tags
-        var labels = []
-        if (tags != null && tags != undefined){
-            tags.forEach(function (tag) {
-                var label = tag.name.replace(/[@]/, '').split('=')
-                if(label.length == 2){
+        const tags = test.tags
+        const labels = []
+        if (tags){
+            tags.forEach((tag) => {
+                const label = tag.name.replace(/[@]/, '').split('=')
+                if(label.length === 2){
                     labels.push({ name: label[0], value: label[1] })
                 }
             })
