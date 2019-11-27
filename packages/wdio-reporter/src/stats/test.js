@@ -11,7 +11,6 @@ export default class TestStats extends RunnableStats {
         this.cid = test.cid
         this.title = test.title
         this.fullTitle = test.fullTitle
-        this.tags = test.tags
         this.output = []
         this.argument = test.argument
 

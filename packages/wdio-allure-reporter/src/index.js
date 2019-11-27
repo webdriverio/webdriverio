@@ -124,8 +124,7 @@ class AllureReporter extends WDIOReporter {
         currentTest.addLabel('thread', cid)
     }
 
-    getLabels(test){
-        const tags = test.tags
+    getLabels({ tags }){
         const labels = []
         if (tags){
             tags.forEach((tag) => {
