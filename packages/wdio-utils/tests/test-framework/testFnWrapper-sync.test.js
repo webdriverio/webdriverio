@@ -48,6 +48,21 @@ describe('testFnWrapper', () => {
         ])
     })
 
+    it('should propagate jasmine failed expecations as errors', async () => {
+        const failedExpectation = {
+            matcherName: 'toEqual',
+            message: 'Expected true to equal false.',
+            stack: 'Error: Expected true to equal false.\n    at <Jasmine>\n    at UserContext.it',
+            passed: false,
+            expected: false,
+            actual: true
+        }
+        const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar', description: 'foo', failedExpectations: [failedExpectation] }, 'context'])
+        const error = await testFnWrapper.call({ test: { fullTitle: () => 'full title' } }, ...args).catch((err) => err)
+        expect(executeHooksWithArgs.mock.calls[1][1]).toMatchSnapshot()
+        expect(error).toMatchSnapshot()
+    })
+
     it('should run fn in sync mode with cucumber', async () => {
         const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar' }, 2, 3, 4])
         const result = await testFnWrapper(...args)
