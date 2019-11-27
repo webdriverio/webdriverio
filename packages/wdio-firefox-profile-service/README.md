@@ -39,12 +39,15 @@ export.config = {
       '/path/to/extensionA.xpi', // path to .xpi file
       '/path/to/extensionB' // or path to unpacked Firefox extension
     ],
+    'xpinstall.signatures.required': false,
     'browser.startup.homepage': 'https://webdriver.io',
     legacy: true // used for firefox <= 55
   },
   // ...
 };
 ```
+
+If you have build a custom Firefox extension that you want to install in the browser make sure to set `'xpinstall.signatures.required': false` as profile flag since Firefox extensions are required to be [signed by Mozilla](https://wiki.mozilla.org/Add-ons/Extension_Signing).
 
 ## Options
 
