@@ -66,7 +66,7 @@ export const testFrameworkFnWrapper = async function (
      * (in Jasmine failing assertions are not causing the test to throw as
      * oppose to other common assertion libraries like chai)
      */
-    if (afterArgs[0] && afterArgs[0].failedExpectations && afterArgs[0].failedExpectations.length) {
+    if (!error && afterArgs[0] && afterArgs[0].failedExpectations && afterArgs[0].failedExpectations.length) {
         error = afterArgs[0].failedExpectations[0]
     }
 
