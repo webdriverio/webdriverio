@@ -55,6 +55,10 @@ class AllureReporter extends WDIOReporter {
 
             // handle cucumber scenarii as allure "case" instead of "suite"
             this.allure.startCase(suite.title)
+            const currentTest = this.allure.getCurrentTest()
+            this.getLabels(suite).forEach(({ name, value }) => {
+                currentTest.addLabel(name, value)
+            })
             return this.setCaseParameters(suite.cid)
         }
 
@@ -118,6 +122,19 @@ class AllureReporter extends WDIOReporter {
         currentTest.addLabel('language', 'javascript')
         currentTest.addLabel('framework', 'wdio')
         currentTest.addLabel('thread', cid)
+    }
+
+    getLabels({ tags }){
+        const labels = []
+        if (tags){
+            tags.forEach((tag) => {
+                const label = tag.name.replace(/[@]/, '').split('=')
+                if(label.length === 2){
+                    labels.push({ name: label[0], value: label[1] })
+                }
+            })
+        }
+        return labels
     }
 
     onTestPass() {
