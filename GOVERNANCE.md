@@ -97,6 +97,15 @@ A Committer is invited to become a TSC member by existing TSC members. A nominat
 1. Add the TSC member to the NPM organization
 1. Tweet congratulations to the new TSC member from the WebdriverIO Twitter account
 
+## Communication Channels
+
+The project maintains various of communication channels to provide information, support and enable communication between team members. The adherence of the projects [Code of Conduct](/CODE_OF_CONDUCT.md) is strictly mandatory for all kinds of communication in these channels.
+
+- Twitter Account ([`@webdriverio`](https://twitter.com/webdriverio)): for communicating and promoting news around the project or project related topics.
+- [Gitter Support Channel](https://gitter.im/webdriverio/webdriverio): chat for all WebdriverIO users to seek help and support on problems using the project.
+- [Project Committers Channel](https://gitter.im/webdriverio/ProjectCommitters): private channel for members of the Project Committers team to discuss contributions and organise other collaborative efforts.
+- [TSC Channel](https://gitter.im/webdriverio/TSC): private channel for members of the TSC team to discuss project governance.
+
 ## Consensus Seeking Process
 
 The TSC follows a [Consensus Seeking](https://en.wikipedia.org/wiki/Consensus-seeking_decision-making) decision making model.
