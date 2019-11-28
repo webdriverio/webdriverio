@@ -1,24 +1,24 @@
 # WebdriverIO Charter
 
-## Section 0: Guiding Principles (optional)
+## Section 0: Guiding Principles
 
 The WebdriverIO project is part of the OpenJS Foundation which operates transparently, openly, collaboratively, and ethically. Project proposals, timelines, and status must not merely be open, but also easily visible to outsiders.
 
 ## Section 1: Scope
 
-The project tries to provide users a variety of building blocks to create a highly customizable, maintainable and scaleable framework to build and run end-to-end (e2e) tests for web and mobile applications. While it is focused to run these tests based on the [WebDriver](https://w3c.github.io/webdriver/) standard it leverages also other interfaces to provide as much control of the automated user agent as possible.
+The project tries to provide users a variety of building blocks to create a highly customizable, maintainable and scaleable framework to build and run end-to-end (e2e) tests for web and mobile applications. While it is focused on running these tests in accordance with the [WebDriver](https://w3c.github.io/webdriver/) standard, it also leverages other interfaces to provide as much control of the automated user agent as possible.
 
-With that the project offers not only the ability to automate user agents using open standards, it also enforces a set of common good practices that help to avoid pitfalls as well as the ability to connect predefined solutions to problem spaces that were already solved by the WebdriverIO community.
+With that, the project offers not only the ability of automating user agents using open standards, it also enforces a common set of good practices that help to avoid pitfalls. These practices, along with solutions provided by the WebdriverIO community, serve to resolve well-defined problem spaces in dynamic and complex world of e2e testing.
 
 ### 1.1: In-scope
 
-- automation of modern web browser (e.g. Chrome, Firefox, Safari, Edge)
+- automation of modern web browser
 - automation of mobile devices (web as well as native applications)
 - testing applications from end-to-end at scale (including parallisation and reporting)
 - integration into 3rd party services and vendors (e.g. [Sauce Labs](https://saucelabs.com/) or [Applitools](https://applitools.com/))
 - support of functional as well as non function testing aspects (e.g. visual regression or frontend performance testing)
-- debugging browser in an automated fashion (e.g. using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/))
-- scrapping of websites and other web/mobile interfaces
+- automated debugging in the browser (e.g. using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/))
+- scraping of websites
 - providing technical content and best practices in form of [boilerplates](https://webdriver.io/) and [blog posts](https://webdriver.io/blog/)
 - providing technical help in form of a [community channel](https://gitter.im/webdriverio/webdriverio)
 
@@ -31,7 +31,7 @@ With that the project offers not only the ability to automate user agents using 
 
 Most large, complex open source communities have both a business and a technical governance model. Technical leadership for the projects within the OpenJS Foundation is delegated to the projects through their project charters by the OpenJS Cross Project Council (CPC). In the case of the WebdriverIO project, it is delegated to the WebdriverIO Technical Steering Committee (“TSC”). OpenJS Foundation’s business leadership is the Board of Directors (the “Board”).
 
-This Technical Steering Committee Charter reflects a carefully constructed balanced role for the TSC and the CPC in the governance of the OpenJS Foundation. The charter amendment process is for the TSC to propose changes using simple majority of the full TSC, the proposed changes being subject to review and approval by the CPC. The CPC may additionally make amendments to the TSC charter at any time, though the CPC will not interfere with day-to-day discussions, votes or meetings of the TSC.
+This Technical Steering Committee Charter reflects a carefully constructed and balanced role for the TSC and the CPC in the governance of the OpenJS Foundation. The charter amendment process is for the TSC to propose changes using simple majority of the full TSC, the proposed changes being subject to review and approval by the CPC. The CPC may additionally make amendments to the TSC charter at any time, though the CPC will not interfere with day-to-day discussions, votes or meetings of the TSC.
 
 ### 2.1 Other Formal Project Relationships
 
@@ -51,7 +51,7 @@ The TSC will establish and maintain a development process for the WebdriverIO pr
 
 The TSC and entire technical community will follow any processes as may be specified by the OpenJS Foundation Board relating to the intake and license compliance review of contributions, including the OpenJS Foundation IP Policy.
 
-### Section 4.2: Decision-making, Voting, and/or Elections (optional)
+### Section 4.2: Decision-making, Voting, and/or Elections
 
 Leadership roles in the WebdriverIO project will be peer elected representatives of the community. For more see [Governance.md](/GOVERNANCE.md).
 
@@ -63,7 +63,7 @@ Individuals making significant and valuable contributions, “Contributor(s)”,
 
 Collaborators may opt to elevate significant or controversial modifications, or modifications that have not found consensus to the TSC for discussion. The TSC should serve as the final arbiter where required. The TSC will maintain and publish a list of current Collaborators, as well as a development process guide for Collaborators and Contributors looking to participate in the development effort.
 
-## Section 5: Definitions (optional)
+## Section 5: Definitions
 
 Definitions on `Collaborators` and `TSC` can be found in the [Governance](/GOVERNANCE.md) document.
 
