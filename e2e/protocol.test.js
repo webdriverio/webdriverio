@@ -22,6 +22,9 @@ it('should navigate to a page and get page info', async () => {
     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
     expect(await browser.getUrl()).toContain('http://guinea-pig.webdriver.io')
     expect(await browser.getPageSource()).toContain('WebdriverJS Testpage')
+
+    const elem = await browser.findElement('css selector', '#t')
+    expect(await browser.getElementText(elem[ELEMENT_KEY])).toBe('lions, tigers')
 })
 
 it('should include the hash', async () => {
