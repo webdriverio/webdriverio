@@ -35,7 +35,7 @@ This Technical Steering Committee Charter reflects a carefully constructed and b
 
 ### 2.1 Other Formal Project Relationships
 
-Given this projects dependency to the WebDriver specification the members of this project work together with the [W3C](https://www.w3.org/) and its working groups, e.g. [Browser Testing and Tools Working Group](https://www.w3.org/testing/browser/).
+Given this project's dependency on the WebDriver specification, the members of this project work together with the [W3C](https://www.w3.org/) and its working groups, e.g. [Browser Testing and Tools Working Group](https://www.w3.org/testing/browser/).
 
 ## Section 3: WebdriverIO Governing Body
 

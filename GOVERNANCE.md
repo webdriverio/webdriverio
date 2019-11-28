@@ -99,7 +99,7 @@ A Committer is invited to become a TSC member by existing TSC members. A nominat
 
 ## Communication Channels
 
-The project maintains various of communication channels to provide information, support and enable communication between team members. The adherence of the projects [Code of Conduct](/CODE_OF_CONDUCT.md) is strictly mandatory for all kinds of communication in these channels.
+The project maintains various channels for providing information, supporting development and enabling communication between team members. Adherence to the project's [Code of Conduct](/CODE_OF_CONDUCT.md) is strictly mandatory for all types of communication in these channels.
 
 - Twitter Account ([`@webdriverio`](https://twitter.com/webdriverio)): for communicating and promoting news around the project or project related topics.
 - [Gitter Support Channel](https://gitter.im/webdriverio/webdriverio): chat for all WebdriverIO users to seek help and support on problems using the project.
