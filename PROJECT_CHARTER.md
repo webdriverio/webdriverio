@@ -6,7 +6,7 @@ The WebdriverIO project is part of the OpenJS Foundation which operates transpar
 
 ## Section 1: Scope
 
-The project tries to provide users a variety of building blocks to create a highly customizable, maintainable and scaleable framework to build and run end-to-end (e2e) tests for web and mobile applications. While it is focused on running these tests in accordance with the [WebDriver](https://w3c.github.io/webdriver/) standard, it also leverages other interfaces to provide as much control of the automated user agent as possible.
+The project tries to provide users a variety of building blocks to create a highly customizable, maintainable and scalable framework to build and run end-to-end (e2e) tests for web and mobile applications. While it is focused on running these tests in accordance with the [WebDriver](https://w3c.github.io/webdriver/) standard, it also leverages other interfaces to provide as much control of the automated user agent as possible.
 
 With that, the project offers not only the ability of automating user agents using open standards, it also enforces a common set of good practices that help to avoid pitfalls. These practices, along with solutions provided by the WebdriverIO community, serve to resolve well-defined problem spaces in dynamic and complex world of e2e testing.
 
@@ -16,7 +16,7 @@ With that, the project offers not only the ability of automating user agents usi
 - automation of mobile devices (web as well as native applications)
 - testing applications from end-to-end at scale (including parallisation and reporting)
 - integration into 3rd party services and vendors (e.g. [Sauce Labs](https://saucelabs.com/) or [Applitools](https://applitools.com/))
-- support of functional as well as non function testing aspects (e.g. visual regression or frontend performance testing)
+- support of functional as well as non functional testing aspects (e.g. visual regression or frontend performance testing)
 - automated debugging in the browser (e.g. using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/))
 - scraping of websites
 - providing technical content and best practices in form of [boilerplates](https://webdriver.io/) and [blog posts](https://webdriver.io/blog/)
