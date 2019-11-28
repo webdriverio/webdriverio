@@ -50,8 +50,9 @@ A Committer who shows an above-average level of contribution to the project, par
 #### Process for Adding Committers
 
 1. Add the GitHub user to the "Project Committers" team
-2. Invite to Gitter team chatroom (`webdriverio/ProjectCommitters`)
-3. Tweet congratulations to the new committer from the WebdriverIO Twitter account
+1. Add person to the list of [Current Project Team Members](/AUTHORS.md)
+1. Invite to Gitter team chatroom (`webdriverio/ProjectCommitters`)
+1. Tweet congratulations to the new committer from the WebdriverIO Twitter account
 
 ### Technical Steering Committee (TSC)
 
@@ -92,6 +93,7 @@ A Committer is invited to become a TSC member by existing TSC members. A nominat
 
 1. Add the GitHub user to the "WebdriverIO TSC" team
 1. Set the GitHub user to have the "Owner" role for the WebdriverIO organization
+1. Move person from the list of Project Collaborators into the TSC list in [Current Project Team Members](/AUTHORS.md)
 1. Invite to the Gitter TSC chatroom (`webdriverio/TSC`)
 1. Add the TSC member as an admin to WebdriverIO Twitter Account
 1. Add the TSC member to the NPM organization

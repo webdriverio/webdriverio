@@ -1,6 +1,6 @@
 # Current Project Team Members
 
-For information about the governance of the WebdriverIO project, see [GOVERNANCE.md](/GOVERNANCE.md).
+For information about the governance of the WebdriverIO project, see [GOVERNANCE.md](/GOVERNANCE.md). If your name is in this list and you don't want to have it published, feel free to make a PR and remove yourself from it.
 
 ## TSC (Technical Steering Committee)
 
