@@ -74,6 +74,35 @@ describe('isElementClickable script', () => {
         expect(elemMock.scrollIntoView).toBeCalledWith(true)
     })
 
+    it('should be clickable if in viewport and elementFromPoint if element is Document Fragment [Edge]', () => {
+        const elemMock = {
+            getBoundingClientRect: () => ({
+                height: 55,
+                width: 22,
+                top: 33,
+                left: 455
+            }),
+            clientHeight: 55,
+            clientWidth: 22,
+            nodeType: 11,
+            getClientRects: () => [{}],
+            scrollIntoView: jest.fn(),
+            contains: () => { throw new Error('should not be called in old Edge!') }
+        }
+        // emulate old Edge
+        global.window.StyleMedia = () => { }
+
+        let attempts = 0
+        global.document = { elementFromPoint: () => {
+            attempts += 1
+            return { parentNode: attempts > 4 ? elemMock : {} }
+        } }
+
+        expect(isElementClickable(elemMock)).toBe(true)
+        expect(elemMock.scrollIntoView).toBeCalledWith(false)
+        expect(elemMock.scrollIntoView).toBeCalledWith(true)
+    })
+
     it('should be clickable if in viewport and elementFromPoint of the rect matches', () => {
         const elemMock = {
             getBoundingClientRect: () => ({

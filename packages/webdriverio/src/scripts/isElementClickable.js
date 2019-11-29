@@ -51,11 +51,11 @@ export default function isElementClickable (elem) {
                     return true
                 }
 
+                tmpElement = tmpElement.parentNode
                 // DocumentFragment / ShadowRoot polyfill like ShadyRoot
-                if (tmpElement.nodeType === 11 && tmpElement.host) {
+                if (tmpElement && tmpElement.nodeType === 11 && tmpElement.host) {
                     tmpElement = tmpElement.host
                 }
-                tmpElement = tmpElement.parentNode
             }
             return false
         }
