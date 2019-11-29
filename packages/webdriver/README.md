@@ -95,12 +95,6 @@ Shorten `url` command calls by setting a base url.
 Type: `String`<br>
 Default: *null*
 
-### connectionRetryTimeout
-Timeout for any request to the Selenium server.
-
-Type: `Number`<br>
-Default: *90000*
-
 ### connectionRetryCount
 Count of request retries to the Selenium server.
 
