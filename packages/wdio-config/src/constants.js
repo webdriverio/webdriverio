@@ -19,7 +19,6 @@ export const DEFAULT_CONFIGS = {
     maxInstances: 100,
     maxInstancesPerCapability: 100,
     filesToWatch: [],
-    connectionRetryTimeout: 90000,
     connectionRetryCount: 3,
     execArgv: [],
     runnerEnv: {},
