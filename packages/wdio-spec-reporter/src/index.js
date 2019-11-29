@@ -75,12 +75,20 @@ class SpecReporter extends WDIOReporter {
             return
         }
 
+        const testLinks = runner.isMultiremote
+            ? Object.entries(runner.capabilities).map(([instanceName, capabilities]) => this.getTestLink({
+                config: { ...runner.config, ...{ capabilities } },
+                sessionId: capabilities.sessionId,
+                isMultiremote: runner.isMultiremote,
+                instanceName
+            }))
+            : this.getTestLink(runner)
         const output = [
             ...this.getHeaderDisplay(runner),
             ...results,
             ...this.getCountDisplay(duration),
             ...this.getFailureDisplay(),
-            ...this.getTestLink(runner)
+            ...(testLinks.length ? ['', ...testLinks] : testLinks)
         ]
 
         // Prefix all values with the browser information
@@ -95,7 +103,7 @@ class SpecReporter extends WDIOReporter {
     /**
      * get link to saucelabs job
      */
-    getTestLink ({ config, sessionId }) {
+    getTestLink ({ config, sessionId, isMultiremote, instanceName }) {
         const isSauceJob = (
             config.hostname.includes('saucelabs') ||
             // only show if multiremote is not used
@@ -111,7 +119,8 @@ class SpecReporter extends WDIOReporter {
             const dc = config.headless
                 ? '.us-east-1'
                 : ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
-            return ['', `Check out job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
+            const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
+            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
         }
 
         return []
