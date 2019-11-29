@@ -34,7 +34,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@applitools/eyes-webdriverio": "^5.7.0",
+    "@applitools/eyes-webdriverio": "^5.8.4",
     "@wdio/logger": "5.16.10"
   },
   "peerDependencies": {
