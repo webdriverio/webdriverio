@@ -396,8 +396,8 @@ export function addLocatorStrategyHandler(scope) {
  * enhance elements array with data requited to refetch it
  * @param   {object[]}          elements    elements
  * @param   {object}            parent      element or browser
- * @param   {string|Function}   selector    string or function
- * @param   {string}            foundWith   name of the command elements were found with, ex $$, react$$, etc
+ * @param   {string|Function}   selector    string or function, or strategy name for `custom$$`
+ * @param   {string}            foundWith   name of the command elements were found with, ex `$$`, `react$$`, etc
  * @param   {Array}             props       additional properties required to fetch elements again
  * @returns {object[]}  elements
  */

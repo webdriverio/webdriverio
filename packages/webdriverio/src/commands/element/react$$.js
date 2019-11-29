@@ -24,6 +24,7 @@
  *
  */
 import fs from 'fs'
+import { enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq'
 
@@ -34,5 +35,6 @@ export default async function react$$(selector, props = {}, state = {}) {
     await this.execute(waitToLoadReact)
     const res = await this.execute(react$$Script, selector, props, state, this)
 
-    return getElements.call(this, selector, res, true)
+    const elements = await getElements.call(this, selector, res, true)
+    return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
 }

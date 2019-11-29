@@ -23,6 +23,7 @@ describe('custom$', () => {
         expect(elems).toHaveLength(2)
         expect(elems[0].elementId).toBe('.test-foobar')
         expect(elems[1].elementId).toBe('.test-other-foobar')
+        expect(elems.foundWith).toBe('custom$$')
     })
 
     it('should error if no strategy found', async () => {
@@ -45,6 +46,6 @@ describe('custom$', () => {
     it('should return an empty array if no elements are returned from script', async () => {
         browser.addLocatorStrategy('test-no-element', () => null)
         const elems = await browser.custom$$('test-no-element', '.test')
-        expect(elems).toMatchObject([])
+        expect([...elems]).toMatchObject([])
     })
 })
