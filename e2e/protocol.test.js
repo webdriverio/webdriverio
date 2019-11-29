@@ -305,6 +305,7 @@ describe('executeScript', () => {
         expect(await browser.executeScript(' return "string";')).toBe('string')
         expect(await browser.executeScript('/* test */ console.log("test")')).toBe(undefined)
         expect(await browser.executeScript('return { foo: "bar" }')).toEqual({ foo: 'bar' })
+        expect(await browser.executeScript('return ({ foo: "bar" })')).toEqual({ foo: 'bar' })
     })
 })
 
