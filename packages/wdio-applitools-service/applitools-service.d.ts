@@ -14,10 +14,18 @@ interface ApplitoolsConfig {
     applitoolsKey?: string;
     applitoolsServerUrl?: string;
     applitools?: {
+        key?: string;
+        serverUrl?: string;
         viewport?: {
             width: number;
             height: number;
         };
+        proxy?: {
+            url: string;
+            username?: string;
+            password?: string;
+            isHttpOnly?: boolean;
+        }
     };
 }
 

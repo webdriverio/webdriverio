@@ -1,7 +1,7 @@
 const config: WebdriverIO.Config = {
-    applitoolsKey: '',
-    applitoolsServerUrl: '',
     applitools: {
+        key: '',
+        serverUrl: '',
         viewport: {
             width: 1,
             height: 1
