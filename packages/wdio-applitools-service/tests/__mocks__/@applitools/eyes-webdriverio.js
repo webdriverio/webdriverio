@@ -12,6 +12,7 @@ class Eyes {
     constructor () {
         this.setApiKey = jest.fn()
         this.setServerUrl = jest.fn()
+        this.setProxy = jest.fn()
         this.check = jest.fn()
         this.open = jest.fn()
         this.close = jest.fn()
