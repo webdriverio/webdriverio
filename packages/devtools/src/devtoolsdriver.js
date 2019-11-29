@@ -65,12 +65,14 @@ export default class DevToolsDriver {
         /**
          * within here you find the webdriver scope
          */
+        let retries = 0
         const wrappedCommand = async function (...args) {
             await self.checkPendingNavigations()
             const params = validate(command, parameters, variables, ref, args)
             let result
 
             try {
+                this.emit('command', { command, params, retries })
                 result = await self.commands[command].call(self, params)
             } catch (err) {
                 /**
@@ -93,12 +95,14 @@ export default class DevToolsDriver {
                             resolve()
                         })
                     })
+                    ++retries
                     return wrappedCommand.apply(this, args)
                 }
 
                 throw sanitizeError(err)
             }
 
+            this.emit('result', { command, params, retries, result })
             log.info('RESULT', command.toLowerCase().includes('screenshot')
                 && typeof result === 'string' && result.length > 64
                 ? `${result.substr(0, 61)}...` : result)
