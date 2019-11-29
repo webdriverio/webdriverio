@@ -5,6 +5,15 @@ import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'
 export default async function executeScript ({ script, args }) {
     const page = this.getPageHandle(true)
     const scriptTimeout = this.timeouts.get('script')
+    script = script.trim()
+
+    if (script.startsWith('return (')) {
+        script = script.slice(7)
+    }
+
+    if (script.startsWith('return')) {
+        script = `(function () { ${script} }).apply(null, arguments)`
+    }
 
     const executePromise = page.$eval(
         'html',
