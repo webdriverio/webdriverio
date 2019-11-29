@@ -21,9 +21,12 @@ describe('wdio-applitools-service', () => {
 
         expect(() => service.beforeSession({})).toThrow()
         expect(() => service.beforeSession({ applitools: { serverUrl: 'foobar' } })).toThrow()
+        expect(() => service.beforeSession({ applitoolsServerUrl: 'foobar' })).toThrow()
 
         expect(() => service.beforeSession({ applitools: { key: 'foobar' } })).not.toThrow()
+        expect(() => service.beforeSession({ applitoolsKey: 'foobar' })).not.toThrow()
         expect(() => service.beforeSession({ applitools: { key: 'foobar', serverUrl: 'foobar' } })).not.toThrow()
+        expect(() => service.beforeSession({ applitoolsKey: 'foobar', applitoolsServerUrl: 'foobar' })).not.toThrow()
     })
 
     it('throws if key does not exist in environment', () => {
@@ -45,13 +48,27 @@ describe('wdio-applitools-service', () => {
         process.env.APPLITOOLS_KEY = 'foobarenv'
         process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
         service.beforeSession({
-            applitools: {
-                key: 'foobar',
-                serverUrl: 'foobarserver'
-            }
+            applitoolsKey: 'foobar',
+            applitoolsServerUrl: 'foobarserver'
         })
         expect(service.eyes.setApiKey).toBeCalledWith('foobar')
         expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver')
+    })
+
+    it('should prefer applitools object before deprecated applitoolsKey/applitoolsServerUrl', () => {
+        const service = new ApplitoolsService()
+        process.env.APPLITOOLS_KEY = 'foobarenv'
+        process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
+        service.beforeSession({
+            applitoolsKey: 'foobar2',
+            applitoolsServerUrl: 'foobarserver2',
+            applitools: {
+                key: 'foobar1',
+                serverUrl: 'foobarserver1'
+            }
+        })
+        expect(service.eyes.setApiKey).toBeCalledWith('foobar1')
+        expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver1')
     })
 
     it('should set proxy config if set in options', () => {

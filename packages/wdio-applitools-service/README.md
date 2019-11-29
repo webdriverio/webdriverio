@@ -81,29 +81,42 @@ On the Applitools dashboard you should now find the test with two images:
 
 ![Applitools Dashboard](/img/applitools.png "Applitools Dashboard")
 
-## Options
+## Config properties
 
-### key
+### applitoolsKey (deprecated)
+Will be replaced by `applitools.key`. Applitools API key to be used. Can be passed via wdio config or via environment variable `APPLITOOLS_KEY`
+
+- Optional
+- Type: `string`
+
+### applitoolsServerUrl (deprecated)
+Will be replaced by `applitools.serverUrl`. Applitools server URL to be used
+- Optional
+- Type: `string`
+
+### applitools
+
+#### key
 Applitools API key to be used. Can be passed via wdio config or via environment variable `APPLITOOLS_KEY`
 
 - Optional
 - Type: `string`
 
-### serverUrl
+#### serverUrl
 Applitools server URL to be used
 
 - Optional
 - Type: `string`
 - Default: Public cloud url
 
-### viewport
+#### viewport
 Viewport with which the screenshots should be taken.
 
 - Optional
 - Type: `object`<br>
 - Default: `{'width': 1440, 'height': 900}`
 
-### proxy
+#### proxy
 Use proxy for http/https connections with Applitools.
 
 - Optional

@@ -18,8 +18,8 @@ export default class ApplitoolsService {
      */
     beforeSession (config) {
         const applitoolsConfig = config.applitools || {}
-        const key = applitoolsConfig.key || process.env.APPLITOOLS_KEY
-        const serverUrl = applitoolsConfig.serverUrl || process.env.APPLITOOLS_SERVER_URL
+        const key = applitoolsConfig.key || config.applitoolsKey || process.env.APPLITOOLS_KEY
+        const serverUrl = applitoolsConfig.serverUrl || config.applitoolsServerUrl || process.env.APPLITOOLS_SERVER_URL
 
         if (!key) {
             throw new Error('Couldn\'t find an Applitools "applitools.key" in config nor "APPLITOOLS_KEY" in the environment')

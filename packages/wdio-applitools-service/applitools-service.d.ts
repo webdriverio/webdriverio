@@ -11,6 +11,8 @@ declare module WebdriverIO {
 }
 
 interface ApplitoolsConfig {
+    applitoolsKey?: string;
+    applitoolsServerUrl?: string;
     applitools?: {
         key?: string;
         serverUrl?: string;
