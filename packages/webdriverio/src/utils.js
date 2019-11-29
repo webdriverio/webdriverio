@@ -393,7 +393,7 @@ export function addLocatorStrategyHandler(scope) {
 }
 
 /**
- * enhance elements array with data requited to refetch it
+ * Enhance elements array with data required to refetch it
  * @param   {object[]}          elements    elements
  * @param   {object}            parent      element or browser
  * @param   {string|Function}   selector    string or function, or strategy name for `custom$$`
