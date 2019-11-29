@@ -20,7 +20,7 @@
  * @param {String} selector of React component
  * @param {Object=} props  React props the element should contain
  * @param {Array<any>|number|string|object|boolean=} state  React state the element should be in
- * @return {Element[]}
+ * @return {ElementArray}
  *
  */
 import fs from 'fs'

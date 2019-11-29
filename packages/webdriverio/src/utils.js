@@ -393,6 +393,23 @@ export function addLocatorStrategyHandler(scope) {
 }
 
 /**
+ * enhance elements array with data requited to refetch it
+ * @param   {object[]}          elements    elements
+ * @param   {object}            parent      element or browser
+ * @param   {string|Function}   selector    string or function
+ * @param   {string}            foundWith   name of the command elements were found with, ex $$, react$$, etc
+ * @param   {Array}             props       additional properties required to fetch elements again
+ * @returns {object[]}  elements
+ */
+export const enhanceElementsArray = (elements, parent, selector, foundWith = '$$', props = []) => {
+    elements.parent = parent
+    elements.selector = selector
+    elements.foundWith = foundWith
+    elements.props = props
+    return elements
+}
+
+/**
  * is protocol stub
  * @param {string} automationProtocol
  */

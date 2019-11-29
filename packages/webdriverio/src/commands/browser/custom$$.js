@@ -1,6 +1,6 @@
 /**
  *
- * The `customs$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
+ * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
  *
  * <example>
     :example.js
@@ -19,7 +19,7 @@
  * @alias custom$$
  * @param {String} strategyName
  * @param {Any} strategyArguments
- * @return {Element}
+ * @return {ElementArray}
  */
 import { getElements } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'

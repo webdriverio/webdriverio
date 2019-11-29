@@ -66,7 +66,7 @@ declare var $: (selector: string | Function) => Promise<WebdriverIO.Element>;
 /**
  * find multiple elements on the page.
  */
-declare var $$: (selector: string | Function) => Promise<WebdriverIO.Element[]>;
+declare var $$: (selector: string | Function) => Promise<WebdriverIO.ElementArray>;
 
 declare module "webdriverio" {
     export = WebdriverIO
