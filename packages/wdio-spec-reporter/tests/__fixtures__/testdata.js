@@ -2,9 +2,6 @@ export const RUNNER = {
     cid: '0-0',
     _duration: 5032,
     config: { hostname: 'localhost' },
-    capabilities: {
-        browserName: 'loremipsum',
-    },
     specs: ['/foo/bar/baz.js'],
 }
 
@@ -195,44 +192,3 @@ export const SUITES_NO_TESTS_WITH_HOOK_ERROR = [{
 SUITES_NO_TESTS_WITH_HOOK_ERROR.forEach(suite => {
     suite.hooksAndTests = [...suite.hooks]
 })
-
-export const REPORT = `------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-`
-
-export const SAUCELABS_REPORT = REPORT + `[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
-`
-
-export const SAUCELABS_EU_REPORT = REPORT + `[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
-`
-
-export const SAUCELABS_HEADLESS_REPORT = REPORT + `[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.us-east-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
-`

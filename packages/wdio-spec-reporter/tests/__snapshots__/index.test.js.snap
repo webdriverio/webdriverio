@@ -48,3 +48,338 @@ Array [
   "",
 ]
 `;
+
+exports[`SpecReporter printReport with normal setup should print jobs of all instance when run with multiremote 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[MultiremoteBrowser #0-0] Spec: /foo/bar/baz.js
+[MultiremoteBrowser #0-0] Running: MultiremoteBrowser
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Foo test
+[MultiremoteBrowser #0-0]    green ✓ foo
+[MultiremoteBrowser #0-0]    green ✓ bar
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Bar test
+[MultiremoteBrowser #0-0]    green ✓ some test
+[MultiremoteBrowser #0-0]    red ✖ a failed test
+[MultiremoteBrowser #0-0]    red ✖ a failed test with no stack
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Baz test
+[MultiremoteBrowser #0-0]    green ✓ foo bar baz
+[MultiremoteBrowser #0-0]    cyan - a skipped test
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] green 4 passing (5s)
+[MultiremoteBrowser #0-0] red 1 failing
+[MultiremoteBrowser #0-0] cyan 1 skipped
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] 1) Bar test a failed test
+[MultiremoteBrowser #0-0] red expected foo to equal bar
+[MultiremoteBrowser #0-0] gray Failed test stack trace
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] 2) Bar test a failed test with no stack
+[MultiremoteBrowser #0-0] red expected foo to equal bar
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Check out browserA job at https://app.saucelabs.com/tests/foobar
+[MultiremoteBrowser #0-0] Check out browserB job at https://app.saucelabs.com/tests/barfoo
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print link to SauceLabs EU job details page 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print link to SauceLabs EU job details page 2`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print link to SauceLabs EU job details page 3`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+",
+  ],
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.us-east-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print link to SauceLabs job details page 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print link to SauceLabs job details page if run with Sauce Connect (jsonwp) 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print link to SauceLabs job details page if run with Sauce Connect (w3c) 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0]
+[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print the report to the console 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum #0-0] Spec: /foo/bar/baz.js
+[loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
+[loremipsum #0-0]
+[loremipsum #0-0] Foo test
+[loremipsum #0-0]    green ✓ foo
+[loremipsum #0-0]    green ✓ bar
+[loremipsum #0-0]
+[loremipsum #0-0] Bar test
+[loremipsum #0-0]    green ✓ some test
+[loremipsum #0-0]    red ✖ a failed test
+[loremipsum #0-0]    red ✖ a failed test with no stack
+[loremipsum #0-0]
+[loremipsum #0-0] Baz test
+[loremipsum #0-0]    green ✓ foo bar baz
+[loremipsum #0-0]    cyan - a skipped test
+[loremipsum #0-0]
+[loremipsum #0-0] green 4 passing (5s)
+[loremipsum #0-0] red 1 failing
+[loremipsum #0-0] cyan 1 skipped
+[loremipsum #0-0]
+[loremipsum #0-0] 1) Bar test a failed test
+[loremipsum #0-0] red expected foo to equal bar
+[loremipsum #0-0] gray Failed test stack trace
+[loremipsum #0-0]
+[loremipsum #0-0] 2) Bar test a failed test with no stack
+[loremipsum #0-0] red expected foo to equal bar
+",
+  ],
+]
+`;
