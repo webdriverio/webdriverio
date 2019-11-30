@@ -205,7 +205,7 @@ class MochaAdapter {
             /**
              * hook failures are emitted as "test:fail"
              */
-            if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all)*" hook/g)) {
+            if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all| each)?" hook/)) {
                 message.type = 'hook:end'
             }
         }

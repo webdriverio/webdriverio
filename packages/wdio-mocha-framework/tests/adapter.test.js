@@ -24,6 +24,12 @@ const adapterFactory = (config) => new MochaAdapter(
     wdioReporter
 )
 
+beforeEach(() => {
+    wdioReporter.write.mockReset()
+    wdioReporter.emit.mockReset()
+    wdioReporter.on.mockReset()
+})
+
 test('comes with a factory', async () => {
     expect(typeof MochaAdapterFactory.init).toBe('function')
     const instance = await MochaAdapterFactory.init(
@@ -226,7 +232,7 @@ test('emit properly reports to reporter', () => {
     expect(wdioReporter.emit.mock.calls[0][1].uid).toBe(123)
 })
 
-test('emits hook errors as hook:end', () => {
+test('emits "before all"-hook errors as hook:end', () => {
     const adapter = adapterFactory()
     adapter.getUID = () => 123
     adapter.emit(
@@ -235,8 +241,21 @@ test('emits hook errors as hook:end', () => {
         new Error('uups')
     )
 
-    expect(wdioReporter.emit.mock.calls[1][0]).toBe('hook:end')
-    expect(wdioReporter.emit.mock.calls[1][1].error.message).toBe('uups')
+    expect(wdioReporter.emit.mock.calls[0][0]).toBe('hook:end')
+    expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
+})
+
+test('emits "before each"-hook errors as hook:end', () => {
+    const adapter = adapterFactory()
+    adapter.getUID = () => 123
+    adapter.emit(
+        'test:fail',
+        { title: '"before each" hook' },
+        new Error('uups')
+    )
+
+    expect(wdioReporter.emit.mock.calls[0][0]).toBe('hook:end')
+    expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
 })
 
 test('getUID', () => {
