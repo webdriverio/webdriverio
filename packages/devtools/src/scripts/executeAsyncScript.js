@@ -40,6 +40,6 @@ export default (_, script, scriptTimeout, dataProperty, dataFlag, ...commandArgs
             return _resolve(isResultArray ? tmpResult : tmpResult[0])
         }]
 
-        return eval(script.slice(7))
+        return eval(script)
     })
 }
