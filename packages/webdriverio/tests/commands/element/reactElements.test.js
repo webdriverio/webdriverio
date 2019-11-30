@@ -65,5 +65,6 @@ describe('elem.react$', () => {
         const elems = await browser.react$$('myComp')
 
         expect(elems.filter(elem => elem.isReactElement).length).toBe(3)
+        expect(elems.foundWith).toBe('react$$')
     })
 })

@@ -33,14 +33,9 @@
  *
  * @alias $$
  * @param {String|Function} selector  selector or JS Function to fetch multiple elements
- * @return {Element[]}
+ * @return {ElementArray}
  * @type utility
  *
  */
-import { findElements } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
-
-export default async function $$ (selector) {
-    const res = await findElements.call(this, selector)
-    return getElements.call(this, selector, res)
-}
+import $$ from '../browser/$$'
+export default $$

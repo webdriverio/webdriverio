@@ -12,7 +12,7 @@ const changeType = (text) => {
     case 'RegExp':
     case 'WaitForOptions':
     case 'Element':
-    case 'Element[]': {
+    case 'ElementArray': {
         break
     }
     default: {

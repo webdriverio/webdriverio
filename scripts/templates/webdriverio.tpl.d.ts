@@ -180,10 +180,29 @@ declare namespace WebdriverIO {
     }
 
     interface Element {
-        "element-6066-11e4-a52e-4f735466cecf"?: string;
-        ELEMENT?: string;
         selector: string;
         elementId: string;
+
+        /**
+         * w3c
+         */
+        "element-6066-11e4-a52e-4f735466cecf"?: string;
+
+        /**
+         * jsonwp
+         */
+        ELEMENT?: string;
+
+        /**
+         * index in array of elements
+         * only applicable if the element found with `$$` command
+         */
+        index?: number;
+
+        /**
+         * WebdriverIO.Element or WebdriverIO.BrowserObject
+         */
+        parent: Element | WebdriverIO.BrowserObject;
 
         /**
          * add command to `element` scope
@@ -193,6 +212,13 @@ declare namespace WebdriverIO {
             func: Function
         ): void;
         // ... element commands ...
+    }
+
+    interface ElementArray extends Array<Element> {
+        selector: string | Function;
+        parent: Element | WebdriverIO.BrowserObject;
+        foundWith: string;
+        props: any[];
     }
 
     interface Timeouts {

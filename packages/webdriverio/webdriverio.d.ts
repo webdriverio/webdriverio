@@ -1,7 +1,7 @@
 /// <reference types="webdriverio/webdriverio-core-v5"/>
 
 type $ = (selector: string | Function) => Promise<WebdriverIOAsync.Element>;
-type $$ = (selector: string | Function) => Promise<WebdriverIOAsync.Element[]>;
+type $$ = (selector: string | Function) => Promise<WebdriverIOAsync.ElementArray>;
 
 // Element commands that should be wrapper with Promise
 type ElementPromise = Omit<WebdriverIO.Element,
@@ -12,6 +12,8 @@ type ElementPromise = Omit<WebdriverIO.Element,
     | 'elementId'
     | 'element-6066-11e4-a52e-4f735466cecf'
     | 'ELEMENT'
+    | 'index'
+    | 'parent'
     | 'dragAndDrop'
     | 'touchAction'
 >;
@@ -35,6 +37,8 @@ type ElementStatic = Pick<WebdriverIO.Element,
     | 'elementId'
     | 'element-6066-11e4-a52e-4f735466cecf'
     | 'ELEMENT'
+    | 'index'
+    | 'parent'
 >;
 
 // Browser commands that should be wrapper with Promise
@@ -94,9 +98,20 @@ declare namespace WebdriverIOAsync {
         dragAndDrop(target: Element, duration?: number): Promise<void>;
         touchAction(action: TouchActions): Promise<void>;
     }
+    interface ElementArray extends Array<Element> {
+        selector: string | Function;
+        parent: Element | BrowserObject;
+        foundWith: string;
+        props: any[];
+    }
+
     interface Config { }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser { }
+}
+
+declare namespace WebdriverIO {
+    interface BrowserObject extends WebdriverIOAsync.BrowserObject {}
 }
 
 declare var browser: WebdriverIOAsync.BrowserObject;
