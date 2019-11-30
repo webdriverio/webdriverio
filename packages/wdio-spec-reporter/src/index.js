@@ -85,10 +85,17 @@ class SpecReporter extends WDIOReporter {
             : this.getTestLink(runner)
         const output = [
             ...this.getHeaderDisplay(runner),
+            '',
             ...results,
             ...this.getCountDisplay(duration),
             ...this.getFailureDisplay(),
-            ...(testLinks.length ? ['', ...testLinks] : testLinks)
+            ...(testLinks.length
+                /**
+                 * if we have test links add an empty line
+                 */
+                ? ['', ...testLinks]
+                : []
+            )
         ]
 
         // Prefix all values with the browser information
@@ -137,9 +144,15 @@ class SpecReporter extends WDIOReporter {
         // Spec file name and enviroment information
         const output = [
             `Spec: ${runner.specs[0]}`,
-            `Running: ${combo}`,
-            '',
+            `Running: ${combo}`
         ]
+
+        /**
+         * print session ID if not multiremote
+         */
+        if (runner.capabilities.sessionId) {
+            output.push(`Session ID: ${runner.capabilities.sessionId}`)
+        }
 
         return output
     }

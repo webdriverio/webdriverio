@@ -93,6 +93,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo
@@ -130,6 +131,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo
@@ -167,6 +169,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo
@@ -199,6 +202,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo
@@ -236,6 +240,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo
@@ -273,6 +278,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo
@@ -310,6 +316,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo
@@ -347,6 +354,7 @@ Array [
     "------------------------------------------------------------------
 [loremipsum #0-0] Spec: /foo/bar/baz.js
 [loremipsum #0-0] Running: loremipsum
+[loremipsum #0-0] Session ID: foobar
 [loremipsum #0-0]
 [loremipsum #0-0] Foo test
 [loremipsum #0-0]    green ✓ foo

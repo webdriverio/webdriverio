@@ -12,7 +12,7 @@ import {
 
 const reporter = new SpecReporter({})
 
-const defaultCaps = { browserName: 'loremipsum' }
+const defaultCaps = { browserName: 'loremipsum', sessionId: 'foobar' }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
 const getRunnerConfig = (config = {}) => {
     return Object.assign({}, RUNNER, {
@@ -269,7 +269,6 @@ describe('SpecReporter', () => {
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
             expect(result[1]).toBe('Running: loremipsum')
-            expect(result[2]).toBe('')
         })
 
         it('should validate header output in multiremote', () => {
@@ -279,7 +278,6 @@ describe('SpecReporter', () => {
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
             expect(result[1]).toBe('Running: MultiremoteBrowser')
-            expect(result[2]).toBe('')
         })
     })
 
