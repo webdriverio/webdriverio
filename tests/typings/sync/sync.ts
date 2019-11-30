@@ -61,6 +61,9 @@ const el5 = el4.$('')
 el4.getAttribute('class')
 el5.scrollIntoView(false)
 
+const selector$$: string | Function = elems.selector
+const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
+
 // shadow$ shadow$$
 const el6 = $('')
 const shadowElem = el6.shadow$('')

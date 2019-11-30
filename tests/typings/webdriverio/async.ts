@@ -90,6 +90,9 @@ async function bar() {
     await el4.getAttribute('class')
     await el5.scrollIntoView(false)
 
+    const selector$$: string | Function = elems.selector
+    const parent$$: WebdriverIOAsync.Element | WebdriverIOAsync.BrowserObject = elems.parent
+
     // shadow$ shadow$$
     const el6 = await $('')
     const shadowElem = await el6.shadow$('')
