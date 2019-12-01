@@ -1,4 +1,4 @@
-import { AppiumLauncher } from '../src/launcher'
+import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
 import path from 'path'
