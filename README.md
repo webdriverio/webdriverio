@@ -96,3 +96,7 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 - [eslint-plugin-wdio](https://github.com/webdriverio/webdriverio/tree/master/packages/eslint-plugin-wdio) - Eslint rules for WebdriverIO
 - [@wdio/webdriver-mock-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service) - A WebdriverIO service to stub all endpoints for internal testing purposes
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes
+
+## Project Governance
+
+This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).

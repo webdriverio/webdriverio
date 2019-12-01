@@ -50,8 +50,9 @@ A Committer who shows an above-average level of contribution to the project, par
 #### Process for Adding Committers
 
 1. Add the GitHub user to the "Project Committers" team
-2. Invite to Gitter team chatroom (`webdriverio/ProjectCommitters`)
-3. Tweet congratulations to the new committer from the WebdriverIO Twitter account
+1. Add person to the list of [Current Project Team Members](/AUTHORS.md)
+1. Invite to Gitter team chatroom (`webdriverio/ProjectCommitters`)
+1. Tweet congratulations to the new committer from the WebdriverIO Twitter account
 
 ### Technical Steering Committee (TSC)
 
@@ -92,10 +93,20 @@ A Committer is invited to become a TSC member by existing TSC members. A nominat
 
 1. Add the GitHub user to the "WebdriverIO TSC" team
 1. Set the GitHub user to have the "Owner" role for the WebdriverIO organization
+1. Move person from the list of Project Collaborators into the TSC list in [Current Project Team Members](/AUTHORS.md)
 1. Invite to the Gitter TSC chatroom (`webdriverio/TSC`)
 1. Add the TSC member as an admin to WebdriverIO Twitter Account
 1. Add the TSC member to the NPM organization
 1. Tweet congratulations to the new TSC member from the WebdriverIO Twitter account
+
+## Communication Channels
+
+The project maintains various channels for providing information, supporting development and enabling communication between team members. Adherence to the project's [Code of Conduct](/CODE_OF_CONDUCT.md) is strictly mandatory for all types of communication in these channels.
+
+- Twitter Account ([`@webdriverio`](https://twitter.com/webdriverio)): for communicating and promoting news around the project or project related topics.
+- [Gitter Support Channel](https://gitter.im/webdriverio/webdriverio): chat for all WebdriverIO users to seek help and support on problems using the project.
+- [Project Committers Channel](https://gitter.im/webdriverio/ProjectCommitters): private channel for members of the Project Committers team to discuss contributions and organise other collaborative efforts.
+- [TSC Channel](https://gitter.im/webdriverio/TSC): private channel for members of the TSC team to discuss project governance.
 
 ## Consensus Seeking Process
 
