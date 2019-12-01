@@ -8,7 +8,7 @@ import getFilePath from './utils/getFilePath'
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'appium.txt'
 
-export class AppiumLauncher {
+export default class AppiumLauncher {
     constructor() {
         this.logPath = null
         this.command = ''
