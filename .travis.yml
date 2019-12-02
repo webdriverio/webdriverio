@@ -9,6 +9,7 @@ addons:
   chrome: stable
 
 script:
+  - npm run clean
   - npm run ci
 
 after_script:
