@@ -132,7 +132,7 @@ export default class Runner extends EventEmitter {
                     caps[browserName].sessionId = browser[browserName].sessionId
                     return caps
                 }, {})
-                : browser.capabilities,
+                : { ...browser.capabilities, sessionId: browser.sessionId },
             retry: this.config.specFileRetryAttempts
         })
 
