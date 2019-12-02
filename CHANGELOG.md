@@ -15,6 +15,47 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.11 (2019-12-02)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#4835](https://github.com/webdriverio/webdriverio/pull/4835) Add data to refetch elements ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-spec-reporter`
+  * [#4833](https://github.com/webdriverio/webdriverio/pull/4833) Show link to job details page for each multiremote instance - … ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`
+  * [#4829](https://github.com/webdriverio/webdriverio/pull/4829) Better handle script evaluation in devtools protocol ([@christian-bromann](https://github.com/christian-bromann))
+  * [#4828](https://github.com/webdriverio/webdriverio/pull/4828) Emit before and after command events in devtools ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-mocha-framework`
+  * [#4836](https://github.com/webdriverio/webdriverio/pull/4836) wdio-mocha-framework: translate test:fail for error in "before each"-hook into hook:end ([@akloeber](https://github.com/akloeber))
+* `devtools`, `webdriverio`
+  * [#4766](https://github.com/webdriverio/webdriverio/pull/4766) Inconsistency between webdriver and devtools getElementText command ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-utils`
+  * [#4823](https://github.com/webdriverio/webdriverio/pull/4823) Set first failed expectation as error for jasmine ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-applitools-service`
+  * [#4831](https://github.com/webdriverio/webdriverio/pull/4831) Feature/add proxy support for applitools ([@kwoding](https://github.com/kwoding))
+* `wdio-allure-reporter`
+  * [#4819](https://github.com/webdriverio/webdriverio/pull/4819) wdio-allure-reporter: add tags cucumber support for scenario ([@lacell75](https://github.com/lacell75))
+
+#### :memo: Documentation
+* `wdio-shared-store-service`
+  * [#4838](https://github.com/webdriverio/webdriverio/pull/4838) Fix typo in shared-store service doc ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`, `webdriver`
+  * [#4822](https://github.com/webdriverio/webdriverio/pull/4822) Remove `connectionRetryTimeout` option ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-firefox-profile-service`
+  * [#4821](https://github.com/webdriverio/webdriverio/pull/4821) Add note that FF extensions need to be signed or flag has to be set ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Andreas Klöber ([@akloeber](https://github.com/akloeber))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Kwo Ding ([@kwoding](https://github.com/kwoding))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.10 (2019-11-26)
 
 #### :bug: Bug Fix
