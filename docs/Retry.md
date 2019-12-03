@@ -7,7 +7,8 @@ You can rerun certain tests with the WebdriverIO testrunner that turn out to be 
 
 ## Rerun suites in Mocha
 
-Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block). 
+Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block).  
+The suite block `describe` must use an unbound function `function(){}` instead of a fat arrow function `()=>{}` as described in [Mocha docs](https://mochajs.org/#arrow-functions).
 
 Here is an example how to rerun a whole suite in Mocha:
 
