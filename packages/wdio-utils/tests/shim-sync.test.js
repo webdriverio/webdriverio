@@ -1,11 +1,10 @@
-import { executeHooksWithArgs, runFnInFiberContext, wrapCommand, hasWdioSyncSupport, executeSync, executeAsync, runSync } from '../src/shim'
+import { executeHooksWithArgs, runFnInFiberContext, wrapCommand, hasWdioSyncSupport, executeSync, runSync } from '../src/shim'
 
 jest.mock('@wdio/sync', () => ({
     executeHooksWithArgs: 'executeHooksWithArgs',
     runFnInFiberContext: 'runFnInFiberContext',
     wrapCommand: 'wrapCommand',
     executeSync: 'executeSync',
-    executeAsync: 'executeAsync',
     runSync: 'runSync'
 }))
 
@@ -36,12 +35,6 @@ describe('hasWdioSyncSupport', () => {
 describe('executeSync', () => {
     it('should match @wdio/sync', async () => {
         expect(executeSync).toBe('executeSync')
-    })
-})
-
-describe('executeAsync', () => {
-    it('should match @wdio/sync', async () => {
-        expect(executeAsync).toBe('executeAsync')
     })
 })
 
