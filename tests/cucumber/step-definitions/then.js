@@ -13,15 +13,15 @@ Then('the title of the page should be {string} async', async (expectedTitle) => 
     assert.equal(actualTitle, expectedTitle)
 })
 
-let someFlag = false
-Then('I should fail once but pass on the second run', { wrapperOptions: { retry: 1 } }, () => {
-    if (!someFlag) {
-        someFlag = true
+let hasRun = false
+Then('I should fail once but pass on the second run', { wrapperOptions: { retry: 1 } }, function () {
+    if (!hasRun) {
+        hasRun = true
+        assert.equal(this.retries, 0)
         throw new Error('boom!')
     }
 
-    someFlag = false
-    assert.equal(1, 1)
+    assert.equal(this.retries, 1)
 })
 
 Then('this is ambiguous', () => {
