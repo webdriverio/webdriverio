@@ -124,7 +124,7 @@ class HomeSplash extends React.Component {
                     <PromoSection>
                         <Button href={docUrl('gettingstarted.html', language)}>Get Started</Button>
                         <Button href="#watch">Watch Talks</Button>
-                        <Button href="https://learn.webdriver.io">Online Course</Button>
+                        <Button href="https://leanpub.com/webapp-testing-guidebook">Read the Book</Button>
                         <Button href="https://gitter.im/webdriverio/webdriverio">Support</Button>
                     </PromoSection>
                 </div>
