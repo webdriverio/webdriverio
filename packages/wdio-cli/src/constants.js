@@ -81,6 +81,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
+        { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
     ],
 }
 
