@@ -1,4 +1,4 @@
-import { executeSync, runSync, executeAsync } from '../src'
+import { executeSync, runSync } from '../src'
 
 beforeAll(() => {
     if (!global.browser) {
@@ -9,19 +9,22 @@ beforeAll(() => {
 describe('executeSync', () => {
     it('should pass with default values and regular fn', async () => {
         global.browser._NOT_FIBER = true
-        expect(await executeSync(() => 1, {})).toEqual(1)
+        expect(await executeSync.call({}, () => 1, {})).toEqual(1)
         expect(global.browser._NOT_FIBER).toBe(undefined)
     })
 
     it('should pass with args and async fn', async () => {
-        expect(await executeSync(async arg => arg, { limit: 1, attempts: 0 }, [2])).toEqual(2)
+        const fn = async arg => arg
+        const scope = {}
+        expect(await executeSync.call(scope, fn, { limit: 1, attempts: 0 }, [2])).toEqual(2)
+        expect(scope.retries).toBe(0)
     })
 
     it('should filter stack on failure', async () => {
         global.browser._NOT_FIBER = true
         let error
         try {
-            await executeSync(() => { throw new Error('foobar') }, {})
+            await executeSync.call({}, () => { throw new Error('foobar') }, {})
         } catch (err) {
             error = err
         }
@@ -32,7 +35,7 @@ describe('executeSync', () => {
     it('should not filter stack on failure if it is missing', async () => {
         let error
         try {
-            await executeSync(() => {
+            await executeSync.call({}, () => {
                 const err = new Error('foobar')
                 err.stack = false
                 throw err
@@ -45,24 +48,30 @@ describe('executeSync', () => {
 
     it('should repeat step on failure', async () => {
         let counter = 3
+        const scope = {}
         const repeatTest = { limit: counter, attempts: 0 }
-        expect(await executeSync(() => {
+
+        const fn = () => {
             if (counter > 0) {
                 counter--
                 throw new Error('foobar')
             }
             return true
-        }, repeatTest)).toEqual(true)
+        }
+
+        expect(await executeSync.call(scope, fn, repeatTest)).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
+        expect(scope.retries).toBe(3)
     })
 
     it('should throw if repeatTest attempts exceeded', async () => {
         let counter = 3
+        const scope = {}
         const repeatTest = { limit: counter - 1, attempts: 0 }
         let error
         try {
-            await executeSync(() => {
+            await executeSync.call(scope, () => {
                 if (counter > 0) {
                     counter--
                     throw new Error('foobar')
@@ -74,71 +83,7 @@ describe('executeSync', () => {
         }
         expect(error.message).toEqual('foobar')
         expect(repeatTest).toEqual({ limit: 2, attempts: 2 })
-    })
-})
-
-describe('executeAsync', () => {
-    it('should pass with default values and fn returning synchronous value', async () => {
-        const result = await executeAsync(() => 'foo', {})
-        expect(result).toEqual('foo')
-    })
-
-    it('should pass when optional arguments are passed', async () => {
-        const result = await executeAsync(async arg => arg, { limit: 1, attempts: 0 }, ['foo'])
-        expect(result).toEqual('foo')
-    })
-
-    it('should reject if fn throws error directly', async () => {
-        let error
-        const hook = () => {throw new Error('foo')}
-        try {
-            await executeAsync(hook, {})
-        } catch (e) {
-            error = e
-        }
-        expect(error.message).toEqual('foo')
-    })
-
-    it('should repeat if fn throws error directly and repeatTest provided', async () => {
-        let counter = 3
-        const repeatTest = { limit: counter, attempts: 0 }
-        const result = await executeAsync(() => {
-            if (counter > 0) {
-                counter--
-                throw new Error('foo')
-            }
-            return true
-        }, repeatTest)
-        expect(result).toEqual(true)
-        expect(counter).toEqual(0)
-        expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-    })
-
-    it('should return rejected promise if fn rejects', async () => {
-        let error
-        try {
-            await executeAsync(() => Promise.reject({
-                stack: ' at node_modules/@wdio/sync/foo.js\n at src/localDir/localFile.js'
-            }), {})
-        } catch (e) {
-            error = e
-        }
-        expect(error.stack).toEqual(' at src/localDir/localFile.js')
-    })
-
-    it('should repeat if fn rejects and repeatTest provided', async () => {
-        let counter = 3
-        const repeatTest = { limit: counter, attempts: 0 }
-        const result = await executeAsync(() => {
-            if (counter > 0) {
-                counter--
-                return Promise.reject('foo')
-            }
-            return true
-        }, repeatTest)
-        expect(result).toEqual(true)
-        expect(counter).toEqual(0)
-        expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
+        expect(scope.retries).toBe(2)
     })
 })
 
@@ -147,19 +92,22 @@ describe('runSync', () => {
         const resolveFn = jest.fn()
         const rejectFn = jest.fn()
 
-        const fibersFn = runSync((arg) => 'foo' + arg, {}, ['bar'])
+        const scope = {}
+        const fibersFn = runSync.call(scope, (arg) => 'foo' + arg, {}, ['bar'])
         await fibersFn(resolveFn, rejectFn)
 
         expect(rejectFn).not.toBeCalled()
         expect(resolveFn).toBeCalledWith('foobar')
     })
+
     it('should reject promise on error', async () => {
         const resolveFn = jest.fn()
         const rejectFn = jest.fn()
+        const scope = {}
         const fn = jest.fn().mockImplementation(() => { throw error })
         const error = new Error('foo')
 
-        const fibersFn = runSync(fn, { limit: 1, attempts: 0 })
+        const fibersFn = runSync.call(scope, fn, { limit: 1, attempts: 0 })
         await fibersFn(resolveFn, rejectFn)
 
         expect(resolveFn).not.toBeCalled()

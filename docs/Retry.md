@@ -7,8 +7,7 @@ You can rerun certain tests with the WebdriverIO testrunner that turn out to be 
 
 ## Rerun suites in Mocha
 
-Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block).  
-In order to use the `this.retries()` method, the suite block `describe` must use an unbound function `function(){}` instead of a fat arrow function `()=>{}`, as described in [Mocha docs](https://mochajs.org/#arrow-functions).
+Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block). In order to use the `this.retries()` method, the suite block `describe` must use an unbound function `function(){}` instead of a fat arrow function `() => {}`, as described in [Mocha docs](https://mochajs.org/#arrow-functions). Using Mocha you can also set a retry count for all specs using `mochaOpts.retries` in your `wdio.conf.js`.
 
 Here is an example:
 
@@ -30,16 +29,17 @@ describe('retries', function() {
 })
 ```
 
-## Rerun single tests in Jasmine or Mocha (`@wdio/sync` only)
+## Rerun single tests in Jasmine or Mocha
 
-If you are using `@wdio/sync`, to rerun a certain test block you can just apply the number of reruns as last parameter after the test block function:
+To rerun a certain test block you can just apply the number of reruns as last parameter after the test block function:
 
 ```js
 describe('my flaky app', () => {
     /**
      * spec that runs max 4 times (1 actual run + 3 reruns)
      */
-    it('should rerun a test at least 3 times', () => {
+    it('should rerun a test at least 3 times', function () {
+        console.log(this.retries) // returns number of retries
         // ...
     }, 3)
 })
@@ -84,7 +84,7 @@ Reruns can only be defined in your step definitions file, never in your feature 
 
 ## Add retries on a per-specfile basis
 
-Previously, only test- and suite-level retries were available, which are fine in most cases. 
+Previously, only test- and suite-level retries were available, which are fine in most cases.
 
 But in any tests which involve state (such as on a server or in a database) the state may be left invalid after the first test failure. Any subsequent retries may have no chance of passing, due to the invalid state they would start with.
 
