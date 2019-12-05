@@ -15,6 +15,30 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.12 (2019-12-05)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `wdio-utils`
+  * [#4853](https://github.com/webdriverio/webdriverio/pull/4853) Sync vs Async test execution equality ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`
+  * [#4843](https://github.com/webdriverio/webdriverio/pull/4843) Add sessionId to normal capabilities for spec-reporter ([@Smashman](https://github.com/Smashman))
+
+#### :memo: Documentation
+* Other
+  * [#4847](https://github.com/webdriverio/webdriverio/pull/4847) Docs: Update Debugging.md  ([@edoardoo](https://github.com/edoardoo))
+  * [#4854](https://github.com/webdriverio/webdriverio/pull/4854) docs: change homepage link from course to book ([@klamping](https://github.com/klamping))
+  * [#4846](https://github.com/webdriverio/webdriverio/pull/4846) Docs: Add unbound function note on mocha rerun section. ([@edoardoo](https://github.com/edoardoo))
+* `wdio-cli`
+  * [#4852](https://github.com/webdriverio/webdriverio/pull/4852) wdio-cli: add wdio-wiremock-service to cli wizard ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 5
+- Ben Williams ([@Smashman](https://github.com/Smashman))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Edoardo Odorico ([@edoardoo](https://github.com/edoardoo))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+
+
 ## v5.16.11 (2019-12-02)
 
 #### :rocket: New Feature
