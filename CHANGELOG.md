@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.14 (2019-12-06)
+
+#### :bug: Bug Fix
+* `wdio-sync`
+  * [#4860](https://github.com/webdriverio/webdriverio/pull/4860) Run synchronous commands with standalone script ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v5.16.13 (2019-12-06)
 
 #### :bug: Bug Fix
