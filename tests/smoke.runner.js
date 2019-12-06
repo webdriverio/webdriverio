@@ -339,6 +339,20 @@ const jasmineSpecFiltering = async () => {
     assert.strictEqual(skippedSpecs, 2)
 }
 
+/**
+ * Mocha wdio testrunner tests
+ */
+const standaloneTest = async () => {
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'standalone.js')
+            ]
+        })
+    assert.strictEqual(skippedSpecs, 0)
+}
+
 (async () => {
     const syncTests = [
         mochaTestrunner,
@@ -356,7 +370,8 @@ const jasmineSpecFiltering = async () => {
         wdioHooks,
         sharedStoreServiceTest,
         mochaSpecFiltering,
-        jasmineSpecFiltering
+        jasmineSpecFiltering,
+        standaloneTest
     ]
 
     const asyncTests = [
