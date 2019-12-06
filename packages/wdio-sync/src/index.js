@@ -5,6 +5,7 @@ import runFnInFiberContext from './runFnInFiberContext'
 import wrapCommand from './wrapCommand'
 
 import { STACKTRACE_FILTER_FN } from './constants'
+const defaultRetries = { attempts: 0, limit: 0 }
 
 /**
  * execute test or hook synchronously
@@ -14,9 +15,18 @@ import { STACKTRACE_FILTER_FN } from './constants'
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeSync = async function (fn, retries, args = []) {
-    delete global.browser._NOT_FIBER
-    this.retries = retries.attempts
+const executeSync = async function (fn, retries = defaultRetries, args = []) {
+    /**
+     * User can also use the `@wdio/sync` package directly to run commands
+     * synchronously in standalone mode. In this case we neither have
+     * `global.browser` nor `this`
+     */
+    if (global.browser) {
+        delete global.browser._NOT_FIBER
+    }
+    if (this) {
+        this.retries = retries.attempts
+    }
 
     try {
         global._HAS_FIBER_CONTEXT = true
