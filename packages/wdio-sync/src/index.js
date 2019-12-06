@@ -25,7 +25,7 @@ const executeSync = async function (fn, retries = defaultRetries, args = []) {
         delete global.browser._NOT_FIBER
     }
     if (this) {
-        this.retries = retries.attempts
+        this.wdioRetries = retries.attempts
     }
 
     try {
@@ -74,4 +74,10 @@ export {
     runFnInFiberContext,
     executeSync,
     runSync,
+}
+
+export default function sync (testFn) {
+    return new Promise((resolve, reject) => {
+        return runSync(testFn)(resolve, reject)
+    })
 }

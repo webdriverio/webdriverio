@@ -57,7 +57,7 @@ let runFnInFiberContext = function (fn) {
 let wrapCommand = function wrapCommand (commandName, fn) {
     return async function wrapCommandFn (...args) {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook) {
+        if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true
             await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs)
             inCommandHook = false
@@ -71,7 +71,7 @@ let wrapCommand = function wrapCommand (commandName, fn) {
             commandError = err
         }
 
-        if (!inCommandHook) {
+        if (!inCommandHook && this.options.afterCommand) {
             inCommandHook = true
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
             await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)

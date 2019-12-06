@@ -31,7 +31,6 @@
   },
   "dependencies": {
     "@wdio/logger": "5.16.10",
-    "@wdio/sync": "5.16.14",
     "@wdio/utils": "5.16.13",
     "cucumber": "^5.1.0",
     "glob": "^7.1.2",
