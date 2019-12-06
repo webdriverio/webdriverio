@@ -15,6 +15,20 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.13 (2019-12-06)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#4858](https://github.com/webdriverio/webdriverio/pull/4858) Fix wrapCommand for async command execution ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#4857](https://github.com/webdriverio/webdriverio/pull/4857) add blog for newly added service ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v5.16.12 (2019-12-05)
 
 #### :bug: Bug Fix
