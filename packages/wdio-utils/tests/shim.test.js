@@ -11,7 +11,7 @@ describe('wrapCommand', () => {
                 afterCommand: [afterHook, afterHook, afterHook]
             }
         }
-        const res = await wrapCommand.call(scope, 'someCommand', commandFn, 123, 'barfoo')
+        const res = await wrapCommand('someCommand', commandFn).call(scope, 123, 'barfoo')
         expect(res).toEqual('foobar')
         expect(commandFn).toBeCalledTimes(1)
         expect(commandFn).toBeCalledWith(123, 'barfoo')
@@ -33,7 +33,7 @@ describe('wrapCommand', () => {
                 afterCommand: [afterHook, afterHook, afterHook]
             }
         }
-        const res = await wrapCommand.call(scope, 'someCommand', commandFn, 123, 'barfoo').catch(err => err)
+        const res = await wrapCommand('someCommand', commandFn).call(scope, 123, 'barfoo').catch(err => err)
         expect(res).toEqual(error)
         expect(commandFn).toBeCalledTimes(1)
         expect(commandFn).toBeCalledWith(123, 'barfoo')
