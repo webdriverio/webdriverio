@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 
 const log = logger('@wdio/utils:shim')
 
+let inCommandHook = false
 let hasWdioSyncSupport = false
 let runSync = null
 
@@ -53,24 +54,36 @@ let runFnInFiberContext = function (fn) {
     }
 }
 
-let wrapCommand = async function (commandName, fn, ...args) {
-    await executeHooksWithArgs.call(this, this.options.beforeCommand, [commandName, args])
+let wrapCommand = function wrapCommand (commandName, fn) {
+    return async function wrapCommandFn (...args) {
+        const beforeHookArgs = [commandName, args]
+        if (!inCommandHook) {
+            inCommandHook = true
+            await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs).catch((err) => err)
+            inCommandHook = false
+        }
 
-    let commandResult
-    let commandError
-    try {
-        commandResult = await fn.apply(this, args)
-    } catch (err) {
-        commandError = err
+        let commandResult
+        let commandError
+        try {
+            commandResult = await fn.apply(this, args)
+        } catch (err) {
+            commandError = err
+        }
+
+        if (!inCommandHook) {
+            inCommandHook = true
+            const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
+            await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs).catch((err) => err)
+            inCommandHook = false
+        }
+
+        if (commandError) {
+            throw commandError
+        }
+
+        return commandResult
     }
-
-    await executeHooksWithArgs.call(this, this.options.afterCommand, [commandName, args, commandResult, commandError])
-
-    if (commandError) {
-        throw commandError
-    }
-
-    return commandResult
 }
 
 /**

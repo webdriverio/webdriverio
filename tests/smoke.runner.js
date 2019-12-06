@@ -1,4 +1,4 @@
-import { readFile, unlink, exists } from 'fs'
+import { readFile, unlink, exists, rename } from 'fs'
 import path from 'path'
 import assert from 'assert'
 import { promisify } from 'util'
@@ -6,7 +6,8 @@ import { promisify } from 'util'
 const fs = {
     readFile: promisify(readFile),
     unlink: promisify(unlink),
-    exists: promisify(exists)
+    exists: promisify(exists),
+    rename: promisify(rename)
 }
 
 import launch from './helpers/launch'
@@ -20,6 +21,24 @@ import {
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
+async function runTests (tests) {
+    /**
+     * Usage example: `npm run test:smoke -- customService`
+     */
+    const testFilter = process.argv[2]
+
+    if (process.env.CI || testFilter) {
+        // sequential
+        const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
+        for (let test of testsFiltered) {
+            await test()
+        }
+    } else {
+        // parallel
+        await Promise.all(tests.map(test => test()))
+    }
+}
+
 /**
  * Mocha wdio testrunner tests
  */
@@ -32,6 +51,20 @@ const mochaTestrunner = async () => {
                 path.resolve(__dirname, 'mocha', 'test-middleware.js'),
                 path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
                 path.resolve(__dirname, 'mocha', 'test-skipped.js')
+            ]
+        })
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+/**
+ * Mocha wdio testrunner tests with asynchronous execution
+ */
+const mochaAsyncTestrunner = async () => {
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'async-config.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'mocha', 'test-async.js')
             ]
         })
     assert.strictEqual(skippedSpecs, 0)
@@ -307,12 +340,7 @@ const jasmineSpecFiltering = async () => {
 }
 
 (async () => {
-    /**
-     * Usage example: `npm run test:smoke -- customService`
-     */
-    const testFilter = process.argv[2]
-
-    const tests = [
+    const syncTests = [
         mochaTestrunner,
         jasmineTestrunner,
         jasmineReporter,
@@ -331,15 +359,21 @@ const jasmineSpecFiltering = async () => {
         jasmineSpecFiltering
     ]
 
-    if (process.env.CI || testFilter) {
-        // sequential
-        const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
-        for (let test of testsFiltered) {
-            await test()
-        }
-    } else {
-        // parallel
-        await Promise.all(tests.map(test => test()))
+    const asyncTests = [
+        mochaAsyncTestrunner
+    ]
+
+    console.log('\nRunning smoke tests...\n')
+    await runTests(syncTests)
+
+    console.log('\nAll synchronous test passed, running asynchronous tests now...')
+    const packagesPath = path.resolve(__dirname, '..', 'packages')
+    await fs.rename(path.join(packagesPath, 'wdio-sync'), path.join(packagesPath, '_wdio-sync_'))
+    const error = await runTests(asyncTests).catch((err) => err)
+    await fs.rename(path.join(packagesPath, '_wdio-sync_'), path.join(packagesPath, 'wdio-sync'))
+
+    if (error) {
+        throw error
     }
 
     console.log('\nAll smoke tests passed!\n')
