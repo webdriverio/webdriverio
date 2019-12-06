@@ -1,9 +1,11 @@
 import assert from 'assert'
 import { remote } from '../../packages/webdriverio'
-import { runSync } from '../../packages/wdio-sync'
+import sync from '../../packages/wdio-sync'
 
 describe('scripts run in standalone mode', () => {
-    it('should allow to run standalone mode synchronously', async () => {
+    it('should allow to run standalone mode synchronously', () => {
+        browser.clickScenario()
+
         return remote({
             runner: true,
             hostname: 'localhost',
@@ -12,8 +14,24 @@ describe('scripts run in standalone mode', () => {
             capabilities: {
                 browserName: 'chrome'
             }
-        }).then((remoteBrowser) => new Promise((resolve, reject) => runSync(() => {
+        }).then((remoteBrowser) => sync(() => {
             assert.equal(remoteBrowser.getTitle(), 'Mock Page Title')
-        })(resolve, reject)))
+        }))
+    })
+
+    it('should allow to be run asynchronous', () => {
+        browser.clickScenario()
+
+        return remote({
+            hostname: 'localhost',
+            port: 4444,
+            path: '/',
+            capabilities: {
+                browserName: 'chrome'
+            }
+        }).then((remoteBrowser) => async () => {
+            console.log(remoteBrowser.sessionId)
+            assert.equal(await remoteBrowser.getTitle(), 'Mock Page Title')
+        })
     })
 })

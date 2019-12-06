@@ -71,7 +71,7 @@ let wrapCommand = function wrapCommand (commandName, fn) {
             commandError = err
         }
 
-        if (!inCommandHook && this.options.afterCommand) {
+        if (!inCommandHook) {
             inCommandHook = true
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
             await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)
@@ -95,7 +95,9 @@ let wrapCommand = function wrapCommand (commandName, fn) {
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 let executeSync = async function (fn, retries, args = []) {
-    this.retries = retries.attempts
+    if (this) {
+        this.wdioRetries = retries.attempts
+    }
 
     try {
         let res = fn.apply(this, args)
