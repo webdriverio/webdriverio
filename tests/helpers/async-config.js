@@ -6,5 +6,8 @@ exports.config = Object.assign({}, config, {
     },
     async afterCommand () {
         await browser.pause(100)
+    },
+    afterTest () {
+        throw new Error('I should not cause problems')
     }
 })
