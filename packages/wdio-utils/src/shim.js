@@ -59,7 +59,7 @@ let wrapCommand = function wrapCommand (commandName, fn) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook) {
             inCommandHook = true
-            await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs).catch((err) => err)
+            await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs)
             inCommandHook = false
         }
 
@@ -74,7 +74,7 @@ let wrapCommand = function wrapCommand (commandName, fn) {
         if (!inCommandHook) {
             inCommandHook = true
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs).catch((err) => err)
+            await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)
             inCommandHook = false
         }
 
