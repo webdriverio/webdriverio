@@ -232,6 +232,28 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(4)
         })
 
+        it('should overwrite exclude if piped into cli command with params', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({})
+
+            const utilsPath = path.join(__dirname, '..', 'src', 'utils.js')
+            const indexPath = path.join(__dirname, '..', 'src', 'index.js')
+            const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
+            expect(specs).toEqual([indexPath])
+        })
+
+        it('should overwrite exclude if piped into cli command with params in suite', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ suite: ['mobile'] })
+
+            const utilsPath = path.join(__dirname, '..', 'src', 'utils.js')
+            const indexPath = path.join(__dirname, '..', 'src', 'index.js')
+            const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
+            expect(specs).toEqual([indexPath])
+        })
+
         it('should set hooks to empty arrays as default', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)

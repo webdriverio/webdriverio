@@ -156,6 +156,7 @@ intercept
 zafira-listener
 reportportal
 docker
+wiremock
 ```
 
 #### List of supported reporters

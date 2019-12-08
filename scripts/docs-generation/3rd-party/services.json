@@ -28,5 +28,11 @@
     "title": "Docker",
     "githubUrl": "https://github.com/stsvilik/wdio-docker-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-docker-service"
+  },
+  {
+    "packageName": "wdio-wiremock-service",
+    "title": "WireMock",
+    "githubUrl": "https://github.com/erwinheitzman/wdio-wiremock-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-wiremock-service"
   }
 ]

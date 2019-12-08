@@ -23,8 +23,9 @@ class Timer {
          * only wrap waitUntil condition if:
          *  - wdio-sync is installed
          *  - function name is not async
+         *  - we run with the wdio testrunner
          */
-        if (hasWdioSyncSupport && !fn.name.includes('async')) {
+        if (hasWdioSyncSupport && !fn.name.includes('async') && Boolean(global.browser)) {
             this._fn = () => runFnInFiberContext(fn)()
         }
 

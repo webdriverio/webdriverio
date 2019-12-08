@@ -1,4 +1,4 @@
-import { AppiumLauncher } from '../src/launcher'
+import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
 import path from 'path'
@@ -86,7 +86,7 @@ describe('Appium launcher', () => {
 
             expect(launcher.logPath).toBe(undefined)
             expect(launcher.command).toBe('node')
-            expect(launcher.appiumArgs).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/param-case.js')])
+            expect(launcher.appiumArgs).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/dist/index.js')])
         })
 
         test('should start Appium', async () => {
@@ -97,7 +97,7 @@ describe('Appium launcher', () => {
             })
 
             expect(childProcess.spawn.mock.calls[0][0]).toBe('node')
-            expect(childProcess.spawn.mock.calls[0][1]).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/param-case.js'), '--superspeed'])
+            expect(childProcess.spawn.mock.calls[0][1]).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/dist/index.js'), '--superspeed'])
             expect(childProcess.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
         })
 

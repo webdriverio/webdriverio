@@ -24,6 +24,7 @@ describe('custom$', () => {
         expect(elems).toHaveLength(2)
         expect(elems[0].elementId).toBe('.test-some-elem-123')
         expect(elems[1].elementId).toBe('.test-other-some-elem-123')
+        expect(elems.foundWith).toBe('custom$$')
     })
 
     it('should error if no strategy found', async () => {
@@ -58,6 +59,6 @@ describe('custom$', () => {
         const elem = await browser.$('#foo')
         const elems = await elem.custom$$('test-no-element', '.test')
 
-        expect(elems).toMatchObject([])
+        expect([...elems]).toMatchObject([])
     })
 })

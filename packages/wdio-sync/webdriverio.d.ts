@@ -49,7 +49,7 @@ declare function $(selector: string | Function): WebdriverIO.Element;
 /**
  * find multiple elements on the page.
  */
-declare function $$(selector: string | Function): WebdriverIO.Element[];
+declare function $$(selector: string | Function): WebdriverIO.ElementArray;
 
 declare module "@wdio/sync" {
     export = WebdriverIO

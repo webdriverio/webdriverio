@@ -6,21 +6,20 @@ import {
     SUITES,
     SUITES_NO_TESTS,
     SUITES_WITH_DATA_TABLE,
-    REPORT,
-    SAUCELABS_REPORT,
-    SAUCELABS_EU_REPORT,
-    SAUCELABS_HEADLESS_REPORT,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
 
 const reporter = new SpecReporter({})
 
+const defaultCaps = { browserName: 'loremipsum', sessionId: 'foobar' }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
-const getRunnerConfig = (config) => {
+const getRunnerConfig = (config = {}) => {
     return Object.assign({}, RUNNER, {
+        capabilities: config.capabilities || defaultCaps,
         config,
-        sessionId: fakeSessionId
+        sessionId: fakeSessionId,
+        isMultiremote: Boolean(config.isMultiremote)
     })
 }
 
@@ -168,59 +167,74 @@ describe('SpecReporter', () => {
             it('should print the report to the console', () => {
                 const runner = getRunnerConfig({ hostname: 'localhost' })
                 printReporter.printReport(runner)
-                expect(printReporter.write).toBeCalledWith(REPORT)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to SauceLabs job details page', () => {
                 const runner = getRunnerConfig({
-                    hostname: 'ondemand.saucelabs.com',
-                    capabilities: {}
+                    hostname: 'ondemand.saucelabs.com'
                 })
                 printReporter.printReport(runner)
-                expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('should print jobs of all instance when run with multiremote', () => {
+                const runner = getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    capabilities: {
+                        browserA: { sessionId: 'foobar' },
+                        browserB: { sessionId: 'barfoo' }
+                    },
+                    isMultiremote: true
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to SauceLabs job details page if run with Sauce Connect (w3c)', () => {
                 const runner = getRunnerConfig({
-                    capabilities: { 'sauce:options': 'foobar' },
+                    capabilities: {
+                        ...defaultCaps,
+                        'sauce:options': 'foobar'
+                    },
                     hostname: 'localhost'
                 })
                 printReporter.printReport(runner)
-                expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to SauceLabs job details page if run with Sauce Connect (jsonwp)', () => {
                 const runner = getRunnerConfig({
-                    capabilities: { tunnelIdentifier: 'foobar' },
+                    capabilities: {
+                        tunnelIdentifier: 'foobar',
+                        ...defaultCaps
+                    },
                     hostname: 'localhost'
                 })
                 printReporter.printReport(runner)
-                expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to SauceLabs EU job details page', () => {
                 printReporter.printReport(getRunnerConfig({
-                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu'
                 }))
-                expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
 
                 printReporter.write.mockClear()
 
                 printReporter.printReport(getRunnerConfig({
-                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu-central-1'
                 }))
-                expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
 
                 printReporter.printReport(getRunnerConfig({
-                    capabilities: {},
                     hostname: 'ondemand.saucelabs.com',
                     headless: true
                 }))
-                expect(printReporter.write).toBeCalledWith(SAUCELABS_HEADLESS_REPORT)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
         })
 
@@ -242,7 +256,7 @@ describe('SpecReporter', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS
 
-            printReporter.printReport(RUNNER)
+            printReporter.printReport(getRunnerConfig())
 
             expect(printReporter.write.mock.calls.length).toBe(0)
         })
@@ -250,21 +264,20 @@ describe('SpecReporter', () => {
 
     describe('getHeaderDisplay', () => {
         it('should validate header output', () => {
-            const result = reporter.getHeaderDisplay(RUNNER)
+            const result = reporter.getHeaderDisplay(getRunnerConfig())
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
             expect(result[1]).toBe('Running: loremipsum')
-            expect(result[2]).toBe('')
         })
 
         it('should validate header output in multiremote', () => {
-            const result = tmpReporter.getHeaderDisplay({ ...RUNNER, isMultiremote: true })
+            const result = tmpReporter.getHeaderDisplay(
+                getRunnerConfig({ isMultiremote: true }))
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
             expect(result[1]).toBe('Running: MultiremoteBrowser')
-            expect(result[2]).toBe('')
         })
     })
 

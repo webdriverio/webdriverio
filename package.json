@@ -38,10 +38,12 @@
     "ts": "run-p ts:*",
     "ts:sync": "cd tests/typings/sync && tsc --incremental",
     "ts:devtools": "cd tests/typings/devtools && tsc --incremental",
+    "ts:sync-applitools": "cd tests/typings/sync-applitools && tsc --incremental",
     "ts:sync-mocha": "cd tests/typings/sync-mocha && tsc --incremental",
     "ts:sync-jasmine": "cd tests/typings/sync-jasmine && tsc --incremental",
     "ts:sync-cucumber": "cd tests/typings/sync-cucumber && tsc --incremental",
     "ts:webdriverio": "cd tests/typings/webdriverio && tsc --incremental",
+    "ts:webdriverio-applitools": "cd tests/typings/webdriverio-applitools && tsc --incremental",
     "ts:webdriverio-devtools": "cd tests/typings/sync-devtools && tsc --incremental",
     "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && tsc --incremental",
     "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc --incremental",
@@ -122,7 +124,8 @@
       "packages/wdio-devtools-service/src/scripts",
       "packages/webdriverio/build",
       "packages/webdriver/build",
-      "packages/wdio-cucumber-framework/tests/fixtures"
+      "packages/wdio-cucumber-framework/tests/fixtures",
+      "packages/wdio-logger/build"
     ]
   },
   "greenkeeper": {

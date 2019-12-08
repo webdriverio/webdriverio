@@ -32,6 +32,10 @@ describe('elements', () => {
         expect(elems[2].ELEMENT).toBe(undefined)
         expect(elems[2].selector).toBe('.foo')
         expect(elems[2].index).toBe(2)
+
+        expect(elems.parent).toBe(browser)
+        expect(elems.selector).toBe('.foo')
+        expect(elems.foundWith).toBe('$$')
     })
 
     it('should fetch elements (no w3c)', async () => {

@@ -27,8 +27,9 @@ title: <?= method.command ?>
 | Name | Type | Details |
 | ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    ?>| <?= paramTag.name ?><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
-    ?> | <?= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '')
+    var paramKey = (paramTag.types && paramTag.typesDescription) ? paramTag.typesDescription : paramTag.type
+    ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
+    ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
 <? } ?>
@@ -45,7 +46,7 @@ title: <?= method.command ?>
 <? if (method.returns) { ?>
 ##### Returns
 
-- **&lt;<?= method.returns.type ?>&gt; <?= method.returns.name ?>:** <?= method.returns.description ?>
+- **&lt;<?= method.returns.type ?>&gt; <code><var><?= method.returns.name ?></var></code>:** <?= method.returns.description ?>
 <? } ?>
 
 <? if (method.throwsTags.length) { ?>

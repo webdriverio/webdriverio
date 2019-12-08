@@ -5,6 +5,7 @@ import runFnInFiberContext from './runFnInFiberContext'
 import wrapCommand from './wrapCommand'
 
 import { STACKTRACE_FILTER_FN } from './constants'
+const defaultRetries = { attempts: 0, limit: 0 }
 
 /**
  * execute test or hook synchronously
@@ -14,8 +15,18 @@ import { STACKTRACE_FILTER_FN } from './constants'
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeSync = async function (fn, retries, args = []) {
-    delete global.browser._NOT_FIBER
+const executeSync = async function (fn, retries = defaultRetries, args = []) {
+    /**
+     * User can also use the `@wdio/sync` package directly to run commands
+     * synchronously in standalone mode. In this case we neither have
+     * `global.browser` nor `this`
+     */
+    if (global.browser) {
+        delete global.browser._NOT_FIBER
+    }
+    if (this) {
+        this.retries = retries.attempts
+    }
 
     try {
         global._HAS_FIBER_CONTEXT = true
@@ -34,7 +45,7 @@ const executeSync = async function (fn, retries, args = []) {
     } catch (e) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
-            return await executeSync(fn, retries, args)
+            return await executeSync.call(this, fn, retries, args)
         }
 
         /**
@@ -46,32 +57,6 @@ const executeSync = async function (fn, retries, args = []) {
 
         e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
         return Promise.reject(e)
-    }
-}
-
-/**
- * execute test or hook asynchronously
- *
- * @param  {Function} fn         spec or hook method
- * @param  {object}   retries    { limit: number, attempts: number }
- * @param  {Array}    args       arguments passed to hook
- * @return {Promise}             that gets resolved once test/hook is done or was retried enough
- */
-const executeAsync = async function (fn, retries, args = []) {
-    try {
-        return await fn.apply(this, args)
-    } catch (e) {
-        if (retries.limit > retries.attempts) {
-            retries.attempts++
-            return await executeAsync(fn, retries, args)
-        }
-
-        // Only instances of `Error` have a stack trace. Specifcally in mocha, `this.skip()`
-        // does a `throw new Pending('sync skip')` which is not a subsclass of `Error`
-        if (e.stack) {
-            e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
-        }
-        throw e
     }
 }
 
@@ -88,6 +73,5 @@ export {
     wrapCommand,
     runFnInFiberContext,
     executeSync,
-    executeAsync,
     runSync,
 }

@@ -20,9 +20,12 @@ describe('wdio-applitools-service', () => {
         const service = new ApplitoolsService()
 
         expect(() => service.beforeSession({})).toThrow()
+        expect(() => service.beforeSession({ applitools: { serverUrl: 'foobar' } })).toThrow()
         expect(() => service.beforeSession({ applitoolsServerUrl: 'foobar' })).toThrow()
 
+        expect(() => service.beforeSession({ applitools: { key: 'foobar' } })).not.toThrow()
         expect(() => service.beforeSession({ applitoolsKey: 'foobar' })).not.toThrow()
+        expect(() => service.beforeSession({ applitools: { key: 'foobar', serverUrl: 'foobar' } })).not.toThrow()
         expect(() => service.beforeSession({ applitoolsKey: 'foobar', applitoolsServerUrl: 'foobar' })).not.toThrow()
     })
 
@@ -50,6 +53,48 @@ describe('wdio-applitools-service', () => {
         })
         expect(service.eyes.setApiKey).toBeCalledWith('foobar')
         expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver')
+    })
+
+    it('should prefer applitools object before deprecated applitoolsKey/applitoolsServerUrl', () => {
+        const service = new ApplitoolsService()
+        process.env.APPLITOOLS_KEY = 'foobarenv'
+        process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
+        service.beforeSession({
+            applitoolsKey: 'foobar2',
+            applitoolsServerUrl: 'foobarserver2',
+            applitools: {
+                key: 'foobar1',
+                serverUrl: 'foobarserver1'
+            }
+        })
+        expect(service.eyes.setApiKey).toBeCalledWith('foobar1')
+        expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver1')
+    })
+
+    it('should set proxy config if set in options', () => {
+        const service = new ApplitoolsService()
+        const options = {
+            applitools: {
+                key: 'foobar',
+                proxy: {
+                    url: 'http://foobarproxy.com:8080',
+                    username: 'abc',
+                    password: 'def',
+                    isHttpOnly: true
+                }
+            }
+        }
+
+        service.beforeSession(options)
+        expect(service.eyes.setProxy).toBeCalledWith(options.applitools.proxy)
+    })
+
+    it('should not set proxy config if not set in options', () => {
+        const service = new ApplitoolsService()
+        process.env.APPLITOOLS_KEY = 'foobarenv'
+
+        expect(() => service.beforeSession({})).not.toThrow()
+        expect(service.eyes.setProxy).not.toBeCalled()
     })
 
     describe('before hook', () => {
@@ -97,6 +142,32 @@ describe('wdio-applitools-service', () => {
             expect(global.browser.addCommand).toBeCalled()
 
             global.browser.takeRegionSnapshot('foobar', 'foobarRegion')
+            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
+        })
+
+        it('should register takeRegionSnapshot command with frame', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            global.browser.takeRegionSnapshot('foobar', 'foobarRegion', 'foobarFrame')
+            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegionWithFrame')
+        })
+
+        it('should register if takeRegionSnapshot command is used with null frame', () => {
+            process.env.APPLITOOLS_KEY = 'foobarenv'
+            const service = new ApplitoolsService()
+            global.browser = new BrowserMock()
+
+            service.beforeSession({})
+            service.before()
+            expect(global.browser.addCommand).toBeCalled()
+
+            global.browser.takeRegionSnapshot('foobar', 'foobarRegion', null)
             expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
         })
 

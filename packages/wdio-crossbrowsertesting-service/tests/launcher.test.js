@@ -38,8 +38,8 @@ describe('wdio-crossbrowsertesting-service', () => {
             key: 'testy'
         }
         await expect(cbtLauncher.onPrepare(config)).resolves.toBe('connected')
-        expect(cbtTunnels.start).toHaveBeenCalledWith({ username: 'test', authkey: 'testy', options: 'some options' }, expect.any(Function))
-        expect(cbtLauncher.cbtTunnelOpts).toEqual({ username: 'test', authkey: 'testy', options: 'some options' })
+        expect(cbtTunnels.start).toHaveBeenCalledWith({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' }, expect.any(Function))
+        expect(cbtLauncher.cbtTunnelOpts).toEqual({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' })
 
     })
 

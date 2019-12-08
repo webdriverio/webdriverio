@@ -2,7 +2,6 @@ import assert from 'assert'
 import os from 'os'
 
 describe('Mocha smoke test', () => {
-
     let testJs = 'tests/mocha/test.js:'
 
     before(() => {
@@ -16,11 +15,14 @@ describe('Mocha smoke test', () => {
     })
 
     let hasRun = false
-    it('should retry', () => {
+    it('should retry', function () {
         if (!hasRun) {
             hasRun = true
+            assert.equal(this.retries, 0)
             throw new Error('booom!')
         }
+
+        assert.equal(this.retries, 1)
     }, 1)
 
     it('should work fine after catching an error', () => {

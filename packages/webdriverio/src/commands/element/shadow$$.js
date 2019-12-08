@@ -12,7 +12,7 @@
  *
  * @alias element.shadow$$
  * @param {String|Function} selector  selector or JS Function to fetch a certain element
- * @return {Element[]}
+ * @return {ElementArray}
  * @type utility
  *
  */
