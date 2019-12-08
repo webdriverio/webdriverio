@@ -6,8 +6,6 @@ The flowcharts provide a high level overview of the WebdriverIO ecosystem and ho
 
 [WDIO Commands](flowcharts/WDIOCommands.md) - Explains the wdio config, install and repl command workflows.
 
-[Local runner launcher setup](flowcharts/LocalTestRunnerLifecycle.md) - Describes the launch, run and teardown processes for @wdio/local-runner.
-
 [Create local worker process](flowcharts/CreateLocalWorkerProcess.md) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
 
 [Test execution](flowcharts/TestExecution.md) - Overview of how the tests are run in the local runner worker process.

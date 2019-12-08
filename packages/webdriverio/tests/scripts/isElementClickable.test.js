@@ -46,6 +46,7 @@ describe('isElementClickable script', () => {
         expect(isElementClickable(elemMock)).toBe(true)
     })
 
+<<<<<<< Updated upstream
     it('should be clickable if in viewport and elementFromPoint is child of elem [Edge]', () => {
         const elemMock = {
             getBoundingClientRect: () => ({
@@ -103,6 +104,8 @@ describe('isElementClickable script', () => {
         expect(elemMock.scrollIntoView).toBeCalledWith(true)
     })
 
+=======
+>>>>>>> Stashed changes
     it('should be clickable if in viewport and elementFromPoint of the rect matches', () => {
         const elemMock = {
             getBoundingClientRect: () => ({
@@ -132,6 +135,7 @@ describe('isElementClickable script', () => {
         expect(isElementClickable(elemMock)).toBe(true)
     })
 
+<<<<<<< Updated upstream
     it('should be clickable if in viewport and elementFromPoint matches [nested shadowRoot]', () => {
         const elemMock = {
             getBoundingClientRect: () => ({
@@ -159,6 +163,8 @@ describe('isElementClickable script', () => {
         expect(isElementClickable(elemMock)).toBe(true)
     })
 
+=======
+>>>>>>> Stashed changes
     it('should be not clickable if in viewport and elementFromPoint matches but is disabled', () => {
         const elemMock = {
             getBoundingClientRect: () => ({
@@ -190,7 +196,11 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
+<<<<<<< Updated upstream
             scrollIntoView: jest.fn(),
+=======
+            scrollIntoView: () => { },
+>>>>>>> Stashed changes
             contains: () => false
         }
         global.document = { elementFromPoint: () => null }

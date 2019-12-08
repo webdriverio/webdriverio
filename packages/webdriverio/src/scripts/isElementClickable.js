@@ -90,6 +90,34 @@ export default function isElementClickable (elem) {
         return isOverlappingElementMatch(shadowElementsFromPoint, elem)
     }
 
+<<<<<<< Updated upstream
+=======
+    // get overlapping element rects (currently only the first)
+    // applicable if element's text is multiline.
+    function getOverlappingRects (elem) {
+        const elems = []
+
+        const rects = elem.getClientRects()
+        // webdriver clicks on center of the first element's rect (line of text), it might change in future
+        const rect = rects[0]
+        const x = rect.left + (rect.width / 2)
+        const y = rect.top + (rect.height / 2)
+        elems.push(document.elementFromPoint(x, y))
+
+        return elems
+    }
+
+    // get overlapping elements
+    function getOverlappingElements (elem) {
+        return [getOverlappingElement(elem), ...getOverlappingRects(elem)]
+    }
+
+    // is one of overlapping elements the `elem` or one of its child
+    function isOverlappingElementMatch (elementsFromPoint, elem) {
+        return elementsFromPoint.some(elementFromPoint => elementFromPoint === elem || elem.contains(elementFromPoint))
+    }
+
+>>>>>>> Stashed changes
     // copied from `isElementInViewport.js`
     function isElementInViewport (elem) {
         if (!elem.getBoundingClientRect) {

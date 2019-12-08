@@ -22,6 +22,8 @@ export default class WDIORunnerRepl extends WDIORepl {
         }
 
         this.commandIsRunning = true
+        // Send to parent process a debugger event with name of eval. 
+        // only fired when the webdriverio repl is running.
         this.childProcess.send({
             origin: 'debugger',
             name: 'eval',

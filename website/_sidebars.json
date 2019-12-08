@@ -51,7 +51,6 @@
   "flowcharts": {
       "Flowcharts": [
         "flowcharts/wdiocommands",
-        "flowcharts/localtestrunnerlifecycle",
         "flowcharts/createlocalworkerprocess",
         "flowcharts/testexecution",
         "flowcharts/highleveloverview"

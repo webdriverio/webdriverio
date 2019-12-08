@@ -170,7 +170,7 @@ export default class WorkerInstance extends EventEmitter {
         if (!this.childProcess) {
             this.childProcess = this.startProcess()
         }
-
+        // send message to the child process that is running.
         this.childProcess.send({ cid, command, configFile, argv, caps, specs, server, retries })
         this.isBusy = true
     }

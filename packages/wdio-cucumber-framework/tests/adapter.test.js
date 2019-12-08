@@ -118,7 +118,7 @@ describe('registerRequiredModules', () => {
         expect(global.MY_VAR).toBe(1)
     })
 
-    test('should accept path to module with args', () => {
+    test('should accept path to module s', () => {
         const modulePath = path.resolve(__dirname, 'fixtures', 'customModule.js')
         const adapter = adapterFactory({ requireModule: [[modulePath, { some: 'params' }]] })
 

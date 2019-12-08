@@ -3,7 +3,11 @@
   "packages": [
     "packages/*"
   ],
+<<<<<<< Updated upstream
   "version": "5.16.14",
+=======
+  "version": "5.16.7",
+>>>>>>> Stashed changes
   "command": {
     "bootstrap": {
       "npmClientArgs": [

@@ -14,18 +14,24 @@ interface ApplitoolsConfig {
     applitoolsKey?: string;
     applitoolsServerUrl?: string;
     applitools?: {
+<<<<<<< Updated upstream
         key?: string;
         serverUrl?: string;
+=======
+>>>>>>> Stashed changes
         viewport?: {
             width: number;
             height: number;
         };
+<<<<<<< Updated upstream
         proxy?: {
             url: string;
             username?: string;
             password?: string;
             isHttpOnly?: boolean;
         }
+=======
+>>>>>>> Stashed changes
     };
 }
 

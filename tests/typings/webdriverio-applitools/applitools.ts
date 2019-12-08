@@ -1,7 +1,13 @@
 const config: WebdriverIO.Config = {
+<<<<<<< Updated upstream
     applitools: {
         key: '',
         serverUrl: '',
+=======
+    applitoolsKey: '',
+    applitoolsServerUrl: '',
+    applitools: {
+>>>>>>> Stashed changes
         viewport: {
             width: 1,
             height: 1

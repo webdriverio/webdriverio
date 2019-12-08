@@ -1,6 +1,10 @@
 {
   "name": "@wdio/config",
+<<<<<<< Updated upstream
   "version": "5.16.11",
+=======
+  "version": "5.16.6",
+>>>>>>> Stashed changes
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-config",

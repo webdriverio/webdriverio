@@ -178,6 +178,7 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.inDebugMode
         }
 
+        // Receive message from child process.
         if (event.name === 'testFrameworkInit') {
             return this.emit('job:start', event.content)
         }

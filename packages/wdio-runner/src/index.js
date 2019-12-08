@@ -82,6 +82,12 @@ export default class Runner extends EventEmitter {
          */
         this.framework = initialisePlugin(this.config.framework, 'framework')
         this.framework = await this.framework.init(cid, this.config, specs, caps, this.reporter)
+        // Send parent process a "testFrameworkInit" event.
+        // Per https://nodejs.org/api/process.html#process_process_send_message_sendhandle_options_callback
+        // If Node.js is spawned with an IPC channel, the process.send() method can be used to send messages to the
+        // parent process. Messages will be received as a 'message' event on the parent's ChildProcess object.
+        //
+        // The parent process message handler is defined in the @wdio/cli interface.js file.
         process.send({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this.framework.hasTests() } })
         if (!this.framework.hasTests()) {
             return this._shutdown(0)

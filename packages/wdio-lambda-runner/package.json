@@ -1,6 +1,10 @@
 {
   "name": "@wdio/lambda-runner",
+<<<<<<< Updated upstream
   "version": "5.16.13",
+=======
+  "version": "5.16.7",
+>>>>>>> Stashed changes
   "description": "A WebdriverIO plugin that allows you to run tests on AWS",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner",
@@ -32,8 +36,13 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+<<<<<<< Updated upstream
     "@wdio/logger": "5.16.10",
     "@wdio/runner": "5.16.13",
+=======
+    "@wdio/logger": "5.16.5",
+    "@wdio/runner": "5.16.7",
+>>>>>>> Stashed changes
     "find-node-modules": "^2.0.0",
     "serverless": "^1.25.0",
     "shelljs": "^0.8.3",

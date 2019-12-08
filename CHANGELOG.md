@@ -15,6 +15,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+<<<<<<< Updated upstream
 ## v5.16.14 (2019-12-06)
 
 #### :bug: Bug Fix
@@ -159,6 +160,8 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 - Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
 
 
+=======
+>>>>>>> Stashed changes
 ## v5.16.7 (2019-11-13)
 
 #### :bug: Bug Fix

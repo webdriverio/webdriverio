@@ -359,6 +359,21 @@
       "driverbinaries": {
         "title": "Driver Binaries"
       },
+      "flowchartsoverview": {
+        "title": "Flowcharts"
+      },
+      "flowcharts/createlocalworkerprocess": {
+        "title": "Create worker process"
+      },
+      "flowcharts/highleveloverview": {
+        "title": "High level overview"
+      },
+      "flowcharts/testexecution": {
+        "title": "Test Execution"
+      },
+      "flowcharts/wdiocommands": {
+        "title": "WDIO Commands"
+      },
       "frameworks": {
         "title": "Frameworks"
       },
@@ -428,7 +443,8 @@
       "Services": "Services",
       "Protocols": "Protocols",
       "browser": "browser",
-      "element": "element"
+      "element": "element",
+      "Flowcharts": "Flowcharts"
     }
   },
   "pages-strings": {

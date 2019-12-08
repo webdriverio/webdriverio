@@ -16,10 +16,14 @@ class Launcher {
         this.argv = argv
         this.configFilePath = configFilePath
 
+        // Create new instance of ConfigParser.
         this.configParser = new ConfigParser()
+        // Add local wdio.conf.js to file
         this.configParser.addConfigFile(configFilePath)
+        // Add any CLI args
         this.configParser.merge(argv)
 
+        // Get new config file.
         const config = this.configParser.getConfig()
         const capabilities = this.configParser.getCapabilities()
         const specs = this.configParser.getSpecs()
@@ -39,19 +43,33 @@ class Launcher {
                 .reduce((a, b) => a + b, 0)
             : 1
 
+        // Create runner instance. config.runner is the name of the package
+        // that will be run. As of Dec 2019 only runner: local is used,
+        // in the future there is lamda is possible.
+        //
+        // Create runner object using initialisePlugin, e.g.
+        // initialisePlugin('local','runner') or initialisePlugin('lambda','runner') 
+        //
+        // initialisePlugin returns an object from the runner index.js, e.g.
+        // @wdio/local-runner index.js      
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFilePath, config)
 
+        // The interface stores messages received from other worker processes.
         this.interface = new CLInterface(config, specs, totalWorkerCnt, this.isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)
         this.exitCode = 0
+        // If false tests are running, if true then the exit code will be called.
         this.hasTriggeredExitRoutine = false
         this.hasStartedAnyProcess = false
+        // Test schedule
         this.schedule = []
         this.rid = []
+        // Runner started is incremented every time a spec is executed.
         this.runnerStarted = 0
+        // Incremented every time a spec fails.
         this.runnerFailed = 0
     }
 
@@ -118,7 +136,11 @@ class Launcher {
     }
 
     /**
-     * run without triggering onPrepare/onComplete hooks
+     * run without triggering onPrepare/onComplete hooks.
+     * 1. Fail if capabilities not defined.
+     * 2. Schedule test runs.
+     * 3. Call runSpecs, exit once runSpecs returns true.
+     * runSpecs will return true when all schedule caps or tests have been executed.
      */
     runMode (config, caps) {
         /**
@@ -138,7 +160,7 @@ class Launcher {
 
         /**
          * schedule test runs
-         */
+         */ 
         let cid = 0
         if (this.isMultiremote) {
             /**
@@ -202,6 +224,9 @@ class Launcher {
         }
 
         while (this.getNumberOfRunningInstances() < config.maxInstances) {
+
+            // Re-calculate the schedule caps every time. This array is really important because it
+            // this loop executes all tests. The test execution will stop once the scheduleCaps array is zero.
             let schedulableCaps = this.schedule
                 /**
                  * bail if number of errors exceeds allowed
@@ -237,12 +262,17 @@ class Launcher {
                 .sort((a, b) => a.runningInstances > b.runningInstances)
 
             /**
-             * continue if no capability were schedulable
+             * continue if no capability were schedulable, otherwise exit loop.
              */
             if (schedulableCaps.length === 0) {
                 break
             }
 
+            // Remove the first test from the schedule, pass the capability object,
+            // capability id, selenium server info and spec files to startInstance.
+            // startInstance is the method that kicks off the test.
+            //
+            // Spawn worker.
             let specs = schedulableCaps[0].specs.shift()
             this.startInstance(
                 specs.files,
@@ -263,6 +293,7 @@ class Launcher {
      * gets number of all running instances
      * @return {number} number of running instances
      */
+    // Add the value of runningInstances from each capability in the schedule, return the sum.
     getNumberOfRunningInstances () {
         return this.schedule.map((a) => a.runningInstances).reduce((a, b) => a + b)
     }
@@ -271,6 +302,8 @@ class Launcher {
      * get number of total specs left to complete whole suites
      * @return {number} specs left to complete suite
      */
+    // Get the length of the specs array for each capability in the schedule.
+    // Return the sum.
     getNumberOfSpecsLeft () {
         return this.schedule.map((a) => a.specs.length).reduce((a, b) => a + b)
     }
