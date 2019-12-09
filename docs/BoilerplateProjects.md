@@ -79,7 +79,7 @@ This project creates a powerful boilerplate for UI Automation Testing with Webdr
     - Code Prettier
     - HTML report with Allure
     - Single test case for development purposes
-    
+
 ### [ssehmi/WebdriverIO-TypeScript-Cucumber-Boilerplate](https://github.com/ssehmi/e2e)
 
 This is a boilerplate project to run E2E tests with CucumberJS tests with chai assertions written in typescript.
@@ -100,11 +100,12 @@ A boilerplate to run E2E tests with Mocha and generate test reports gracefully.
 
 - Framework: Mocha(v5.x)
 - Features:
-    - [Page Object](PageObjects.md) Pattern with Closure Functions
-    - Fake data generator
+    - [Page Object](PageObjects.md) Pattern with Closure Functions (Factory Pattern)
+    - Fake data generator (Faker.js)
     - Multiple Reports (Allure, Report Portal)
     - Docker compose to run your test suite on Selenium Grid
     - Dotenv module to hide your personal information
+    - ESLint
 
 ### [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
 
