@@ -1,9 +1,14 @@
-import { executeSync, runSync } from '../src'
+import sync, { executeSync, runSync } from '../src'
 
 beforeAll(() => {
     if (!global.browser) {
         global.browser = {}
     }
+})
+
+it('exports a function to make async tests sync', async () => {
+    const fakeFn = jest.fn().mockReturnValue('foobar')
+    expect(await sync(fakeFn)).toBe('foobar')
 })
 
 describe('executeSync', () => {
