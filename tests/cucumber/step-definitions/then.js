@@ -17,11 +17,11 @@ let hasRun = false
 Then('I should fail once but pass on the second run', { wrapperOptions: { retry: 1 } }, function () {
     if (!hasRun) {
         hasRun = true
-        assert.equal(this.retries, 0)
+        assert.equal(this.wdioRetries, 0)
         throw new Error('boom!')
     }
 
-    assert.equal(this.retries, 1)
+    assert.equal(this.wdioRetries, 1)
 })
 
 Then('this is ambiguous', () => {
