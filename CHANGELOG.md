@@ -15,6 +15,20 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.15 (2019-12-10)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`, `wdio-local-runner`, `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#4861](https://github.com/webdriverio/webdriverio/pull/4861) Fix naming of retry variable ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#4862](https://github.com/webdriverio/webdriverio/pull/4862) Update boilerplete information ([@luuizeduardo](https://github.com/luuizeduardo))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Luiz Eduardo Martins ([@luuizeduardo](https://github.com/luuizeduardo))
+
+
 ## v5.16.14 (2019-12-06)
 
 #### :bug: Bug Fix
