@@ -1,5 +1,7 @@
 import assert from 'assert'
 import os from 'os'
+import sync from '../../packages/wdio-sync'
+import { remote } from '../../packages/webdriverio'
 
 describe('Mocha smoke test', () => {
     let testJs = 'tests/mocha/test.js:'
@@ -18,11 +20,11 @@ describe('Mocha smoke test', () => {
     it('should retry', function () {
         if (!hasRun) {
             hasRun = true
-            assert.equal(this.retries, 0)
+            assert.equal(this.wdioRetries, 0)
             throw new Error('booom!')
         }
 
-        assert.equal(this.retries, 1)
+        assert.equal(this.wdioRetries, 1)
     }, 1)
 
     it('should work fine after catching an error', () => {
@@ -70,6 +72,22 @@ describe('Mocha smoke test', () => {
             // ignored
         }
         assert.equal(JSON.stringify(elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
+    })
+
+    it('should allow to run standalone mode synchronously', () => {
+        browser.clickScenario()
+
+        return remote({
+            runner: true,
+            hostname: 'localhost',
+            port: 4444,
+            path: '/',
+            capabilities: {
+                browserName: 'chrome'
+            }
+        }).then((remoteBrowser) => sync(() => {
+            assert.equal(remoteBrowser.getTitle(), 'Mock Page Title')
+        }))
     })
 
     describe('isDisplayed', () => {

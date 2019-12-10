@@ -84,7 +84,7 @@ describe('executeSync', () => {
         }, repeatTest)).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-        expect(scope.retries).toEqual(3)
+        expect(scope.wdioRetries).toEqual(3)
     })
 
     it('should throw if repeatTest attempts exceeded', async () => {
@@ -105,7 +105,7 @@ describe('executeSync', () => {
         }
         expect(error.message).toEqual('foobar')
         expect(repeatTest).toEqual({ limit: 2, attempts: 2 })
-        expect(scope.retries).toEqual(2)
+        expect(scope.wdioRetries).toEqual(2)
     })
 })
 
@@ -145,7 +145,7 @@ describe('executeAsync', () => {
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-        expect(scope.retries).toEqual(3)
+        expect(scope.wdioRetries).toEqual(3)
     })
 
     it('should repeat if fn rejects and repeatTest provided', async () => {
@@ -162,7 +162,7 @@ describe('executeAsync', () => {
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-        expect(scope.retries).toEqual(3)
+        expect(scope.wdioRetries).toEqual(3)
     })
 })
 

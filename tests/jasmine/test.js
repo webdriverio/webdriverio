@@ -9,10 +9,10 @@ describe('Jasmine smoke test', () => {
     it('should retry', function () {
         if (!hasRun) {
             hasRun = true
-            assert.equal(this.retries, 0)
+            assert.equal(this.wdioRetries, 0)
             throw new Error('booom!')
         }
 
-        assert.equal(this.retries, 1)
+        assert.equal(this.wdioRetries, 1)
     }, 1)
 })

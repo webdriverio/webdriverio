@@ -71,7 +71,7 @@ let wrapCommand = function wrapCommand (commandName, fn) {
             commandError = err
         }
 
-        if (!inCommandHook) {
+        if (!inCommandHook && this.options.afterCommand) {
             inCommandHook = true
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
             await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)
@@ -95,9 +95,7 @@ let wrapCommand = function wrapCommand (commandName, fn) {
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 let executeSync = async function (fn, retries, args = []) {
-    if (this) {
-        this.wdioRetries = retries.attempts
-    }
+    this.wdioRetries = retries.attempts
 
     try {
         let res = fn.apply(this, args)
@@ -130,7 +128,7 @@ let executeSync = async function (fn, retries, args = []) {
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 const executeAsync = async function (fn, retries, args = []) {
-    this.retries = retries.attempts
+    this.wdioRetries = retries.attempts
 
     try {
         return await fn.apply(this, args)
@@ -148,14 +146,20 @@ const executeAsync = async function (fn, retries, args = []) {
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
  */
 try {
-    // eslint-disable-next-line import/no-unresolved
-    const wdioSync = require('@wdio/sync')
-    hasWdioSyncSupport = true
-    runFnInFiberContext = wdioSync.runFnInFiberContext
-    wrapCommand = wdioSync.wrapCommand
-    executeHooksWithArgs = wdioSync.executeHooksWithArgs
-    executeSync = wdioSync.executeSync
-    runSync = wdioSync.runSync
+    /**
+     * only require `@wdio/sync` if `WDIO_NO_SYNC_SUPPORT` which allows us to
+     * create a smoke test scenario to test actual absence of the package
+     * (internal use only)
+     */
+    if (!process.env.WDIO_NO_SYNC_SUPPORT) {
+        const wdioSync = require('@wdio/sync')
+        hasWdioSyncSupport = true
+        runFnInFiberContext = wdioSync.runFnInFiberContext
+        wrapCommand = wdioSync.wrapCommand
+        executeHooksWithArgs = wdioSync.executeHooksWithArgs
+        executeSync = wdioSync.executeSync
+        runSync = wdioSync.runSync
+    }
 } catch {
     // do nothing
 }

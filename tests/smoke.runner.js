@@ -61,7 +61,7 @@ const mochaTestrunner = async () => {
  */
 const mochaAsyncTestrunner = async () => {
     const { skippedSpecs } = await launch(
-        path.resolve(__dirname, 'helpers', 'async-config.js'),
+        path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
         {
             specs: [
                 path.resolve(__dirname, 'mocha', 'test-async.js')
@@ -344,7 +344,7 @@ const jasmineSpecFiltering = async () => {
  */
 const standaloneTest = async () => {
     const { skippedSpecs } = await launch(
-        path.resolve(__dirname, 'helpers', 'config.js'),
+        path.resolve(__dirname, 'helpers', 'async.config.js'),
         {
             specs: [
                 path.resolve(__dirname, 'mocha', 'standalone.js')
@@ -371,25 +371,12 @@ const standaloneTest = async () => {
         sharedStoreServiceTest,
         mochaSpecFiltering,
         jasmineSpecFiltering,
-        standaloneTest
-    ]
-
-    const asyncTests = [
+        standaloneTest,
         mochaAsyncTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')
     await runTests(syncTests)
-
-    console.log('\nAll synchronous test passed, running asynchronous tests now...')
-    const packagesPath = path.resolve(__dirname, '..', 'packages')
-    await fs.rename(path.join(packagesPath, 'wdio-sync'), path.join(packagesPath, '_wdio-sync_'))
-    const error = await runTests(asyncTests).catch((err) => err)
-    await fs.rename(path.join(packagesPath, '_wdio-sync_'), path.join(packagesPath, 'wdio-sync'))
-
-    if (error) {
-        throw error
-    }
 
     console.log('\nAll smoke tests passed!\n')
 })().catch((e) => {
