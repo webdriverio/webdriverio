@@ -43,7 +43,7 @@ You can use the `@wdio/sync` package to transform all commands so they run synch
 ```js
 // standalone.js
 const { remote } = require('webdriverio')
-const { runSync } = require('@wdio/sync')
+const sync = require('@wdio/sync').default
 
 remote({
     runner: true,
@@ -51,11 +51,11 @@ remote({
     capabilities: {
         browserName: 'chrome'
     }
-}).then((browser) => new Promise((resolve, reject) => runSync(() => {
+}).then((browser) => sync(() => {
     browser.url('https://webdriver.io')
     console.log(browser.getTitle())
     browser.deleteSession()
-})(resolve, reject)))
+}))
 ```
 
 If you now run the file, it will return the title:

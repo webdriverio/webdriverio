@@ -39,7 +39,7 @@ describe('my flaky app', () => {
      * spec that runs max 4 times (1 actual run + 3 reruns)
      */
     it('should rerun a test at least 3 times', function () {
-        console.log(this.retries) // returns number of retries
+        console.log(this.wdioRetries) // returns number of retries
         // ...
     }, 3)
 })

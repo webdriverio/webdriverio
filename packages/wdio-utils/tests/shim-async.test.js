@@ -1,4 +1,11 @@
-import { executeHooksWithArgs, runFnInFiberContext, hasWdioSyncSupport, executeSync, executeAsync, runSync } from '../src/shim'
+import {
+    executeHooksWithArgs, runFnInFiberContext, hasWdioSyncSupport, executeSync,
+    executeAsync, runSync, wrapCommand
+} from '../src/shim'
+
+jest.mock('@wdio/sync', () => {
+    throw new Error('Does not exist')
+})
 
 beforeAll(() => {
     if (!global.browser) {
@@ -84,7 +91,7 @@ describe('executeSync', () => {
         }, repeatTest)).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-        expect(scope.retries).toEqual(3)
+        expect(scope.wdioRetries).toEqual(3)
     })
 
     it('should throw if repeatTest attempts exceeded', async () => {
@@ -105,7 +112,7 @@ describe('executeSync', () => {
         }
         expect(error.message).toEqual('foobar')
         expect(repeatTest).toEqual({ limit: 2, attempts: 2 })
-        expect(scope.retries).toEqual(2)
+        expect(scope.wdioRetries).toEqual(2)
     })
 })
 
@@ -145,7 +152,7 @@ describe('executeAsync', () => {
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-        expect(scope.retries).toEqual(3)
+        expect(scope.wdioRetries).toEqual(3)
     })
 
     it('should repeat if fn rejects and repeatTest provided', async () => {
@@ -162,12 +169,52 @@ describe('executeAsync', () => {
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-        expect(scope.retries).toEqual(3)
+        expect(scope.wdioRetries).toEqual(3)
     })
 })
 
 describe('runSync', () => {
     it('should be null', () => {
         expect(runSync).toBeNull()
+    })
+})
+
+describe('wrapCommand', () => {
+    it('should not run a command hook in command hook', async () => {
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve('Yayy!'))
+        const commandA = wrapCommand('foobar', rawCommand)
+        const commandB = wrapCommand('barfoo', rawCommand)
+        const scope = {
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn().mockImplementation(
+                    () => commandB.call(scope, 123))
+            }
+        }
+
+        expect(await commandA.call(scope, true, false, '!!')).toBe('Yayy!')
+        expect(scope.options.beforeCommand).toBeCalledTimes(1)
+        expect(scope.options.afterCommand).toBeCalledTimes(1)
+        expect(rawCommand).toBeCalledTimes(2)
+    })
+
+    it('throws an error if command fails', async () => {
+        const rawCommand = jest.fn().mockReturnValue(
+            Promise.reject(new Error('Uppsi!')))
+        const commandA = wrapCommand('foobar', rawCommand)
+        const commandB = wrapCommand('barfoo', rawCommand)
+        const scope = {
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn().mockImplementation(
+                    () => commandB.call(scope, 123))
+            }
+        }
+
+        const error = await commandA.call(scope, true, false, '!!').catch((err) => err)
+        expect(error.message).toBe('Uppsi!')
+        expect(scope.options.beforeCommand).toBeCalledTimes(1)
+        expect(scope.options.afterCommand).toBeCalledTimes(1)
+        expect(rawCommand).toBeCalledTimes(2)
     })
 })
