@@ -152,6 +152,7 @@ try {
      * (internal use only)
      */
     if (!process.env.WDIO_NO_SYNC_SUPPORT) {
+        // eslint-disable-next-line import/no-unresolved
         const wdioSync = require('@wdio/sync')
         hasWdioSyncSupport = true
         runFnInFiberContext = wdioSync.runFnInFiberContext
