@@ -1,4 +1,11 @@
-import { executeHooksWithArgs, runFnInFiberContext, hasWdioSyncSupport, executeSync, executeAsync, runSync } from '../src/shim'
+import {
+    executeHooksWithArgs, runFnInFiberContext, hasWdioSyncSupport, executeSync,
+    executeAsync, runSync, wrapCommand
+} from '../src/shim'
+
+jest.mock('@wdio/sync', () => {
+    throw new Error('Does not exist')
+})
 
 beforeAll(() => {
     if (!global.browser) {
@@ -171,3 +178,75 @@ describe('runSync', () => {
         expect(runSync).toBeNull()
     })
 })
+
+describe('wrapCommand', () => {
+    it('should not run a command hook in command hook', async () => {
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve('Yayy!'))
+        const commandA = wrapCommand('foobar', rawCommand)
+        const commandB = wrapCommand('barfoo', rawCommand)
+        const scope = {
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn().mockImplementation(
+                    () => commandB.call(scope, 123))
+            }
+        }
+
+        expect(await commandA.call(scope, true, false, '!!')).toBe('Yayy!')
+        expect(scope.options.beforeCommand).toBeCalledTimes(1)
+        expect(scope.options.afterCommand).toBeCalledTimes(1)
+        expect(rawCommand).toBeCalledTimes(2)
+    })
+
+    it('throws an error if command fails', async () => {
+        const rawCommand = jest.fn().mockReturnValue(
+            Promise.reject(new Error('Uppsi!')))
+        const commandA = wrapCommand('foobar', rawCommand)
+        const commandB = wrapCommand('barfoo', rawCommand)
+        const scope = {
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn().mockImplementation(
+                    () => commandB.call(scope, 123))
+            }
+        }
+
+        const error = await commandA.call(scope, true, false, '!!').catch((err) => err)
+        expect(error.message).toBe('Uppsi!')
+        expect(scope.options.beforeCommand).toBeCalledTimes(1)
+        expect(scope.options.afterCommand).toBeCalledTimes(1)
+        expect(rawCommand).toBeCalledTimes(2)
+    })
+})
+
+// let wrapCommand = function wrapCommand (commandName, fn) {
+//     return async function wrapCommandFn (...args) {
+//         const beforeHookArgs = [commandName, args]
+//         if (!inCommandHook && this.options.beforeCommand) {
+//             inCommandHook = true
+//             await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs)
+//             inCommandHook = false
+//         }
+//
+//         let commandResult
+//         let commandError
+//         try {
+//             commandResult = await fn.apply(this, args)
+//         } catch (err) {
+//             commandError = err
+//         }
+//
+//         if (!inCommandHook && this.options.afterCommand) {
+//             inCommandHook = true
+//             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
+//             await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)
+//             inCommandHook = false
+//         }
+//
+//         if (commandError) {
+//             throw commandError
+//         }
+//
+//         return commandResult
+//     }
+// }

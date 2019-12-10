@@ -151,6 +151,7 @@ try {
      * create a smoke test scenario to test actual absence of the package
      * (internal use only)
      */
+    /* istanbul ignore if */
     if (!process.env.WDIO_NO_SYNC_SUPPORT) {
         // eslint-disable-next-line import/no-unresolved
         const wdioSync = require('@wdio/sync')
