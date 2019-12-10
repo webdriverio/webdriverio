@@ -35,7 +35,9 @@ async function runTests (tests) {
         }
     } else {
         // parallel
-        await Promise.all(tests.map(test => test()))
+        await Promise.all(tests.map(test => test().catch(() => {
+            throw new Error(`Smoke test failed with name ${test.name}`)
+        })))
     }
 }
 
