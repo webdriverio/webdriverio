@@ -218,35 +218,3 @@ describe('wrapCommand', () => {
         expect(rawCommand).toBeCalledTimes(2)
     })
 })
-
-// let wrapCommand = function wrapCommand (commandName, fn) {
-//     return async function wrapCommandFn (...args) {
-//         const beforeHookArgs = [commandName, args]
-//         if (!inCommandHook && this.options.beforeCommand) {
-//             inCommandHook = true
-//             await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs)
-//             inCommandHook = false
-//         }
-//
-//         let commandResult
-//         let commandError
-//         try {
-//             commandResult = await fn.apply(this, args)
-//         } catch (err) {
-//             commandError = err
-//         }
-//
-//         if (!inCommandHook && this.options.afterCommand) {
-//             inCommandHook = true
-//             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-//             await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)
-//             inCommandHook = false
-//         }
-//
-//         if (commandError) {
-//             throw commandError
-//         }
-//
-//         return commandResult
-//     }
-// }
