@@ -1,6 +1,6 @@
 /**
  * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
- * to fetch multiple elements on the page. It returns an array with element results that will have an
+ * to fetch multiple elements on the page. It returns an object with element results that will have an
  * extended prototype to call action commands without passing in a selector. However if you still pass
  * in a selector it will look for that element first and call the action on that element.
  *
