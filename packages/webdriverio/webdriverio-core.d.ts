@@ -292,13 +292,6 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
-         * Return true if the selected DOM-element matches with the provided one.
-         */
-        equals(
-            el: Element
-        ): Promise<boolean>;
-
-        /**
          * Get an attribute from a DOM-element based on the attribute name.
          */
         getAttribute(
@@ -395,6 +388,13 @@ declare namespace WebdriverIO {
          * Return true or false if the selected DOM-element is enabled.
          */
         isEnabled(): Promise<boolean>;
+
+        /**
+         * Return true if the selected DOM-element matches with the provided one.
+         */
+        isEqual(
+            el: Element
+        ): Promise<boolean>;
 
         /**
          * Returns true if element exists in the DOM

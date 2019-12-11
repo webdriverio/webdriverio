@@ -1,7 +1,7 @@
 import request from 'request'
 import { remote } from '../../../src'
 
-describe('equals test', () => {
+describe('isEqual test', () => {
     let browser
     let elem
 
@@ -16,12 +16,12 @@ describe('equals test', () => {
         request.mockClear()
     })
 
-    it('should return true if equals', async () => {
-        expect(await elem.equals(elem)).toBe(true)
+    it('should return true if isEqual', async () => {
+        expect(await elem.isEqual(elem)).toBe(true)
     })
 
-    it('should return false if are not equals', async () => {
-        expect(await elem.equals(await browser.$$('#bar'))).toBe(false)
+    it('should return false if are not isEqual', async () => {
+        expect(await elem.isEqual(await browser.$$('#bar'))).toBe(false)
     })
 
     afterEach(() => {
