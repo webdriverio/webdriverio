@@ -37,15 +37,7 @@ export default async function isEqual (el) {
     if (browser.isMobile) {
         const context = await browser.getContext()
         if (context.toLowerCase().includes('native')) {
-            const currentId = this.elementId
-            // just call any command that would refetch element if needed
-            try {
-                await this.getTagName()
-            } catch (err) {
-                return false
-            }
-
-            return this.elementId === currentId
+            return this.elementId === el.elementId
         }
     }
 
