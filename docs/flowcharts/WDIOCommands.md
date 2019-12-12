@@ -3,7 +3,6 @@ id: wdiocommands
 title: WDIO Commands
 ---
 This flowchart provides a high level overview of the @wdio/cli run, repl, config and install commands.
-
 <div>
     <div class="flowcharttogglemenu">
         <span>[</span>
@@ -14,9 +13,9 @@ This flowchart provides a high level overview of the @wdio/cli run, repl, config
         <a class="flowcharttogglelink" onclick="createFlowChart(installConfig)">repl, install and config commands</a>
         <span>]</span>
     </div>
-    <div id="flowChartGraphDiv"></div>
+    <div id="flowChartGraphDivContainer"></div>
 </div>
-<script src="https://unpkg.com/mermaid@8.3.1/dist/mermaid.min.js"></script>
+<script src="https://unpkg.com/mermaid@8.4.3/dist/mermaid.min.js"></script>
 <script src="/js/flowchart.js"></script>
 <script>
     var parseCLIARGS = `graph TD
@@ -46,9 +45,9 @@ This flowchart provides a high level overview of the @wdio/cli run, repl, config
         SERVICESONPREPAREHOOK["Run the services onPrepare hook<br>e.g. start selenium server."]-->
         RUNMODE["Call @wdio/cli:launcher runMode()."]-->
         RUNMODEPROMISERESOLVED{"runMode() promise resolve?"}
-        RUNMODEPROMISERESOLVED-->|No|SCHEDULE["Create schedule to run specs. The number<br> of tests (or workers) in the schedule<br>equals the numberOfCapabilities * specs"]-->
+        RUNMODEPROMISERESOLVED-->|No|SCHEDULE["In @wdio/cli:launcher runMode()<br>create a spec execution schedule."]-->
         RUNSPECS["Start test execution by calling<br>@wdio/cli:launcher runSpecs()."]-->
-        CREATEWORKERS["Create a new test instance (worker process) by<br>calling @wdio/cli:launcher runSpecs().<br> <br>See Create Worker Process and Test<br>Execution flowcharts."]-->
+        CREATEWORKERS["Create a new test instance (worker process) by<br>calling @wdio/cli:launcher runSpecs().<br> <br>Call @wdio/cli:launcher startInstance()<br>to create a new worker instance.<br> <br>See Create Worker Process and Test<br>Execution flowcharts for<br>more information on this process."]-->
         ISNUMBERINSTANCESSPECSZERO{"Is number of worker<br>processes less than<br>  config maxInstances?"}
         ISNUMBERINSTANCESSPECSZERO-->|Yes|CREATEWORKERS
         ISNUMBERINSTANCESSPECSZERO-->|No|SCHEDULELOOP["When number of running instances and<br>number of specs is zero, exit runSpecs()."]-->ENDRUNMODE
