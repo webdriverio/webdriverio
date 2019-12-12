@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 
 exports.config = {
-
     // =====================
     // Server Configurations
     // =====================
@@ -12,9 +11,11 @@ exports.config = {
     // according to your user and key information. However, if you are using a private Selenium
     // backend you should define the host address, port, and path here.
     //
-    hostname: '0.0.0.0',
+    hostname: 'localhost',
     port: 4444,
     path: '/wd/hub',
+    // Protocol: http | https
+    // protocol: 'http',
     //
     // =================
     // Service Providers
@@ -25,6 +26,12 @@ exports.config = {
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+    //
+    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // in via the `region` property. Available short handles for regions are:
+    // us: us-west-1 (default)
+    // eu: eu-central-1
+    region: 'us',
     //
     // ==================
     // Specify Test Files
@@ -76,11 +83,6 @@ exports.config = {
         specs: [
             'test/ffOnly/*'
         ]
-    },{
-        browserName: 'phantomjs',
-        exclude: [
-            'test/spec/alert.js'
-        ]
     }],
     //
     //
@@ -90,19 +92,11 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // By default WebdriverIO commands are executed in a synchronous way using
-    // the wdio-sync package. If you still want to run your tests in an async way
-    // e.g. using promises you can set the sync option to false.
-    sync: true,
+    // Level of logging verbosity: trace | debug | info | warn | error | silent
+    logLevel: 'info',
     //
-    // Level of logging verbosity: silent | verbose | command | data | result | error
-    logLevel: 'silent',
-    //
-    // Enables colors for log output.
-    coloredLogs: true,
-    //
-    // Warns when a deprecated command is used
-    deprecationWarnings: true,
+    // Set directory to store all logs into
+    outputDir: __dirname,
     //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
@@ -117,42 +111,27 @@ exports.config = {
     // Default timeout for all waitFor* commands.
     waitforTimeout: 1000,
     //
-    // Initialize the browser instance with a WebdriverIO plugin. The object should have the
-    // plugin name as key and the desired plugin options as properties. Make sure you have
-    // the plugin installed before running any tests. The following plugins are currently
-    // available:
-    // WebdriverCSS: https://github.com/webdriverio/webdrivercss
-    // WebdriverRTC: https://github.com/webdriverio/webdriverrtc
-    // Browserevent: https://github.com/webdriverio/browserevent
-    plugins: {
-        webdrivercss: {
-            screenshotRoot: 'my-shots',
-            failedComparisonsRoot: 'diffs',
-            misMatchTolerance: 0.05,
-            screenWidth: [320,480,640,1024]
-        },
-        webdriverrtc: {},
-        browserevent: {}
-    },
-    //
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework
     // installed before running any tests.
     framework: 'mocha',
     //
+    // The number of times to retry the entire specfile when it fails as a whole
+    specFileRetries: 1,
+    //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html
+    // see also: https://webdriver.io/docs/dot-reporter.html
     reporters: [
         'dot',
         ['allure', {
             //
             // If you are using the "allure" reporter you should define the directory where
             // WebdriverIO should save all allure reports.
-            outputDir: './'
+            outputDir: './allureReports'
         }]
     ],
     //
@@ -163,7 +142,7 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/wdio-jasmine-framework#jasminenodeopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
         // Jasmine default timeout
@@ -182,11 +161,11 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
-    // See also: https://github.com/webdriverio/wdio-cucumber-framework#cucumberopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
-        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+        requireModule: [],  // <string[]> ("module") require MODULE files (repeatable)
         dryRun: false,      // <boolean> invoke formatters without executing steps
         failFast: false,    // <boolean> abort the run on first failure
         format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
@@ -196,7 +175,7 @@ exports.config = {
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,      // <number> timeout for step definitions
+        timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
@@ -241,20 +220,21 @@ exports.config = {
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha)
+     * stepData and world are Cucumber framework specific
      */
-    beforeHook: function () {
+    beforeHook: function (test, context/*, stepData, world*/) {
     },
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha)
+     * stepData and world are Cucumber framework specific
      */
-    afterHook: function () {
+    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
-    beforeTest: function (test) {
+    beforeTest: function (test, context) {
     },
     //
     /**
@@ -274,10 +254,9 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-     * @param {Object} test test details
+     * Function to be executed after a test (in Mocha/Jasmine) ends.
      */
-    afterTest: function (test) {
+    afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
      * Hook that gets executed after the suite has ended
@@ -303,25 +282,34 @@ exports.config = {
     afterSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed after all workers got shut down and the process is about to exit.
+     * Gets executed after all workers got shut down and the process is about to exit. An error
+     * thrown in the onComplete hook will result in the test run failing.
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
+     * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities) {
+    onComplete: function (exitCode, config, capabilities, results) {
+    },
+    /**
+    * Gets executed when a refresh happens.
+    * @param {String} oldSessionId session ID of the old session
+    * @param {String} newSessionId session ID of the new session
+    */
+    onReload: function(oldSessionId, newSessionId) {
     },
     //
     // Cucumber specific hooks
-    beforeFeature: function (feature) {
+    beforeFeature: function (uri, feature, scenarios) {
     },
-    beforeScenario: function (scenario) {
+    beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
-    beforeStep: function (step) {
+    beforeStep: function (uri, feature, stepData, context) {
     },
-    afterStep: function (stepResult) {
+    afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
     },
-    afterScenario: function (scenario) {
+    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
-    afterFeature: function (feature) {
+    afterFeature: function (uri, feature, scenarios) {
     }
-};
+}

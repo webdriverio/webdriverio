@@ -1,16 +1,15 @@
 exports.config = {
-
     /**
      * server configurations
      */
-    hostname: '0.0.0.0',
+    hostname: 'localhost',
     port: 4444,
 
     /**
      * specify test files
      */
     specs: [
-        './features/*.feature'
+        __dirname + '/features/*.feature'
     ],
 
     /**
@@ -23,12 +22,12 @@ exports.config = {
     /**
      * test configurations
      */
-    logLevel: 'silent',
+    logLevel: 'error',
     framework: 'cucumber',
 
     reporters: ['dot'],
 
     cucumberOpts: {
-        require: ['./step-definitions.js']
+        require: [__dirname + '/step-definitions.js']
     }
-};
+}

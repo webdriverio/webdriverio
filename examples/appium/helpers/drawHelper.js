@@ -1,6 +1,6 @@
-var h = 200;
-var k = 450;
-var r = 100;
+const h = 200
+const k = 450
+const r = 100
 
 /**
  * simple helper function to draw a circle
@@ -8,21 +8,20 @@ var r = 100;
  * @param  {Number} k    vertical center of the circle
  * @return {Actions[]}   list of actions for touchAction command
  */
-module.exports.circleAction = function (h, k) {
-    var theta = 0;
-    var r = 100;
-    var prev = { action: 'press', x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) };
-    var actions = [];
+export function circleAction (h, k) {
+    let theta = 0
+    let prev = { action: 'press', x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
+    const actions = []
 
-    actions.push(prev);
-    for (theta; theta < 2*Math.PI; theta+=2*Math.PI/36) {
-        var next = { x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) };
-        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y });
-        prev = next;
+    actions.push(prev)
+    for (; theta < 2*Math.PI; theta+=2*Math.PI/36) {
+        var next = { x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
+        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y })
+        prev = next
     }
 
-    actions.push('release');
-    return actions;
+    actions.push('release')
+    return actions
 }
 
 /**
@@ -31,20 +30,20 @@ module.exports.circleAction = function (h, k) {
  * @param  {Number} end   end point
  * @return {Actions[]}    list of action for touchAction command
  */
-module.exports.arcAction = function(start, end) {
-    var theta = start;
-    var prev = { action: 'press', x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) };
-    var actions = [];
-    actions.push(prev);
+export function arcAction(start, end) {
+    let theta = start
+    let prev = { action: 'press', x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
+    const actions = []
+    actions.push(prev)
 
     for (; theta < end; theta += 2 * Math.PI / 100) {
-        var next = { x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) };
-        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y });
-        prev = next;
+        var next = { x: h + r * Math.cos(theta), y: k + r * Math.sin(theta) }
+        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y })
+        prev = next
     }
 
-    actions.push('release');
-    return actions;
+    actions.push('release')
+    return actions
 }
 
 /**
@@ -53,21 +52,21 @@ module.exports.arcAction = function(start, end) {
  * @param  {Number} end   end point
  * @return {Actions[]}    list of action for touchAction command
  */
-module.exports.innerArcAction = function(start, end) {
-    var theta = start;
-    var step = 4 * Math.PI / 100;
+export function innerArcAction(start, end) {
+    let theta = start
+    const step = 4 * Math.PI / 100
 
-    var prev = { action: 'press', x: h - r * Math.cos(theta), y: k + r * Math.sin(theta) };
-    var actions = [];
-    actions.push(prev);
+    var prev = { action: 'press', x: h - r * Math.cos(theta), y: k + r * Math.sin(theta) }
+    var actions = []
+    actions.push(prev)
 
     for (; theta < end; theta += step) {
-        var rad = 7.5991 * Math.pow(theta - start - Math.PI, 2) + 25;
-        var next = { x: h - rad * Math.cos(theta), y: k + rad * Math.sin(theta) };
-        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y });
-        prev = next;
+        var rad = 7.5991 * Math.pow(theta - start - Math.PI, 2) + 25
+        var next = { x: h - rad * Math.cos(theta), y: k + rad * Math.sin(theta) }
+        actions.push({ action: 'moveTo', x: next.x - prev.x, y: next.y - prev.y })
+        prev = next
     }
 
-    actions.push('release');
-    return actions;
+    actions.push('release')
+    return actions
 }

@@ -1,6 +1,8 @@
 import request from 'request'
 import { remote } from '../../../src'
 
+jest.setTimeout(10 * 1000)
+
 describe('waitUntil', () => {
     let browser
 
@@ -13,11 +15,11 @@ describe('waitUntil', () => {
         })
     })
 
-    it('Should throw an error if an invalid condition is used', async () => {  
+    it('Should throw an error if an invalid condition is used', async () => {
         let error
-        expect.assertions(1)  
+        expect.assertions(1)
         try {
-            await browser.waitUntil('foo',500,'Timed Out',200)
+            await browser.waitUntil('foo', 500, 'Timed Out', 200)
         } catch(e) {
             error = e
         } finally{
@@ -29,12 +31,12 @@ describe('waitUntil', () => {
         let error
         expect.assertions(1)
         try {
-            await browser.waitUntil(() => 
-                new Promise((resolve) => 
+            await browser.waitUntil(() =>
+                new Promise((resolve) =>
                     setTimeout(
-                        () => resolve(false), 
+                        () => resolve(false),
                         200)),
-            500,'Timed Out',200)
+            500, 'Timed Out', 200)
         } catch(e) {
             error = e
         } finally{
@@ -46,16 +48,27 @@ describe('waitUntil', () => {
         let error
         expect.assertions(1)
         try {
-            await browser.waitUntil(() => 
-                new Promise((resolve,reject) => 
+            await browser.waitUntil(() =>
+                new Promise((resolve, reject) =>
                     setTimeout(
-                        () => reject(new Error('foobar')), 
-                        200,400)),
-            500,'Timed Out',200)
+                        () => reject(new Error('foobar')),
+                        200, 400)),
+            500, 'Timed Out', 200)
         } catch(e) {
             error = e
         } finally{
-            expect(error.message).toContain('Promise was rejected with the following reason: Error: foobar')
+            expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
+        }
+    })
+
+    it('Should throw an error when the promise is rejected without error message', async () => {
+        expect.assertions(1)
+        try {
+            await browser.waitUntil(() => new Promise((resolve, reject) =>
+                setTimeout(() => reject(new Error()), 200)),
+            500)
+        } catch(e) {
+            expect(e.message).toContain('waitUntil condition failed with the following reason: Error')
         }
     })
 
@@ -63,16 +76,16 @@ describe('waitUntil', () => {
         let error
         expect.assertions(1)
         try {
-            await browser.waitUntil(() => 
-                new Promise((resolve) => 
+            await browser.waitUntil(() =>
+                new Promise((resolve) =>
                     setTimeout(
-                        () => resolve(false), 
+                        () => resolve(false),
                         500)),
-            'blah','Timed Out',200)
+            'blah', undefined, 200)
         } catch(e) {
             error = e
         } finally{
-            expect(error.message).toContain('Timed Out')
+            expect(error.message).toMatch(/waitUntil condition timed out after \d+ms/)
         }
     })
 
@@ -80,35 +93,35 @@ describe('waitUntil', () => {
         let error
         expect.assertions(1)
         try {
-            await browser.waitUntil(() => 
-                new Promise((resolve) => 
+            await browser.waitUntil(() =>
+                new Promise((resolve) =>
                     setTimeout(
-                        () => resolve(false), 
+                        () => resolve(false),
                         500)),
-            1000,'Timed Out','blah')
+            1000, 'Timed Out', 'blah')
         } catch(e) {
             error = e
         } finally{
             expect(error.message).toContain('Timed Out')
         }
     })
-    
+
     it('Should pass', async() => {
         let error
         expect.assertions(1)
         try {
-            await browser.waitUntil(() => 
-                new Promise((resolve) => 
+            await browser.waitUntil(() =>
+                new Promise((resolve) =>
                     setTimeout(
-                        () => resolve(true), 
+                        () => resolve(true),
                         200)),
-            500,'Timed Out',200)
+            500, 'Timed Out', 200)
         } catch(e) {
             error = e
         } finally{
             expect(error).toBeUndefined()
         }
-    })   
+    })
 
     afterEach(() => {
         request.mockClear()

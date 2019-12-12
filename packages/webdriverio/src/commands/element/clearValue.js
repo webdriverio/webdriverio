@@ -19,7 +19,7 @@
     })
  * </example>
  *
- * @alias browser.clearValue
+ * @alias element.clearValue
  * @uses protocol/elements, protocol/elementIdClear
  * @type action
  *

@@ -5,13 +5,16 @@ export default class FirefoxProfileLauncher {
     async onPrepare (config, capabilities) {
         this.config = config
         this.capabilities = capabilities
-
         // Return if no profile options were specified
         if (!this.config.firefoxProfile) {
             return
         }
 
-        this.profile = new Profile()
+        if(this.config.firefoxProfile.profileDirectory) {
+            this.profile = await promisify(Profile.copy)(this.config.firefoxProfile.profileDirectory)
+        } else {
+            this.profile = new Profile()
+        }
 
         // Set preferences and proxy
         this._setPreferences()
@@ -30,8 +33,8 @@ export default class FirefoxProfileLauncher {
      * Sets any preferences and proxy
      */
     _setPreferences () {
-        for (const [ preference, value ] of Object.entries(this.config.firefoxProfile)) {
-            if (['extensions', 'proxy'].includes(preference)) {
+        for (const [preference, value] of Object.entries(this.config.firefoxProfile)) {
+            if (['extensions', 'proxy', 'legacy'].includes(preference)) {
                 continue
             }
 
@@ -59,7 +62,7 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const browser in this.capabilities) {
-            const capability = this.capabilities[browser].desiredCapabilities
+            const capability = this.capabilities[browser].capabilities
 
             if (!capability || capability.browserName !== 'firefox') {
                 continue
@@ -70,12 +73,13 @@ export default class FirefoxProfileLauncher {
     }
 
     _setProfile(capability, zippedProfile) {
-        // for older firefox and geckodriver versions
-        capability.firefox_profile = zippedProfile
-
-        // for firefox >= 56.0 and geckodriver >= 0.19.0
-        capability['moz:firefoxOptions'] = {
-            profile: zippedProfile,
+        if(this.config.firefoxProfile.legacy) {
+            // for older firefox and geckodriver versions
+            capability.firefox_profile = zippedProfile
+        } else {
+            // for firefox >= 56.0 and geckodriver >= 0.19.0
+            capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {}
+            capability['moz:firefoxOptions'].profile = zippedProfile
         }
     }
 }

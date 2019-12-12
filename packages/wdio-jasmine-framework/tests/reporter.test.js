@@ -60,12 +60,13 @@ test('specDone', () => {
     expect(runnerReporter.emit.mock.calls[5][1].uid).toBe('some failing test spec25')
 
     jasmineReporter.specDone({
-        id: 26, description: 'some pending test spec', failedExpectations: [], status: 'pending'
+        id: 26, description: 'some pending test spec', failedExpectations: [], status: 'pending', pendingReason: 'for no reason'
     })
     expect(runnerReporter.emit.mock.calls[6][0]).toBe('test:pending')
     expect(runnerReporter.emit.mock.calls[6][1].cid).toBe('0-2')
     expect(runnerReporter.emit.mock.calls[6][1].uid).toBe('some pending test spec26')
     expect(runnerReporter.emit.mock.calls[6][1].pending).toBe(true)
+    expect(runnerReporter.emit.mock.calls[6][1].pendingReason).toBe('for no reason')
     expect(runnerReporter.emit.mock.calls[7][0]).toBe('test:end')
     expect(runnerReporter.emit.mock.calls[7][1].uid).toBe('some pending test spec26')
 
@@ -78,6 +79,19 @@ test('specDone', () => {
     expect(runnerReporter.emit.mock.calls[8][1].pending).toBe(true)
     expect(runnerReporter.emit.mock.calls[9][0]).toBe('test:end')
     expect(runnerReporter.emit.mock.calls[9][1].uid).toBe('some excluded test spec27')
+})
+
+test('specDone should pass multiple failed expectations as errors', () => {
+    jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
+    jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
+    jasmineReporter.specDone({ id: 24, description: 'some test spec', failedExpectations: [{ message: 'I failed' }, { message: 'I failed too!' }], status: 'failed' })
+
+    expect(runnerReporter.emit.mock.calls[2][0]).toBe('test:fail')
+    // We still assign the first failedExpectation to 'error' for backwards compatibility
+    expect(runnerReporter.emit.mock.calls[2][1].error.message).toBe('I failed')
+    expect(runnerReporter.emit.mock.calls[2][1].errors.length).toBe(2)
+    expect(runnerReporter.emit.mock.calls[2][1].errors[0].message).toBe('I failed')
+    expect(runnerReporter.emit.mock.calls[2][1].errors[1].message).toBe('I failed too!')
 })
 
 test('suiteDone', () => {
@@ -128,6 +142,11 @@ test('do not clean stack option', () => {
     ).toBeGreaterThan(
         runnerReporter.emit.mock.calls[0][1].error.stack.split('\n').length
     )
+})
+
+test('cleanStack should return if no stack is given', () => {
+    const error = { message: 'foobar' }
+    expect(jasmineReporter.cleanStack(error)).toEqual(error)
 })
 
 afterEach(() => {

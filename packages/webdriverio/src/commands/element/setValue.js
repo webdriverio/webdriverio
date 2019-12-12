@@ -13,15 +13,12 @@
         const input = $('.input');
         input.setValue('test123');
 
-        // Same as
-        browser.setValue('.input', 'test123');
         console.log(input.getValue()); // outputs: 'test123'
     });
  * </example>
  *
- * @alias browser.setValue
- * @param {String} selector   Input element
- * @param {*}      values    Value to be added
+ * @alias element.setValue
+ * @param {string | number | boolean | object | Array<any>}      value    Value to be added
  * @uses protocol/elements, protocol/elementIdClear, protocol/elementIdValue
  * @type action
  *
@@ -29,6 +26,5 @@
 
 export default async function setValue (value) {
     await this.clearValue()
-
     return this.addValue(value)
 }

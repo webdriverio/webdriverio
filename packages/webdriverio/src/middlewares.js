@@ -1,6 +1,6 @@
-import logger from 'wdio-logger'
 
-const log = logger('webdriverio')
+import refetchElement from './utils/refetchElement'
+import implicitWait from './utils/implicitWait'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -8,50 +8,38 @@ const log = logger('webdriverio')
  *
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
-
-/**
- * [elementErrorHandler description]
-
- * @return {[type]}      [description]
- */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
-    return function (...args) {
-        /**
-         * wait on element if:
-         *  - elementId couldn't be fetched in the first place
-         *  - command is not explicit wait command for existance or displayedness
-         */
-        if (!this.elementId && !commandName.match(/(wait(Until|ForDisplayed|ForExist|ForEnabled)|isExisting)/)) {
-            log.debug(
-                `command ${commandName} was called on an element ("${this.selector}") ` +
-                `that wasn't found, waiting for it...`
-            )
+    return function elementErrorHandlerCallback (...args) {
+        return fn(commandName, async function elementErrorHandlerCallbackFn () {
+            const element = await implicitWait(this, commandName)
+            this.elementId = element.elementId
 
-            return fn(commandName, () => {
+            try {
+                const result = await fn(commandName, commandFn).apply(this, args)
+
                 /**
-                 * create new promise so we can apply a custom error message in cases waitForExist fails
+                 * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
+                 * as `stale element reference`
                  */
-                return new Promise((resolve, reject) => this.waitForExist().then(resolve, reject)).then(
-                    /**
-                     * if waitForExist was successful requery element and assign elementId to the scope
-                     */
-                    () => {
-                        return this.parent.$(this.selector).then((elem) => {
-                            this.elementId = elem.elementId
-                            return fn(commandName, commandFn).apply(this, args)
-                        })
-                    },
-                    /**
-                     * if waitForExist failes throw custom error
-                     */
-                    () => {
-                        throw new Error(`Can't call ${commandName} on element with selector "${this.selector}" because element wasn't found`)
-                    }
-                )
-            }).apply(this)
-        }
+                if (result && result.error === 'no such element') {
+                    const err = new Error()
+                    err.name = 'stale element reference'
+                    throw err
+                }
 
-        return fn(commandName, commandFn).apply(this, args)
+                return result
+            } catch (error) {
+                if (error.name === 'stale element reference') {
+                    const element = await refetchElement(this, commandName)
+                    this.elementId = element.elementId
+                    this.parent = element.parent
+
+                    return await fn(commandName, commandFn).apply(this, args)
+                }
+                throw error
+            }
+        }).apply(this)
+
     }
 }
 

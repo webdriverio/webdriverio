@@ -1,20 +1,62 @@
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
+const DEFAULT_PROTOCOL = 'http'
+
+const REGION_MAPPING = {
+    'us': '', // default endpoint
+    'eu': 'eu-central-1.',
+    'eu-central-1': 'eu-central-1.',
+    'us-east-1': 'us-east-1.'
+}
+
+export function getSauceEndpoint (region, isRDC) {
+    const shortRegion = REGION_MAPPING[region] ? region : 'us'
+    if (isRDC){
+        return `${shortRegion}1.appium.testobject.com`
+    }
+
+    return `ondemand.${REGION_MAPPING[shortRegion]}saucelabs.com`
+}
+
+/**
+ * remove line numbers from file path, ex:
+ * `/foo:9` or `c:\bar:14:5`
+ * @param   {string} filePath path to spec file
+ * @returns {string}
+ */
+export function removeLineNumbers(filePath) {
+    const matcher = filePath.match(/:\d+(:\d+$|$)/)
+    if (matcher) {
+        filePath = filePath.substring(0, matcher.index)
+    }
+    return filePath
+}
+
+/**
+ * does spec file path contain Cucumber's line number, ex
+ * `/foo/bar:9` or `c:\bar\foo:14:5`
+ * @param {string|string[]} spec
+ */
+export function isCucumberFeatureWithLineNumber(spec) {
+    const specs = Array.isArray(spec) ? spec : [spec]
+    return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
+}
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export function detectBackend (options = {}) {
-    const { port, hostname, user, key } = options
+export function detectBackend (options = {}, isRDC = false) {
+    let { port, hostname, user, key, protocol, region, headless } = options
 
     /**
      * browserstack
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
-    if (typeof user === 'string' && key.length === 20) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
         return {
-            hostname: 'hub.browserstack.com',
-            port: 80
+            protocol: 'https',
+            hostname: 'hub-cloud.browserstack.com',
+            port: 443
         }
     }
 
@@ -22,7 +64,7 @@ export function detectBackend (options = {}) {
      * testingbot
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
-    if (typeof user === 'string' && key.length === 32) {
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
             hostname: 'hub.testingbot.com',
             port: 80
@@ -33,12 +75,37 @@ export function detectBackend (options = {}) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      */
-    if (typeof user === 'string' && key.length === 36) {
+    if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
+        // When SC is used a user needs to be provided and `isRDC` needs to be true
+        (typeof user === 'string' && isRDC) ||
+        // Or only RDC
+        isRDC
+    ) {
+        // Sauce headless is currently only in us-east-1
+        const sauceRegion = headless ? 'us-east-1' : region
+
         return {
-            protocol: 'https',
-            hostname: 'ondemand.saucelabs.com',
-            port: 443
+            protocol: protocol || 'https',
+            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC),
+            port: port || 443
         }
+    }
+
+    if (
+        /**
+         * user and key are set in config
+         */
+        (typeof user === 'string' || typeof key === 'string') &&
+        /**
+         * but no custom WebDriver endpoint was configured
+         */
+        !hostname
+    ) {
+        throw new Error(
+            'A "user" or "key" was provided but could not be connected to a ' +
+            'known cloud service (SauceLabs, Browerstack or Testingbot). ' +
+            'Please check if given user and key properties are correct!'
+        )
     }
 
     /**
@@ -46,33 +113,17 @@ export function detectBackend (options = {}) {
      */
     return {
         hostname: hostname || DEFAULT_HOSTNAME,
-        port: port || DEFAULT_PORT
+        port: port || DEFAULT_PORT,
+        protocol: protocol || DEFAULT_PROTOCOL
     }
 }
 
 /**
- * initialise WebdriverIO compliant plugins
+ * validates configurations based on default values
+ * @param  {Object} defaults  object describing all allowed properties
+ * @param  {Object} options   option to check against
+ * @return {Object}           validated config enriched with default values
  */
-export function initialisePlugin (name, type) {
-    /**
-     * don't populate scoped package names
-     */
-    const pkgName = name[0] === '@' ? name : `wdio-${name.toLowerCase()}-${type}`
-
-    try {
-        return require(pkgName)
-    } catch (e) {
-        if (!e.message.match(`Cannot find module '${pkgName}'`)) {
-            throw new Error(`Couldn't initialise "${name}" ${type}.\n${e.stack}`)
-        }
-
-        throw new Error(
-            `Couldn't find plugin "${pkgName}". You need to install it ` +
-            `with \`$ npm install ${pkgName}\`!\n${e.stack}`
-        )
-    }
-}
-
 export function validateConfig (defaults, options) {
     const params = {}
 

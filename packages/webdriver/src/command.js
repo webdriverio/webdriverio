@@ -1,13 +1,14 @@
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
+import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
+
 import WebDriverRequest from './request'
-import { isValidParameter } from './utils'
 
 const log = logger('webdriver')
 
-export default function (method, endpointUri, commandInfo) {
-    const { command, ref, parameters, variables = [] } = commandInfo
+export default function (method, endpointUri, commandInfo, doubleEncodeVariables = false) {
+    const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return function (...args) {
+    return function protocolCommand (...args) {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -52,10 +53,13 @@ export default function (method, endpointUri, commandInfo) {
                     continue
                 }
 
+                const actual = commandParam.type.endsWith('[]')
+                    ? `(${(Array.isArray(arg) ? arg : [arg]).map((a) => getArgumentType(a))})[]`
+                    : getArgumentType(arg)
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
                     `Expected: ${commandParam.type}\n` +
-                    `Actual: ${typeof arg}` +
+                    `Actual: ${actual}` +
                     moreInfo
                 )
             }
@@ -64,7 +68,8 @@ export default function (method, endpointUri, commandInfo) {
              * inject url variables
              */
             if (i < variables.length) {
-                endpoint = endpoint.replace(`:${commandParams[i].name}`, arg)
+                const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg)) : encodeURIComponent(arg)
+                endpoint = endpoint.replace(`:${commandParams[i].name}`, encodedArg)
                 continue
             }
 
@@ -74,11 +79,14 @@ export default function (method, endpointUri, commandInfo) {
             body[commandParams[i].name] = arg
         }
 
-        const request = new WebDriverRequest(method, endpoint, body)
+        const request = new WebDriverRequest(method, endpoint, body, isHubCommand)
         this.emit('command', { method, endpoint, body })
+        log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (result.value) {
-                log.info('RESULT', result.value)
+            if (result.value != null) {
+                log.info('RESULT', /screenshot|recording/i.test(command)
+                    && typeof result.value === 'string' && result.value.length > 64
+                    ? `${result.value.substr(0, 61)}...` : result.value)
             }
 
             this.emit('result', { method, endpoint, body, result })

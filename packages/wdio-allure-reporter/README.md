@@ -7,12 +7,12 @@ WDIO Allure Reporter
 
 ## Installation
 
-The easiest way is to keep `wdio-allure-reporter` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/allure-reporter` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-allure-reporter": "^5.0.0"
+    "@wdio/allure-reporter": "^5.0.0"
   }
 }
 ```
@@ -20,7 +20,7 @@ The easiest way is to keep `wdio-allure-reporter` as a devDependency in your `pa
 You can simple do it by:
 
 ```bash
-npm install wdio-allure-reporter --save-dev
+npm install @wdio/allure-reporter --save-dev
 ```
 
 ## Configuration
@@ -41,16 +41,22 @@ exports.config = {
 - `outputDir` defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
 - `disableWebdriverStepsReporting` - optional parameter(`false` by default), in order to log only custom steps to the reporter.
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
+- `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
+- `disableMochaHooks` - optional parameter (`false` by default), set it to true in order to not fetch the `before/after` stacktrace/screenshot/result hooks into the Allure Reporter.
 
 ## Supported Allure API
-* `feature(featureName)` – assign feature to test
-* `story(storyName)` – assign user story to test
-* `severity(value)` – assign severity to test
+* `addLabel(name, value)` - assign a custom label to test
+* `addFeature(featureName)` – assign feature to test
+* `addStory(storyName)` – assign user story to test
+* `addSeverity(value)` – assign severity to test
+* `addIssue(value)` – assign issue id to test
+* `addTestId(value)` – assign TMS test id to test
 * `addEnvironment(name, value)` – save environment value
 * `addAttachment(name, content, [type])` – save attachment to test.
     * `name` (*String*) - attachment name.
     * `content` – attachment content.
     * `type` (*String*, optional) – attachment MIME-type, `text/plain` by default
+* `addArgument(name, value)` - add additional argument to test
 * `addDescription(description, [type])` – add description to test.
     * `description` (*String*) - description of the test.
     * `type` (*String*, optional) – description type, `text` by default. Values ['text', 'html','markdown']
@@ -65,13 +71,13 @@ Allure Api can be accessed using:
 ES5
 
 ```js
-const addFeature = require('wdio-allure-reporter/runtime').addFeature
+const { addFeature } = require('@wdio/allure-reporter').default
 ```
 
 ES6
 
 ```js
-import {addFeature} from 'wdio-allure-reporter/runtime'
+import allureReporter from '@wdio/allure-reporter'
 ```
 
 Mocha example
@@ -79,7 +85,7 @@ Mocha example
 ```js
 describe('Suite', () => {
     it('Case', () => {
-        addFeature('Feature')
+        allureReporter.addFeature('Feature')
     })
 })
 ```
@@ -103,12 +109,13 @@ Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#
 ## Add Screenshots
 
 Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in afterStep hook.
-
+First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook
 ```js
-//...
-var name = 'ERROR-chrome-' + Date.now()
-browser.takeScreenshot('./errorShots/' + name + '.png')
-//...
+afterTest: function(test) {
+    if (test.error !== undefined) {
+      browser.takeScreenshot();
+    }
+  }
 ```
 
-As shown in the example above, when this function is called, a screenshot image will be created and saved in the directory, as well as attached to the allure report.
+As shown in the example above, when this function is called, a screenshot image will be attached to the allure report.

@@ -7,16 +7,17 @@
     :index.html
     <input name="login" autofocus="" />
     :hasFocus.js
-    it('should detect the focus of an element', function () {
+    it('should detect the focus of an element', () => {
         browser.url('/');
         const loginInput = $('[name="login"]');
-        console.log(loginInput.hasFocus()); // outputs: false
+        console.log(loginInput.isFocused()); // outputs: false
+
         loginInput.click();
-        console.log(loginInput.hasFocus()); // outputs: true
+        console.log(loginInput.isFocused()); // outputs: true
     })
  * </example>
  *
- * @alias browser.isFocused
+ * @alias element.isFocused
  * @return {Boolean}         true if one of the matching elements has focus
  *
  * @uses protocol/execute
@@ -28,9 +29,10 @@ import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject } from '../../utils'
 import isFocusedScript from '../../scripts/isFocused'
 
-export default function isFocused () {
-    return getBrowserObject(this).execute(isFocusedScript, {
+export default async function isFocused () {
+    const isFocused = await getBrowserObject(this).execute(isFocusedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
     })
+    return Boolean(isFocused)
 }

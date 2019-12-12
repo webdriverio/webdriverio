@@ -1,6 +1,6 @@
 # Contributing
 
-This repository contains all necessary packages of the WebdriverIO project (excluding plugins that were contributed by 3rd party developers). These packages have individual descriptions in their README files (`/packages/<package>/README.md`) providing information about their scope and responsibilities. Even though the build commands might differ from package to package the way to work with these is the same. This project uses [Lerna](https://lernajs.io/) to manage all its subprojects in this monolith repository.
+This repository contains all necessary packages of the WebdriverIO project (excluding plugins that were contributed by 3rd party developers). These packages have individual descriptions in their README files (`/packages/<package>/README.md`) providing information about their scope and responsibilities. Even though the build commands might differ from package to package the way to work with these is the same. This project uses [Lerna](https://lerna.js.org/) to manage all its subprojects in this monolith repository.
 
 We are trying to make contributing to this project as easy and transparent as possible. If there is any information missing that prevents you from sending in a pull request, please let us know. We treat these kind of issues like actual bugs.
 
@@ -17,14 +17,11 @@ In order to set up this project and start contributing follow this step by step 
     $ git clone git@github.com:<your-username>/webdriverio.git
     ```
 
-    _Note_: this is currently a dev repository to keep making releases in the [original](https://github.com/webdriverio/webdriverio) project. Once we are at a state where this can be released we will force push this master branch to the webdriverio/webdriverio#master branch.
-
 * Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
 
 * Setup project:
 
     ```sh
-    $ cd ./webdriverio
     $ npm install
     $ npm run setup
     ```
@@ -41,6 +38,9 @@ In order to set up this project and start contributing follow this step by step 
 
     ```sh
     $ npm run test
+
+    # run test for a specific sub project (e.g. webdriver)
+    $ ./node_modules/.bin/jest ./packages/webdriver/tests
     ```
 
     It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
@@ -66,8 +66,32 @@ $ npm run watch
 If you only work on a single package you can watch only for that one by calling:
 
 ```sh
-# e.g. `$ npm run watch:pkg wdio-runner`
+# e.g. `$ npm run watch:pkg @wdio/runner`
 $ npm run watch:pkg <package-name>
+```
+
+It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
+
+```sh
+$ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
+```
+
+## Link changes to your current project
+
+When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
+
+If you are working on a package, lets say the @wdio/cli package, you can link this in the following way from the WebdriverIO repositority.
+
+```
+cd packages/wdio-cli
+npm link
+```
+
+Then in your current project you can link your changes from the the @wdio/cli package to your current project.
+
+```
+cd your-main-test-code
+npm link @wdio/cli
 ```
 
 ## Test Your Changes
@@ -87,10 +111,25 @@ Commits that affect all packages or are not related to any (e.g. changes to NPM 
 
 ## Release New Version
 
-Package releases are made using Lerna's release capabilities and executed by [the technical committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. To run it just call:
+Package releases are made using Lerna's release capabilities and executed by the [technical steering committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. Before you can start please export an `GITHUB_AUTH` token into your environment in order to allow [`lerna-changelog`](https://www.npmjs.com/package/lerna-changelog#github-token) to gather data about the upcoming release and autogenerate the [CHANGELOG.md](/CHANGELOG.md). Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such token with only having the `public_repo` field enabled. Then export it into your environment:
 
 ```sh
+export GITHUB_AUTH=...
+```
+
+You are now all set and just need to call:
+
+```sh
+# ensure to have pulled the latest code
+$ git pull origin master --tags
+# release using Lerna
 $ npm run release
 ```
 
-and choose the appropiate version upgrade based on the [Semantic Versioning](https://semver.org/).
+and choose the appropriate version upgrade based on the [Semantic Versioning](https://semver.org/). To help choose the right release type, here are some general guidelines:
+
+- __Breaking Changes__: never do these by yourself! A major release is always a collaborative effort between all TSC members. It requires consensus from all of them.
+- __Minor Release__: minor releases are always required if a new, user focused feature was added to one of the packages. For example if a command was added to WebdriverIO or a service provides a new form of integration a minor version bump would be appropiate. However if an internal package like `@wdio/local-runner` exposes a new interface that is solely used internally we can consider that as a patch release.
+- __Patch Release__: everytime a bug was fixed, documentation (this includes TypeScript definitions) got updated or existing functionality was improved we should do a patch release.
+
+If you are unsure about which release type to pick, reach out in the TSC Gitter channel.

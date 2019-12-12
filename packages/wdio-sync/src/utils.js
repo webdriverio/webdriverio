@@ -1,52 +1,45 @@
 import { STACKTRACE_FILTER_FN } from './constants'
 
 /**
- * helper function that cleans up the stacktrace to remove all fibers and wdio-sync
- * execution entries
+ * Cleanup stack traces, merge and remove duplicates
+ * @param {Error|*} commandError    Error object or anything else including undefined
+ * @param {Error}   savedError      Error with root stack trace
+ * @returns {Error}
  */
-export function sanitizeErrorMessage (e) {
-    let stack = e.stack.split(/\n/g)
-    let errorMsg = stack.shift()
-    let cwd = process.cwd()
-
-    /**
-     * filter out stack traces to wdio-sync and fibers
-     * and transform absolute path to relative
-     */
-    stack = stack.filter(STACKTRACE_FILTER_FN)
-    stack = stack.map((e) => '    ' + e.replace(cwd + '/', '').trim())
-
-    /**
-     * error stack can be empty when test execution is aborted and
-     * the application is not running
-     */
-    let errorLine = 'unknown error line'
-    if (stack && stack.length) {
-        errorLine = stack.shift().trim()
-    }
-
-    /**
-     * correct error occurence
-     */
-    let lineToFix = stack[stack.length - 1]
-    if (lineToFix && lineToFix.indexOf('index.js') > -1) {
-        stack[stack.length - 1] = lineToFix.slice(0, lineToFix.indexOf('index.js')) + errorLine
+export function sanitizeErrorMessage (commandError, savedError) {
+    let name, stack, message
+    if (commandError instanceof Error) {
+        ({ name, message, stack } = commandError)
     } else {
-        stack.unshift('    ' + errorLine)
+        name = 'Error'
+        message = commandError
     }
 
+    const err = new Error(message)
+    err.name = name
+
+    let stackArr = savedError.stack.split('\n')
+
     /**
-     * add back error message
+     * merge stack traces if `commandError` has stack trace
      */
-    stack.unshift(errorMsg)
+    if (stack) {
+        // remove duplicated error name from stack trace
+        stack = stack.replace(`${err.name}: ${err.name}`, err.name)
+        // remove first stack trace line from second stack trace
+        stackArr[0] = '\n'
+        // merge
+        stackArr = [...stack.split('\n'), ...stackArr]
+    }
 
-    return stack.join('\n')
-}
+    err.stack = stackArr
+        // filter stack trace
+        .filter(STACKTRACE_FILTER_FN)
+        // remove duplicates from stack traces
+        .reduce((acc, currentValue) => {
+            return acc.includes(currentValue) ? acc : `${acc}\n${currentValue}`
+        }, '')
+        .trim()
 
-/**
- * filter out arguments passed to specFn & hookFn, don't allow callbacks
- * as there is no need for user to call e.g. `done()`
- */
-export function filterSpecArgs (args) {
-    return args.filter((arg) => typeof arg !== 'function')
+    return err
 }

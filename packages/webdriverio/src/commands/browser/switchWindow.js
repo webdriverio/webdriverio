@@ -3,9 +3,25 @@
  *
  * Switch focus to a particular tab / window.
  *
+ * <example>
+    :switchWindow.js
+    it('should switch to another window', () => {
+        // open url
+        browser.url('https://google.com')
+        // create new window
+        browser.newWindow('https://webdriver.io')
+
+        // switch back via url match
+        browser.switchWindow('google.com')
+
+        // switch back via title match
+        browser.switchWindow('Next-gen WebDriver test framework')
+    });
+ * </example>
+ *
  * @param {String|RegExp}  urlOrTitleToMatch  String or regular expression that matches the title or url of the page
  *
- * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getCurrentUrl, protocol/getTitle
+ * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getUrl, protocol/getTitle
  * @alias browser.switchTab
  * @type window
  *
@@ -27,7 +43,7 @@ export default async function switchWindow (urlOrTitleToMatch) {
         /**
          * check if url matches
          */
-        const url = await this.getCurrentUrl()
+        const url = await this.getUrl()
         if (url.match(urlOrTitleToMatch)) {
             return tab
         }

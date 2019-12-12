@@ -7,6 +7,15 @@ export default class HookStats extends RunnableStats {
         this.cid = runner.cid
         this.title = runner.title
         this.parent = runner.parent
-        this.parentUid = runner.parentUid
+    }
+
+    complete (errors) {
+        this.errors = errors
+        if (errors && errors.length) {
+            this.error = errors[0]
+            this.state = 'failed'
+        }
+
+        super.complete()
     }
 }

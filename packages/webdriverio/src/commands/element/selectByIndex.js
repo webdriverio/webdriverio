@@ -13,7 +13,7 @@
         <option value="someValue5">seis</option>
     </select>
     :selectByIndex.js
-    it('Should demonstrate the selectByIndex command', function () {
+    it('Should demonstrate the selectByIndex command', () => {
         const selectBox = $('#selectbox');
         console.log(selectBox.getValue()); // returns "someValue0"
         selectBox.selectByIndex(4);
@@ -41,10 +41,10 @@ export default async function selectByIndex (index) {
     /**
     * get option elememnts using css
     */
-    const optionElements = await this.findElementsFromElement(this.elementId, 'css',  'option')
+    const optionElements = await this.findElementsFromElement(this.elementId, 'css selector',  'option')
 
     if (optionElements.length === 0) {
-        throw new Error(`Select element doesn't contain any option element`)
+        throw new Error('Select element doesn\'t contain any option element')
     }
 
     if (optionElements.length - 1 < index) {

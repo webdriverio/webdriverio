@@ -1,0 +1,113 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`setTimeouts with all timeouts 1`] = `
+Map {
+  "implicit" => 222,
+  "pageLoad" => 333,
+  "script" => 444,
+}
+`;
+
+exports[`setTimeouts with implicit and pageLoad timeout 1`] = `
+Map {
+  "implicit" => 222,
+  "pageLoad" => 333,
+  "script" => 30000,
+}
+`;
+
+exports[`setTimeouts with implicit timeout 1`] = `
+Map {
+  "implicit" => 222,
+  "pageLoad" => 100,
+  "script" => 30000,
+}
+`;
+
+exports[`should rerun command if it was executed within navigation 1`] = `
+Array [
+  Array [
+    "command",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+  Array [
+    "command",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 1,
+    },
+  ],
+  Array [
+    "result",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "result": null,
+      "retries": 1,
+    },
+  ],
+]
+`;
+
+exports[`should return proper result 1`] = `
+Array [
+  Array [
+    "command",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+  Array [
+    "result",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "result": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+]
+`;

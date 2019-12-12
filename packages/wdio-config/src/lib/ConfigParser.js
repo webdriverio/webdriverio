@@ -3,13 +3,13 @@ import path from 'path'
 import glob from 'glob'
 import merge from 'deepmerge'
 
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
-import { detectBackend } from '../utils'
+import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber } from '../utils'
 
-import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
+import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, NON_WORKER_SERVICES } from '../constants'
 
-const log = logger('wdio-config:ConfigParser')
+const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
 export default class ConfigParser {
@@ -43,7 +43,8 @@ export default class ConfigParser {
             delete fileConfig.capabilities
 
             /**
-             * add service hooks and remove them from config
+             * Add hooks from the file config and remove them from file config object to avoid
+             * complications when using merge function
              */
             this.addService(fileConfig)
             for (let hookName of SUPPORTED_HOOKS) {
@@ -53,11 +54,24 @@ export default class ConfigParser {
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
             /**
+             * For Sauce Labs RDC we need to determine if the config file has a `testobject_api_key`
+             * If so, we need to provide a boolean to the `detectBackend` to set the correct hostname
+             *
+             * NOTE: This will not work for multi remote
+             */
+            const isRDC = Array.isArray(this._capabilities) && this._capabilities.some(capability => 'testobject_api_key' in capability)
+
+            /**
              * detect Selenium backend
              */
-            this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
+            this._config = merge(detectBackend(this._config, isRDC), this._config, MERGE_OPTIONS)
+
+            /**
+             * remove `watch` from config as far as it can be only passed as command line argument
+             */
+            delete this._config.watch
         } catch (e) {
-            log.error(`Failed loading configuration file: ${filePath}`)
+            log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e
         }
     }
@@ -69,12 +83,15 @@ export default class ConfigParser {
     merge (object = {}) {
         this._config = merge(this._config, object, MERGE_OPTIONS)
         let spec = Array.isArray(object.spec) ? object.spec : []
+        let exclude = Array.isArray(object.exclude) ? object.exclude : []
 
         /**
          * overwrite config specs that got piped into the wdio command
          */
         if (object.specs && object.specs.length > 0) {
             this._config.specs = object.specs
+        } else if (object.exclude && object.exclude.length > 0) {
+            this._config.exclude = object.exclude
         }
 
         /**
@@ -84,31 +101,23 @@ export default class ConfigParser {
         this._capabilities = merge(this._capabilities, this._config.capabilities || defaultTo, MERGE_OPTIONS)
 
         /**
+         * save original specs if Cucumber's feature line number is provided
+         */
+        if (this._config.spec && isCucumberFeatureWithLineNumber(this._config.spec)) {
+            /**
+             * `this._config.spec` is string instead of Array in watch mode
+             */
+            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...this._config.spec] : [this._config.spec]
+        }
+
+        /**
          * run single spec file only, regardless of multiple-spec specification
          */
         if (spec.length > 0) {
-            const specs = new Set()
-            const allSpecs = ConfigParser.getFilePaths(this._config.specs)
-
-            spec.forEach((spec_file) => {
-                if (fs.existsSync(spec_file) && fs.lstatSync(spec_file).isFile()) {
-                    specs.add(path.resolve(process.cwd(), spec_file))
-                }
-                else {
-                    // Check for any specs that match a patter provided
-                    allSpecs.forEach((file) => {
-                        if (file.match(spec_file)) {
-                            specs.add(file)
-                        }
-                    });
-                }
-            });
-
-            if (specs.size === 0) {
-                throw new Error(`spec file(s) ${spec.join(`, `)} not found`)
-            }
-
-            this._config.specs = [...specs]
+            this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs)]
+        }
+        if (exclude.length > 0) {
+            this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude)]
         }
 
         /**
@@ -117,17 +126,22 @@ export default class ConfigParser {
          * if host and port are default, remove them to get new values
          */
         let defaultBackend = detectBackend({})
-        if (this._config.hostname === defaultBackend.hostname && this._config.port === defaultBackend.port) {
+        if (
+            (this._config.hostname === defaultBackend.hostname) &&
+            (this._config.port === defaultBackend.port) &&
+            (this._config.protocol === defaultBackend.protocol)
+        ) {
             delete this._config.hostname
             delete this._config.port
+            delete this._config.protocol
         }
 
         this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
     }
 
     /**
-     * add hooks from services to runner config
-     * @param {Object} service  a service is basically an object that contains hook methods
+     * Add hooks from an existing service to the runner config.
+     * @param {Object} service - an object that contains hook methods.
      */
     addService (service) {
         for (let hookName of SUPPORTED_HOOKS) {
@@ -162,8 +176,9 @@ export default class ConfigParser {
         if (suites.length > 0) {
             let suiteSpecs = []
             for (let suiteName of suites) {
-                // ToDo: log warning if suite was not found
+                // TODO: log warning if suite was not found
                 let suite = this._config.suites[suiteName]
+
                 if (suite && Array.isArray(suite)) {
                     suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite))
                 }
@@ -176,20 +191,62 @@ export default class ConfigParser {
 
             // Allow --suite and --spec to both be defined on the command line
             // Removing any duplicate tests that could be included
-            const tmp_specs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
+            let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
-            return [...new Set(tmp_specs)]
+            if (Array.isArray(capSpecs)) {
+                tmpSpecs = ConfigParser.getFilePaths(capSpecs)
+            }
+
+            if (Array.isArray(capExclude)) {
+                exclude = ConfigParser.getFilePaths(capExclude)
+            }
+
+            specs = [...new Set(tmpSpecs)]
+            return specs.filter(spec => !exclude.includes(spec))
         }
 
         if (Array.isArray(capSpecs)) {
-            specs = specs.concat(ConfigParser.getFilePaths(capSpecs))
+            specs = ConfigParser.getFilePaths(capSpecs)
         }
 
         if (Array.isArray(capExclude)) {
-            exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
+            exclude = ConfigParser.getFilePaths(capExclude)
         }
 
-        return specs.filter(spec => exclude.indexOf(spec) < 0)
+        return specs.filter(spec => !exclude.includes(spec))
+    }
+
+    /**
+     * sets config attribute with file paths from filtering
+     * options from cli argument
+     *
+     * @param  {String} cliArgFileList  list of files in a string from
+     * @param  {Object} config  config object that stores the spec and exclude attributes
+     * cli argument
+     * @return {String[]} List of files that should be included or excluded
+     */
+    setFilePathToFilterOptions (cliArgFileList, config) {
+        const filesToFilter = new Set()
+        const fileList = ConfigParser.getFilePaths(config)
+        cliArgFileList.forEach(filteredFile => {
+            filteredFile = removeLineNumbers(filteredFile)
+            let globMatchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
+            if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
+                filesToFilter.add(path.resolve(process.cwd(), filteredFile))
+            } else if (globMatchedFiles.length) {
+                globMatchedFiles.forEach(file => filesToFilter.add(file))
+            } else {
+                fileList.forEach(file => {
+                    if (file.match(filteredFile)) {
+                        filesToFilter.add(file)
+                    }
+                })
+            }
+        })
+        if (filesToFilter.size === 0) {
+            throw new Error(`spec file(s) ${cliArgFileList.join(', ')} not found`)
+        }
+        return filesToFilter
     }
 
     /**
@@ -220,7 +277,10 @@ export default class ConfigParser {
         let files = []
 
         if (typeof patterns === 'string') {
+            patterns = removeLineNumbers(patterns)
             patterns = [patterns]
+        } else {
+            patterns = patterns.map(pattern => removeLineNumbers(pattern))
         }
 
         if (!Array.isArray(patterns)) {
@@ -232,6 +292,8 @@ export default class ConfigParser {
 
             filenames = filenames.filter(filename =>
                 filename.slice(-3) === '.js' ||
+                filename.slice(-4) === '.mjs' ||
+                filename.slice(-4) === '.es6' ||
                 filename.slice(-3) === '.ts' ||
                 filename.slice(-8) === '.feature' ||
                 filename.slice(-7) === '.coffee')
@@ -247,5 +309,17 @@ export default class ConfigParser {
         }
 
         return files
+    }
+
+    /**
+     * remove services that has nothing to do in worker
+     */
+    filterWorkerServices () {
+        if (!Array.isArray(this._config.services)) {
+            return
+        }
+        this._config.services = this._config.services.filter((service) => {
+            return !NON_WORKER_SERVICES.includes(service)
+        })
     }
 }

@@ -13,12 +13,14 @@
         <option name="someName5" value="someValue5">seis</option>
     </select>
     :selectByAttribute.js
-    it('Should demonstrate the selectByAttribute command', function () {
+    it('Should demonstrate the selectByAttribute command', () => {
         const selectBox = $('#selectbox');
         const value = selectBox.getValue();
         console.log(value); // returns "someValue0"
+
         selectBox.selectByAttribute('value', 'someValue3');
         console.log(selectBox.getValue()); // returns "someValue3"
+
         selectBox.selectByAttribute('name', 'someName5');
         console.log(selectBox.getValue()); // returns "someValue5"
     });
@@ -47,6 +49,10 @@ export default async function selectByAttribute (attribute, value) {
     */
     const normalized = `[normalize-space(@${attribute.trim()}) = "${value.trim()}"]`
     const optionElement = await this.findElementFromElement(this.elementId, 'xpath', `./option${normalized}|./optgroup/option${normalized}`)
+
+    if (optionElement && optionElement.error === 'no such element') {
+        throw new Error(`Option with attribute "${attribute}=${value}" not found.`)
+    }
 
     /**
     * select option

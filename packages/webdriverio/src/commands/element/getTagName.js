@@ -7,7 +7,7 @@
     <div id="elem">Lorem ipsum</div>
 
     :getTagName.js
-    it('should demonstrate the getTagName command', function () {
+    it('should demonstrate the getTagName command', () => {
         const elem = $('#elem');
 
         const tagName = elem.getTagName();
@@ -15,7 +15,7 @@
     })
  * </example>
  *
- * @alias browser.getTagName
+ * @alias element.getTagName
  * @return {String} the element's tag name, as a lowercase string
  * @uses protocol/elements, protocol/elementIdName
  * @type property

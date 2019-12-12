@@ -1,11 +1,14 @@
 {
   "name": "eslint-plugin-wdio",
-  "version": "5.0.0-beta.1",
+  "version": "5.13.2",
   "description": "Eslint rules for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/eslint-plugin-wdio",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/eslint-plugin-wdio",
   "license": "MIT",
   "main": "index.js",
+  "engines": {
+    "node": ">= 8.11.0"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"
@@ -15,8 +18,7 @@
     "eslintplugin",
     "eslint-plugin",
     "webdriver",
-    "wdio",
-    "wdio-reporter"
+    "wdio"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"

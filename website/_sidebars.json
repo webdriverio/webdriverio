@@ -13,30 +13,38 @@
     ],
     "Usage": [
       "selectors",
+      "browserobject",
       "customcommands",
       "multiremote",
       "cloudservices",
-      "autocompletion"
+      "sync-vs-async",
+      "autocompletion",
+      "automationProtocols"
     ],
     "Testrunner": [
       "clioptions",
       "configurationfile",
-      "browserobject",
       "frameworks",
-      "organizingsuites",
-      "timeouts",
-      "pageobjects",
-      "debugging",
-      "retry",
-      "repl",
-      "jenkins",
       "customreporter",
       "customservices"
+    ],
+    "Guides": [
+      "pageobjects",
+      "timeouts",
+      "organizingsuites",
+      "retry",
+      "debugging",
+      "repl",
+      "watcher",
+      "jenkins",
+      "runprogrammatically",
+      "driverbinaries"
     ]
   },
   "api": {
     "Introduction": [
       "api"
-    ]
+    ],
+    "Protocols": []
   }
 }

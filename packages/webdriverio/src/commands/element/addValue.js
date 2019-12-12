@@ -8,19 +8,18 @@
  *
  * <example>
     :addValue.js
-    it('should demonstrate the addValue command', function () {
-        var input = $('.input')
+    it('should demonstrate the addValue command', () => {
+        let input = $('.input')
         input.addValue('test')
         input.addValue(123)
 
-        var value = input.getValue()
+        value = input.getValue()
         assert(value === 'test123') // true
     })
  * </example>
  *
- * @alias browser.addValue
- * @param {String} selector   Input element
- * @param {*}      values     value to be added
+ * @alias element.addValue
+ * @param {string | number | boolean | object | Array<any>}      value     value to be added
  * @uses protocol/elements, protocol/elementIdValue
  * @type action
  *
@@ -29,11 +28,14 @@
 import { transformToCharString } from '../../utils'
 
 export default function addValue (value) {
-    let text = transformToCharString(value)
-
-    if (this.isW3C) {
-        text = text.join('')
+    if (!this.isW3C) {
+        return this.elementSendKeys(this.elementId, transformToCharString(value))
     }
 
-    return this.elementSendKeys(this.elementId, text)
+    // Workaround https://github.com/appium/appium/issues/12085
+    if (this.isMobile) {
+        return this.elementSendKeys(this.elementId, transformToCharString(value).join(''), transformToCharString(value))
+    }
+
+    return this.elementSendKeys(this.elementId, transformToCharString(value).join(''))
 }

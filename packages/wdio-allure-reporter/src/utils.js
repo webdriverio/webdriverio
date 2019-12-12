@@ -1,5 +1,7 @@
 import process from 'process'
-import {testStatuses, mochaIgnoredHooks} from './constants'
+import CompoundError from './compoundError'
+import { testStatuses, mochaEachHooks, mochaAllHooks } from './constants'
+
 /**
  * Get allure test status by TestStat object
  * @param test {Object} - TestStat object
@@ -15,9 +17,12 @@ export const getTestStatus = (test, config) => {
         return test.error.name === 'AssertionError' ? testStatuses.FAILED : testStatuses.BROKEN
     }
 
-    const stackTrace = test.error.stack.trim()
-    return stackTrace.startsWith('AssertionError') ? testStatuses.FAILED : testStatuses.BROKEN
+    if (test.error.stack) {
+        const stackTrace = test.error.stack.trim()
+        return stackTrace.startsWith('AssertionError') ? testStatuses.FAILED : testStatuses.BROKEN
+    }
 
+    return testStatuses.BROKEN
 }
 
 /**
@@ -28,12 +33,20 @@ export const getTestStatus = (test, config) => {
 export const isEmpty = (object) => !object || Object.keys(object).length === 0
 
 /**
- * Filter unnecessary mocha hooks
+ * Is mocha beforeEach / afterEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const ignoredHooks = title => mochaIgnoredHooks.some(hook => title.includes(hook))
+export const isMochaEachHooks = title => mochaEachHooks.some(hook => title.includes(hook))
+
+/**
+ * Is mocha beforeAll / afterAll hook
+ * @param title {String} - hook title
+ * @returns {boolean}
+ * @private
+ */
+export const isMochaAllHooks = title => mochaAllHooks.some(hook => title.includes(hook))
 
 /**
  * Call reporter
@@ -43,4 +56,17 @@ export const ignoredHooks = title => mochaIgnoredHooks.some(hook => title.includ
  */
 export const tellReporter = (event, msg = {}) => {
     process.emit(event, msg)
+}
+
+/**
+ * Properly format error from different test runners
+ * @param {Object} test - TestStat object
+ * @returns {Object} - error object
+ * @private
+ */
+export const getErrorFromFailedTest = (test) => {
+    if (test.errors && Array.isArray(test.errors)) {
+        return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors)
+    }
+    return test.error
 }

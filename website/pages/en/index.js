@@ -78,13 +78,13 @@ Logo.propTypes = {
 const Badges = () => (
     <section>
         <div className="badges">
-            <a href="http://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
-            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg" alt="Build Status" /></a>
+            <a href="https://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
+            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master" alt="Build Status" /></a>
             <a href="https://codecov.io/gh/webdriverio/webdriverio"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
-            <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden'}} scrolling="no" frameBorder="0" allow="encrypted-media" id="fblike"></iframe>
-            <iframe src="http://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameBorder="0" scrolling="0" style={{ width: '118px', height: '20px' }}></iframe>
+            <iframe src="https://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwebdriver.io&width=118&layout=button_count&action=like&size=small&show_faces=true&share=true&height=46&appId=585739831492556" width="118" height="46" style={{ border: 'none', overflow: 'hidden' }} scrolling="no" frameBorder="0" allow="encrypted-media" id="fblike"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=webdriverio&amp;repo=webdriverio&amp;type=watch&amp;count=true" height="20" width="118" frameBorder="0" scrolling="0" style={{ width: '118px', height: '20px' }}></iframe>
             <a href="https://twitter.com/share" className="twitter-share-button" data-via="bromann" data-hashtags="webdriverio">Tweet</a>
             <a href="https://twitter.com/webdriverio" className="twitter-follow-button" data-show-count="true" data-lang="en">Follow @webdriverio</a>
         </div>
@@ -124,7 +124,7 @@ class HomeSplash extends React.Component {
                     <PromoSection>
                         <Button href={docUrl('gettingstarted.html', language)}>Get Started</Button>
                         <Button href="#watch">Watch Talks</Button>
-                        <Button href="https://learn.webdriver.io">Online Course</Button>
+                        <Button href="https://leanpub.com/webapp-testing-guidebook">Read the Book</Button>
                         <Button href="https://gitter.im/webdriverio/webdriverio">Support</Button>
                     </PromoSection>
                 </div>
@@ -170,14 +170,14 @@ const Talks = () => (
     <Container background="light" padding={['bottom', 'top']}>
         <a className="anchor" name="watch" />
         <a className="hash-link" href="#watch" />
-        <div className="blockElement imageAlignSide twoByGridBlock">
+        <div className="blockElement imageAlignSide twoByGridBlock videoContainer">
             <div className="video">
                 <iframe
                     width="560"
                     height="315"
-                    src="https://www.youtube.com/embed/FHxXMeDh7Co"
+                    src="https://www.youtube.com/embed/fex2NlN-soQ?start=3204"
                     frameBorder="0"
-                    allow="autoplay; encrypted-media"
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                 />
             </div>
@@ -196,16 +196,16 @@ const Talks = () => (
                         <translate>
                             The community around WebdriverIO is actively speaking on various user groups or
                             conferences about specific topics around automated testing with WebdriverIO. Check out
-                            this talk about [Building Scalable And Stable e2e Test Suites](https://www.youtube.com/watch?v=FHxXMeDh7Co&t=935s)
-                            by [@bromann](https://twitter.com/bromann) at SauceCon 2018. There is also a whole
+                            this talk from the latest "This.JavaScript: State of Frontend Testing" event about [The State of WebdriverIO v5](https://www.youtube.com/watch?v=fex2NlN-soQ&feature=youtu.be&t=3204)
+                            by [@klamping](https://twitter.com/klamping). There is also a whole
                             [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
-                            about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).
+                            about different topics around WebdriverIO created by [him as well](https://twitter.com/klamping).
                         </translate>
                     </MarkdownBlock>
                 </div>
                 <div
                     className="productShowcaseSection paddingTop"
-                    style={{textAlign: 'center'}}
+                    style={{ textAlign: 'center' }}
                 >
                     <a
                         className="button"
@@ -258,7 +258,7 @@ const TryIt = () => (
     <Block background="light">
         {[
             {
-                content: 'You can try WebdriverIO using [try.webdriver.io](http://try.webdriver.io) that provides you with an interface to write a sample test and share it. You can also us it for debugging purposes.',
+                content: 'You can try WebdriverIO using [try.webdriver.io](http://try.webdriver.io) that provides you with an interface to write a sample test and share it. You can also use it for debugging purposes.',
                 image: imgUrl('try.png'),
                 imageAlign: 'right',
                 title: 'Try it out!',
@@ -269,7 +269,7 @@ const TryIt = () => (
 
 class Index extends React.Component {
     render() {
-        let language = this.props.language || '';
+        let language = this.props.language || ''
 
         return (
             <div>
@@ -318,7 +318,7 @@ class Index extends React.Component {
                     <TryIt />
                 </div>
             </div>
-        );
+        )
     }
 }
 
@@ -326,4 +326,4 @@ Index.propTypes = {
     language: PropTypes.string
 }
 
-module.exports = Index;
+module.exports = Index

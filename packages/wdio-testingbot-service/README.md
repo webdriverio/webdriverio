@@ -3,6 +3,26 @@ WebdriverIO TestingBot Service
 
 > WebdriverIO service that provides a better integration into TestingBot. It updates the job metadata ('name', 'passed', 'tags', 'public', 'build', 'extra') and runs TestingBot Tunnel if desired.
 
+## Installation
+
+The easiest way is to keep `@wdio/testingbot-service` as a devDependency in your `package.json`.
+
+```json
+{
+  "devDependencies": {
+    "@wdio/testingbot-service": "^5.0.0"
+  }
+}
+```
+
+You can simple do it by:
+
+```bash
+npm install @wdio/testingbot-service --save-dev
+```
+
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+
 ## Configuration
 
 In order to use the service you need to set `user` and `key` in your `wdio.conf.js` file, and set the `host` option to `hub.testingbot.com`. If you want to use [TestingBot Tunnel](https://testingbot.com/support/other/tunnel)

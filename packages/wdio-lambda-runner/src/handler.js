@@ -1,7 +1,7 @@
-import logger from 'wdio-logger'
-import Runner from 'wdio-runner'
+import logger from '@wdio/logger'
+import Runner from '@wdio/runner'
 
-const log = logger('wdio-lambda-runner')
+const log = logger('@wdio/lambda-runner')
 
 module.exports.run = (event, context, callback) => {
     log.info('Start Lambda function...')
@@ -11,7 +11,7 @@ module.exports.run = (event, context, callback) => {
      * run test
      */
     runner.run(event).catch((e) => {
-        log.error(`Failed launching test session:`, e)
+        log.error(`Failed launching test session: ${e.stack}`)
         callback(e)
         context.fail(e)
     })

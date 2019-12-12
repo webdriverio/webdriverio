@@ -1,3 +1,4 @@
+import { verifyArgsAndStripIfElement } from '../../utils'
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
@@ -14,18 +15,18 @@
  *
  * <example>
     :execute.js
-    it('should inject javascript on the page', function () {
-        var result = browser.execute(function(a, b, c, d) {
+    it('should inject javascript on the page', () => {
+        const result = browser.execute((a, b, c, d) => {
             // browser context - you may not access client or console
-            return a + b + c + d;
+            return a + b + c + d
         }, 1, 2, 3, 4)
         // node.js context - client and console are available
-        console.log(result.value); // outputs: 10
+        console.log(result) // outputs: 10
     });
  * </example>
  *
  * @param {String|Function} script                     The script to execute.
- * @param {*}               [argument1,...,argumentN]  script arguments
+ * @param {*=}               arguments  script arguments
  *
  * @return {*}             The script result.
  *
@@ -52,5 +53,5 @@ export default function execute (...args) {
         script = `return (${script}).apply(null, arguments)`
     }
 
-    return this.executeScript(script, args)
+    return this.executeScript(script, verifyArgsAndStripIfElement(args))
 }

@@ -11,10 +11,10 @@
  * <example>
     :example.html
     <label id="myLabel" for="input" style="color: #0088cc; font-family: helvetica, arial, freesans, clean, sans-serif, width: 100px">Some Label</label>
-    :getCssProperty.js
-    it('should demonstrate the getCssProperty command', function () {
-        var elem = $('#myLabel')
-        var color = elem.getCssProperty('color')
+    :getCSSProperty.js
+    it('should demonstrate the getCSSProperty command', () => {
+        const elem = $('#myLabel')
+        const color = elem.getCSSProperty('color')
         console.log(color)
         // outputs the following:
         // {
@@ -27,7 +27,8 @@
         //         rgba: 'rgba(0, 136, 204, 1)'
         //     }
         // }
-        var font = elem.getCssProperty('font-family')
+
+        const font = elem.getCSSProperty('font-family')
         console.log(font)
         // outputs the following:
         // {
@@ -39,7 +40,8 @@
         //          string: 'helvetica, arial, freesans, clean, sans-serif'
         //      }
         // }
-        var width = elem.getCssProperty('width')
+
+        var width = elem.getCSSProperty('width')
         console.log(width)
         // outputs the following:
         // {
@@ -55,9 +57,9 @@
     })
  * </example>
  *
- * @alias browser.getCssProperty
- * @param {String} selector    element with requested style attribute
+ * @alias element.getCSSProperty
  * @param {String} cssProperty css property name
+ * @return {Object} The specified css of the element
  * @uses protocol/elements, protocol/elementIdCssProperty
  * @type property
  *

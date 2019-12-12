@@ -5,7 +5,7 @@ describe('my app', () => {
 
     describe('has feature xyz that', () => {
         it('should to something', () => {
-            console.log('inner test block');
+            console.log('inner test block')
         })
     })
 

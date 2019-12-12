@@ -1,167 +1,260 @@
 import chalk from 'chalk'
-import cliSpinners from 'cli-spinners'
 import EventEmitter from 'events'
-import CLInterface from 'wdio-interface'
-import logger from 'wdio-logger'
+import logger from '@wdio/logger'
 
-const log = logger('wdio-cli')
+import { getRunnerName } from './utils'
 
-const clockSpinner = cliSpinners['clock']
+const log = logger('@wdio/cli')
 
 export default class WDIOCLInterface extends EventEmitter {
-    constructor (config, specs) {
+    constructor (config, specs, totalWorkerCnt, isWatchMode = false) {
         super()
+
+        /**
+         * Colors can be forcibly enabled/disabled with env variable `FORCE_COLOR`
+         * `FORCE_COLOR=1` - forcibly enable colors
+         * `FORCE_COLOR=0` - forcibly disable colors
+         */
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.clockTimer = 0
         this.specs = specs
         this.config = config
+        this.totalWorkerCnt = totalWorkerCnt
+        this.isWatchMode = isWatchMode
+        this.inDebugMode = false
+        this.specFileRetries = config.specFileRetries || 0
+        this.skippedSpecs = 0
+
+        this.on('job:start', ::this.addJob)
+        this.on('job:end', ::this.clearJob)
+
+        this.setup()
+        this.onStart()
+    }
+
+    setup () {
         this.jobs = new Map()
-        this.start = Date.now()
+        this.start = new Date()
+
+        /**
+         * The relationship between totalWorkerCnt and these counters are as follows:
+         * totalWorkerCnt - retries = finished = passed + failed
+         */
         this.result = {
             finished: 0,
             passed: 0,
+            retries: 0,
             failed: 0
         }
         this.messages = {
+            /**
+             * messages from worker reporters
+             */
             reporter: {}
         }
+    }
 
-        this.interface = new CLInterface()
-        this.on('job:start', ::this.addJob)
-        this.on('job:end', ::this.clearJob)
+    onStart() {
+        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} spec files started at`), this.start.toISOString())
+        if (this.inDebugMode) {
+            this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
+        }
+        if (this.isWatchMode) {
+            this.log(chalk.bgYellow.black('WATCH mode enabled!'))
+        }
+        this.log('')
+    }
+
+    onSpecRunning(cid) {
+        this.onJobComplete(cid, this.jobs.get(cid), 0, chalk.bold.cyan('RUNNING'))
+    }
+
+    onSpecRetry(cid, job, retries) {
+        this.onJobComplete(cid, job, retries, chalk.bold.yellow('RETRYING'))
+    }
+
+    onSpecPass(cid, job, retries) {
+        this.onJobComplete(cid, job, retries, chalk.bold.green('PASSED'))
+    }
+
+    onSpecFailure(cid, job, retries) {
+        this.onJobComplete(cid, job, retries, chalk.bold.red('FAILED'))
+    }
+
+    onSpecSkip(cid, job) {
+        this.onJobComplete(cid, job, 0, 'SKIPPED', log.info)
+    }
+
+    onJobComplete(cid, job, retries, message, _logger = this.log) {
+        const details = [`[${cid}]`, message]
+        if (job) {
+            details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
+        }
+        if (retries > 0) {
+            details.push(`(${retries} retries)`)
+        }
+
+        return _logger(...details)
+    }
+
+    onTestError(payload) {
+        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Unknown error.' }
+        if (payload.error) {
+            error.type = payload.error.type || error.type
+            error.message = payload.error.message || error.message
+        }
+        return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.message)}`)
+    }
+
+    getFilenames(specs = []) {
+        if (specs.length > 0) {
+            return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
+        }
+        return ''
     }
 
     /**
      * add job to interface
      */
-    addJob({ cid, caps, specs }) {
-        this.jobs.set(cid, { caps, specs })
-        this.updateView()
+    addJob({ cid, caps, specs, hasTests }) {
+        this.jobs.set(cid, { caps, specs, hasTests })
+        if (hasTests) {
+            this.onSpecRunning(cid)
+        } else {
+            this.skippedSpecs++
+        }
     }
 
     /**
      * clear job from interface
      */
-    clearJob ({ cid, passed }) {
+    clearJob ({ cid, passed, retries }) {
+        const job = this.jobs.get(cid)
+
         this.jobs.delete(cid)
-        this.result.finished++
+        const retryAttempts = this.specFileRetries - retries
+        const retry = !passed && retries > 0
+        if (!retry) {
+            this.result.finished++
+        }
+
+        if (job && job.hasTests === false) {
+            return this.onSpecSkip(cid, job)
+        }
 
         if (passed) {
             this.result.passed++
+            this.onSpecPass(cid, job, retryAttempts)
+        } else if (retry) {
+            this.totalWorkerCnt++
+            this.result.retries++
+            this.onSpecRetry(cid, job, retryAttempts)
         } else {
             this.result.failed++
+            this.onSpecFailure(cid, job, retryAttempts)
         }
+    }
 
-        this.updateView(true)
+    /**
+     * for testing purposes call console log in a static method
+     */
+    log (...args) {
+        // eslint-disable-next-line no-console
+        console.log(...args)
+        return args
     }
 
     /**
      * event handler that is triggered when runner sends up events
      */
-    onMessage (params) {
-        if (!params.origin || !this.messages[params.origin]) {
-            return log.warn(`Can't identify message from worker: ${JSON.stringify(params)}, ignoring!`)
+    onMessage (event) {
+        if (event.origin === 'debugger' && event.name === 'start') {
+            this.log(chalk.yellow(event.params.introMessage))
+            this.inDebugMode = true
+            return this.inDebugMode
         }
 
-        if (!this.messages[params.origin][params.name]) {
-            this.messages[params.origin][params.name] = []
+        if (event.origin === 'debugger' && event.name === 'stop') {
+            this.inDebugMode = false
+            return this.inDebugMode
         }
-        this.messages[params.origin][params.name].push(params.content)
+
+        if (event.name === 'testFrameworkInit') {
+            return this.emit('job:start', event.content)
+        }
+
+        if (!event.origin) {
+            return log.warn(`Can't identify message from worker: ${JSON.stringify(event)}, ignoring!`)
+        }
+
+        if (event.origin === 'worker' && event.name === 'error') {
+            return this.log(`[${event.cid}]`, 'Error:', event.content.message || event.content.stack || event.content)
+        }
+
+        if (event.origin !== 'reporter') {
+            return this.log(event.cid, event.origin, event.name, event.content)
+        }
+
+        if (event.name === 'printFailureMessage') {
+            return this.onTestError(event.content)
+        }
+
+        if (!this.messages[event.origin][event.name]) {
+            this.messages[event.origin][event.name] = []
+        }
+
+        this.messages[event.origin][event.name].push(event.content)
+        if (this.isWatchMode) {
+            this.printReporters()
+        }
     }
 
-    updateView (wasJobCleared) {
-        const isFinished = this.jobs.size === 0
-        const pendingJobs = this.specs.length - this.jobs.size - this.result.finished
-
+    sigintTrigger () {
         /**
-         * check if environment supports ansi and print a limited update if not
+         * allow to exit repl mode via Ctrl+C
          */
-        if (!this.hasAnsiSupport && !isFinished) {
-            /**
-             * only update if a job finishes
-             */
-            if (!wasJobCleared) {
-                return
-            }
-
-            const clockSpinnerSymbol = this.getClockSymbol()
-            return this.interface.log(
-                `${clockSpinnerSymbol} ` +
-                `${this.jobs.size} running, ` +
-                `${this.result.passed} passed, ` +
-                `${this.result.failed} failed, ` +
-                `${this.specs.length} total ` +
-                `(${Math.round((this.result.finished / this.specs.length) * 100)}% completed)`)
+        if (this.inDebugMode) {
+            return false
         }
 
-        this.interface.clearAll()
-        this.interface.log()
+        const isRunning = this.jobs.size !== 0
+        const shutdownMessage = isRunning
+            ? 'Ending WebDriver sessions gracefully ...\n' +
+            '(press ctrl+c again to hard kill the runner)'
+            : 'Ended WebDriver sessions gracefully after a SIGINT signal was received!'
+        return this.log('\n\n' + shutdownMessage)
+    }
 
+    printReporters () {
         /**
          * print reporter output
          */
-        for (const [reporterName, messages] of Object.entries(this.messages.reporter)) {
-            this.interface.log(chalk.bgYellow.black(`"${reporterName}" Reporter:`))
-            this.interface.log(messages.join(''))
-            this.interface.log()
+        const reporter = this.messages.reporter
+        this.messages.reporter = {}
+        for (const [reporterName, messages] of Object.entries(reporter)) {
+            this.log('\n', chalk.bold.magenta(`"${reporterName}" Reporter:`))
+            this.log(messages.join(''))
         }
+    }
 
-        /**
-         * print running jobs
-         */
-        for (const [cid, job] of this.jobs.entries()) {
-            const filename = job.specs.join(', ').replace(process.cwd(), '')
-            this.interface.log(chalk.bgYellow.black(' RUNNING '), cid, 'in', job.caps.browserName, '-', filename)
-        }
-
-        if (pendingJobs) {
-            this.interface.log(chalk.yellow('...', pendingJobs, 'pending tests'))
-        }
-
-        /**
-         * print stdout and stderr from runners
-         */
-        if (isFinished) {
-            if (this.interface.stdoutBuffer.length) {
-                this.interface.log(chalk.bgYellow.black(`Stdout:\n`) + this.interface.stdoutBuffer.join(''))
-            }
-            if (this.interface.stderrBuffer.length) {
-                this.interface.log(chalk.bgRed.black(`Stderr:\n`) + this.interface.stderrBuffer.join(''))
-            }
-        }
-
-        /**
-         * add empty line between "pending tests" and results
-         */
-        if (this.jobs.size) {
-            this.interface.log()
-        }
-
-        this.interface.log(
-            'Test Suites:\t', chalk.green(this.result.passed, 'passed') + ', ' +
-            (this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : '') +
-            this.specs.length, 'total',
-            `(${this.specs.length ? Math.round((this.result.finished / this.specs.length) * 100) : 0}% completed)`
+    printSummary() {
+        const totalJobs = this.totalWorkerCnt - this.result.retries
+        const elapsed = (new Date(Date.now() - this.start)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0]
+        const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
+        const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
+        const skipped = this.skippedSpecs > 0 ? chalk.gray(this.skippedSpecs, 'skipped') + ', ' : ''
+        const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
+        return this.log(
+            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
+            '\n'
         )
+    }
 
-        this.updateClock()
-
-        if (isFinished) {
-            clearTimeout(this.interval)
-            this.interface.log('\n')
+    finalise () {
+        if (this.isWatchMode) {
+            return
         }
-    }
 
-    updateClock (interval = 100) {
-        const clockSpinnerSymbol = this.getClockSymbol()
-
-        clearTimeout(this.interval)
-        this.interface.clearLine()
-        this.interface.write('Time:\t\t ' + clockSpinnerSymbol + ' ' + ((Date.now() - this.start) / 1000).toFixed(2) + 's')
-        this.interval = setTimeout(() => this.updateClock(interval), interval)
-    }
-
-    getClockSymbol () {
-        return clockSpinner.frames[this.clockTimer = ++this.clockTimer % clockSpinner.frames.length]
+        this.printReporters()
+        this.printSummary()
     }
 }

@@ -1,6 +1,6 @@
 import zip from 'lodash.zip'
-import { webdriverMonad, getPrototype as getWebdriverPrototype } from 'webdriver'
-import { wrapCommand } from 'wdio-config'
+import clone from 'lodash.clonedeep'
+import { webdriverMonad, wrapCommand } from '@wdio/utils'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
@@ -30,10 +30,17 @@ export default class MultiRemote {
         propertiesObject.options = { value: wrapperClient.options }
 
         for (const commandName of wrapperClient.commandList) {
-            propertiesObject[commandName] = { value: this.commandWrapper(commandName) }
+            propertiesObject[commandName] = {
+                value: this.commandWrapper(commandName),
+                configurable: true
+            }
         }
 
-        this.baseInstance = new MultiRemoteDriver(this.instances)
+        propertiesObject['__propertiesObject__'] = {
+            value: propertiesObject
+        }
+
+        this.baseInstance = new MultiRemoteDriver(this.instances, propertiesObject)
         const client = Object.create(this.baseInstance, propertiesObject)
 
         /**
@@ -61,14 +68,9 @@ export default class MultiRemote {
      * elems[0].getHTML()
      * ```
      */
-    static elementWrapper (instances, result) {
-        /**
-         * we can't handle multi browser with different protocol support, therefor check only the
-         * first registered browser and handle it similar to other browser
-         */
-        const isW3C = instances[Object.keys(instances)[0]].isW3C
+    static elementWrapper (instances, result, propertiesObject) {
+        const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: 'element' }
 
-        const prototype = Object.assign(getWebdriverPrototype(isW3C), getPrototype('element'), { scope: 'element' })
         const element = webdriverMonad({}, (client) => {
             /**
              * attach instances to wrapper client
@@ -99,10 +101,10 @@ export default class MultiRemote {
              * return element object to call commands directly
              */
             if (commandName === '$') {
-                return MultiRemote.elementWrapper(instances, result)
+                return MultiRemote.elementWrapper(instances, result, this.__propertiesObject__)
             } else if (commandName === '$$') {
                 const zippedResult = zip(...result)
-                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult))
+                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult, this.__propertiesObject__))
             }
 
             return result
@@ -115,9 +117,10 @@ export default class MultiRemote {
  */
 /* istanbul ignore next */
 class MultiRemoteDriver {
-    constructor (instances) {
+    constructor (instances, propertiesObject) {
         this.instances = Object.keys(instances)
         this.isMultiremote = true
+        this.__propertiesObject__ = propertiesObject
     }
 
     on (...args) {

@@ -10,15 +10,15 @@
     :example.html
     <div id="someText">I am some text</div>
     <script>
-      setTimeout(function() {
+      setTimeout(() => {
         $('#someText').html('I am now different');
       }, 1000);
     </script>
 
     :waitUntil.js
-    it('should wait until text has changed', function () {
-        browser.waitUntil(function () {
-          return browser.getText('#someText') === 'I am now different'
+    it('should wait until text has changed', () => {
+        browser.waitUntil(() => {
+          return $('#someText').getText() === 'I am now different'
         }, 5000, 'expected text to be different after 5s');
     });
  * </example>
@@ -26,9 +26,10 @@
  *
  * @alias browser.waitUntil
  * @param {Function} condition  condition to wait on
- * @param {Number=}  timeout    timeout in ms (default: 500)
+ * @param {Number=}  timeout    timeout in ms (default: 5000)
  * @param {String=}  timeoutMsg error message to throw when waitUntil times out
  * @param {Number=}  interval   interval between condition checks (default: 500)
+ * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
  * @type utility
  *
@@ -56,10 +57,13 @@ export default function (condition, timeout, timeoutMsg, interval) {
     let timer = new Timer(interval, timeout, fn, true)
 
     return timer.catch((e) => {
-        if (e.message === 'timeout' && typeof timeoutMsg === 'string') {
-            throw new Error(timeoutMsg)
+        if (e.message === 'timeout') {
+            if (typeof timeoutMsg === 'string') {
+                throw new Error(timeoutMsg)
+            }
+            throw new Error(`waitUntil condition timed out after ${timeout}ms`)
         }
 
-        throw new Error(`Promise was rejected with the following reason: ${e}`)
+        throw new Error(`waitUntil condition failed with the following reason: ${(e && e.message) || e}`)
     })
 }

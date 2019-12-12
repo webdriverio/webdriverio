@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "lib": ["es2018"],
+    "types": [
+      "webdriverio",
+      "@wdio/allure-reporter",
+      "@wdio/selenium-standalone-service"
+    ],
+    "typeRoots": ["./types"]
+  }
+}

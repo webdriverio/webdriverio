@@ -1,22 +1,15 @@
 import ConfigParser from './lib/ConfigParser'
-import { validateConfig, detectBackend, initialisePlugin } from './utils'
-import {
-    wrapCommand, runFnInFiberContext, runTestInFiberContext, executeHooksWithArgs,
-    hasWdioSyncSupport
-} from './shim'
+import { validateConfig, getSauceEndpoint, detectBackend } from './utils'
+import { DEFAULT_CONFIGS } from './constants'
 
-export default {
+export {
     validateConfig,
+    getSauceEndpoint,
     detectBackend,
-    initialisePlugin,
     ConfigParser,
 
     /**
-     * wdio-sync shim
+     * constants
      */
-    wrapCommand,
-    runFnInFiberContext,
-    runTestInFiberContext,
-    executeHooksWithArgs,
-    hasWdioSyncSupport
+    DEFAULT_CONFIGS
 }

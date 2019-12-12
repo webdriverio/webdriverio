@@ -2,10 +2,10 @@ import request from 'request'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter from 'wdio-reporter'
-import logger from 'wdio-logger'
+import WDIOReporter from '@wdio/reporter'
+import logger from '@wdio/logger'
 
-const log = logger('wdio-sumologic-reporter')
+const log = logger('@wdio/sumologic-reporter')
 
 const MAX_LINES = 100
 const DATE_FORMAT = 'yyyy-mm-dd HH:mm:ss,l o'
@@ -15,13 +15,16 @@ const DATE_FORMAT = 'yyyy-mm-dd HH:mm:ss,l o'
  */
 export default class SumoLogicReporter extends WDIOReporter {
     constructor (options) {
-        super(options)
-        this.options = Object.assign({
+        options = Object.assign({
+            // don't create a log file
+            stdout: true,
             // define sync interval how often logs get pushed to Sumologic
             syncInterval: 100,
             // endpoint of collector source
             sourceAddress: process.env.SUMO_SOURCE_ADDRESS
         }, options)
+        super(options)
+        this.options = options
 
         if (typeof this.options.sourceAddress !== 'string') {
             log.error('Sumo Logic requires "sourceAddress" paramater')
@@ -35,6 +38,10 @@ export default class SumoLogicReporter extends WDIOReporter {
         this.specs = {}
         this.results = {}
         this.interval = setInterval(::this.sync, this.options.syncInterval)
+    }
+
+    get isSynchronised () {
+        return this.unsynced.length === 0
     }
 
     onRunnerStart (runner) {
@@ -126,26 +133,29 @@ export default class SumoLogicReporter extends WDIOReporter {
          * set `isSynchronising` to true so we don't sync when a request is being made
          */
         this.isSynchronising = true
+        log.debug('start synchronization')
 
         request({
             method: 'POST',
             uri: this.options.sourceAddress,
             body: logLines
         }, (err, resp) => {
-            const failed = Boolean(err) || resp.status < 200 || resp.status >= 400
+            const failed = Boolean(err) || resp.statusCode < 200 || resp.statusCode >= 400
 
+            /* istanbul ignore if  */
             if (failed) {
                 return log.error('failed send data to Sumo Logic:\n', err.stack ? err.stack : err)
-            } else {
-                /**
-                 * remove transfered logs from log bucket
-                 */
-                this.unsynced.splice(0, MAX_LINES)
             }
+
+            /**
+             * remove transfered logs from log bucket
+             */
+            this.unsynced.splice(0, MAX_LINES)
 
             /**
              * reset sync flag so we can sync again
              */
+            log.debug(`synchronised collector data, server status: ${resp.statusCode}`)
             this.isSynchronising = false
         })
     }

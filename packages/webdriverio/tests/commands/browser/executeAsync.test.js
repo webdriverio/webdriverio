@@ -12,7 +12,7 @@ describe('isEnabled test', () => {
 
         await browser.executeAsync(() => 'foobar', 1, 2, 3)
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/async')
-        expect(request.mock.calls[1][0].body.script).toBe('return (function () {return \'foobar\';}).apply(null, arguments)')
+        expect(request.mock.calls[1][0].body.script).toBe('return (() => \'foobar\').apply(null, arguments)')
         expect(request.mock.calls[1][0].body.args).toEqual([1, 2, 3])
     })
 

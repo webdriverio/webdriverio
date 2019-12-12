@@ -28,7 +28,7 @@ describe('selectByAttribute test', () => {
 
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
-        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = "someValue1"]|./optgroup/option[normalize-space(@value) = "someValue1"]`)
+        expect(request.mock.calls[2][0].body.value).toBe('./option[normalize-space(@value) = "someValue1"]|./optgroup/option[normalize-space(@value) = "someValue1"]')
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -40,10 +40,28 @@ describe('selectByAttribute test', () => {
 
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/element')
-        expect(request.mock.calls[2][0].body.value).toBe(`./option[normalize-space(@value) = "123"]|./optgroup/option[normalize-space(@value) = "123"]`)
+        expect(request.mock.calls[2][0].body.value).toBe('./option[normalize-space(@value) = "123"]|./optgroup/option[normalize-space(@value) = "123"]')
         expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
         })
+    })
+
+    it('should throw if option is not found', async () => {
+        expect.hasAssertions()
+
+        const mockElem = {
+            selector: 'foobar2',
+            elementId: 'some-elem-123',
+            'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            findElementFromElement: jest.fn().mockReturnValue(Promise.resolve({ error: 'no such element' }))
+        }
+        mockElem.selectByAttribute = elem.selectByAttribute.bind(mockElem)
+
+        try {
+            await mockElem.selectByAttribute('value', 'non-existing-value')
+        } catch (e) {
+            expect(e.toString()).toBe('Error: Option with attribute "value=non-existing-value" not found.')
+        }
     })
 })

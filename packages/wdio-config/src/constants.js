@@ -1,30 +1,31 @@
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
-const NOOP = function () {}
 
 export const DEFAULT_CONFIGS = {
-    sync: true,
     specs: [],
     suites: {},
     exclude: [],
-    logDir: undefined,
-    logLevel: 'trace',
-    deprecationWarnings: true,
+    outputDir: undefined,
+    logLevel: 'info',
+    logLevels: {},
+    excludeDriverLogs: [],
     baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,
-    waitforTimeout: 1000,
+    waitforTimeout: 5000,
     framework: 'mocha',
     reporters: [],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
-    connectionRetryTimeout: 90000,
+    filesToWatch: [],
     connectionRetryCount: 3,
-    debug: false,
     execArgv: [],
     runnerEnv: {},
     runner: 'local',
+    featureFlags: {
+        specFiltering: undefined
+    },
 
     /**
      * framework defaults
@@ -42,7 +43,7 @@ export const DEFAULT_CONFIGS = {
     /**
      * hooks
      */
-    onPrepare: NOOP,
+    onPrepare: [],
     before: [],
     beforeSession: [],
     beforeSuite: [],
@@ -55,8 +56,7 @@ export const DEFAULT_CONFIGS = {
     afterSuite: [],
     afterSession: [],
     after: [],
-    onComplete: NOOP,
-    onError: [],
+    onComplete: [],
     onReload: [],
 
     /**
@@ -65,14 +65,21 @@ export const DEFAULT_CONFIGS = {
     beforeFeature: [],
     beforeScenario: [],
     beforeStep: [],
-    afterFeature: [],
+    afterStep: [],
     afterScenario: [],
-    afterStep: []
+    afterFeature: [],
 }
 
 export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
-    'beforeFeature', 'beforeScenario', 'beforeStep', 'afterFeature',
-    'afterScenario', 'afterStep', 'onError', 'onReload'
+    'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
+    'onReload', 'onPrepare', 'onComplete'
+]
+
+/**
+ * these services should not be started in worker process
+ */
+export const NON_WORKER_SERVICES = [
+    'chromedriver', 'selenium-standalone', 'appium', 'reportportal', 'firefox-profile'
 ]

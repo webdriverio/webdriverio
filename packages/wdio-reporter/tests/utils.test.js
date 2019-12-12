@@ -2,7 +2,8 @@ import { sanitizeString, sanitizeCaps } from '../src/utils'
 
 describe('utils', () => {
     it('sanitizeString', () => {
-        expect(sanitizeString('Chrome v64 Windows XP my-awesome.app')).toBe('chromev64windowsxpmy-awesome_app')
+        expect(sanitizeString('Chrome v64 Windows XP my-awesome.app'))
+            .toBe('chromev64windowsxpmy-awesome_app')
     })
 
     it('sanitizeCaps', () => {

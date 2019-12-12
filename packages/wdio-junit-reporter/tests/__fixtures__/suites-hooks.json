@@ -1,0 +1,48 @@
+{
+  "My awesome hooks": {
+    "type": "suite",
+    "start": "2019-04-17T09:10:10.255Z",
+    "_duration": 745,
+    "uid": "My awesome hooks",
+    "cid": "0-0",
+    "title": "My awesome feature",
+    "fullTitle": "My awesome feature",
+    "tests": [],
+    "hooks": [
+      {
+        "type": "hook",
+        "start": "2019-04-17T09:10:11.003Z",
+        "_duration": 0.002,
+        "uid": "\"before all\" hook11",
+        "cid": "0-0",
+        "title": "\"before all\" hook",
+        "parent": "My awesome feature",
+        "end": "2019-04-17T09:10:11.005Z",
+        "error": {
+          "message": "before all",
+          "stack": "Error: before all stacktrace",
+          "type": "Error"
+        },
+        "state": "failed"
+      },
+      {
+        "type": "hook",
+        "start": "2019-04-17T09:10:11.001Z",
+        "_duration": 0.001,
+        "uid": "\"after all\" hook10",
+        "cid": "0-0",
+        "title": "\"after all\" hook",
+        "parent": "My awesome feature",
+        "end": "2019-04-17T09:10:11.002Z",
+        "error": {
+          "message": "after all",
+          "stack": "Error: after all stacktrace",
+          "type": "Error"
+        },
+        "state": "failed"
+      }
+    ],
+    "suites": [],
+    "end": "2019-04-17T09:10:11.000Z"
+  }
+}

@@ -1,18 +1,18 @@
 {
-  "name": "wdio-lambda-runner",
-  "version": "5.0.0-beta.1",
+  "name": "@wdio/lambda-runner",
+  "version": "5.16.15",
   "description": "A WebdriverIO plugin that allows you to run tests on AWS",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-lambda-runner",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">= 8.11.0"
   },
   "scripts": {
     "build": "run-s clean compile",
-    "clean": "rm -rf ./build",
-    "compile": "babel src/ -d build/",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -32,11 +32,17 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "find-node-modules": "^1.0.4",
+    "@wdio/logger": "5.16.10",
+    "@wdio/runner": "5.16.15",
+    "find-node-modules": "^2.0.0",
     "serverless": "^1.25.0",
-    "shelljs": "^0.7.8",
-    "tmp": "^0.0.33",
-    "wdio-logger": "^5.0.0-beta.1",
-    "wdio-runner": "^5.0.0-beta.1"
+    "shelljs": "^0.8.3",
+    "tmp": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

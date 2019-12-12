@@ -2,28 +2,30 @@ import request from 'request'
 
 import { multiremote } from '../src'
 
-test('should run command on all instances', async () => {
-    const browser = await multiremote({
-        browserA: {
-            logLevel: 'debug',
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        browserB: {
-            logLevel: 'debug',
-            port: 4445,
-            capabilities: {
-                browserName: 'firefox'
-            }
+const caps = () => ({
+    browserA: {
+        logLevel: 'debug',
+        capabilities: {
+            browserName: 'chrome'
         }
-    })
+    },
+    browserB: {
+        logLevel: 'debug',
+        port: 4445,
+        capabilities: {
+            browserName: 'firefox'
+        }
+    }
+})
+
+test('should run command on all instances', async () => {
+    const browser = await multiremote(caps())
 
     expect(browser.browserA).toBeDefined()
     expect(browser.browserB).toBeDefined()
 
     const result = await browser.execute(() => 'foobar')
-    expect(result).toEqual([ 'foobar', 'foobar' ])
+    expect(result).toEqual(['foobar', 'foobar'])
 
     expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session')
     expect(request.mock.calls[0][0].method).toBe('POST')
@@ -35,22 +37,25 @@ test('should run command on all instances', async () => {
     expect(request.mock.calls[3][0].method).toBe('POST')
 })
 
+test('should properly create stub instance', async () => {
+    const params = caps()
+    Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub' })
+    const browser = await multiremote(params, { automationProtocol: './protocol-stub' })
+    expect(browser.$).toBeUndefined()
+    expect(browser.options).toBeUndefined()
+    expect(browser.commandList).toHaveLength(0)
+    expect(browser.browserA).toBeDefined()
+    expect(browser.browserB).toBeDefined()
+    expect(browser.browserA.$).toBeUndefined()
+    expect(browser.browserA.$).toBeUndefined()
+
+    expect(() => browser.addCommand()).toThrow()
+    expect(() => browser.browserA.addCommand()).toThrow()
+    expect(() => browser.browserB.overwriteCommand()).toThrow()
+})
+
 test('should allow to call on elements', async () => {
-    const browser = await multiremote({
-        browserA: {
-            logLevel: 'debug',
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        browserB: {
-            logLevel: 'debug',
-            port: 4445,
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    })
+    const browser = await multiremote(caps())
 
     const elem = await browser.$('#foo')
     expect(elem.browserA).toBeDefined()
@@ -68,27 +73,48 @@ test('should allow to call on elements', async () => {
 })
 
 test('should be able to fetch multiple elements', async () => {
-    const browser = await multiremote({
-        browserA: {
-            logLevel: 'debug',
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        browserB: {
-            logLevel: 'debug',
-            port: 4445,
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    })
+    const browser = await multiremote(caps())
 
     const elems = await browser.$$('#foo')
     expect(elems).toHaveLength(3)
 
     const size = await elems[0].getSize()
     expect(size).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
+})
+
+test('should be able to add a command to and element in multiremote', async () => {
+    const browser = await multiremote(caps())
+
+    browser.addCommand('myCustomElementCommand', async function () {
+        return this.execute(() => 1)
+    }, true)
+
+    const elem = await browser.$('#foo')
+
+    expect(await elem.browserA.myCustomElementCommand()).toBe(1)
+    expect(await elem.browserB.myCustomElementCommand()).toBe(1)
+    expect(await elem.myCustomElementCommand()).toEqual([1, 1])
+})
+
+test('should be able to overwrite command to and element in multiremote', async () => {
+    const browser = await multiremote(caps())
+
+    browser.overwriteCommand('getSize', async function (origCmd) {
+        let size = await origCmd()
+        size = { width: size.width / 10, height: size.height / 10 }
+        return size
+    }, true)
+
+    const elem = await browser.$('#foo')
+
+    const sizes = await elem.getSize()
+    const sizeA = await elem.browserA.getSize()
+    const sizeB = await elem.browserB.getSize()
+    const result = { width: 5, height: 3 }
+
+    expect(sizes).toEqual([result, result])
+    expect(sizeA).toEqual(result)
+    expect(sizeB).toEqual(result)
 })
 
 afterEach(() => {

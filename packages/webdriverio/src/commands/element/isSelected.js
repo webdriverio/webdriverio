@@ -12,7 +12,7 @@
     </select>
 
     :isSelected.js
-    it('should detect if an element is selected', function () {
+    it('should detect if an element is selected', () => {
         let element = $('[value="Layla Terry"]');
         console.log(element.isSelected()); // outputs: true
 
@@ -21,7 +21,7 @@
     });
  * </example>
  *
- * @alias browser.isSelected
+ * @alias element.isSelected
  * @return {Boolean} true if element is selected
  * @uses protocol/elements, protocol/elementIdSelected
  * @type state

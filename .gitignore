@@ -38,6 +38,8 @@ jspm_packages/
 
 # Typescript v1 declaration files
 typings/
+!tests/typings
+tests/typings/**/dist
 
 # Optional npm cache directory
 .npm
@@ -57,10 +59,16 @@ typings/
 # dotenv environment variables file
 .env
 
+# lerna changelog cachedir
+.changelog
+
 **/build
 /*.js
+allure-reporter.d.ts
+devtools.d.ts
+!babel.config.js
 !.eslintrc.js
-package-lock.json
+packages/**/package-lock.json
 .DS_Store
 
 website/.sass-cache/
@@ -73,3 +81,14 @@ website/node_modules
 website/i18n/*
 docs/api/**/*.md
 docs/_*.md
+
+# Editor files
+.idea
+.vscode
+!.vscode/extensions.json
+.*.swp
+.history
+.gradle
+wallaby.conf.js
+tags
+tests/.retry_succeeded

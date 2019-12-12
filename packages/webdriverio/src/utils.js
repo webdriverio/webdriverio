@@ -3,152 +3,28 @@ import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
+import logger from '@wdio/logger'
+import isObject from 'lodash.isobject'
+import { URL } from 'url'
 
-import { ELEMENT_KEY, W3C_SELECTOR_STRATEGIES, UNICODE_CHARACTERS } from './constants'
+import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
+import { findStrategy } from './utils/findStrategy'
 
-const DEFAULT_SELECTOR = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-ios uiautomation|accessibility id):(.+)/
+const browserCommands = require('./commands/browser')
+const elementCommands = require('./commands/element')
 
-export const findStrategy = function (value, isW3C) {
-    /**
-     * set default selector
-     */
-    let using = DEFAULT_SELECTOR
+const log = logger('webdriverio')
+const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
-    if (typeof value !== 'string') {
-        throw new Error('selector needs to be typeof `string`')
-    }
-
-    /**
-     * check if user has specified locator strategy directly
-     */
-    const match = value.match(DIRECT_SELECTOR_REGEXP)
-    if (match) {
-        /**
-         * ensure selector strategy is supported
-         */
-        if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
-            throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
-        }
-
-        return {
-            using: match[1],
-            value: match[2]
-        }
-    }
-
-    // use xPath strategy if value starts with //
-    if (value.indexOf('/') === 0 || value.indexOf('(') === 0 ||
-               value.indexOf('../') === 0 || value.indexOf('./') === 0 ||
-               value.indexOf('*/') === 0) {
-        using = 'xpath'
-
-    // use link text strategy if value startes with =
-    } else if (value.indexOf('=') === 0) {
-        using = 'link text'
-        value = value.slice(1)
-
-    // use partial link text strategy if value startes with *=
-    } else if (value.indexOf('*=') === 0) {
-        using = 'partial link text'
-        value = value.slice(2)
-
-    // recursive element search using the UiAutomator library (Android only)
-    } else if (value.indexOf('android=') === 0) {
-        using = '-android uiautomator'
-        value = value.slice(8)
-
-    // recursive element search using the UIAutomation library (iOS-only)
-    } else if (value.indexOf('ios=') === 0) {
-        using = '-ios uiautomation'
-        value = value.slice(4)
-
-    // recursive element search using accessibility id
-    } else if (value.indexOf('~') === 0) {
-        using = 'accessibility id'
-        value = value.slice(1)
-
-    // class name mobile selector
-    // for iOS = UIA...
-    // for Android = android.widget
-    } else if (value.slice(0, 3) === 'UIA' || value.slice(0, 15) === 'XCUIElementType' || value.slice(0, 14).toLowerCase() === 'android.widget') {
-        using = 'class name'
-
-    // use tag name strategy if value contains a tag
-    // e.g. "<div>" or "<div />"
-    } else if (value.search(/<[a-zA-Z-]+( \/)*>/g) >= 0) {
-        using = 'tag name'
-        value = value.replace(/<|>|\/|\s/g, '')
-
-    // use name strategy if value queries elements with name attributes
-    // e.g. "[name='myName']" or '[name="myName"]'
-    } else if (value.search(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/) >= 0) {
-        using = 'name'
-        value = value.match(/^\[name=("|')([a-zA-z0-9\-_. ]+)("|')]$/)[2]
-
-    // any element with given text e.g. h1=Welcome
-    } else if (value.search(/^[a-z0-9]*=(.)+$/) >= 0) {
-        let query = value.split(/=/)
-        let tag = query.shift()
-
-        using = 'xpath'
-        value = `.//${tag.length ? tag : '*'}[normalize-space() = "${query.join('=')}"]`
-
-    // any element containing given text
-    } else if (value.search(/^[a-z0-9]*\*=(.)+$/) >= 0) {
-        let query = value.split(/\*=/)
-        let tag = query.shift()
-
-        using = 'xpath'
-        value = `.//${tag.length ? tag : '*'}[contains(., "${query.join('*=')}")]`
-
-    // any element with certain class or id + given content
-    } else if (value.search(/^[a-z0-9]*(\.|#)-?[_a-zA-Z]+[_a-zA-Z0-9-]*=(.)+$/) >= 0) {
-        let query = value.split(/=/)
-        let tag = query.shift()
-
-        let classOrId = tag.substr(tag.search(/(\.|#)/), 1) === '#' ? 'id' : 'class'
-        let classOrIdName = tag.slice(tag.search(/(\.|#)/) + 1)
-
-        tag = tag.substr(0, tag.search(/(\.|#)/))
-        using = 'xpath'
-        value = `.//${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and normalize-space() = "${query.join('=')}"]`
-
-    // any element with certain class or id + has certain content
-    } else if (value.search(/^[a-z0-9]*(\.|#)-?[_a-zA-Z]+[_a-zA-Z0-9-]*\*=(.)+$/) >= 0) {
-        let query = value.split(/\*=/)
-        let tag = query.shift()
-
-        let classOrId = tag.substr(tag.search(/(\.|#)/), 1) === '#' ? 'id' : 'class'
-        let classOrIdName = tag.slice(tag.search(/(\.|#)/) + 1)
-
-        tag = tag.substr(0, tag.search(/(\.|#)/))
-        using = 'xpath'
-        value = './/' + (tag.length ? tag : '*') + '[contains(@' + classOrId + ', "' + classOrIdName + '") and contains(., "' + query.join('*=') + '")]'
-        value = `.//${tag.length ? tag : '*'}[contains(@${classOrId}, "${classOrIdName}") and contains(., "${query.join('*=')}")]`
-
-    // allow to move up to the parent or select current element
-    } else if (value === '..' || value === '.') {
-        using = 'xpath'
-    }
-
-    /**
-     * ensure selector strategy is supported
-     */
-    if (isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {
-        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
-    }
-
-    return { using, value }
+const scopes = {
+    browser: browserCommands,
+    element: elementCommands
 }
 
 const applyScopePrototype = (prototype, scope) => {
-    const dir = path.resolve(__dirname, 'commands', scope)
-    const files = fs.readdirSync(dir)
-    for (let filename of files) {
-        const commandName = path.basename(filename, path.extname(filename))
-        prototype[commandName] = { value: require(path.join(dir, commandName)) }
-    }
+    Object.entries(scopes[scope]).forEach(([commandName, command]) => {
+        prototype[commandName] = { value: command }
+    })
 }
 
 /**
@@ -161,17 +37,26 @@ export const getPrototype = (scope) => {
      * register action commands
      */
     applyScopePrototype(prototype, scope)
+    prototype.strategies = { value: new Map() }
+
     return prototype
 }
 
 /**
  * get element id from WebDriver response
- * @param  {object} res         body object from response
- * @return {string|undefined}   element id or null if element couldn't be found
+ * @param  {?Object|undefined} res         body object from response or null
+ * @return {?string}   element id or null if element couldn't be found
  */
 export const getElementFromResponse = (res) => {
     /**
-     * depcrecated JSONWireProtocol response
+    * a function selector can return null
+    */
+    if (!res) {
+        return null
+    }
+
+    /**
+     * deprecated JSONWireProtocol response
      */
     if (res.ELEMENT) {
         return res.ELEMENT
@@ -185,36 +70,6 @@ export const getElementFromResponse = (res) => {
     }
 
     return null
-}
-
-/**
- * check if current platform is mobile device
- *
- * @param  {Object}  caps  capabilities
- * @return {Boolean}       true if platform is mobile device
- */
-export function mobileDetector (caps) {
-    let isMobile = Boolean(
-        (typeof caps['appium-version'] !== 'undefined') ||
-        (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
-        (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
-        (typeof caps.deviceName !== 'undefined') ||
-        // Check browserName for specific values
-        (caps.browserName === '' ||
-             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
-    )
-
-    let isIOS = Boolean(
-        (caps.platformName && caps.platformName.match(/iOS/i)) ||
-        (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
-    )
-
-    let isAndroid = Boolean(
-        (caps.platformName && caps.platformName.match(/Android/i)) ||
-        (caps.browserName && caps.browserName.match(/Android/i))
-    )
-
-    return { isMobile, isIOS, isAndroid }
 }
 
 /**
@@ -327,5 +182,235 @@ export function parseCSS (cssPropertyValue, cssProperty) {
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (value) {
-    return UNICODE_CHARACTERS.hasOwnProperty(value) ? [UNICODE_CHARACTERS[value]] : new GraphemeSplitter().splitGraphemes(value)
+    return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
+        ? [UNICODE_CHARACTERS[value]]
+        : new GraphemeSplitter().splitGraphemes(value)
 }
+
+function fetchElementByJSFunction (selector, scope) {
+    if (!scope.elementId) {
+        return scope.execute(selector)
+    }
+    /**
+     * use a regular function because IE does not understand arrow functions
+     */
+    const script = (function (elem) { return (selector).call(elem) }).toString().replace('selector', `(${selector.toString()})`)
+    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope)
+}
+
+/**
+ * logic to find an element
+ */
+export async function findElement(selector) {
+    /**
+     * fetch element using regular protocol command
+     */
+    if (typeof selector === 'string') {
+        const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
+        return this.elementId
+            ? this.findElementFromElement(this.elementId, using, value)
+            : this.findElement(using, value)
+    }
+
+    /**
+     * fetch element with JS function
+     */
+    if (typeof selector === 'function') {
+        const notFoundError = new Error(`Function selector "${selector.toString()}" did not return an HTMLElement`)
+        let elem = await fetchElementByJSFunction(selector, this)
+        elem = Array.isArray(elem) ? elem[0] : elem
+        return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
+    throw new Error(INVALID_SELECTOR_ERROR)
+}
+
+/**
+ * logic to find a elements
+ */
+export async function findElements(selector) {
+    /**
+     * fetch element using regular protocol command
+     */
+    if (typeof selector === 'string') {
+        const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
+        return this.elementId
+            ? this.findElementsFromElement(this.elementId, using, value)
+            : this.findElements(using, value)
+    }
+
+    /**
+     * fetch element with JS function
+     */
+    if (typeof selector === 'function') {
+        let elems = await fetchElementByJSFunction(selector, this)
+        elems = Array.isArray(elems) ? elems : [elems]
+        return elems.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    throw new Error(INVALID_SELECTOR_ERROR)
+}
+
+/**
+ * Strip element object and return w3c and jsonwp compatible keys
+ */
+
+export function verifyArgsAndStripIfElement(args) {
+    function verify(arg) {
+        if (isObject(arg) && arg.constructor.name === 'Element') {
+            if (!arg.elementId) {
+                throw new Error(`The element with selector "${arg.selector}" you trying to pass into the execute method wasn't found`)
+            }
+
+            return {
+                [ELEMENT_KEY]: arg.elementId,
+                ELEMENT: arg.elementId
+            }
+        }
+
+        return arg
+    }
+
+    return !Array.isArray(args) ? verify(args) : args.map(verify)
+}
+
+/**
+ * getElementRect
+ */
+export async function getElementRect(scope) {
+    const rect = await scope.getElementRect(scope.elementId)
+
+    let defaults = { x: 0, y: 0, width: 0, height: 0 }
+
+    /**
+     * getElementRect workaround for Safari 12.0.3
+     * if one of [x, y, height, width] is undefined get rect with javascript
+     */
+    if (Object.keys(defaults).some(key => rect[key] == null)) {
+        /* istanbul ignore next */
+        const rectJs = await getBrowserObject(scope).execute(function (el) {
+            if (!el || !el.getBoundingClientRect) {
+                return
+            }
+            const { left, top, width, height } = el.getBoundingClientRect()
+            return {
+                x: left + this.scrollX,
+                y: top + this.scrollY,
+                width,
+                height
+            }
+        }, scope)
+
+        // try set proper value
+        Object.keys(defaults).forEach(key => {
+            if (rect[key] != null) {
+                return
+            }
+            if (typeof rectJs[key] === 'number') {
+                rect[key] = Math.floor(rectJs[key])
+            } else {
+                log.error('getElementRect', { rect, rectJs, key })
+                throw new Error('Failed to receive element rects via execute command')
+            }
+        })
+    }
+
+    return rect
+}
+
+export function getAbsoluteFilepath(filepath) {
+    return filepath.startsWith('/') || filepath.startsWith('\\') || filepath.match(/^[a-zA-Z]:\\/)
+        ? filepath
+        : path.join(process.cwd(), filepath)
+}
+
+/**
+ * check if directory exists
+ */
+export function assertDirectoryExists(filepath) {
+    if (!fs.existsSync(path.dirname(filepath))) {
+        throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
+    }
+}
+
+/**
+ * check if urls are valid and fix them if necessary
+ * @param  {string}  url                url to navigate to
+ * @param  {Boolean} [retryCheck=false] true if an url was already check and still failed with fix applied
+ * @return {string}                     fixed url
+ */
+export function validateUrl (url, origError) {
+    try {
+        const urlObject = new URL(url)
+        return urlObject.href
+    } catch (e) {
+        /**
+         * if even adding http:// doesn't help, fail with original error
+         */
+        if (origError) {
+            throw origError
+        }
+
+        return validateUrl(`http://${url}`, e)
+    }
+}
+
+/**
+ * get window's scrollX and scrollY
+ * @param {object} scope
+ */
+export function getScrollPosition (scope) {
+    return getBrowserObject(scope).execute('return { scrollX: this.pageXOffset, scrollY: this.pageYOffset };')
+}
+
+export async function hasElementId (element) {
+    /*
+     * This is only necessary as isDisplayed is on the exclusion list for the middleware
+     */
+    if (!element.elementId) {
+        const method = element.isReactElement ? 'react$' : '$'
+
+        element.elementId = (await element.parent[method](element.selector)).elementId
+    }
+
+    /*
+     * if element was still not found it also is not displayed
+     */
+    if (!element.elementId) {
+        return false
+    }
+    return true
+}
+
+export function addLocatorStrategyHandler(scope) {
+    return (name, script) => {
+        if (scope.strategies.get(name)) {
+            throw new Error(`Strategy ${name} already exists`)
+        }
+
+        scope.strategies.set(name, script)
+    }
+}
+
+/**
+ * Enhance elements array with data required to refetch it
+ * @param   {object[]}          elements    elements
+ * @param   {object}            parent      element or browser
+ * @param   {string|Function}   selector    string or function, or strategy name for `custom$$`
+ * @param   {string}            foundWith   name of the command elements were found with, ex `$$`, `react$$`, etc
+ * @param   {Array}             props       additional properties required to fetch elements again
+ * @returns {object[]}  elements
+ */
+export const enhanceElementsArray = (elements, parent, selector, foundWith = '$$', props = []) => {
+    elements.parent = parent
+    elements.selector = selector
+    elements.foundWith = foundWith
+    elements.props = props
+    return elements
+}
+
+/**
+ * is protocol stub
+ * @param {string} automationProtocol
+ */
+export const isStub = (automationProtocol) => automationProtocol === './protocol-stub'

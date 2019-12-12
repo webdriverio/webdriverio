@@ -13,11 +13,11 @@ class FormPage extends Page {
      * define or overwrite page methods
      */
     open () {
-        super.open('login');
+        super.open('login')
     }
 
     submit () {
-        this.submitButton.click();
+        this.submitButton.click()
     }
 }
 

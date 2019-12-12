@@ -5,19 +5,19 @@
  *
  * <example>
     :call.js
-    it('some testing here', function() {
+    it('some testing here', () => {
         browser.url('http://google.com')
         // make an asynchronous call using any 3rd party library supporting promises
         // e.g. call to backend or db to inject fixture data
-        browser.call(function () {
-            return somePromiseLibrary.someMethod().then(function () {
+        browser.call(() => {
+            return somePromiseLibrary.someMethod().then(() => {
                 // ...
             })
         })
         // example for async call to 3rd party library that doesn't support promises
-        browser.call(function () {
-            return new Promise(function(resolve, reject) {
-                someOtherNodeLibrary.someMethod(param1, function(err, res) {
+        browser.call(() => {
+            return new Promise((resolve, reject) => {
+                someOtherNodeLibrary.someMethod(param1, (err, res) => {
                     if (err) {
                         return reject(err)
                     }
@@ -26,8 +26,8 @@
             })
         })
         // continue synchronously
-        browser.click('#elemA')
-        browser.setValue('.firstname','webdriverbot')
+        $('#elemA').click()
+        $('.firstname').setValue('webdriverbot')
     });
  * </example>
  *

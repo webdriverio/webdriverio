@@ -20,10 +20,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/', () => {
         const dir = '/'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)selenium-standalone\.txt/)
     })
 
     test('should handle dir "./log"', () => {
@@ -36,10 +35,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/log', () => {
         const dir = '/log'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)selenium-standalone\.txt/)
     })
 
     test('should handle dir "./log/"', () => {
@@ -52,10 +50,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/log/', () => {
         const dir = '/log/'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)/)
     })
 
     test('should handle dir "./log/selenium"', () => {
@@ -76,10 +73,9 @@ describe('getFilePath', () => {
 
     test('should handle dir "/log/selenium', () => {
         const dir = '/log/selenium'
-        const expectedPath = path.join(dir, defaultFilename)
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)selenium(\\|\/)selenium-standalone\.txt/)
     })
 
     test('should handle file ".log"', () => {
@@ -108,10 +104,9 @@ describe('getFilePath', () => {
 
     test('should handle file "./selenium-log.txt"', () => {
         const file = './selenium-log.txt'
-        const expectedPath = path.join(basePath, file)
         const filePath = getFilePath(file, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)selenium-log\.txt/)
     })
 
     test('should handle file "selenium-log.txt"', () => {
@@ -124,10 +119,9 @@ describe('getFilePath', () => {
 
     test('should handle file "/selenium-log.txt', () => {
         const file = '/selenium-log.txt'
-        const expectedPath = file
         const filePath = getFilePath(file, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)selenium-log\.txt/)
     })
 
     test('should handle file "./log/selenium-log.txt"', () => {
@@ -148,9 +142,8 @@ describe('getFilePath', () => {
 
     test('should handle file "/log/selenium-log.txt', () => {
         const file = '/log/selenium-log.txt'
-        const expectedPath = file
         const filePath = getFilePath(file, defaultFilename)
 
-        expect(filePath).toBe(expectedPath)
+        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)selenium-log\.txt/)
     })
 })

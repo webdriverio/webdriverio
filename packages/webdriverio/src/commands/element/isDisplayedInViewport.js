@@ -1,7 +1,7 @@
 
 /**
  *
- * Return true if the selected DOM-element found by given selector is visible and within the viewport.
+ * Return true if the selected DOM-element found by given selector is partially visible and within the viewport.
  *
  * <example>
     :index.html
@@ -9,25 +9,28 @@
     <div id="notVisible" style="visibility: hidden"></div>
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
-    :isVisibleWithinViewport.js
-    :isVisible.js
-    it('should detect if an element is visible', function () {
-        let isVisibleWithinViewport = browser.isVisibleWithinViewport('#notDisplayed');
-        console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#notVisible');
-        console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#notExisting');
-        console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#notInViewport');
-        console.log(isVisibleWithinViewport); // outputs: false
-        isVisibleWithinViewport = browser.isVisibleWithinViewport('#zeroOpacity');
-        console.log(isVisibleWithinViewport); // outputs: false
+    :isDisplayedInViewport.js
+    :isDisplayed.js
+    it('should detect if an element is visible', () => {
+        let isDisplayedInViewport = $('#notDisplayed').isDisplayedInViewport();
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = $('#notVisible').isDisplayedInViewport();
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = $('#notExisting').isDisplayedInViewport();
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = $('#notInViewport').isDisplayedInViewport();
+        console.log(isDisplayedInViewport); // outputs: false
+
+        isDisplayedInViewport = $('#zeroOpacity').isDisplayedInViewport();
+        console.log(isDisplayedInViewport); // outputs: false
     });
  * </example>
  *
- * @alias browser.isVisibleWithinViewport
- * @param   {String}             selector  DOM-element
- * @return {Boolean|Boolean[]}            true if element(s)* [is|are] visible
+ * @alias element.isDisplayedInViewport
+ * @return {Boolean}            true if element(s)* [is|are] displayed
  * @uses protocol/selectorExecute, protocol/timeoutsAsyncScript
  * @type state
  *
@@ -35,10 +38,14 @@
 
 import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject } from '../../utils'
-import isDisplayedInViewportScript from '../../scripts/isDisplayedInViewport'
+import isElementInViewportScript from '../../scripts/isElementInViewport'
 
-export default function isDisplayedInViewport () {
-    return getBrowserObject(this).execute(isDisplayedInViewportScript, {
+export default async function isDisplayedInViewport () {
+    if (!await this.isDisplayed()) {
+        return false
+    }
+
+    return getBrowserObject(this).execute(isElementInViewportScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
     })

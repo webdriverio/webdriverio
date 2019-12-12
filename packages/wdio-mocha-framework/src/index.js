@@ -1,13 +1,13 @@
 import path from 'path'
 import Mocha from 'mocha'
 
-import logger from 'wdio-logger'
-import { runTestInFiberContext, executeHooksWithArgs } from 'wdio-config'
+import logger from '@wdio/logger'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP } from './constants'
 
-const log = logger('wdio-mocha-framework')
+const log = logger('@wdio/mocha-framework')
 
 /**
 * Extracts the mocha UI type following this convention:
@@ -34,16 +34,15 @@ class MochaAdapter {
             mochaOpts: {}
         }, config)
         this.runner = {}
-
-        this.messageCounter = 0
-        this.messageUIDs = {
-            suite: {},
-            hook: {},
-            test: {}
-        }
+        this.level = 0
+        this.suiteCnt = new Map()
+        this.hookCnt = new Map()
+        this.testCnt = new Map()
+        this.suiteIds = ['0']
+        this._hasTests = true
     }
 
-    async run () {
+    async init () {
         const { mochaOpts } = this.config
         const mocha = this.mocha = new Mocha(mochaOpts)
         mocha.loadFiles()
@@ -52,9 +51,49 @@ class MochaAdapter {
 
         this.specs.forEach((spec) => mocha.addFile(spec))
         mocha.suite.on('pre-require', ::this.preRequire)
+        this._loadFiles(mochaOpts)
 
+        return this
+    }
+
+    _loadFiles (mochaOpts) {
+        if (this.config.featureFlags.specFiltering !== true) {
+            return false
+        }
+        try {
+            this.mocha.loadFiles()
+
+            /**
+             * grep
+             */
+            const mochaRunner = new Mocha.Runner(this.mocha.suite)
+            if (mochaOpts.grep) {
+                mochaRunner.grep(this.mocha.options.grep, mochaOpts.invert)
+            }
+
+            this._hasTests = mochaRunner.total > 0
+        } catch (err) {
+            log.warn(
+                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
+                '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
+                'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
+                `Spec file(s): ${this.specs.join(',')}\n`,
+                'Error: ', err
+            )
+        }
+    }
+
+    hasTests () {
+        /**
+         * filter specs only if feature enabled explicitly to avoid breaking changes.
+         * If the feature is enabled user should avoid interacting with `browser` object before session is started
+         */
+        return this.config.featureFlags.specFiltering !== true || this._hasTests
+    }
+
+    async run () {
+        const mocha = this.mocha
         let runtimeError
-        await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
         const result = await new Promise((resolve) => {
             try {
                 this.runner = mocha.run(resolve)
@@ -67,8 +106,6 @@ class MochaAdapter {
                 this.runner.on(e, this.emit.bind(this, EVENTS[e])))
 
             this.runner.suite.beforeAll(this.wrapHook('beforeSuite'))
-            this.runner.suite.beforeEach(this.wrapHook('beforeTest'))
-            this.runner.suite.afterEach(this.wrapHook('afterTest'))
             this.runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
         await executeHooksWithArgs(this.config.after, [runtimeError || result, this.capabilities, this.specs])
@@ -84,7 +121,7 @@ class MochaAdapter {
     }
 
     options (options, context) {
-        let {require = [], compilers = []} = options
+        let { require = [], compilers = [] } = options
 
         if (typeof require === 'string') {
             require = [require]
@@ -99,17 +136,25 @@ class MochaAdapter {
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui)
         const type = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 
-        this.options(options, { context, file, mocha, options })
+        const hookArgsFn = (context) => {
+            return [{ ...context.test, parent: context.test.parent.title }, context]
+        }
+
         INTERFACES[type].forEach((fnName) => {
             let testCommand = INTERFACES[type][0]
+            const isTest = [testCommand, testCommand + '.only'].includes(fnName)
 
             runTestInFiberContext(
-                [testCommand, testCommand + '.only'],
-                this.config.beforeHook,
-                this.config.afterHook,
-                fnName
+                isTest,
+                isTest ? this.config.beforeTest : this.config.beforeHook,
+                hookArgsFn,
+                isTest ? this.config.afterTest : this.config.afterHook,
+                hookArgsFn,
+                fnName,
+                this.cid
             )
         })
+        this.options(options, { context, file, mocha, options })
     }
 
     /**
@@ -156,21 +201,23 @@ class MochaAdapter {
                 expected: params.err.expected,
                 actual: params.err.actual
             }
+
+            /**
+             * hook failures are emitted as "test:fail"
+             */
+            if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all| each)?" hook/)) {
+                message.type = 'hook:end'
+            }
         }
 
         if (params.payload) {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
 
-            /**
-             * get title for hooks in root suite
-             */
-            if (message.parent === '' && params.payload.parent && params.payload.parent.suites) {
-                message.parent = params.payload.parent.suites[0].title
-            }
-
             message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
             message.pending = params.payload.pending || false
+            message.file = params.payload.file
+            message.duration = params.payload.duration
 
             /**
              * Add the current test title to the payload for cases where it helps to
@@ -182,7 +229,6 @@ class MochaAdapter {
 
             if (params.type.match(/Test/)) {
                 message.passed = (params.payload.state === 'passed')
-                message.duration = params.payload.duration
             }
 
             if (params.payload.context) { message.context = params.payload.context }
@@ -214,88 +260,84 @@ class MochaAdapter {
          */
         if (payload.root) return
 
-        let message = this.formatMessage({type: event, payload, err})
+        let message = this.formatMessage({ type: event, payload, err })
 
         message.cid = this.cid
         message.specs = this.specs
-
-        let { uid, parentUid } = this.generateUID(message)
-        message.uid = uid
-        message.parentUid = parentUid
+        message.uid = this.getUID(message)
 
         if (message.error) {
             this.lastError = message.error
         }
 
-        this.reporter.emit(event, message)
+        this.reporter.emit(message.type, message)
     }
 
-    generateUID (message) {
-        var uid, parentUid
-
-        switch (message.type) {
-        case 'suite:start':
-            uid = this.getUID(message.title, 'suite', true)
-            parentUid = uid
-            break
-
-        case 'suite:end':
-            uid = this.getUID(message.title, 'suite')
-            parentUid = uid
-            break
-
-        case 'hook:start':
-            uid = this.getUID(message.title, 'hook', true)
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        case 'hook:end':
-            uid = this.getUID(message.title, 'hook')
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        case 'test:start':
-            uid = this.getUID(message.title, 'test', true)
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        case 'test:pending':
-        case 'test:end':
-        case 'test:pass':
-        case 'test:fail':
-            uid = this.getUID(message.title, 'test')
-            parentUid = this.getUID(message.parent, 'suite')
-            break
-
-        default:
-            throw new Error(`Unknown message type : ${message.type}`)
-        }
-
-        return {
-            uid,
-            parentUid
-        }
+    getSyncEventIdStart (type) {
+        const prop = `${type}Cnt`
+        const suiteId = this.suiteIds[this.suiteIds.length - 1]
+        const cnt = this[prop].has(suiteId)
+            ? this[prop].get(suiteId)
+            : 0
+        this[prop].set(suiteId, cnt + 1)
+        return `${type}-${suiteId}-${cnt}`
     }
 
-    getUID (title, type, start) {
-        if (start !== true && this.messageUIDs[type][title]) {
-            return this.messageUIDs[type][title]
+    getSyncEventIdEnd (type) {
+        const prop = `${type}Cnt`
+        const suiteId = this.suiteIds[this.suiteIds.length - 1]
+        const cnt = this[prop].get(suiteId) - 1
+        return `${type}-${suiteId}-${cnt}`
+    }
+
+    getUID (message) {
+        if (message.type === 'suite:start') {
+            const suiteCnt = this.suiteCnt.has(this.level)
+                ? this.suiteCnt.get(this.level)
+                : 0
+            const suiteId = `suite-${this.level}-${suiteCnt}`
+
+            if (this.suiteCnt.has(this.level)) {
+                this.suiteCnt.set(this.level, this.suiteCnt.get(this.level) + 1)
+            } else {
+                this.suiteCnt.set(this.level, 1)
+            }
+
+            // const suiteId = this.getSyncEventIdStart('suite')
+            this.suiteIds.push(`${this.level}${suiteCnt}`)
+            this.level++
+            return suiteId
+        }
+        if (message.type === 'suite:end') {
+            this.level--
+            const suiteCnt = this.suiteCnt.get(this.level) - 1
+            const suiteId = `suite-${this.level}-${suiteCnt}`
+            this.suiteIds.pop()
+            return suiteId
+        }
+        if (message.type === 'hook:start') {
+            return this.getSyncEventIdStart('hook')
+        }
+        if (message.type === 'hook:end') {
+            return this.getSyncEventIdEnd('hook')
+        }
+        if (['test:start', 'test:pending'].includes(message.type)) {
+            return this.getSyncEventIdStart('test')
+        }
+        if (['test:end', 'test:pass', 'test:fail'].includes(message.type)) {
+            return this.getSyncEventIdEnd('test')
         }
 
-        let uid = title + this.messageCounter++
-
-        this.messageUIDs[type][title] = uid
-
-        return uid
+        throw new Error(`Unknown message type : ${message.type}`)
     }
 }
 
 const adapterFactory = {}
 
-adapterFactory.run = async function (...args) {
+adapterFactory.init = async function (...args) {
     const adapter = new MochaAdapter(...args)
-    const result = await adapter.run()
-    return result
+    const instance = await adapter.init()
+    return instance
 }
 
 export default adapterFactory

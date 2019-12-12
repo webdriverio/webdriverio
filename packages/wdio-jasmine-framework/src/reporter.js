@@ -1,4 +1,4 @@
-const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|wdio-sync\/(build|src)|- - - - -)/g
+const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|- - - - -)/g
 
 export default class JasmineReporter {
     constructor (reporter, params) {
@@ -11,6 +11,7 @@ export default class JasmineReporter {
         this.parent = []
         this.failedCount = 0
         this.startedTest = null
+        this.startedSuite = null
     }
 
     suiteStarted (suite) {
@@ -18,6 +19,7 @@ export default class JasmineReporter {
         suite.type = 'suite'
         suite.start = new Date()
 
+        this.startedSuite = suite
         this.emit('suite:start', suite)
         this.parent.push({
             description: suite.description,
@@ -42,8 +44,16 @@ export default class JasmineReporter {
             test.status = 'pending'
         }
 
-        if (test.failedExpectations.length && this.shouldCleanStack) {
-            test.failedExpectations = test.failedExpectations.map(::this.cleanStack)
+        if (test.failedExpectations.length) {
+            let errors = test.failedExpectations
+            if (this.shouldCleanStack) {
+                errors = test.failedExpectations.map(x => this.cleanStack(x))
+            }
+            test.errors = errors
+            // We maintain the single error property for backwards compatibility with reporters
+            // However, any reporter wanting to make use of Jasmine's 'soft assertion' type expects
+            // should default to looking at 'errors' if they are available
+            test.error = errors[0]
         }
 
         const e = 'test:' + test.status.replace(/ed/, '')
@@ -83,6 +93,7 @@ export default class JasmineReporter {
         suite.type = 'suite'
         suite.duration = new Date() - this.suiteStart
         this.emit('suite:end', suite)
+        this.startedSuite = null
     }
 
     emit (event, payload) {
@@ -91,13 +102,19 @@ export default class JasmineReporter {
             uid: this.getUniqueIdentifier(payload),
             event: event,
             title: payload.description,
+            fullTitle: payload.fullName,
             pending: payload.status === 'pending',
+            pendingReason: payload.pendingReason,
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
-            error: payload.failedExpectations && payload.failedExpectations.length ? payload.failedExpectations[0] : null,
+            // We maintain the single error property for backwards compatibility with reporters
+            // However, any reporter wanting to make use of Jasmine's 'soft assertion' type expects
+            // should default to looking at 'errors' if they are available
+            error: payload.error,
+            errors: payload.errors,
             duration: payload.duration || 0,
             specs: this.specs,
-            start: payload.start
+            start: payload.start,
         }
 
         this.reporter.emit(event, message)
@@ -112,6 +129,10 @@ export default class JasmineReporter {
     }
 
     cleanStack (error) {
+        if (!error.stack) {
+            return error
+        }
+
         let stack = error.stack.split('\n')
         stack = stack.filter((line) => !line.match(STACKTRACE_FILTER))
         error.stack = stack.join('\n')

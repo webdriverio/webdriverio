@@ -5,13 +5,16 @@
  * retrieve all.
  *
  * <example>
-    :getCookie.js
-    it('should return a cookie for me', function () {
-        browser.setCookie({name: 'test', value: '123'})
-        browser.setCookie({name: 'test2', value: '456'})
-        var testCookie = browser.getCookies(['test'])
-        console.log(testCookie); // outputs: { name: 'test', value: '123' }
-        var allCookies = browser.getCookies()
+    :getCookies.js
+    it('should return a cookie for me', () => {
+        browser.setCookies([
+            {name: 'test', value: '123'},
+            {name: 'test2', value: '456'}
+        ])
+        const testCookie = browser.getCookies(['test'])
+        console.log(testCookie); // outputs: [{ name: 'test', value: '123' }]
+
+        const allCookies = browser.getCookies()
         console.log(allCookies);
         // outputs:
         // [
@@ -21,7 +24,7 @@
     })
  * </example>
  *
- * @alias browser.getCookie
+ * @alias browser.getCookies
  * @param {String[]=} names  names of requested cookies
  * @return {Object[]}        requested cookies if existing
  * @uses webdriver/getAllCookies
@@ -35,10 +38,10 @@ export default async function getCookies(names) {
     }
 
     if (namesList.every(obj => typeof obj !== 'string')) {
-        throw new Error('Invalid input (see http://webdriver.io/docs/api/browser/getCookies.html for documentation.')
+        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies.html for documentation.')
     }
 
     const allCookies = await this.getAllCookies()
 
-    return allCookies.filter(cookie => namesList.includes(cookie.name));
+    return allCookies.filter(cookie => namesList.includes(cookie.name))
 }

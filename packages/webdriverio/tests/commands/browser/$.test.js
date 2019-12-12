@@ -3,8 +3,6 @@ import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 
 describe('element', () => {
-    let elem
-
     it('should fetch an element', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -13,7 +11,7 @@ describe('element', () => {
             }
         })
 
-        elem = await browser.$('#foo')
+        const elem = await browser.$('#foo')
         expect(request.mock.calls[1][0].method).toBe('POST')
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
         expect(request.mock.calls[1][0].body).toEqual({ using: 'css selector', value: '#foo' })
@@ -30,9 +28,36 @@ describe('element', () => {
             }
         })
 
-        elem = await browser.$('#foo')
+        const elem = await browser.$('#foo')
         expect(elem[ELEMENT_KEY]).toBe(undefined)
         expect(elem.ELEMENT).toBe('some-elem-123')
+    })
+
+    it('should allow to transform protocol reference into a WebdriverIO element', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$({ [ELEMENT_KEY]: 'foobar' })
+        expect(elem.elementId).toBe('foobar')
+    })
+
+    it('keeps prototype from browser object', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                'appium-version': '1.9.2'
+            }
+        })
+
+        expect(browser.isMobile).toBe(true)
+        const elem = await browser.$('#foo')
+        expect(elem.isMobile).toBe(true)
     })
 
     afterEach(() => {

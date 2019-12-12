@@ -1,24 +1,27 @@
 /* eslint-disable no-console */
 
-const WDIOReporter = require('../../../../packages/wdio-reporter/build')
+const WDIOReporter = require('../../../../packages/wdio-reporter/build').default
 
 module.exports = class CustomReporter extends WDIOReporter {
     constructor (options) {
         super(options)
-        console.log('initialised custom reporter with the following reporter options:', options);
-
-        this.on('start', () => console.log('start'))
-        this.on('end', () => console.log('end'))
-        this.on('suite:start', () => console.log('suite:start'))
-        this.on('suite:end', () => console.log('suite:end'))
-        this.on('test:start', () => console.log('test:start'))
-        this.on('test:end', () => console.log('test:end'))
-        this.on('hook:start', () => console.log('hook:start'))
-        this.on('hook:end', () => console.log('hook:end'))
-        this.on('test:pass', () => console.log('test:pass'))
-        this.on('test:fail', () => console.log('test:fail'))
-        this.on('test:pending', () => console.log('test:pending'))
+        console.log('initialised custom reporter with the following reporter options:', options)
 
         this.write('Some log line')
     }
+
+    onRunnerStart () { console.log('onRunnerStart')}
+    onBeforeCommand () { console.log('onBeforeCommand') }
+    onAfterCommand () { console.log('onAfterCommand') }
+    onScreenshot () { console.log('onScreenshot') }
+    onSuiteStart () { console.log('onSuiteStart') }
+    onHookStart () { console.log('onHookStart') }
+    onHookEnd () { console.log('onHookEnd') }
+    onTestStart () { console.log('onTestStart') }
+    onTestPass () { console.log('onTestPass') }
+    onTestFail () { console.log('onTestFail') }
+    onTestSkip () { console.log('onTestSkip') }
+    onTestEnd () { console.log('onTestEnd') }
+    onSuiteEnd () { console.log('onSuiteEnd') }
+    onRunnerEnd () { console.log('onRunnerEnd') }
 }

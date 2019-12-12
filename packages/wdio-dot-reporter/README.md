@@ -7,12 +7,12 @@ WebdriverIO Dot Reporter
 
 ## Installation
 
-The easiest way is to keep `wdio-dot-reporter` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/dot-reporter` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-dot-reporter": "~0.0.8"
+    "@wdio/dot-reporter": "^5.0.0"
   }
 }
 ```
@@ -20,10 +20,12 @@ The easiest way is to keep `wdio-dot-reporter` as a devDependency in your `packa
 You can simple do it by:
 
 ```bash
-npm install wdio-dot-reporter --save-dev
+npm install @wdio/dot-reporter --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here](/docs/gettingstarted.html).
+
+Dot reporter does not currently support test failure output.  You can track progress on this feature [here](https://github.com/webdriverio/webdriverio/pull/3589).  [Spec Reporter](/docs/spec-reporter.html) can be used in the meantime.
 
 ## Configuration
 
@@ -66,4 +68,4 @@ $ npm build
 
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

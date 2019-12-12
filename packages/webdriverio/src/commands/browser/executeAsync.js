@@ -1,3 +1,4 @@
+import { verifyArgsAndStripIfElement } from '../../utils'
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
@@ -19,21 +20,21 @@
  *
  * <example>
     :executeAsync.js
-    it('should execute async JavaScript on the page', function () {
-        browser.timeouts('script', 5000);
-        var result = browser.executeAsync(function(a, b, c, d, done) {
-            // browser context - you may access neither client nor console
-            setTimeout(function() {
-                done(a + b + c + d);
+    it('should execute async JavaScript on the page', () => {
+        browser.setTimeout({ script: 5000 })
+        const result = browser.executeAsync(function(a, b, c, d, done) {
+            // browser context - you may not access client or console
+            setTimeout(() => {
+                done(a + b + c + d)
             }, 3000);
         }, 1, 2, 3, 4)
         // node.js context - client and console are available
-        console.log(result.value); // outputs: 10
+        console.log(result) // outputs: 10
     });
  * </example>
  *
  * @param {String|Function} script     The script to execute.
- * @param {*}               arguments  script arguments
+ * @param {*=}               arguments  script arguments
  *
  * @return {*}             The script result.
  *
@@ -60,5 +61,5 @@ export default function executeAsync (...args) {
         script = `return (${script}).apply(null, arguments)`
     }
 
-    return this.executeAsyncScript(script, args)
+    return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args))
 }

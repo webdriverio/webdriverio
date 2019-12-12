@@ -3,24 +3,24 @@ WebdriverIO Reporter
 
 > A WebdriverIO utility to help reporting all events
 
-The `wdio-reporter` package can be used to create own custom reporter and publish them to NPM. They have to follow a specific convention as described below in order to work properly. First you need to add `wdio-reporter` as dependency of your custom reporter:
+The `@wdio/reporter` package can be used to create own custom reporter and publish them to NPM. They have to follow a specific convention as described below in order to work properly. First you need to add `@wdio/reporter` as dependency of your custom reporter:
 
 ```sh
-npm install wdio-reporter
+npm install @wdio/reporter
 ```
 
 or
 
 ```sh
-yarn add wdio-reporter
+yarn add @wdio/reporter
 ```
 
-Then you need to extend your reporter with the main wdio-reporter class:
+Then you need to extend your reporter with the main `@wdio/reporter` class:
 
 ```js
-import WDIOReporter from 'wdio-reporter'
+import Reporter from '@wdio/reporter'
 
-export default MyCustomeReporter extends WDIOReporter {
+export default MyCustomeReporter extends Reporter {
     constructor () {
         super()
         // your custom logic if necessary
@@ -39,7 +39,7 @@ export default MyCustomeReporter extends WDIOReporter {
 }
 ```
 
-The WDIOReporter calls your event functions if provided when an event was triggered and provides information on that event in a consistent format. You can always register your own listener to receive the raw data that was provided by the framework, e.g. instead of using the `onSuiteStart` method you can do:
+The `Reporter` parent class calls your event functions if provided when an event was triggered and provides information on that event in a consistent format. You can always register your own listener to receive the raw data that was provided by the framework, e.g. instead of using the `onSuiteStart` method you can do:
 
 ```js
 this.on('suite:start', (raw) => {
@@ -51,14 +51,14 @@ in your constructor function.
 
 ## Configuration
 
-User can pass in custom configurations for each reporter. Per default WebdriverIO populates the `logDir` and `logLevel` option to the reporter, they can get overwritten too. For example, if the user has provided the following reporter options:
+User can pass in custom configurations for each reporter. Per default WebdriverIO populates the `outputDir` and `logLevel` option to the reporter, they can get overwritten too. For example, if the user has provided the following reporter options:
 
 ```js
 // wdio.conf.js
 exports.config = {
     // ...
     reporters: ['dot', ['my-reporter', {
-        logDir: '/some/path',
+        outputDir: '/some/path',
         foo: 'bar'
     }]]
     // ...
@@ -68,14 +68,14 @@ exports.config = {
 your options in your reporter class are as follows:
 
 ```js
-export default class MyReporter extends WDIOReporter {
+export default class MyReporter extends Reporter {
     constructor () {
         super()
         console.log(this.options)
         /**
          * outputs:
          * {
-         *   logDir: '/some/path',
+         *   outputDir: '/some/path',
          *   logLevel: 'trace',
          *   foo: 'bar'
          * }
@@ -84,10 +84,10 @@ export default class MyReporter extends WDIOReporter {
 }
 ```
 
-You can access all options via `this.options`. You can push logs to stdout or a log file depending of whether the `stdout` option is true or false. Please use the internal method `write` that is provided by the `WDIOReporter` parent class in order to push out logs, e.g.
+You can access all options via `this.options`. You can push logs to stdout or a log file depending of whether the `stdout` option is true or false. Please use the internal method `write` that is provided by the `Reporter` parent class in order to push out logs, e.g.
 
 ```js
-class MyReporter extends WDIOReporter {
+class MyReporter extends Reporter {
     constructor (options) {
         /**
          * make dot reporter to write to output stream by default
@@ -116,6 +116,26 @@ test "some other test" passed
 ```
 
 If `stdout` is set to `false` WebdriverIO will automatically write to a filestream at a location where other logs are stored as well.
+
+## Synchronization
+
+If your reporter needs to do some async computation after the test (e.g. upload logs to a server) you can overwrite the `isSynchronised` getter method to manage this. By default this property always returns true as most of the reporters don't require to do any async work. However in case you need to handle this overwrite the getter method with an custom implementation (e.g. [wdio-sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sumologic-reporter)).
+
+```js
+class MyReporter extends Reporter {
+    constructor (options) {
+        // ...
+    }
+
+    get isSynchronised (test) {
+        return this.unsyncedMessages.length === 0
+    }
+
+    // ...
+}
+```
+
+The wdio testrunner will wait to kill the runner process until every reporter has the `isSynchronised` property set to `true`.
 
 ## Events
 
@@ -169,7 +189,6 @@ HookStats {
   cid: '0-0',
   title: '"before each" hook',
   parent: 'root suite',
-  parentUid: 'root suite2' } }
 ```
 
 ##### onHookEnd
@@ -183,7 +202,6 @@ HookStats {
   cid: '0-0',
   title: '"before each" hook',
   parent: 'root suite',
-  parentUid: 'root suite2',
   end: '2018-02-09T13:30:40.182Z' } }
 ```
 
@@ -199,6 +217,69 @@ TestStats {
   title: 'passing test',
   fullTitle: 'passing test',
   state: 'pending' } }
+```
+
+Cucumber tests come with an additional `argument` property containing data tables if used in feature files, e.g.:
+
+```js
+TestStats {
+  type: 'test',
+  start: '2019-07-08T08:44:56.666Z',
+  duration: 0,
+  uid: 'I add the following grocieries16',
+  cid: '0-0',
+  title: 'I add the following grocieries',
+  output: [],
+  argument: [{
+    rows: [{
+      cells: ['Item', 'Amount'],
+      locations: [{
+        line: 17,
+        column: 11
+      }, {
+        line: 17,
+        column: 24
+      }]
+    }, {
+      cells: ['Milk', '2'],
+      locations: [{
+        line: 18,
+        column: 11
+      }, {
+        line: 18,
+        column: 24
+      }]
+    }, {
+      cells: ['Butter', '1'],
+      locations: [{
+        line: 19,
+        column: 11
+      }, {
+        line: 19,
+        column: 24
+      }]
+    }, {
+        cells: ['Noodles', '1'],
+      locations: [{
+        line: 20,
+        column: 11
+      }, {
+        line: 20,
+        column: 24
+      }]
+    }, {
+      cells: ['Schocolate', '3'],
+      locations: [{
+        line: 21,
+        column: 11
+      }, {
+        line: 21,
+        column: 24
+      }]
+    }]
+  }],
+  state: 'pending'
+}
 ```
 
 ##### onTestSkip
@@ -295,7 +376,8 @@ RunnerStats {
      timeouts: { implicit: 0, pageLoad: 300000, script: 30000 } },
   sanitizedCapabilities: 'firefox.59_0.darwin',
   config: [Object],
-  specs: [ '/path/to/project/test/my.test.js' ] }
+  specs: [ '/path/to/project/test/my.test.js' ] },
+  retry: 0
 ```
 
 ##### onRunnerEnd
@@ -312,6 +394,7 @@ RunnerStats {
   config: [Object],
   specs: [ '/path/to/project/test/my.test.js' ],
   failures: 1,
+  retries: 1,
   end: '2018-02-09T14:30:21.417Z' } }
 ```
 

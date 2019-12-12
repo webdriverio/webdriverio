@@ -2,13 +2,15 @@
  *
  * Drag an item to a destination element.
  *
- * @alias browser.dragAndDrop
+ * @alias element.dragAndDrop
  * @param {Element} target    destination selector
- * @param {Number}  duration  how long the drag should take place
+ * @param {Number=}  duration  how long the drag should take place
  * @uses action/moveToObject, protocol/buttonDown, protocol/buttonUp, property/getLocation, protocol/touchDown, protocol/touchMove, protocol/touchUp
  * @type action
  *
  */
+
+import { getElementRect, getScrollPosition } from '../../utils'
 
 const ACTION_BUTTON = 0
 
@@ -27,12 +29,13 @@ export default async function dragAndDrop (target, duration = 100) {
     /**
      * get coordinates to drag and drop
      */
-    const sourceRect = await this.getElementRect(this.elementId)
-    const targetRect = await this.getElementRect(target.elementId)
-    const sourceX = parseInt(sourceRect.x + (sourceRect.width / 2), 10)
-    const sourceY = parseInt(sourceRect.y + (sourceRect.height / 2), 10)
-    const targetX = parseInt(targetRect.x + (targetRect.width / 2), 10) - sourceX
-    const targetY = parseInt(targetRect.y + (targetRect.height / 2), 10) - sourceY
+    const { scrollX, scrollY } = await getScrollPosition(this)
+    const sourceRect = await getElementRect(this)
+    const targetRect = await getElementRect(target)
+    const sourceX = parseInt(sourceRect.x - scrollX + (sourceRect.width / 2), 10)
+    const sourceY = parseInt(sourceRect.y - scrollY + (sourceRect.height / 2), 10)
+    const targetX = parseInt(targetRect.x - scrollX + (targetRect.width / 2), 10) - sourceX
+    const targetY = parseInt(targetRect.y - scrollY + (targetRect.height / 2), 10) - sourceY
 
     /**
      * W3C way of handle the drag and drop action
@@ -42,11 +45,11 @@ export default async function dragAndDrop (target, duration = 100) {
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
         actions: [
-            {type: "pointerMove", duration: 0, x: sourceX, y: sourceY},
-            {type: "pointerDown", button: ACTION_BUTTON},
-            {type: "pause", duration: 10}, // emulate human pause
-            {type: "pointerMove", duration, origin: "pointer", x: targetX, y: targetY},
-            {type: "pointerUp", button: ACTION_BUTTON}
+            { type: 'pointerMove', duration: 0, x: sourceX, y: sourceY },
+            { type: 'pointerDown', button: ACTION_BUTTON },
+            { type: 'pause', duration: 10 }, // emulate human pause
+            { type: 'pointerMove', duration, origin: 'pointer', x: targetX, y: targetY },
+            { type: 'pointerUp', button: ACTION_BUTTON }
         ]
     }]).then(() => this.releaseActions())
 }

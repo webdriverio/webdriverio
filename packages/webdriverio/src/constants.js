@@ -30,12 +30,35 @@ export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 export const WDIO_DEFAULTS = {
     /**
+     * allows to specify automation protocol
+     */
+    automationProtocol: {
+        default: 'webdriver',
+        type: (param) => {
+            if (typeof param !== 'string') {
+                throw new Error('the "automationProtocol" option needs to from type strings')
+            } else if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
+                throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
+            }
+
+            try {
+                require.resolve(param)
+            } catch (e) {
+                /* istanbul ignore next */
+                throw new Error(
+                    'Automation protocol package is not installed!\n' +
+                    `Please install it via \`npm install ${param}\``
+                )
+            }
+        }
+    },
+    /**
      * define specs for test execution
      */
     specs: {
         type: (param) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "specs" options needs to be a list of strings')
+                throw new Error('the "specs" option needs to be a list of strings')
             }
         }
     },
@@ -45,7 +68,7 @@ export const WDIO_DEFAULTS = {
     exclude: {
         type: (param) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "exclude" options needs to be a list of strings')
+                throw new Error('the "exclude" option needs to be a list of strings')
             }
         }
     },
@@ -55,6 +78,37 @@ export const WDIO_DEFAULTS = {
      */
     suites: {
         type: 'object'
+    },
+    /**
+     * capabilities of WebDriver sessions
+     */
+    capabilities: {
+        type: (param) => {
+            /**
+             * should be an object
+             */
+            if (!Array.isArray(param)) {
+                if (typeof param === 'object') {
+                    return true
+                }
+
+                throw new Error('the "capabilities" options needs to be an object or a list of objects')
+            }
+
+            /**
+             * or an array of objects
+             */
+            for (const option of param) {
+                if (typeof option === 'object') { // Check does not work recursively
+                    continue
+                }
+
+                throw new Error('expected every item of a list of capabilities to be of type object')
+            }
+
+            return true
+        },
+        required: true
     },
     /**
      * Shorten navigateTo command calls by setting a base url
@@ -110,14 +164,19 @@ export const WDIO_DEFAULTS = {
                 throw new Error('the "reporters" options needs to be a list of strings')
             }
 
+            const isValidReporter = (option) => (
+                (typeof option === 'string') ||
+                (typeof option === 'function')
+            )
+
             /**
              * array elements must be:
              */
             for (const option of param) {
                 /**
-                 * either a string
+                 * either a string or a function (custom reporter)
                  */
-                if (typeof option === 'string') {
+                if (isValidReporter(option)) {
                     continue
                 }
 
@@ -128,10 +187,7 @@ export const WDIO_DEFAULTS = {
                 if (
                     Array.isArray(option) &&
                     typeof option[1] === 'object' &&
-                    (
-                        (typeof option[0] === 'string') ||
-                        (typeof option[0] === 'function')
-                    )
+                    isValidReporter(option[0])
                 ) {
                     continue
                 }
@@ -139,30 +195,86 @@ export const WDIO_DEFAULTS = {
                 throw new Error(
                     'a reporter should be either a string in the format "wdio-<reportername>-reporter" ' +
                     'or a function/class. Please see the docs for more information on custom reporters ' +
-                    '(http://webdriver.io/docs/customreporter.html)'
+                    '(https://webdriver.io/docs/customreporter.html)'
                 )
             }
 
             return true
         }
     },
+    /**
+     * set of WDIO services to use
+     */
+    services: {
+        type: (param) => {
+            /**
+             * should be an array
+             */
+            if (!Array.isArray(param)) {
+                throw new Error('the "services" options needs to be a list of strings and/or arrays')
+            }
+
+            /**
+             * with arrays and/or strings
+             */
+            for (const option of param) {
+                if (!Array.isArray(option)) {
+                    if (typeof option === 'string') {
+                        continue
+                    }
+                    throw new Error('the "services" options needs to be a list of strings and/or arrays')
+                }
+            }
+
+            return true
+        },
+        default: []
+    },
+    /**
+     * Node arguments to specify when launching child processes
+     */
+    execArgv: {
+        type: (param) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "execArgv" options needs to be a list of strings')
+            }
+        },
+        default: []
+    },
+    /**
+     * amount of instances to be allowed to run in total
+     */
     maxInstances: {
         type: 'number'
     },
+    /**
+     * amount of instances to be allowed to run per capability
+     */
     maxInstancesPerCapability: {
         type: 'number'
     },
-    logDir: {
+    /**
+     * directory for log files
+     */
+    outputDir: {
         type: 'string',
         default: process.cwd()
+    },
+    /**
+     * list of strings to watch of `wdio` command is called with `--watch` flag
+     */
+    filesToWatch: {
+        type: (param) => {
+            if (!Array.isArray(param)) {
+                throw new Error('the "filesToWatch" options needs to be a list of strings')
+            }
+        }
     },
 
     /**
      * hooks
      */
-    onPrepare: {
-        type: 'function'
-    },
+    onPrepare: HOOK_DEFINITION,
     before: HOOK_DEFINITION,
     beforeSession: HOOK_DEFINITION,
     beforeSuite: HOOK_DEFINITION,
@@ -175,10 +287,7 @@ export const WDIO_DEFAULTS = {
     afterSuite: HOOK_DEFINITION,
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
-    onComplete: {
-        type: 'function'
-    },
-    onError: HOOK_DEFINITION,
+    onComplete: HOOK_DEFINITION,
     onReload: HOOK_DEFINITION,
 
     /**
@@ -187,9 +296,9 @@ export const WDIO_DEFAULTS = {
     beforeFeature: HOOK_DEFINITION,
     beforeScenario: HOOK_DEFINITION,
     beforeStep: HOOK_DEFINITION,
-    afterFeature: HOOK_DEFINITION,
+    afterStep: HOOK_DEFINITION,
     afterScenario: HOOK_DEFINITION,
-    afterStep: HOOK_DEFINITION
+    afterFeature: HOOK_DEFINITION,
 }
 
 /**
@@ -208,6 +317,7 @@ export const UNICODE_CHARACTERS = {
     'Return': '\uE006',
     'Enter': '\uE007',
     'Shift': '\uE008',
+    'Control': '\uE009',
     'Control Left': '\uE009',
     'Control Right': '\uE051',
     'Alt': '\uE00A',
