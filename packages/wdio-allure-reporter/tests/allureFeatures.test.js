@@ -541,21 +541,21 @@ describe('hooks handling default', () => {
         expect(startCase).toHaveBeenCalledTimes(1)
     })
 
-    it('should not keep passed hooks if there are no steps (before/after)', () => {
+    it('should keep passed hooks if there are no steps (before/after)', () => {
         const testcases = [1]
         reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
 
-        expect(endCase).toHaveBeenCalledTimes(0)
+        expect(endCase).toHaveBeenCalledTimes(1)
         expect(testcases).toHaveLength(1)
     })
 
-    it('should not keep passed hooks if there are some steps', () => {
+    it('should keep passed hooks if there are some steps', () => {
         const testcases = [1]
         reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [1] } })
         reporter.onHookEnd({ title: 'foo', parent: 'bar' })
 
-        expect(endCase).toHaveBeenCalledTimes(0)
+        expect(endCase).toHaveBeenCalledTimes(1)
         expect(testcases).toHaveLength(1)
     })
 })

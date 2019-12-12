@@ -283,8 +283,8 @@ class AllureReporter extends WDIOReporter {
                         })
                     }
                 }
-            } else if (!this.options.disableMochaHooks) this.onTestPass()
-        }
+            }
+        } else if (!this.options.disableMochaHooks) this.onTestPass()
     }
 
     addLabel({ name, value }) {
