@@ -1,7 +1,6 @@
-
 /**
  *
- * Return true if the selected DOM-element matches with the provided one.
+ * Return true if the selected element matches with the provided one.
  *
  * <example>
     :isEqual.js
