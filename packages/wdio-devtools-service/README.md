@@ -204,6 +204,11 @@ browser.emulateDevice({
 })
 ```
 
+#### Note
+
+This only works if you don't use `mobileEmulation` within `capabilities['goog:chromeOptions']`.
+If `mobileEmulation` is present the call to `browser.emulateDevice()` won't do anything.
+
 ### Chrome DevTools Access
 
 For now the service allows two different ways to access the Chrome DevTools Protocol:
