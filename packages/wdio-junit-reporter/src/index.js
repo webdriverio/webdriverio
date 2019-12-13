@@ -62,7 +62,7 @@ class JunitReporter extends WDIOReporter {
             let scenario = suite
             const testName = this.prepareName(suite.title)
 
-            let testCase = this.activeFeature.testCase()
+            const testCase = this.activeFeature.testCase()
                 .className(`${this.packageName}.${this.activeFeatureName}`)
                 .name(`${this.activeFeatureName}.${testName}`)
                 .time(scenario._duration / 1000)
