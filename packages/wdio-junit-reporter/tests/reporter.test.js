@@ -20,7 +20,7 @@ describe('wdio-junit-reporter', () => {
     })
 
     it('should write to output stream on runnerEnd', () => {
-        reporter.prepareXml = jest.fn().mockReturnValue('foobar')
+        reporter.buildJunitXml = jest.fn().mockReturnValue('foobar')
         reporter.write = jest.fn()
         reporter.onRunnerEnd()
         expect(reporter.write.mock.calls[0][0]).toBe('foobar')
@@ -72,21 +72,21 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.prepareXml(runnerLog).replace(/\s/g, '')).toBe(testLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(runnerLog).replace(/\s/g, '')).toBe(testLog.toString().replace(/\s/g, ''))
     })
 
     it('generates xml output if before all hook failed', () => {
         reporter.suites = suitesHooksLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.prepareXml(runnerLog).replace(/\s/g, '')).toBe(testHooksLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(runnerLog).replace(/\s/g, '')).toBe(testHooksLog.toString().replace(/\s/g, ''))
     })
 
     it('generates xml output for multiple describe blocks', () => {
         reporter.suites = suitesMultipleLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.prepareXml(runnerLog).replace(/\s/g, '')).toBe(testMultipleLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(runnerLog).replace(/\s/g, '')).toBe(testMultipleLog.toString().replace(/\s/g, ''))
     })
 
     it('generates xml output correctly when error options are set', () => {
@@ -100,6 +100,6 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.prepareXml(runnerLog).replace(/\s/g, '')).toBe(testErrorOptionsSetLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(runnerLog).replace(/\s/g, '')).toBe(testErrorOptionsSetLog.toString().replace(/\s/g, ''))
     })
 })
