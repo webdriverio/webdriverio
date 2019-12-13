@@ -74,32 +74,32 @@ class JunitReporter extends WDIOReporter {
             for (let stepKey of Object.keys(scenario.tests)) { // tests are trested as steps in Cucumber
                 if (stepKey !== 'undefined') { // fix cucumber hooks crashing reporter
                     let stepEmoji = '✅'
-                    const steps = scenario.tests[stepKey]
-                    if (scenario.state === 'pending' || scenario.state === 'skipped') {
+                    const step = scenario.tests[stepKey]
+                    if (step.state === 'pending' || step.state === 'skipped') {
                         if (!isFailing) {
                             testCase.skipped()
                         }
                         stepEmoji = '⚠️'
-                    } else if (scenario.state === 'failed') {
-                        if (scenario.error) {
+                    } else if (step.state === 'failed') {
+                        if (step.error) {
                             if (this.options.errorOptions) {
                                 const errorOptions = this.options.errorOptions
                                 for (const key of Object.keys(errorOptions)) {
-                                    testCase[key](scenario.error[errorOptions[key]])
+                                    testCase[key](step.error[errorOptions[key]])
                                 }
                             } else {
                                 // default
-                                testCase.error(scenario.error.message)
+                                testCase.error(step.error.message)
                             }
-                            testCase.standardError(`\n${scenario.error.stack}\n`)
+                            testCase.standardError(`\n${step.error.stack}\n`)
                         } else {
                             testCase.error()
                         }
                         isFailing = true
                         stepEmoji = '❗'
                     }
-                    const output = this.getStandardOutput(steps)
-                    stepsOutput += output ? stepEmoji + ' ' + scenario.title : stepEmoji + ' ' + scenario.title + '\n' + output
+                    const output = this.getStandardOutput(step)
+                    stepsOutput += output ? stepEmoji + ' ' + step.title : stepEmoji + ' ' + step.title + '\n' + output
                 }
             }
             testCase.standardOutput(`\n${stepsOutput}\n`)

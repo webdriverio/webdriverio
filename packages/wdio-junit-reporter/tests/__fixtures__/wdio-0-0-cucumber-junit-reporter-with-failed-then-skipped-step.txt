@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Sample_feature" timestamp="2019-12-13T19:37:06.927Z" time="17.098" tests="1" failures="0" errors="1" skipped="0">
+    <properties>
+      <property name="specId" value="0"/>
+      <property name="featureName" value="Sample feature"/>
+      <property name="capabilities" value="iphone.ios.12_1"/>
+      <property name="featureFile" value="./features/sample_feature.feature"/>
+    </properties>
+    <testcase classname="CucumberJUnitReport-iphone.ios.12_1.Sample_feature" name="Sample_feature.Sample_scenario" time="1.983">
+      <error message="expected true to equal false"/>
+      <system-out>
+        <![CDATA[
+✅ Given step has passed
+❗ When step has failed
+⚠️ Then step has failed
+
+]]>
+      </system-out>
+      <system-err>
+        <![CDATA[
+AssertionError: expected true to equal false
+    at World.<anonymous> (./step_definitions/steps.js:642:21)
+]]>
+      </system-err>
+    </testcase>
+  </testsuite>
+</testsuites>

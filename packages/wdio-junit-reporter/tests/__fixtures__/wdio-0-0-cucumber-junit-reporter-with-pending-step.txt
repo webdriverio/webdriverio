@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Sample_feature" timestamp="2019-12-13T19:59:54.847Z" time="15.237" tests="1" failures="0" errors="0" skipped="1">
+    <properties>
+      <property name="specId" value="0"/>
+      <property name="featureName" value="Sample feature"/>
+      <property name="capabilities" value="iphone.ios.12_1"/>
+      <property name="featureFile" value="./features/sample_feature.feature"/>
+    </properties>
+    <testcase classname="CucumberJUnitReport-iphone.ios.12_1.Sample_feature" name="Sample_feature.Sample_scenario" time="0.867">
+      <skipped/>
+      <system-out>
+        <![CDATA[
+✅ Given step has passed
+✅ When step has passed
+⚠️ Then step is pending
+
+]]>
+      </system-out>
+    </testcase>
+  </testsuite>
+</testsuites>
