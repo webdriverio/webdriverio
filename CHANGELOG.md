@@ -15,6 +15,34 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.16.16 (2019-12-14)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#4875](https://github.com/webdriverio/webdriverio/pull/4875) Fix: #4856 condition never reached ([@woolter](https://github.com/woolter))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#4881](https://github.com/webdriverio/webdriverio/pull/4881) Minor cleanup to avoid `getSpecs` call ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#4879](https://github.com/webdriverio/webdriverio/pull/4879) fixed typo on cucumber pckg info (2019-7-11 website blog) ([@johnhiggs](https://github.com/johnhiggs))
+* `wdio-devtools-service`
+  * [#4876](https://github.com/webdriverio/webdriverio/pull/4876) wdio-devtools-service: Readme update about emulateDevice and mobileEmulation ([@versedi](https://github.com/versedi))
+
+#### :house: Internal
+* [#4885](https://github.com/webdriverio/webdriverio/pull/4885) Add Fossa badge ([@christian-bromann](https://github.com/christian-bromann))
+* [#4883](https://github.com/webdriverio/webdriverio/pull/4883) Docs: Minor typo fixes to PROJECT_CHARTER.md ([@eemeli](https://github.com/eemeli))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Eemeli Aro ([@eemeli](https://github.com/eemeli))
+- John Ahigian ([@johnhiggs](https://github.com/johnhiggs))
+- Tadeusz Stępnikowski ([@versedi](https://github.com/versedi))
+- Walter Hector Lijo ([@woolter](https://github.com/woolter))
+
+
 ## v5.16.15 (2019-12-10)
 
 #### :bug: Bug Fix
