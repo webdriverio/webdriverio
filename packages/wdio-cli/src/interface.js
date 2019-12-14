@@ -7,7 +7,7 @@ import { getRunnerName } from './utils'
 const log = logger('@wdio/cli')
 
 export default class WDIOCLInterface extends EventEmitter {
-    constructor (config, specs, totalWorkerCnt, isWatchMode = false) {
+    constructor (config, totalWorkerCnt, isWatchMode = false) {
         super()
 
         /**
@@ -16,7 +16,6 @@ export default class WDIOCLInterface extends EventEmitter {
          * `FORCE_COLOR=0` - forcibly disable colors
          */
         this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.specs = specs
         this.config = config
         this.totalWorkerCnt = totalWorkerCnt
         this.isWatchMode = isWatchMode

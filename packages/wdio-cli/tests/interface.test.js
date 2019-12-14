@@ -2,14 +2,13 @@ import WDIOCLInterface from '../src/interface'
 import chalk from 'chalk'
 
 const config = {}
-const specs = ['/some/path/to/test.js']
 global.console.log = jest.fn()
 
 describe('cli interface', () => {
     let wdioClInterface
 
     beforeEach(() => {
-        wdioClInterface = new WDIOCLInterface(config, specs, 5)
+        wdioClInterface = new WDIOCLInterface(config, 5)
         wdioClInterface.log = jest.fn().mockImplementation((...args) => args)
     })
 

@@ -22,7 +22,6 @@ class Launcher {
 
         const config = this.configParser.getConfig()
         const capabilities = this.configParser.getCapabilities()
-        const specs = this.configParser.getSpecs()
 
         this.isWatchMode = isWatchMode
 
@@ -42,7 +41,7 @@ class Launcher {
         const Runner = initialisePlugin(config.runner, 'runner')
         this.runner = new Runner(configFilePath, config)
 
-        this.interface = new CLInterface(config, specs, totalWorkerCnt, this.isWatchMode)
+        this.interface = new CLInterface(config, totalWorkerCnt, this.isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)
