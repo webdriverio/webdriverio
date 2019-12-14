@@ -15,6 +15,7 @@
     <a href="https://codecov.io/gh/webdriverio/webdriverio">
         <img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg">
     </a>
+<a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=shield"/></a>
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
     </a>
@@ -100,3 +101,7 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 ## Project Governance
 
 This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)
