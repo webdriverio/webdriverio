@@ -116,10 +116,6 @@ When an agenda item has appeared to reach a consensus, the moderator will ask "D
 
 If an agenda item cannot reach a consensus, a TSC member can call for either a closing vote or a vote to table the issue to the next meeting. The call for a vote must be approved by a majority of the TSC or else the discussion will continue. Simple majority wins.
 
-## Sponsorship
-
-The WebdriverIO project welcomes sponsorship of various organizations. Specific details are not yet available but in general we will accept monetary donations, contribution of code, contribution of dedicated committers, or donations of other goods or service (internet hosting, etc...). To begin the conversation, reach out to one of the TSC members.
-
 ## Raising Issues Related to Governance
 
 This governance model necessarily leaves many situations unspecified. If questions arise as to how a given situation should proceed according to the overall goals of the project, the best thing to do is to open a GitHub issue and ping the TSC members.
