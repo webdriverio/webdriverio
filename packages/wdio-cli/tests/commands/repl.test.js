@@ -57,7 +57,6 @@ describe('Command: repl', () => {
         setSyncSupport(true)
         await handler({ option: 'foobar' })
         expect(remote).toHaveBeenCalledWith({
-            runner: 'repl',
             option: 'foobar',
             capabilities: {
                 browserName: 'foobar'

@@ -9,7 +9,7 @@ import { executeHooksWithArgs } from '../shim'
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const execute = async function (fn, retries, args = []) {
+export const execute = async function (fn, retries, args = []) {
     this.wdioRetries = retries.attempts
 
     try {
