@@ -48,11 +48,10 @@ export const testFnWrapper = async function (
 
     let result
     let error
-    const promise = execute.call(this, specFn, retries, specFnArgs)
 
     const testStart = Date.now()
     try {
-        result = await promise
+        result = await execute.call(this, specFn, retries, specFnArgs)
     } catch (err) {
         error = err
     }

@@ -31,3 +31,16 @@ test('should throw if promise rejects', () => {
         expect(err.message).toBe('uups')
     }
 })
+
+test('should throw if promise rejects a string', () => {
+    expect.assertions(1)
+
+    const promise = Promise.resolve('foobar')
+    promise.then = (_, reject) => reject('uups')
+
+    try {
+        waitForPromise(promise)
+    } catch (err) {
+        expect(err.message).toBe('uups')
+    }
+})

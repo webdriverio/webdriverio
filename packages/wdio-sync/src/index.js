@@ -20,6 +20,10 @@ export default function waitForPromise (promise) {
     deasync.loopWhile(() => !isDone)
 
     if (error) {
+        if (!(error instanceof Error)) {
+            error = new Error(error)
+        }
+
         throw error
     }
 
