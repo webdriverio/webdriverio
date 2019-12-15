@@ -33,8 +33,6 @@
 import vm from 'vm'
 import repl from 'repl'
 
-import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/utils'
-
 import { STATIC_RETURNS, INTRO_MESSAGE } from './constants'
 
 export default class WDIORepl {
@@ -63,12 +61,6 @@ export default class WDIORepl {
 
         vm.createContext(context)
         this.isCommandRunning = true
-
-        /* istanbul ignore if */
-        if (hasWdioSyncSupport) {
-            return runFnInFiberContext(
-                () => this._runCmd(cmd, context, callback))()
-        }
 
         return this._runCmd(cmd, context, callback)
     }

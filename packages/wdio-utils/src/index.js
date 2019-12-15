@@ -5,10 +5,7 @@ import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
     isFunctionAsync
 } from './utils'
-import {
-    wrapCommand, runFnInFiberContext, executeHooksWithArgs,
-    hasWdioSyncSupport, executeSync, executeAsync,
-} from './shim'
+import { wrapCommand, executeHooksWithArgs } from './shim'
 import { testFnWrapper, runTestInFiberContext } from './test-framework'
 import { capabilitiesEnvironmentDetector, sessionEnvironmentDetector, devtoolsEnvironmentDetector } from './envDetector'
 
@@ -26,13 +23,9 @@ export {
      * wdio-sync shim
      */
     wrapCommand,
-    executeSync,
-    executeAsync,
-    runFnInFiberContext,
+    executeHooksWithArgs,
     runTestInFiberContext,
     testFnWrapper,
-    executeHooksWithArgs,
-    hasWdioSyncSupport,
 
     /**
      * environmentDetector

@@ -2,7 +2,7 @@ import path from 'path'
 import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
 import { validateConfig, detectBackend } from '@wdio/config'
-import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
+import { wrapCommand } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
@@ -51,12 +51,12 @@ export const remote = async function (params = {}, remoteModifier) {
     if (params.runner && !isStub(config.automationProtocol)) {
         const origAddCommand = ::instance.addCommand
         instance.addCommand = (name, fn, attachToElement) => (
-            origAddCommand(name, runFnInFiberContext(fn), attachToElement)
+            origAddCommand(name, fn, attachToElement)
         )
 
         const origOverwriteCommand = ::instance.overwriteCommand
         instance.overwriteCommand = (name, fn, attachToElement) => (
-            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
+            origOverwriteCommand(name, fn, attachToElement)
         )
     }
 
@@ -104,12 +104,12 @@ export const multiremote = async function (params = {}, config = {}) {
     if (!isStub(config.automationProtocol)) {
         const origAddCommand = ::driver.addCommand
         driver.addCommand = (name, fn, attachToElement) => {
-            origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+            origAddCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
         }
 
         const origOverwriteCommand = ::driver.overwriteCommand
         driver.overwriteCommand = (name, fn, attachToElement) => {
-            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+            origOverwriteCommand(name, fn, attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
         }
     }
 

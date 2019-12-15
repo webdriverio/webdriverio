@@ -1,4 +1,4 @@
-import { hasWdioSyncSupport, runFnInFiberContext } from '@wdio/utils'
+import { hasWdioSyncSupport } from '@wdio/utils'
 
 const TIMEOUT_ERROR = 'timeout'
 
@@ -18,16 +18,6 @@ class Timer {
         this._fn = fn
         this._leading = leading
         this._conditionExecutedCnt = 0
-
-        /**
-         * only wrap waitUntil condition if:
-         *  - wdio-sync is installed
-         *  - function name is not async
-         *  - we run with the wdio testrunner
-         */
-        if (hasWdioSyncSupport && !fn.name.includes('async') && Boolean(global.browser)) {
-            this._fn = () => runFnInFiberContext(fn)()
-        }
 
         const retPromise = new Promise((resolve, reject) => {
             this._resolve = resolve

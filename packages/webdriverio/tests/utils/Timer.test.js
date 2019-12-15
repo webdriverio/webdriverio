@@ -1,4 +1,4 @@
-import { setWdioSyncSupport, runFnInFiberContext } from '@wdio/utils'
+import { setWdioSyncSupport } from '@wdio/utils'
 import Timer from '../../src/utils/Timer'
 
 describe('timer', () => {
@@ -66,11 +66,6 @@ describe('timer', () => {
         })
 
         it('should trigger timeout event', async () => {
-            runFnInFiberContext.mockImplementation((fn) => {
-                return function (...args) {
-                    return fn(...args)
-                }
-            })
             try {
                 await new Timer(100, 200, () => new Promise((resolve, reject) =>
                     setTimeout(() => {
@@ -90,7 +85,6 @@ describe('timer', () => {
     })
 
     afterEach(() => {
-        runFnInFiberContext.mockClear()
         processEmitSpy.mockClear()
     })
 })

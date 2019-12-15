@@ -75,11 +75,6 @@ export const executeAsync = jest.fn()
 export const wrapCommand = (_, origFn) => origFn
 export const runTestInFiberContext = jest.fn().mockReturnValue(jest.fn())
 export const executeHooksWithArgs = jest.fn()
-export const runFnInFiberContext = jest.fn().mockImplementation((fn) => {
-    return function (...args) {
-        return Promise.resolve(fn.apply(this, args))
-    }
-})
 export const setWdioSyncSupport = value => { hasWdioSyncSupport = value }
 export let hasWdioSyncSupport = false
 export const testFnWrapper = jest.fn()

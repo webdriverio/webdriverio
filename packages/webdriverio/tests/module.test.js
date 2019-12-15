@@ -1,7 +1,6 @@
 import path from 'path'
 import logger from '@wdio/logger'
 import { detectBackend, validateConfig } from '@wdio/config'
-import { runFnInFiberContext } from '@wdio/utils'
 
 import { remote, multiremote, attach } from '../src'
 
@@ -81,28 +80,20 @@ describe('WebdriverIO module interface', () => {
             const browser = await remote({ capabilities: {} })
             const customCommand = jest.fn()
             browser.addCommand('someCommand', customCommand)
-            expect(runFnInFiberContext).toBeCalledTimes(0)
-
             browser.overwriteCommand('someCommand', customCommand)
-            expect(runFnInFiberContext).toBeCalledTimes(0)
         })
 
         it('should wrap custom commands into fiber context', async () => {
             const browser = await remote({ capabilities: {}, runner: 'local' })
             const customCommand = jest.fn()
             browser.addCommand('someCommand', customCommand)
-            expect(runFnInFiberContext).toBeCalledTimes(1)
-
             browser.overwriteCommand('someCommand', customCommand)
-            expect(runFnInFiberContext).toBeCalledTimes(2)
         })
 
         it('should attach custom locators to the strategies', async () => {
             const browser = await remote({ capabilities: {} })
             const fakeFn = () => { return 'test'}
-
             browser.addLocatorStrategy('test-strat', fakeFn)
-
             expect(browser.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
         })
 

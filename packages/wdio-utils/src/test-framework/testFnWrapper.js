@@ -1,20 +1,27 @@
-import { isFunctionAsync } from '../utils'
 import { logHookError } from './errorHandler'
-import { executeHooksWithArgs, executeAsync, runSync } from '../shim'
+import { executeHooksWithArgs } from '../shim'
 
 /**
- * wraps test framework spec/hook function with WebdriverIO before/after hooks
+ * execute test or hook asynchronously
  *
- * @param   {string} type           Test/Step or Hook
- * @param   {object} spec           specFn and specFnArgs
- * @param   {object} before         beforeFn and beforeFnArgs
- * @param   {object} after          afterFn and afterFnArgs
- * @param   {string} cid            cid
- * @param   {number} repeatTest     number of retries if test fails
- * @return  {*}                     specFn result
+ * @param  {Function} fn         spec or hook method
+ * @param  {object}   retries    { limit: number, attempts: number }
+ * @param  {Array}    args       arguments passed to hook
+ * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-export const testFnWrapper = function (...args) {
-    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync }, ...args)
+const execute = async function (fn, retries, args = []) {
+    this.wdioRetries = retries.attempts
+
+    try {
+        return await fn.apply(this, args)
+    } catch (e) {
+        if (retries.limit > retries.attempts) {
+            retries.attempts++
+            return await execute.call(this, fn, retries, args)
+        }
+
+        throw e
+    }
 }
 
 /**
@@ -29,8 +36,7 @@ export const testFnWrapper = function (...args) {
  * @param   {number} repeatTest     number of retries if test fails
  * @return  {*}                     specFn result
  */
-export const testFrameworkFnWrapper = async function (
-    { executeHooksWithArgs, executeAsync, runSync },
+export const testFnWrapper = async function (
     type,
     { specFn, specFnArgs },
     { beforeFn, beforeFnArgs },
@@ -40,17 +46,9 @@ export const testFrameworkFnWrapper = async function (
     const beforeArgs = mochaJasmineCompatibility(beforeFnArgs(this), this)
     await logHookError(`Before${type}`, await executeHooksWithArgs(beforeFn, beforeArgs), cid)
 
-    let promise
     let result
     let error
-    /**
-     * user wants handle async command using promises, no need to wrap in fiber context
-     */
-    if (isFunctionAsync(specFn) || !runSync) {
-        promise = executeAsync.call(this, specFn, retries, specFnArgs)
-    } else {
-        promise = new Promise(runSync.call(this, specFn, retries, specFnArgs))
-    }
+    const promise = execute.call(this, specFn, retries, specFnArgs)
 
     const testStart = Date.now()
     try {

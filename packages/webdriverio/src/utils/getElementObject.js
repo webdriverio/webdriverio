@@ -1,4 +1,4 @@
-import { webdriverMonad, wrapCommand, runFnInFiberContext } from '@wdio/utils'
+import { webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../utils'
@@ -49,7 +49,7 @@ export const getElement = function findElement (selector, res, isReactElement = 
     const origAddCommand = ::elementInstance.addCommand
     elementInstance.addCommand = (name, fn) => {
         browser.__propertiesObject__[name] = { value: fn }
-        origAddCommand(name, runFnInFiberContext(fn))
+        origAddCommand(name, fn)
     }
 
     return elementInstance
@@ -100,7 +100,7 @@ export const getElements = function getElements (selector, res, isReactElement =
         const origAddCommand = ::elementInstance.addCommand
         elementInstance.addCommand = (name, fn) => {
             browser.__propertiesObject__[name] = { value: fn }
-            origAddCommand(name, runFnInFiberContext(fn))
+            origAddCommand(name, fn)
         }
         return elementInstance
     })

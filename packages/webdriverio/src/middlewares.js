@@ -1,4 +1,3 @@
-
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
 

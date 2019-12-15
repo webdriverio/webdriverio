@@ -2,15 +2,7 @@ import * as shim from '../../src/shim'
 import { testFnWrapper } from '../../src/test-framework/testFnWrapper'
 
 jest.mock('../../src/shim', () => ({
-    executeHooksWithArgs: jest.fn(),
-    runSync: (fn, { attempts, limit }, args = []) => async (resolve, reject) => {
-        try {
-            return resolve(await fn('@wdio/sync', attempts, limit, ...args))
-        } catch (err) {
-            reject(err)
-        }
-    },
-    executeAsync: null,
+    executeHooksWithArgs: jest.fn()
 }))
 
 const executeHooksWithArgs = shim.executeHooksWithArgs
