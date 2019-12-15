@@ -1,6 +1,5 @@
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
-import { hasWdioSyncSupport } from '@wdio/utils'
 import { getCapabilities } from '../utils'
 
 import { CLI_EPILOGUE } from '../constants'
@@ -44,12 +43,7 @@ export const builder = (yargs) => {
 
 export const handler = async (argv) => {
     const caps = getCapabilities(argv)
-
-    /**
-     * runner option required to wrap commands within Fibers context
-     */
-    const execMode = hasWdioSyncSupport ? { runner: 'repl' } : {}
-    const client = await remote({ ...argv, ...caps, ...execMode })
+    const client = await remote({ ...argv, ...caps })
 
     global.$ = ::client.$
     global.$$ = ::client.$$

@@ -12,8 +12,7 @@ import { testFnWrapper } from './testFnWrapper'
 const MOCHA_COMMANDS = ['skip', 'only']
 
 /**
- * runs a hook within fibers context (if function name is not async)
- * it also executes before/after hook
+ * executes before/after hook
  *
  * @param  {Function} hookFn        function that was passed to the framework hook
  * @param  {Function} origFn        original framework hook function
@@ -32,7 +31,7 @@ export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn
 }
 
 /**
- * runs a spec function (test function) within the fibers context
+ * runs a spec function
  *
  * @param  {string}   specTitle     test description
  * @param  {Function} specFn        test function that got passed in from the user

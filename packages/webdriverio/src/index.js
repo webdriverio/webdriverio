@@ -38,30 +38,11 @@ export const remote = async function (params = {}, remoteModifier) {
         process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
     }
 
-    const prototype = getPrototype('browser')
     log.info(`Initiate new session using the ${config.automationProtocol} protocol`)
+    const prototype = getPrototype('browser')
     const ProtocolDriver = require(config.automationProtocol).default
     const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
-
-    /**
-     * we need to overwrite the original addCommand and overwriteCommand
-     * in order to wrap the function within Fibers (only if webdriverio
-     * is used with @wdio/cli)
-     */
-    if (params.runner && !isStub(config.automationProtocol)) {
-        const origAddCommand = ::instance.addCommand
-        instance.addCommand = (name, fn, attachToElement) => (
-            origAddCommand(name, fn, attachToElement)
-        )
-
-        const origOverwriteCommand = ::instance.overwriteCommand
-        instance.overwriteCommand = (name, fn, attachToElement) => (
-            origOverwriteCommand(name, fn, attachToElement)
-        )
-    }
-
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
-
     return instance
 }
 
