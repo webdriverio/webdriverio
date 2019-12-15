@@ -40,8 +40,8 @@
  *
  */
 
-export default function isExisting () {
+export default async function isExisting () {
     const method = this.isReactElement ? 'react$$' : '$$'
-
-    return this.parent[method](this.selector).then((res) => res.length > 0)
+    const parent = await this.parent[method](this.selector)
+    return parent.length > 0
 }
