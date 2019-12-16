@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "./index",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "echo \"nothing to build\"",

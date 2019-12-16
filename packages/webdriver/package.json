@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">=10.0.0"
   },
   "types": "./webdriver.d.ts",
   "typeScriptVersion": "3.5.1",

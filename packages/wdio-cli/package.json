@@ -10,7 +10,7 @@
     "wdio": "./bin/wdio.js"
   },
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile copy",

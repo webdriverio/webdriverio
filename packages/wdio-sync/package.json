@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
@@ -34,11 +34,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "5.16.10"
-  },
-  "optionalDependencies": {
-    "fibers": "^4.0.1",
-    "fibers_node_v8": "^3.1.2"
+    "@wdio/logger": "5.16.10",
+    "fibers": "^4.0.1"
   },
   "publishConfig": {
     "access": "public"
