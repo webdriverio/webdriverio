@@ -91,7 +91,7 @@ async function bar() {
     await el5.scrollIntoView(false)
 
     const selector$$: string | Function = elems.selector
-    const parent$$: WebdriverIOAsync.Element | WebdriverIOAsync.BrowserObject = elems.parent
+    const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
 
     // shadow$ shadow$$
     const el6 = await $('')
@@ -109,7 +109,7 @@ async function bar() {
 
     // touchAction
     const ele = await $('')
-    const touchAction: WebdriverIOAsync.TouchAction = {
+    const touchAction: WebdriverIO.TouchAction = {
         action: "longPress",
         element: await $(''),
         ms: 0,
@@ -124,7 +124,7 @@ async function bar() {
 }
 
 // selenium-standalone-service
-const config: WebdriverIOAsync.Config = {
+const config: WebdriverIO.Config = {
     skipSeleniumInstall: true,
     seleniumLogs: ''
 }
