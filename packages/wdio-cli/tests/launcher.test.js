@@ -318,7 +318,7 @@ describe('launcher', () => {
             expect(launcher.getNumberOfSpecsLeft()).toBe(0)
         })
 
-        it('should run as much as maxInstances allows', () => {
+        it.only('should run as much as maxInstances allows', () => {
             launcher.configParser = { getConfig: jest.fn().mockReturnValue({
                 maxInstances: 5
             }) }
@@ -347,12 +347,12 @@ describe('launcher', () => {
             expect(launcher.runSpecs()).toBe(false)
             expect(launcher.getNumberOfRunningInstances()).toBe(5)
             expect(launcher.getNumberOfSpecsLeft()).toBe(4)
-            expect(launcher.schedule[0].runningInstances).toBe(2)
-            expect(launcher.schedule[0].availableInstances).toBe(48)
+            expect(launcher.schedule[0].runningInstances).toBe(3)
+            expect(launcher.schedule[0].availableInstances).toBe(47)
             expect(launcher.schedule[1].runningInstances).toBe(2)
             expect(launcher.schedule[1].availableInstances).toBe(58)
-            expect(launcher.schedule[2].runningInstances).toBe(1)
-            expect(launcher.schedule[2].availableInstances).toBe(69)
+            expect(launcher.schedule[2].runningInstances).toBe(0)
+            expect(launcher.schedule[2].availableInstances).toBe(70)
         })
 
         it('should not allow to schedule more runner if no instances are available', () => {
