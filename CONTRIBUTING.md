@@ -23,7 +23,7 @@ In order to set up this project and start contributing follow this step by step 
 
     ```sh
     $ npm install
-    $ npm run setup
+    $ npm run setup-full
     ```
 
     * Bootstraps sub-projects via ```npm run bootstrap```
@@ -76,6 +76,22 @@ It is also a good idea to run jest in watch mode while developing on a single pa
 $ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
 ```
 
+## Run e2e Experience With Smoke Tests
+
+WebdriverIO maintains a smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is setup in a way so it doesn't require an actual browser driver since all requests are mocked using the `@wdio/webdriver-mock-service`. This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
+
+```sh
+$ npm run test:smoke
+```
+
+There are several [test suites](https://github.com/webdriverio/webdriverio/blob/master/tests/smoke.runner.js#L359-L378) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
+
+```sh
+$ npm run test:smoke mochaTestrunner
+```
+
+You can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-webdriver-mock-service/src/index.js#L142-L149).
+
 ## Link changes to your current project
 
 When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
@@ -97,6 +113,28 @@ npm link @wdio/cli
 ## Test Your Changes
 
 In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md).
+
+## Back-Porting Bug Fixes
+
+Starting from v6 the WebdriverIO team tries to backport all features that would be still backwards compatible with older versions. The team tries to release a new major version every year (usually around December/Januar). With a new major version update (e.g. v6) we continue to maintain the last version (e.g. v5) and depcrecate the previous maintained version (e.g. v4). With that the team commits to always support 2 major versions.
+
+### As Triager
+
+Everyone triaging or reviewing a PR should label it with `backport-requested` if the changes can be applied to the maintained (previous) version.
+
+### As A Merger
+
+Once a PR with a `backport-requested` label got merged, you are responsible for the backporting the patch to the older version. To do so, pull the latest code from GitHub:
+
+```sh
+$ git pull
+```
+
+Then run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintainance branch:
+
+```sh
+$ npm run backport
+```
 
 ## Commit Messages Convention
 
