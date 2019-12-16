@@ -109,7 +109,7 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
             owner: 'webdriverio',
             repo: 'webdriverio',
             issue_number: prToBackport.number,
-            name: 'backported'
+            labels: 'backported'
         })
 
         ++backportedPRs
