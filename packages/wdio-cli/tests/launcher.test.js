@@ -318,7 +318,7 @@ describe('launcher', () => {
             expect(launcher.getNumberOfSpecsLeft()).toBe(0)
         })
 
-        it.only('should run as much as maxInstances allows', () => {
+        it('should run as much as maxInstances allows', () => {
             launcher.configParser = { getConfig: jest.fn().mockReturnValue({
                 maxInstances: 5
             }) }

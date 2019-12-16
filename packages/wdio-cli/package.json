@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "./build/index",
   "bin": {
-    "node": ">=10.0.0"
+    "wdio": "./bin/wdio.js"
   },
   "engines": {
     "node": ">=10.0.0"
