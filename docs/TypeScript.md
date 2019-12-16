@@ -5,7 +5,7 @@ title: TypeScript Setup
 
 Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org) to compile your `*.ts` files in the `before` hook of your config file. You will need [`ts-node`](https://github.com/TypeStrong/ts-node) and [`tsconfig-paths`](https://github.com/dividab/tsconfig-paths) installed as `devDependencies`.
 
-The minimum TypeScript version is 3.5.1.
+The minimum TypeScript version is 3.7.3.
 
 ```js
 // wdio.conf.js

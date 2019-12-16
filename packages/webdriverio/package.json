@@ -46,7 +46,7 @@
     "testingbot"
   ],
   "types": "./webdriverio.d.ts",
-  "typeScriptVersion": "3.5.1",
+  "typeScriptVersion": "3.7.3",
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
