@@ -62,6 +62,7 @@
     "@babel/plugin-syntax-export-default-from": "^7.2.0",
     "@babel/preset-env": "^7.6.2",
     "@babel/register": "^7.6.2",
+    "@octokit/rest": "^16.35.2",
     "@types/jest": "^24.0.18",
     "aws-sdk": "^2.539.0",
     "babel-core": "^6.26.3",
