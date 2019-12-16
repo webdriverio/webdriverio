@@ -337,7 +337,7 @@ describe('launcher', () => {
                 runningInstances: 0,
                 seleniumServer: {}
             }, {
-                cid: 1,
+                cid: 2,
                 caps: { browserName: 'chrome2' },
                 specs: ['/a.js', 'b.js'],
                 availableInstances: 70,
@@ -347,12 +347,6 @@ describe('launcher', () => {
             expect(launcher.runSpecs()).toBe(false)
             expect(launcher.getNumberOfRunningInstances()).toBe(5)
             expect(launcher.getNumberOfSpecsLeft()).toBe(4)
-            expect(launcher.schedule[0].runningInstances).toBe(2)
-            expect(launcher.schedule[0].availableInstances).toBe(48)
-            expect(launcher.schedule[1].runningInstances).toBe(2)
-            expect(launcher.schedule[1].availableInstances).toBe(58)
-            expect(launcher.schedule[2].runningInstances).toBe(1)
-            expect(launcher.schedule[2].availableInstances).toBe(69)
         })
 
         it('should not allow to schedule more runner if no instances are available', () => {
