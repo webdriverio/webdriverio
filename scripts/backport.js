@@ -47,6 +47,8 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
 
 /* eslint-disable no-console */
 ;(async () => {
+    let backportedPRs = 0
+
     const prs = await api.pulls.list({
         owner: 'webdriverio',
         repo: 'webdriverio',
@@ -56,7 +58,11 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
         (pr) => pr.labels.find(
             (label) => label.name === 'backport-requested'))
 
-    let backportedPRs = 0
+    if (prsToBackport.length === 0) {
+        console.log('Nothing to backport!')
+        return backportedPRs
+    }
+
     for (const prToBackport of prsToBackport) {
         const { toBackport, exit } = await inquirer.prompt(getPrompt(prToBackport))
 
@@ -90,6 +96,22 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
             continue
         }
 
+        /**
+         * switch labels}
+         */
+        await api.issues.removeLabel({
+            owner: 'webdriverio',
+            repo: 'webdriverio',
+            issue_number: prToBackport.number,
+            name: 'backport-requested'
+        })
+        await api.issues.addLabels({
+            owner: 'webdriverio',
+            repo: 'webdriverio',
+            issue_number: prToBackport.number,
+            name: 'backported'
+        })
+
         ++backportedPRs
     }
 
@@ -102,5 +124,5 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
         )
         : 'Bye!'
     ),
-    (err) => console.error(`Error uploading docs: ${err.stack}`)
+    (err) => console.error(`Error backporting: ${err.stack}`)
 )
