@@ -1,6 +1,6 @@
 type jsonPrimitive = string | number | boolean | null;
 type jsonObject = { [x: string]: jsonPrimitive | jsonObject | jsonArray };
-type jsonArray = Array<jsonPrimitive | jsonObject | jsonArrayWorkaround>;
+type jsonArray = Array<jsonPrimitive | jsonObject>;
 type jsonCompatible = jsonPrimitive | jsonObject | jsonArray;
 
 declare namespace WebdriverIO {
