@@ -1,9 +1,5 @@
 /// <reference types="webdriverio/webdriverio-core"/>
 
-/**
- * should replace `webdriverio.d.ts` in v6
- */
-
 declare namespace WebdriverIO {
     function remote(
         options?: RemoteOptions,
