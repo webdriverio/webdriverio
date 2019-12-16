@@ -52,11 +52,13 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
     const prs = await api.pulls.list({
         owner: 'webdriverio',
         repo: 'webdriverio',
-        state: 'closed'
+        state: 'closed',
+        sort: 'created',
+        direction: 'desc'
     })
     const prsToBackport = prs.data.filter(
         (pr) => pr.labels.find(
-            (label) => label.name === 'backport-requested'))
+            (label) => label.name === 'backport-requested')).reverse()
 
     if (prsToBackport.length === 0) {
         console.log('Nothing to backport!')
@@ -109,7 +111,7 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
             owner: 'webdriverio',
             repo: 'webdriverio',
             issue_number: prToBackport.number,
-            labels: 'backported'
+            labels: ['backported']
         })
 
         ++backportedPRs
