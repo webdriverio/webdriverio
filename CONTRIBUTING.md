@@ -128,6 +128,7 @@ Once a PR with a `backport-requested` label got merged, you are responsible for 
 
 ```sh
 $ git pull
+$ git fetch --all
 ```
 
 Then run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintainance branch:
