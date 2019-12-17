@@ -76,6 +76,22 @@ It is also a good idea to run jest in watch mode while developing on a single pa
 $ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
 ```
 
+## Run e2e Experience With Smoke Tests
+
+WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is setup in a way so it doesn't require an actual browser driver since all requests are mocked using the `@wdio/webdriver-mock-service`. This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
+
+```sh
+$ npm run test:smoke
+```
+
+There are several [test suites](https://github.com/webdriverio/webdriverio/blob/master/tests/smoke.runner.js#L359-L378) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
+
+```sh
+$ npm run test:smoke mochaTestrunner
+```
+
+You can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-webdriver-mock-service/src/index.js#L142-L149).
+
 ## Link changes to your current project
 
 When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
