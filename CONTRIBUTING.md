@@ -121,7 +121,7 @@ Before you can start please export an `GITHUB_AUTH` token into your environment 
 $ npm run backport
 ```
 
-If during the process a cherry-pick fails you can always abort and manually troubleshoot. A successful backport of two PRs will look like this:
+If during the process a cherry-pick fails you can always abort and manually troubleshoot. If you are not able to resolve the problem, create an issue in the repo and include the author of that PR. A successful backport of two PRs will look like this:
 
 ```
 $ npm run backport
