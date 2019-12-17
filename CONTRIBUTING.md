@@ -100,7 +100,7 @@ In order to test certain scenarios this project has a test directory that allows
 
 ## Back-Porting Bug Fixes
 
-Starting from v6 the WebdriverIO team tries to backport all features that would be still backwards compatible with older versions. The team tries to release a new major version every year (usually around December/Januar). With a new major version update (e.g. v6) we continue to maintain the last version (e.g. v5) and depcrecate the previous maintained version (e.g. v4). With that the team commits to always support 2 major versions.
+Starting from v6 the WebdriverIO team tries to backport all features that would be still backwards compatible with older versions. The team tries to release a new major version every year (usually around December/January). With a new major version update (e.g. v6) we continue to maintain the last version (e.g. v5) and depcrecate the previous maintained version (e.g. v4). With that the team commits to always support 2 major versions.
 
 ### As Triager
 
@@ -108,7 +108,7 @@ Everyone triaging or reviewing a PR should label it with `backport-requested` if
 
 ### As A Merger
 
-Once a PR with a `backport-requested` label got merged, you are responsible for the backporting the patch to the older version. To do so, pull the latest code from GitHub:
+Once a PR with a `backport-requested` label got merged, you are responsible for backporting the patch to the older version. To do so, pull the latest code from GitHub:
 
 ```sh
 $ git pull
