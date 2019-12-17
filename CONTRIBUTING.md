@@ -131,11 +131,40 @@ $ git pull
 $ git fetch --all
 ```
 
-Then run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintainance branch:
+Then run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintainance branch. Via an interactive console you can get the chance to review the PR again and whether you want to backport it or not. To start the process, just execute:
 
 ```sh
 $ npm run backport
 ```
+
+If during the process a cherry-pick fails you can always abort and manually troubleshoot. A successful backport of two PRs will look like this:
+
+```
+$ npm run backport
+
+> webdriverio-monorepo@ backport /path/to/webdriverio/webdriverio
+> node ./scripts/backport.js
+
+? You want to backport "Backporting Test PR" by christian-bromann?
+(See PR https://github.com/webdriverio/webdriverio/pull/4890) Yes
+Backporting sha 264b7bc49dfc3fe8f1ed8b58d681ce562aaf1544 from v6 to v5
+[cb-backport-process e47c5527] Backporting Test PR (#4890)
+ Author: Christian Bromann <mail@christian-bromann.com>
+ Date: Mon Dec 16 14:54:02 2019 +0100
+ 1 file changed, 2 insertions(+)
+? You want to backport "Second backport test" by christian-bromann?
+(See PR https://github.com/webdriverio/webdriverio/pull/4891) Yes
+Backporting sha 77dc52fdb86c51242b92f299998d2904004cb347 from v6 to v5
+[cb-backport-process 35a3ad41] Second backport test (#4891)
+ Author: Christian Bromann <mail@christian-bromann.com>
+ Date: Mon Dec 16 16:01:46 2019 +0100
+ 1 file changed, 2 deletions(-)
+
+Successfully backported 2 PRs 👏!
+Please now push them to master and make a new v5.x release!
+```
+
+You can always reach out to the `webdriverio/ProjectCommitters` channel on Gitter for questions.
 
 ## Commit Messages Convention
 
