@@ -104,7 +104,7 @@ Starting from v6 the WebdriverIO team tries to backport all features that would 
 
 ### As Triager
 
-Everyone triaging or reviewing a PR should label it with `backport-requested` if the changes can be applied to the maintained (previous) version.
+Everyone triaging or reviewing a PR should label it with `backport-requested` if the changes can be applied to the maintained (previous) version. Generally every PR that would not be a breaking change for the previous version should be considered to be ported back. If a change relies on features or code pieces that are only available in the current version then a back port can still be considered if you feel comfortable making the necessary adjustments. That said, don't feel forced to back port code if the time investment and complexity is too high. Backporting functionality is a reasonable contribution that can be made by any contributor.
 
 ### As A Merger
 
