@@ -20,13 +20,13 @@ if (!process.env.GITHUB_AUTH) {
 /**
  * check if user is in right branch
  */
-// const { stdout: branch } = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true })
-// if (branch !== maintenanceLTSVersion) {
-//     throw new Error(
-//         'In order to start backport process witch to the maintenance LTS branch via:\n' +
-//         `$ git checkout ${maintenanceLTSVersion}`
-//     )
-// }
+const { stdout: branch } = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true })
+if (branch !== maintenanceLTSVersion) {
+    throw new Error(
+        'In order to start backport process witch to the maintenance LTS branch via:\n' +
+        `$ git checkout ${maintenanceLTSVersion}`
+    )
+}
 
 function getPrompt (pr) {
     return [{
@@ -99,7 +99,7 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
         }
 
         /**
-         * switch labels}
+         * switch labels
          */
         await api.issues.removeLabel({
             owner: 'webdriverio',
@@ -121,8 +121,8 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
 })().then(
     (amount) => console.log(amount
         ? (
-            `\nSuccessfully backported ${amount} PRs!\n` +
-            'Please now push them and make a release!'
+            `\nSuccessfully backported ${amount} PRs 👏!\n` +
+            `Please now push them to master and make a new ${maintenanceLTSVersion}.x release!`
         )
         : 'Bye!'
     ),

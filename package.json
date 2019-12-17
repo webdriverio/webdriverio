@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "create": "node ./scripts/generateSubPackage",
+    "backport": "node ./scripts/backport.js",
     "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "bootstrap": "run-p clean:* && lerna bootstrap --force-local && npm run link",
     "build-full": "lerna run --parallel build",
