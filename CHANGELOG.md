@@ -15,6 +15,30 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.17.0 (2019-12-18)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#4802](https://github.com/webdriverio/webdriverio/pull/4802) Proposal to add element equals command ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#4897](https://github.com/webdriverio/webdriverio/pull/4897) Prefer custom properties if detecting backend ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#4898](https://github.com/webdriverio/webdriverio/pull/4898) Minor styling fixes for flowchart ([@christian-bromann](https://github.com/christian-bromann))
+* [#4873](https://github.com/webdriverio/webdriverio/pull/4873) Added flowcharts ([@jdavis61](https://github.com/jdavis61))
+
+#### :house: Internal
+* [#4888](https://github.com/webdriverio/webdriverio/pull/4888) Implement back-porting process for maintainers ([@christian-bromann](https://github.com/christian-bromann))
+* [#4884](https://github.com/webdriverio/webdriverio/pull/4884) Remove sponsoring section from Governance.md ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- James Davis ([@jdavis61](https://github.com/jdavis61))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v5.16.16 (2019-12-14)
 
 #### :bug: Bug Fix
