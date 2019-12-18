@@ -154,4 +154,43 @@ describe('detectBackend', () => {
         expect(caps.hostname).toBe('foobar.com')
         expect(caps.port).toBe(4444)
     })
+
+    it('should detect browserstack user but keep custom properties if set', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'zHcv9sZ39ip8ZPsxBVJ2',
+            hostname: 'foobar.com',
+            port: 1234,
+            protocol: 'ftp'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(1234)
+        expect(caps.protocol).toBe('ftp')
+    })
+
+    it('should detect saucelabs user but keep custom properties if set', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            hostname: 'foobar.com',
+            port: 1234,
+            protocol: 'ftp'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(1234)
+        expect(caps.protocol).toBe('ftp')
+    })
+
+    it('should detect testingbot user but keep custom properties if set', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'ec337d7b677720a4dde7bd72be0bfc67',
+            hostname: 'foobar.com',
+            port: 1234,
+            protocol: 'ftp'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(1234)
+        expect(caps.protocol).toBe('ftp')
+    })
 })
