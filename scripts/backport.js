@@ -21,7 +21,7 @@ if (!process.env.GITHUB_AUTH) {
  * check if user is in right branch
  */
 const { stdout: branch } = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true })
-if (branch !== maintenanceLTSVersion) {
+if (branch.trim() !== maintenanceLTSVersion) {
     throw new Error(
         'In order to start backport process witch to the maintenance LTS branch via:\n' +
         `$ git checkout ${maintenanceLTSVersion}`
