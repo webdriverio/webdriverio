@@ -5,13 +5,11 @@ title: WDIO Commands
 This flowchart provides a high level overview of the @wdio/cli run, repl, config and install commands.
 <div>
     <div class="flowcharttogglemenu">
-        <span>[</span>
         <a class="flowcharttogglelink" onclick="createFlowChart(parseCLIARGS)">Parse CLI args</a>
         <span>|</span>
         <a class="flowcharttogglelink" onclick="createFlowChart(runRepl)">run command</a>
         <span>|</span>
         <a class="flowcharttogglelink" onclick="createFlowChart(installConfig)">repl, install and config commands</a>
-        <span>]</span>
     </div>
     <div id="flowChartGraphDivContainer"></div>
 </div>
@@ -68,9 +66,9 @@ This flowchart provides a high level overview of the @wdio/cli run, repl, config
         SYNCMODE{executionMode<br>       is sync?}
         SYNCMODE-->|Yes|INSTALLWDIOSYNC["Install<br>@wdio/sync"]
         INSTALLWDIOSYNC-->YARNCHECK["If --yarn, Install packages using<br>yarn, otherwise use npm"]
-        YARNCHECK-->CREATEWDIOCONFIG["Create wdio.conf.js"]   
         SYNCMODE-->|No|ASYNCMODE["Do not install<br>@wdio/sync"]
-        ASYNCMODE-->CREATEWDIOCONFIG
+        YARNCHECK-->CREATEWDIOCONFIG["Create wdio.conf.js"]
+        ASYNCMODE-->YARNCHECK
         REPLCOMMAND[repl]-->
         CREATESESSION[Create a new Webdriver session<br>using webdriverio remote]-->
         ADDGLOBALS["Add browser, $, and $$<br>to global scope"]-->
