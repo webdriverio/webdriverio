@@ -54,9 +54,9 @@ export function detectBackend (options = {}, isRDC = false) {
      */
     if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
         return {
-            protocol: 'https',
-            hostname: 'hub-cloud.browserstack.com',
-            port: 443
+            protocol: protocol || 'https',
+            hostname: hostname || 'hub-cloud.browserstack.com',
+            port: port || 443
         }
     }
 
@@ -66,8 +66,9 @@ export function detectBackend (options = {}, isRDC = false) {
      */
     if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
-            hostname: 'hub.testingbot.com',
-            port: 80
+            protocol: protocol || DEFAULT_PROTOCOL,
+            hostname: hostname || 'hub.testingbot.com',
+            port: port || 80
         }
     }
 
