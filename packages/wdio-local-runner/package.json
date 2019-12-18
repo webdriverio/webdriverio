@@ -33,7 +33,7 @@
   "dependencies": {
     "@wdio/logger": "5.16.10",
     "@wdio/repl": "5.16.15",
-    "@wdio/runner": "5.16.15",
+    "@wdio/runner": "5.17.0",
     "async-exit-hook": "^2.0.1",
     "stream-buffers": "^3.0.2"
   },
