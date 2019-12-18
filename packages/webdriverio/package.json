@@ -70,6 +70,6 @@
     "resq": "^1.6.0",
     "rgb2hex": "^0.1.0",
     "serialize-error": "^5.0.0",
-    "webdriver": "5.16.15"
+    "webdriver": "5.17.0"
   }
 }
