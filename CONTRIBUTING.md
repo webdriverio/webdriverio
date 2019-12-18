@@ -113,6 +113,7 @@ Once a PR with a `backport-requested` label got merged, you are responsible for 
 ```sh
 $ git pull
 $ git fetch --all
+$ git checkout v5
 ```
 
 Before you can start please export an `GITHUB_AUTH` token into your environment in order to allow the executing script to fetch data about pull requests and set proper labels. Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such token with only having the `public_repo` field enabled. Then export it into your environment and run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintainance branch. Via an interactive console you can get the chance to review the PR again and whether you want to backport it or not. To start the process, just execute:
