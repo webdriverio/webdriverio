@@ -390,6 +390,13 @@ declare namespace WebdriverIO {
         isEnabled(): Promise<boolean>;
 
         /**
+         * Return true if the selected DOM-element matches with the provided one.
+         */
+        isEqual(
+            el: Element
+        ): Promise<boolean>;
+
+        /**
          * Returns true if element exists in the DOM
          */
         isExisting(): Promise<boolean>;

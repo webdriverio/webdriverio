@@ -20,6 +20,7 @@ export const isClickable = require('./element/isClickable').default
 export const isDisplayed = require('./element/isDisplayed').default
 export const isDisplayedInViewport = require('./element/isDisplayedInViewport').default
 export const isEnabled = require('./element/isEnabled').default
+export const isEqual = require('./element/isEqual').default
 export const isExisting = require('./element/isExisting').default
 export const isFocused = require('./element/isFocused').default
 export const isSelected = require('./element/isSelected').default
