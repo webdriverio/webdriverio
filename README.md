@@ -12,6 +12,9 @@
     <a href="https://travis-ci.org/webdriverio/webdriverio">
         <img alt="Build Status" src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master">
     </a>
+    <a href="https://travis-ci.org/webdriverio/webdriverio/branches">
+        <img alt="LTS v5 Build Status" src="https://img.shields.io/travis/webdriverio/webdriverio/v5.svg?label=LTS%20v5%20build">
+    </a>
     <a href="https://codecov.io/gh/webdriverio/webdriverio">
         <img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg">
     </a>
