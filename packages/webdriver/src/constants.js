@@ -50,7 +50,7 @@ export const DEFAULTS = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
-     * Timeout for any request to the Selenium server
+     * Timeout for any WebDriver request to a driver or grid
      */
     connectionRetryTimeout: {
         type: 'number',

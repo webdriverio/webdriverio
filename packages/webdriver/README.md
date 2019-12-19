@@ -96,7 +96,7 @@ Type: `String`<br>
 Default: *null*
 
 ### connectionRetryTimeout
-Timeout for any request to the Selenium server.
+Timeout for any WebDriver request to a driver or grid.
 
 Type: `Number`<br>
 Default: *90000*
