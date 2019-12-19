@@ -36,7 +36,7 @@
   "dependencies": {
     "@wdio/logger": "6.0.0-alpha.0",
     "chrome-remote-interface": "^0.28.0",
-    "core-js": "~3.5.0",
+    "core-js": "~3.6.0",
     "lighthouse": "^5.1.0",
     "puppeteer-core": "^2.0.0",
     "speedline": "^1.4.1",
