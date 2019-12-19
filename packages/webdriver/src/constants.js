@@ -50,6 +50,13 @@ export const DEFAULTS = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
+     * Timeout for any request to the Selenium server
+     */
+    connectionRetryTimeout: {
+        type: 'number',
+        default: 90000
+    },
+    /**
      * Count of request retries to the Selenium server
      */
     connectionRetryCount: {

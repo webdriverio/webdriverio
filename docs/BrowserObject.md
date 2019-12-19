@@ -72,6 +72,7 @@ console.log(browser.config)
         waitforInterval: 250,
         logLevel: 'debug',
         baseUrl: 'http://localhost',
+        connectionRetryTimeout: 90000,
         connectionRetryCount: 3,
         specs: [ 'err.js' ],
         fakeUser: 'maxmustermann', // <-- custom option
