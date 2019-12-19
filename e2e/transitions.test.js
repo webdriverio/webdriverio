@@ -1,6 +1,8 @@
 import DevTools from '../packages/devtools/src/index'
 import { ELEMENT_KEY } from '../packages/devtools/src/constants'
 
+jest.setTimeout(30000)
+
 let browser
 
 beforeAll(async () => {

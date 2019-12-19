@@ -3,6 +3,8 @@ import { ELEMENT_KEY } from '../packages/devtools/src/constants'
 
 let browser
 
+jest.setTimeout(30000)
+
 beforeAll(async () => {
     browser = await DevTools.newSession({
         outputDir: __dirname,

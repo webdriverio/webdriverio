@@ -5,6 +5,8 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 let browser
 
+jest.setTimeout(30000)
+
 beforeAll(async () => {
     browser = await DevTools.newSession({
         outputDir: __dirname,
