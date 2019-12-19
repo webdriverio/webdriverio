@@ -25,9 +25,9 @@ describe('selectByIndex test', () => {
     it('should select by index', async () => {
         await elem.selectByIndex(1)
 
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/elements')
-        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-456/click')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/element')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/elements')
+        expect(request.mock.calls[3][0].uri.path).toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-elem-456'
         })

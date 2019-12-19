@@ -16,7 +16,7 @@ describe('setWindowSize', () => {
     it('should resize W3C browser window', async () => {
         await browser.setWindowSize(777, 888)
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/window/rect')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/window/rect')
         expect(request.mock.calls[1][0].body).toEqual({ x: null, y: null, width: 777, height: 888 })
     })
 
@@ -30,7 +30,7 @@ describe('setWindowSize', () => {
 
         await browser.setWindowSize(999, 1111)
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/window/current/size')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/window/current/size')
         expect(request.mock.calls[1][0].body).toEqual({ width: 999, height: 1111 })
     })
 

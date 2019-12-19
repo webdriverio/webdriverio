@@ -30,7 +30,7 @@ export const validateConfig = jest.fn().mockImplementation(
             hostname: 'localhost',
             port: 4444,
             protocol: 'http',
-            path: '/wd/hub',
+            path: '/',
             automationProtocol: 'webdriver'
         },
         config

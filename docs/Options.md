@@ -35,7 +35,7 @@ Default: `4444`
 Path to driver server endpoint.
 
 Type: `String`<br>
-Default: `/wd/hub`
+Default: `/`
 
 ### `queryParams`
 Query paramaters that are propagated to the driver server.

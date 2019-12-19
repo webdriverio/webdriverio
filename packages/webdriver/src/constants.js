@@ -26,7 +26,7 @@ export const DEFAULTS = {
      */
     path: {
         type: 'string',
-        default: '/wd/hub'
+        default: '/'
     },
     /**
      * A key-value store of query parameters to be added to every selenium request

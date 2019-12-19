@@ -17,7 +17,7 @@ describe('getText test', () => {
 
     it('should allow to get the text of an element', async () => {
         await elem.getText()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/text')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/text')
     })
 
     afterEach(() => {

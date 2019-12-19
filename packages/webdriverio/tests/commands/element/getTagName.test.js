@@ -17,7 +17,7 @@ describe('getTagName test', () => {
 
     it('should allow to get the tag name of an element', async () => {
         await elem.getTagName()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/name')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/name')
     })
 
     afterEach(() => {

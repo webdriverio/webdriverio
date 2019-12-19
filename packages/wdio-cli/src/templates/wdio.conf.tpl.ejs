@@ -24,16 +24,6 @@ exports.config = {
     path: '<%= answers.path %>',<% } else if (answers.services.includes('appium')) { %>
     port: 4723,<% }
 
-    if(answers.services.includes('chromedriver')) { %>
-    //
-    // Override default path ('/wd/hub') for chromedriver service.
-    path: '/',<% }
-
-    if(answers.services.length === 0) { %>
-    //
-    // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
-    // path: '/',<% }
-
     // Protocol: http | https
     // protocol: 'http',
     if(answers.env_user && answers.env_key) { %>

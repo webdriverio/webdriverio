@@ -84,10 +84,10 @@ Type: `Number`<br>
 Default: *4444*
 
 ### path
-Path to WebDriver server.
+Path to WebDriver endpoint or grid server.
 
 Type: `String`<br>
-Default: */wd/hub*
+Default: */*
 
 ### baseUrl
 Shorten `url` command calls by setting a base url.

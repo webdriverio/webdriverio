@@ -12,7 +12,7 @@ describe('getProperty test', () => {
         const elem = await browser.$('#foo')
         const property = await elem.getProperty('tagName')
 
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/property/tagName')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/property/tagName')
         expect(property).toBe('BODY')
     })
 
@@ -27,7 +27,7 @@ describe('getProperty test', () => {
         elem.elementId = { tagName: 'BODY' }
         const property = await elem.getProperty('tagName')
 
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/execute')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/execute')
         expect(property).toBe('BODY')
     })
 
