@@ -44,6 +44,10 @@ exports.config = {
     // Default timeout for all waitForXXX commands.
     waitforTimeout: 150000,
     //
+    // Default timeout in milliseconds for request
+    // if browser driver or grid doesn't send response
+    connectionRetryTimeout: 90000,
+    //
     // Default request retries count
     connectionRetryCount: 3,
     //

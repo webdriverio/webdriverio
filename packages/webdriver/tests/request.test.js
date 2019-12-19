@@ -41,7 +41,8 @@ describe('webdriver request', () => {
                 hostname: 'localhost',
                 port: 4445,
                 path: '/wd/hub/',
-                headers: { foo: 'bar' }
+                headers: { foo: 'bar' },
+                connectionRetryTimeout: 10 * 1000
             }, 'foobar12345')
 
             expect(options.agent.protocol).toBe('https:')
@@ -49,6 +50,7 @@ describe('webdriver request', () => {
                 .toBe('https://localhost:4445/wd/hub/session/foobar12345/element')
             expect(Object.keys(options.headers))
                 .toEqual(['Connection', 'Accept', 'User-Agent', 'foo'])
+            expect(options.timeout).toBe(10 * 1000)
         })
 
         it('passes a custom agent', () => {

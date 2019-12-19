@@ -50,6 +50,13 @@ export const DEFAULTS = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
+     * Timeout for any WebDriver request to a driver or grid
+     */
+    connectionRetryTimeout: {
+        type: 'number',
+        default: 90000
+    },
+    /**
      * Count of request retries to the Selenium server
      */
     connectionRetryCount: {
