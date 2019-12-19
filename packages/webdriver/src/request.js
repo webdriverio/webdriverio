@@ -50,7 +50,8 @@ export default class WebDriverRequest extends EventEmitter {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
-            qs: typeof options.queryParams === 'object' ? options.queryParams : {}
+            qs: typeof options.queryParams === 'object' ? options.queryParams : {},
+            timeout: options.connectionRetryTimeout
         }
 
         /**
