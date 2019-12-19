@@ -1,5 +1,3 @@
-import assert from 'assert'
-
 import FormPage from '../pageobjects/form.page'
 
 describe('auth form', () => {
@@ -9,7 +7,7 @@ describe('auth form', () => {
         FormPage.password.addValue('bar')
         FormPage.submit()
 
-        assert.ok(FormPage.flash.getText().includes('Your username is invalid!'))
+        expect(FormPage.flash).toHaveTextContaining('Your username is invalid!')
     })
 
     it('should allow access with correct creds', () => {
@@ -19,6 +17,6 @@ describe('auth form', () => {
         FormPage.submit()
 
         FormPage.flash.waitForVisible()
-        assert.ok(FormPage.flash.getText().includes('You logged into a secure area!'))
+        expect(FormPage.flash).toHaveTextContaining('You logged into a secure area!')
     })
 })
