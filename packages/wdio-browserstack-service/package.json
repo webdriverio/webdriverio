@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@wdio/logger": "6.0.0-alpha.0",
-    "browserstack-local": "1.4.2",
+    "browserstack-local": "1.4.3",
     "request": "^2.85.0"
   },
   "peerDependencies": {
