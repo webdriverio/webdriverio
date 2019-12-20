@@ -79,6 +79,7 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 - [@wdio/selenium-standalone-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-selenium-standalone-service) - A WebdriverIO service that automatically sets up a selenium standalone server
 - [@wdio/browserstack-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) - A WebdriverIO service that provides a better integration into Browserstack
 - [@wdio/crossbrowsertesting-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-crossbrowsertesting-service) - A WebdriverIO service that provides a better integration into CrossBrowserTesting
+- [@wdio/slack-service](https://github.com/carmenmitru/wdio-slack-service) - A WebdriverIO service which sends notifications of test results to Slack.
 
 ### Runner
 
