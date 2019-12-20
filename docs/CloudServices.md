@@ -3,24 +3,26 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-Using ondemand services like Sauce Labs, Browserstack, TestingBot, or CrossBrowserTesting with WebdriverIO is pretty simple. All you need to do is to set `user` and `key` in your options that are provided by the cloud provider. Optional you can also parametrize your test by setting cloud specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, or CrossBrowserTesting with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options. 
+
+Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
 ```js
 // wdio.conf.js
 
-var config = {...}
+let config = {...}
 if (process.env.CI) {
-    config.user = process.env.SAUCE_USERNAME;
-    config.key = process.env.SAUCE_ACCESS_KEY;
+    config.user = process.env.SAUCE_USERNAME
+    config.key = process.env.SAUCE_ACCESS_KEY
 }
 exports.config = config
 ```
 
-## [Sauce Labs](https://saucelabs.com/)
+## [Sauce Labs](https://saucelabs.com)
 
 It is easy to set up your tests to run remotely in Sauce Labs.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
+The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
 
 You can also pass in any optional [test configuration option](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) as a key/value in the capabilities for any browser.
 
@@ -28,19 +30,19 @@ You can also pass in any optional [test configuration option](https://docs.sauce
 
 If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Sauce Connect.
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+It is out of the scope of WebdriverIO to support this, so you'll have to start it by yourself.
 
 If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
 
 ### With Travis CI
 
-Travis CI, however, does [have support](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) for starting Sauce Connect before each test, so follow their directions for that if you are interested.
+Travis CI, however, does [have support](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) for starting Sauce Connect before each test, so following their directions for that is an option.
 
-If you do so, you must set the `tunnel-identifier` test configuration option in each browser's capabilities. Travis sets this to the `TRAVIS_JOB_NUMBER` environmental variable by default.
+If you do so, you must set the `tunnel-identifier` test configuration option in each browser's `capabilities`. Travis sets this to the `TRAVIS_JOB_NUMBER` environmental variable by default.
 
-Also if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
+Also, if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
 
-Lastly if you set the `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) WebdriverIO automatically sets a proper name for the test.
+Lastly, if you set `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service), WebdriverIO automatically sets a proper name for the test.
 
 Example `capabilities`:
 
@@ -59,11 +61,11 @@ Since you are running your tests remotely, it might be necessary to increase som
 
 You can change the [idle timeout](https://docs.saucelabs.com/reference/test-configuration/#idle-test-timeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
 
-## [BrowserStack](https://www.browserstack.com/)
+## [BrowserStack](https://www.browserstack.com)
 
 Browserstack is also supported easily.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
+The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
 
 You can also pass in any optional [supported capabilities](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
 
@@ -75,11 +77,11 @@ It is out of the scope of WebdriverIO to support this, so you must start it by y
 
 If you do use local, you should set `browserstack.local` to `true` in your capabilities.
 
-If you are using the WDIO testrunner download and configure the [`wdio-browserstack-service`](https://github.com/itszero/wdio-browserstack-service) in your `wdio.conf.js`. It helps getting BrowserStack running and comes with additional features that better integrate your tests into the BrowserStack service.
+If you are using the WDIO testrunner, download and configure the [`wdio-browserstack-service`](https://github.com/itszero/wdio-browserstack-service) in your `wdio.conf.js`. It helps get BrowserStack running, and comes with additional features that better integrate your tests into the BrowserStack service.
 
 ### With Travis CI
 
-If you want to add Local Testing in Travis you have to start it by yourself.
+If you want to add Local Testing in Travis, you have to start it by yourself.
 
 The following script will download and start it in the background. You should run this in Travis before starting the tests.
 
@@ -90,7 +92,7 @@ unzip BrowserStackLocal-linux-x64.zip
 sleep 3
 ```
 
-Also, you might wanna set the `build` to the Travis build number.
+Also, you might wish set the `build` to the Travis build number.
 
 Example `capabilities`:
 
@@ -98,24 +100,24 @@ Example `capabilities`:
 browserName: 'chrome',
 project: 'myApp',
 version: '44.0',
-build: 'myApp #' + process.env.TRAVIS_BUILD_NUMBER + '.' + process.env.TRAVIS_JOB_NUMBER,
+build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBER}`,
 'browserstack.local': 'true',
 'browserstack.debug': 'true'
 ```
 
-## [TestingBot](https://testingbot.com/)
+## [TestingBot](https://testingbot.com)
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your TestingBot username and secret key.
+The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your TestingBot username and secret key.
 
 You can also pass in any optional [supported capabilities](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
 
 ### [Local Testing](https://testingbot.com/support/other/tunnel)
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. TestingBot provides a JAVA based tunnel to allow you to test websites not accessible from the internet.
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. TestingBot provides a Java-based tunnel to allow you to test websites not accessible from the internet.
 
 Their tunnel support page contains the information necessary to get this up and running.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps getting TestingBot running and comes with additional features that better integrate your tests into the TestingBot service.
+If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
 
 ## [CrossBrowserTesting](https://crossbrowsertesting.com/)
 
@@ -127,4 +129,4 @@ You can also pass in any optional [supported capabilities](https://help.crossbro
 
 If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps getting CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
+If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.

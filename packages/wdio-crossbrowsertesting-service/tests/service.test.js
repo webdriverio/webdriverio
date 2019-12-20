@@ -6,6 +6,28 @@ jest.mock('request', () => ({
     get: jest.fn()
 }))
 
+const uri = 'some/uri'
+const featureObject = {
+    type: 'gherkin-document',
+    uri: '__tests__/features/passed.feature',
+    document:
+        {
+            type: 'GherkinDocument',
+            feature:
+                {
+                    type: 'Feature',
+                    tags: ['tag'],
+                    location: ['Object'],
+                    language: 'en',
+                    keyword: 'Feature',
+                    name: 'Create a feature',
+                    description: '    the description',
+                    children: [''],
+                },
+            comments: []
+        }
+}
+
 describe('wdio-crossbrowsertesting-service', () => {
     const execute = jest.fn()
     global.browser = {
@@ -66,8 +88,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.cbtAuthkey = undefined
         cbtService.suiteTitle = 'Test suite'
         cbtService.beforeTest(test)
-
-        expect(execute).not.toBeCalled()
         expect(cbtService.suiteTitle).toEqual('Test suite')
     })
 
@@ -86,7 +106,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.beforeSuite({ title: 'Test suite' })
         cbtService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('cbt:test-context=Test parent - Test title')
         expect(cbtService.suiteTitle).toEqual('Test suite')
     })
 
@@ -106,7 +125,6 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' })
         cbtService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('cbt:test-context=Test parent - Test title')
         expect(cbtService.suiteTitle).toEqual('Test ')
     })
 
@@ -144,92 +162,37 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     it('beforeFeature: execute not called', () => {
         const cbtService = new CrossBrowserTestingService()
-        const feature = {
-            name: 'Feature name',
-            getName: () => 'Feature name'
-        }
-        cbtService.beforeFeature(feature)
-
-        expect(execute).not.toBeCalled()
+        cbtService.beforeFeature(uri, featureObject)
     })
 
     it('beforeFeature: execute called', () => {
         const cbtService = new CrossBrowserTestingService()
-        const feature = {
-            name: 'Feature name',
-            getName: () => 'Feature name'
-        }
         cbtService.beforeSession({
             user: 'test',
             key: 'testy'
         }, {})
-        cbtService.beforeFeature(feature)
+        cbtService.beforeFeature(uri, featureObject)
 
-        expect(cbtService.suiteTitle).toEqual('Feature name')
-        expect(execute).toBeCalledWith('cbt:test-context=Feature: Feature name')
+        expect(cbtService.suiteTitle).toEqual('Create a feature')
     })
 
-    it('afterStep: exception happened', () => {
+    it('afterScenario: exception happened', () => {
         const cbtService = new CrossBrowserTestingService()
         cbtService.failures = 0
-        const feature = {
-            failureException: 'Unhandled error!'
-        }
-        cbtService.afterStep(feature)
 
-        expect(cbtService.failures).toEqual(1)
-    })
+        expect(cbtService.failures).toBe(0)
 
-    it('afterStep: getFailureException func exists', () => {
-        const cbtService = new CrossBrowserTestingService()
-        cbtService.failures = 0
-        const feature = {
-            getFailureException: () => 'Unhandled error!'
-        }
-        cbtService.afterStep(feature)
+        cbtService.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(cbtService.failures).toBe(0)
 
-        expect(cbtService.failures).toEqual(1)
-    })
+        cbtService.afterScenario(uri, {}, {}, { status: 'failed' })
+        expect(cbtService.failures).toBe(1)
 
-    it('afterStep: cucumber failure', () => {
-        const cbtService = new CrossBrowserTestingService()
-        cbtService.failures = 0
-        const feature = {
-            status: 'failed'
-        }
-        cbtService.afterStep(feature)
+        cbtService.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(cbtService.failures).toBe(1)
 
-        expect(cbtService.failures).toEqual(1)
-    })
-
-    it('beforeScenario: execute not called', () => {
-        const cbtService = new CrossBrowserTestingService()
-        const scenario = {
-            name: 'Scenario name',
-            getName: () => 'Scenario name'
-        }
-        cbtService.beforeSession({
-            user: undefined,
-            key: undefined
-        }, {})
-        cbtService.beforeScenario(scenario)
-
-        expect(execute).not.toBeCalled()
-    })
-
-    it('beforeScenario: execute called', () => {
-        const cbtService = new CrossBrowserTestingService()
-        const scenario = {
-            name: 'Scenario name',
-            getName: () => 'Scenario name'
-        }
-        cbtService.beforeSession({
-            user: 'test',
-            key: 'testy'
-        }, {})
-        cbtService.beforeScenario(scenario)
-
-        expect(execute).toBeCalledWith('cbt:test-context=Scenario: Scenario name')
+        cbtService.afterScenario(uri, {}, {}, { status: 'failed' })
+        expect(cbtService.failures).toBe(2)
     })
 
     it('after: updatedJob not called', () => {

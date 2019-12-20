@@ -1,3 +1,6 @@
+import logger from '@wdio/logger'
+const log = logger('webdriverio')
+
 /**
  *
  * Creates a new Selenium session with your current capabilities. This is useful if you
@@ -19,34 +22,29 @@
  * @type utility
  *
  */
-
-import WebDriverRequest from 'webdriver/build/request'
-
 export default async function reloadSession () {
     const oldSessionId = this.sessionId
 
     /**
-     * end current running session
+     * end current running session, if session already gone suppress exceptions
      */
-    await this.deleteSession()
-
-    const { w3cCaps, jsonwpCaps } = this.options.requestedCapabilities
-    const sessionRequest = new WebDriverRequest(
-        'POST',
-        '/session',
-        {
-            capabilities: w3cCaps, // W3C compliant
-            desiredCapabilities: jsonwpCaps // JSONWP compliant
-        }
-    )
-
-    const response = await sessionRequest.makeRequest(this.options)
-    const newSessionId = response.sessionId || (response.value && response.value.sessionId)
-    this.sessionId = newSessionId
-
-    if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
-        await Promise.all(this.options.onReload.map((hook) => hook(oldSessionId, newSessionId)))
+    try {
+        await this.deleteSession()
+    } catch (err) {
+        /**
+         * ignoring all exceptions that could be caused by browser.deleteSession()
+         * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
+         * this can be worked around in code but requires a lot of overhead
+         */
+        log.warn(`Suppressing error closing the session: ${err.stack}`)
     }
 
-    return newSessionId
+    const ProtocolDriver = require(this.options.automationProtocol).default
+    await ProtocolDriver.reloadSession(this)
+
+    if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
+        await Promise.all(this.options.onReload.map((hook) => hook(oldSessionId, this.sessionId)))
+    }
+
+    return this.sessionId
 }

@@ -4,7 +4,10 @@ const wdioMock = {
     debug: jest.fn(),
     deleteSession: jest.fn(),
     on: jest.fn(),
-    sessionId: 'fakeid'
+    sessionId: 'fakeid',
+    react$: jest.fn(),
+    react$$: jest.fn(),
+    custom$: jest.fn(),
 }
 
 export const attach = jest.fn().mockImplementation(() => ({ ...wdioMock }))

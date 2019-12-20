@@ -34,7 +34,7 @@ test('should fork a new process', () => {
 
     const { env } = child.fork.mock.calls[0][2]
     expect(env.WDIO_LOG_PATH).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/)
-    expect(env.FORCE_COLOR).toBe('1')
+    expect(env.FORCE_COLOR).toBe(1)
     expect(childProcess.on).toBeCalled()
 
     expect(childProcess.send).toBeCalledWith({

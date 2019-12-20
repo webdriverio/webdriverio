@@ -10,6 +10,7 @@ jest.mock('../src/utils', () => ({
             '$'() { },
             '$$'() { },
             sessionId: 'id',
+            isBar: false,
             events: {},
             on(eventName, callback) {
                 this.events[eventName] = callback
@@ -45,6 +46,15 @@ describe('wdio-runner', () => {
             browser.events.result(result)
 
             expect(result).toEqual({ bar: 'foo', sessionId: 'id' })
+        })
+
+        it('should add user flags to browser but not overwrite', async () => {
+            const browser = await runner._initSession(undefined, undefined, { isFoo: true, $: true, $$: false, isBar: true })
+
+            expect(typeof browser.$).toBe('function')
+            expect(typeof browser.$$).toBe('function')
+            expect(browser.isFoo).toBe(true)
+            expect(browser.isBar).toBe(false)
         })
 
         it('throw error', () => {

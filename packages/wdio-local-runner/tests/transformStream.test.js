@@ -20,7 +20,7 @@ test('should ignore debugger messages', () => {
     expect(pushSpy).toBeCalledTimes(0)
 })
 
-test('should ignore debugger messages', (done) => {
+test('should unpipe in the end', (done) => {
     const stream = new RunnerTransformStream('0-5')
     const stream2 = new RunnerTransformStream('0-6')
 

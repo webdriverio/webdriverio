@@ -6,11 +6,12 @@ import Launcher from '../../packages/wdio-cli/src/launcher.js'
 export default function launch (...args) {
     const launcher = new Launcher(...args)
 
-    return launcher.run().then((isFailing) => {
+    return launcher.run().then((exitCode) => {
+        const isFailing = exitCode !== 0
         if (!isFailing) {
             // eslint-disable-next-line no-console
             console.log('Smoke test successful')
-            return
+            return { skippedSpecs: launcher.interface.skippedSpecs }
         }
 
         const IGNORED_FILES_TO_LOG = ['service.log', 'launcher.log']

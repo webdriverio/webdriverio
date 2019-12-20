@@ -40,6 +40,9 @@ export.config = {
   user: process.env.CBT_USERNAME,
   key: process.env.CBT_AUTHKEY,
   cbtTunnel: true,
+  cbtTunnelOpts: {
+    // any additional options from cbt_tunnels
+  },
   // ...
 };
 ```
@@ -61,6 +64,12 @@ If true secure CBT local connection is started.
 
 Type: `Boolean`<br>
 Default: `false`
+
+### cbtTunnelOpts
+Any additional options to pass along to the `start()` function of [cbt_tunnels](https://www.npmjs.com/package/cbt_tunnels)
+
+Type: `Object`<br>
+Default: `{}`
 
 
 For more information on WebdriverIO see the [homepage](http://webdriver.io).

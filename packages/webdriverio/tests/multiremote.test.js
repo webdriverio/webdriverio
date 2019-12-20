@@ -37,6 +37,23 @@ test('should run command on all instances', async () => {
     expect(request.mock.calls[3][0].method).toBe('POST')
 })
 
+test('should properly create stub instance', async () => {
+    const params = caps()
+    Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub' })
+    const browser = await multiremote(params, { automationProtocol: './protocol-stub' })
+    expect(browser.$).toBeUndefined()
+    expect(browser.options).toBeUndefined()
+    expect(browser.commandList).toHaveLength(0)
+    expect(browser.browserA).toBeDefined()
+    expect(browser.browserB).toBeDefined()
+    expect(browser.browserA.$).toBeUndefined()
+    expect(browser.browserA.$).toBeUndefined()
+
+    expect(() => browser.addCommand()).toThrow()
+    expect(() => browser.browserA.addCommand()).toThrow()
+    expect(() => browser.browserB.overwriteCommand()).toThrow()
+})
+
 test('should allow to call on elements', async () => {
     const browser = await multiremote(caps())
 
@@ -69,7 +86,7 @@ test('should be able to add a command to and element in multiremote', async () =
     const browser = await multiremote(caps())
 
     browser.addCommand('myCustomElementCommand', async function () {
-        return this.execute(function () {return 1})
+        return this.execute(() => 1)
     }, true)
 
     const elem = await browser.$('#foo')

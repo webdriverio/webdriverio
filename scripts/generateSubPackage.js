@@ -47,7 +47,7 @@ inquirer.prompt(questions).then(answers => {
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",

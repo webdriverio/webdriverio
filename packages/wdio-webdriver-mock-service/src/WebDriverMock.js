@@ -1,16 +1,15 @@
-import path from 'path'
 import nock from 'nock'
 
-import webdriver from 'webdriver'
+import {
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
+} from '@wdio/protocols'
 
 import { SESSION_ID } from './constants'
 
 const protocols = [
-    webdriver.JsonWProtocol,
-    webdriver.WebDriverProtocol,
-    webdriver.MJsonWProtocol,
-    webdriver.AppiumProtocol,
-    webdriver.ChromiumProtocol
+    JsonWProtocol, WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 
 const protocolFlattened = new Map()
@@ -33,7 +32,7 @@ export default class WebDriverMock {
         const { method, endpoint, commandData } = protocolFlattened.get(commandName)
 
         return (...args) => {
-            let urlPath = path.join(this.path, endpoint).replace(':sessionId', SESSION_ID)
+            let urlPath = endpoint.replace(':sessionId', SESSION_ID)
             for (const [i, param] of Object.entries(commandData.variables || [])) {
                 urlPath = urlPath.replace(`:${param.name}`, args[i])
             }

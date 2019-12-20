@@ -11,6 +11,7 @@ export default class JasmineReporter {
         this.parent = []
         this.failedCount = 0
         this.startedTest = null
+        this.startedSuite = null
     }
 
     suiteStarted (suite) {
@@ -18,6 +19,7 @@ export default class JasmineReporter {
         suite.type = 'suite'
         suite.start = new Date()
 
+        this.startedSuite = suite
         this.emit('suite:start', suite)
         this.parent.push({
             description: suite.description,
@@ -91,6 +93,7 @@ export default class JasmineReporter {
         suite.type = 'suite'
         suite.duration = new Date() - this.suiteStart
         this.emit('suite:end', suite)
+        this.startedSuite = null
     }
 
     emit (event, payload) {
@@ -99,7 +102,9 @@ export default class JasmineReporter {
             uid: this.getUniqueIdentifier(payload),
             event: event,
             title: payload.description,
+            fullTitle: payload.fullName,
             pending: payload.status === 'pending',
+            pendingReason: payload.pendingReason,
             parent: this.parent.length ? this.getUniqueIdentifier(this.parent[this.parent.length - 1]) : null,
             type: payload.type,
             // We maintain the single error property for backwards compatibility with reporters

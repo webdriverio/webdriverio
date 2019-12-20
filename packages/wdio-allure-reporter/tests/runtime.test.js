@@ -10,13 +10,19 @@ describe('reporter reporter api', () => {
         jest.resetAllMocks()
     })
 
+    it('should pass correct data from addLabel', () => {
+        reporter.addLabel('customLabel', 'Label')
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addLabel, { name: 'customLabel', value: 'Label' })
+    })
+
     it('should pass correct data from addStory', () => {
         reporter.addStory('Story')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addStory, { storyName: 'Story' })
     })
 
-    it('should pass correct data from addStory', () => {
+    it('should pass correct data from addFeature', () => {
         reporter.addFeature('foo')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addFeature, { featureName: 'foo' })
@@ -112,13 +118,13 @@ describe('reporter reporter api', () => {
     })
 
     it('should throw exception for incorrect status for addStep', () => {
-        const cb = () => { reporter.addStep('foo', { content: 'baz' }, 'canceled')}
-        expect(cb).toThrowError('Step status must be passed or failed or broken. You tried to set "canceled"')
+        const cb = () => { reporter.addStep('foo', { content: 'baz' }, 'invalid-status')}
+        expect(cb).toThrowError('Step status must be passed or failed or broken or canceled or skipped. You tried to set "invalid-status"')
     })
 
     it('should throw exception for incorrect status for endStep', () => {
-        const cb = () => { reporter.endStep('canceled') }
-        expect(cb).toThrowError('Step status must be passed or failed or broken. You tried to set "canceled"')
+        const cb = () => { reporter.endStep('invalid-status') }
+        expect(cb).toThrowError('Step status must be passed or failed or broken or canceled or skipped. You tried to set "invalid-status"')
     })
 
     it('should pass correct data from addArgument', () => {

@@ -60,6 +60,10 @@ export default async function selectByVisibleText (text) {
 
     const optionElement = await this.findElementFromElement(this.elementId, 'xpath', selections.join('|'))
 
+    if (optionElement && optionElement.error === 'no such element') {
+        throw new Error(`Option with text "${text}" not found.`)
+    }
+
     /**
     * select option
     */

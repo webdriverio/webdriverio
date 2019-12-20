@@ -1,6 +1,13 @@
 import { directory } from 'tempy'
+
+/**
+ * this is not a real package and only used to utilize helper
+ * methods without having to ignore them for test coverage
+ */
+// eslint-disable-next-line
+import { clean, getResults } from 'wdio-allure-helper'
+
 import AllureReporter from '../src/'
-import { clean, getResults } from './helper'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
 import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors } from './__fixtures__/testState'
@@ -26,6 +33,7 @@ describe('Passing tests', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
+        reporter.addLabel({ name: 'customLabel', value: 'Label' })
         reporter.addStory({ storyName: 'Story' })
         reporter.addFeature( { featureName: 'foo' })
         reporter.addSeverity({ severity: 'baz' })
@@ -73,7 +81,8 @@ describe('Passing tests', () => {
         expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
     })
 
-    it('should add story, feature, severity, issue, testId labels, thread', () => {
+    it('should add label, story, feature, severity, issue, testId labels, thread', () => {
+        expect(allureXml('test-case label[name="customLabel"]').eq(0).attr('value')).toEqual('Label')
         expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('foo')
         expect(allureXml('test-case label[name="story"]').eq(0).attr('value')).toEqual('Story')
         expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('baz')
@@ -126,8 +135,8 @@ describe('Failed tests', () => {
         const reporter = new AllureReporter({ stdout: true, outputDir })
 
         const runnerEvent = runnerStart()
-        delete runnerEvent.config.capabilities.browserName
-        delete runnerEvent.config.capabilities.version
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
 
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())
@@ -169,8 +178,8 @@ describe('Failed tests', () => {
 
         const runnerEvent = runnerStart()
         runnerEvent.config.framework = 'jasmine'
-        delete runnerEvent.config.capabilities.browserName
-        delete runnerEvent.config.capabilities.version
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
 
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())

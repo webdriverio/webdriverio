@@ -1,4 +1,5 @@
 import Launcher from '../src/launcher'
+import FirefoxProfile from 'firefox-profile'
 
 describe('Firefox profile service', () => {
     describe('onPrepare', () => {
@@ -185,6 +186,22 @@ describe('Firefox profile service', () => {
             expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
             expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
             expect(service.profile.updatePreferences).toHaveBeenCalled()
+        })
+
+        test('should load from directory if profileDirectory is set', async () => {
+            const config = {
+                firefoxProfile : {
+                    profileDirectory: '/tmp/firefox-profile',
+                }
+            }
+            const capabilities = [{
+                browserName : 'firefox',
+            }]
+
+            const service = new Launcher()
+            await service.onPrepare(config, capabilities)
+
+            expect(FirefoxProfile.copy).toHaveBeenCalledWith(config.firefoxProfile.profileDirectory, expect.any(Function))
         })
     })
 })

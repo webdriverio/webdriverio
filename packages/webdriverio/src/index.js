@@ -1,10 +1,14 @@
 import path from 'path'
 import WebDriver from 'webdriver'
-import { validateConfig, wrapCommand, runFnInFiberContext, detectBackend } from '@wdio/config'
+import logger from '@wdio/logger'
+import { validateConfig, detectBackend } from '@wdio/config'
+import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
-import { getPrototype } from './utils'
+import { getPrototype, addLocatorStrategyHandler, isStub } from './utils'
+
+const log = logger('webdriverio')
 
 /**
  * A method to create a new session with WebdriverIO
@@ -14,6 +18,8 @@ import { getPrototype } from './utils'
  * @return {object}                   browser object with sessionId
  */
 export const remote = async function (params = {}, remoteModifier) {
+    logger.setLogLevelsConfig(params.logLevels, params.logLevel)
+
     const config = validateConfig(WDIO_DEFAULTS, params)
     const modifier = (client, options) => {
         if (typeof remoteModifier === 'function') {
@@ -33,21 +39,28 @@ export const remote = async function (params = {}, remoteModifier) {
     }
 
     const prototype = getPrototype('browser')
-    const instance = await WebDriver.newSession(params, modifier, prototype, wrapCommand)
+    log.info(`Initiate new session using the ${config.automationProtocol} protocol`)
+    const ProtocolDriver = require(config.automationProtocol).default
+    const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
-     * in order to wrap the function within Fibers
+     * in order to wrap the function within Fibers (only if webdriverio
+     * is used with @wdio/cli)
      */
-    const origAddCommand = ::instance.addCommand
-    instance.addCommand = (name, fn, attachToElement) => (
-        origAddCommand(name, runFnInFiberContext(fn), attachToElement)
-    )
+    if (params.runner && !isStub(config.automationProtocol)) {
+        const origAddCommand = ::instance.addCommand
+        instance.addCommand = (name, fn, attachToElement) => (
+            origAddCommand(name, runFnInFiberContext(fn), attachToElement)
+        )
 
-    const origOverwriteCommand = ::instance.overwriteCommand
-    instance.overwriteCommand = (name, fn, attachToElement) => (
-        origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
-    )
+        const origOverwriteCommand = ::instance.overwriteCommand
+        instance.overwriteCommand = (name, fn, attachToElement) => (
+            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
+        )
+    }
+
+    instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
 
     return instance
 }
@@ -57,7 +70,7 @@ export const attach = function (params) {
     return WebDriver.attachToSession(params, null, prototype, wrapCommand)
 }
 
-export const multiremote = async function (params = {}) {
+export const multiremote = async function (params = {}, config = {}) {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 
@@ -65,14 +78,8 @@ export const multiremote = async function (params = {}) {
      * create all instance sessions
      */
     await Promise.all(
-        browserNames.map((browserName) => {
-            const config = validateConfig(WDIO_DEFAULTS, params[browserName])
-            const modifier = (client, options) => {
-                Object.assign(options, config)
-                return client
-            }
-            const prototype = getPrototype('browser')
-            const instance = WebDriver.newSession(params[browserName], modifier, prototype, wrapCommand)
+        browserNames.map(async (browserName) => {
+            const instance = await remote(params[browserName])
             return multibrowser.addInstance(browserName, instance)
         })
     )
@@ -81,26 +88,32 @@ export const multiremote = async function (params = {}) {
      * use attachToSession capability to wrap instances around blank pod
      */
     const prototype = getPrototype('browser')
-    const sessionParams = {
+    const sessionParams = isStub(config.automationProtocol) ? undefined : {
         sessionId: '',
         isW3C: multibrowser.instances[browserNames[0]].isW3C,
         logLevel: multibrowser.instances[browserNames[0]].options.logLevel
     }
-    const driver = WebDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
+
+    const ProtocolDriver = isStub(config.automationProtocol) ? require(config.automationProtocol).default : WebDriver
+    const driver = ProtocolDriver.attachToSession(sessionParams, ::multibrowser.modifier, prototype, wrapCommand)
 
     /**
      * in order to get custom command overwritten or added to multiremote instance
      * we need to pass in the prototype of the multibrowser
      */
-    const origAddCommand = ::driver.addCommand
-    driver.addCommand = (name, fn, attachToElement) => {
-        origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+    if (!isStub(config.automationProtocol)) {
+        const origAddCommand = ::driver.addCommand
+        driver.addCommand = (name, fn, attachToElement) => {
+            origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        }
+
+        const origOverwriteCommand = ::driver.overwriteCommand
+        driver.overwriteCommand = (name, fn, attachToElement) => {
+            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        }
     }
 
-    const origOverwriteCommand = ::driver.overwriteCommand
-    driver.overwriteCommand = (name, fn, attachToElement) => {
-        origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
-    }
+    driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
 
     return driver
 }

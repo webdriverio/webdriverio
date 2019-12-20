@@ -69,19 +69,19 @@ export default class LocalRunner {
         }
 
         return new Promise((resolve) => {
+            const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
                 const busyWorker = Object.entries(this.workerPool)
                     .filter(([, worker]) => worker.isBusy).length
 
                 log.info(`Waiting for ${busyWorker} to shut down gracefully`)
                 if (busyWorker === 0) {
+                    clearTimeout(timeout)
                     clearInterval(interval)
                     log.info('shutting down')
                     return resolve()
                 }
             }, 250)
-
-            setTimeout(resolve, SHUTDOWN_TIMEOUT)
         })
     }
 }

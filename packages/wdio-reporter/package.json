@@ -1,13 +1,13 @@
 {
   "name": "@wdio/reporter",
-  "version": "5.9.3",
+  "version": "6.0.0-alpha.0",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-reporter",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
@@ -37,5 +37,6 @@
   },
   "dependencies": {
     "fs-extra": "^8.0.1"
-  }
+  },
+  "types": "reporter.d.ts"
 }

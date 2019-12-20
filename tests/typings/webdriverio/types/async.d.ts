@@ -1,9 +1,9 @@
 /**
- * An example of adding command withing d.ts file to WebdriverIOAsync
+ * An example of adding command withing d.ts file to WebdriverIO (async)
  */
 
 // module should be "webdriverio" if used within `ts` file instead of `d.ts`
-declare module WebdriverIOAsync {
+declare module WebdriverIO {
     interface BrowserObject {
         // multiremote
         instances: ['myBrowserInstance']

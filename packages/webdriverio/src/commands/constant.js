@@ -82,6 +82,9 @@ export const validateParameters = (params) => {
 }
 
 export const touchAction = function (actions) {
+    if (!this.multiTouchPerform || !this.touchPerform) {
+        throw new Error('touchAction can be used with Appium only.')
+    }
     if (!Array.isArray(actions)) {
         actions = [actions]
     }

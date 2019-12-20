@@ -6,7 +6,7 @@ jest.mock('repl')
 
 describe('repl commandDir', () => {
     it('should call debug command', async () => {
-        await handler({ browserName: 'chrome' })
+        await handler({ option: 'chrome' })
         const client = remote({})
         expect(client.debug).toHaveBeenCalledTimes(1)
         expect(client.deleteSession).toHaveBeenCalledTimes(1)

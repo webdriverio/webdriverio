@@ -71,3 +71,33 @@ blockquote {
         }
     }
 }
+
+article .flowcharttogglelink {
+    text-align: center;
+    color: $orange;
+    cursor: pointer;
+}
+
+article .flowcharttogglemenu {
+    margin: 20px 0;
+
+    span {
+        padding: 0 5px;
+    }
+}
+
+article #flowChartGraphDiv .node rect,
+article #flowChartGraphDiv .node circle,
+article #flowChartGraphDiv .node ellipse,
+article #flowChartGraphDiv .node polygon {
+    stroke: $orange;
+    fill: $orangeLight;
+}
+
+.flowcharttogglemenu,
+#flowChartGraphDivContainer {
+    margin: auto;
+    padding-left: auto;
+    padding-right: auto;
+    text-align: center;
+}

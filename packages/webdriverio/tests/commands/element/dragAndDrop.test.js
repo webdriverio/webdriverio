@@ -40,24 +40,25 @@ describe('dragAndDrop', () => {
 
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
+        request.setMockResponse([{ scrollX: 0, scrollY: 20 }])
         await elem.dragAndDrop(subElem)
 
         // move to
-        expect(request.mock.calls[3][0].uri.path).toContain('/element/some-elem-123/rect')
-        expect(request.mock.calls[4][0].uri.path).toContain('/element/some-sub-elem-321/rect')
-        expect(request.mock.calls[5][0].uri.path).toContain('/foobar-123/actions')
-        expect(request.mock.calls[5][0].body.actions).toHaveLength(1)
-        expect(request.mock.calls[5][0].body.actions[0].type).toBe('pointer')
-        expect(request.mock.calls[5][0].body.actions[0].actions).toHaveLength(5)
-        expect(request.mock.calls[5][0].body.actions[0].actions).toEqual([
-            { type: 'pointerMove', duration: 0, x: 40, y: 35 },
+        expect(request.mock.calls[4][0].uri.path).toContain('/element/some-elem-123/rect')
+        expect(request.mock.calls[5][0].uri.path).toContain('/element/some-sub-elem-321/rect')
+        expect(request.mock.calls[6][0].uri.path).toContain('/foobar-123/actions')
+        expect(request.mock.calls[6][0].body.actions).toHaveLength(1)
+        expect(request.mock.calls[6][0].body.actions[0].type).toBe('pointer')
+        expect(request.mock.calls[6][0].body.actions[0].actions).toHaveLength(5)
+        expect(request.mock.calls[6][0].body.actions[0].actions).toEqual([
+            { type: 'pointerMove', duration: 0, x: 40, y: 15 },
             { type: 'pointerDown', button: 0 },
             { type: 'pause', duration: 10 },
             { type: 'pointerMove', duration: 100, origin: 'pointer', x: 135, y: 225 },
             { type: 'pointerUp', button: 0 }
         ])
-        expect(request.mock.calls[6][0].uri.path).toContain('/foobar-123/actions')
-        expect(request.mock.calls[6][0].method).toContain('DELETE')
+        expect(request.mock.calls[7][0].uri.path).toContain('/foobar-123/actions')
+        expect(request.mock.calls[7][0].method).toContain('DELETE')
     })
 
     it('should do a dragAndDrop (no w3c)', async () => {

@@ -10,16 +10,21 @@ import { URL } from 'url'
 import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
 import { findStrategy } from './utils/findStrategy'
 
+const browserCommands = require('./commands/browser')
+const elementCommands = require('./commands/element')
+
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
+const scopes = {
+    browser: browserCommands,
+    element: elementCommands
+}
+
 const applyScopePrototype = (prototype, scope) => {
-    const dir = path.resolve(__dirname, 'commands', scope)
-    const files = fs.readdirSync(dir)
-    for (let filename of files) {
-        const commandName = path.basename(filename, path.extname(filename))
-        prototype[commandName] = { value: require(path.join(dir, commandName)).default }
-    }
+    Object.entries(scopes[scope]).forEach(([commandName, command]) => {
+        prototype[commandName] = { value: command }
+    })
 }
 
 /**
@@ -32,6 +37,8 @@ export const getPrototype = (scope) => {
      * register action commands
      */
     applyScopePrototype(prototype, scope)
+    prototype.strategies = { value: new Map() }
+
     return prototype
 }
 
@@ -347,3 +354,63 @@ export function validateUrl (url, origError) {
         return validateUrl(`http://${url}`, e)
     }
 }
+
+/**
+ * get window's scrollX and scrollY
+ * @param {object} scope
+ */
+export function getScrollPosition (scope) {
+    return getBrowserObject(scope).execute('return { scrollX: this.pageXOffset, scrollY: this.pageYOffset };')
+}
+
+export async function hasElementId (element) {
+    /*
+     * This is only necessary as isDisplayed is on the exclusion list for the middleware
+     */
+    if (!element.elementId) {
+        const method = element.isReactElement ? 'react$' : '$'
+
+        element.elementId = (await element.parent[method](element.selector)).elementId
+    }
+
+    /*
+     * if element was still not found it also is not displayed
+     */
+    if (!element.elementId) {
+        return false
+    }
+    return true
+}
+
+export function addLocatorStrategyHandler(scope) {
+    return (name, script) => {
+        if (scope.strategies.get(name)) {
+            throw new Error(`Strategy ${name} already exists`)
+        }
+
+        scope.strategies.set(name, script)
+    }
+}
+
+/**
+ * Enhance elements array with data required to refetch it
+ * @param   {object[]}          elements    elements
+ * @param   {object}            parent      element or browser
+ * @param   {string|Function}   selector    string or function, or strategy name for `custom$$`
+ * @param   {string}            foundWith   name of the command elements were found with, ex `$$`, `react$$`, etc
+ * @param   {Array}             props       additional properties required to fetch elements again
+ * @returns {object[]}  elements
+ */
+export const enhanceElementsArray = (elements, parent, selector, foundWith = '$$', props = []) => {
+    elements.parent = parent
+    elements.selector = selector
+    elements.foundWith = foundWith
+    elements.props = props
+    return elements
+}
+
+/**
+ * is protocol stub
+ * @param {string} automationProtocol
+ */
+export const isStub = (automationProtocol) => automationProtocol === './protocol-stub'

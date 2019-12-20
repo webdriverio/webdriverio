@@ -1,0 +1,50 @@
+{
+  "name": "@wdio/cucumber-framework",
+  "version": "6.0.0-alpha.0",
+  "description": "A WebdriverIO plugin. Adapter for Cucumber.js testing framework.",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">=10.0.0"
+  },
+  "scripts": {
+    "build": "run-s clean compile",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
+    "test": "run-s test:*",
+    "test:eslint": "eslint src test",
+    "test:unit": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "cucumber"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "@wdio/logger": "6.0.0-alpha.0",
+    "@wdio/utils": "6.0.0-alpha.0",
+    "cucumber": "^5.1.0",
+    "glob": "^7.1.2",
+    "is-glob": "^4.0.0",
+    "mockery": "~2.1.0"
+  },
+  "devDependencies": {
+    "@types/cucumber": "^4.0.6"
+  },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "types": "cucumber-framework.d.ts"
+}

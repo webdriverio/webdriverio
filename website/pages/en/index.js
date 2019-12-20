@@ -79,7 +79,7 @@ const Badges = () => (
     <section>
         <div className="badges">
             <a href="https://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
-            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg" alt="Build Status" /></a>
+            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master" alt="Build Status" /></a>
             <a href="https://codecov.io/gh/webdriverio/webdriverio"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
@@ -124,7 +124,7 @@ class HomeSplash extends React.Component {
                     <PromoSection>
                         <Button href={docUrl('gettingstarted.html', language)}>Get Started</Button>
                         <Button href="#watch">Watch Talks</Button>
-                        <Button href="https://learn.webdriver.io">Online Course</Button>
+                        <Button href="https://leanpub.com/webapp-testing-guidebook">Read the Book</Button>
                         <Button href="https://gitter.im/webdriverio/webdriverio">Support</Button>
                     </PromoSection>
                 </div>

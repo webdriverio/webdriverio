@@ -8,9 +8,19 @@ jest.mock('fs-extra')
 global.console.log = jest.fn()
 
 describe('launcher', () => {
+    const emitSpy = jest.spyOn(process, 'emit')
     let launcher
 
-    beforeEach(() => launcher = new Launcher('./'))
+    beforeEach(() => {
+        emitSpy.mockClear()
+        launcher = new Launcher('./')
+    })
+
+    describe('defaults', () => {
+        it('should have default for the argv parameter', () => {
+            expect(launcher.argv).toEqual({})
+        })
+    })
 
     describe('capabilities', () => {
         it('should NOT fail when capabilities are passed', async () => {
@@ -57,7 +67,8 @@ describe('launcher', () => {
 
         it('should ignore specFileRetries in watch mode', () => {
             launcher.runSpecs = jest.fn()
-            launcher.runMode({ specs: './', specFileRetries: 2, watch: true }, [caps, caps])
+            launcher.isWatchMode = true
+            launcher.runMode({ specs: './', specFileRetries: 2 }, [caps, caps])
 
             expect(launcher.schedule).toHaveLength(2)
             expect(launcher.schedule[0].specs[0].retries).toBe(0)
@@ -128,6 +139,31 @@ describe('launcher', () => {
             expect(launcher.resolve).toBeCalledTimes(0)
         })
 
+        it('should do nothing if watch mode is still running', () => {
+            launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
+            launcher.isWatchMode = true
+            launcher.runSpecs = jest.fn().mockReturnValue(1)
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
+            launcher.interface.emit = jest.fn()
+            launcher.resolve = jest.fn()
+            launcher.endHandler({ cid: 1, exitCode: 1 })
+            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: 1, passed: false })
+            expect(launcher.resolve).toBeCalledTimes(0)
+        })
+
+        it('should resolve and not emit on watch mode stop', () => {
+            launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
+            launcher.isWatchMode = true
+            launcher.hasTriggeredExitRoutine = true
+            launcher.runSpecs = jest.fn().mockReturnValue(1)
+            launcher.schedule = [{ cid: 1 }, { cid: 2 }]
+            launcher.interface.emit = jest.fn()
+            launcher.resolve = jest.fn()
+            launcher.endHandler({ cid: 1, exitCode: 1 })
+            expect(launcher.interface.emit).not.toBeCalled()
+            expect(launcher.resolve).toBeCalledWith(0)
+        })
+
         it('should reschedule when runner failed and retries remain', () => {
             launcher.schedule = [{ cid: 0, specs: [] }]
             launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
@@ -144,6 +180,18 @@ describe('launcher', () => {
             launcher.exitHandler()
 
             expect(launcher.hasTriggeredExitRoutine).toBe(false)
+            expect(launcher.interface.sigintTrigger).toBeCalledTimes(0)
+            expect(launcher.runner.shutdown).toBeCalledTimes(0)
+        })
+
+        it('should do nothing if shutdown was called before', () => {
+            launcher.hasTriggeredExitRoutine = true
+            launcher.interface = { sigintTrigger: jest.fn() }
+            launcher.runner = { shutdown: jest.fn().mockReturnValue(Promise.resolve()) }
+
+            expect(launcher.exitHandler(() => 'foo')).toBe('foo')
+
+            expect(launcher.hasTriggeredExitRoutine).toBe(true)
             expect(launcher.interface.sigintTrigger).toBeCalledTimes(0)
             expect(launcher.runner.shutdown).toBeCalledTimes(0)
         })
@@ -289,7 +337,7 @@ describe('launcher', () => {
                 runningInstances: 0,
                 seleniumServer: {}
             }, {
-                cid: 1,
+                cid: 2,
                 caps: { browserName: 'chrome2' },
                 specs: ['/a.js', 'b.js'],
                 availableInstances: 70,
@@ -299,12 +347,6 @@ describe('launcher', () => {
             expect(launcher.runSpecs()).toBe(false)
             expect(launcher.getNumberOfRunningInstances()).toBe(5)
             expect(launcher.getNumberOfSpecsLeft()).toBe(4)
-            expect(launcher.schedule[0].runningInstances).toBe(2)
-            expect(launcher.schedule[0].availableInstances).toBe(48)
-            expect(launcher.schedule[1].runningInstances).toBe(2)
-            expect(launcher.schedule[1].availableInstances).toBe(58)
-            expect(launcher.schedule[2].runningInstances).toBe(1)
-            expect(launcher.schedule[2].availableInstances).toBe(69)
         })
 
         it('should not allow to schedule more runner if no instances are available', () => {
@@ -391,6 +433,7 @@ describe('launcher', () => {
 
     describe('run', () => {
         let config = {}
+        global.console.error = () => {}
 
         beforeEach(() => {
             config = {
@@ -402,13 +445,14 @@ describe('launcher', () => {
                 getCapabilities: jest.fn().mockReturnValue(0),
                 getConfig: jest.fn().mockReturnValue(config)
             }
-            launcher.runner = { initialise: jest.fn() }
+            launcher.runner = { initialise: jest.fn(), shutdown: jest.fn() }
             launcher.runMode = jest.fn().mockImplementation((config, caps) => caps)
             launcher.interface = { finalise: jest.fn() }
         })
 
         it('exit code 0', async () => {
-            expect(await launcher.run()).toBe(0)
+            expect(await launcher.run()).toEqual(0)
+            expect(launcher.runner.shutdown).toBeCalled()
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
@@ -419,11 +463,31 @@ describe('launcher', () => {
             expect(launcher.interface.finalise).toBeCalledTimes(1)
         })
 
+        it('should not shutdown runner if was called before', async () => {
+            launcher.hasTriggeredExitRoutine = true
+            expect(await launcher.run()).toEqual(0)
+            expect(launcher.runner.shutdown).not.toBeCalled()
+        })
+
         it('onComplete error', async () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]
 
-            expect(await launcher.run()).toBe(1)
+            expect(await launcher.run()).toEqual(1)
+            expect(launcher.runner.shutdown).toBeCalled()
+        })
+
+        it('should shutdown runner on error', async () => {
+            delete logger.waitForBuffer
+
+            let error
+            try {
+                await launcher.run()
+            } catch (err) {
+                error = err
+            }
+            expect(launcher.runner.shutdown).toBeCalled()
+            expect(error).toBeInstanceOf(Error)
         })
     })
 })

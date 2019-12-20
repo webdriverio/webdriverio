@@ -73,56 +73,53 @@ export default class TestingBotService {
     }
 
     /**
-     * Before feature
-     * @param {Object} feature Feature
+     * For CucumberJS
      */
-    beforeFeature (feature) {
+
+    /**
+     * Before feature
+     * @param {string} uri
+     * @param {Object} feature
+     */
+    beforeFeature (uri, feature) {
         if (!this.isServiceEnabled) {
             return
         }
 
-        this.suiteTitle = feature.name || feature.getName()
+        this.suiteTitle = feature.document.feature.name
         global.browser.execute('tb:test-context=Feature: ' + this.suiteTitle)
     }
 
     /**
-     * After step
-     * @param {Object} feature Feature
+     * Before scenario
+     * @param {string} uri
+     * @param {Object} feature
+     * @param {Object} scenario
      */
-    afterStep (feature) {
-        if (
-            /**
-             * Cucumber v1
-             */
-            feature.failureException ||
-            /**
-             * Cucumber v2
-             */
-            (typeof feature.getFailureException === 'function' && feature.getFailureException()) ||
-            /**
-             * Cucumber v3, v4
-             */
-            (feature.status === 'failed')
-        ) {
+    beforeScenario (uri, feature, scenario) {
+        if (!this.isServiceEnabled) {
+            return
+        }
+        const scenarioName = scenario.name
+        global.browser.execute('tb:test-context=Scenario: ' + scenarioName)
+    }
+
+    /**
+     * After scenario
+     * @param {string} uri
+     * @param {Object} feature
+     * @param {Object} pickle
+     * @param {Object} result
+     */
+    afterScenario(uri, feature, pickle, result) {
+        if (result.status === 'failed') {
             ++this.failures
         }
     }
 
     /**
-     * Before scenario
-     * @param {Object} scenario Scenario
-     */
-    beforeScenario (scenario) {
-        if (!this.isServiceEnabled) {
-            return
-        }
-        const scenarioName = scenario.name || scenario.getName()
-        global.browser.execute('tb:test-context=Scenario: ' + scenarioName)
-    }
-
-    /**
      * Update TestingBot info
-     * @return {Promise} Promsie with result of updateJob method call
+     * @return {Promise} Promise with result of updateJob method call
      */
     after (result) {
         if (!this.isServiceEnabled) {

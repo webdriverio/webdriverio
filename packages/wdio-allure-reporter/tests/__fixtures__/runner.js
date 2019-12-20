@@ -3,9 +3,9 @@ const runner =  () => ({
     start: '2018-05-14T15:17:18.901Z',
     _duration: 0,
     cid: '0-0',
-    capabilities: { foo: 'bar' },
+    capabilities: { browserName: 'chrome', version: '68' }, // session capabilities
     sanitizedCapabilities: 'chrome.66_0_3359_170.linux',
-    config: { capabilities: { browserName: 'chrome', version: '68' } },
+    config: { capabilities: { browserName: 'chrome' } }, // user capabilities
     specs: ['/tmp/user/spec.js']
 })
 

@@ -12,6 +12,7 @@ export default class TestStats extends RunnableStats {
         this.title = test.title
         this.fullTitle = test.fullTitle
         this.output = []
+        this.argument = test.argument
 
         /**
          * initial test state is pending
@@ -25,7 +26,8 @@ export default class TestStats extends RunnableStats {
         this.state = 'passed'
     }
 
-    skip () {
+    skip (reason) {
+        this.pendingReason = reason
         this.state = 'skipped'
     }
 

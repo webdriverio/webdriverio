@@ -25,6 +25,11 @@ const command = {
         'type': 'number',
         'description': 'a random not required param',
         'required': false
+    }, {
+        'name': 'customArrayParam',
+        'type': '(string|object|number|boolean|undefined)[]',
+        'description': 'a random not required param',
+        'required': false
     }]
 }
 
@@ -42,17 +47,31 @@ const scope = { emit: jest.fn() }
 describe('command wrapper', () => {
     it('should fail if wrong arguments are passed in', () => {
         const commandFn = commandWrapper(command.method, command.endpoint, command)
-        expect(commandFn).toThrow(/Wrong parameters applied for findElementFromElement/)
+        expect(commandFn)
+            .toThrow(/Wrong parameters applied for findElementFromElement/)
     })
 
     it('should fail if arguments are malformed', () => {
         const commandFn = commandWrapper(command.method, command.endpoint, command)
-        expect(() => commandFn('123', 123, '123')).toThrow(/Malformed type for "using" parameter of command/)
+        expect(() => commandFn('123', 123, '123'))
+            .toThrow(/Malformed type for "using" parameter of command/)
     })
 
     it('should fail if not required param has wrong type', () => {
         const commandFn = commandWrapper(command.method, command.endpoint, command)
-        expect(() => commandFn('123', '123', '123', 'foobar')).toThrow(/Malformed type for "customParam" parameter of command/)
+        expect(() => commandFn('123', '123', '123', 'foobar'))
+            .toThrow(/Malformed type for "customParam" parameter of command/)
+    })
+
+    it('should throw if param type within array is not met', async () => {
+        expect.assertions(1)
+        const commandFn = commandWrapper(command.method, command.endpoint, command)
+
+        try {
+            commandFn('123', '123', '123', 234, () => {})
+        } catch (err) {
+            expect(err.message).toContain('Actual: (function)[]')
+        }
     })
 
     it('should do a proper request', () => {
@@ -83,6 +102,26 @@ describe('command wrapper', () => {
         expect(using).toBe('css selector')
         expect(value).toBe('#body')
         expect(customParam).toBe(123)
+        requestMock.mockClear()
+    })
+
+    it('should encode uri parameters', () => {
+        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const requestMock = require('../src/request')
+        commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        const [, endpoint] = requestMock.mock.calls[0]
+        expect(endpoint).toBe('/session/:sessionId/element/%2Fpath/element')
+        requestMock.mockClear()
+    })
+
+    it('should double encode uri parameters if using selenium', () => {
+        const commandFn = commandWrapper(command.method, command.endpoint, command, true)
+        const requestMock = require('../src/request')
+        commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        const [, endpoint] = requestMock.mock.calls[0]
+        expect(endpoint).toBe('/session/:sessionId/element/%252Fpath/element')
         requestMock.mockClear()
     })
 })
@@ -121,6 +160,22 @@ describe('command wrapper result log', () => {
         command: {
             ...takeScreenshotCmd,
             command: 'takeElementScreenshot'
+        },
+        value: 'f'.repeat(123),
+        log: 'f'.repeat(61) + '...'
+    }, {
+        title: 'truncate long string value',
+        command: {
+            ...takeScreenshotCmd,
+            command: 'startRecordingScreen'
+        },
+        value: 'f'.repeat(123),
+        log: 'f'.repeat(61) + '...'
+    }, {
+        title: 'truncate long string value',
+        command: {
+            ...takeScreenshotCmd,
+            command: 'stopRecordingScreen'
         },
         value: 'f'.repeat(123),
         log: 'f'.repeat(61) + '...'

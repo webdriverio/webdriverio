@@ -91,6 +91,18 @@ Stops a spec (`it`) execution on a first expectation failure (other specs contin
 Type: `Boolean`<br>
 Default: `false`
 
+### requires
+Require modules prior to requiring any helper or spec files.
+
+Type: `String[]`<br>
+Default: `[]`
+
+### helpers
+Require helper files prior to requiring any spec files.
+
+Type: `String[]`<br>
+Default: `[]`
+
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).

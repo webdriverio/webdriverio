@@ -19,10 +19,11 @@
  * @param {String} selector of React component
  * @param {Object=} props  React props the element should contain
  * @param {Array<any>|number|string|object|boolean=} state  React state the element should be in
- * @return {Element[]}
+ * @return {ElementArray}
  *
  */
 import fs from 'fs'
+import { enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq'
 
@@ -32,5 +33,7 @@ export default async function react$$ (selector, props = {}, state = {}) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(react$$Script, selector, props, state)
-    return getElements.call(this, selector, res)
+
+    const elements = await getElements.call(this, selector, res, true)
+    return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
 }

@@ -30,8 +30,9 @@
  */
 export default function isElementDisplayed(element) {
     function nodeIsElement(node) {
-        if (!node)
+        if (!node) {
             return false
+        }
 
         switch (node.nodeType) {
         case Node.ELEMENT_NODE:
@@ -45,36 +46,47 @@ export default function isElementDisplayed(element) {
     }
 
     function parentElementForElement(element) {
-        if (!element)
+        if (!element) {
             return null
+        }
 
         return enclosingNodeOrSelfMatchingPredicate(element.parentNode, nodeIsElement)
     }
 
     function enclosingNodeOrSelfMatchingPredicate(targetNode, predicate) {
         for (let node = targetNode; node && node !== targetNode.ownerDocument; node = node.parentNode)
-            if (predicate(node))
+            if (predicate(node)) {
                 return node
+            }
 
         return null
     }
 
     function enclosingElementOrSelfMatchingPredicate(targetElement, predicate) {
         for (let element = targetElement; element && element !== targetElement.ownerDocument; element = parentElementForElement(element))
-            if (predicate(element))
+            if (predicate(element)) {
                 return element
+            }
 
         return null
     }
 
     function cascadedStylePropertyForElement(element, property) {
-        if (!element || !property)
+        if (!element || !property) {
             return null
+        }
+        // if document-fragment, skip it and use element.host instead. This happens
+        // when the element is inside a shadow root.
+        // window.getComputedStyle errors on document-fragment.
+        if (element instanceof DocumentFragment) {
+            element = element.host
+        }
 
         let computedStyle = window.getComputedStyle(element)
         let computedStyleProperty = computedStyle.getPropertyValue(property)
-        if (computedStyleProperty && computedStyleProperty !== 'inherit')
+        if (computedStyleProperty && computedStyleProperty !== 'inherit') {
             return computedStyleProperty
+        }
 
         // Ideally getPropertyValue would return the 'used' or 'actual' value, but
         // it doesn't for legacy reasons. So we need to do our own poor man's cascade.
@@ -91,8 +103,9 @@ export default function isElementDisplayed(element) {
 
     function elementSubtreeHasNonZeroDimensions(element) {
         let boundingBox = element.getBoundingClientRect()
-        if (boundingBox.width > 0 && boundingBox.height > 0)
+        if (boundingBox.width > 0 && boundingBox.height > 0) {
             return true
+        }
 
         // Paths can have a zero width or height. Treat them as shown if the stroke width is positive.
         if (element.tagName.toUpperCase() === 'PATH' && boundingBox.width + boundingBox.height > 0) {
@@ -101,17 +114,20 @@ export default function isElementDisplayed(element) {
         }
 
         let cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
-        if (cascadedOverflow === 'hidden')
+        if (cascadedOverflow === 'hidden') {
             return false
+        }
 
         // If the container's overflow is not hidden and it has zero size, consider the
         // container to have non-zero dimensions if a child node has non-zero dimensions.
         return Array.from(element.childNodes).some((childNode) => {
-            if (childNode.nodeType === Node.TEXT_NODE)
+            if (childNode.nodeType === Node.TEXT_NODE) {
                 return true
+            }
 
-            if (nodeIsElement(childNode))
+            if (nodeIsElement(childNode)) {
                 return elementSubtreeHasNonZeroDimensions(childNode)
+            }
 
             return false
         })
@@ -119,8 +135,9 @@ export default function isElementDisplayed(element) {
 
     function elementOverflowsContainer(element) {
         let cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
-        if (cascadedOverflow !== 'hidden')
+        if (cascadedOverflow !== 'hidden') {
             return false
+        }
 
         // FIXME: this needs to take into account the scroll position of the element,
         // the display modes of it and its ancestors, and the container it overflows.
@@ -129,36 +146,55 @@ export default function isElementDisplayed(element) {
     }
 
     function isElementSubtreeHiddenByOverflow(element) {
-        if (!element)
+        if (!element) {
             return false
+        }
 
-        if (!elementOverflowsContainer(element))
+        if (!elementOverflowsContainer(element)) {
             return false
+        }
 
-        if (!element.childNodes.length)
+        if (!element.childNodes.length) {
             return false
+        }
 
         // This element's subtree is hidden by overflow if all child subtrees are as well.
         return Array.from(element.childNodes).every((childNode) => {
             // Returns true if the child node is overflowed or otherwise hidden.
             // Base case: not an element, has zero size, scrolled out, or doesn't overflow container.
-            if (!nodeIsElement(childNode))
+            // Visibility of text nodes is controlled by parent
+            if (childNode.nodeType === Node.TEXT_NODE) {
+                return false
+            }
+            if (!nodeIsElement(childNode)) {
                 return true
+            }
 
-            if (!elementSubtreeHasNonZeroDimensions(childNode))
+            if (!elementSubtreeHasNonZeroDimensions(childNode)) {
                 return true
+            }
 
             // Recurse.
             return isElementSubtreeHiddenByOverflow(childNode)
         })
     }
+    // walk up the tree testing for a shadow root
+    function isElementInsideShadowRoot(element) {
+        if (!element) {
+            return false
+        }
+        if (element.parentNode && element.parentNode.host) {
+            return true
+        }
+        return isElementInsideShadowRoot(element.parentNode)
+    }
 
     // This is a partial reimplementation of Selenium's "element is displayed" algorithm.
     // When the W3C specification's algorithm stabilizes, we should implement that.
-
-    // If this command is misdirected to the wrong document, treat it as not shown.
-    if (!document.contains(element))
+    // If this command is misdirected to the wrong document (and is NOT inside a shadow root), treat it as not shown.
+    if (!isElementInsideShadowRoot(element) && !document.contains(element)) {
         return false
+    }
 
     // Special cases for specific tag names.
     switch (element.tagName.toUpperCase()) {
@@ -177,8 +213,9 @@ export default function isElementDisplayed(element) {
     }
     case 'INPUT':
         // <input type="hidden"> is considered not shown.
-        if (element.type === 'hidden')
+        if (element.type === 'hidden') {
             return false
+        }
         break
         // case 'MAP':
         // FIXME: Selenium has special handling for <map> elements. We don't do anything now.
@@ -187,8 +224,9 @@ export default function isElementDisplayed(element) {
         break
     }
 
-    if (cascadedStylePropertyForElement(element, 'visibility') !== 'visible')
+    if (cascadedStylePropertyForElement(element, 'visibility') !== 'visible') {
         return false
+    }
 
     let hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element, (e) => {
         return Number(cascadedStylePropertyForElement(e, 'opacity')) === 0
@@ -196,14 +234,17 @@ export default function isElementDisplayed(element) {
     let hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element, (e) => {
         return cascadedStylePropertyForElement(e, 'display') === 'none'
     })
-    if (hasAncestorWithZeroOpacity || hasAncestorWithDisplayNone)
+    if (hasAncestorWithZeroOpacity || hasAncestorWithDisplayNone) {
         return false
+    }
 
-    if (!elementSubtreeHasNonZeroDimensions(element))
+    if (!elementSubtreeHasNonZeroDimensions(element)) {
         return false
+    }
 
-    if (isElementSubtreeHiddenByOverflow(element))
+    if (isElementSubtreeHiddenByOverflow(element)) {
         return false
+    }
 
     return true
 }

@@ -1,7 +1,6 @@
 import zip from 'lodash.zip'
-import merge from 'lodash.merge'
-import { webdriverMonad } from 'webdriver'
-import { wrapCommand } from '@wdio/config'
+import clone from 'lodash.clonedeep'
+import { webdriverMonad, wrapCommand } from '@wdio/utils'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
@@ -70,7 +69,7 @@ export default class MultiRemote {
      * ```
      */
     static elementWrapper (instances, result, propertiesObject) {
-        const prototype = merge({}, propertiesObject, getPrototype('element'), { scope: 'element' })
+        const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: 'element' }
 
         const element = webdriverMonad({}, (client) => {
             /**

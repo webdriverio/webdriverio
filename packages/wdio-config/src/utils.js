@@ -19,6 +19,30 @@ export function getSauceEndpoint (region, isRDC) {
 }
 
 /**
+ * remove line numbers from file path, ex:
+ * `/foo:9` or `c:\bar:14:5`
+ * @param   {string} filePath path to spec file
+ * @returns {string}
+ */
+export function removeLineNumbers(filePath) {
+    const matcher = filePath.match(/:\d+(:\d+$|$)/)
+    if (matcher) {
+        filePath = filePath.substring(0, matcher.index)
+    }
+    return filePath
+}
+
+/**
+ * does spec file path contain Cucumber's line number, ex
+ * `/foo/bar:9` or `c:\bar\foo:14:5`
+ * @param {string|string[]} spec
+ */
+export function isCucumberFeatureWithLineNumber(spec) {
+    const specs = Array.isArray(spec) ? spec : [spec]
+    return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
+}
+
+/**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {
@@ -30,9 +54,9 @@ export function detectBackend (options = {}, isRDC = false) {
      */
     if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
         return {
-            protocol: 'https',
-            hostname: 'hub-cloud.browserstack.com',
-            port: 443
+            protocol: protocol || 'https',
+            hostname: hostname || 'hub-cloud.browserstack.com',
+            port: port || 443
         }
     }
 
@@ -42,8 +66,9 @@ export function detectBackend (options = {}, isRDC = false) {
      */
     if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
-            hostname: 'hub.testingbot.com',
-            port: 80
+            protocol: protocol || DEFAULT_PROTOCOL,
+            hostname: hostname || 'hub.testingbot.com',
+            port: port || 80
         }
     }
 
@@ -97,7 +122,7 @@ export function detectBackend (options = {}, isRDC = false) {
 /**
  * validates configurations based on default values
  * @param  {Object} defaults  object describing all allowed properties
- * @param  {Object} options   option to check agains
+ * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
 export function validateConfig (defaults, options) {

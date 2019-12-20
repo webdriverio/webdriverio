@@ -28,48 +28,33 @@
  */
 
 export default async function setTimeout(timeouts) {
-    if (!(timeouts instanceof Object)) {
-        return Promise.reject(new Error('Parameter for "setTimeout" command needs to be an object'))
+    if (typeof timeouts !== 'object') {
+        throw new Error('Parameter for "setTimeout" command needs to be an object')
     }
-    // If value is not an integer, or it is less than 0 or greater than the maximum safe integer, return error with error code invalid argument.
+
+    /**
+     * If value is not an integer, or it is less than 0 or greater than the maximum safe
+     * integer, return error with error code invalid argument.
+     */
     const timeoutValues = Object.values(timeouts)
     if (timeoutValues.length && timeoutValues.every(timeout => typeof timeout !== 'number' || timeout < 0 || timeout > Number.MAX_SAFE_INTEGER)) {
-        return Promise.reject(new Error('Specified timeout values are not valid integer (see https://webdriver.io/docs/api/browser/setTimeout.html for documentation).'))
+        throw new Error('Specified timeout values are not valid integer (see https://webdriver.io/docs/api/browser/setTimeout.html for documentation).')
     }
 
-    let implicit
-    let pageLoad
-    let script
-
-    if (typeof timeouts.implicit !== 'undefined') {
-        implicit = timeouts.implicit
-    }
+    const implicit = timeouts.implicit
     // Previously also known as `page load` with JsonWireProtocol
-    if (!this.isW3C && typeof timeouts['page load'] !== 'undefined') {
-        pageLoad = timeouts['page load']
-    }
-    if (typeof timeouts.pageLoad !== 'undefined') {
-        pageLoad = timeouts.pageLoad
-    }
-    if (typeof timeouts.script !== 'undefined') {
-        script = timeouts.script
-    }
+    const pageLoad = timeouts['page load'] || timeouts.pageLoad
+    const script = timeouts.script
 
     /**
      * JsonWireProtocol action
      */
     if (!this.isW3C) {
-        let setTimeoutsResponse
-        if (typeof implicit === 'number') {
-            setTimeoutsResponse = await this.setTimeouts('implicit', implicit)
-        }
-        if (typeof pageLoad === 'number') {
-            setTimeoutsResponse = await this.setTimeouts('page load', pageLoad)
-        }
-        if (typeof script === 'number') {
-            setTimeoutsResponse = await this.setTimeouts('script', script)
-        }
-        return Promise.resolve(setTimeoutsResponse)
+        return Promise.all([
+            isFinite(implicit) && this.setTimeouts('implicit', implicit),
+            isFinite(pageLoad) && this.setTimeouts('page load', pageLoad),
+            isFinite(script) && this.setTimeouts('script', script),
+        ].filter(Boolean))
     }
 
     return this.setTimeouts(implicit, pageLoad, script)

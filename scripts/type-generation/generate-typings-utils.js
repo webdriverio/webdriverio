@@ -1,3 +1,4 @@
+const returnTypeMap = require('./webdriver-return-types.json')
 
 const changeType = (text) => {
     if (text.indexOf('Array.') > -1) {
@@ -9,8 +10,9 @@ const changeType = (text) => {
     case 'Buffer':
     case 'Function':
     case 'RegExp':
+    case 'WaitForOptions':
     case 'Element':
-    case 'Element[]': {
+    case 'ElementArray': {
         break
     }
     default: {
@@ -35,7 +37,7 @@ const getTypes = (types, alwaysType) => {
     return types
 }
 
-const buildCommand = (commandName, commandTags, indentation = 0) => {
+const buildCommand = (commandName, commandTags, indentation = 0, promisify = false) => {
     const allParameters = []
     let returnType = 'void'
 
@@ -56,12 +58,67 @@ const buildCommand = (commandName, commandTags, indentation = 0) => {
 
         if (type === 'return') {
             returnType = getTypes(types, false)
+            returnType = returnType === 'object' ? (returnTypeMap[commandName] || 'ProtocolCommandResponse') : returnType
         }
     }
+
+    // wrap with Promise
+    returnType = promisify ? `Promise<${returnType}>` : returnType
 
     return `${commandName}(${allParameters.length > 0 ? `\n${' '.repeat(8 + indentation)}` : ''}${allParameters.join(`,\n${' '.repeat(8 + indentation)}`)}${allParameters.length > 0 ? `\n${' '.repeat(4 + indentation)}` : ''}): ${returnType}`
 }
 
+/**
+ * get jsdoc from file
+ * @param   {string} fileContent browser or element command file content
+ * @param   {number} indentation
+ * @returns {string}
+ */
+const getJsDoc = (commandName, fileContent, indentation = 0) => {
+    if (!fileContent.includes('/**')) {
+        throw new Error(commandName + ' has no jsdoc!')
+    }
+
+    let lines = fileContent.split('\n').map(line => line.trim())
+
+    // remove code
+    lines = lines.splice(lines.indexOf('/**') + 1, lines.indexOf('*/'))
+
+    // remove empty lines in the top
+    let idx = lines.indexOf(lines.find(line => line !== '*')) // first line with text
+    lines = lines.splice(idx)
+
+    // remove example
+    if (lines.includes('* <example>')) {
+        lines = [...lines.splice(0, lines.indexOf('* <example>')), ...lines.splice(lines.indexOf('* </example>') + 1)]
+    }
+
+    // only inclide the first paragraph
+    if (lines.includes('*')) {
+        lines = [...lines.splice(0, lines.indexOf('*'))]
+    }
+
+    // stop processing if js doc is empty
+    if (lines.length === 0) {
+        throw new Error(commandName + ' has an empty jsdoc!')
+    }
+
+    lines = ['/**', ...lines, ' */', '']
+
+    lines = lines.map((line, idx) => {
+        if (idx === 0) {
+            return line
+        }
+        if (line.startsWith('*')) {
+            line = ' ' + line
+        }
+        return ' '.repeat(indentation) + line
+    })
+
+    return lines.join('\n')
+}
+
 module.exports = {
-    buildCommand
+    buildCommand,
+    getJsDoc
 }

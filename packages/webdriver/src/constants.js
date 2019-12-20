@@ -50,7 +50,7 @@ export const DEFAULTS = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
-     * Timeout for any request to the Selenium server
+     * Timeout for any WebDriver request to a driver or grid
      */
     connectionRetryTimeout: {
         type: 'number',
@@ -86,5 +86,12 @@ export const DEFAULTS = {
      */
     headers: {
         type: 'object'
+    },
+    /**
+     * Whether to allow direct connect caps to adjust endpoint details (Appium only)
+     */
+    enableDirectConnect: {
+        type: 'boolean',
+        default: false
     }
 }
