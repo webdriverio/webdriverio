@@ -83,7 +83,6 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 - [@wdio/browserstack-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) - A WebdriverIO service that provides a better integration into Browserstack
 - [@wdio/crossbrowsertesting-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-crossbrowsertesting-service) - A WebdriverIO service that provides a better integration into CrossBrowserTesting
 
-
 ### Runner
 
 - [@wdio/local-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
