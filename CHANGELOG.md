@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.18.1 (2019-12-23)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#4911](https://github.com/webdriverio/webdriverio/pull/4911) wdio-cli: allow for custom path for WDIO config ([@baruchvlz](https://github.com/baruchvlz))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#4910](https://github.com/webdriverio/webdriverio/pull/4910) Add  Slack Service to WDIO  ([@carmenmitru](https://github.com/carmenmitru))
+
+#### Committers: 2
+- Baruch Velez ([@baruchvlz](https://github.com/baruchvlz))
+- Mitru Carmen ([@carmenmitru](https://github.com/carmenmitru))
+
+
 ## v5.18.0 (2019-12-19)
 
 #### :rocket: New Feature
