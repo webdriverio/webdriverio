@@ -82,6 +82,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
+        { name: 'slack', value: 'wdio-slack-service$--$slack' },
     ],
 }
 
