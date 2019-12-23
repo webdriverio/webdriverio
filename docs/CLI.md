@@ -135,10 +135,16 @@ wdio install reporter dot # installs @wdio/dot-reporter
 wdio install framework mocha # installs @wdio/mocha-framework
 ```
 
-If your project is using `package-lock.json` instead of `yarn.lock`, you can pass a `--npm` flag to make sure the packages are installed via NPM.
+If you want to install the packages using `yarn` instead, you can pass the `--yarn` flag to the command:
 
 ```bash
-wdio install service sauce --npm
+wdio install service sauce --yarn
+```
+
+You could also pass a custom configuration path if your WDIO config file is not in the same folder you're working on:
+
+```bash
+wdio install service sauce --config="./path/to/wdio.conf.js"
 ```
 
 #### List of supported services
