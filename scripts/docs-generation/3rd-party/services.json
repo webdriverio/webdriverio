@@ -34,5 +34,11 @@
     "title": "WireMock",
     "githubUrl": "https://github.com/erwinheitzman/wdio-wiremock-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-wiremock-service"
+  },
+  {
+    "packageName": "wdio-slack-service",
+    "title": "Slack",
+    "githubUrl": "http://github.com/carmenmitru/wdio-slack-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
   }
 ]
