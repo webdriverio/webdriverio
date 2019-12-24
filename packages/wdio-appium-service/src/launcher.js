@@ -7,7 +7,6 @@ import getFilePath from './utils/getFilePath'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'appium.txt'
-const isWindows = process.platform === 'win32'
 
 export default class AppiumLauncher {
     constructor() {
@@ -18,6 +17,7 @@ export default class AppiumLauncher {
 
     async onPrepare(config) {
         const appiumConfig = config.appium || {}
+        const isWindows = process.platform === 'win32'
 
         this.logPath = appiumConfig.logPath || config.outputDir
 
@@ -32,6 +32,12 @@ export default class AppiumLauncher {
 
         // Append remaining arguments
         this.appiumArgs.push(...this._cliArgsFromKeyValue(appiumConfig.args || {}))
+
+        // Windows needs to be started through `cmd` and the command needs to be an arg
+        if (isWindows) {
+            this.appiumArgs.unshift('/c', this.command)
+            this.command = 'cmd'
+        }
 
         const asyncStartAppium = promisify(this._startAppium)
         this.process = await asyncStartAppium(this.command, this.appiumArgs, this.waitStartTime)
@@ -49,12 +55,8 @@ export default class AppiumLauncher {
     }
 
     _startAppium(command, args, waitStartTime, callback) {
-        const cmd = isWindows ? 'cmd' : command
-        if(isWindows){
-            args.unshift('/c', command)
-        }
-        log.debug(`Will spawn Appium process: ${cmd} ${args.join(' ')}`)
-        let process = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
+        let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error
 
         process.stdout.on('data', (data) => {
@@ -94,9 +96,9 @@ export default class AppiumLauncher {
             return require.resolve(moduleName)
         } catch (err) {
             log.error('appium is not installed locally.\n' +
-            'If you use globally installed appium please add\n' +
-            "appium: { command: 'appium' }\n" +
-            'to your wdio.conf.js!')
+                'If you use globally installed appium please add\n' +
+                'appium: { command: \'appium\' }\n' +
+                'to your wdio.conf.js!')
             throw err
         }
     }
