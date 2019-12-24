@@ -65,7 +65,7 @@ export default class AppiumLauncher {
         })
 
         // only capture first error to print it in case Appium failed to start.
-        process.stderr.on('data', err => { error = err })
+        process.stderr.once('data', err => { error = err })
 
         process.once('exit', (exitCode) => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
