@@ -7,6 +7,7 @@ import getFilePath from './utils/getFilePath'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'appium.txt'
+const isWindows = process.platform === 'win32'
 
 export default class AppiumLauncher {
     constructor() {
@@ -48,8 +49,12 @@ export default class AppiumLauncher {
     }
 
     _startAppium(command, args, waitStartTime, callback) {
-        log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        const cmd = isWindows ? 'cmd' : command
+        if(isWindows){
+            args.unshift('/c', command)
+        }
+        log.debug(`Will spawn Appium process: ${cmd} ${args.join(' ')}`)
+        let process = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error
 
         process.stdout.on('data', (data) => {
@@ -60,7 +65,7 @@ export default class AppiumLauncher {
         })
 
         // only capture first error to print it in case Appium failed to start.
-        process.stderr.once('data', err => { error = err })
+        process.stderr.on('data', err => { error = err })
 
         process.once('exit', (exitCode) => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
