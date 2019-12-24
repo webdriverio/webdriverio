@@ -111,6 +111,14 @@ export default class WebDriverRequest extends EventEmitter {
         return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
             const error = err || getErrorFromResponseBody(body)
 
+            if (typeof body === 'string' && body.includes('Whoops! The URL specified routes to this help page.')) {
+                const fixedPath = fullRequestOptions.uri.path.startsWith('/wd/hub') ? '/' : '/wd/hub'
+                const pathError = new Error(`Wrong path set! Please set path to "${fixedPath}".`)
+                log.error('Request failed due to', pathError)
+                this.emit('response', { error: pathError })
+                return reject(pathError)
+            }
+
             /**
              * hub commands don't follow standard response formats
              * and can have empty bodies
