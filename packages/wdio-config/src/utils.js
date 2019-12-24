@@ -1,6 +1,8 @@
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
 const DEFAULT_PROTOCOL = 'http'
+const DEFAULT_PATH = '/'
+const LEGACY_PATH = '/wd/hub'
 
 const REGION_MAPPING = {
     'us': '', // default endpoint
@@ -46,7 +48,7 @@ export function isCucumberFeatureWithLineNumber(spec) {
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {
-    let { port, hostname, user, key, protocol, region, headless } = options
+    let { port, hostname, user, key, protocol, region, headless, path } = options
 
     /**
      * browserstack
@@ -56,7 +58,8 @@ export function detectBackend (options = {}, isRDC = false) {
         return {
             protocol: protocol || 'https',
             hostname: hostname || 'hub-cloud.browserstack.com',
-            port: port || 443
+            port: port || 443,
+            path: path || LEGACY_PATH
         }
     }
 
@@ -66,9 +69,10 @@ export function detectBackend (options = {}, isRDC = false) {
      */
     if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
-            protocol: protocol || DEFAULT_PROTOCOL,
+            protocol: protocol || 'https',
             hostname: hostname || 'hub.testingbot.com',
-            port: port || 80
+            port: port || 443,
+            path: path || LEGACY_PATH
         }
     }
 
@@ -88,7 +92,8 @@ export function detectBackend (options = {}, isRDC = false) {
         return {
             protocol: protocol || 'https',
             hostname: hostname || getSauceEndpoint(sauceRegion, isRDC),
-            port: port || 443
+            port: port || 443,
+            path: path || LEGACY_PATH
         }
     }
 
@@ -115,7 +120,8 @@ export function detectBackend (options = {}, isRDC = false) {
     return {
         hostname: hostname || DEFAULT_HOSTNAME,
         port: port || DEFAULT_PORT,
-        protocol: protocol || DEFAULT_PROTOCOL
+        protocol: protocol || DEFAULT_PROTOCOL,
+        path: path || DEFAULT_PATH
     }
 }
 
