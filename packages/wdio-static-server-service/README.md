@@ -51,9 +51,13 @@ Props:
  // wdio.conf.js
  export.config = {
     // ...
-    staticServerFolders: [
-        { mount: '/fixtures', path: './tests/fixtures' },
-        { mount: '/dist', path: './dist' },
+    services: [
+        ['static-server', {
+            staticServerFolders: [
+                { mount: '/fixtures', path: './tests/fixtures' },
+                { mount: '/dist', path: './dist' },
+            ]
+        }]
     ],
     // ...
  };
@@ -86,13 +90,18 @@ Default: `[]`
 
 ``` javascript
 // wdio.conf.js
+const middleware = require('middleware-package')
+
 export.config = {
-    const middleware = require('middleware-package');
     // ...
-    staticServerMiddleware: [{
-        mount: '/',
-        middleware: middleware(/* middleware options */),
-    }],
+    services: [
+        ['static-server', {
+            staticServerMiddleware: [{
+                mount: '/',
+                middleware: middleware(/* middleware options */),
+            }],
+        }]
+    ],
     // ...
 };
 ```

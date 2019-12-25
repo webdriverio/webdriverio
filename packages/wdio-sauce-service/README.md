@@ -11,9 +11,9 @@ The easiest way is to keep `@wdio/sauce-service` as a devDependency in your `pac
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/sauce-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/sauce-service": "^5.0.0"
+    }
 }
 ```
 
@@ -34,13 +34,19 @@ you just need to set `sauceConnect: true`. If you would like to change data cent
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['sauce'],
-  user: process.env.SAUCE_USERNAME,
-  key: process.env.SAUCE_ACCESS_KEY,
-  region: 'us',
-  sauceConnect: true,
-  // ...
+    // ...
+    user: process.env.SAUCE_USERNAME,
+    key: process.env.SAUCE_ACCESS_KEY,
+    services: [
+        ['sauce', {
+            region: 'us',
+            sauceConnect: true,
+            sauceConnectOpts: {
+                // ...
+            }
+        }]
+    ],
+    // ...
 };
 ```
 
@@ -48,15 +54,15 @@ If you want to use the Real Device cloud just pass the `testobject_api_key` in t
 
 ```js
 capabilities = [
-  {
-    deviceName: 'iPhone XS',
-    // The api key that has a reference to the app-project in the RDC cloud
-    testobject_api_key: process.env.SAUCE_RDC_ACCESS_KEY,
-    // Some default settings
-    // You can find more info in the TO Appium Basic Setup section
-    platformName: 'iOS',
-    platformVersion: '11.4'
-  },
+    {
+        deviceName: 'iPhone XS',
+        // The api key that has a reference to the app-project in the RDC cloud
+        testobject_api_key: process.env.SAUCE_RDC_ACCESS_KEY,
+        // Some default settings
+        // You can find more info in the TO Appium Basic Setup section
+        platformName: 'iOS',
+        platformVersion: '11.4'
+    },
 ]
 ```
 
@@ -83,3 +89,7 @@ Use Sauce Connect as a Selenium Relay. See more [here](https://wiki.saucelabs.co
 
 Type: `Boolean`<br>
 Default: `false`
+
+----
+
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

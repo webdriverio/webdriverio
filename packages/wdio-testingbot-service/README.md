@@ -9,9 +9,9 @@ The easiest way is to keep `@wdio/testingbot-service` as a devDependency in your
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/testingbot-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/testingbot-service": "^5.0.0"
+    }
 }
 ```
 
@@ -31,12 +31,15 @@ you just need to set `tbTunnel: true`.
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['testingbot'],
-  user: process.env.TB_KEY,
-  key: process.env.TB_SECRET,
-  tbTunnel: true,
-  // ...
+    // ...
+    user: process.env.TB_KEY,
+    key: process.env.TB_SECRET,
+    services: [
+        ['testingbot', {
+            tbTunnel: true
+        }]
+    ],
+    // ...
 };
 ```
 

@@ -10,9 +10,9 @@ The easiest way is to keep `@wdio/browserstack-service` as a devDependency in yo
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/browserstack-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/browserstack-service": "^5.0.0"
+    }
 }
 ```
 
@@ -32,11 +32,15 @@ WebdriverIO has Browserstack support out of the box. You should simply set `user
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['browserstack'],
-  user: process.env.BROWSERSTACK_USERNAME,
-  key: process.env.BROWSERSTACK_ACCESS_KEY,
-  browserstackLocal: true,
+    // ...
+    user: process.env.BROWSERSTACK_USERNAME,
+    key: process.env.BROWSERSTACK_ACCESS_KEY,
+    services: [
+        ['browserstack', {
+            browserstackLocal: true
+        }]
+    ],
+    // ...
 };
 ```
 
@@ -70,20 +74,10 @@ Specified optional will be passed down to BrowserstackLocal. See [this list](htt
 Type: `Object`<br>
 Default: `{}`
 
-----
-
-# Known Issues
+## Known Issues
 
 - It's more of how webdriverio desigend the multi-process model. It is extremely hard if not impossible to reliable transfer localIdentifier to child-processes. We recommend to use it without the identifier at this moment, which will create an account-wide local tunnel.
 
-# Credits
-
-- [wdio-sauce-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service)
-- [browserstack-local](https://github.com/browserstack/browserstack-local-nodejs)
-- ... and all other dependencies
+----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
-
-# Sponsors
-
-Thanks for [Browserstack](https://browserstack.com/) to provide us with a free account for automated tests.

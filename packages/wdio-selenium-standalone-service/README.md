@@ -11,9 +11,9 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/selenium-standalone-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/selenium-standalone-service": "^5.0.0"
+    }
 }
 ```
 
@@ -32,22 +32,25 @@ By default, Google Chrome and Firefox are available when installed on the host s
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['selenium-standalone'],
-  seleniumLogs: 'logs',
-  seleniumInstallArgs: {
-    drivers: {
-      chrome: { version: '77.0.3865.40' },
-      firefox: { version: '0.25.0' },
-    }
-  },
-  seleniumArgs: {
-    drivers: {
-      chrome: { version: '77.0.3865.40' },
-      firefox: { version: '0.25.0' },
-    }
-  },
-  // ...
+    // ...
+    services: [
+        ['selenium-standalone', {
+            seleniumLogs: 'logs',
+            seleniumInstallArgs: {
+                drivers: {
+                    chrome: { version: '79.0.3945.88' },
+                    firefox: { version: '0.26.0' }
+                }
+            },
+            seleniumArgs: {
+                drivers: {
+                    chrome: { version: '79.0.3945.88' },
+                    firefox: { version: '0.26.0' }
+                }
+            },
+        }]
+    ],
+    // ...
 };
 ```
 
@@ -78,13 +81,13 @@ Default: `{}`
 Example:
 ```js
 seleniumArgs: {
-  version : "3.141.59",
-  drivers : {
-    chrome : {
-      version : "77.0.3865.40",
-      arch    : process.arch,
+    version : "3.141.59",
+    drivers : {
+        chrome : {
+            version : "79.0.3945.88",
+            arch    : process.arch,
+        }
     }
-  }
 },
 ```
 
@@ -100,15 +103,15 @@ Default: `{}`
 Example:
 ```js
 seleniumInstallArgs: {
-  version : "3.141.59",
-  baseURL : "https://selenium-release.storage.googleapis.com",
-  drivers : {
-    chrome : {
-      version : "77.0.3865.40",
-      arch    : process.arch,
-      baseURL : "https://chromedriver.storage.googleapis.com",
+    version : "3.141.59",
+    baseURL : "https://selenium-release.storage.googleapis.com",
+    drivers : {
+        chrome : {
+            version : "77.0.3865.40",
+            arch    : process.arch,
+            baseURL : "https://chromedriver.storage.googleapis.com",
+        }
     }
-  }
 },
 ```
 

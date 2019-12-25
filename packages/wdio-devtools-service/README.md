@@ -13,9 +13,9 @@ The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/devtools-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/devtools-service": "^5.0.0"
+    }
 }
 ```
 
@@ -34,13 +34,14 @@ In order to use the service you just need to add the service to your service lis
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: [['devtools', {
-      debuggerAddress: '10.0.0.3:9222'
-  }]],
-  // ...
+    // ...
+    services: [['devtools', {
+        debuggerAddress: '10.0.0.3:9222'
+    }]],
+    // ...
 };
 ```
+
 - `debuggerAddress` - optional parameter, you could set host and port.
 
 ## Usage
