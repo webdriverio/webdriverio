@@ -68,7 +68,7 @@ const defineStrategy = function (selector) {
     }
     // Use tag name strategy if selector contains a tag
     // e.g. "<div>" or "<div />"
-    if (selector.search(/<[a-zA-Z-]+( \/)*>/g) >= 0) {
+    if (selector.search(/<[0-9a-zA-Z-]+( \/)*>/g) >= 0) {
         return 'tag name'
     }
     // Use name strategy if selector queries elements with name attributes for JSONWP
