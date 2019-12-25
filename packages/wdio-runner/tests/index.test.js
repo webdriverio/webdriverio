@@ -1,6 +1,6 @@
 import fs from 'fs'
 
-import expectWebdriverIO from 'expect-webdriverio'
+import { setOptions } from 'expect-webdriverio'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
@@ -208,7 +208,7 @@ describe('wdio-runner', () => {
                 specs
             })
 
-            expect(expectWebdriverIO.setOptions).toBeCalledTimes(1)
+            expect(setOptions).toBeCalledTimes(1)
             expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
             expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs])
