@@ -71,6 +71,9 @@ describe('selector strategies helper', () => {
         const element = findStrategy('<textarea>')
         expect(element.using).toBe('tag name')
         expect(element.value).toBe('textarea')
+        const heading = findStrategy('<h2>')
+        expect(heading.using).toBe('tag name')
+        expect(heading.value).toBe('h2')
     })
 
     it('should find an element using "xpath" method', () => {
