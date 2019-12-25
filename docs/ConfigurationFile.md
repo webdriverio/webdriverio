@@ -134,7 +134,7 @@ exports.config = {
     // use 'silent' level to disable logger
     logLevels: {
         webdriver: 'info',
-        '@wdio/applitools-service': 'info'
+        '@wdio/devtools-service': 'info'
     },
     //
     // Set directory to store all logs into
