@@ -81,6 +81,29 @@ describe('Appium launcher', () => {
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
         })
 
+        test('should set correct config properties for Windows', async () => {
+            const originalPlatform = process.platform
+            Object.defineProperty(process, 'platform', {
+                value: 'win32'
+            })
+
+            const config = {
+                appium: {
+                    logPath: './',
+                    command: 'path/to/my_custom_appium',
+                    args: { foo: 'bar' }
+                }
+            }
+            await launcher.onPrepare(config)
+
+            expect(launcher.command).toBe('cmd')
+            expect(launcher.appiumArgs).toEqual(['/c', config.appium.command, '--foo', 'bar'])
+
+            Object.defineProperty(process, 'platform', {
+                value: originalPlatform
+            })
+        })
+
         test('should set correct config properties when empty', async () => {
             await launcher.onPrepare({})
 
