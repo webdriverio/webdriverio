@@ -25,6 +25,7 @@
       "clioptions",
       "configurationfile",
       "frameworks",
+      "assertion",
       "customreporter",
       "customservices"
     ],
@@ -46,7 +47,10 @@
     "Introduction": [
       "api"
     ],
-    "Protocols": []
+    "Protocols": [],
+    "Testrunner": [
+      "api/expect"
+    ]
   },
   "flowcharts": {
       "Flowcharts": [
