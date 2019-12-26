@@ -31,8 +31,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "6.0.0-alpha.0",
-    "deepmerge": "^4.0.0"
+    "@wdio/logger": "6.0.0-alpha.0"
   },
   "publishConfig": {
     "access": "public"
