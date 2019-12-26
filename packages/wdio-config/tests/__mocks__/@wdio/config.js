@@ -21,11 +21,11 @@ class ConfigParserMock {
     }
 }
 
-export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT
+export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT()
 export const getSauceEndpoint = getSauceEndpointMock
 export const validateConfig = jest.fn().mockImplementation(
     (_, config) => Object.assign(
-        DEFAULT_CONFIGS_IMPORT,
+        DEFAULT_CONFIGS_IMPORT(),
         {
             hostname: 'localhost',
             port: 4444,
