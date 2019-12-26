@@ -1,8 +1,8 @@
 import cbt from 'cbt_tunnels'
 
 export default class CrossBrowserTestingLauncher {
-    onPrepare (config) {
-        if (!config.cbtTunnel) {
+    onPrepare (options, caps, config) {
+        if (!options.cbtTunnel) {
             return
         }
 
@@ -10,7 +10,7 @@ export default class CrossBrowserTestingLauncher {
             username: config.user,
             authkey: config.key,
             nokill: true
-        }, config.cbtTunnelOpts)
+        }, options.cbtTunnelOpts)
 
         return new Promise((resolve, reject) => cbt.start(this.cbtTunnelOpts, (err) => {
             if (err) {

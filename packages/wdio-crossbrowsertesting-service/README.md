@@ -50,15 +50,7 @@ export.config = {
 
 ## Options
 
-### user
-Your CBT username.
-
-Type: `String`
-
-### key
-Your CBT authkey.
-
-Type: `String`
+In order to authorize to the CrossBrowserTesting service your config need to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
 
 ### cbtTunnel
 If true secure CBT local connection is started.
