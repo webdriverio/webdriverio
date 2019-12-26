@@ -34,5 +34,11 @@
     "title": "Timeline",
     "githubUrl": "https://github.com/QualityOps/wdio-timeline-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-timeline-reporter"
+  },
+   {
+    "packageName": "wdio-markdown-reporter",
+    "title": "Markdown",
+    "githubUrl": "https://github.com/carmenmitru/wdio-markdown-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-markdown-reporter"
   }
 ]
