@@ -29,20 +29,24 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-In order to use the service you just need to add the service to your service list in your `wdio.conf.js` like:
+In order to use the service you just need to add the service to your service list in your `wdio.conf.js`, like:
 
 ```js
 // wdio.conf.js
 export.config = {
     // ...
-    services: [['devtools', {
-        debuggerAddress: '10.0.0.3:9222'
-    }]],
+    services: ['devtools'],
     // ...
 };
 ```
 
-- `debuggerAddress` - optional parameter, you could set host and port.
+## Options
+
+### debuggerAddress
+Define endpoint for Chrome DevTools protocol manually (e.g. `localhost:24563`). (optional)
+
+Type: `string`<br>
+Default: `null`
 
 ## Usage
 
