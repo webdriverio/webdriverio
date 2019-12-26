@@ -1,4 +1,4 @@
-import { AppiumLauncher } from '../src/launcher'
+import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
 import path from 'path'
@@ -81,12 +81,35 @@ describe('Appium launcher', () => {
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
         })
 
+        test('should set correct config properties for Windows', async () => {
+            const originalPlatform = process.platform
+            Object.defineProperty(process, 'platform', {
+                value: 'win32'
+            })
+
+            const config = {
+                appium: {
+                    logPath: './',
+                    command: 'path/to/my_custom_appium',
+                    args: { foo: 'bar' }
+                }
+            }
+            await launcher.onPrepare(config)
+
+            expect(launcher.command).toBe('cmd')
+            expect(launcher.appiumArgs).toEqual(['/c', config.appium.command, '--foo', 'bar'])
+
+            Object.defineProperty(process, 'platform', {
+                value: originalPlatform
+            })
+        })
+
         test('should set correct config properties when empty', async () => {
             await launcher.onPrepare({})
 
             expect(launcher.logPath).toBe(undefined)
             expect(launcher.command).toBe('node')
-            expect(launcher.appiumArgs).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/param-case.js')])
+            expect(launcher.appiumArgs).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/dist/index.js')])
         })
 
         test('should start Appium', async () => {
@@ -97,7 +120,7 @@ describe('Appium launcher', () => {
             })
 
             expect(childProcess.spawn.mock.calls[0][0]).toBe('node')
-            expect(childProcess.spawn.mock.calls[0][1]).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/param-case.js'), '--superspeed'])
+            expect(childProcess.spawn.mock.calls[0][1]).toEqual([path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/param-case/dist/index.js'), '--superspeed'])
             expect(childProcess.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
         })
 

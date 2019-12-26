@@ -1,16 +1,74 @@
-import logger from '@wdio/logger'
-
-import command from './command'
 import merge from 'lodash.merge'
-import WebDriverProtocol from '../protocol/webdriver.json'
-import MJsonWProtocol from '../protocol/mjsonwp.json'
-import JsonWProtocol from '../protocol/jsonwp.json'
-import AppiumProtocol from '../protocol/appium.json'
-import ChromiumProtocol from '../protocol/chromium.json'
-import SauceLabsProtocol from '../protocol/saucelabs.json'
-import SeleniumProtocol from '../protocol/selenium.json'
+import logger from '@wdio/logger'
+import {
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    SauceLabsProtocol, SeleniumProtocol
+} from '@wdio/protocols'
+
+import WebDriverRequest from './request'
+import command from './command'
 
 const log = logger('webdriver')
+
+const BROWSER_DRIVER_ERRORS = [
+    'unknown command: wd/hub/session', // chromedriver
+    'HTTP method not allowed', // geckodriver
+    "'POST /wd/hub/session' was not found.", // safaridriver
+    'Command not found' // iedriver
+]
+
+/**
+ * start browser session with WebDriver protocol
+ */
+export async function startWebDriverSession (params) {
+    /**
+     * the user could have passed in either w3c style or jsonwp style caps
+     * and we want to pass both styles to the server, which means we need
+     * to check what style the user sent in so we know how to construct the
+     * object for the other style
+     */
+    const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
+        /**
+         * in case W3C compliant capabilities are provided
+         */
+        ? [params.capabilities, params.capabilities.alwaysMatch]
+        /**
+         * otherwise assume they passed in jsonwp-style caps (flat object)
+         */
+        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
+    const sessionRequest = new WebDriverRequest(
+        'POST',
+        '/session',
+        {
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
+        }
+    )
+
+    let response
+    try {
+        response = await sessionRequest.makeRequest(params)
+    } catch (err) {
+        log.error(err)
+        const message = getSessionError(err)
+        throw new Error('Failed to create session.\n' + message)
+    }
+    const sessionId = response.value.sessionId || response.sessionId
+
+    /**
+     * save original set of capabilities to allow to request the same session again
+     * (e.g. for reloadSession command in WebdriverIO)
+     */
+    params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+
+    /**
+     * save actual receveived session details
+     */
+    params.capabilities = response.value.capabilities || response.value
+
+    return sessionId
+}
 
 /**
  * check if WebDriver requests was successful
@@ -80,52 +138,6 @@ export function isSuccessfulResponse (statusCode, body) {
 }
 
 /**
- * checks if command argument is valid according to specificiation
- *
- * @param  {*}       arg           command argument
- * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
- * @return {Boolean}               true if argument is valid
- */
-export function isValidParameter (arg, expectedType) {
-    let shouldBeArray = false
-
-    if (expectedType.slice(-2) === '[]') {
-        expectedType = expectedType.slice(0, -2)
-        shouldBeArray = true
-    }
-
-    /**
-     * check type of each individual array element
-     */
-    if (shouldBeArray) {
-        if (!Array.isArray(arg)) {
-            return false
-        }
-    } else {
-        /**
-         * transform to array to have a unified check
-         */
-        arg = [arg]
-    }
-
-    for (const argEntity of arg) {
-        const argEntityType = getArgumentType(argEntity)
-        if (!argEntityType.match(expectedType)) {
-            return false
-        }
-    }
-
-    return true
-}
-
-/**
- * get type of command argument
- */
-export function getArgumentType (arg) {
-    return arg === null ? 'null' : typeof arg
-}
-
-/**
  * creates the base prototype for the webdriver monad
  */
 export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
@@ -160,169 +172,11 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData) }
+            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
         }
     }
 
     return prototype
-}
-
-/**
- * get command call structure
- * (for logging purposes)
- */
-export function commandCallStructure (commandName, args) {
-    const callArgs = args.map((arg) => {
-        if (typeof arg === 'string') {
-            arg = `"${arg}"`
-        } else if (typeof arg === 'function') {
-            arg = '<fn>'
-        } else if (arg === null) {
-            arg = 'null'
-        } else if (typeof arg === 'object') {
-            arg = '<object>'
-        } else if (typeof arg === 'undefined') {
-            arg = typeof arg
-        }
-
-        return arg
-    }).join(', ')
-
-    return `${commandName}(${callArgs})`
-}
-
-/**
- * check if session is based on W3C protocol based on the /session response
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if W3C (browser)
- */
-export function isW3C (capabilities) {
-    /**
-     * JSONWire protocol doesn't return a property `capabilities`.
-     * Also check for Appium response as it is using JSONWire protocol for most of the part.
-     */
-    if (!capabilities) {
-        return false
-    }
-
-    /**
-     * assume session to be a WebDriver session when
-     * - capabilities are returned
-     *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
-     * - it is an Appium session (since Appium is full W3C compliant)
-     */
-    const isAppium = capabilities.automationName || capabilities.deviceName
-    const hasW3CCaps = (
-        capabilities.platformName &&
-        capabilities.browserVersion &&
-        /**
-         * local safari and BrowserStack don't provide platformVersion therefor
-         * check also if setWindowRect is provided
-         */
-        (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect'))
-    )
-    return Boolean(hasW3CCaps || isAppium)
-}
-
-/**
- * check if session is run by Chromedriver
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run by Chromedriver
- */
-export function isChrome (caps) {
-    return (
-        Boolean(caps.chrome) ||
-        Boolean(caps['goog:chromeOptions'])
-    )
-}
-
-/**
- * check if current platform is mobile device
- *
- * @param  {Object}  caps  capabilities
- * @return {Boolean}       true if platform is mobile device
- */
-export function isMobile (caps) {
-    return Boolean(
-        (typeof caps['appium-version'] !== 'undefined') ||
-        (typeof caps['device-type'] !== 'undefined') || (typeof caps['deviceType'] !== 'undefined') ||
-        (typeof caps['device-orientation'] !== 'undefined') || (typeof caps['deviceOrientation'] !== 'undefined') ||
-        (typeof caps.deviceName !== 'undefined') ||
-        // Check browserName for specific values
-        (caps.browserName === '' ||
-             (caps.browserName !== undefined && (caps.browserName.toLowerCase() === 'ipad' || caps.browserName.toLowerCase() === 'iphone' || caps.browserName.toLowerCase() === 'android')))
-    )
-}
-
-/**
- * check if session is run on iOS device
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run on iOS device
- */
-export function isIOS (caps) {
-    return Boolean(
-        (caps.platformName && caps.platformName.match(/iOS/i)) ||
-        (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
-    )
-}
-
-/**
- * check if session is run on Android device
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run on Android device
- */
-export function isAndroid (caps) {
-    return Boolean(
-        (caps.platformName && caps.platformName.match(/Android/i)) ||
-        (caps.browserName && caps.browserName.match(/Android/i))
-    )
-}
-
-/**
- * detects if session is run on Sauce with extended debugging enabled
- * @param  {string}  hostname     hostname of session request
- * @param  {object}  capabilities session capabilities
- * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
- */
-export function isSauce (hostname, caps) {
-    return Boolean(
-        hostname &&
-        hostname.includes('saucelabs') &&
-        (
-            caps.extendedDebugging ||
-            (
-                caps['sauce:options'] &&
-                caps['sauce:options'].extendedDebugging
-            )
-        )
-    )
-}
-
-/**
- * detects if session is run using Selenium Standalone server
- * @param  {object}  capabilities session capabilities
- * @return {Boolean}              true if session is run with Selenium Standalone Server
- */
-export function isSeleniumStandalone (caps) {
-    return Boolean(caps['webdriver.remote.sessionid'])
-}
-
-/**
- * returns information about the environment
- * @param  {Object}  hostname      name of the host to run the session against
- * @param  {Object}  capabilities  caps of session response
- * @return {Object}                object with environment flags
- */
-export function environmentDetector ({ hostname, capabilities, requestedCapabilities }) {
-    return {
-        isW3C: isW3C(capabilities),
-        isChrome: isChrome(capabilities),
-        isMobile: isMobile(capabilities),
-        isIOS: isIOS(capabilities),
-        isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(hostname, requestedCapabilities.w3cCaps.alwaysMatch),
-        isSeleniumStandalone: isSeleniumStandalone(capabilities)
-    }
 }
 
 /**
@@ -359,49 +213,12 @@ export class CustomRequestError extends Error {
 }
 
 /**
- * overwrite native element commands with user defined
- * @param {object} propertiesObject propertiesObject
- */
-export function overwriteElementCommands(propertiesObject) {
-    const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
-
-    for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
-        if (typeof userDefinedCommand !== 'function') {
-            throw new Error('overwriteCommand: commands be overwritten only with functions, command: ' + commandName)
-        }
-
-        if (!propertiesObject[commandName]) {
-            throw new Error('overwriteCommand: no command to be overwritten: ' + commandName)
-        }
-
-        if (typeof propertiesObject[commandName].value !== 'function') {
-            throw new Error('overwriteCommand: only functions can be overwritten, command: ' + commandName)
-        }
-
-        const origCommand = propertiesObject[commandName].value
-        delete propertiesObject[commandName]
-
-        const newCommand = function (...args) {
-            return userDefinedCommand.apply(this, [origCommand.bind(this), ...args])
-        }
-
-        propertiesObject[commandName] = {
-            value: newCommand,
-            configurable: true
-        }
-    }
-
-    delete propertiesObject['__elementOverrides__']
-    propertiesObject['__elementOverrides__'] = { value: {} }
-}
-
-/**
  * return all supported flags and return them in a format so we can attach them
  * to the instance protocol
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce }) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -411,4 +228,72 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone }
     }
+}
+
+/**
+ * Decorate the params object with host updates based on the presence of
+ * directConnect capabilities in the new session response. Note that this
+ * mutates the object.
+ * @param  {Object} params    post-new-session params used to build driver
+ */
+export function setupDirectConnect(params) {
+    const { directConnectProtocol, directConnectHost, directConnectPort,
+        directConnectPath } = params.capabilities
+    if (directConnectProtocol && directConnectHost && directConnectPort &&
+        (directConnectPath || directConnectPath === '')) {
+        log.info('Found direct connect information in new session response. ' +
+            `Will connect to server at ${directConnectProtocol}://` +
+            `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
+        params.protocol = directConnectProtocol
+        params.hostname = directConnectHost
+        params.port = directConnectPort
+        params.path = directConnectPath
+    }
+}
+
+/**
+ * get human readable message from response error
+ * @param {Error} err response error
+ */
+export const getSessionError = (err) => {
+    // browser driver / service is not started
+    if (err.code === 'ECONNREFUSED') {
+        return `Unable to connect to "${err.address}:${err.port}", make sure browser driver is running on that address.` +
+            '\nIf you use services like chromedriver see initialiseServices logs above or in wdio.log file.'
+    }
+
+    if (!err.message) {
+        return 'See logs for more information.'
+    }
+
+    // wrong path: selenium-standalone
+    if (err.message.includes('Whoops! The URL specified routes to this help page.')) {
+        return "It seems you are running a Selenium Standalone server and point to a wrong path. Please set `path: '/wd/hub'` in your wdio.conf.js!"
+    }
+
+    // wrong path: chromedriver, geckodriver, etc
+    if (BROWSER_DRIVER_ERRORS.some(m => err.message.includes(m))) {
+        return "Make sure to set `path: '/'` in your wdio.conf.js!"
+    }
+
+    // edge driver on localhost
+    if (err.message.includes('Bad Request - Invalid Hostname') && err.message.includes('HTTP Error 400')) {
+        return "Run edge driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1, or set `hostname: 'localhost'` in your wdio.conf.js"
+    }
+
+    const w3cCapMessage = '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc to non W3C capabilities.' +
+        '\nSee more https://www.w3.org/TR/webdriver/#capabilities'
+
+    // Illegal w3c capability passed to selenium standalone
+    if (err.message.includes('Illegal key values seen in w3c capabilities')) {
+        return err.message + w3cCapMessage
+    }
+
+    // wrong host/port, port in use, illegal w3c capability passed to selenium grid
+    if (err.message === 'Response has empty body') {
+        return 'Make sure to connect to valid hostname:port or the port is not in use.' +
+            '\nIf you use a grid server ' + w3cCapMessage
+    }
+
+    return err.message
 }

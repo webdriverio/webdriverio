@@ -9,8 +9,11 @@
 </p>
 
 <p align="center">
-    <a href="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master">
+    <a href="https://travis-ci.org/webdriverio/webdriverio">
         <img alt="Build Status" src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master">
+    </a>
+    <a href="https://travis-ci.org/webdriverio/webdriverio/branches">
+        <img alt="LTS v5 Build Status" src="https://img.shields.io/travis/webdriverio/webdriverio/v5.svg?label=LTS%20v5%20build">
     </a>
     <a href="https://codecov.io/gh/webdriverio/webdriverio">
         <img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg">
@@ -26,7 +29,9 @@
     <a href="https://webdriver.io">Homepage</a> |
     <a href="https://webdriver.io/guide.html">Developer Guide</a> |
     <a href="https://webdriver.io/docs/api.html">API Reference</a> |
-    <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a>
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md">Contribute</a> |
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md">Changelog</a> |
+    <a href="https://github.com/webdriverio/webdriverio/blob/master/ROADMAP.md">Roadmap</a>
 </p>
 
 ***
@@ -34,8 +39,6 @@
 WebdriverIO is a test automation framework that allows you to run tests based on the [Webdriver](https://w3c.github.io/webdriver/webdriver-spec.html) protocol and [Appium](http://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack or TestingBot.
 
 ## Contributing
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/webdriverio/webdriverio.svg)](https://greenkeeper.io/)
 
 Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started with setting up the repo.
 
@@ -83,15 +86,26 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 ### Runner
 
 - [@wdio/local-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
-- [@wdio/lambda-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on AWS using Lambda functions
+- [@wdio/lambda-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on Lambda functions (experimental)
 
 ### Framework Adapters
 
 - [@wdio/mocha-framework](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework) - Adapter for [Mocha](https://mochajs.org/) testing framework.
 - [@wdio/jasmine-framework](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework) - Adapter for [Jasmine](https://jasmine.github.io/) testing framework
+- [@wdio/cucumber-framework](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework) - Adapter for [Cucumber](https://cucumber.io/) testing framework
 
 ### Others
 
 - [eslint-plugin-wdio](https://github.com/webdriverio/webdriverio/tree/master/packages/eslint-plugin-wdio) - Eslint rules for WebdriverIO
 - [@wdio/webdriver-mock-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service) - A WebdriverIO service to stub all endpoints for internal testing purposes
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes
+
+## Project Governance
+
+This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
+
+## License
+
+[MIT](/LICENSE-MIT)
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)

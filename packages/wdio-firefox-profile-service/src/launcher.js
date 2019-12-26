@@ -10,7 +10,11 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        this.profile = new Profile()
+        if(this.config.firefoxProfile.profileDirectory) {
+            this.profile = await promisify(Profile.copy)(this.config.firefoxProfile.profileDirectory)
+        } else {
+            this.profile = new Profile()
+        }
 
         // Set preferences and proxy
         this._setPreferences()

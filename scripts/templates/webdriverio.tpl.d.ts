@@ -61,6 +61,7 @@ declare namespace WebdriverIO {
         baseUrl?: string,
         bail?: number,
         specFileRetries?: number,
+        readonly specFileRetryAttempts?: number,
         waitforTimeout?: number,
         waitforInterval?: number,
         framework?: string,
@@ -68,7 +69,10 @@ declare namespace WebdriverIO {
         jasmineNodeOpts?: object,
         reporters?: (string | object)[],
         services?: (string | object)[],
-        execArgv?: string[]
+        execArgv?: string[],
+        featureFlags?: {
+            specFiltering?: boolean,
+        },
     }
 
     interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
@@ -89,7 +93,7 @@ declare namespace WebdriverIO {
     interface HookFunctions {
         onPrepare?(
             config: Config,
-            capabilities: WebDriver.DesiredCapabilities
+            capabilities: WebDriver.DesiredCapabilities[]
         ): void;
 
         onComplete?(exitCode: number, config: Config, capabilities: WebDriver.DesiredCapabilities, results: Results): void;
@@ -106,7 +110,7 @@ declare namespace WebdriverIO {
             args: any[]
         ): void;
 
-        beforeHook?(): void;
+        beforeHook?(test: any, context: any, stepData?: any, world?: any): void;
 
         beforeSession?(
             config: Config,
@@ -115,8 +119,14 @@ declare namespace WebdriverIO {
         ): void;
 
         beforeSuite?(suite: Suite): void;
-        beforeTest?(test: Test): void;
-        afterHook?(): void;
+        beforeTest?(test: Test, context: any): void;
+        afterHook?(test: any, context: any, result: {
+            error?: any,
+            result?: any,
+            passed: boolean,
+            duration: number,
+            retries: { limit: number, attempts: number }
+        }, stepData?: any, world?: any): void;
 
         after?(
             result: number,
@@ -138,15 +148,13 @@ declare namespace WebdriverIO {
         ): void;
 
         afterSuite?(suite: Suite): void;
-        afterTest?(test: Test): void;
-
-        // cucumber specific hooks
-        beforeFeature?(feature: string): void;
-        beforeScenario?(scenario: string): void;
-        beforeStep?(step: string): void;
-        afterFeature?(feature: string): void;
-        afterScenario?(scenario: any): void;
-        afterStep?(stepResult: any): void;
+        afterTest?(test: Test, context: any, result: {
+            error?: any,
+            result?: any,
+            passed: boolean,
+            duration: number,
+            retries: { limit: number, attempts: number }
+        }): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
@@ -164,12 +172,53 @@ declare namespace WebdriverIO {
     }
     type TouchActions = string | TouchAction | TouchAction[];
 
+    type WaitForOptions = {
+        timeout?: number,
+        interval?: number,
+        timeoutMsg?: string,
+        reverse?: boolean,
+    }
+
     interface Element {
+        selector: string;
+        elementId: string;
+
+        /**
+         * w3c
+         */
+        "element-6066-11e4-a52e-4f735466cecf"?: string;
+
+        /**
+         * jsonwp
+         */
+        ELEMENT?: string;
+
+        /**
+         * index in array of elements
+         * only applicable if the element found with `$$` command
+         */
+        index?: number;
+
+        /**
+         * WebdriverIO.Element or WebdriverIO.BrowserObject
+         */
+        parent: Element | WebdriverIO.BrowserObject;
+
+        /**
+         * add command to `element` scope
+         */
         addCommand(
             name: string,
             func: Function
         ): void;
         // ... element commands ...
+    }
+
+    interface ElementArray extends Array<Element> {
+        selector: string | Function;
+        parent: Element | WebdriverIO.BrowserObject;
+        foundWith: string;
+        props: any[];
     }
 
     interface Timeouts {
@@ -179,17 +228,26 @@ declare namespace WebdriverIO {
     }
 
     interface Browser {
+        config: Config;
+        options: RemoteOptions;
+
+        /**
+         * add command to `browser` or `element` scope
+         */
         addCommand(
             name: string,
             func: Function,
             attachToElement?: boolean
         ): void;
+
+        /**
+         * overwrite `browser` or `element` command
+         */
         overwriteCommand(
             name: string,
             func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
         ): void;
-        options: RemoteOptions;
         // ... browser commands ...
     }
 

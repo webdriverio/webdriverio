@@ -45,7 +45,7 @@ exports.config = {
     waitforTimeout: 150000,
     //
     // Default timeout in milliseconds for request
-    // if Selenium Grid doesn't send response
+    // if browser driver or grid doesn't send response
     connectionRetryTimeout: 90000,
     //
     // Default request retries count
@@ -75,7 +75,7 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 30000,
-        compilers: ['js:babel-register']
+        require: ['@babel/register']
     },
     //
     // =====
@@ -101,16 +101,18 @@ exports.config = {
     //
     // Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
     // beforeEach in Mocha)
-    // beforeHook: function () {
+    // stepData and world are Cucumber framework specific
+    // beforeHook: function (test, context, stepData, world) {
     // },
     //
     // Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
     // afterEach in Mocha)
-    // afterHook: function () {
+    // stepData and world are Cucumber framework specific
+    // afterHook: function (test, context, { error, result, duration, passed, retries }, stepData, world) {
     // },
     //
-    // Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-    // beforeTest: function (test) {
+    // Function to be executed before a test (in Mocha/Jasmine) starts.
+    // beforeTest: function (test, context) {
     // },
     //
     // Runs before a WebdriverIO command gets executed.
@@ -121,8 +123,8 @@ exports.config = {
     // afterCommand: function (commandName, args, result, error) {
     // },
     //
-    // Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-    // afterTest: function (test) {
+    // Function to be executed after a test (in Mocha/Jasmine) ends.
+    // afterTest: function (test, context, { error, result, duration, passed, retries }) {
     // },
     //
     // Hook that gets executed after the suite has ended
@@ -130,27 +132,27 @@ exports.config = {
     // },
     //
     // Runs before a Cucumber Feature
-    // beforeFeature: function (feature) {
+    // beforeFeature: function (uri, feature, scenarios) {
     // },
     //
     // Runs after a Cucumber Feature
-    // afterFeature: function (feature) {
+    // afterFeature: function (uri, feature, scenarios) {
     // }
     //
     // Runs before a Cucumber Scenario
-    // beforeScenario: function (scenario) {
+    // beforeScenario: function (uri, feature, scenario, sourceLocation) {
     // },
     //
     // Runs after a Cucumber Scenario
-    // afterScenario: function (scenario) {
+    // afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     // },
     //
     // Runs before a Cucumber Step
-    // beforeStep: function (step) {
+    // beforeStep: function (uri, feature, stepData, context) {
     // },
     //
     // Runs after a Cucumber Step
-    // afterStep: function (stepResult) {
+    // afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
     // },
     //
     // Gets executed after all tests are done. You still have access to all global variables from

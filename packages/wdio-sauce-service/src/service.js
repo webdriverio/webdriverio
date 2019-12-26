@@ -79,41 +79,31 @@ export default class SauceService {
         }
     }
 
-    beforeFeature (feature) {
+    /**
+     * For CucumberJS
+     */
+    beforeFeature (uri, feature) {
         if (!this.isServiceEnabled || this.isRDC) {
             return
         }
 
-        this.suiteTitle = feature.name || feature.getName()
+        this.suiteTitle = feature.document.feature.name
         global.browser.execute('sauce:context=Feature: ' + this.suiteTitle)
     }
 
-    afterStep (feature) {
-        if (
-            /**
-             * Cucumber v1
-             */
-            feature.failureException ||
-            /**
-             * Cucumber v2
-             */
-            (typeof feature.getFailureException === 'function' && feature.getFailureException()) ||
-            /**
-             * Cucumber v3, v4
-             */
-            (feature.status === 'failed')
-        ) {
-            ++this.failures
-        }
-    }
-
-    beforeScenario (scenario) {
+    beforeScenario (uri, feature, scenario) {
         if (!this.isServiceEnabled || this.isRDC) {
             return
         }
 
-        const scenarioName = scenario.name || scenario.getName()
+        const scenarioName = scenario.name
         global.browser.execute('sauce:context=Scenario: ' + scenarioName)
+    }
+
+    afterScenario(uri, feature, pickle, result) {
+        if (result.status === 'failed') {
+            ++this.failures
+        }
     }
 
     /**

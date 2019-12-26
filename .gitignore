@@ -39,6 +39,7 @@ jspm_packages/
 # Typescript v1 declaration files
 typings/
 !tests/typings
+tests/typings/**/dist
 
 # Optional npm cache directory
 .npm
@@ -64,11 +65,10 @@ typings/
 **/build
 /*.js
 allure-reporter.d.ts
-webdriver.d.ts
-webdriverio-core.d.ts
+devtools.d.ts
 !babel.config.js
 !.eslintrc.js
-package-lock.json
+packages/**/package-lock.json
 .DS_Store
 
 website/.sass-cache/

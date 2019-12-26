@@ -6,9 +6,15 @@ import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
+import RunnerStream from './stdStream'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
+
+const stdOutStream = new RunnerStream()
+const stdErrStream = new RunnerStream()
+stdOutStream.pipe(process.stdout)
+stdErrStream.pipe(process.stderr)
 
 /**
  * WorkerInstance
@@ -49,7 +55,7 @@ export default class WorkerInstance extends EventEmitter {
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
-        const runnerEnv = Object.assign(process.env, this.config.runnerEnv, {
+        const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
             WDIO_WORKER: true
         })
 
@@ -62,7 +68,7 @@ export default class WorkerInstance extends EventEmitter {
             cwd: process.cwd(),
             env: runnerEnv,
             execArgv,
-            silent: true
+            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
         })
 
         childProcess.on('message', ::this._handleMessage)
@@ -71,9 +77,8 @@ export default class WorkerInstance extends EventEmitter {
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
-            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
-            process.stdin.pipe(childProcess.stdin)
+            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(stdOutStream)
+            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(stdErrStream)
         }
 
         return childProcess

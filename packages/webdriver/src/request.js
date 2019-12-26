@@ -2,7 +2,6 @@ import url from 'url'
 import http from 'http'
 import path from 'path'
 import https from 'https'
-import merge from 'lodash.merge'
 import request from 'request'
 import EventEmitter from 'events'
 
@@ -10,6 +9,12 @@ import logger from '@wdio/logger'
 
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
+
+const DEFAULT_HEADERS = {
+    'Connection': 'keep-alive',
+    'Accept': 'application/json',
+    'User-Agent': 'webdriver/' + pkg.version
+}
 
 const log = logger('webdriver')
 const agents = {
@@ -28,17 +33,12 @@ export default class WebDriverRequest extends EventEmitter {
         this.defaultOptions = {
             method,
             followAllRedirects: true,
-            json: true,
-            headers: {
-                'Connection': 'keep-alive',
-                'Accept': 'application/json',
-                'User-Agent': 'webdriver/' + pkg.version
-            }
+            json: true
         }
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = merge({}, this.defaultOptions, this._createOptions(options, sessionId))
+        const fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
         this.emit('request', fullRequestOptions)
         return this._request(fullRequestOptions, options.connectionRetryCount)
     }
@@ -46,18 +46,24 @@ export default class WebDriverRequest extends EventEmitter {
     _createOptions (options, sessionId) {
         const requestOptions = {
             agent: options.agent || agents[options.protocol],
-            headers: typeof options.headers === 'object' ? options.headers : {},
-            qs: typeof options.queryParams === 'object' ? options.queryParams : {}
+            headers: {
+                ...DEFAULT_HEADERS,
+                ...(typeof options.headers === 'object' ? options.headers : {})
+            },
+            qs: typeof options.queryParams === 'object' ? options.queryParams : {},
+            timeout: options.connectionRetryTimeout
         }
 
         /**
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
+            const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
             requestOptions.body = this.body
-            requestOptions.headers = merge({}, requestOptions.headers, {
-                'Content-Length': Buffer.byteLength(JSON.stringify(requestOptions.body), 'UTF-8')
-            })
+            requestOptions.headers = {
+                ...requestOptions.headers,
+                ...({ 'Content-Length': contentLength })
+            }
         }
 
         /**

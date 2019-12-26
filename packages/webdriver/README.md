@@ -5,6 +5,14 @@ WebDriver
 
 There are [tons](https://github.com/christian-bromann/awesome-selenium#javascript) of Selenium and WebDriver binding implementations in the Node.js world. Every one of them have an opinionated API and recommended way to use. This binding is the most non-opinionated you will find as it just represents the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and doesn't come with any extra or higher level abstraction. It is lightweight and comes with support for the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and Appiums [Mobile JSONWire Protocol](https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md).
 
+## Install
+
+To install this package from NPM run:
+
+```sh
+$ npm i webdriver
+```
+
 ## Example
 
 The following example demonstrates a simple Google Search scenario:
@@ -88,7 +96,7 @@ Type: `String`<br>
 Default: *null*
 
 ### connectionRetryTimeout
-Timeout for any request to the Selenium server.
+Timeout for any WebDriver request to a driver or grid.
 
 Type: `Number`<br>
 Default: *90000*

@@ -60,12 +60,13 @@ test('specDone', () => {
     expect(runnerReporter.emit.mock.calls[5][1].uid).toBe('some failing test spec25')
 
     jasmineReporter.specDone({
-        id: 26, description: 'some pending test spec', failedExpectations: [], status: 'pending'
+        id: 26, description: 'some pending test spec', failedExpectations: [], status: 'pending', pendingReason: 'for no reason'
     })
     expect(runnerReporter.emit.mock.calls[6][0]).toBe('test:pending')
     expect(runnerReporter.emit.mock.calls[6][1].cid).toBe('0-2')
     expect(runnerReporter.emit.mock.calls[6][1].uid).toBe('some pending test spec26')
     expect(runnerReporter.emit.mock.calls[6][1].pending).toBe(true)
+    expect(runnerReporter.emit.mock.calls[6][1].pendingReason).toBe('for no reason')
     expect(runnerReporter.emit.mock.calls[7][0]).toBe('test:end')
     expect(runnerReporter.emit.mock.calls[7][1].uid).toBe('some pending test spec26')
 
@@ -86,7 +87,7 @@ test('specDone should pass multiple failed expectations as errors', () => {
     jasmineReporter.specDone({ id: 24, description: 'some test spec', failedExpectations: [{ message: 'I failed' }, { message: 'I failed too!' }], status: 'failed' })
 
     expect(runnerReporter.emit.mock.calls[2][0]).toBe('test:fail')
-    // We still assign the first failedExpectation to 'error' for backwrds compatibility
+    // We still assign the first failedExpectation to 'error' for backwards compatibility
     expect(runnerReporter.emit.mock.calls[2][1].error.message).toBe('I failed')
     expect(runnerReporter.emit.mock.calls[2][1].errors.length).toBe(2)
     expect(runnerReporter.emit.mock.calls[2][1].errors[0].message).toBe('I failed')

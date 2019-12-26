@@ -1,7 +1,7 @@
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote } from 'webdriverio'
 
-// An example of adding command withing ts file to WebdriverIOAsync
+// An example of adding command withing ts file to WebdriverIO (async)
 declare module "webdriverio" {
     interface Browser {
         browserCustomCommand: (arg: unknown) => Promise<void>
@@ -51,6 +51,18 @@ async function bar() {
     )
     callResult.toFixed(2)
 
+    // browser element command
+    browser.getElementRect('elementId')
+
+    // protocol command return mapped object value
+    const { x, y, width, height } = await browser.getWindowRect()
+
+    // protocol command return unmapped object
+    const { foo, bar } = await browser.takeHeapSnapshot()
+
+    // browser command return mapped object value
+    const { x: x0, y: y0, width: w, height: h }  =  await browser.getWindowSize()
+
     // browser custom command
     await browser.browserCustomCommand(14)
 
@@ -60,6 +72,9 @@ async function bar() {
 
     // $
     const el1 = await $('')
+    const strFunction = (str: string) => str
+    strFunction(el1.selector)
+    strFunction(el1.elementId)
     const el2 = await el1.$('')
     const el3 = await el2.$('')
     await el1.getCSSProperty('style')
@@ -75,6 +90,9 @@ async function bar() {
     await el4.getAttribute('class')
     await el5.scrollIntoView(false)
 
+    const selector$$: string | Function = elems.selector
+    const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
+
     // shadow$ shadow$$
     const el6 = await $('')
     const shadowElem = await el6.shadow$('')
@@ -88,10 +106,25 @@ async function bar() {
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
     await reactElements[0].click()
+
+    // touchAction
+    const ele = await $('')
+    const touchAction: WebdriverIO.TouchAction = {
+        action: "longPress",
+        element: await $(''),
+        ms: 0,
+        x: 0,
+        y: 0
+    }
+    await ele.touchAction(touchAction)
+    await browser.touchAction(touchAction)
+
+    // dragAndDrop
+    await ele.dragAndDrop(ele, 0)
 }
 
 // selenium-standalone-service
-const config: WebdriverIOAsync.Config = {
+const config: WebdriverIO.Config = {
     skipSeleniumInstall: true,
     seleniumLogs: ''
 }

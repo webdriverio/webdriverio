@@ -3,13 +3,17 @@ id: organizingsuites
 title: Organizing Test Suite
 ---
 
-While your project is growing you will inevitably add more and more integration tests. This will increase your build time and will also slow down your productivity. To prevent this you should start to run your tests in parallel. You might have already recognised that WebdriverIO creates for each spec (or feature file in cucumber) a single WebDriver session. In general, you should try to test a single feature in your app in one spec file. Try to not have too many or too few tests in one file. However, there is no golden rule about that.
+As projects grow, inevitably more and more integration tests are added. This increases build time and slows productivity. 
 
-Once you get more and more spec files you should start running them concurrently. To do so you can adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency meaning that no matter how many files and tests you have, they could run all in parallel. Though there are certain limits (computer CPU, concurrency restrictions).
+To prevent this, you should run your tests in parallel. WebdriverIO already tests each spec (or <dfn>feature file</dfn> in Cucumber) in parallel within a single session. In general, try to test a only a single feature per spec file. Try to not have too many or too few tests in one file. (However, there is no golden rule here.)
 
-> Let's say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have set maxInstances to 1, the wdio test runner will spawn 3 processes. Therefore, if you have 10 spec files and you set maxInstances to 10; all spec files will get tested at the same time and 30 processes will get spawned.
+Once your tests have several spec files, you should start running your tests concurrently. To do so, adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency—meaning that no matter how many files and tests you have, they can all run in parallel.  (This is still subject to certain limits, like your computer’s CPU, concurrency restrictions, etc.)
 
-You can define the `maxInstance` property globally to set the attribute for all browser. If you run your own WebDriver grid it could be that you have more capacity for one browser than for an other one. In this case you can limit the `maxInstance` in your capability object:
+> Let's say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have set `maxInstances` to `1`. The WDIO test runner will spawn 3 processes. Therefore, if you have 10 spec files and you set `maxInstances` to `10`, _all_ spec files will be tested simultaneously, and 30 processes will be spawned.
+
+You can define the `maxInstances` property globally to set the attribute for all browsers. 
+
+If you run your own WebDriver grid, you may (for example) have more capacity for one browser than another. In that case, you can _limit_ the `maxInstances` in your capability object:
 
 ```js
 // wdio.conf.js
@@ -19,7 +23,7 @@ exports.config = {
     maxInstances: 10,
     // ...
     capabilities: [{
-        browserName: "firefox"
+        browserName: 'firefox'
     }, {
         // maxInstances can get overwritten per capability. So if you have an in-house WebDriver
         // grid with only 5 firefox instance available you can make sure that not more than
@@ -32,12 +36,16 @@ exports.config = {
 
 ## Inherit From Main Config File
 
-If you run your test suite in multiple environments (e.g. dev and integration) it could be helpful to have multiple configuration files to keep them easy manageable. Similar to the [page object concept](PageObjects.md) you first create a main config file. It contains all configurations you share across environments. Then for each environment you can create a file and supplement the information from the main config file with environment specific ones:
+If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable. 
+
+Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments. 
+
+Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
 
 ```js
 // wdio.dev.config.js
-import merge from 'deepmerge';
-import wdioConf from './wdio.conf.js';
+import merge from 'deepmerge'
+import wdioConf from './wdio.conf.js'
 
 // have main config file as default but overwrite environment specific information
 exports.config = merge(wdioConf.config, {
@@ -50,15 +58,17 @@ exports.config = merge(wdioConf.config, {
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
     services: ['sauce']
-}, { clone: false });
+}, { clone: false })
 
 // add an additional reporter
-exports.config.reporters.push('allure');
+exports.config.reporters.push('allure')
 ```
 
-## Group Test Specs
+## Grouping Test Specs
 
-You can easily group test specs in suites and run single specific suites instead of all of them. To do so you first need to define your suites in your wdio config:
+You can easily group test specs in suites and run single specific suites instead of all of them. 
+
+First, define your suites in your WDIO config:
 
 ```js
 // wdio.conf.js
@@ -80,76 +90,96 @@ exports.config = {
 }
 ```
 
-Now, if you want to only run a single suite, you can pass the suite name as cli argument like:
+Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:
 
 ```sh
-$ wdio wdio.conf.js --suite login
+wdio wdio.conf.js --suite login
 ```
 
-or run multiple suites at once:
+Or, run multiple suites at once:
 
 ```sh
-$ wdio wdio.conf.js --suite login --suite otherFeature
+wdio wdio.conf.js --suite login --suite otherFeature
 ```
 
 ## Run Selected Tests
 
-In some cases, you may wish to only execute a single test or a subset of your suites. With the `--spec` parameter you can specify which suite (Mocha, Jasmine) or feature (Cucumber) should be run. For example if you only want to run your login test, do:
+In some cases, you may wish to only execute a single test (or subset of tests) of your suites. 
+
+With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _feature_ (Cucumber) should be run. 
+
+For example, to run only your login test:
 
 ```sh
-$ wdio wdio.conf.js --spec ./test/specs/e2e/login.js
+wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
-or run multiple specs at once:
+Or run multiple specs at once:
 
 ```sh
-$ wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
+wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
 ```
 
-If the spec passed in is not a path to a spec file, it is used as a filter for the spec file names defined in your configuration file. To run all specs with the word 'dialog' in the spec file names, you could use:
+If the `--spec` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration. 
+
+To run all specs with the word “dialog” in the spec file names, you could use:
 
 ```sh
-$ wdio wdio.conf.js --spec dialog
+wdio wdio.conf.js --spec dialog
 ```
 
-Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`) you _can't_ use for example `describe.only` at the top of your spec file to say Mocha to only run that suite. This feature will help you though to do that in the same way.
+Note that each test file is running in a single test runner process. Since we don't scan files in advance (see the next section for information on piping filenames to `wdio`), you _can't_ use (for example) `describe.only` at the top of your spec file to instruct Mocha to run only that suite. 
+
+This feature will help you to accomplish the same goal.
 
 ## Exclude Selected Tests
 
- When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber). For example if you want to exclude your login
-test from the test run, do:
- ```sh
-$ wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
+When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber). 
+
+For example, to exclude your login test from the test run:
+
+```sh
+wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
 ```
- or exclude multiple spec files:
+
+Or, exclude multiple spec files:
+
  ```sh
-$ wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
+wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
 ```
- or exclude a spec file when filtering using a suite:
- ```sh
-$ wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
+
+Or, exclude a spec file when filtering using a suite:
+
+```sh
+wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
 ## Run Suites and Test Specs
 
-This will allow you to run an entire suite along with individual spec's.
+Run an entire suite along with individual specs.
 
 ```sh
-$ wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
+wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 ```
 
 ## Run Multiple, Specific Test Specs
 
-It is sometimes necessary&mdash;in the context of continuous integration and otherwise&mdash;to specify multiple sets of specs to be run at runtime. WebdriverIO's `wdio` command line utility will accept piped input in the form of filenames (from `find`, `grep`, or others). These filenames will override the list of glob patterns or filenames specified in the configuration file's `spec` list.
+It is sometimes necessary&mdash;in the context of continuous integration and otherwise&mdash;to specify multiple sets of specs to run. WebdriverIO's `wdio` command line utility accepts piped-in filenames (from `find`, `grep`, or others). 
+
+Piped-in filenames override the list of globs or filenames specified in the configuration's `spec` list.
 
 ```sh
-$ grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
+grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 ```
 
 _**Note:** This will_ not _override the `--spec` flag for running a single spec._
 
 ## Stop testing after failure
 
-With the `bail` option you can specify when WebdriverIO should stop the test run after test failures. This can be helpful when you have a big test suite and want to avoid long test runs when you already know that your build will break. The option expects a number that specifies after how many spec failures it should stop the whole test run. The default is `0` meaning that it always runs all tests specs it can find.
+With the `bail` option, you can tell WebdriverIO to stop testing after any test fails. 
+
+This is helpful with large test suites when you already know that your build will break, but you want to avoid the lenghty wait of a full testing run. 
+
+The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
 
 Please see [Options Page](Options.md) for additional information on the bail configuration.

@@ -1,31 +1,93 @@
 import assert from 'assert'
+import os from 'os'
+import sync from '../../packages/wdio-sync'
+import { remote } from '../../packages/webdriverio'
 
-describe('smoke test', () => {
+describe('Mocha smoke test', () => {
+    let testJs = 'tests/mocha/test.js:'
+
+    before(() => {
+        if (os.platform() === 'win32') {
+            testJs = testJs.split('/').join('\\')
+        }
+    })
+
     it('should return sync value', () => {
         assert.equal(browser.getTitle(), 'Mock Page Title')
     })
 
-    it('should be able to wait for an element', () => {
-        browser.waitForDisplayedScenario()
-        assert($('elem').waitForDisplayed(), true)
+    let hasRun = false
+    it('should retry', function () {
+        if (!hasRun) {
+            hasRun = true
+            assert.equal(this.wdioRetries, 0)
+            throw new Error('booom!')
+        }
+
+        assert.equal(this.wdioRetries, 1)
+    }, 1)
+
+    it('should work fine after catching an error', () => {
+        browser.clickScenario()
+
+        let err
+        try {
+            browser.getAlertText()
+        } catch (e) {
+            err = e
+        }
+
+        $('elem').click()
+
+        assert.equal(err.stack.includes(testJs), true)
     })
 
-    describe('middleware', () => {
-        it('should wait for elements if not found immediately', () => {
-            browser.waitForElementScenario()
-            const elem = $('elem')
-            //Element will be found
-            assert.doesNotThrow(() => elem.click())
-        })
+    it('should chain properly', () => {
+        browser.isExistingScenario()
 
-        it('should refetch stale elements', () => {
-            browser.staleElementRefetchScenario()
+        const el = browser.$('body')
+        assert.equal(el.$('.selector-1').isExisting(), true)
+        assert.equal(el.$('.selector-2').isExisting(), true)
+    })
 
-            const elem = $('elem')
-            elem.click()
-            // element becomes stale
-            elem.click()
+    it('should handle promises in waitUntil callback funciton', () => {
+        const results = []
+        const result = browser.waitUntil(() => {
+            results.push(browser.getUrl())
+            return results.length > 1
         })
+        assert.strictEqual(result, true)
+        assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
+    })
+
+    it('should handle waitUntil timeout', () => {
+        browser.staleElementRefetchScenario()
+        const elem = $('elem')
+        try {
+            browser.waitUntil(() => {
+                elem.click()
+                return false
+            }, 1000)
+        } catch (err) {
+            // ignored
+        }
+        assert.equal(JSON.stringify(elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
+    })
+
+    it('should allow to run standalone mode synchronously', () => {
+        browser.clickScenario()
+
+        return remote({
+            runner: true,
+            hostname: 'localhost',
+            port: 4444,
+            path: '/',
+            capabilities: {
+                browserName: 'chrome'
+            }
+        }).then((remoteBrowser) => sync(() => {
+            assert.equal(remoteBrowser.getTitle(), 'Mock Page Title')
+        }))
     })
 
     describe('isDisplayed', () => {
@@ -112,6 +174,7 @@ describe('smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'Boom!')
+            assert.equal(err.stack.includes(testJs), true)
         })
 
         it('allows to create custom commands on elements that respects promises', () => {
@@ -146,6 +209,21 @@ describe('smoke test', () => {
             assert.equal(
                 JSON.stringify(elem.getSize(2)),
                 JSON.stringify({ width: 2, height: 4 })
+            )
+        })
+
+        it('should allow to invoke native command on different element', () => {
+            browser.customCommandScenario()
+            browser.overwriteCommand('getSize', function (origCommand, ratio = 1) {
+                const elemAlt = $('elemAlt')
+                const { width, height } = origCommand.call(elemAlt)
+                return { width: width * ratio, height: height * ratio }
+            }, true)
+            const elem = $('elem')
+
+            assert.equal(
+                JSON.stringify(elem.getSize(2)),
+                JSON.stringify({ width: 20, height: 40 })
             )
         })
 
@@ -194,6 +272,7 @@ describe('smoke test', () => {
                 err = e
             }
             assert.equal(err.message, 'deleteAllCookies')
+            assert.equal(err.stack.includes(testJs), true)
         })
     })
 })

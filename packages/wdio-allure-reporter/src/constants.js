@@ -2,6 +2,8 @@ const PASSED = 'passed'
 const FAILED = 'failed'
 const BROKEN = 'broken'
 const PENDING = 'pending'
+const CANCELED = 'canceled'
+const SKIPPED = 'skipped'
 
 const testStatuses = {
     PASSED,
@@ -13,10 +15,13 @@ const testStatuses = {
 const stepStatuses = {
     PASSED,
     FAILED,
-    BROKEN
+    BROKEN,
+    CANCELED,
+    SKIPPED
 }
 
 const events = {
+    addLabel: 'allure:addLabel',
     addFeature: 'allure:addFeature',
     addStory: 'allure:addStory',
     addSeverity: 'allure:addSeverity',
@@ -32,5 +37,6 @@ const events = {
 }
 
 const mochaEachHooks = ['"before each" hook', '"after each" hook']
+const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
-export { testStatuses, stepStatuses, events, mochaEachHooks }
+export { testStatuses, stepStatuses, events, mochaEachHooks, mochaAllHooks }

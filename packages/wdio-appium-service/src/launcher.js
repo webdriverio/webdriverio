@@ -1,14 +1,14 @@
 import logger from '@wdio/logger'
 import { spawn } from 'child_process'
 import { createWriteStream, ensureFileSync } from 'fs-extra'
-import paramCase from 'param-case'
+import { paramCase } from 'param-case'
 import { promisify } from 'util'
 import getFilePath from './utils/getFilePath'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'appium.txt'
 
-export class AppiumLauncher {
+export default class AppiumLauncher {
     constructor() {
         this.logPath = null
         this.command = ''
@@ -17,6 +17,7 @@ export class AppiumLauncher {
 
     async onPrepare(config) {
         const appiumConfig = config.appium || {}
+        const isWindows = process.platform === 'win32'
 
         this.logPath = appiumConfig.logPath || config.outputDir
 
@@ -31,6 +32,12 @@ export class AppiumLauncher {
 
         // Append remaining arguments
         this.appiumArgs.push(...this._cliArgsFromKeyValue(appiumConfig.args || {}))
+
+        // Windows needs to be started through `cmd` and the command needs to be an arg
+        if (isWindows) {
+            this.appiumArgs.unshift('/c', this.command)
+            this.command = 'cmd'
+        }
 
         const asyncStartAppium = promisify(this._startAppium)
         this.process = await asyncStartAppium(this.command, this.appiumArgs, this.waitStartTime)
@@ -89,9 +96,9 @@ export class AppiumLauncher {
             return require.resolve(moduleName)
         } catch (err) {
             log.error('appium is not installed locally.\n' +
-            'If you use globally installed appium please add\n' +
-            "appium: { command: 'appium' }\n" +
-            'to your wdio.conf.js!')
+                'If you use globally installed appium please add\n' +
+                'appium: { command: \'appium\' }\n' +
+                'to your wdio.conf.js!')
             throw err
         }
     }

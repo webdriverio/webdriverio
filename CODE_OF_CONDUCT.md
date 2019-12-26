@@ -47,9 +47,7 @@ Project maintainers who do not follow or enforce the Code of Conduct in good fai
 
 ## Contact Info
 
-If you need to report an incident, please contact any of the following organizers directly:
-
-- Christian Bromann [email](mailto:mail@christian-bromann.com) [twitter](https://twitter.com/bromann)
+If you need to report an incident, please contact any of the members of the [Technical Steering Committee (TSC)](/AUTHORS.md).
 
 ## Attribution
 

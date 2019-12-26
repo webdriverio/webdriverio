@@ -5,15 +5,23 @@ import {
     SUITE_UIDS,
     SUITES,
     SUITES_NO_TESTS,
-    REPORT,
-    SAUCELABS_REPORT,
-    SAUCELABS_EU_REPORT,
-    SAUCELABS_HEADLESS_REPORT,
+    SUITES_WITH_DATA_TABLE,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
 
 const reporter = new SpecReporter({})
+
+const defaultCaps = { browserName: 'loremipsum', sessionId: 'foobar' }
+const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
+const getRunnerConfig = (config = {}) => {
+    return Object.assign({}, RUNNER, {
+        capabilities: config.capabilities || defaultCaps,
+        config,
+        sessionId: fakeSessionId,
+        isMultiremote: Boolean(config.isMultiremote)
+    })
+}
 
 describe('SpecReporter', () => {
     let tmpReporter = null
@@ -69,13 +77,15 @@ describe('SpecReporter', () => {
     describe('getEventsToReport', () => {
         it('should return all tests and hook errors to report', () => {
             expect(tmpReporter.getEventsToReport({
-                tests: [1, 2, 3],
-                hooks: [4, 5, 6]
-            })).toEqual([1, 2, 3])
+                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                hooks: [{}],
+                hooksAndTests: [{}, { type: 'test',  title: '11' }, {}, { type: 'test',  title: '22' }, {}]
+            })).toEqual([{ type: 'test',  title: '11' }, { type: 'test',  title: '22' }])
             expect(tmpReporter.getEventsToReport({
-                tests: [1, 2, 3],
-                hooks: [{ error: 1 }, 5, { error: 2 }]
-            })).toEqual([1, 2, 3, { error: 1 }, { error: 2 }])
+                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                hooks: [{ error: 1 }, {}, { error: 2 }],
+                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test',  title: '33' }, {}, { error: 22 }, {}]
+            })).toEqual([{ error: 11 }, { type: 'test',  title: '33' }, { error: 22 }])
         })
     })
 
@@ -143,82 +153,100 @@ describe('SpecReporter', () => {
             printReporter.write = jest.fn()
         })
 
-        it('should print the report to the console', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.stateCounts = {
-                passed : 4,
-                failed : 1,
-                skipped : 1,
-            }
-
-            printReporter.printReport(RUNNER)
-
-            expect(printReporter.write).toBeCalledWith(REPORT)
-        })
-
-        it('should print link to SauceLabs job details page', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.stateCounts = {
-                passed : 4,
-                failed : 1,
-                skipped : 1,
-            }
-
-            const runner = Object.assign({}, RUNNER, {
-                config: { hostname: 'ondemand.saucelabs.com' },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
+        describe('with normal setup', () => {
+            beforeEach(() => {
+                printReporter.suiteUids = SUITE_UIDS
+                printReporter.suites = SUITES
+                printReporter.stateCounts = {
+                    passed : 4,
+                    failed : 1,
+                    skipped : 1,
+                }
             })
-            printReporter.printReport(runner)
 
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_REPORT)
-        })
+            it('should print the report to the console', () => {
+                const runner = getRunnerConfig({ hostname: 'localhost' })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
 
-        it('should print link to SauceLabs EU job details page', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.stateCounts = {
-                passed : 4,
-                failed : 1,
-                skipped : 1,
-            }
+            it('should print link to SauceLabs job details page', () => {
+                const runner = getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com'
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
 
-            printReporter.printReport(Object.assign({}, RUNNER, {
-                config: {
+            it('should print jobs of all instance when run with multiremote', () => {
+                const runner = getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    capabilities: {
+                        browserA: { sessionId: 'foobar' },
+                        browserB: { sessionId: 'barfoo' }
+                    },
+                    isMultiremote: true
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('should print link to SauceLabs job details page if run with Sauce Connect (w3c)', () => {
+                const runner = getRunnerConfig({
+                    capabilities: {
+                        ...defaultCaps,
+                        'sauce:options': 'foobar'
+                    },
+                    hostname: 'localhost'
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('should print link to SauceLabs job details page if run with Sauce Connect (jsonwp)', () => {
+                const runner = getRunnerConfig({
+                    capabilities: {
+                        tunnelIdentifier: 'foobar',
+                        ...defaultCaps
+                    },
+                    hostname: 'localhost'
+                })
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('should print link to SauceLabs EU job details page', () => {
+                printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu'
-                },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
-            }))
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+                }))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
 
-            printReporter.write.mockClear()
+                printReporter.write.mockClear()
 
-            printReporter.printReport(Object.assign({}, RUNNER, {
-                config: {
+                printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu-central-1'
-                },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
-            }))
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_EU_REPORT)
+                }))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
 
-            printReporter.printReport(Object.assign({}, RUNNER, {
-                config: {
+                printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     headless: true
-                },
-                sessionId: 'ba86cbcb70774ef8a0757c1702c3bdf9'
-            }))
-            expect(printReporter.write).toBeCalledWith(SAUCELABS_HEADLESS_REPORT)
+                }))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
         })
 
         it('should print report for suites with no tests but failed hooks', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
 
-            printReporter.printReport(RUNNER)
+            const runner = getRunnerConfig({
+                capabilities: {},
+                hostname: 'localhost'
+            })
+            printReporter.printReport(runner)
 
             expect(printReporter.write.mock.calls.length).toBe(1)
             expect(printReporter.write.mock.calls[0][0]).toContain('a failed hook')
@@ -228,7 +256,7 @@ describe('SpecReporter', () => {
             printReporter.suiteUids = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS
 
-            printReporter.printReport(RUNNER)
+            printReporter.printReport(getRunnerConfig())
 
             expect(printReporter.write.mock.calls.length).toBe(0)
         })
@@ -236,12 +264,20 @@ describe('SpecReporter', () => {
 
     describe('getHeaderDisplay', () => {
         it('should validate header output', () => {
-            const result = reporter.getHeaderDisplay(RUNNER)
+            const result = reporter.getHeaderDisplay(getRunnerConfig())
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
             expect(result[1]).toBe('Running: loremipsum')
-            expect(result[2]).toBe('')
+        })
+
+        it('should validate header output in multiremote', () => {
+            const result = tmpReporter.getHeaderDisplay(
+                getRunnerConfig({ isMultiremote: true }))
+
+            expect(result.length).toBe(3)
+            expect(result[0]).toBe('Spec: /foo/bar/baz.js')
+            expect(result[1]).toBe('Running: MultiremoteBrowser')
         })
     })
 
@@ -251,20 +287,7 @@ describe('SpecReporter', () => {
             tmpReporter.suites = SUITES
 
             const result = tmpReporter.getResultDisplay()
-
-            expect(result.length).toBe(12)
-            expect(result[0]).toBe('Foo test')
-            expect(result[1]).toBe('   green ✓ foo')
-            expect(result[2]).toBe('   green ✓ bar')
-            expect(result[3]).toBe('')
-            expect(result[4]).toBe('Bar test')
-            expect(result[5]).toBe('   green ✓ some test')
-            expect(result[6]).toBe('   red ✖ a failed test')
-            expect(result[7]).toBe('')
-            expect(result[8]).toBe('Baz test')
-            expect(result[9]).toBe('   green ✓ foo bar baz')
-            expect(result[10]).toBe('   cyan - a skipped test')
-            expect(result[11]).toBe('')
+            expect(result).toMatchSnapshot()
         })
 
         it('should validate the result output with no tests', () => {
@@ -272,8 +295,36 @@ describe('SpecReporter', () => {
             tmpReporter.suites = SUITES_NO_TESTS
 
             const result = tmpReporter.getResultDisplay()
-
             expect(result.length).toBe(0)
+        })
+
+        it('should print data tables', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_WITH_DATA_TABLE)
+            tmpReporter.suites = SUITES_WITH_DATA_TABLE
+
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should not print if data table format is not given', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => {
+                const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
+                suites[0].hooksAndTests[0].argument = 'some different format'
+                return suites
+            })
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
+        })
+
+        it('should not print if data table is empty', () => {
+            tmpReporter.getOrderedSuites = jest.fn(() => {
+                const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
+                suites[0].hooksAndTests[0].argument.rows = []
+                return suites
+            })
+
+            const result = tmpReporter.getResultDisplay()
+            expect(result).toMatchSnapshot()
         })
     })
 
@@ -322,7 +373,7 @@ describe('SpecReporter', () => {
 
             const result = tmpReporter.getFailureDisplay()
 
-            expect(result.length).toBe(4)
+            expect(result.length).toBe(7)
             expect(result[0]).toBe('')
             expect(result[1]).toBe('1) Bar test a failed test')
             expect(result[2]).toBe('red expected foo to equal bar')

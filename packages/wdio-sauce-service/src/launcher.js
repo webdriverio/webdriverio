@@ -1,5 +1,7 @@
+import logger from '@wdio/logger'
 import SauceConnectLauncher from 'sauce-connect-launcher'
 
+const log = logger('@wdio/sauce-service')
 export default class SauceLauncher {
     /**
      * modify config and launch sauce connect
@@ -11,12 +13,15 @@ export default class SauceLauncher {
 
         this.sauceConnectOpts = Object.assign({
             username: config.user,
-            accessKey: config.key
+            accessKey: config.key,
+            logger: log.debug
         }, config.sauceConnectOpts)
 
-        config.protocol = 'http'
-        config.hostname = 'localhost'
-        config.port = this.sauceConnectOpts.port || 4445
+        if (config.scRelay) {
+            config.protocol = 'http'
+            config.hostname = 'localhost'
+            config.port = this.sauceConnectOpts.port || 4445
+        }
 
         const sauceConnectTunnelIdentifier = this.sauceConnectOpts.tunnelIdentifier
 

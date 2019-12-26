@@ -24,24 +24,112 @@
         const myButton = $('#myButton')
         myButton.click()
         const myText = $('#someText')
-        const text = myText.getText();
-        assert(text === 'I was clicked'); // true
+        const text = myText.getText()
+        assert(text === 'I was clicked') // true
     })
     :example.js
     it('should fetch menu links and visit each page', () => {
-        const links = $$('#menu a');
+        const links = $$('#menu a')
         links.forEach((link) => {
-            link.click();
-        });
-    });
+            link.click()
+        })
+    })
+ * </example>
+ *
+ * <example>
+    :example.html
+    <button id="myButton">Click me</button>
+    :example.js
+    it('should demonstrate a click using an offset', () => {
+        const myButton = $('#myButton')
+        myButton.click({ x: 30 }) // clicks 30 horizontal pixels away from location of the button
+    })
+ * </example>
+ *
+ * <example>
+    :example.html
+    <button id="myButton">Click me</button>
+    :example.js
+    it('should demonstrate a right click passed as string', () => {
+        const myButton = $('#myButton')
+        myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
+    })
+    it('should demonstrate a right click passed as number while adding an offset', () => {
+        const myButton = $('#myButton')
+        myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button
+    })
  * </example>
  *
  * @alias element.click
- * @uses protocol/element, protocol/elementIdClick
+ * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
  * @type action
- *
+ * @param {object=} options Object (optional)
+ * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
+ * @param {number=} options.x Number (optional)
+ * @param {number=} options.y Number (optional)
  */
 
-export default function click () {
-    return this.elementClick(this.elementId)
+export default async function click(options) {
+    if (typeof options === 'undefined') {
+        return this.elementClick(this.elementId)
+    }
+
+    if (typeof options !== 'object' || Array.isArray(options)) {
+        throw new TypeError('Options must be an oject')
+    }
+
+    let {
+        button = 0,
+        x: xoffset = 0,
+        y: yoffset = 0
+    } = options || {}
+
+    if (
+        typeof xoffset !== 'number'
+        || typeof yoffset !== 'number'
+        || !Number.isInteger(xoffset)
+        || !Number.isInteger(yoffset)) {
+        throw new TypeError('Coördinates must be integers')
+    }
+
+    if (button === 'left') {
+        button = 0
+    }
+    if (button === 'middle') {
+        button = 1
+    }
+    if (button === 'right') {
+        button = 2
+    }
+    if (![0, 1, 2].includes(button)) {
+        throw new Error('Button type not supported.')
+    }
+
+    if (this.isW3C) {
+        await this.performActions([{
+            type: 'pointer',
+            id: 'pointer1',
+            parameters: {
+                pointerType: 'mouse'
+            },
+            actions: [{
+                type: 'pointerMove',
+                origin: this,
+                x: xoffset,
+                y: yoffset
+            }, {
+                type: 'pointerDown',
+                button
+            }, {
+                type: 'pointerUp',
+                button
+            }]
+        }])
+
+        return this.releaseActions()
+    }
+
+    const { width, height } = await this.getElementSize(this.elementId)
+    await this.moveToElement(this.elementId, xoffset + (width / 2), yoffset + (height / 2))
+    return this.positionClick(button)
 }

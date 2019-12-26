@@ -41,8 +41,11 @@ exports.config = {
 - `outputDir` defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
 - `disableWebdriverStepsReporting` - optional parameter(`false` by default), in order to log only custom steps to the reporter.
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
+- `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
+- `disableMochaHooks` - optional parameter (`false` by default), set it to true in order to not fetch the `before/after` stacktrace/screenshot/result hooks into the Allure Reporter.
 
 ## Supported Allure API
+* `addLabel(name, value)` - assign a custom label to test
 * `addFeature(featureName)` – assign feature to test
 * `addStory(storyName)` – assign user story to test
 * `addSeverity(value)` – assign severity to test

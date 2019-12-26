@@ -1,7 +1,7 @@
 
 /**
  *
- * Return true if the selected DOM-element found by given selector is visible and within the viewport.
+ * Return true if the selected DOM-element found by given selector is partially visible and within the viewport.
  *
  * <example>
     :index.html
@@ -38,10 +38,14 @@
 
 import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject } from '../../utils'
-import isDisplayedInViewportScript from '../../scripts/isDisplayedInViewport'
+import isElementInViewportScript from '../../scripts/isElementInViewport'
 
-export default function isDisplayedInViewport () {
-    return getBrowserObject(this).execute(isDisplayedInViewportScript, {
+export default async function isDisplayedInViewport () {
+    if (!await this.isDisplayed()) {
+        return false
+    }
+
+    return getBrowserObject(this).execute(isElementInViewportScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
     })

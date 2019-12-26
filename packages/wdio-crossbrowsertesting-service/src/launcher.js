@@ -8,10 +8,11 @@ export default class CrossBrowserTestingLauncher {
 
         this.cbtTunnelOpts = Object.assign({
             username: config.user,
-            authkey: config.key
+            authkey: config.key,
+            nokill: true
         }, config.cbtTunnelOpts)
 
-        return new Promise((resolve, reject) => cbt.start({ 'username': config.user, 'authkey': config.key }, (err) => {
+        return new Promise((resolve, reject) => cbt.start(this.cbtTunnelOpts, (err) => {
             if (err) {
                 return reject(err)
             }

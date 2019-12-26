@@ -27,6 +27,11 @@ const config = load({ nextVersionFromMetadata: false })
 config.nextVersion = version
 const changelog = new Changelog(config)
 
+/**
+ * update local tags
+ */
+shell.exec('git fetch --tags --force')
+const latestRelease = shell.exec('git describe --tags `git rev-list --tags --max-count=1`').stdout.trim()
 const BANNER = `
 #######################
 ###                 ###
@@ -45,9 +50,10 @@ const BANNER = `
  */
 // eslint-disable-next-line no-console
 console.log('Start generating changelog...')
-changelog.createMarkdown({ tagFrom: 'v5.10.9' }).then((newChangelog) => {
+changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) => {
+    newChangelog = `\n\n## v${version} ` + newChangelog.slice(newChangelog.indexOf('(')) + '\n'
     let changelogContent = fs.readFileSync(changelogPath, 'utf8')
-    changelogContent = changelogContent.replace('---', '---\n' + newChangelog)
+    changelogContent = changelogContent.replace('---', '---' + newChangelog)
     fs.writeFileSync(changelogPath, changelogContent, 'utf8')
 
     /**

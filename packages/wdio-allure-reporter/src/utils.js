@@ -1,6 +1,6 @@
 import process from 'process'
 import CompoundError from './compoundError'
-import { testStatuses, mochaEachHooks } from './constants'
+import { testStatuses, mochaEachHooks, mochaAllHooks } from './constants'
 
 /**
  * Get allure test status by TestStat object
@@ -17,9 +17,12 @@ export const getTestStatus = (test, config) => {
         return test.error.name === 'AssertionError' ? testStatuses.FAILED : testStatuses.BROKEN
     }
 
-    const stackTrace = test.error.stack.trim()
-    return stackTrace.startsWith('AssertionError') ? testStatuses.FAILED : testStatuses.BROKEN
+    if (test.error.stack) {
+        const stackTrace = test.error.stack.trim()
+        return stackTrace.startsWith('AssertionError') ? testStatuses.FAILED : testStatuses.BROKEN
+    }
 
+    return testStatuses.BROKEN
 }
 
 /**
@@ -36,6 +39,14 @@ export const isEmpty = (object) => !object || Object.keys(object).length === 0
  * @private
  */
 export const isMochaEachHooks = title => mochaEachHooks.some(hook => title.includes(hook))
+
+/**
+ * Is mocha beforeAll / afterAll hook
+ * @param title {String} - hook title
+ * @returns {boolean}
+ * @private
+ */
+export const isMochaAllHooks = title => mochaAllHooks.some(hook => title.includes(hook))
 
 /**
  * Call reporter

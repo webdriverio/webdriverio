@@ -66,6 +66,7 @@ declare namespace WebDriver {
         perfLoggingPrefs?: {
             [name: string]: any;
         };
+        prefs?: string[];
         windowTypes?: string[];
     }
 
@@ -78,7 +79,7 @@ declare namespace WebDriver {
         args?: string[],
         profile?: string,
         log?: FirefoxLogObject,
-        prefs: {
+        prefs?: {
             [name: string]: string | number | boolean;
         }
     }
@@ -212,6 +213,21 @@ declare namespace WebDriver {
         // wdio-sauce-service specific
         build?: string;
 
+        // Saucelabs w3c specific
+        'sauce:options'?: {
+            [name: string]: any;
+        };
+
+        // Browserstack w3c specific
+        'bstack:options'?: {
+            [name: string]: any;
+        };
+
+        // Testingbot w3c specific
+        'tb:options'?: {
+            [name: string]: any;
+        };
+
         // Appium General Capabilities
         automationName?: string;
         platformVersion?: string;
@@ -344,6 +360,9 @@ declare namespace WebDriver {
         connectionRetryCount?: number;
         user?: string;
         key?: string;
+        headers?: {
+            [name: string]: string;
+        };
     }
 
     interface AttachSessionOptions extends Options {
@@ -365,13 +384,67 @@ declare namespace WebDriver {
         commandWrapper?: (commandName: string, fn: (...args: any[]) => any) => any
     ): Promise<Client>;
 
+    function reloadSession(
+        instance: Client
+    ): Promise<Client>;
+
     interface ClientOptions {
         capabilities: DesiredCapabilities;
         isW3C: boolean;
+        isChrome: boolean;
         isAndroid: boolean;
         isMobile: boolean;
         isIOS: boolean;
         sessionId: string;
+    }
+
+    // object with no match
+    interface ProtocolCommandResponse {
+        [key: string]: any;
+    }
+
+    // webdriver.json
+    interface SessionReturn extends DesiredCapabilities, ProtocolCommandResponse { }
+
+    interface StatusReturn extends ProtocolCommandResponse {
+        ready?: boolean,
+        message?: string,
+    }
+
+    interface WindowHandle {
+        handle: string,
+        type: string
+    }
+
+    interface RectReturn {
+        x: number,
+        y: number,
+        width: number,
+        height: number
+    }
+
+    // appium.json
+    interface StringsReturn {
+        [key:string]: string
+    }
+
+    interface SettingsReturn extends ProtocolCommandResponse {
+        shouldUseCompactResponses?: boolean,
+        elementResponseAttributes?: string,
+        ignoreUnimportantViews?: boolean,
+        allowInvisibleElements?: boolean,
+        enableNotificationListener?: boolean,
+        actionAcknowledgmentTimeout?: number,
+        keyInjectionDelay?: number,
+        scrollAcknowledgmentTimeout?: number,
+        waitForIdleTimeout?: number,
+        waitForSelectorTimeout?: number,
+        normalizeTagNames?: boolean,
+        shutdownOnPowerDisconnect?: boolean,
+        mjpegServerScreenshotQuality?: number,
+        mjpegServerFramerate?: number,
+        screenshotQuality?: number,
+        mjpegScalingFactor?: number,
     }
 
     // generated typings

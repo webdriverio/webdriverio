@@ -1,5 +1,7 @@
 {
-    "getLocation": [
+    "getLocation": {
+      "description": "Determine an element’s location on the page.",
+      "properties": [
         {
             "parameters": [{"name": "prop", "type": "LocationParam"}],
             "return": "number"
@@ -8,8 +10,11 @@
             "parameters": [],
             "return": "LocationReturn"
         }
-    ],
-    "getSize": [
+      ]
+    },
+    "getSize": {
+      "description": "Get the width and height for an DOM-element.",
+      "properties": [
         {
             "parameters": [{"name": "prop", "type": "SizeParam"}],
             "return": "number"
@@ -18,35 +23,51 @@
             "parameters": [],
             "return": "SizeReturn"
         }
-    ],
-    "setCookies": [
+      ]
+    },
+    "setCookies": {
+      "description": "Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page.",
+      "properties": [
         {
             "parameters": [{"name": "cookie", "type": "Cookie"}],
             "return": "void"
         }
-    ],
-    "getCookies": [
+      ]
+    },
+    "getCookies": {
+      "description": "Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)",
+      "properties": [
         {
             "parameters": [{"name": "names?", "type": "string[]"}],
             "return": "Cookie[]"
         }
-    ],
-    "getCSSProperty": [
+      ]
+    },
+    "getCSSProperty": {
+      "description": "Get a css property from a DOM-element selected by given selector.",
+      "properties": [
         {
             "parameters": [{"name": "cssProperty", "type": "string"}],
             "return": "CSSProperty"
         }
-    ],
-    "setTimeout": [
+      ]
+    },
+    "setTimeout": {
+      "description": "Sets the timeouts (implicit, pageLoad, script) associated with the current session.",
+      "properties": [
         {
             "parameters": [{"name": "timeouts", "type": "Timeouts"}],
             "return": "void"
         }
-    ],
-    "touchAction": [
+      ]
+    },
+    "touchAction": {
+      "description": "[appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.",
+      "properties": [
         {
             "parameters": [{"name": "action", "type": "TouchActions"}],
             "return": "void"
         }
-    ]
+      ]
+    }
 }

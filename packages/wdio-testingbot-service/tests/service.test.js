@@ -6,6 +6,28 @@ jest.mock('request', () => ({
     get: jest.fn()
 }))
 
+const uri = '/some/uri'
+const featureObject = {
+    type: 'gherkin-document',
+    uri: '__tests__/features/passed.feature',
+    document:
+        {
+            type: 'GherkinDocument',
+            feature:
+                {
+                    type: 'Feature',
+                    tags: ['tag'],
+                    location: ['Object'],
+                    language: 'en',
+                    keyword: 'Feature',
+                    name: 'Create a feature',
+                    description: '    the description',
+                    children: [''],
+                },
+            comments: []
+        }
+}
+
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
     global.browser = {
@@ -134,90 +156,62 @@ describe('wdio-testingbot-service', () => {
 
     it('beforeFeature: execute not called', () => {
         const tbService = new TestingBotService()
-        const feature = {
-            name: 'Feature name',
-            getName: () => 'Feature name'
-        }
-        tbService.beforeFeature(feature)
+        tbService.beforeFeature(uri, featureObject)
 
         expect(execute).not.toBeCalled()
     })
 
     it('beforeFeature: execute called', () => {
         const tbService = new TestingBotService()
-        const feature = {
-            name: 'Feature name',
-            getName: () => 'Feature name'
-        }
         tbService.beforeSession({
             user: 'user',
             key: 'secret'
         }, {})
-        tbService.beforeFeature(feature)
+        tbService.beforeFeature(uri, featureObject)
 
-        expect(tbService.suiteTitle).toEqual('Feature name')
-        expect(execute).toBeCalledWith('tb:test-context=Feature: Feature name')
+        expect(tbService.suiteTitle).toEqual('Create a feature')
+        expect(execute).toBeCalledWith('tb:test-context=Feature: Create a feature')
     })
 
-    it('afterStep: exception happened', () => {
+    it('afterScenario: exception happened', () => {
         const tbService = new TestingBotService()
         tbService.failures = 0
-        const feature = {
-            failureException: 'Unhandled error!'
-        }
-        tbService.afterStep(feature)
 
-        expect(tbService.failures).toEqual(1)
-    })
+        expect(tbService.failures).toBe(0)
 
-    it('afterStep: getFailureException func exists', () => {
-        const tbService = new TestingBotService()
-        tbService.failures = 0
-        const feature = {
-            getFailureException: () => 'Unhandled error!'
-        }
-        tbService.afterStep(feature)
+        tbService.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(tbService.failures).toBe(0)
 
-        expect(tbService.failures).toEqual(1)
-    })
+        tbService.afterScenario(uri, {}, {}, { status: 'failed' })
+        expect(tbService.failures).toBe(1)
 
-    it('afterStep: cucumber failure', () => {
-        const tbService = new TestingBotService()
-        tbService.failures = 0
-        const feature = {
-            status: 'failed'
-        }
-        tbService.afterStep(feature)
+        tbService.afterScenario(uri, {}, {}, { status: 'passed' })
+        expect(tbService.failures).toBe(1)
 
-        expect(tbService.failures).toEqual(1)
+        tbService.afterScenario(uri, {}, {}, { status: 'failed' })
+        expect(tbService.failures).toBe(2)
     })
 
     it('beforeScenario: execute not called', () => {
         const tbService = new TestingBotService()
-        const scenario = {
-            name: 'Scenario name',
-            getName: () => 'Scenario name'
-        }
+        const scenario = { name: 'Scenario name' }
         tbService.beforeSession({
             user: 'user',
             key: undefined
         }, {})
-        tbService.beforeScenario(scenario)
+        tbService.beforeScenario(uri, featureObject, scenario)
 
         expect(execute).not.toBeCalled()
     })
 
     it('beforeScenario: execute called', () => {
         const tbService = new TestingBotService()
-        const scenario = {
-            name: 'Scenario name',
-            getName: () => 'Scenario name'
-        }
+        const scenario = { name: 'Scenario name' }
         tbService.beforeSession({
             user: 'user',
             key: 'secret'
         }, {})
-        tbService.beforeScenario(scenario)
+        tbService.beforeScenario(uri, featureObject, scenario)
 
         expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })

@@ -50,10 +50,6 @@ export default class CrossBrowserTestingService {
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
             this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
-
-        const context = test.parent === 'Jasmine__TopLevel__Suite' ? test.fullName : test.parent + ' - ' + test.title
-
-        global.browser.execute('cbt:test-context=' + context)
     }
 
     afterSuite (suite) {
@@ -73,51 +69,32 @@ export default class CrossBrowserTestingService {
     }
 
     /**
-     * Before feature
-     * @param {Object} feature Feature
+     * For CucumberJS
      */
-    beforeFeature (feature) {
+
+    /**
+     * Before feature
+     * @param {string} uri
+     * @param {Object} feature
+     */
+    beforeFeature (uri, feature) {
         if (!this.isServiceEnabled) {
             return
         }
 
-        this.suiteTitle = feature.name || feature.getName()
-        global.browser.execute('cbt:test-context=Feature: ' + this.suiteTitle)
+        this.suiteTitle = feature.document.feature.name
     }
-
     /**
      * After step
-     * @param {Object} feature Feature
+     * @param {string} uri
+     * @param {Object} feature
+     * @param {Object} pickle
+     * @param {Object} result
      */
-    afterStep (feature) {
-        if (
-            /**
-             * Cucumber v1
-             */
-            feature.failureException ||
-            /**
-             * Cucumber v2
-             */
-            (typeof feature.getFailureException === 'function' && feature.getFailureException()) ||
-            /**
-             * Cucumber v3, v4
-             */
-            (feature.status === 'failed')
-        ) {
+    afterScenario(uri, feature, pickle, result) {
+        if (result.status === 'failed') {
             ++this.failures
         }
-    }
-
-    /**
-     * Before scenario
-     * @param {Object} scenario Scenario
-     */
-    beforeScenario (scenario) {
-        if (!this.isServiceEnabled) {
-            return
-        }
-        const scenarioName = scenario.name || scenario.getName()
-        global.browser.execute('cbt:test-context=Scenario: ' + scenarioName)
     }
 
     /**

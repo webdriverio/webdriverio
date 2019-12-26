@@ -49,6 +49,14 @@ describe('isDisplayed test', () => {
         expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
     })
 
+    it('should refect React element if non existing', async () => {
+        elem = await browser.react$('FooCmp')
+
+        delete elem.elementId
+
+        expect(await elem.isDisplayed()).toBe(true)
+    })
+
     it('should return false if element is not existing anymore', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -122,6 +130,27 @@ describe('isDisplayed test', () => {
             })
             elem = await browser.$('#foo')
             request.mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(request).toBeCalledTimes(1)
+            expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+            expect(request.mock.calls[0][0].body.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+        it('should be used if devtools', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'firefox',
+                    keepBrowserName: true,
+                    mobileMode: true
+                }
+            })
+            elem = await browser.$('#foo')
+            request.mockClear()
+            browser.isDevTools = true
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(request).toBeCalledTimes(1)

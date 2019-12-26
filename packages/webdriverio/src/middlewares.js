@@ -9,8 +9,8 @@ import implicitWait from './utils/implicitWait'
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
 export const elementErrorHandler = (fn) => (commandName, commandFn) => {
-    return function (...args) {
-        return fn(commandName, async () => {
+    return function elementErrorHandlerCallback (...args) {
+        return fn(commandName, async function elementErrorHandlerCallbackFn () {
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
 

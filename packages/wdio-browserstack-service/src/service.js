@@ -35,7 +35,7 @@ export default class BrowserstackService {
             user: this.config.user,
             pass: this.config.key
         }
-        if (global.browser.capabilities.app) {
+        if (this.config.capabilities.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
         return this._printSessionURL()
@@ -56,27 +56,18 @@ export default class BrowserstackService {
         }
     }
 
-    afterStep(feature) {
-        if (
-            /**
-             * Cucumber v1
-             */
-            feature.failureException ||
-            /**
-             * Cucumber v2
-             */
-            (typeof feature.getFailureException === 'function' && feature.getFailureException()) ||
-            /**
-             * Cucumber v3, v4
-             */
-            (feature.status === 'failed')
-        ) {
-            ++this.failures
-        }
-    }
-
     after() {
         return this._update(this.sessionId, this._getBody())
+    }
+
+    /**
+     * For CucumberJS
+     */
+
+    afterScenario(uri, feature, pickle, result) {
+        if (result.status === 'failed') {
+            ++this.failures
+        }
     }
 
     async onReload(oldSessionId, newSessionId) {

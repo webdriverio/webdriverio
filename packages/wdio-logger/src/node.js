@@ -48,13 +48,13 @@ const SERIALIZERS = [{
     serialize: (log) => chalk.cyan(log)
 }]
 
-const loggers = {}
+const loggers = log.getLoggers()
 let logLevelsConfig = {}
 const logCache = new Set()
 let logFile
 
 const originalFactory = log.methodFactory
-log.methodFactory = function (methodName, logLevel, loggerName) {
+const wdioLoggerMethodFactory = function (methodName, logLevel, loggerName) {
     const rawMethod = originalFactory(methodName, logLevel, loggerName)
     return (...args) => {
         /**
@@ -101,13 +101,6 @@ log.methodFactory = function (methodName, logLevel, loggerName) {
     }
 }
 
-prefix.apply(log, {
-    template: '%t %l %n:',
-    timestampFormatter: (date) => chalk.gray(date.toISOString()),
-    levelFormatter: (level) => chalk[COLORS[level]](level.toUpperCase()),
-    nameFormatter: (name) => chalk.whiteBright(name)
-})
-
 export default function getLogger (name) {
     /**
      * check if logger was already initiated
@@ -124,6 +117,13 @@ export default function getLogger (name) {
 
     loggers[name] = log.getLogger(name)
     loggers[name].setLevel(logLevel)
+    loggers[name].methodFactory = wdioLoggerMethodFactory
+    prefix.apply(loggers[name], {
+        template: '%t %l %n:',
+        timestampFormatter: (date) => chalk.gray(date.toISOString()),
+        levelFormatter: (level) => chalk[COLORS[level]](level.toUpperCase()),
+        nameFormatter: (name) => chalk.whiteBright(name)
+    })
     return loggers[name]
 }
 /**

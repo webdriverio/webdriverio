@@ -22,6 +22,18 @@ const callResult = <number>browser.call(() =>
 )
 callResult.toFixed(2)
 
+// browser element command
+browser.getElementRect('elementId')
+
+// protocol command return mapped object value
+const { x, y, width, height } = browser.getWindowRect()
+
+// protocol command return unmapped object
+const { foo, bar } = browser.takeHeapSnapshot()
+
+// browser command return mapped object value
+const { x: x0, y: y0, width: w, height: h } = browser.getWindowSize()
+
 // browser custom command
 browser.browserCustomCommand(5)
 
@@ -31,6 +43,9 @@ browser.overwriteCommand('click', function (origCommand) {
 
 // $
 const el1 = $('')
+const strFunction = (str: string) => str
+strFunction(el1.selector)
+strFunction(el1.elementId)
 const el2 = el1.$('')
 const el3 = el2.$('')
 el1.getCSSProperty('style')
@@ -46,6 +61,9 @@ const el5 = el4.$('')
 el4.getAttribute('class')
 el5.scrollIntoView(false)
 
+const selector$$: string | Function = elems.selector
+const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
+
 // shadow$ shadow$$
 const el6 = $('')
 const shadowElem = el6.shadow$('')
@@ -59,10 +77,29 @@ reactElement.click()
 const reactElements = reactWrapper.react$$('')
 reactElements[0].click()
 
+// touchAction
+const ele = $('')
+const touchAction: WebdriverIO.TouchAction = {
+    action: "longPress",
+    element: $(''),
+    ms: 0,
+    x: 0,
+    y: 0
+}
+ele.touchAction(touchAction)
+browser.touchAction(touchAction)
+
+// dragAndDrop
+ele.dragAndDrop(ele, 0)
+
 // selenium-standalone-service
 const config: WebdriverIO.Config = {
     skipSeleniumInstall: true
 }
+
+// shared-store-service
+browser.sharedStore.get('foo')
+browser.sharedStore.set('foo', ['q', 1, true, null, {'w' : {}, 'e': [] }, [{}]])
 
 // allure-reporter
 allure.addFeature('')

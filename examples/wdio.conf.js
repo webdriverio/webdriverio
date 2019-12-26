@@ -14,6 +14,8 @@ exports.config = {
     hostname: 'localhost',
     port: 4444,
     path: '/wd/hub',
+    // Protocol: http | https
+    // protocol: 'http',
     //
     // =================
     // Service Providers
@@ -81,11 +83,6 @@ exports.config = {
         specs: [
             'test/ffOnly/*'
         ]
-    }, {
-        browserName: 'phantomjs',
-        exclude: [
-            'test/spec/alert.js'
-        ]
     }],
     //
     //
@@ -95,19 +92,11 @@ exports.config = {
     // ===================
     // Define all options that are relevant for the WebdriverIO instance here
     //
-    // By default WebdriverIO commands are executed in a synchronous way using
-    // the wdio-sync package. If you still want to run your tests in an async way
-    // e.g. using promises you can set the sync option to false.
-    sync: true,
-    //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevel: 'info',
     //
     // Set directory to store all logs into
     outputDir: __dirname,
-    //
-    // Enables colors for log output.
-    coloredLogs: true,
     //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
@@ -176,7 +165,7 @@ exports.config = {
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
-        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+        requireModule: [],  // <string[]> ("module") require MODULE files (repeatable)
         dryRun: false,      // <boolean> invoke formatters without executing steps
         failFast: false,    // <boolean> abort the run on first failure
         format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
@@ -186,7 +175,7 @@ exports.config = {
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,      // <number> timeout for step definitions
+        timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
@@ -231,20 +220,21 @@ exports.config = {
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha)
+     * stepData and world are Cucumber framework specific
      */
-    beforeHook: function () {
+    beforeHook: function (test, context/*, stepData, world*/) {
     },
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha)
+     * stepData and world are Cucumber framework specific
      */
-    afterHook: function () {
+    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * Function to be executed before a test (in Mocha/Jasmine) starts.
      */
-    beforeTest: function (test) {
+    beforeTest: function (test, context) {
     },
     //
     /**
@@ -264,10 +254,9 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-     * @param {Object} test test details
+     * Function to be executed after a test (in Mocha/Jasmine) ends.
      */
-    afterTest: function (test) {
+    afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
      * Hook that gets executed after the suite has ended
@@ -311,16 +300,16 @@ exports.config = {
     },
     //
     // Cucumber specific hooks
-    beforeFeature: function (feature) {
+    beforeFeature: function (uri, feature, scenarios) {
     },
-    beforeScenario: function (scenario) {
+    beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
-    beforeStep: function (step) {
+    beforeStep: function (uri, feature, stepData, context) {
     },
-    afterStep: function (stepResult) {
+    afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
     },
-    afterScenario: function (scenario) {
+    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
-    afterFeature: function (feature) {
+    afterFeature: function (uri, feature, scenarios) {
     }
 }

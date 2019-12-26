@@ -1,6 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
+import { buildTableData, printTable, getFormattedRows } from './utils'
 
 class SpecReporter extends WDIOReporter {
     constructor (options) {
@@ -74,12 +75,27 @@ class SpecReporter extends WDIOReporter {
             return
         }
 
+        const testLinks = runner.isMultiremote
+            ? Object.entries(runner.capabilities).map(([instanceName, capabilities]) => this.getTestLink({
+                config: { ...runner.config, ...{ capabilities } },
+                sessionId: capabilities.sessionId,
+                isMultiremote: runner.isMultiremote,
+                instanceName
+            }))
+            : this.getTestLink(runner)
         const output = [
             ...this.getHeaderDisplay(runner),
+            '',
             ...results,
             ...this.getCountDisplay(duration),
             ...this.getFailureDisplay(),
-            ...this.getTestLink(runner)
+            ...(testLinks.length
+                /**
+                 * if we have test links add an empty line
+                 */
+                ? ['', ...testLinks]
+                : []
+            )
         ]
 
         // Prefix all values with the browser information
@@ -94,12 +110,24 @@ class SpecReporter extends WDIOReporter {
     /**
      * get link to saucelabs job
      */
-    getTestLink ({ config, sessionId }) {
-        if (config.hostname.includes('saucelabs')) {
+    getTestLink ({ config, sessionId, isMultiremote, instanceName }) {
+        const isSauceJob = (
+            config.hostname.includes('saucelabs') ||
+            // only show if multiremote is not used
+            config.capabilities && (
+                // check w3c caps
+                config.capabilities['sauce:options'] ||
+                // check jsonwp caps
+                config.capabilities.tunnelIdentifier
+            )
+        )
+
+        if (isSauceJob) {
             const dc = config.headless
                 ? '.us-east-1'
                 : ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
-            return ['', `Check out job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
+            const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
+            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
         }
 
         return []
@@ -111,14 +139,20 @@ class SpecReporter extends WDIOReporter {
      * @return {Array}         Header data
      */
     getHeaderDisplay(runner) {
-        const combo = this.getEnviromentCombo(runner.capabilities).trim()
+        const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
 
         // Spec file name and enviroment information
         const output = [
             `Spec: ${runner.specs[0]}`,
-            `Running: ${combo}`,
-            '',
+            `Running: ${combo}`
         ]
+
+        /**
+         * print session ID if not multiremote
+         */
+        if (runner.capabilities.sessionId) {
+            output.push(`Session ID: ${runner.capabilities.sessionId}`)
+        }
 
         return output
     }
@@ -131,14 +165,12 @@ class SpecReporter extends WDIOReporter {
     getEventsToReport (suite) {
         return [
             /**
-             * report all tests
+             * report all tests and only hooks that failed
              */
-            ...suite.tests,
-            /**
-             * and only hooks that failed
-             */
-            ...suite.hooks
-                .filter((hook) => Boolean(hook.error))
+            ...suite.hooksAndTests
+                .filter((item) => {
+                    return item.type === 'test' || Boolean(item.error)
+                })
         ]
     }
 
@@ -171,6 +203,14 @@ class SpecReporter extends WDIOReporter {
 
                 // Output for a single test
                 output.push(`${testIndent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+
+                // print cucumber data table cells
+                if (test.argument && test.argument.rows && test.argument.rows.length) {
+                    const data = buildTableData(test.argument.rows)
+                    const rawTable = printTable(data)
+                    const table = getFormattedRows(rawTable, testIndent)
+                    output.push(...table)
+                }
             }
 
             // Put a line break after each suite (only if tests exist in that suite)
@@ -239,10 +279,10 @@ class SpecReporter extends WDIOReporter {
 
                 )
                 for (let error of errors) {
-                    output.push(
-                        this.chalk.red(error.message),
-                        ...error.stack.split(/\n/g).map(value => this.chalk.gray(value))
-                    )
+                    output.push(this.chalk.red(error.message))
+                    if (error.stack) {
+                        output.push(...error.stack.split(/\n/g).map(value => this.chalk.gray(value)))
+                    }
                 }
             }
         }

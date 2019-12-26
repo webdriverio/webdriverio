@@ -44,6 +44,7 @@ export function sanitizeCaps (caps) {
  * initialise browser instance depending whether remote or multiremote is requested
  * @param  {Object}  config        configuration of sessions
  * @param  {Object}  capabilities  desired session capabilities
+ * @param  {boolean} isMultiremote isMultiremote
  * @return {Promise}               resolves with browser object
  */
 export async function initialiseInstance (config, capabilities, isMultiremote) {
@@ -52,10 +53,8 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
      */
     if (config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
-        return attach({
-            ...config,
-            capabilities: capabilities
-        })
+        config.capabilities = sanitizeCaps(capabilities)
+        return attach({ ...config })
     }
 
     if (!isMultiremote) {
@@ -71,7 +70,7 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
         options[browserName] = merge(config, capabilities[browserName], MERGE_OPTIONS)
     }
 
-    const browser = await multiremote(options)
+    const browser = await multiremote(options, config)
     for (let browserName of Object.keys(capabilities)) {
         global[browserName] = browser[browserName]
     }

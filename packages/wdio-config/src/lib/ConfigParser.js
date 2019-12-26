@@ -5,9 +5,9 @@ import merge from 'deepmerge'
 
 import logger from '@wdio/logger'
 
-import { detectBackend } from '../utils'
+import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber } from '../utils'
 
-import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
+import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, NON_WORKER_SERVICES } from '../constants'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
@@ -65,6 +65,11 @@ export default class ConfigParser {
              * detect Selenium backend
              */
             this._config = merge(detectBackend(this._config, isRDC), this._config, MERGE_OPTIONS)
+
+            /**
+             * remove `watch` from config as far as it can be only passed as command line argument
+             */
+            delete this._config.watch
         } catch (e) {
             log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e
@@ -94,6 +99,16 @@ export default class ConfigParser {
          */
         const defaultTo = Array.isArray(this._capabilities) ? [] : {}
         this._capabilities = merge(this._capabilities, this._config.capabilities || defaultTo, MERGE_OPTIONS)
+
+        /**
+         * save original specs if Cucumber's feature line number is provided
+         */
+        if (this._config.spec && isCucumberFeatureWithLineNumber(this._config.spec)) {
+            /**
+             * `this._config.spec` is string instead of Array in watch mode
+             */
+            this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...this._config.spec] : [this._config.spec]
+        }
 
         /**
          * run single spec file only, regardless of multiple-spec specification
@@ -161,7 +176,7 @@ export default class ConfigParser {
         if (suites.length > 0) {
             let suiteSpecs = []
             for (let suiteName of suites) {
-                // ToDo: log warning if suite was not found
+                // TODO: log warning if suite was not found
                 let suite = this._config.suites[suiteName]
 
                 if (suite && Array.isArray(suite)) {
@@ -179,11 +194,11 @@ export default class ConfigParser {
             let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
             if (Array.isArray(capSpecs)) {
-                tmpSpecs = tmpSpecs.concat(ConfigParser.getFilePaths(capSpecs))
+                tmpSpecs = ConfigParser.getFilePaths(capSpecs)
             }
 
             if (Array.isArray(capExclude)) {
-                exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
+                exclude = ConfigParser.getFilePaths(capExclude)
             }
 
             specs = [...new Set(tmpSpecs)]
@@ -191,11 +206,11 @@ export default class ConfigParser {
         }
 
         if (Array.isArray(capSpecs)) {
-            specs = specs.concat(ConfigParser.getFilePaths(capSpecs))
+            specs = ConfigParser.getFilePaths(capSpecs)
         }
 
         if (Array.isArray(capExclude)) {
-            exclude = exclude.concat(ConfigParser.getFilePaths(capExclude))
+            exclude = ConfigParser.getFilePaths(capExclude)
         }
 
         return specs.filter(spec => !exclude.includes(spec))
@@ -206,7 +221,7 @@ export default class ConfigParser {
      * options from cli argument
      *
      * @param  {String} cliArgFileList  list of files in a string from
-     * @param  {Object} config  config object that stores the spec and exlcude attributes
+     * @param  {Object} config  config object that stores the spec and exclude attributes
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
@@ -214,8 +229,12 @@ export default class ConfigParser {
         const filesToFilter = new Set()
         const fileList = ConfigParser.getFilePaths(config)
         cliArgFileList.forEach(filteredFile => {
+            filteredFile = removeLineNumbers(filteredFile)
+            let globMatchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
             if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
                 filesToFilter.add(path.resolve(process.cwd(), filteredFile))
+            } else if (globMatchedFiles.length) {
+                globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
                 fileList.forEach(file => {
                     if (file.match(filteredFile)) {
@@ -258,7 +277,10 @@ export default class ConfigParser {
         let files = []
 
         if (typeof patterns === 'string') {
+            patterns = removeLineNumbers(patterns)
             patterns = [patterns]
+        } else {
+            patterns = patterns.map(pattern => removeLineNumbers(pattern))
         }
 
         if (!Array.isArray(patterns)) {
@@ -270,6 +292,7 @@ export default class ConfigParser {
 
             filenames = filenames.filter(filename =>
                 filename.slice(-3) === '.js' ||
+                filename.slice(-4) === '.mjs' ||
                 filename.slice(-4) === '.es6' ||
                 filename.slice(-3) === '.ts' ||
                 filename.slice(-8) === '.feature' ||
@@ -286,5 +309,17 @@ export default class ConfigParser {
         }
 
         return files
+    }
+
+    /**
+     * remove services that has nothing to do in worker
+     */
+    filterWorkerServices () {
+        if (!Array.isArray(this._config.services)) {
+            return
+        }
+        this._config.services = this._config.services.filter((service) => {
+            return !NON_WORKER_SERVICES.includes(service)
+        })
     }
 }

@@ -1,6 +1,7 @@
 import path from 'path'
+import Mocha from 'mocha'
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/config'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src'
 import { loadModule } from '../src/utils'
@@ -15,27 +16,36 @@ const wdioReporter = {
     emit: jest.fn(),
     on: jest.fn()
 }
+const adapterFactory = (config) => new MochaAdapter(
+    '0-2',
+    { featureFlags: {}, ...config },
+    ['/foo/bar.test.js'],
+    { browserName: 'chrome' },
+    wdioReporter
+)
+
+beforeEach(() => {
+    wdioReporter.write.mockReset()
+    wdioReporter.emit.mockReset()
+    wdioReporter.on.mockReset()
+})
 
 test('comes with a factory', async () => {
-    expect(typeof MochaAdapterFactory.run).toBe('function')
-    const result = await MochaAdapterFactory.run(
+    expect(typeof MochaAdapterFactory.init).toBe('function')
+    const instance = await MochaAdapterFactory.init(
         '0-2',
-        {},
+        { featureFlags: {} },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
     )
+    const result = await instance.run()
     expect(result).toBe(0)
 })
 
 test('should properly set up mocha', async () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
+    await adapter.init()
     const result = await adapter.run()
     expect(result).toBe(0)
 
@@ -43,48 +53,32 @@ test('should properly set up mocha', async () => {
     expect(adapter.mocha.reporter).toBeCalled()
     expect(adapter.mocha.fullTrace).toBeCalled()
     expect(adapter.mocha.run).toBeCalled()
-    expect(executeHooksWithArgs.mock.calls).toHaveLength(2)
+    expect(executeHooksWithArgs.mock.calls).toHaveLength(1)
     expect(adapter.mocha.runner.on.mock.calls).toHaveLength(Object.keys(EVENTS).length)
     expect(adapter.mocha.runner.suite.beforeAll).toBeCalled()
-    expect(adapter.mocha.runner.suite.beforeEach).toBeCalled()
-    expect(adapter.mocha.runner.suite.afterEach).toBeCalled()
+    expect(adapter.mocha.runner.suite.beforeEach).not.toBeCalled()
+    expect(adapter.mocha.runner.suite.afterEach).not.toBeCalled()
     expect(adapter.mocha.runner.suite.afterAll).toBeCalled()
 
     expect(adapter.mocha.addFile).toBeCalledWith('/foo/bar.test.js')
 })
 
 test('should return amount of errors', async () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        { mochaOpts: { mockFailureCount: 42 } },
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ mochaOpts: { mockFailureCount: 42 } })
+    await adapter.init()
     const result = await adapter.run()
     expect(result).toBe(42)
 })
 
 test('should throw runtime error if spec is invalid', async () => {
     const runtimeError = new Error('Uuups')
-    const adapter = new MochaAdapter(
-        '0-2',
-        { mochaOpts: { mockRuntimeError: runtimeError } },
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ mochaOpts: { mockRuntimeError: runtimeError } })
+    await adapter.init()
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
 test('options', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
     adapter.requireExternalModules = jest.fn()
     adapter.options({
         require: 'foo/bar.js',
@@ -95,46 +89,32 @@ test('options', () => {
 
 test('preRequire', () => {
     const mochaOpts = { foo: 'bar', ui: 'tdd' }
-    const adapter = new MochaAdapter(
-        '0-2',
-        { mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123' },
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
     adapter.preRequire('context', 'file', 'mocha')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'suiteSetup')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'setup')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'test')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'suiteTeardown')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], 'beforeHook123', 'afterHook123', 'teardown')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
+
+    const hookArgsFn = runTestInFiberContext.mock.calls[0][2]
+    expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
+        .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
 })
 
 test('custom ui', () => {
     const mochaOpts = { ui: 'custom-qunit' }
-    const adapter = new MochaAdapter(
-        '0-2',
-        { mochaOpts },
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory({ mochaOpts })
     adapter.preRequire('context', 'file', 'mocha')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'after')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'afterEach')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'beforeEach')
-    expect(runTestInFiberContext).toBeCalledWith(['test', 'test.only'], undefined, undefined, 'before')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'afterEach', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'beforeEach', '0-2')
+    expect(runTestInFiberContext).toBeCalledWith(false, undefined, expect.any(Function), undefined, expect.any(Function), 'before', '0-2')
 })
 
 test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
-    const adapter = new MochaAdapter(
-        '0-2',
-        config,
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll')
 
     executeHooksWithArgs.mockImplementation((...args) => Promise.resolve(args))
@@ -145,13 +125,7 @@ test('wrapHook if successful', async () => {
 
 test('wrapHook if failing', async () => {
     const config = { beforeAll: 'somehook' }
-    const adapter = new MochaAdapter(
-        '0-2',
-        config,
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll')
 
     executeHooksWithArgs.mockImplementation(() => Promise.reject(new Error('uuuups')))
@@ -162,13 +136,8 @@ test('wrapHook if failing', async () => {
 })
 
 test('prepareMessage', async () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
+    await adapter.init()
     await adapter.run()
 
     adapter.lastError = new Error('uuups')
@@ -184,13 +153,7 @@ test('prepareMessage', async () => {
 })
 
 test('formatMessage', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
 
     let params = { type: 'foobar' }
     let message = adapter.formatMessage(params)
@@ -242,38 +205,20 @@ test('formatMessage', () => {
 })
 
 test('requireExternalModules', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
     adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'], { myContext: 123 })
     expect(loadModule).toBeCalledWith('/foo/bar.js', { myContext: 123 })
     expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'), { myContext: 123 })
 })
 
 test('emit does not emit anything on root level', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
     adapter.emit(null, { root: true })
     expect(wdioReporter.emit).not.toBeCalled()
 })
 
 test('emit properly reports to reporter', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
     adapter.getUID = () => 123
     adapter.emit(
         'suite:start',
@@ -287,14 +232,8 @@ test('emit properly reports to reporter', () => {
     expect(wdioReporter.emit.mock.calls[0][1].uid).toBe(123)
 })
 
-test('emits hook errors as hook:end', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+test('emits "before all"-hook errors as hook:end', () => {
+    const adapter = adapterFactory()
     adapter.getUID = () => 123
     adapter.emit(
         'test:fail',
@@ -302,18 +241,25 @@ test('emits hook errors as hook:end', () => {
         new Error('uups')
     )
 
-    expect(wdioReporter.emit.mock.calls[1][0]).toBe('hook:end')
-    expect(wdioReporter.emit.mock.calls[1][1].error.message).toBe('uups')
+    expect(wdioReporter.emit.mock.calls[0][0]).toBe('hook:end')
+    expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
+})
+
+test('emits "before each"-hook errors as hook:end', () => {
+    const adapter = adapterFactory()
+    adapter.getUID = () => 123
+    adapter.emit(
+        'test:fail',
+        { title: '"before each" hook' },
+        new Error('uups')
+    )
+
+    expect(wdioReporter.emit.mock.calls[0][0]).toBe('hook:end')
+    expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
 })
 
 test('getUID', () => {
-    const adapter = new MochaAdapter(
-        '0-2',
-        {},
-        ['/foo/bar.test.js'],
-        { browserName: 'chrome' },
-        wdioReporter
-    )
+    const adapter = adapterFactory()
 
     // disabling indent eslint rule for better visibility
     /*eslint-disable indent */
@@ -373,7 +319,65 @@ test('getUID', () => {
     /*eslint-enable indent */
 })
 
+describe('loadFiles', () => {
+    test('should do nothing if feature is not enabled', () => {
+        const adapter = adapterFactory()
+        adapter._hasTests = null
+        expect(adapter._loadFiles({})).toBe(false)
+        expect(adapter._hasTests).toBe(null)
+    })
+
+    test('should set _hasTests to true if there are tests to run', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.mocha = {
+            loadFiles: jest.fn(),
+            suite: 1 // mochaRunner.total
+        }
+        adapter._loadFiles({})
+        expect(adapter._hasTests).toBe(true)
+    })
+
+    test('should set _hasTests to false if there no tests to run', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.mocha = {
+            loadFiles: jest.fn(),
+            options: { grep: 'regexp foo' },
+            suite: 0 // mochaRunner.total
+        }
+        adapter._loadFiles({ grep: 'foo', invert: 'invert' })
+        expect(Mocha.Runner.mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
+        expect(adapter._hasTests).toBe(false)
+    })
+
+    test('should not fail on exception', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = null
+        adapter.mocha = {
+            loadFiles: jest.fn().mockImplementation(() => { throw new Error('foo') }),
+        }
+        adapter._loadFiles({})
+        expect(adapter.mocha.loadFiles).toBeCalled()
+        expect(adapter._hasTests).toBe(null)
+    })
+})
+
+describe('hasTests', () => {
+    test('should return true if feature is not enabled', () => {
+        const adapter = adapterFactory()
+        adapter._hasTests = 'foobar'
+        expect(adapter.hasTests()).toBe(true)
+    })
+    test('should return _hasTests if feature is enabled', () => {
+        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        adapter._hasTests = 'foobar'
+        expect(adapter.hasTests()).toBe('foobar')
+    })
+})
+
 afterEach(() => {
+    Mocha.Runner.mockClear()
     runTestInFiberContext.mockReset()
     executeHooksWithArgs.mockReset()
 })

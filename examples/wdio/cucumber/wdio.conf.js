@@ -9,7 +9,7 @@ exports.config = {
      * specify test files
      */
     specs: [
-        './features/*.feature'
+        __dirname + '/features/*.feature'
     ],
 
     /**
@@ -28,6 +28,6 @@ exports.config = {
     reporters: ['dot'],
 
     cucumberOpts: {
-        require: ['./step-definitions.js']
+        require: [__dirname + '/step-definitions.js']
     }
 }
