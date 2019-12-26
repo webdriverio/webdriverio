@@ -4,8 +4,8 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackLauncherService {
-    onPrepare(config, capabilities) {
-        if (!config.browserstackLocal) {
+    onPrepare(options, capabilities, config) {
+        if (!options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
 
@@ -13,7 +13,7 @@ export default class BrowserstackLauncherService {
             key: config.key,
             forcelocal: true,
             onlyAutomate: true,
-            ...config.browserstackOpts
+            ...options.browserstackOpts
         }
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
@@ -53,19 +53,19 @@ export default class BrowserstackLauncherService {
         })
     }
 
-    onComplete(exitCode, config) {
+    onComplete() {
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
 
-        if (config.browserstackLocalForcedStop) {
+        if (this.options.browserstackLocalForcedStop) {
             return process.kill(this.browserstackLocal.pid)
         }
 
         let timer
         return Promise.race([
             new Promise((resolve, reject) => {
-                this.browserstackLocal.stop(err => {
+                this.browserstackLocal.stop((err) => {
                     if (err) {
                         return reject(err)
                     }
@@ -74,9 +74,10 @@ export default class BrowserstackLauncherService {
             }),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
-                timer = setTimeout(function () {
-                    reject('Browserstack Local failed to stop within 60 seconds!')
-                }, 60000)
+                timer = setTimeout(
+                    () => reject(new Error('Browserstack Local failed to stop within 60 seconds!')),
+                    60000
+                )
             })]
         ).then(function (result) {
             clearTimeout(timer)
