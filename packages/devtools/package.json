@@ -38,7 +38,9 @@
     "puppeteer-core": "^1.18.1"
   },
   "devDependencies": {
-    "@types/puppeteer": "^1.19.0",
-     "puppeteer-firefox": "^0.5.0"
+    "@types/puppeteer": "^1.19.0"
+  },
+  "optionalDependencies": {
+    "puppeteer-firefox": "^0.5.0"
   }
 }
